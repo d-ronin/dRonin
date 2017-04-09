@@ -33,25 +33,35 @@
 #include "extensionsystem/pluginmanager.h"
 #include "uavobjectmanager.h"
 
-InputPage::InputPage(SetupWizard *wizard, QWidget *parent) :
-    AbstractWizardPage(wizard, parent),
+InputPage::InputPage(SetupWizard *wizard, QWidget *parent)
+    : AbstractWizardPage(wizard, parent)
+    ,
 
     ui(new Ui::InputPage)
 {
     ui->setupUi(this);
-    
+
     // disable invalid input types
-    Core::IBoardType* board = getControllerType();
+    Core::IBoardType *board = getControllerType();
     if (board) {
-        ui->pwmButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_PWM));
-        ui->ppmButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_PPM));
-        ui->hottsumdButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_HOTTSUMD));
-        ui->hottsumhButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_HOTTSUMH));
-        ui->sbusButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_SBUS));
-        ui->sbusnoninvertedButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_SBUSNONINVERTED));
-        ui->spectrumButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_DSM));
-        ui->ibusButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_IBUS));
-        ui->srxlButton->setEnabled(board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_SRXL));
+        ui->pwmButton->setEnabled(
+            board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_PWM));
+        ui->ppmButton->setEnabled(
+            board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_PPM));
+        ui->hottsumdButton->setEnabled(
+            board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_HOTTSUMD));
+        ui->hottsumhButton->setEnabled(
+            board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_HOTTSUMH));
+        ui->sbusButton->setEnabled(
+            board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_SBUS));
+        ui->sbusnoninvertedButton->setEnabled(
+            board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_SBUSNONINVERTED));
+        ui->spectrumButton->setEnabled(
+            board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_DSM));
+        ui->ibusButton->setEnabled(
+            board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_IBUS));
+        ui->srxlButton->setEnabled(
+            board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_SRXL));
     }
     // the default might have been disabled, choose one that's available
     foreach (QToolButton *button, findChildren<QToolButton *>()) {
@@ -90,7 +100,8 @@ bool InputPage::validatePage()
     } else {
         getWizard()->setInputType(Core::IBoardType::INPUT_TYPE_PWM);
     }
-    getWizard()->setRestartNeeded(getWizard()->isRestartNeeded() || restartNeeded(getWizard()->getInputType()));
+    getWizard()->setRestartNeeded(getWizard()->isRestartNeeded()
+                                  || restartNeeded(getWizard()->getInputType()));
 
     return true;
 }
@@ -103,7 +114,7 @@ bool InputPage::validatePage()
  */
 bool InputPage::restartNeeded(Core::IBoardType::InputType selectedType)
 {
-    Core::IBoardType* board = getWizard()->getControllerType();
+    Core::IBoardType *board = getWizard()->getControllerType();
     Q_ASSERT(board);
     if (!board)
         return true;

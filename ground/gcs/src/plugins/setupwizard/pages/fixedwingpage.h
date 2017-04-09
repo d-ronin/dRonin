@@ -34,7 +34,8 @@ namespace Ui {
 class FixedWingPage;
 }
 
-class FixedWingPage : public AbstractWizardPage {
+class FixedWingPage : public AbstractWizardPage
+{
     Q_OBJECT
 
 public:

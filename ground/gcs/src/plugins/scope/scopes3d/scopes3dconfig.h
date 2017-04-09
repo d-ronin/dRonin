@@ -33,13 +33,12 @@
 #include <coreplugin/iuavgadgetconfiguration.h>
 #include "ui_scopegadgetoptionspage.h"
 
-
 // This struct holds the configuration for individual 2D data sources
 struct Plot3dCurveConfiguration
 {
     QString uavObjectName;
     QString uavFieldName;
-    int yScalePower; //This is the power to which each value must be raised
+    int yScalePower; // This is the power to which each value must be raised
     QRgb color;
     int yMeanSamples;
     QString mathFunction;
@@ -55,13 +54,9 @@ public:
     /**
      * @brief The Plot3dType enum Defines the different type of plots.
      */
-    enum Plot3dType {
-        NO3DPLOT,
-        SCATTERPLOT3D,
-        SPECTROGRAM
-    };
+    enum Plot3dType { NO3DPLOT, SCATTERPLOT3D, SPECTROGRAM };
 
-    virtual int getScopeDimensions(){return PLOT3D;}
+    virtual int getScopeDimensions() { return PLOT3D; }
 
 private:
 };

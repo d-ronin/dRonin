@@ -38,7 +38,7 @@
 #include <QIODevice>
 #include <QObject>
 
-class UAVTALK_EXPORT TelemetryManager: public QObject
+class UAVTALK_EXPORT TelemetryManager : public QObject
 {
     Q_OBJECT
 
@@ -60,13 +60,13 @@ private slots:
     void onGeneralSettingsChanged();
 
 private:
-    UAVObjectManager* objMngr;
-    UAVTalk* utalk;
-    Telemetry* telemetry;
-    TelemetryMonitor* telemetryMon;
+    UAVObjectManager *objMngr;
+    UAVTalk *utalk;
+    Telemetry *telemetry;
+    TelemetryMonitor *telemetryMon;
 
     bool autopilotConnected;
-    QHash<quint16, QList<TelemetryMonitor::objStruc> > sessions;
+    QHash<quint16, QList<TelemetryMonitor::objStruc>> sessions;
     Core::Internal::GeneralSettings *settings;
 };
 

@@ -37,10 +37,11 @@ using namespace Core;
 
 class IPConnectionConfiguration : public IUAVGadgetConfiguration
 {
-Q_OBJECT
+    Q_OBJECT
 
 public:
-    explicit IPConnectionConfiguration(QString classId, QSettings* qSettings = 0, QObject *parent = 0);
+    explicit IPConnectionConfiguration(QString classId, QSettings *qSettings = 0,
+                                       QObject *parent = 0);
 
     virtual ~IPConnectionConfiguration();
     void saveConfig() const;
@@ -52,15 +53,15 @@ public:
         ProtocolUdp,
     };
 
-    struct Host {
+    struct Host
+    {
         Protocol protocol = ProtocolTcp;
         QString hostname = "localhost";
         int port = 9000;
 
-        inline bool operator==(const Host& rhs) const {
-            return protocol == rhs.protocol
-                    && port == rhs.port
-                    && hostname == rhs.hostname;
+        inline bool operator==(const Host &rhs) const
+        {
+            return protocol == rhs.protocol && port == rhs.port && hostname == rhs.hostname;
         }
     };
 

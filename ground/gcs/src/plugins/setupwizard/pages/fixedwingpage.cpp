@@ -28,9 +28,9 @@
 #include "fixedwingpage.h"
 #include "ui_fixedwingpage.h"
 
-FixedWingPage::FixedWingPage(SetupWizard *wizard, QWidget *parent) :
-    AbstractWizardPage(wizard, parent),
-    ui(new Ui::FixedWingPage)
+FixedWingPage::FixedWingPage(SetupWizard *wizard, QWidget *parent)
+    : AbstractWizardPage(wizard, parent)
+    , ui(new Ui::FixedWingPage)
 {
     ui->setupUi(this);
     setFinalPage(true);

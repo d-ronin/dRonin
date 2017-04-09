@@ -29,9 +29,10 @@
 #include "uavobjectmanager.h"
 #include "uavobject.h"
 
-PathPlannerGadget::PathPlannerGadget(QString classId, PathPlannerGadgetWidget *widget, QWidget *parent) :
-        IUAVGadget(classId, parent),
-        m_widget(widget)
+PathPlannerGadget::PathPlannerGadget(QString classId, PathPlannerGadgetWidget *widget,
+                                     QWidget *parent)
+    : IUAVGadget(classId, parent)
+    , m_widget(widget)
 {
 }
 
@@ -40,7 +41,7 @@ PathPlannerGadget::~PathPlannerGadget()
     delete m_widget;
 }
 
-void PathPlannerGadget::loadConfiguration(IUAVGadgetConfiguration* config)
+void PathPlannerGadget::loadConfiguration(IUAVGadgetConfiguration *config)
 {
     Q_UNUSED(config);
 }

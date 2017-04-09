@@ -39,7 +39,8 @@
 #include <QScrollBar>
 #include <QTime>
 
-DebugGadgetWidget::DebugGadgetWidget(QWidget *parent) : QLabel(parent)
+DebugGadgetWidget::DebugGadgetWidget(QWidget *parent)
+    : QLabel(parent)
 {
     m_config = new Ui_Form();
     m_config->setupUi(this);
@@ -56,20 +57,20 @@ DebugGadgetWidget::~DebugGadgetWidget()
 
 void DebugGadgetWidget::saveLog()
 {
-    QString fileName = QFileDialog::getSaveFileName(nullptr, tr("Save log File As"),
-                                                    QString("gcs-debug-log-%0.html").arg(QDateTime::currentDateTime().toString("yyyyMMdd-hhmmss")),
-                                                    tr("HTML (*.html)"));
+    QString fileName = QFileDialog::getSaveFileName(
+        nullptr, tr("Save log File As"),
+        QString("gcs-debug-log-%0.html")
+            .arg(QDateTime::currentDateTime().toString("yyyyMMdd-hhmmss")),
+        tr("HTML (*.html)"));
     if (fileName.isEmpty())
         return;
 
     QFile file(fileName);
-    if (file.open(QIODevice::WriteOnly) &&
-        (file.write(m_config->plainTextEdit->toHtml().toLatin1()) != -1)) {
+    if (file.open(QIODevice::WriteOnly)
+        && (file.write(m_config->plainTextEdit->toHtml().toLatin1()) != -1)) {
         file.close();
     } else {
-        QMessageBox::critical(0,
-                              tr("Log Save"),
-                              tr("Unable to save log: ") + fileName,
+        QMessageBox::critical(0, tr("Log Save"), tr("Unable to save log: ") + fileName,
                               QMessageBox::Ok);
         return;
     }
@@ -80,7 +81,8 @@ void DebugGadgetWidget::clearLog()
     m_config->plainTextEdit->clear();
 }
 
-void DebugGadgetWidget::message(DebugEngine::Level level, const QString &msg, const QString &file, const int line, const QString &function)
+void DebugGadgetWidget::message(DebugEngine::Level level, const QString &msg, const QString &file,
+                                const int line, const QString &function)
 {
     QColor color;
     QString type;
@@ -111,11 +113,14 @@ void DebugGadgetWidget::message(DebugEngine::Level level, const QString &msg, co
 #ifdef QT_DEBUG // only display this extended info to devs
     source = QString("[%0:%1 %2]").arg(file).arg(line).arg(function);
 #else
-    Q_UNUSED(file); Q_UNUSED(line); Q_UNUSED(function);
+    Q_UNUSED(file);
+    Q_UNUSED(line);
+    Q_UNUSED(function);
 #endif
 
     m_config->plainTextEdit->setTextColor(color);
-    m_config->plainTextEdit->append(QString("%0[%1]%2 %3").arg(QTime::currentTime().toString()).arg(type).arg(source).arg(msg));
+    m_config->plainTextEdit->append(
+        QString("%0[%1]%2 %3").arg(QTime::currentTime().toString()).arg(type).arg(source).arg(msg));
 
     QScrollBar *sb = m_config->plainTextEdit->verticalScrollBar();
     sb->setValue(sb->maximum());

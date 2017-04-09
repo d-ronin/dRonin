@@ -51,15 +51,15 @@
 
 UAVSettingsImportExportPlugin::UAVSettingsImportExportPlugin()
 {
-   // Do nothing
+    // Do nothing
 }
 
 UAVSettingsImportExportPlugin::~UAVSettingsImportExportPlugin()
 {
-   // Do nothing
+    // Do nothing
 }
 
-bool UAVSettingsImportExportPlugin::initialize(const QStringList& args, QString *errMsg)
+bool UAVSettingsImportExportPlugin::initialize(const QStringList &args, QString *errMsg)
 {
     Q_UNUSED(args);
     Q_UNUSED(errMsg);
@@ -70,7 +70,7 @@ bool UAVSettingsImportExportPlugin::initialize(const QStringList& args, QString 
 
 void UAVSettingsImportExportPlugin::shutdown()
 {
-   // Do nothing
+    // Do nothing
 }
 void UAVSettingsImportExportPlugin::extensionsInitialized()
 {

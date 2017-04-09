@@ -29,7 +29,7 @@
 #include <coreplugin/iuavgadget.h>
 
 namespace Core {
-    class IUAVGadget;
+class IUAVGadget;
 }
 class TelemetrySchedulerGadgetWidget;
 
@@ -39,7 +39,8 @@ class TelemetrySchedulerGadget : public Core::IUAVGadget
 {
     Q_OBJECT
 public:
-    TelemetrySchedulerGadget(QString classId, TelemetrySchedulerGadgetWidget *widget, QWidget *parent = 0);
+    TelemetrySchedulerGadget(QString classId, TelemetrySchedulerGadgetWidget *widget,
+                             QWidget *parent = 0);
     ~TelemetrySchedulerGadget();
 
     QList<int> context() const { return m_context; }
@@ -50,6 +51,5 @@ private:
     QWidget *m_widget;
     QList<int> m_context;
 };
-
 
 #endif // TELEMETRYSCHEDULERGADGET_H_

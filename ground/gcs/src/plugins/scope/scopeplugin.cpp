@@ -31,7 +31,6 @@
 #include <QStringList>
 #include <extensionsystem/pluginmanager.h>
 
-
 ScopePlugin::ScopePlugin()
 {
     // Do nothing
@@ -42,8 +41,7 @@ ScopePlugin::~ScopePlugin()
     // Do nothing
 }
 
-
-bool ScopePlugin::initialize(const QStringList& args, QString *errMsg)
+bool ScopePlugin::initialize(const QStringList &args, QString *errMsg)
 {
     Q_UNUSED(args);
     Q_UNUSED(errMsg);

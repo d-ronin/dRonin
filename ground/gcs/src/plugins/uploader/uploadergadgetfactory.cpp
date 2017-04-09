@@ -31,8 +31,8 @@
 
 using namespace uploader;
 
-UploaderGadgetFactory::UploaderGadgetFactory(QObject *parent) :
-    IUAVGadgetFactory(QString("Uploader"), tr("Uploader"), parent)
+UploaderGadgetFactory::UploaderGadgetFactory(QObject *parent)
+    : IUAVGadgetFactory(QString("Uploader"), tr("Uploader"), parent)
 {
     setSingleConfigurationGadgetTrue();
 }
@@ -41,10 +41,11 @@ UploaderGadgetFactory::~UploaderGadgetFactory()
 {
 }
 
-Core::IUAVGadget* UploaderGadgetFactory::createGadget(QWidget *parent)
+Core::IUAVGadget *UploaderGadgetFactory::createGadget(QWidget *parent)
 {
-    UploaderGadgetWidget* gadgetWidget = new UploaderGadgetWidget(parent);
-    connect(gadgetWidget, &UploaderGadgetWidget::newBoardSeen, this, &UploaderGadgetFactory::newBoardSeen);
+    UploaderGadgetWidget *gadgetWidget = new UploaderGadgetWidget(parent);
+    connect(gadgetWidget, &UploaderGadgetWidget::newBoardSeen, this,
+            &UploaderGadgetFactory::newBoardSeen);
     return new UploaderGadget(QString("Uploader"), gadgetWidget, parent);
 }
 

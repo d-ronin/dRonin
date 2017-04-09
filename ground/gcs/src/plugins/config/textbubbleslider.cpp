@@ -35,8 +35,9 @@
  * @brief TextBubbleSlider::TextBubbleSlider Constructs a regular text-bubble slider
  * @param parent
  */
-TextBubbleSlider::TextBubbleSlider(QWidget *parent) :
-    QSlider(parent), indicatorValue(0)
+TextBubbleSlider::TextBubbleSlider(QWidget *parent)
+    : QSlider(parent)
+    , indicatorValue(0)
 {
     construct();
     hidden = false;
@@ -48,8 +49,8 @@ TextBubbleSlider::TextBubbleSlider(QWidget *parent) :
  * @param copySlider
  * @param parent
  */
-TextBubbleSlider::TextBubbleSlider(QSlider *copySlider, QWidget *parent) :
-    QSlider(parent)
+TextBubbleSlider::TextBubbleSlider(QSlider *copySlider, QWidget *parent)
+    : QSlider(parent)
 {
     construct();
 
@@ -66,7 +67,6 @@ TextBubbleSlider::TextBubbleSlider(QSlider *copySlider, QWidget *parent) :
     setToolTip(copySlider->toolTip());
 }
 
-
 /**
  * @brief TextBubbleSlider::construct This function needs to be called from all constructors. It
  * provides a single point where settings can be changed.
@@ -74,13 +74,13 @@ TextBubbleSlider::TextBubbleSlider(QSlider *copySlider, QWidget *parent) :
 void TextBubbleSlider::construct()
 {
     font = QFont("Arial", 13);
-    slideHandleMargin = 2; // This is a dubious way to set the margin. In reality, it should be read from the style sheet.
+    slideHandleMargin = 2; // This is a dubious way to set the margin. In reality, it should be read
+                           // from the style sheet.
 }
 
 TextBubbleSlider::~TextBubbleSlider()
 {
 }
-
 
 /**
  * @brief numIntegerDigits Counts the number of digits in an integer
@@ -103,19 +103,20 @@ unsigned int numIntegerDigits(int number)
     return digits;
 }
 
-
 /**
  * @brief TextBubbleSlider::setMaxPixelWidth Sets maximum pixel width for slider handle
  */
 void TextBubbleSlider::setMaxPixelWidth()
 {
     // Calculate maximum number of digits possible in string
-    int maxNumDigits = numIntegerDigits(maximum()) > numIntegerDigits(minimum()) ? numIntegerDigits(maximum()) : numIntegerDigits(minimum());
+    int maxNumDigits = numIntegerDigits(maximum()) > numIntegerDigits(minimum())
+        ? numIntegerDigits(maximum())
+        : numIntegerDigits(minimum());
 
     // Generate string with maximum pixel width. Suppose that "0" is
     // the widest number in pixels.
     QString maximumWidthString;
-    for (int i=0; i<maxNumDigits; i++) {
+    for (int i = 0; i < maxNumDigits; i++) {
         maximumWidthString.append("0");
     }
 
@@ -126,9 +127,9 @@ void TextBubbleSlider::setMaxPixelWidth()
 
     // Override stylesheet slider handle width
     slideHandleWidth = maximumFontWidth + 6;
-    setStyleSheet(QString("QSlider::handle:horizontal { width: %1px; margin: -5px 0;}").arg(slideHandleWidth));
+    setStyleSheet(QString("QSlider::handle:horizontal { width: %1px; margin: -5px 0;}")
+                      .arg(slideHandleWidth));
 }
-
 
 /**
  * @brief TextBubbleSlider::setMinimum Reimplements setMinimum. Ensures that the slider
@@ -144,7 +145,6 @@ void TextBubbleSlider::setMinimum(int max)
     setMaxPixelWidth();
 }
 
-
 /**
  * @brief TextBubbleSlider::setMaximum Reimplements setMaximum. Ensures that the slider
  * handle is the correct size for the text field.
@@ -158,7 +158,6 @@ void TextBubbleSlider::setMaximum(int max)
     // Reset handler size
     setMaxPixelWidth();
 }
-
 
 /**
  * @brief Hide the slider by not painting it
@@ -175,8 +174,7 @@ void TextBubbleSlider::setHidden(bool h)
  */
 void TextBubbleSlider::paintEvent(QPaintEvent *paintEvent)
 {
-    if (hidden)
-    {
+    if (hidden) {
         return;
     }
 
@@ -184,15 +182,18 @@ void TextBubbleSlider::paintEvent(QPaintEvent *paintEvent)
     const double indicatorWidth = 5.0;
 
     // draw solid indicator behind everything
-    bool drawIndicator = indicatorValue >= (minimum() * -0.1) && indicatorValue <= (1.1 * maximum());
+    bool drawIndicator =
+        indicatorValue >= (minimum() * -0.1) && indicatorValue <= (1.1 * maximum());
     qreal indicatorPos = 0;
-    QPen indicatorPen(QBrush(QColor(255, 0, 0, 180)), indicatorWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+    QPen indicatorPen(QBrush(QColor(255, 0, 0, 180)), indicatorWidth, Qt::SolidLine, Qt::RoundCap,
+                      Qt::RoundJoin);
     if (drawIndicator) {
         QPainter p(this);
         p.setRenderHint(QPainter::Antialiasing);
         p.setPen(indicatorPen);
         indicatorPos = sliderPosFromValue(indicatorValue);
-        p.drawLine(QLineF(indicatorPos, indicatorWidth / 2.0, indicatorPos, sliderHeight - indicatorWidth / 2.0));
+        p.drawLine(QLineF(indicatorPos, indicatorWidth / 2.0, indicatorPos,
+                          sliderHeight - indicatorWidth / 2.0));
     }
 
     // Pass paint event on to QSlider
@@ -206,7 +207,8 @@ void TextBubbleSlider::paintEvent(QPaintEvent *paintEvent)
     if (drawIndicator) {
         indicatorPen.setColor(QColor(255, 0, 0, 50));
         painter.setPen(indicatorPen);
-        painter.drawLine(QLineF(indicatorPos, indicatorWidth / 2.0, indicatorPos, sliderHeight - indicatorWidth / 2.0));
+        painter.drawLine(QLineF(indicatorPos, indicatorWidth / 2.0, indicatorPos,
+                                sliderHeight - indicatorWidth / 2.0));
     }
 
     /* Add numbers on top of handler */
@@ -218,7 +220,9 @@ void TextBubbleSlider::paintEvent(QPaintEvent *paintEvent)
     QString neutralStringWidth = QString("%1").arg(value());
     QFontMetrics fontMetrics(font);
     int textWidth = fontMetrics.width(neutralStringWidth);
-    painter.drawText(QRectF(valuePos + maximumFontWidth - textWidth, ceil((sliderHeight - maximumFontHeight)/2.0), textWidth, maximumFontHeight),
+    painter.drawText(QRectF(valuePos + maximumFontWidth - textWidth,
+                            ceil((sliderHeight - maximumFontHeight) / 2.0), textWidth,
+                            maximumFontHeight),
                      neutralStringWidth);
 }
 
@@ -233,6 +237,6 @@ void TextBubbleSlider::setIndicatorValue(int us)
 qreal TextBubbleSlider::sliderPosFromValue(const int val)
 {
     qreal offset = invertedAppearance() ? maximum() - val : val - minimum();
-    return slideHandleWidth/2 + slideHandleMargin + // account for handle width
+    return slideHandleWidth / 2 + slideHandleMargin + // account for handle width
         offset / (maximum() - minimum()) * (width() - (slideHandleWidth + slideHandleMargin) - 1);
 }

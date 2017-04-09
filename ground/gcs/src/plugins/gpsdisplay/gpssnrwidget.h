@@ -4,7 +4,8 @@
 #include <QGraphicsView>
 #include <QGraphicsRectItem>
 
-class GpsSnrWidget : public QGraphicsView {
+class GpsSnrWidget : public QGraphicsView
+{
     Q_OBJECT
 public:
     explicit GpsSnrWidget(QWidget *parent = 0);

@@ -29,13 +29,17 @@
 
 #define DIMMED_SYMBOL 0.25
 
-AlarmsMonitorWidget::AlarmsMonitorWidget():hasErrors(false),hasWarnings(false),hasInfos(false),needsUpdate(false)
+AlarmsMonitorWidget::AlarmsMonitorWidget()
+    : hasErrors(false)
+    , hasWarnings(false)
+    , hasInfos(false)
+    , needsUpdate(false)
 {
 }
 
-void AlarmsMonitorWidget::init(QSvgRenderer *renderer,QGraphicsSvgItem *graph)
+void AlarmsMonitorWidget::init(QSvgRenderer *renderer, QGraphicsSvgItem *graph)
 {
-    error_sym=new QGraphicsSvgItem();
+    error_sym = new QGraphicsSvgItem();
     error_sym->setSharedRenderer(renderer);
     error_sym->setElementId("error_sym");
     error_sym->setParentItem(graph);
@@ -102,85 +106,86 @@ void AlarmsMonitorWidget::init(QSvgRenderer *renderer,QGraphicsSvgItem *graph)
     info_txt->setOpacity(DIMMED_SYMBOL);
 
     connect(&alertTimer, SIGNAL(timeout()), this, SLOT(processAlerts()));
-    connect(Core::ICore::instance()->globalMessaging(), SIGNAL(newMessage(GlobalMessage*)), this, SLOT(updateMessages()));
-    connect(Core::ICore::instance()->globalMessaging(), SIGNAL(deletedMessage()), this, SLOT(updateMessages()));
-    connect(Core::ICore::instance()->globalMessaging(), SIGNAL(changedMessage(GlobalMessage*)), this, SLOT(updateNeeded()));
+    connect(Core::ICore::instance()->globalMessaging(), SIGNAL(newMessage(GlobalMessage *)), this,
+            SLOT(updateMessages()));
+    connect(Core::ICore::instance()->globalMessaging(), SIGNAL(deletedMessage()), this,
+            SLOT(updateMessages()));
+    connect(Core::ICore::instance()->globalMessaging(), SIGNAL(changedMessage(GlobalMessage *)),
+            this, SLOT(updateNeeded()));
 
     alertTimer.start(1000);
-
 }
-
 
 void AlarmsMonitorWidget::updateMessages()
 {
     QString error;
     error.append("<html><head/><body>");
-    foreach(Core::GlobalMessage * msg,Core::ICore::instance()->globalMessaging()->getActiveErrors())
-    {
+    foreach (Core::GlobalMessage *msg,
+             Core::ICore::instance()->globalMessaging()->getActiveErrors()) {
         QString temp;
-        temp=QString("<p><span style=' font-size:11pt; font-weight:600;'>%0</span></p>").arg(msg->getBrief());
+        temp = QString("<p><span style=' font-size:11pt; font-weight:600;'>%0</span></p>")
+                   .arg(msg->getBrief());
         error.append(temp);
-        temp=QString("<p><span style=' font-style:italic;'>%0</span></p>").arg(msg->getDescription());
+        temp = QString("<p><span style=' font-style:italic;'>%0</span></p>")
+                   .arg(msg->getDescription());
         error.append(temp);
     }
     error.append("</body></html>");
     QString warning;
     warning.append("<html><head/><body>");
-    foreach(Core::GlobalMessage * msg,Core::ICore::instance()->globalMessaging()->getActiveWarnings())
-    {
+    foreach (Core::GlobalMessage *msg,
+             Core::ICore::instance()->globalMessaging()->getActiveWarnings()) {
         QString temp;
-        temp=QString("<p><span style=' font-size:11pt; font-weight:600;'>%0</span></p>").arg(msg->getBrief());
+        temp = QString("<p><span style=' font-size:11pt; font-weight:600;'>%0</span></p>")
+                   .arg(msg->getBrief());
         warning.append(temp);
-        temp=QString("<p><span style=' font-style:italic;'>%0</span></p>").arg(msg->getDescription());
+        temp = QString("<p><span style=' font-style:italic;'>%0</span></p>")
+                   .arg(msg->getDescription());
         warning.append(temp);
     }
     warning.append("</body></html>");
     QString info;
     info.append("<html><head/><body>");
-    foreach(Core::GlobalMessage * msg,Core::ICore::instance()->globalMessaging()->getActiveInfos())
-    {
+    foreach (Core::GlobalMessage *msg,
+             Core::ICore::instance()->globalMessaging()->getActiveInfos()) {
         QString temp;
-        temp=QString("<p><span style=' font-size:11pt; font-weight:600;'>%0</span></p>").arg(msg->getBrief());
+        temp = QString("<p><span style=' font-size:11pt; font-weight:600;'>%0</span></p>")
+                   .arg(msg->getBrief());
         info.append(temp);
-        temp=QString("<p><span style=' font-style:italic;'>%0</span></p>").arg(msg->getDescription());
+        temp = QString("<p><span style=' font-style:italic;'>%0</span></p>")
+                   .arg(msg->getDescription());
         info.append(temp);
     }
     info.append("</body></html>");
-    error_txt->setPlainText(QString::number(Core::ICore::instance()->globalMessaging()->getActiveErrors().length()));
-    if(Core::ICore::instance()->globalMessaging()->getActiveErrors().length()>0)
-    {
+    error_txt->setPlainText(
+        QString::number(Core::ICore::instance()->globalMessaging()->getActiveErrors().length()));
+    if (Core::ICore::instance()->globalMessaging()->getActiveErrors().length() > 0) {
         error_txt->setOpacity(1);
-        hasErrors=true;
-    }
-    else
-    {
-        error="No errors";
+        hasErrors = true;
+    } else {
+        error = "No errors";
         error_txt->setOpacity(DIMMED_SYMBOL);
-        hasErrors=false;
+        hasErrors = false;
     }
-    warning_txt->setPlainText(QString::number(Core::ICore::instance()->globalMessaging()->getActiveWarnings().length()));
-    if(Core::ICore::instance()->globalMessaging()->getActiveWarnings().length()>0)
-    {
+    warning_txt->setPlainText(
+        QString::number(Core::ICore::instance()->globalMessaging()->getActiveWarnings().length()));
+    if (Core::ICore::instance()->globalMessaging()->getActiveWarnings().length() > 0) {
         warning_txt->setOpacity(1);
-        hasWarnings=true;
-    }
-    else
-    {
-        warning="No warnings";
+        hasWarnings = true;
+    } else {
+        warning = "No warnings";
         warning_txt->setOpacity(DIMMED_SYMBOL);
-        hasWarnings=false;
+        hasWarnings = false;
     }
-    info_txt->setPlainText(QString::number(Core::ICore::instance()->globalMessaging()->getActiveInfos().length()));
-    if(Core::ICore::instance()->globalMessaging()->getActiveInfos().length()>0)
-    {
+    info_txt->setPlainText(
+        QString::number(Core::ICore::instance()->globalMessaging()->getActiveInfos().length()));
+    if (Core::ICore::instance()->globalMessaging()->getActiveInfos().length() > 0) {
         info_txt->setOpacity(1);
-        hasInfos=true;
-    }
-    else
-    {
-        info="No info";
+        hasInfos = true;
+    } else {
+        info = "No info";
         info_txt->setOpacity(DIMMED_SYMBOL);
-        hasInfos=false;
+        hasInfos = false;
     }
     error_sym->setToolTip(error);
     warning_sym->setToolTip(warning);
@@ -189,41 +194,36 @@ void AlarmsMonitorWidget::updateMessages()
 
 void AlarmsMonitorWidget::updateNeeded()
 {
-    needsUpdate=true;
+    needsUpdate = true;
 }
 
 void AlarmsMonitorWidget::processAlerts()
 {
-    if(needsUpdate)
-        updateMessages();;
-    needsUpdate=false;
-    static bool flag=true;
+    if (needsUpdate)
+        updateMessages();
+    ;
+    needsUpdate = false;
+    static bool flag = true;
     flag = flag ^ true;
-    if(hasErrors)
-    {
-        if(flag)
+    if (hasErrors) {
+        if (flag)
             error_sym->setOpacity(1);
         else
             error_sym->setOpacity(DIMMED_SYMBOL);
-    }
-    else
+    } else
         error_sym->setOpacity(DIMMED_SYMBOL);
-    if(hasWarnings)
-    {
-        if(flag)
+    if (hasWarnings) {
+        if (flag)
             warning_sym->setOpacity(1);
         else
             warning_sym->setOpacity(DIMMED_SYMBOL);
-    }
-    else
+    } else
         warning_sym->setOpacity(DIMMED_SYMBOL);
-    if(hasInfos)
-    {
-        if(flag)
+    if (hasInfos) {
+        if (flag)
             info_sym->setOpacity(1);
         else
             info_sym->setOpacity(DIMMED_SYMBOL);
-    }
-    else
+    } else
         info_sym->setOpacity(DIMMED_SYMBOL);
 }

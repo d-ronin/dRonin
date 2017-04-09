@@ -27,17 +27,18 @@
 #include "modelviewgadgetconfiguration.h"
 #include "utils/pathutils.h"
 
-ModelViewGadgetConfiguration::ModelViewGadgetConfiguration(QString classId, QSettings *qSettings, QObject *parent) :
-    IUAVGadgetConfiguration(classId, parent),
-    m_acFilename("../share/models/multi/test_quad/test_quad_X.3ds"),
-    m_bgFilename(""),
-    m_enableVbo(false)
+ModelViewGadgetConfiguration::ModelViewGadgetConfiguration(QString classId, QSettings *qSettings,
+                                                           QObject *parent)
+    : IUAVGadgetConfiguration(classId, parent)
+    , m_acFilename("../share/models/multi/test_quad/test_quad_X.3ds")
+    , m_bgFilename("")
+    , m_enableVbo(false)
 {
     // if a saved configuration exists load it
     if (qSettings != 0) {
         QString modelFile = qSettings->value("acFilename").toString();
-        QString bgFile    = qSettings->value("bgFilename").toString();
-        m_enableVbo  = qSettings->value("enableVbo").toBool();
+        QString bgFile = qSettings->value("bgFilename").toString();
+        m_enableVbo = qSettings->value("enableVbo").toBool();
         m_acFilename = Utils::PathUtils().InsertDataPath(modelFile);
         m_bgFilename = Utils::PathUtils().InsertDataPath(bgFile);
     }
@@ -49,7 +50,7 @@ IUAVGadgetConfiguration *ModelViewGadgetConfiguration::clone()
 
     mv->m_acFilename = m_acFilename;
     mv->m_bgFilename = m_bgFilename;
-    mv->m_enableVbo  = m_enableVbo;
+    mv->m_enableVbo = m_enableVbo;
     return mv;
 }
 

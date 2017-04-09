@@ -28,9 +28,9 @@
 #include "surfacepage.h"
 #include "ui_surfacepage.h"
 
-SurfacePage::SurfacePage(SetupWizard *wizard, QWidget *parent) :
-    AbstractWizardPage(wizard, parent),
-    ui(new Ui::SurfacePage)
+SurfacePage::SurfacePage(SetupWizard *wizard, QWidget *parent)
+    : AbstractWizardPage(wizard, parent)
+    , ui(new Ui::SurfacePage)
 {
     ui->setupUi(this);
     setFinalPage(true);

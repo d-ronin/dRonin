@@ -29,7 +29,7 @@
  * must be maintained in each individual source file that is a derivative work
  * of this source file; otherwise redistribution is prohibited.
  */
- 
+
 #ifndef DTFC_H
 #define DTFC_H
 
@@ -78,8 +78,6 @@ public:
      * @return a string with the name of the resource for this board diagram
      */
     virtual QString getConnectionDiagram() { return ":/dtf/images/dtfc-connection.svg"; }
-
 };
-
 
 #endif // DTFC_H

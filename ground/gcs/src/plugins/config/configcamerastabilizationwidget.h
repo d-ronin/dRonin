@@ -35,7 +35,7 @@
 #include <QWidget>
 #include <QList>
 
-class ConfigCameraStabilizationWidget: public ConfigTaskWidget
+class ConfigCameraStabilizationWidget : public ConfigTaskWidget
 {
     Q_OBJECT
 

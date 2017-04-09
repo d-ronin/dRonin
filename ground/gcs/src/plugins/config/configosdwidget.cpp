@@ -36,13 +36,12 @@
 
 #include "ui_osdpage.h"
 
-
 // Define static variables
 QString ConfigOsdWidget::trueString("TrueString");
 QString ConfigOsdWidget::falseString("FalseString");
 
-
-ConfigOsdWidget::ConfigOsdWidget(QWidget *parent) : ConfigTaskWidget(parent)
+ConfigOsdWidget::ConfigOsdWidget(QWidget *parent)
+    : ConfigTaskWidget(parent)
 {
     ui = new Ui::Osd();
     ui->setupUi(this);
@@ -55,8 +54,8 @@ ConfigOsdWidget::ConfigOsdWidget(QWidget *parent) : ConfigTaskWidget(parent)
     connect(ui->applyButton, &QAbstractButton::clicked, this, &ConfigOsdWidget::setCustomText);
     connect(ui->saveButton, &QAbstractButton::clicked, this, &ConfigOsdWidget::setCustomText);
     connect(ui->reloadButton, &QAbstractButton::clicked, this, &ConfigOsdWidget::getCustomText);
-    connect(osdSettingsObj, &OnScreenDisplaySettings::CustomText_0Changed,
-            this, &ConfigOsdWidget::getCustomText);
+    connect(osdSettingsObj, &OnScreenDisplaySettings::CustomText_0Changed, this,
+            &ConfigOsdWidget::getCustomText);
 
     // setup the OSD widgets
     QString osdSettingsName = osdSettingsObj->getName();
@@ -74,7 +73,8 @@ ConfigOsdWidget::ConfigOsdWidget(QWidget *parent) : ConfigTaskWidget(parent)
     addUAVObjectToWidgetRelation(osdSettingsName, "PALXScale", ui->sb_pal_xscale);
     addUAVObjectToWidgetRelation(osdSettingsName, "NTSCXScale", ui->sb_ntsc_xscale);
     addUAVObjectToWidgetRelation(osdSettingsName, "ThreeDMode", ui->cb_3d_osd_mode);
-    addUAVObjectToWidgetRelation(osdSettingsName, "ThreeDRightEyeXShift", ui->sb_3d_right_eye_xshift);
+    addUAVObjectToWidgetRelation(osdSettingsName, "ThreeDRightEyeXShift",
+                                 ui->sb_3d_right_eye_xshift);
 
     addUAVObjectToWidgetRelation(osdSettingsName, "Units", ui->cb_units);
 
@@ -95,8 +95,8 @@ ConfigOsdWidget::ConfigOsdWidget(QWidget *parent) : ConfigTaskWidget(parent)
     addUAVObjectToWidgetRelation(osdSettingsName, "RssiWarnThreshold", ui->RssiWarnThreshold);
     addUAVObjectToWidgetRelation(osdSettingsName, "StatsDisplayDuration", ui->cb_stats_duration);
 
-    connect(ManualControlCommand::GetInstance(getObjectManager()), &UAVObject::objectUpdated,
-            this, &ConfigOsdWidget::movePageSlider);
+    connect(ManualControlCommand::GetInstance(getObjectManager()), &UAVObject::objectUpdated, this,
+            &ConfigOsdWidget::movePageSlider);
     connect(OnScreenDisplaySettings::GetInstance(getObjectManager()), &UAVObject::objectUpdated,
             this, &ConfigOsdWidget::updatePositionSlider);
 
@@ -124,12 +124,12 @@ ConfigOsdWidget::ConfigOsdWidget(QWidget *parent) : ConfigTaskWidget(parent)
     ui_pages[0]->copyButton2->setText("Copy Page 3");
     ui_pages[0]->copyButton3->setText("Copy Page 4");
 
-    connect(ui_pages[0]->copyButton1, &QAbstractButton::released,
-            this, &ConfigOsdWidget::handle_button_0_1);
-    connect(ui_pages[0]->copyButton2, &QAbstractButton::released,
-            this, &ConfigOsdWidget::handle_button_0_2);
-    connect(ui_pages[0]->copyButton3, &QAbstractButton::released,
-            this, &ConfigOsdWidget::handle_button_0_3);
+    connect(ui_pages[0]->copyButton1, &QAbstractButton::released, this,
+            &ConfigOsdWidget::handle_button_0_1);
+    connect(ui_pages[0]->copyButton2, &QAbstractButton::released, this,
+            &ConfigOsdWidget::handle_button_0_2);
+    connect(ui_pages[0]->copyButton3, &QAbstractButton::released, this,
+            &ConfigOsdWidget::handle_button_0_3);
 
     ui_pages[1] = new Ui::OsdPage();
     osdPageSettings2Obj = OnScreenDisplayPageSettings2::GetInstance(getObjectManager());
@@ -139,12 +139,12 @@ ConfigOsdWidget::ConfigOsdWidget(QWidget *parent) : ConfigTaskWidget(parent)
     ui_pages[1]->copyButton2->setText("Copy Page 3");
     ui_pages[1]->copyButton3->setText("Copy Page 4");
 
-    connect(ui_pages[1]->copyButton1, &QAbstractButton::released,
-            this, &ConfigOsdWidget::handle_button_1_0);
-    connect(ui_pages[1]->copyButton2, &QAbstractButton::released,
-            this, &ConfigOsdWidget::handle_button_1_2);
-    connect(ui_pages[1]->copyButton3, &QAbstractButton::released,
-            this, &ConfigOsdWidget::handle_button_1_3);
+    connect(ui_pages[1]->copyButton1, &QAbstractButton::released, this,
+            &ConfigOsdWidget::handle_button_1_0);
+    connect(ui_pages[1]->copyButton2, &QAbstractButton::released, this,
+            &ConfigOsdWidget::handle_button_1_2);
+    connect(ui_pages[1]->copyButton3, &QAbstractButton::released, this,
+            &ConfigOsdWidget::handle_button_1_3);
 
     ui_pages[2] = new Ui::OsdPage();
     osdPageSettings3Obj = OnScreenDisplayPageSettings3::GetInstance(getObjectManager());
@@ -154,12 +154,12 @@ ConfigOsdWidget::ConfigOsdWidget(QWidget *parent) : ConfigTaskWidget(parent)
     ui_pages[2]->copyButton2->setText("Copy Page 2");
     ui_pages[2]->copyButton3->setText("Copy Page 4");
 
-    connect(ui_pages[2]->copyButton1, &QAbstractButton::released,
-            this, &ConfigOsdWidget::handle_button_2_0);
-    connect(ui_pages[2]->copyButton2, &QAbstractButton::released,
-            this, &ConfigOsdWidget::handle_button_2_1);
-    connect(ui_pages[2]->copyButton3, &QAbstractButton::released,
-            this, &ConfigOsdWidget::handle_button_2_3);
+    connect(ui_pages[2]->copyButton1, &QAbstractButton::released, this,
+            &ConfigOsdWidget::handle_button_2_0);
+    connect(ui_pages[2]->copyButton2, &QAbstractButton::released, this,
+            &ConfigOsdWidget::handle_button_2_1);
+    connect(ui_pages[2]->copyButton3, &QAbstractButton::released, this,
+            &ConfigOsdWidget::handle_button_2_3);
 
     ui_pages[3] = new Ui::OsdPage();
     osdPageSettings4Obj = OnScreenDisplayPageSettings4::GetInstance(getObjectManager());
@@ -169,18 +169,18 @@ ConfigOsdWidget::ConfigOsdWidget(QWidget *parent) : ConfigTaskWidget(parent)
     ui_pages[3]->copyButton2->setText("Copy Page 2");
     ui_pages[3]->copyButton3->setText("Copy Page 3");
 
-    connect(ui_pages[3]->copyButton1, &QAbstractButton::released,
-            this, &ConfigOsdWidget::handle_button_3_0);
-    connect(ui_pages[3]->copyButton2, &QAbstractButton::released,
-            this, &ConfigOsdWidget::handle_button_3_1);
-    connect(ui_pages[3]->copyButton3, &QAbstractButton::released,
-            this, &ConfigOsdWidget::handle_button_3_2);
+    connect(ui_pages[3]->copyButton1, &QAbstractButton::released, this,
+            &ConfigOsdWidget::handle_button_3_0);
+    connect(ui_pages[3]->copyButton2, &QAbstractButton::released, this,
+            &ConfigOsdWidget::handle_button_3_1);
+    connect(ui_pages[3]->copyButton3, &QAbstractButton::released, this,
+            &ConfigOsdWidget::handle_button_3_2);
 }
 
 ConfigOsdWidget::~ConfigOsdWidget()
 {
     delete ui;
-    //delete [] ui_pages;
+    // delete [] ui_pages;
 }
 
 /**
@@ -191,8 +191,8 @@ ConfigOsdWidget::~ConfigOsdWidget()
  */
 quint8 ConfigOsdWidget::scaleSwitchChannel(quint8 channelNumber, quint8 switchPositions)
 {
-    if(channelNumber > (ManualControlSettings::CHANNELMIN_NUMELEM - 1))
-            return 0;
+    if (channelNumber > (ManualControlSettings::CHANNELMIN_NUMELEM - 1))
+        return 0;
     ManualControlSettings::DataFields manualSettingsDataPriv = manualSettingsObj->getData();
     ManualControlCommand::DataFields manualCommandDataPriv = manualCommandObj->getData();
 
@@ -202,15 +202,12 @@ quint8 ConfigOsdWidget::scaleSwitchChannel(quint8 channelNumber, quint8 switchPo
     int chNeutral = manualSettingsDataPriv.ChannelNeutral[channelNumber];
 
     int value = manualCommandDataPriv.Channel[channelNumber];
-    if ((chMax > chMin && value >= chNeutral) || (chMin > chMax && value <= chNeutral))
-    {
+    if ((chMax > chMin && value >= chNeutral) || (chMin > chMax && value <= chNeutral)) {
         if (chMax != chNeutral)
             valueScaled = (float)(value - chNeutral) / (float)(chMax - chNeutral);
         else
             valueScaled = 0;
-    }
-    else
-    {
+    } else {
         if (chMin != chNeutral)
             valueScaled = (float)(value - chNeutral) / (float)(chNeutral - chMin);
         else
@@ -219,9 +216,8 @@ quint8 ConfigOsdWidget::scaleSwitchChannel(quint8 channelNumber, quint8 switchPo
 
     if (valueScaled < -1.0)
         valueScaled = -1.0;
-    else
-    if (valueScaled >  1.0)
-        valueScaled =  1.0;
+    else if (valueScaled > 1.0)
+        valueScaled = 1.0;
 
     // Convert channel value into the switch position in the range [0..N-1]
     // This uses the same optimized computation as flight code to be consistent
@@ -236,16 +232,19 @@ void ConfigOsdWidget::movePageSlider()
 {
     OnScreenDisplaySettings::DataFields onScreenDisplaySettingsDataPriv = osdSettingsObj->getData();
 
-    switch(onScreenDisplaySettingsDataPriv.PageSwitch) {
-        case OnScreenDisplaySettings::PAGESWITCH_ACCESSORY0:
-            ui->osdPageSlider->setValue(scaleSwitchChannel(ManualControlSettings::CHANNELMIN_ACCESSORY0, onScreenDisplaySettingsDataPriv.NumPages));
-            break;
-        case OnScreenDisplaySettings::PAGESWITCH_ACCESSORY1:
-            ui->osdPageSlider->setValue(scaleSwitchChannel(ManualControlSettings::CHANNELMIN_ACCESSORY1, onScreenDisplaySettingsDataPriv.NumPages));
-            break;
-        case OnScreenDisplaySettings::PAGESWITCH_ACCESSORY2:
-            ui->osdPageSlider->setValue(scaleSwitchChannel(ManualControlSettings::CHANNELMIN_ACCESSORY2, onScreenDisplaySettingsDataPriv.NumPages));
-            break;
+    switch (onScreenDisplaySettingsDataPriv.PageSwitch) {
+    case OnScreenDisplaySettings::PAGESWITCH_ACCESSORY0:
+        ui->osdPageSlider->setValue(scaleSwitchChannel(ManualControlSettings::CHANNELMIN_ACCESSORY0,
+                                                       onScreenDisplaySettingsDataPriv.NumPages));
+        break;
+    case OnScreenDisplaySettings::PAGESWITCH_ACCESSORY1:
+        ui->osdPageSlider->setValue(scaleSwitchChannel(ManualControlSettings::CHANNELMIN_ACCESSORY1,
+                                                       onScreenDisplaySettingsDataPriv.NumPages));
+        break;
+    case OnScreenDisplaySettings::PAGESWITCH_ACCESSORY2:
+        ui->osdPageSlider->setValue(scaleSwitchChannel(ManualControlSettings::CHANNELMIN_ACCESSORY2,
+                                                       onScreenDisplaySettingsDataPriv.NumPages));
+        break;
     }
 }
 
@@ -253,7 +252,7 @@ void ConfigOsdWidget::updatePositionSlider()
 {
     OnScreenDisplaySettings::DataFields onScreenDisplaySettingsDataPriv = osdSettingsObj->getData();
 
-    switch(onScreenDisplaySettingsDataPriv.NumPages) {
+    switch (onScreenDisplaySettingsDataPriv.NumPages) {
     default:
     case 6:
         ui->osdPagePos6->setEnabled(true);
@@ -274,10 +273,10 @@ void ConfigOsdWidget::updatePositionSlider()
         ui->osdPagePos1->setEnabled(true);
     // pass through
     case 0:
-    break;
+        break;
     }
 
-    switch(onScreenDisplaySettingsDataPriv.NumPages) {
+    switch (onScreenDisplaySettingsDataPriv.NumPages) {
     case 0:
         ui->osdPagePos1->setEnabled(false);
     // pass through
@@ -298,7 +297,7 @@ void ConfigOsdWidget::updatePositionSlider()
     // pass through
     case 6:
     default:
-    break;
+        break;
     }
 }
 
@@ -381,14 +380,13 @@ void ConfigOsdWidget::getCustomText()
     char text[OnScreenDisplaySettings::CUSTOMTEXT_NUMELEM];
 
     for (unsigned int i = 0; i < OnScreenDisplaySettings::CUSTOMTEXT_NUMELEM; ++i) {
-        text[i] =  osdSettingsObj->getCustomText(i);
+        text[i] = osdSettingsObj->getCustomText(i);
     }
     QString q_text = QString::fromLatin1(text, OnScreenDisplaySettings::CUSTOMTEXT_NUMELEM);
     ui->le_custom_text->setText(q_text);
 }
 
-
-void ConfigOsdWidget::setupOsdPage(Ui::OsdPage * page, QWidget * page_widget, UAVObject * settings)
+void ConfigOsdWidget::setupOsdPage(Ui::OsdPage *page, QWidget *page_widget, UAVObject *settings)
 {
     page->setupUi(page_widget);
     QString name = settings->getName();
@@ -433,8 +431,10 @@ void ConfigOsdWidget::setupOsdPage(Ui::OsdPage * page, QWidget * page_widget, UA
     addUAVObjectToWidgetRelation(name, "ArtificialHorizon", page->ArtificialHorizonEnabled);
     page->ArtificialHorizonEnabled->setProperty(trueString.toLatin1(), "Enabled");
     page->ArtificialHorizonEnabled->setProperty(falseString.toLatin1(), "Disabled");
-    addUAVObjectToWidgetRelation(name, "ArtificialHorizonMaxPitch", page->ArtificialHorizonMaxPitch);
-    addUAVObjectToWidgetRelation(name, "ArtificialHorizonPitchSteps", page->ArtificialHorizonPitchSteps);
+    addUAVObjectToWidgetRelation(name, "ArtificialHorizonMaxPitch",
+                                 page->ArtificialHorizonMaxPitch);
+    addUAVObjectToWidgetRelation(name, "ArtificialHorizonPitchSteps",
+                                 page->ArtificialHorizonPitchSteps);
 
     // Battery Voltage
     addUAVObjectToWidgetRelation(name, "BatteryVolt", page->BatteryVoltEnabled);
@@ -673,34 +673,31 @@ void ConfigOsdWidget::setupOsdPage(Ui::OsdPage * page, QWidget * page_widget, UA
 
 void ConfigOsdWidget::copyOsdPage(int to, int from)
 {
-    QList<QCheckBox*> checkboxes = pages[from]->findChildren<QCheckBox*>();
+    QList<QCheckBox *> checkboxes = pages[from]->findChildren<QCheckBox *>();
 
-    foreach (QCheckBox *checkbox, checkboxes)
-    {
-         QCheckBox *cb_to = pages[to]->findChild<QCheckBox *>(checkbox->objectName());
-         if (cb_to != NULL) {
-             cb_to->setChecked(checkbox->checkState());
-         }
+    foreach (QCheckBox *checkbox, checkboxes) {
+        QCheckBox *cb_to = pages[to]->findChild<QCheckBox *>(checkbox->objectName());
+        if (cb_to != NULL) {
+            cb_to->setChecked(checkbox->checkState());
+        }
     }
 
-    QList<QSpinBox*> spinboxes = pages[from]->findChildren<QSpinBox*>();
+    QList<QSpinBox *> spinboxes = pages[from]->findChildren<QSpinBox *>();
 
-    foreach (QSpinBox *spinbox, spinboxes)
-    {
-         QSpinBox *sb_to = pages[to]->findChild<QSpinBox *>(spinbox->objectName());
-         if (sb_to != NULL) {
-             sb_to->setValue(spinbox->value());
-         }
+    foreach (QSpinBox *spinbox, spinboxes) {
+        QSpinBox *sb_to = pages[to]->findChild<QSpinBox *>(spinbox->objectName());
+        if (sb_to != NULL) {
+            sb_to->setValue(spinbox->value());
+        }
     }
 
-    QList<QComboBox*> comboboxes = pages[from]->findChildren<QComboBox*>();
+    QList<QComboBox *> comboboxes = pages[from]->findChildren<QComboBox *>();
 
-    foreach (QComboBox *combobox, comboboxes)
-    {
-         QComboBox *cmb_to = pages[to]->findChild<QComboBox *>(combobox->objectName());
-         if (cmb_to != NULL) {
-             cmb_to->setCurrentIndex(combobox->currentIndex());
-         }
+    foreach (QComboBox *combobox, comboboxes) {
+        QComboBox *cmb_to = pages[to]->findChild<QComboBox *>(combobox->objectName());
+        if (cmb_to != NULL) {
+            cmb_to->setCurrentIndex(combobox->currentIndex());
+        }
     }
 }
 
@@ -715,7 +712,8 @@ void ConfigOsdWidget::enableControls(bool enable)
 }
 
 /**
- * @brief ModuleSettingsForm::getWidgetFromVariant Reimplements getWidgetFromVariant. This version supports "FalseString".
+ * @brief ModuleSettingsForm::getWidgetFromVariant Reimplements getWidgetFromVariant. This version
+ * supports "FalseString".
  * TODO: remove this since it's supported by UAVO relations now
  * @param widget pointer to the widget from where to get the value
  * @param scale scale to be used on the assignement
@@ -723,31 +721,32 @@ void ConfigOsdWidget::enableControls(bool enable)
  */
 QVariant ConfigOsdWidget::getVariantFromWidget(QWidget *widget, double scale, bool usesUnits)
 {
-    if(QGroupBox * groupBox=qobject_cast<QGroupBox *>(widget)) {
+    if (QGroupBox *groupBox = qobject_cast<QGroupBox *>(widget)) {
         QString ret;
-        if (groupBox->property("TrueString").isValid() && groupBox->property("FalseString").isValid()) {
-            if(groupBox->isChecked())
+        if (groupBox->property("TrueString").isValid()
+            && groupBox->property("FalseString").isValid()) {
+            if (groupBox->isChecked())
                 ret = groupBox->property("TrueString").toString();
             else
                 ret = groupBox->property("FalseString").toString();
         } else {
-            if(groupBox->isChecked())
+            if (groupBox->isChecked())
                 ret = "TRUE";
             else
                 ret = "FALSE";
         }
 
         return ret;
-    } else if(QCheckBox * checkBox=qobject_cast<QCheckBox *>(widget)) {
+    } else if (QCheckBox *checkBox = qobject_cast<QCheckBox *>(widget)) {
         QString ret;
-        if (checkBox->property("TrueString").isValid() && checkBox->property("FalseString").isValid()) {
+        if (checkBox->property("TrueString").isValid()
+            && checkBox->property("FalseString").isValid()) {
             if (checkBox->isChecked())
                 ret = checkBox->property("TrueString").toString();
             else
                 ret = checkBox->property("FalseString").toString();
-        }
-        else {
-            if(checkBox->isChecked())
+        } else {
+            if (checkBox->isChecked())
                 ret = "TRUE";
             else
                 ret = "FALSE";
@@ -760,32 +759,34 @@ QVariant ConfigOsdWidget::getVariantFromWidget(QWidget *widget, double scale, bo
 }
 
 /**
- * @brief ModuleSettingsForm::setWidgetFromVariant Reimplements setWidgetFromVariant. This version supports "FalseString".
+ * @brief ModuleSettingsForm::setWidgetFromVariant Reimplements setWidgetFromVariant. This version
+ * supports "FalseString".
  * TODO: remove this since it's supported by UAVO relations now
  * @param widget pointer for the widget to set
  * @param scale scale to be used on the assignement
  * @param value value to be used on the assignement
  * @return returns true if the assignement was successfull
  */
-bool ConfigOsdWidget::setWidgetFromVariant(QWidget *widget, QVariant value, double scale, QString units)
+bool ConfigOsdWidget::setWidgetFromVariant(QWidget *widget, QVariant value, double scale,
+                                           QString units)
 {
-    if(QGroupBox * groupBox=qobject_cast<QGroupBox *>(widget)) {
+    if (QGroupBox *groupBox = qobject_cast<QGroupBox *>(widget)) {
         bool bvalue;
-        if (groupBox->property("TrueString").isValid() && groupBox->property("FalseString").isValid()) {
-            bvalue = value.toString()==groupBox->property("TrueString").toString();
-        }
-        else{
-            bvalue = value.toString()=="TRUE";
+        if (groupBox->property("TrueString").isValid()
+            && groupBox->property("FalseString").isValid()) {
+            bvalue = value.toString() == groupBox->property("TrueString").toString();
+        } else {
+            bvalue = value.toString() == "TRUE";
         }
         groupBox->setChecked(bvalue);
         return true;
-    } else if(QCheckBox * checkBox=qobject_cast<QCheckBox *>(widget)) {
+    } else if (QCheckBox *checkBox = qobject_cast<QCheckBox *>(widget)) {
         bool bvalue;
-        if (checkBox->property("TrueString").isValid() && checkBox->property("FalseString").isValid()) {
-            bvalue = value.toString()==checkBox->property("TrueString").toString();
-        }
-        else {
-            bvalue = value.toString()=="TRUE";
+        if (checkBox->property("TrueString").isValid()
+            && checkBox->property("FalseString").isValid()) {
+            bvalue = value.toString() == checkBox->property("TrueString").toString();
+        } else {
+            bvalue = value.toString() == "TRUE";
         }
         checkBox->setChecked(bvalue);
         return true;
@@ -797,4 +798,3 @@ bool ConfigOsdWidget::setWidgetFromVariant(QWidget *widget, QVariant value, doub
  * @}
  * @}
  */
- 

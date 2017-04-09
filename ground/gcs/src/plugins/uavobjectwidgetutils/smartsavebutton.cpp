@@ -35,7 +35,6 @@
 
 smartSaveButton::smartSaveButton()
 {
-
 }
 
 /**
@@ -47,10 +46,10 @@ smartSaveButton::smartSaveButton()
  */
 void smartSaveButton::addButtons(QPushButton *save, QPushButton *apply)
 {
-    buttonList.insert(save,save_button);
-    buttonList.insert(apply,apply_button);
-    connect(save,SIGNAL(clicked()),this,SLOT(processClick()));
-    connect(apply,SIGNAL(clicked()),this,SLOT(processClick()));
+    buttonList.insert(save, save_button);
+    buttonList.insert(apply, apply_button);
+    connect(save, SIGNAL(clicked()), this, SLOT(processClick()));
+    connect(apply, SIGNAL(clicked()), this, SLOT(processClick()));
 }
 
 /**
@@ -61,8 +60,8 @@ void smartSaveButton::addButtons(QPushButton *save, QPushButton *apply)
  */
 void smartSaveButton::addApplyButton(QPushButton *apply)
 {
-    buttonList.insert(apply,apply_button);
-    connect(apply,SIGNAL(clicked()),this,SLOT(processClick()));
+    buttonList.insert(apply, apply_button);
+    connect(apply, SIGNAL(clicked()), this, SLOT(processClick()));
 }
 
 /**
@@ -73,8 +72,8 @@ void smartSaveButton::addApplyButton(QPushButton *apply)
  */
 void smartSaveButton::addSaveButton(QPushButton *save)
 {
-    buttonList.insert(save,save_button);
-    connect(save,SIGNAL(clicked()),this,SLOT(processClick()));
+    buttonList.insert(save, save_button);
+    connect(save, SIGNAL(clicked()), this, SLOT(processClick()));
 }
 
 /**
@@ -83,14 +82,13 @@ void smartSaveButton::addSaveButton(QPushButton *save)
 void smartSaveButton::processClick()
 {
     emit beginOp();
-    bool save=false;
-    QPushButton *button=qobject_cast<QPushButton *>(sender());
-    if(!button)
+    bool save = false;
+    QPushButton *button = qobject_cast<QPushButton *>(sender());
+    if (!button)
         return;
-    if(buttonList.value(button)==save_button)
-        save=true;
-    processOperation(button,save);
-
+    if (buttonList.value(button) == save_button)
+        save = true;
+    processOperation(button, save);
 }
 
 /**
@@ -100,31 +98,29 @@ void smartSaveButton::processClick()
  * @param save is true if we want to issue a saveObjectToFlash request after sending it to the
  *             remote side
  */
-void smartSaveButton::processOperation(QPushButton * button,bool save)
+void smartSaveButton::processOperation(QPushButton *button, bool save)
 {
     emit preProcessOperations();
     QStringList failedUploads;
     QStringList failedSaves;
     QStringList missingObjects;
-    if(button)
-    {
+    if (button) {
         button->setEnabled(false);
         button->setIcon(QIcon(":/uploader/images/system-run.svg"));
     }
     QTimer timer;
     timer.setSingleShot(true);
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    UAVObjectUtilManager* utilMngr = pm->getObject<UAVObjectUtilManager>();
-    foreach(UAVDataObject *obj,objects)
-    {
-        if(!obj->getIsPresentOnHardware() && obj->isSettings()) {
-            if(mandatoryList.value(obj, true))
+    UAVObjectUtilManager *utilMngr = pm->getObject<UAVObjectUtilManager>();
+    foreach (UAVDataObject *obj, objects) {
+        if (!obj->getIsPresentOnHardware() && obj->isSettings()) {
+            if (mandatoryList.value(obj, true))
                 missingObjects.append(obj->getName());
             continue;
         }
-        UAVObject::Metadata mdata= obj->getMetadata();
-        if(UAVObject::GetGcsAccess(mdata)==UAVObject::ACCESS_READONLY && obj->isSettings()) {
-            if(mandatoryList.value(obj, true))
+        UAVObject::Metadata mdata = obj->getMetadata();
+        if (UAVObject::GetGcsAccess(mdata) == UAVObject::ACCESS_READONLY && obj->isSettings()) {
+            if (mandatoryList.value(obj, true))
                 failedUploads.append(obj->getName());
             continue;
         }
@@ -133,22 +129,26 @@ void smartSaveButton::processOperation(QPushButton * button,bool save)
 
         // We only allow to send/save Settings objects using this method
         if (!obj->isSettings()) {
-            qDebug() << "[smartsavebutton.cpp] Error, tried to apply/save a non-settings object: " << obj->getName();
+            qDebug() << "[smartsavebutton.cpp] Error, tried to apply/save a non-settings object: "
+                     << obj->getName();
             continue;
         }
 
         qDebug() << "[smartsavebutton.cpp] Sending object to remote end - " << obj->getName();
-        connect(obj,SIGNAL(transactionCompleted(UAVObject*,bool)),this,SLOT(transaction_finished(UAVObject*, bool)));
-        connect(&timer,SIGNAL(timeout()),&loop,SLOT(quit()));
+        connect(obj, SIGNAL(transactionCompleted(UAVObject *, bool)), this,
+                SLOT(transaction_finished(UAVObject *, bool)));
+        connect(&timer, SIGNAL(timeout()), &loop, SLOT(quit()));
         obj->updated();
         // Three things can happen now:
         // - If object is ACK'ed then we'll get a transactionCompleted signal once ACK arrives
         //   with a success value at 'true'
-        // - If remote side does not know it, or object is not ACK'ed then we'll get a timeout, which we catch below
+        // - If remote side does not know it, or object is not ACK'ed then we'll get a timeout,
+        // which we catch below
         // - If object is ACK'ed and message gets lost, we'll get a transactionCompleted with a
         //   success value at 'false'
         //
-        // Note: settings objects should always be ACK'ed, so a timeout should always be because of a lost
+        // Note: settings objects should always be ACK'ed, so a timeout should always be because of
+        // a lost
         //       message over the telemetry link.
         //
         // Note 2: the telemetry link does max 3 tries with 250ms interval when sending an object
@@ -158,78 +158,81 @@ void smartSaveButton::processOperation(QPushButton * button,bool save)
         if (!timer.isActive())
             qDebug() << "[smartsavebutton.cpp] Upload timeout for object" << obj->getName();
         timer.stop();
-        disconnect(obj,SIGNAL(transactionCompleted(UAVObject*,bool)),this,SLOT(transaction_finished(UAVObject*, bool)));
-        disconnect(&timer,SIGNAL(timeout()),&loop,SLOT(quit()));
+        disconnect(obj, SIGNAL(transactionCompleted(UAVObject *, bool)), this,
+                   SLOT(transaction_finished(UAVObject *, bool)));
+        disconnect(&timer, SIGNAL(timeout()), &loop, SLOT(quit()));
 
-        if(upload_result==false) {
+        if (upload_result == false) {
             qDebug() << "[smartsavebutton.cpp] Object upload error:" << obj->getName();
-            if(mandatoryList.value(obj, true))
+            if (mandatoryList.value(obj, true))
                 failedUploads.append(obj->getName());
             continue;
         }
 
         // Now object is uploaded, we can move on to saving it to flash:
-        save_result=false;
-        current_objectID=obj->getObjID();
+        save_result = false;
+        current_objectID = obj->getObjID();
 
-        if(save && (obj->isSettings()))
-        {
+        if (save && (obj->isSettings())) {
             qDebug() << "[smartsavebutton.cpp] Save request for object" << obj->getName();
-            connect(utilMngr,SIGNAL(saveCompleted(int,bool)),this,SLOT(saving_finished(int,bool)));
-            connect(&timer,SIGNAL(timeout()),&loop,SLOT(quit()));
+            connect(utilMngr, SIGNAL(saveCompleted(int, bool)), this,
+                    SLOT(saving_finished(int, bool)));
+            connect(&timer, SIGNAL(timeout()), &loop, SLOT(quit()));
             utilMngr->saveObjectToFlash(obj);
             // Now, here is what will happen:
             // - saveObjectToFlash is going to attempt the save operation
-            // - If save succeeds, then it will issue a saveCompleted signal with the ObjectID and 'true'
-            // - If save fails, either because of error or timeout, then it will issue a saveCompleted signal
+            // - If save succeeds, then it will issue a saveCompleted signal with the ObjectID and
+            // 'true'
+            // - If save fails, either because of error or timeout, then it will issue a
+            // saveCompleted signal
             //   with the ObjectID and 'false'.
             //
             // Note: in case of link timeout, the telemetry layer will retry up to 2 times, we don't
             // need to retry ourselves here.
             //
-            // Note 2: saveObjectToFlash manages save operations in a queue, so there is no guarantee that
+            // Note 2: saveObjectToFlash manages save operations in a queue, so there is no
+            // guarantee that
             // the first "saveCompleted" signal is for the object we just asked to save.
             timer.start(2000);
             loop.exec();
-            if(!timer.isActive())
+            if (!timer.isActive())
                 qDebug() << "[smartsavebutton.cpp] Saving timeout for object" << obj->getName();
             timer.stop();
-            disconnect(utilMngr,SIGNAL(saveCompleted(int,bool)),this,SLOT(saving_finished(int,bool)));
-            disconnect(&timer,SIGNAL(timeout()),&loop,SLOT(quit()));
+            disconnect(utilMngr, SIGNAL(saveCompleted(int, bool)), this,
+                       SLOT(saving_finished(int, bool)));
+            disconnect(&timer, SIGNAL(timeout()), &loop, SLOT(quit()));
 
-            if(save_result == false)
-            {
+            if (save_result == false) {
                 qDebug() << "[smartsavebutton.cpp] failed to save:" << obj->getName();
-                if(mandatoryList.value(obj, true))
+                if (mandatoryList.value(obj, true))
                     failedSaves.append(obj->getName());
             }
         }
     }
-    if(button)
+    if (button)
         button->setEnabled(true);
     QString result;
     bool error = true;
-    if(failedSaves.isEmpty() && failedUploads.isEmpty() && missingObjects.isEmpty()) {
+    if (failedSaves.isEmpty() && failedUploads.isEmpty() && missingObjects.isEmpty()) {
         result = "All operations finished successfully";
         error = false;
-    }
-    else {
-        if(!failedSaves.isEmpty()) {
+    } else {
+        if (!failedSaves.isEmpty()) {
             result.append("Objects not saved:\n");
             foreach (QString str, failedSaves) {
                 result.append(str + "\n");
             }
         }
-        if(!failedUploads.isEmpty()) {
-            if(!result.isEmpty())
+        if (!failedUploads.isEmpty()) {
+            if (!result.isEmpty())
                 result.append("\n");
             result.append("Objects not uploaded:\n");
             foreach (QString str, failedUploads) {
                 result.append(str + "\n");
             }
         }
-        if(!missingObjects.isEmpty()) {
-            if(!result.isEmpty())
+        if (!missingObjects.isEmpty()) {
+            if (!result.isEmpty())
                 result.append("\n");
             result.append("Objects not present on the hardware:\n");
             foreach (QString str, missingObjects) {
@@ -237,19 +240,16 @@ void smartSaveButton::processOperation(QPushButton * button,bool save)
             }
         }
     }
-    qDebug()<<"RESULT"<<result<<missingObjects<<failedSaves<<failedUploads;
-    if(button)
+    qDebug() << "RESULT" << result << missingObjects << failedSaves << failedUploads;
+    if (button)
         button->setToolTip(result);
-    if(!error)
-    {
-        if(button)
+    if (!error) {
+        if (button)
             button->setIcon(QIcon(":/uploader/images/dialog-apply.svg"));
         emit saveSuccessfull();
-    }
-    else
-    {
-        if(button) {
-            if(!failedSaves.isEmpty() || !failedUploads.isEmpty())
+    } else {
+        if (button) {
+            if (!failedSaves.isEmpty() || !failedUploads.isEmpty())
                 button->setIcon(QIcon(":/uploader/images/process-stop.svg"));
             else
                 button->setIcon(QIcon(":/uploader/images/warning.svg"));
@@ -265,7 +265,7 @@ void smartSaveButton::processOperation(QPushButton * button,bool save)
  */
 void smartSaveButton::setObjects(QList<UAVDataObject *> list)
 {
-    objects=list;
+    objects = list;
 }
 
 /**
@@ -274,10 +274,10 @@ void smartSaveButton::setObjects(QList<UAVDataObject *> list)
  * is used to add a new object to a smartSaveButton instance.
  * @param obj
  */
-void smartSaveButton::addObject(UAVDataObject * obj)
+void smartSaveButton::addObject(UAVDataObject *obj)
 {
     Q_ASSERT(obj);
-    if(!objects.contains(obj))
+    if (!objects.contains(obj))
         objects.append(obj);
 }
 
@@ -289,12 +289,12 @@ void smartSaveButton::addObject(UAVDataObject * obj)
  * @param isMandatory if object is not mandatory the save or upload result
  * will show as successfull even if the object doesn't exist on the hardware
  */
-void smartSaveButton::addObject(UAVDataObject * obj, bool isMandatory)
+void smartSaveButton::addObject(UAVDataObject *obj, bool isMandatory)
 {
     Q_ASSERT(obj);
-    if(!objects.contains(obj))
+    if (!objects.contains(obj))
         objects.append(obj);
-    if(!isMandatory)
+    if (!isMandatory)
         mandatoryList.insert(obj, false);
 }
 
@@ -304,9 +304,9 @@ void smartSaveButton::addObject(UAVDataObject * obj, bool isMandatory)
  * is used to remove an object from a smartSaveButton instance.
  * @param obj
  */
-void smartSaveButton::removeObject(UAVDataObject * obj)
+void smartSaveButton::removeObject(UAVDataObject *obj)
 {
-    if(objects.contains(obj))
+    if (objects.contains(obj))
         objects.removeAll(obj);
 }
 
@@ -324,11 +324,10 @@ void smartSaveButton::clearObjects()
     objects.clear();
 }
 
-void smartSaveButton::transaction_finished(UAVObject* obj, bool result)
+void smartSaveButton::transaction_finished(UAVObject *obj, bool result)
 {
-    if(current_object==obj)
-    {
-        upload_result=result;
+    if (current_object == obj) {
+        upload_result = result;
         loop.quit();
     }
 }
@@ -338,29 +337,28 @@ void smartSaveButton::saving_finished(int id, bool result)
     // The saveOjectToFlash method manages its own save queue, so we can be
     // in a situation where we get a saving_finished message for an object
     // which is not the one we're interested in, hence the check below:
-    if((quint32)id==current_objectID)
-    {
-        save_result=result;
+    if ((quint32)id == current_objectID) {
+        save_result = result;
         loop.quit();
     }
 }
 
 void smartSaveButton::enableControls(bool value)
 {
-    foreach(QPushButton * button,buttonList.keys())
+    foreach (QPushButton *button, buttonList.keys())
         button->setEnabled(value);
 }
 
 void smartSaveButton::resetIcons()
 {
-    foreach(QPushButton * button,buttonList.keys()) {
+    foreach (QPushButton *button, buttonList.keys()) {
         button->setToolTip("");
         button->setIcon(QIcon());
     }
 }
 
 /**
- * Set a UAVObject as not mandatory, meaning that if it doesn't exist on the 
+ * Set a UAVObject as not mandatory, meaning that if it doesn't exist on the
  * hardware a failed upload or save will be marked as successfull
  */
 void smartSaveButton::setNotMandatory(UAVDataObject *obj)
@@ -370,12 +368,10 @@ void smartSaveButton::setNotMandatory(UAVDataObject *obj)
 
 void smartSaveButton::apply()
 {
-    processOperation(NULL,false);
+    processOperation(NULL, false);
 }
 
 void smartSaveButton::save()
 {
-    processOperation(NULL,true);
+    processOperation(NULL, true);
 }
-
-

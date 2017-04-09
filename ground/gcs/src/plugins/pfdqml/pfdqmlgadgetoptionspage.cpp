@@ -20,24 +20,23 @@
 #include "uavobjectmanager.h"
 #include "uavdataobject.h"
 
-
 #include <QFileDialog>
 #include <QtAlgorithms>
 #include <QStringList>
 
-PfdQmlGadgetOptionsPage::PfdQmlGadgetOptionsPage(PfdQmlGadgetConfiguration *config, QObject *parent) :
-        IOptionsPage(parent),
-        m_config(config)
+PfdQmlGadgetOptionsPage::PfdQmlGadgetOptionsPage(PfdQmlGadgetConfiguration *config, QObject *parent)
+    : IOptionsPage(parent)
+    , m_config(config)
 {
 }
 
-//creates options page widget (uses the UI file)
+// creates options page widget (uses the UI file)
 QWidget *PfdQmlGadgetOptionsPage::createPage(QWidget *parent)
 {
     options_page = new Ui::PfdQmlGadgetOptionsPage();
-    //main widget
+    // main widget
     QWidget *optionsPageWidget = new QWidget(parent);
-    //main layout
+    // main layout
     options_page->setupUi(optionsPageWidget);
 
     // Restore the contents from the settings:

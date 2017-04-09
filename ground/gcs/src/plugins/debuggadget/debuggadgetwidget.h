@@ -31,18 +31,21 @@
 #include <QLabel>
 #include "ui_debug.h"
 #include "debugengine.h"
-class DebugGadgetWidget : public QLabel {
+class DebugGadgetWidget : public QLabel
+{
     Q_OBJECT
 
 public:
     DebugGadgetWidget(QWidget *parent = 0);
     ~DebugGadgetWidget();
+
 private:
     Ui_Form *m_config;
 private slots:
     void saveLog();
     void clearLog();
-    void message(DebugEngine::Level level, const QString &msg, const QString &file, const int line, const QString &function);
+    void message(DebugEngine::Level level, const QString &msg, const QString &file, const int line,
+                 const QString &function);
 };
 #endif /* DEBUGGADGETWIDGET_H_ */
 

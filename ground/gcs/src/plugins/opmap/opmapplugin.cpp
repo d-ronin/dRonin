@@ -32,31 +32,31 @@
 
 OPMapPlugin::OPMapPlugin()
 {
-   // Do nothing
+    // Do nothing
 }
 
 OPMapPlugin::~OPMapPlugin()
 {
-   // Do nothing
+    // Do nothing
 }
 
-bool OPMapPlugin::initialize(const QStringList& args, QString *errMsg)
+bool OPMapPlugin::initialize(const QStringList &args, QString *errMsg)
 {
-   Q_UNUSED(args);
-   Q_UNUSED(errMsg);
+    Q_UNUSED(args);
+    Q_UNUSED(errMsg);
 
-   mf = new OPMapGadgetFactory(this);
-   addAutoReleasedObject(mf);
+    mf = new OPMapGadgetFactory(this);
+    addAutoReleasedObject(mf);
 
-   return true;
+    return true;
 }
 
 void OPMapPlugin::extensionsInitialized()
 {
-   // Do nothing
+    // Do nothing
 }
 
 void OPMapPlugin::shutdown()
 {
-   // Do nothing
+    // Do nothing
 }

@@ -40,9 +40,9 @@
 #include <QFileDialog>
 #include <QDebug>
 
-FlightLogDownload::FlightLogDownload(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::FlightLogDownload)
+FlightLogDownload::FlightLogDownload(QWidget *parent)
+    : QDialog(parent)
+    , ui(new Ui::FlightLogDownload)
 {
     ui->setupUi(this);
 
@@ -57,11 +57,12 @@ FlightLogDownload::FlightLogDownload(QWidget *parent) :
     connect(ui->saveButton, SIGNAL(clicked()), this, SLOT(startDownload()));
 
     // Create default file name
-	QString fileName = tr("dRonin-%0.drlog").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss"));
+    QString fileName =
+        tr("dRonin-%0.drlog").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss"));
     ui->fileName->setText(QDir::current().relativeFilePath(fileName));
 
     // Get the current status
-    connect(loggingStats, SIGNAL(objectUnpacked(UAVObject*)), this, SLOT(updateReceived()));
+    connect(loggingStats, SIGNAL(objectUnpacked(UAVObject *)), this, SLOT(updateReceived()));
     loggingStats->requestUpdate();
 }
 
@@ -73,9 +74,10 @@ FlightLogDownload::~FlightLogDownload()
 //! Present file selector dialog for downloading file
 void FlightLogDownload::getFilename()
 {
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Save log as..."),
-									   tr("dRonin-%0.drlog").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss")),
-                                       tr("Log (*.drlog)"));
+    QString fileName = QFileDialog::getSaveFileName(
+        this, tr("Save log as..."),
+        tr("dRonin-%0.drlog").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss")),
+        tr("Log (*.drlog)"));
     if (!fileName.isEmpty())
         ui->fileName->setText(fileName);
 }
@@ -89,7 +91,7 @@ void FlightLogDownload::updateReceived()
 {
     LoggingStats::DataFields logging = loggingStats->getData();
 
-    switch(dl_state) {
+    switch (dl_state) {
     case DL_IDLE:
         // Update the file selector
         ui->cbFileId->clear();
@@ -106,7 +108,7 @@ void FlightLogDownload::updateReceived()
 
     switch (logging.Operation) {
     case LoggingStats::OPERATION_IDLE:
-        log.append((char *) logging.FileSector, LoggingStats::FILESECTOR_NUMELEM);
+        log.append((char *)logging.FileSector, LoggingStats::FILESECTOR_NUMELEM);
         logging.Operation = LoggingStats::OPERATION_DOWNLOAD;
         logging.FileSectorNum++;
         loggingStats->setData(logging);
@@ -116,9 +118,8 @@ void FlightLogDownload::updateReceived()
 
         ui->lb_operationStatus->setText("Downloading...");
         break;
-    case LoggingStats::OPERATION_COMPLETE:
-    {
-        log.append((char *) logging.FileSector, LoggingStats::FILESECTOR_NUMELEM);
+    case LoggingStats::OPERATION_COMPLETE: {
+        log.append((char *)logging.FileSector, LoggingStats::FILESECTOR_NUMELEM);
 
         dl_state = DL_IDLE;
 

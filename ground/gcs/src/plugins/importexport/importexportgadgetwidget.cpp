@@ -42,14 +42,14 @@
 #include <QUrl>
 #include <QDir>
 
-ImportExportGadgetWidget::ImportExportGadgetWidget(QWidget *parent) :
-        QWidget(parent),
-        ui(new Ui::ImportExportGadgetWidget)
+ImportExportGadgetWidget::ImportExportGadgetWidget(QWidget *parent)
+    : QWidget(parent)
+    , ui(new Ui::ImportExportGadgetWidget)
 {
     setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
     ui->setupUi(this);
 
-	filename = "";
+    filename = "";
 }
 
 ImportExportGadgetWidget::~ImportExportGadgetWidget()
@@ -71,26 +71,28 @@ void ImportExportGadgetWidget::changeEvent(QEvent *e)
 
 void ImportExportGadgetWidget::on_exportButton_clicked()
 {
-	QString file = filename;
-	QString filter = tr("GCS Settings file (*.xml)");
-	file = QFileDialog::getSaveFileName(this, tr("Save GCS Settings too file .."), QFileInfo(file).absoluteFilePath(), filter).trimmed();
-	if (file.isEmpty()) {
-		return;
-	}
+    QString file = filename;
+    QString filter = tr("GCS Settings file (*.xml)");
+    file = QFileDialog::getSaveFileName(this, tr("Save GCS Settings too file .."),
+                                        QFileInfo(file).absoluteFilePath(), filter)
+               .trimmed();
+    if (file.isEmpty()) {
+        return;
+    }
 
-	// Add a "XML" extension to the file in case it does not exist:
-	if (!file.toLower().endsWith(".xml"))
+    // Add a "XML" extension to the file in case it does not exist:
+    if (!file.toLower().endsWith(".xml"))
         file.append(".xml");
 
-	filename = file;
+    filename = file;
 
     qDebug() << "Export pressed! Write to file " << QFileInfo(file).absoluteFilePath();
 
     QMessageBox msgBox;
     QDir dir = QFileInfo(file).absoluteDir();
-    if (! dir.exists()) {
+    if (!dir.exists()) {
         msgBox.setText(tr("Can't write file ") + QFileInfo(file).absoluteFilePath()
-                       + " since directory "+ dir.absolutePath() + " doesn't exist!");
+                       + " since directory " + dir.absolutePath() + " doesn't exist!");
         msgBox.exec();
         return;
     }
@@ -99,24 +101,25 @@ void ImportExportGadgetWidget::on_exportButton_clicked()
     msgBox.setText(tr("The settings have been exported to ") + QFileInfo(file).absoluteFilePath());
     msgBox.exec();
     emit done();
-
 }
 
-QList<Core::IConfigurablePlugin*> ImportExportGadgetWidget::getConfigurables()
+QList<Core::IConfigurablePlugin *> ImportExportGadgetWidget::getConfigurables()
 {
-    QList<Core::IConfigurablePlugin*> configurables;
+    QList<Core::IConfigurablePlugin *> configurables;
 
-    QList<ExtensionSystem::PluginSpec *> specs = ExtensionSystem::PluginManager::instance()->plugins();
-    foreach ( ExtensionSystem::PluginSpec* spec, specs ){
-        if ( Core::IConfigurablePlugin* plugin = dynamic_cast<Core::IConfigurablePlugin*>(spec->plugin()) ){
-            qDebug()<< "Configurable: " << plugin->metaObject()->className();
+    QList<ExtensionSystem::PluginSpec *> specs =
+        ExtensionSystem::PluginManager::instance()->plugins();
+    foreach (ExtensionSystem::PluginSpec *spec, specs) {
+        if (Core::IConfigurablePlugin *plugin =
+                dynamic_cast<Core::IConfigurablePlugin *>(spec->plugin())) {
+            qDebug() << "Configurable: " << plugin->metaObject()->className();
             configurables.append(plugin);
         }
     }
     return configurables;
 }
 
-void ImportExportGadgetWidget::exportConfiguration(const QString& fileName)
+void ImportExportGadgetWidget::exportConfiguration(const QString &fileName)
 {
     bool doGeneral = ui->checkBoxGeneral->isChecked();
     bool doAllGadgets = ui->checkBoxAllGadgets->isChecked();
@@ -131,36 +134,37 @@ void ImportExportGadgetWidget::exportConfiguration(const QString& fileName)
     if (doAllGadgets) {
         Core::ICore::instance()->uavGadgetInstanceManager()->saveSettings(&qs);
     }
-    if ( doPlugins ){
-        foreach ( Core::IConfigurablePlugin *plugin, getConfigurables()){
-            Core::ICore::instance()->saveSettings(plugin,&qs);
+    if (doPlugins) {
+        foreach (Core::IConfigurablePlugin *plugin, getConfigurables()) {
+            Core::ICore::instance()->saveSettings(plugin, &qs);
         }
     }
 
     qDebug() << "Export ended";
 }
 
-
-void ImportExportGadgetWidget::writeError(const QString& msg) const
+void ImportExportGadgetWidget::writeError(const QString &msg) const
 {
     qWarning() << "ERROR: " << msg;
 }
 
 void ImportExportGadgetWidget::on_importButton_clicked()
 {
-	QString file = filename;
-	QString filter = tr("GCS Settings file (*.xml)");
-	file = QFileDialog::getOpenFileName(this, tr("Load GCS Settings from file .."), QFileInfo(file).absoluteFilePath(), filter).trimmed();
-	if (file.isEmpty()) {
-		return;
-	}
+    QString file = filename;
+    QString filter = tr("GCS Settings file (*.xml)");
+    file = QFileDialog::getOpenFileName(this, tr("Load GCS Settings from file .."),
+                                        QFileInfo(file).absoluteFilePath(), filter)
+               .trimmed();
+    if (file.isEmpty()) {
+        return;
+    }
 
-	filename = file;
+    filename = file;
 
     qDebug() << "Import pressed! Read from file " << QFileInfo(file).absoluteFilePath();
 
     QMessageBox msgBox;
-    if (! QFileInfo(file).isReadable()) {
+    if (!QFileInfo(file).isReadable()) {
         msgBox.setText(tr("Can't read file ") + QFileInfo(file).absoluteFilePath());
         msgBox.exec();
         return;
@@ -174,7 +178,7 @@ void ImportExportGadgetWidget::on_importButton_clicked()
     emit done();
 }
 
-void ImportExportGadgetWidget::importConfiguration(const QString& fileName)
+void ImportExportGadgetWidget::importConfiguration(const QString &fileName)
 {
     bool doGeneral = ui->checkBoxGeneral->isChecked();
     bool doAllGadgets = ui->checkBoxAllGadgets->isChecked();
@@ -182,15 +186,15 @@ void ImportExportGadgetWidget::importConfiguration(const QString& fileName)
 
     QSettings qs(fileName, XmlConfig::XmlSettingsFormat);
 
-    if ( doAllGadgets ) {
+    if (doAllGadgets) {
         Core::ICore::instance()->uavGadgetInstanceManager()->readSettings(&qs);
     }
-    if ( doGeneral ) {
+    if (doGeneral) {
         Core::ICore::instance()->readMainSettings(&qs);
     }
-    if ( doPlugins ){
-        foreach ( Core::IConfigurablePlugin *plugin, getConfigurables()){
-            Core::ICore::instance()->readSettings(plugin,&qs);
+    if (doPlugins) {
+        foreach (Core::IConfigurablePlugin *plugin, getConfigurables()) {
+            Core::ICore::instance()->readSettings(plugin, &qs);
         }
     }
 
@@ -200,9 +204,9 @@ void ImportExportGadgetWidget::importConfiguration(const QString& fileName)
 void ImportExportGadgetWidget::on_helpButton_clicked()
 {
     qDebug() << "Show Help";
-    QDesktopServices::openUrl(QUrl("https://github.com/d-ronin/dRonin/wiki/OnlineHelp:-Import-Export"));
+    QDesktopServices::openUrl(
+        QUrl("https://github.com/d-ronin/dRonin/wiki/OnlineHelp:-Import-Export"));
 }
-
 
 void ImportExportGadgetWidget::on_resetButton_clicked()
 {
@@ -211,19 +215,16 @@ void ImportExportGadgetWidget::on_resetButton_clicked()
     msgBox.setInformativeText(tr("You must restart the GCS in order to activate the changes."));
     msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
     msgBox.setDefaultButton(QMessageBox::Ok);
-    if ( msgBox.exec() == QMessageBox::Ok ){
+    if (msgBox.exec() == QMessageBox::Ok) {
         qDebug() << "Reset requested!";
         Core::ICore::instance()->deleteSettings();
-    }
-    else{
+    } else {
         qDebug() << "Reset canceled!";
         return;
     }
 }
 
-
 /**
  * @}
  * @}
  */
-

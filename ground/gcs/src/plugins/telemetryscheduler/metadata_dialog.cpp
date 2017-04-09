@@ -34,20 +34,19 @@
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/generalsettings.h>
 
-
-MetadataDialog::MetadataDialog(UAVObject::Metadata mdata, QWidget *parent) :
-    QDialog(parent),
-    resetDefaults_flag(false),
-    saveMetadata_flag(false)
+MetadataDialog::MetadataDialog(UAVObject::Metadata mdata, QWidget *parent)
+    : QDialog(parent)
+    , resetDefaults_flag(false)
+    , saveMetadata_flag(false)
 {
     m_mdata = &mdata;
 
     metadata_editor.setupUi(this);
 
     // In case GCS is not in expert mode, hide the apply button
-    ExtensionSystem::PluginManager *pm=ExtensionSystem::PluginManager::instance();
-    Core::Internal::GeneralSettings *settings=pm->getObject<Core::Internal::GeneralSettings>();
-    if(!settings->useExpertMode())
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    Core::Internal::GeneralSettings *settings = pm->getObject<Core::Internal::GeneralSettings>();
+    if (!settings->useExpertMode())
         metadata_editor.bnApplyMetadata->setVisible(false);
 
     // Set comboboxes
@@ -62,21 +61,23 @@ MetadataDialog::MetadataDialog(UAVObject::Metadata mdata, QWidget *parent) :
     metadata_editor.cmbGCSTelemetryMode->addItem("Manual", UAVObject::UPDATEMODE_MANUAL);
 
     // Connect the before setting any signals
-    connect(metadata_editor.bnApplyMetadata, &QAbstractButton::clicked, this, &MetadataDialog::saveApplyMetadata);
-    connect(metadata_editor.bnSaveMetadata, &QAbstractButton::clicked, this, &MetadataDialog::saveApplyMetadata);
-    connect(metadata_editor.bnCancel, &QAbstractButton::clicked, this, &MetadataDialog::cancelChanges);
-    connect(metadata_editor.bnResetToDefaults, &QAbstractButton::clicked, this, &MetadataDialog::resetMetadataToDefaults);
+    connect(metadata_editor.bnApplyMetadata, &QAbstractButton::clicked, this,
+            &MetadataDialog::saveApplyMetadata);
+    connect(metadata_editor.bnSaveMetadata, &QAbstractButton::clicked, this,
+            &MetadataDialog::saveApplyMetadata);
+    connect(metadata_editor.bnCancel, &QAbstractButton::clicked, this,
+            &MetadataDialog::cancelChanges);
+    connect(metadata_editor.bnResetToDefaults, &QAbstractButton::clicked, this,
+            &MetadataDialog::resetMetadataToDefaults);
 
     // Fill buttons and check boxes
     fillWidgets();
 }
 
-
 MetadataDialog::~MetadataDialog()
 {
-   // Do nothing
+    // Do nothing
 }
-
 
 void MetadataDialog::saveApplyMetadata()
 {
@@ -89,20 +90,29 @@ void MetadataDialog::saveApplyMetadata()
         Q_ASSERT(0);
 
     // Checkboxes
-    UAVObject::SetFlightAccess(*m_mdata, metadata_editor.cbFlightReadOnly->isChecked() ? UAVObject::ACCESS_READONLY : UAVObject::ACCESS_READWRITE);
-    UAVObject::SetGcsAccess(*m_mdata, metadata_editor.cbFlightReadOnly->isChecked() ? UAVObject::ACCESS_READONLY : UAVObject::ACCESS_READWRITE);
+    UAVObject::SetFlightAccess(*m_mdata, metadata_editor.cbFlightReadOnly->isChecked()
+                                   ? UAVObject::ACCESS_READONLY
+                                   : UAVObject::ACCESS_READWRITE);
+    UAVObject::SetGcsAccess(*m_mdata, metadata_editor.cbFlightReadOnly->isChecked()
+                                ? UAVObject::ACCESS_READONLY
+                                : UAVObject::ACCESS_READWRITE);
     UAVObject::SetFlightTelemetryAcked(*m_mdata, metadata_editor.cbFlightAcked->isChecked());
     UAVObject::SetGcsTelemetryAcked(*m_mdata, metadata_editor.cbGCSAcked->isChecked());
 
     // Comboboxes
     int currentFlightIdx = metadata_editor.cmbFlightTelemetryMode->currentIndex();
     int currentGCSIdx = metadata_editor.cmbGCSTelemetryMode->currentIndex();
-    UAVObject::SetFlightTelemetryUpdateMode(*m_mdata, (UAVObject::UpdateMode) metadata_editor.cmbFlightTelemetryMode->itemData(currentFlightIdx).toInt());
-    UAVObject::SetGcsTelemetryUpdateMode(*m_mdata, (UAVObject::UpdateMode) metadata_editor.cmbGCSTelemetryMode->itemData(currentGCSIdx).toInt());
+    UAVObject::SetFlightTelemetryUpdateMode(
+        *m_mdata,
+        (UAVObject::UpdateMode)metadata_editor.cmbFlightTelemetryMode->itemData(currentFlightIdx)
+            .toInt());
+    UAVObject::SetGcsTelemetryUpdateMode(
+        *m_mdata,
+        (UAVObject::UpdateMode)metadata_editor.cmbGCSTelemetryMode->itemData(currentGCSIdx)
+            .toInt());
 
     accept();
 }
-
 
 void MetadataDialog::cancelChanges()
 {
@@ -114,7 +124,6 @@ void MetadataDialog::resetMetadataToDefaults()
     resetDefaults_flag = true;
     accept();
 }
-
 
 /**
  * @brief MetadataDialog::fillWidgets Fill the dialog box
@@ -129,11 +138,13 @@ void MetadataDialog::fillWidgets()
 
     // Set flight telemetry update mode combo box
     int accessType = UAVObject::GetFlightTelemetryUpdateMode(*m_mdata);
-    metadata_editor.cmbFlightTelemetryMode->setCurrentIndex(metadata_editor.cmbFlightTelemetryMode->findData(accessType));
+    metadata_editor.cmbFlightTelemetryMode->setCurrentIndex(
+        metadata_editor.cmbFlightTelemetryMode->findData(accessType));
 
     // Set GCS telemetry update mode combo box
     accessType = UAVObject::GetGcsTelemetryUpdateMode(*m_mdata);
-    metadata_editor.cmbGCSTelemetryMode->setCurrentIndex(metadata_editor.cmbGCSTelemetryMode->findData(accessType));
+    metadata_editor.cmbGCSTelemetryMode->setCurrentIndex(
+        metadata_editor.cmbGCSTelemetryMode->findData(accessType));
 }
 
 /**

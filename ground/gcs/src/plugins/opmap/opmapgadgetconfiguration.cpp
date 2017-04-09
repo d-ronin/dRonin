@@ -29,73 +29,75 @@
 #include "utils/pathutils.h"
 #include <QDir>
 
-OPMapGadgetConfiguration::OPMapGadgetConfiguration(QString classId,  QSettings* qSettings, QObject *parent) :
-    IUAVGadgetConfiguration(classId, parent),
-    m_mapProvider("GoogleHybrid"),
-    m_defaultZoom(2),
-    m_defaultLatitude(0),
-    m_defaultLongitude(0),
-    m_showTileGridLines(false),
-    m_accessMode("ServerAndCache"),
-    m_useMemoryCache(true),
-    m_cacheLocation(Utils::PathUtils().GetStoragePath() + "mapscache" + QDir::separator()),
-	m_uavSymbol(QString::fromUtf8(":/uavs/images/mapquad.png")),
-    m_maxUpdateRate(2000),	// ms
-    m_settings(qSettings),
-    m_opacity(1),
-    m_geoLanguage("autoDetect")
+OPMapGadgetConfiguration::OPMapGadgetConfiguration(QString classId, QSettings *qSettings,
+                                                   QObject *parent)
+    : IUAVGadgetConfiguration(classId, parent)
+    , m_mapProvider("GoogleHybrid")
+    , m_defaultZoom(2)
+    , m_defaultLatitude(0)
+    , m_defaultLongitude(0)
+    , m_showTileGridLines(false)
+    , m_accessMode("ServerAndCache")
+    , m_useMemoryCache(true)
+    , m_cacheLocation(Utils::PathUtils().GetStoragePath() + "mapscache" + QDir::separator())
+    , m_uavSymbol(QString::fromUtf8(":/uavs/images/mapquad.png"))
+    , m_maxUpdateRate(2000)
+    , // ms
+    m_settings(qSettings)
+    , m_opacity(1)
+    , m_geoLanguage("autoDetect")
 {
 
-    //if a saved configuration exists load it
-	if (qSettings != 0) {
+    // if a saved configuration exists load it
+    if (qSettings != 0) {
 
-        QString mapProvider  = qSettings->value("mapProvider").toString();
+        QString mapProvider = qSettings->value("mapProvider").toString();
         int zoom = qSettings->value("defaultZoom").toInt();
-        double latitude= qSettings->value("defaultLatitude").toDouble();
-        double longitude= qSettings->value("defaultLongitude").toDouble();
-        bool showTileGridLines= qSettings->value("showTileGridLines").toBool();
-        QString accessMode= qSettings->value("accessMode").toString();
-        bool useMemoryCache= qSettings->value("useMemoryCache").toBool();
-        QString cacheLocation= qSettings->value("cacheLocation").toString();
-        QString uavSymbol=qSettings->value("uavSymbol").toString();
-		int max_update_rate = qSettings->value("maxUpdateRate").toInt();
+        double latitude = qSettings->value("defaultLatitude").toDouble();
+        double longitude = qSettings->value("defaultLongitude").toDouble();
+        bool showTileGridLines = qSettings->value("showTileGridLines").toBool();
+        QString accessMode = qSettings->value("accessMode").toString();
+        bool useMemoryCache = qSettings->value("useMemoryCache").toBool();
+        QString cacheLocation = qSettings->value("cacheLocation").toString();
+        QString uavSymbol = qSettings->value("uavSymbol").toString();
+        int max_update_rate = qSettings->value("maxUpdateRate").toInt();
         float userImageHorizontalScale = qSettings->value("userImageHorizontalScale").toFloat();
         float userImageVerticalScale = qSettings->value("userImageVerticalScale").toFloat();
         QString userImageLocation = qSettings->value("userImageLocation").toString();
         QString language = qSettings->value("geolanguage").toString();
-        m_opacity=qSettings->value("overlayOpacity",1).toReal();
+        m_opacity = qSettings->value("overlayOpacity", 1).toReal();
 
-        if (!mapProvider.isEmpty()){
+        if (!mapProvider.isEmpty()) {
             m_mapProvider = mapProvider;
         }
-        if (!language.isEmpty()){
+        if (!language.isEmpty()) {
             m_geoLanguage = language;
         }
         m_defaultZoom = zoom;
         m_defaultLatitude = latitude;
         m_defaultLongitude = longitude;
         m_showTileGridLines = showTileGridLines;
-		m_uavSymbol = uavSymbol;
+        m_uavSymbol = uavSymbol;
 
-        m_userImageHorizontalScale=userImageHorizontalScale;
-        m_userImageVerticalScale= userImageVerticalScale;
+        m_userImageHorizontalScale = userImageHorizontalScale;
+        m_userImageVerticalScale = userImageVerticalScale;
         m_userImageLocation = userImageLocation;
 
-		m_maxUpdateRate = max_update_rate;
-		if (m_maxUpdateRate < 100 || m_maxUpdateRate > 5000)
-			m_maxUpdateRate = 2000;
+        m_maxUpdateRate = max_update_rate;
+        if (m_maxUpdateRate < 100 || m_maxUpdateRate > 5000)
+            m_maxUpdateRate = 2000;
 
-		if (!accessMode.isEmpty())
-			m_accessMode = accessMode;
+        if (!accessMode.isEmpty())
+            m_accessMode = accessMode;
         m_useMemoryCache = useMemoryCache;
 
-        //Assign cache location from settings
-		if (!cacheLocation.isEmpty())
-			m_cacheLocation = Utils::PathUtils().InsertStoragePath(cacheLocation);
+        // Assign cache location from settings
+        if (!cacheLocation.isEmpty())
+            m_cacheLocation = Utils::PathUtils().InsertStoragePath(cacheLocation);
     }
 }
 
-IUAVGadgetConfiguration * OPMapGadgetConfiguration::clone()
+IUAVGadgetConfiguration *OPMapGadgetConfiguration::clone()
 {
     OPMapGadgetConfiguration *m = new OPMapGadgetConfiguration(this->classId());
 
@@ -109,47 +111,49 @@ IUAVGadgetConfiguration * OPMapGadgetConfiguration::clone()
     m->m_cacheLocation = m_cacheLocation;
     m->m_uavSymbol = m_uavSymbol;
     m->m_maxUpdateRate = m_maxUpdateRate;
-    m->m_opacity=m_opacity;
-    m->m_userImageHorizontalScale=m_userImageHorizontalScale;
-    m->m_userImageVerticalScale=m_userImageVerticalScale;
-    m->m_userImageLocation=m_userImageLocation;
+    m->m_opacity = m_opacity;
+    m->m_userImageHorizontalScale = m_userImageHorizontalScale;
+    m->m_userImageVerticalScale = m_userImageVerticalScale;
+    m->m_userImageLocation = m_userImageLocation;
     m->m_geoLanguage = m_geoLanguage;
 
     return m;
 }
-void OPMapGadgetConfiguration::saveConfig() const {
-    if(!m_settings)
+void OPMapGadgetConfiguration::saveConfig() const
+{
+    if (!m_settings)
         return;
-   m_settings->setValue("mapProvider", m_mapProvider);
-   m_settings->setValue("defaultZoom", m_defaultZoom);
-   m_settings->setValue("defaultLatitude", m_defaultLatitude);
-   m_settings->setValue("defaultLongitude", m_defaultLongitude);
-   m_settings->setValue("showTileGridLines", m_showTileGridLines);
-   m_settings->setValue("accessMode", m_accessMode);
-   m_settings->setValue("useMemoryCache", m_useMemoryCache);
-   m_settings->setValue("uavSymbol", m_uavSymbol);
-   m_settings->setValue("cacheLocation", Utils::PathUtils().RemoveStoragePath(m_cacheLocation));
-   m_settings->setValue("maxUpdateRate", m_maxUpdateRate);
-   m_settings->setValue("overlayOpacity",m_opacity);
-   m_settings->setValue("userImageHorizontalScale", m_userImageHorizontalScale);
-   m_settings->setValue("userImageVerticalScale", m_userImageVerticalScale);
-   m_settings->setValue("userImageLocation", m_userImageLocation);
-   m_settings->setValue("geolanguage",m_geoLanguage);
+    m_settings->setValue("mapProvider", m_mapProvider);
+    m_settings->setValue("defaultZoom", m_defaultZoom);
+    m_settings->setValue("defaultLatitude", m_defaultLatitude);
+    m_settings->setValue("defaultLongitude", m_defaultLongitude);
+    m_settings->setValue("showTileGridLines", m_showTileGridLines);
+    m_settings->setValue("accessMode", m_accessMode);
+    m_settings->setValue("useMemoryCache", m_useMemoryCache);
+    m_settings->setValue("uavSymbol", m_uavSymbol);
+    m_settings->setValue("cacheLocation", Utils::PathUtils().RemoveStoragePath(m_cacheLocation));
+    m_settings->setValue("maxUpdateRate", m_maxUpdateRate);
+    m_settings->setValue("overlayOpacity", m_opacity);
+    m_settings->setValue("userImageHorizontalScale", m_userImageHorizontalScale);
+    m_settings->setValue("userImageVerticalScale", m_userImageVerticalScale);
+    m_settings->setValue("userImageLocation", m_userImageLocation);
+    m_settings->setValue("geolanguage", m_geoLanguage);
 }
-void OPMapGadgetConfiguration::saveConfig(QSettings* qSettings) const {
-   qSettings->setValue("mapProvider", m_mapProvider);
-   qSettings->setValue("defaultZoom", m_defaultZoom);
-   qSettings->setValue("defaultLatitude", m_defaultLatitude);
-   qSettings->setValue("defaultLongitude", m_defaultLongitude);
-   qSettings->setValue("showTileGridLines", m_showTileGridLines);
-   qSettings->setValue("accessMode", m_accessMode);
-   qSettings->setValue("useMemoryCache", m_useMemoryCache);
-   qSettings->setValue("uavSymbol", m_uavSymbol);
-   qSettings->setValue("cacheLocation", Utils::PathUtils().RemoveStoragePath(m_cacheLocation));
-   qSettings->setValue("maxUpdateRate", m_maxUpdateRate);
-   qSettings->setValue("overlayOpacity",m_opacity);
-   qSettings->setValue("userImageHorizontalScale", m_userImageHorizontalScale);
-   qSettings->setValue("userImageVerticalScale", m_userImageVerticalScale);
-   qSettings->setValue("userImageLocation", m_userImageLocation);
-   qSettings->setValue("geolanguage",m_geoLanguage);
+void OPMapGadgetConfiguration::saveConfig(QSettings *qSettings) const
+{
+    qSettings->setValue("mapProvider", m_mapProvider);
+    qSettings->setValue("defaultZoom", m_defaultZoom);
+    qSettings->setValue("defaultLatitude", m_defaultLatitude);
+    qSettings->setValue("defaultLongitude", m_defaultLongitude);
+    qSettings->setValue("showTileGridLines", m_showTileGridLines);
+    qSettings->setValue("accessMode", m_accessMode);
+    qSettings->setValue("useMemoryCache", m_useMemoryCache);
+    qSettings->setValue("uavSymbol", m_uavSymbol);
+    qSettings->setValue("cacheLocation", Utils::PathUtils().RemoveStoragePath(m_cacheLocation));
+    qSettings->setValue("maxUpdateRate", m_maxUpdateRate);
+    qSettings->setValue("overlayOpacity", m_opacity);
+    qSettings->setValue("userImageHorizontalScale", m_userImageHorizontalScale);
+    qSettings->setValue("userImageVerticalScale", m_userImageVerticalScale);
+    qSettings->setValue("userImageLocation", m_userImageLocation);
+    qSettings->setValue("geolanguage", m_geoLanguage);
 }

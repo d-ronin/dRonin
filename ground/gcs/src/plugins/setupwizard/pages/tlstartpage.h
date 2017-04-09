@@ -33,7 +33,8 @@ namespace Ui {
 class StartPage;
 }
 
-class TLStartPage : public AbstractWizardPage {
+class TLStartPage : public AbstractWizardPage
+{
     Q_OBJECT
 
 public:

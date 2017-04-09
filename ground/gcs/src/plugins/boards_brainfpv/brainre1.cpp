@@ -41,18 +41,21 @@
 BrainRE1::BrainRE1(void)
 {
     // Common USB IDs
-    addBootloaderUSBInfo(USBInfo(DRONIN_VID_DRONIN_BOOTLOADER, DRONIN_PID_DRONIN_BOOTLOADER, BCD_DEVICE_BOOTLOADER));
-    addFirmwareUSBInfo(USBInfo(DRONIN_VID_DRONIN_FIRMWARE, DRONIN_PID_DRONIN_FIRMWARE, BCD_DEVICE_FIRMWARE));
+    addBootloaderUSBInfo(
+        USBInfo(DRONIN_VID_DRONIN_BOOTLOADER, DRONIN_PID_DRONIN_BOOTLOADER, BCD_DEVICE_BOOTLOADER));
+    addFirmwareUSBInfo(
+        USBInfo(DRONIN_VID_DRONIN_FIRMWARE, DRONIN_PID_DRONIN_FIRMWARE, BCD_DEVICE_FIRMWARE));
     // Legacy USB IDs
-    addBootloaderUSBInfo(USBInfo(DRONIN_VID_BRAINFPV_BRAIN, DRONIN_PID_BRAINFPV_BRAIN, BCD_DEVICE_BOOTLOADER));
-    addFirmwareUSBInfo(USBInfo(DRONIN_VID_BRAINFPV_BRAIN, DRONIN_PID_BRAINFPV_BRAIN, BCD_DEVICE_FIRMWARE));
+    addBootloaderUSBInfo(
+        USBInfo(DRONIN_VID_BRAINFPV_BRAIN, DRONIN_PID_BRAINFPV_BRAIN, BCD_DEVICE_BOOTLOADER));
+    addFirmwareUSBInfo(
+        USBInfo(DRONIN_VID_BRAINFPV_BRAIN, DRONIN_PID_BRAINFPV_BRAIN, BCD_DEVICE_FIRMWARE));
 
     boardType = 0x8B;
 }
 
 BrainRE1::~BrainRE1()
 {
-
 }
 
 QString BrainRE1::shortName()
@@ -68,7 +71,7 @@ QString BrainRE1::boardDescription()
 //! Return which capabilities this board has
 bool BrainRE1::queryCapabilities(BoardCapabilities capability)
 {
-    switch(capability) {
+    switch (capability) {
     case BOARD_CAPABILITIES_GYROS:
     case BOARD_CAPABILITIES_ACCELS:
     case BOARD_CAPABILITIES_OSD:
@@ -94,7 +97,7 @@ bool BrainRE1::isInputConfigurationSupported(Core::IBoardType::InputType type)
     default:
         break;
     }
-    
+
     return true;
 }
 
@@ -120,7 +123,7 @@ bool BrainRE1::setInputType(Core::IBoardType::InputType type)
 
     HwBrainRE1::DataFields settings = hwBrainRE1->getData();
 
-    switch(type) {
+    switch (type) {
     case INPUT_TYPE_PPM:
         settings.RxPort = HwBrainRE1::RXPORT_PPM;
         break;
@@ -174,7 +177,7 @@ Core::IBoardType::InputType BrainRE1::getInputType()
 
     HwBrainRE1::DataFields settings = hwBrainRE1->getData();
 
-    switch(settings.RxPort) {
+    switch (settings.RxPort) {
     case HwBrainRE1::RXPORT_PPM:
         return INPUT_TYPE_PPM;
     case HwBrainRE1::RXPORT_SBUS:
@@ -207,33 +210,35 @@ int BrainRE1::queryMaxGyroRate()
 
 QStringList BrainRE1::getAdcNames()
 {
-    return QStringList() << "I" << "V" << "R";
+    return QStringList() << "I"
+                         << "V"
+                         << "R";
 }
 
-QWidget * BrainRE1::getBoardConfiguration(QWidget *parent, bool connected)
+QWidget *BrainRE1::getBoardConfiguration(QWidget *parent, bool connected)
 {
     Q_UNUSED(connected);
     return new BrainRE1Configuration(parent);
 }
 
-QVector< QVector<int> > BrainRE1::getChannelBanks() {
-    QVector< QVector<int> > banks;
+QVector<QVector<int>> BrainRE1::getChannelBanks()
+{
+    QVector<QVector<int>> banks;
 
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
     HwBrainRE1 *hwBrainRE1 = HwBrainRE1::GetInstance(uavoManager);
     if (!hwBrainRE1 || (hwBrainRE1->getMultiPortMode() == 0)) {
         banks.resize(4);
-        banks[0] = QVector<int> () << 1 << 2 << 3 << 4; // TIM5
-        banks[1] = QVector<int> () << 5; // TIM1
-        banks[2] = QVector<int> () << 6; // TIM2
-        banks[3] = QVector<int> () << 7 << 8; // TIM8
-    }
-    else {
+        banks[0] = QVector<int>() << 1 << 2 << 3 << 4; // TIM5
+        banks[1] = QVector<int>() << 5; // TIM1
+        banks[2] = QVector<int>() << 6; // TIM2
+        banks[3] = QVector<int>() << 7 << 8; // TIM8
+    } else {
         banks.resize(3);
-        banks[0] = QVector<int> () << 1 << 2; // TIM5
-        banks[1] = QVector<int> () << 3; // TIM1
-        banks[2] = QVector<int> () << 4; // TIM2
+        banks[0] = QVector<int>() << 1 << 2; // TIM5
+        banks[1] = QVector<int>() << 3; // TIM1
+        banks[2] = QVector<int>() << 4; // TIM2
     }
 
     return banks;

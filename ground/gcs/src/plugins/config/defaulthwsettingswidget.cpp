@@ -41,19 +41,20 @@
  * board connection is established or when there is no board
  * @param parent The main configuration widget
  */
-DefaultHwSettingsWidget::DefaultHwSettingsWidget(UAVObject *settingsObj, QWidget *parent) :
-        ConfigTaskWidget(parent),
-        defaultHWSettingsWidget(new Ui_DefaultHwSettings)
+DefaultHwSettingsWidget::DefaultHwSettingsWidget(UAVObject *settingsObj, QWidget *parent)
+    : ConfigTaskWidget(parent)
+    , defaultHWSettingsWidget(new Ui_DefaultHwSettings)
 {
     Q_ASSERT(settingsObj);
 
     defaultHWSettingsWidget->setupUi(this);
 
-    QFormLayout *layout = qobject_cast<QFormLayout *>(defaultHWSettingsWidget->portSettingsFrame->layout());
+    QFormLayout *layout =
+        qobject_cast<QFormLayout *>(defaultHWSettingsWidget->portSettingsFrame->layout());
     QWidget *wdg;
     QLabel *lbl;
 
-    QList <UAVObjectField*> fields = settingsObj->getFields();
+    QList<UAVObjectField *> fields = settingsObj->getFields();
     for (int i = 0; i < fields.size(); i++) {
         switch (fields[i]->getType()) {
         case UAVObjectField::BITFIELD:
@@ -104,7 +105,8 @@ DefaultHwSettingsWidget::DefaultHwSettingsWidget(UAVObject *settingsObj, QWidget
     refreshWidgetsValues();
     enableControls(true);
 
-    // Have to force the form as clean (unedited by user) since refreshWidgetsValues forces it to dirty.
+    // Have to force the form as clean (unedited by user) since refreshWidgetsValues forces it to
+    // dirty.
     forceConnectedState();
 
     disableMouseWheelEvents();

@@ -40,7 +40,8 @@ namespace Ui {
 class ControllerPage;
 }
 
-class ControllerPage : public AbstractWizardPage {
+class ControllerPage : public AbstractWizardPage
+{
     Q_OBJECT
 
 public:

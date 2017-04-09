@@ -23,7 +23,6 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
-
 #ifndef LUXCONFIGURATION_H
 #define LUXCONFIGURATION_H
 
@@ -37,7 +36,7 @@ class LuxConfiguration;
 class LuxConfiguration : public ConfigTaskWidget
 {
     Q_OBJECT
-    
+
 public:
     explicit LuxConfiguration(QWidget *parent = 0);
     ~LuxConfiguration();

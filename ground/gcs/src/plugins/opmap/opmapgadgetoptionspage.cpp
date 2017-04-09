@@ -41,17 +41,17 @@
 
 // *********************************************
 
-OPMapGadgetOptionsPage::OPMapGadgetOptionsPage(OPMapGadgetConfiguration *config, QObject *parent) :
-    IOptionsPage(parent),
-    m_config(config)
+OPMapGadgetOptionsPage::OPMapGadgetOptionsPage(OPMapGadgetConfiguration *config, QObject *parent)
+    : IOptionsPage(parent)
+    , m_config(config)
 {
 }
 
 QWidget *OPMapGadgetOptionsPage::createPage(QWidget *parent)
 {
-	int index;
+    int index;
 
-	m_page = new Ui::OPMapGadgetOptionsPage();
+    m_page = new Ui::OPMapGadgetOptionsPage();
     QWidget *w = new QWidget(parent);
     m_page->setupUi(w);
 
@@ -63,12 +63,12 @@ QWidget *OPMapGadgetOptionsPage::createPage(QWidget *parent)
     m_page->accessModeComboBox->clear();
     m_page->accessModeComboBox->addItems(mapcontrol::Helper::AccessModeTypes());
 
-	index = m_page->providerComboBox->findText(m_config->mapProvider());
-	index = (index >= 0) ? index : 0;
-	m_page->providerComboBox->setCurrentIndex(index);
+    index = m_page->providerComboBox->findText(m_config->mapProvider());
+    index = (index >= 0) ? index : 0;
+    m_page->providerComboBox->setCurrentIndex(index);
 
     // if provider is userimage maximum zoom is 32
-    if(m_config->mapProvider()=="UserImage")
+    if (m_config->mapProvider() == "UserImage")
         m_page->zoomSpinBox->setMaximum(32);
 
     // populate the geocode language combobox
@@ -76,21 +76,21 @@ QWidget *OPMapGadgetOptionsPage::createPage(QWidget *parent)
     m_page->languageComboBox->clear();
     m_page->languageComboBox->addItems(mapcontrol::Helper::LanguageTypes());
     index = m_page->languageComboBox->findText(m_config->geoLanguage());
-    index = (index >=0) ? index : 0;
+    index = (index >= 0) ? index : 0;
     m_page->languageComboBox->setCurrentIndex(index);
 
-	// populate the map max update rate combobox
-	m_page->maxUpdateRateComboBox->clear();
-	m_page->maxUpdateRateComboBox->addItem("100ms", 100);
-	m_page->maxUpdateRateComboBox->addItem("200ms", 200);
-	m_page->maxUpdateRateComboBox->addItem("500ms", 500);
-	m_page->maxUpdateRateComboBox->addItem("1 sec", 1000);
-	m_page->maxUpdateRateComboBox->addItem("2 sec", 2000);
-	m_page->maxUpdateRateComboBox->addItem("5 sec", 5000);
+    // populate the map max update rate combobox
+    m_page->maxUpdateRateComboBox->clear();
+    m_page->maxUpdateRateComboBox->addItem("100ms", 100);
+    m_page->maxUpdateRateComboBox->addItem("200ms", 200);
+    m_page->maxUpdateRateComboBox->addItem("500ms", 500);
+    m_page->maxUpdateRateComboBox->addItem("1 sec", 1000);
+    m_page->maxUpdateRateComboBox->addItem("2 sec", 2000);
+    m_page->maxUpdateRateComboBox->addItem("5 sec", 5000);
 
-	index = m_page->maxUpdateRateComboBox->findData(m_config->maxUpdateRate());
-	index = (index >= 0) ? index : 4;
-	m_page->maxUpdateRateComboBox->setCurrentIndex(index);
+    index = m_page->maxUpdateRateComboBox->findData(m_config->maxUpdateRate());
+    index = (index >= 0) ? index : 4;
+    m_page->maxUpdateRateComboBox->setCurrentIndex(index);
 
     m_page->zoomSpinBox->setValue(m_config->zoom());
     m_page->latitudeSpinBox->setValue(m_config->latitude());
@@ -111,49 +111,44 @@ QWidget *OPMapGadgetOptionsPage::createPage(QWidget *parent)
     m_page->horizontalScaleDoubleSpinBox->setValue(m_config->getUserImageHorizontalScale());
     m_page->verticalScaleDoubleSpinBox->setValue(m_config->getUserImageVerticalScale());
 
-
     QDir dir(":/uavs/images/");
-    QStringList list=dir.entryList();
-    foreach(QString i,list)
-    {
-        QIcon icon(QPixmap(":/uavs/images/"+i));
-        m_page->uavSymbolComboBox->addItem(icon,QString(),i);
+    QStringList list = dir.entryList();
+    foreach (QString i, list) {
+        QIcon icon(QPixmap(":/uavs/images/" + i));
+        m_page->uavSymbolComboBox->addItem(icon, QString(), i);
     }
-    for(int x=0;x<m_page->uavSymbolComboBox->count();++x)
-    {
-        if(m_page->uavSymbolComboBox->itemData(x).toString()==m_config->uavSymbol())
-        {
+    for (int x = 0; x < m_page->uavSymbolComboBox->count(); ++x) {
+        if (m_page->uavSymbolComboBox->itemData(x).toString() == m_config->uavSymbol()) {
             m_page->uavSymbolComboBox->setCurrentIndex(x);
         }
     }
 
-    connect(m_page->pushButtonCacheDefaults, &QAbstractButton::clicked,
-            this, &OPMapGadgetOptionsPage::on_pushButtonCacheDefaults_clicked);
-    connect(m_page->providerComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
-            this, &OPMapGadgetOptionsPage::on_providerComboBox_changed);
+    connect(m_page->pushButtonCacheDefaults, &QAbstractButton::clicked, this,
+            &OPMapGadgetOptionsPage::on_pushButtonCacheDefaults_clicked);
+    connect(m_page->providerComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+            &OPMapGadgetOptionsPage::on_providerComboBox_changed);
 
-    //Dynamically configure page
+    // Dynamically configure page
     on_providerComboBox_changed();
 
     return w;
 }
 
-void OPMapGadgetOptionsPage::on_providerComboBox_changed(){
-    if (m_page->providerComboBox->currentText()=="UserImage"){
+void OPMapGadgetOptionsPage::on_providerComboBox_changed()
+{
+    if (m_page->providerComboBox->currentText() == "UserImage") {
         m_page->CacheLocationLabel->setText("Map file location");
         m_page->zoomSpinBox->setMaximum(32);
         m_page->userImageScalingGroupBox->show();
         m_page->lineEditCacheLocation->setExpectedKind(Utils::PathChooser::File);
         m_page->lineEditCacheLocation->setPromptDialogTitle(tr("Choose Map File"));
-    }
-    else{
+    } else {
         m_page->CacheLocationLabel->setText("Cache location");
         m_page->zoomSpinBox->setMaximum(21);
         m_page->userImageScalingGroupBox->hide();
         m_page->lineEditCacheLocation->setExpectedKind(Utils::PathChooser::Directory);
         m_page->lineEditCacheLocation->setPromptDialogTitle(tr("Choose Cache Directory"));
     }
-
 }
 
 void OPMapGadgetOptionsPage::on_pushButtonCacheDefaults_clicked()
@@ -163,8 +158,8 @@ void OPMapGadgetOptionsPage::on_pushButtonCacheDefaults_clicked()
     m_page->accessModeComboBox->setCurrentIndex(index);
 
     m_page->checkBoxUseMemoryCache->setChecked(true);
-    m_page->lineEditCacheLocation->setPath(Utils::PathUtils().GetStoragePath() + "mapscache" + QDir::separator());
-
+    m_page->lineEditCacheLocation->setPath(Utils::PathUtils().GetStoragePath() + "mapscache"
+                                           + QDir::separator());
 }
 
 void OPMapGadgetOptionsPage::apply()
@@ -180,8 +175,11 @@ void OPMapGadgetOptionsPage::apply()
     m_config->setUserImageHorizontalScale(m_page->horizontalScaleDoubleSpinBox->value());
     m_config->setUserImageVerticalScale(m_page->verticalScaleDoubleSpinBox->value());
     m_config->setUserImageLocation(m_page->lineEditCacheLocation->path());
-    m_config->setUavSymbol(m_page->uavSymbolComboBox->itemData(m_page->uavSymbolComboBox->currentIndex()).toString());
-    m_config->setMaxUpdateRate(m_page->maxUpdateRateComboBox->itemData(m_page->maxUpdateRateComboBox->currentIndex()).toInt());
+    m_config->setUavSymbol(
+        m_page->uavSymbolComboBox->itemData(m_page->uavSymbolComboBox->currentIndex()).toString());
+    m_config->setMaxUpdateRate(
+        m_page->maxUpdateRateComboBox->itemData(m_page->maxUpdateRateComboBox->currentIndex())
+            .toInt());
     m_config->setGeoLanguage(m_page->languageComboBox->currentText());
 }
 

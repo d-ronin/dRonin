@@ -49,7 +49,7 @@ TauLinkPlugin::~TauLinkPlugin()
 /**
   * Add Logging plugin to File menu
   */
-bool TauLinkPlugin::initialize(const QStringList& args, QString *errMsg)
+bool TauLinkPlugin::initialize(const QStringList &args, QString *errMsg)
 {
     Q_UNUSED(args);
     Q_UNUSED(errMsg);
@@ -59,7 +59,6 @@ bool TauLinkPlugin::initialize(const QStringList& args, QString *errMsg)
 
     return true;
 }
-
 
 void TauLinkPlugin::extensionsInitialized()
 {

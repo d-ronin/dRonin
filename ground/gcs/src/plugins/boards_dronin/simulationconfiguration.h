@@ -40,7 +40,7 @@ class SimulationConfiguration;
 class SimulationConfiguration : public ConfigTaskWidget
 {
     Q_OBJECT
-    
+
 public:
     explicit SimulationConfiguration(QWidget *parent = 0);
     ~SimulationConfiguration();

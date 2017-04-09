@@ -35,7 +35,9 @@
 #include "homelocation.h"
 
 //! Initialize the model uavo proxy
-ModelUavoProxy::ModelUavoProxy(QObject *parent, FlightDataModel *model):QObject(parent),myModel(model)
+ModelUavoProxy::ModelUavoProxy(QObject *parent, FlightDataModel *model)
+    : QObject(parent)
+    , myModel(model)
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     Q_ASSERT(pm != NULL);
@@ -52,7 +54,7 @@ ModelUavoProxy::ModelUavoProxy(QObject *parent, FlightDataModel *model):QObject(
  */
 bool ModelUavoProxy::modelToObjects()
 {
-    Waypoint *wp = Waypoint::GetInstance(objManager,0);
+    Waypoint *wp = Waypoint::GetInstance(objManager, 0);
     Q_ASSERT(wp);
     if (wp == NULL)
         return false;
@@ -80,40 +82,38 @@ bool ModelUavoProxy::modelToObjects()
         progressMax = instances;
     }
 
-    for(x=0; x<myModel->rowCount(); x++)
-    {
+    for (x = 0; x < myModel->rowCount(); x++) {
         newInstance = false;
-        Waypoint *wp = NULL;    // Shadows above wp
+        Waypoint *wp = NULL; // Shadows above wp
 
         // Create new instances of waypoints if this is more than exist
-        if(x >= instances)
-        {
+        if (x >= instances) {
             newInstance = true;
-            wp=new Waypoint;
-            wp->initialize(x,wp->getMetaObject());
+            wp = new Waypoint;
+            wp->initialize(x, wp->getMetaObject());
             objManager->registerObject(wp);
-        }
-        else
-        {
-            wp=Waypoint::GetInstance(objManager,x);
+        } else {
+            wp = Waypoint::GetInstance(objManager, x);
         }
 
         Q_ASSERT(wp);
         Waypoint::DataFields waypoint = wp->getData();
 
         // Convert from LLA to NED for sending to the model
-        LLA[0] = myModel->data(myModel->index(x,FlightDataModel::LATPOSITION)).toDouble();
-        LLA[1] = myModel->data(myModel->index(x,FlightDataModel::LNGPOSITION)).toDouble();
-        LLA[2] = myModel->data(myModel->index(x,FlightDataModel::ALTITUDE)).toDouble();
+        LLA[0] = myModel->data(myModel->index(x, FlightDataModel::LATPOSITION)).toDouble();
+        LLA[1] = myModel->data(myModel->index(x, FlightDataModel::LNGPOSITION)).toDouble();
+        LLA[2] = myModel->data(myModel->index(x, FlightDataModel::ALTITUDE)).toDouble();
         Utils::CoordinateConversions().LLA2NED_HomeLLA(LLA, homeLLA, NED);
 
         // Fetch the data from the internal model
-        waypoint.Velocity=myModel->data(myModel->index(x,FlightDataModel::VELOCITY)).toFloat();
+        waypoint.Velocity = myModel->data(myModel->index(x, FlightDataModel::VELOCITY)).toFloat();
         waypoint.Position[Waypoint::POSITION_NORTH] = NED[0];
-        waypoint.Position[Waypoint::POSITION_EAST]  = NED[1];
-        waypoint.Position[Waypoint::POSITION_DOWN]  = NED[2];
-        waypoint.Mode = myModel->data(myModel->index(x,FlightDataModel::MODE), Qt::UserRole).toInt();
-        waypoint.ModeParameters = myModel->data(myModel->index(x,FlightDataModel::MODE_PARAMS)).toFloat();
+        waypoint.Position[Waypoint::POSITION_EAST] = NED[1];
+        waypoint.Position[Waypoint::POSITION_DOWN] = NED[2];
+        waypoint.Mode =
+            myModel->data(myModel->index(x, FlightDataModel::MODE), Qt::UserRole).toInt();
+        waypoint.ModeParameters =
+            myModel->data(myModel->index(x, FlightDataModel::MODE_PARAMS)).toFloat();
 
         if (robustUpdate(waypoint, x)) {
             qDebug() << "Successfully updated";
@@ -123,8 +123,7 @@ bool ModelUavoProxy::modelToObjects()
             emit sendPathPlanToUavProgress(100 * (x + 1) / progressMax);
             return false;
         }
-        if(newInstance)
-        {
+        if (newInstance) {
             QEventLoop m_eventloop;
             QTimer::singleShot(800, &m_eventloop, &QEventLoop::quit);
             m_eventloop.exec();
@@ -135,8 +134,8 @@ bool ModelUavoProxy::modelToObjects()
      * represent our model, and mark them invalid.  */
     for (; x < instances; x++) {
         Waypoint *wp = Waypoint::GetInstance(objManager, x);
-                // shadows wp above
-        
+        // shadows wp above
+
         Waypoint::DataFields waypoint = wp->getData();
 
         waypoint.Mode = Waypoint::MODE_INVALID;
@@ -163,31 +162,32 @@ bool ModelUavoProxy::modelToObjects()
 bool ModelUavoProxy::robustUpdate(Waypoint::DataFields data, int instance)
 {
     Waypoint *wp = Waypoint::GetInstance(objManager, instance);
-    connect(wp, QOverload<UAVObject *, bool>::of(&Waypoint::transactionCompleted),
-            this, &ModelUavoProxy::waypointTransactionCompleted);
+    connect(wp, QOverload<UAVObject *, bool>::of(&Waypoint::transactionCompleted), this,
+            &ModelUavoProxy::waypointTransactionCompleted);
 
     for (int i = 0; i < 10; i++) {
-            QEventLoop m_eventloop;
-            QTimer::singleShot(1000, &m_eventloop, &QEventLoop::quit);
-            connect(this, &ModelUavoProxy::waypointTransactionSucceeded, &m_eventloop, &QEventLoop::quit);
-            connect(this, &ModelUavoProxy::waypointTransactionFailed, &m_eventloop, &QEventLoop::quit);
-            waypointTransactionResult.insert(instance, false);
-            wp->setData(data);
-            wp->updated();
-            m_eventloop.exec();
-            if (waypointTransactionResult.value(instance)) {
-                disconnect(wp, QOverload<UAVObject *, bool>::of(&Waypoint::transactionCompleted),
-                           this, &ModelUavoProxy::waypointTransactionCompleted);
-                return true;
-            }
+        QEventLoop m_eventloop;
+        QTimer::singleShot(1000, &m_eventloop, &QEventLoop::quit);
+        connect(this, &ModelUavoProxy::waypointTransactionSucceeded, &m_eventloop,
+                &QEventLoop::quit);
+        connect(this, &ModelUavoProxy::waypointTransactionFailed, &m_eventloop, &QEventLoop::quit);
+        waypointTransactionResult.insert(instance, false);
+        wp->setData(data);
+        wp->updated();
+        m_eventloop.exec();
+        if (waypointTransactionResult.value(instance)) {
+            disconnect(wp, QOverload<UAVObject *, bool>::of(&Waypoint::transactionCompleted), this,
+                       &ModelUavoProxy::waypointTransactionCompleted);
+            return true;
+        }
 
-            // Wait a second for next attempt
-            QTimer::singleShot(500, &m_eventloop, &QEventLoop::quit);
-            m_eventloop.exec();
+        // Wait a second for next attempt
+        QTimer::singleShot(500, &m_eventloop, &QEventLoop::quit);
+        m_eventloop.exec();
     }
 
-    disconnect(wp, QOverload<UAVObject *, bool>::of(&Waypoint::transactionCompleted),
-               this, &ModelUavoProxy::waypointTransactionCompleted);
+    disconnect(wp, QOverload<UAVObject *, bool>::of(&Waypoint::transactionCompleted), this,
+               &ModelUavoProxy::waypointTransactionCompleted);
 
     // None of the attempt got an ack
     return false;
@@ -197,7 +197,8 @@ bool ModelUavoProxy::robustUpdate(Waypoint::DataFields data, int instance)
  * @brief waypointTransactionCompleted Map from the transaction complete to whether it
  * did or not
  */
-void ModelUavoProxy::waypointTransactionCompleted(UAVObject *obj, bool success) {
+void ModelUavoProxy::waypointTransactionCompleted(UAVObject *obj, bool success)
+{
     Q_ASSERT(obj->getObjID() == Waypoint::OBJID);
     waypointTransactionResult.insert(obj->getInstID(), success);
     if (success) {
@@ -221,15 +222,15 @@ void ModelUavoProxy::objectsToModel()
 
     myModel->pauseValidation(true);
 
-    myModel->removeRows(0,myModel->rowCount());
-    for(int x=0; x < Waypoint::getNumInstances(objManager) ; ++x) {
-        Waypoint * wp;
+    myModel->removeRows(0, myModel->rowCount());
+    for (int x = 0; x < Waypoint::getNumInstances(objManager); ++x) {
+        Waypoint *wp;
         Waypoint::DataFields wpfields;
 
-        wp = Waypoint::GetInstance(objManager,x);
+        wp = Waypoint::GetInstance(objManager, x);
         Q_ASSERT(wp);
 
-        if(!wp)
+        if (!wp)
             continue;
 
         // Get the waypoint data from the object manager and prepare a row in the internal model
@@ -241,16 +242,18 @@ void ModelUavoProxy::objectsToModel()
         myModel->insertRow(x);
 
         // Compute the coordinates in LLA
-        double NED[3] = {wpfields.Position[Waypoint::POSITION_NORTH], wpfields.Position[Waypoint::POSITION_EAST], wpfields.Position[Waypoint::POSITION_DOWN]};
+        double NED[3] = { wpfields.Position[Waypoint::POSITION_NORTH],
+                          wpfields.Position[Waypoint::POSITION_EAST],
+                          wpfields.Position[Waypoint::POSITION_DOWN] };
         Utils::CoordinateConversions().NED2LLA_HomeLLA(homeLLA, NED, LLA);
 
         // Store the data
-        myModel->setData(myModel->index(x,FlightDataModel::LATPOSITION), LLA[0]);
-        myModel->setData(myModel->index(x,FlightDataModel::LNGPOSITION), LLA[1]);
-        myModel->setData(myModel->index(x,FlightDataModel::ALTITUDE), LLA[2]);
-        myModel->setData(myModel->index(x,FlightDataModel::VELOCITY), wpfields.Velocity);
-        myModel->setData(myModel->index(x,FlightDataModel::MODE), wpfields.Mode);
-        myModel->setData(myModel->index(x,FlightDataModel::MODE_PARAMS), wpfields.ModeParameters);
+        myModel->setData(myModel->index(x, FlightDataModel::LATPOSITION), LLA[0]);
+        myModel->setData(myModel->index(x, FlightDataModel::LNGPOSITION), LLA[1]);
+        myModel->setData(myModel->index(x, FlightDataModel::ALTITUDE), LLA[2]);
+        myModel->setData(myModel->index(x, FlightDataModel::VELOCITY), wpfields.Velocity);
+        myModel->setData(myModel->index(x, FlightDataModel::MODE), wpfields.Mode);
+        myModel->setData(myModel->index(x, FlightDataModel::MODE_PARAMS), wpfields.ModeParameters);
     }
 
     myModel->pauseValidation(false);
@@ -276,4 +279,3 @@ bool ModelUavoProxy::getHomeLocation(double *homeLLA)
 
     return true;
 }
-

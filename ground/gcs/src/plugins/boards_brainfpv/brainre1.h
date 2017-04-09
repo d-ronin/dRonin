@@ -61,10 +61,13 @@ public:
      * @brief getConnectionDiagram get the connection diagram for this board
      * @return a string with the name of the resource for this board diagram
      */
-    virtual QString getConnectionDiagram() { return ":/brainfpv/images/brainre1-connection-diagram.svg"; }
+    virtual QString getConnectionDiagram()
+    {
+        return ":/brainfpv/images/brainre1-connection-diagram.svg";
+    }
 
     virtual int queryMaxGyroRate();
-    virtual QWidget * getBoardConfiguration(QWidget *parent, bool connected);
+    virtual QWidget *getBoardConfiguration(QWidget *parent, bool connected);
     virtual QStringList getAdcNames();
 
     /**
@@ -72,8 +75,7 @@ public:
      * @return matrix of channel bank names
      *
      */
-    virtual QVector< QVector<int> > getChannelBanks();
+    virtual QVector<QVector<int>> getChannelBanks();
 };
-
 
 #endif // BRAINRE1_H

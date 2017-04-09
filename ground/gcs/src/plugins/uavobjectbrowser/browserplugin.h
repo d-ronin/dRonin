@@ -36,13 +36,14 @@ class BrowserPlugin : public ExtensionSystem::IPlugin
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.dronin.plugins.UAVObjectBrowser")
 public:
-        BrowserPlugin();
-   ~BrowserPlugin();
+    BrowserPlugin();
+    ~BrowserPlugin();
 
-   void extensionsInitialized();
-   bool initialize(const QStringList & arguments, QString * errorString);
-   void shutdown();
+    void extensionsInitialized();
+    bool initialize(const QStringList &arguments, QString *errorString);
+    void shutdown();
+
 private:
-   UAVObjectBrowserFactory *mf;
+    UAVObjectBrowserFactory *mf;
 };
 #endif /* UAVOBJECTBROWSERPLUGIN_H_ */

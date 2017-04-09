@@ -41,7 +41,8 @@ namespace Ui {
 class CoordinatedPage;
 }
 
-class CoordinatedPage : public RadioProbePage {
+class CoordinatedPage : public RadioProbePage
+{
     Q_OBJECT
 
 public:

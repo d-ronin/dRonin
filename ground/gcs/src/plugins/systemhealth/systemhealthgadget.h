@@ -45,11 +45,10 @@ public:
     ~SystemHealthGadget();
 
     QWidget *widget() { return m_widget; }
-    void loadConfiguration(IUAVGadgetConfiguration* config);
+    void loadConfiguration(IUAVGadgetConfiguration *config);
 
 private:
     SystemHealthGadgetWidget *m_widget;
 };
-
 
 #endif // SYSTEMHEALTHGADGET_H_

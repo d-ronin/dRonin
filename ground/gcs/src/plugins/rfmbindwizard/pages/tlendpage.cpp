@@ -31,9 +31,9 @@
 #include <configgadgetfactory.h>
 #include <QMessageBox>
 
-TLEndPage::TLEndPage(RfmBindWizard *wizard, QWidget *parent) :
-    AbstractWizardPage(wizard, parent),
-    ui(new Ui::EndPage)
+TLEndPage::TLEndPage(RfmBindWizard *wizard, QWidget *parent)
+    : AbstractWizardPage(wizard, parent)
+    , ui(new Ui::EndPage)
 {
     ui->setupUi(this);
     setFinalPage(true);
@@ -43,4 +43,3 @@ TLEndPage::~TLEndPage()
 {
     delete ui;
 }
-

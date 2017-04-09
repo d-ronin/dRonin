@@ -35,22 +35,23 @@ class AlarmsMonitorWidget : public QObject
 {
     Q_OBJECT
 public:
-    static AlarmsMonitorWidget& getInstance()
+    static AlarmsMonitorWidget &getInstance()
     {
         static AlarmsMonitorWidget instance;
         return instance;
     }
-    void init(QSvgRenderer * renderer, QGraphicsSvgItem *graph);
+    void init(QSvgRenderer *renderer, QGraphicsSvgItem *graph);
 signals:
-    
+
 public slots:
     void processAlerts();
     void updateMessages();
     void updateNeeded();
+
 private:
     AlarmsMonitorWidget();
-    AlarmsMonitorWidget(AlarmsMonitorWidget const&);              // Don't Implement.
-    void operator=(AlarmsMonitorWidget const&); // Don't implement
+    AlarmsMonitorWidget(AlarmsMonitorWidget const &); // Don't Implement.
+    void operator=(AlarmsMonitorWidget const &); // Don't implement
     QGraphicsSvgItem *error_sym;
     QGraphicsSvgItem *warning_sym;
     QGraphicsSvgItem *info_sym;

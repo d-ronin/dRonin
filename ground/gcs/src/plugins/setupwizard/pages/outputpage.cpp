@@ -29,8 +29,9 @@
 #include "ui_outputpage.h"
 #include "setupwizard.h"
 
-OutputPage::OutputPage(SetupWizard *wizard, QWidget *parent) :
-    AbstractWizardPage(wizard, parent),
+OutputPage::OutputPage(SetupWizard *wizard, QWidget *parent)
+    : AbstractWizardPage(wizard, parent)
+    ,
 
     ui(new Ui::OutputPage)
 {
@@ -48,9 +49,9 @@ void OutputPage::setOutputRanges(quint16 minPulse, quint16 neutralPulse, quint16
     QList<actuatorChannelSettings> allSettings = getWizard()->getActuatorSettings();
     for (int i = 0; i < allSettings.count(); i++) {
         actuatorChannelSettings settings = allSettings[i];
-        settings.channelMin     = minPulse;
+        settings.channelMin = minPulse;
         settings.channelNeutral = neutralPulse;
-        settings.channelMax     = maxPulse;
+        settings.channelMax = maxPulse;
         allSettings[i] = settings;
     }
     getWizard()->setActuatorSettings(allSettings);

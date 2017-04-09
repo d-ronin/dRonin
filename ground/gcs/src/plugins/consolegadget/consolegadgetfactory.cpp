@@ -7,7 +7,7 @@
  * @{
  * @addtogroup ConsolePlugin Console Plugin
  * @{
- * @brief The Console Gadget impliments a console view 
+ * @brief The Console Gadget impliments a console view
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -28,19 +28,17 @@
 #include "consolegadget.h"
 #include <coreplugin/iuavgadget.h>
 
-ConsoleGadgetFactory::ConsoleGadgetFactory(QObject *parent) :
-        IUAVGadgetFactory(QString("ConsoleGadget"),
-                          tr("Console"),
-                          parent)
+ConsoleGadgetFactory::ConsoleGadgetFactory(QObject *parent)
+    : IUAVGadgetFactory(QString("ConsoleGadget"), tr("Console"), parent)
 {
 }
 
 ConsoleGadgetFactory::~ConsoleGadgetFactory()
 {
-
 }
 
-IUAVGadget* ConsoleGadgetFactory::createGadget(QWidget *parent) {
-    ConsoleGadgetWidget* gadgetWidget = new ConsoleGadgetWidget(parent);
+IUAVGadget *ConsoleGadgetFactory::createGadget(QWidget *parent)
+{
+    ConsoleGadgetWidget *gadgetWidget = new ConsoleGadgetWidget(parent);
     return new ConsoleGadget(QString("ConsoleGadget"), gadgetWidget, parent);
 }

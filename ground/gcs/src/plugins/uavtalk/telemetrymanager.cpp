@@ -29,16 +29,18 @@
 #include <extensionsystem/pluginmanager.h>
 #include <coreplugin/icore.h>
 
-TelemetryManager::TelemetryManager() :
-    autopilotConnected(false)
+TelemetryManager::TelemetryManager()
+    : autopilotConnected(false)
 {
     // Get UAVObjectManager instance
-    ExtensionSystem::PluginManager* pm = ExtensionSystem::PluginManager::instance();
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     objMngr = pm->getObject<UAVObjectManager>();
 
     settings = pm->getObject<Core::Internal::GeneralSettings>();
-    connect(settings, &Core::Internal::GeneralSettings::generalSettingsChanged, this, &TelemetryManager::onGeneralSettingsChanged);
-    connect(pm, &ExtensionSystem::PluginManager::pluginsLoadEnded, this, &TelemetryManager::onGeneralSettingsChanged);
+    connect(settings, &Core::Internal::GeneralSettings::generalSettingsChanged, this,
+            &TelemetryManager::onGeneralSettingsChanged);
+    connect(pm, &ExtensionSystem::PluginManager::pluginsLoadEnded, this,
+            &TelemetryManager::onGeneralSettingsChanged);
 }
 
 TelemetryManager::~TelemetryManager()
@@ -86,15 +88,11 @@ void TelemetryManager::onDisconnect()
 
 void TelemetryManager::onGeneralSettingsChanged()
 {
-    if (!settings->useSessionManaging())
-    {
-        foreach(UAVObjectManager::ObjectMap map, objMngr->getObjects())
-        {
-            foreach(UAVObject* obj, map.values())
-            {
-                UAVDataObject* dobj = dynamic_cast<UAVDataObject*>(obj);
-                if(dobj)
-                {
+    if (!settings->useSessionManaging()) {
+        foreach (UAVObjectManager::ObjectMap map, objMngr->getObjects()) {
+            foreach (UAVObject *obj, map.values()) {
+                UAVDataObject *dobj = dynamic_cast<UAVDataObject *>(obj);
+                if (dobj) {
                     dobj->setIsPresentOnHardware(false);
                     dobj->setIsPresentOnHardware(true);
                 }

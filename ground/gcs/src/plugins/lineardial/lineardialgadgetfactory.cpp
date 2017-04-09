@@ -7,7 +7,7 @@
  * @{
  * @addtogroup LinearDialPlugin Linear Dial Plugin
  * @{
- * @brief Impliments a gadget that displays linear gauges 
+ * @brief Impliments a gadget that displays linear gauges
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -30,10 +30,8 @@
 #include "lineardialgadgetoptionspage.h"
 #include <coreplugin/iuavgadget.h>
 
-LineardialGadgetFactory::LineardialGadgetFactory(QObject *parent) :
-        IUAVGadgetFactory(QString("LineardialGadget"),
-                          tr("Bargraph Dial"),
-                          parent)
+LineardialGadgetFactory::LineardialGadgetFactory(QObject *parent)
+    : IUAVGadgetFactory(QString("LineardialGadget"), tr("Bargraph Dial"), parent)
 {
 }
 
@@ -41,9 +39,9 @@ LineardialGadgetFactory::~LineardialGadgetFactory()
 {
 }
 
-Core::IUAVGadget* LineardialGadgetFactory::createGadget(QWidget *parent)
+Core::IUAVGadget *LineardialGadgetFactory::createGadget(QWidget *parent)
 {
-    LineardialGadgetWidget* gadgetWidget = new LineardialGadgetWidget(parent);
+    LineardialGadgetWidget *gadgetWidget = new LineardialGadgetWidget(parent);
     return new LineardialGadget(QString("LineardialGadget"), gadgetWidget, parent);
 }
 
@@ -54,6 +52,5 @@ IUAVGadgetConfiguration *LineardialGadgetFactory::createConfiguration(QSettings 
 
 IOptionsPage *LineardialGadgetFactory::createOptionsPage(IUAVGadgetConfiguration *config)
 {
-    return new LineardialGadgetOptionsPage(qobject_cast<LineardialGadgetConfiguration*>(config));
+    return new LineardialGadgetOptionsPage(qobject_cast<LineardialGadgetConfiguration *>(config));
 }
-

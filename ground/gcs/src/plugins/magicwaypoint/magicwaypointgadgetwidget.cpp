@@ -40,22 +40,29 @@
 #include "extensionsystem/pluginmanager.h"
 #include "extensionsystem/pluginmanager.h"
 
-MagicWaypointGadgetWidget::MagicWaypointGadgetWidget(QWidget *parent) : QLabel(parent)
+MagicWaypointGadgetWidget::MagicWaypointGadgetWidget(QWidget *parent)
+    : QLabel(parent)
 {
     m_magicwaypoint = new Ui_MagicWaypoint();
     m_magicwaypoint->setupUi(this);
 
     // Connect object updated event from UAVObject to also update check boxes
-    connect(getPathDesired(), SIGNAL(objectUpdated(UAVObject*)), this, SLOT(pathDesiredChanged(UAVObject*)));
-    connect(getPositionActual(), SIGNAL(objectUpdated(UAVObject*)), this, SLOT(positionActualChanged(UAVObject*)));
+    connect(getPathDesired(), SIGNAL(objectUpdated(UAVObject *)), this,
+            SLOT(pathDesiredChanged(UAVObject *)));
+    connect(getPositionActual(), SIGNAL(objectUpdated(UAVObject *)), this,
+            SLOT(positionActualChanged(UAVObject *)));
 
     // Connect updates from the position widget to this widget
-    connect(m_magicwaypoint->widgetPosition, SIGNAL(positionClicked(double,double)), this, SLOT(positionSelected(double,double)));
-    connect(this, SIGNAL(positionActualObjectChanged(double,double)), m_magicwaypoint->widgetPosition, SLOT(updateActualIndicator(double,double)));
-    connect(this, SIGNAL(positionDesiredObjectChanged(double,double)), m_magicwaypoint->widgetPosition, SLOT(updateDesiredIndicator(double,double)));
+    connect(m_magicwaypoint->widgetPosition, SIGNAL(positionClicked(double, double)), this,
+            SLOT(positionSelected(double, double)));
+    connect(this, SIGNAL(positionActualObjectChanged(double, double)),
+            m_magicwaypoint->widgetPosition, SLOT(updateActualIndicator(double, double)));
+    connect(this, SIGNAL(positionDesiredObjectChanged(double, double)),
+            m_magicwaypoint->widgetPosition, SLOT(updateDesiredIndicator(double, double)));
 
     // Catch changes in scale for visualization
-    connect(m_magicwaypoint->horizontalSliderScale, SIGNAL(valueChanged(int)), this, SLOT(scaleChanged(int)));
+    connect(m_magicwaypoint->horizontalSliderScale, SIGNAL(valueChanged(int)), this,
+            SLOT(scaleChanged(int)));
 
     // Make sure the scale is correctly visualized
     m_magicwaypoint->horizontalSliderScale->setValue(10);
@@ -63,19 +70,18 @@ MagicWaypointGadgetWidget::MagicWaypointGadgetWidget(QWidget *parent) : QLabel(p
 
 MagicWaypointGadgetWidget::~MagicWaypointGadgetWidget()
 {
-   // Do nothing
+    // Do nothing
 }
-
 
 /**
  * @brief MagicWaypointGadgetWidget::getPathDesired Returns the @ref PathDesired UAVObject
  * @return PathDesired
  */
-PathDesired* MagicWaypointGadgetWidget::getPathDesired()
+PathDesired *MagicWaypointGadgetWidget::getPathDesired()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
-    PathDesired* obj = PathDesired::GetInstance(objManager);
+    PathDesired *obj = PathDesired::GetInstance(objManager);
     Q_ASSERT(obj != NULL); // Save crashes later
     return obj;
 }
@@ -83,7 +89,7 @@ PathDesired* MagicWaypointGadgetWidget::getPathDesired()
 /*!
   \brief Returns the @ref PositionActual UAVObject
   */
-PositionActual* MagicWaypointGadgetWidget::getPositionActual()
+PositionActual *MagicWaypointGadgetWidget::getPositionActual()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
@@ -95,7 +101,8 @@ PositionActual* MagicWaypointGadgetWidget::getPositionActual()
 /**
   * Detect changes in scale and update visualization (does not change position)
   */
-void MagicWaypointGadgetWidget::scaleChanged(int scale) {
+void MagicWaypointGadgetWidget::scaleChanged(int scale)
+{
     Q_UNUSED(scale);
     pathDesiredChanged(getPathDesired());
     positionActualChanged(getPositionActual());
@@ -109,8 +116,7 @@ void MagicWaypointGadgetWidget::positionActualChanged(UAVObject *)
     PositionActual::DataFields positionActual = getPositionActual()->getData();
     double scale = m_magicwaypoint->horizontalSliderScale->value();
 
-    emit positionActualObjectChanged(positionActual.North / scale,
-                                     positionActual.East / scale);
+    emit positionActualObjectChanged(positionActual.North / scale, positionActual.East / scale);
 }
 
 /**
@@ -128,7 +134,8 @@ void MagicWaypointGadgetWidget::pathDesiredChanged(UAVObject *)
 /**
   * Slot called by visualization when a new @ref PathDesired is requested
   */
-void MagicWaypointGadgetWidget::positionSelected(double north, double east) {
+void MagicWaypointGadgetWidget::positionSelected(double north, double east)
+{
     double scale = m_magicwaypoint->horizontalSliderScale->value();
 
     PathDesired::DataFields pathDesired = getPathDesired()->getData();

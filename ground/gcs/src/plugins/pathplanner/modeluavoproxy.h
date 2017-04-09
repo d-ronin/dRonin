@@ -31,7 +31,7 @@
 #include "modeluavoproxy.h"
 #include "waypoint.h"
 
-class ModelUavoProxy:public QObject
+class ModelUavoProxy : public QObject
 {
     Q_OBJECT
 public:
@@ -58,14 +58,14 @@ signals:
     void waypointTransactionSucceeded();
     void waypointTransactionFailed();
     void sendPathPlanToUavProgress(int percent);
+
 private:
     UAVObjectManager *objManager;
-    Waypoint         *waypointObj;
-    FlightDataModel  *myModel;
+    Waypoint *waypointObj;
+    FlightDataModel *myModel;
 
     //! Track if each waypoint was updated
-    QMap<int, bool>  waypointTransactionResult;
-
+    QMap<int, bool> waypointTransactionResult;
 };
 
 #endif // ModelUavoProxy_H

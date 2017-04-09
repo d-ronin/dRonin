@@ -10,17 +10,17 @@
  * @brief Impliments serial connection to the flight hardware for Telemetry
  *****************************************************************************/
 /*
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
@@ -45,15 +45,14 @@ class SerialConnection;
 *   Plugin will add a instance of this class to the pool,
 *   so the connection manager can use it.
 */
-class SerialConnection
-    : public Core::IConnection
+class SerialConnection : public Core::IConnection
 {
     Q_OBJECT
 public:
     SerialConnection();
     virtual ~SerialConnection();
 
-    virtual QList <Core::IDevice*> availableDevices();
+    virtual QList<Core::IDevice *> availableDevices();
     virtual QIODevice *openDevice(Core::IDevice *deviceName);
     virtual void closeDevice(const QString &deviceName);
 
@@ -62,12 +61,12 @@ public:
     virtual void suspendPolling();
     virtual void resumePolling();
     virtual bool reconnect() { return m_config->reconnect(); }
-    bool deviceOpened() {return m_deviceOpened;}
-    SerialPluginConfiguration * Config() const { return m_config; }
-    SerialPluginOptionsPage * Optionspage() const { return m_optionspage; }
+    bool deviceOpened() { return m_deviceOpened; }
+    SerialPluginConfiguration *Config() const { return m_config; }
+    SerialPluginOptionsPage *Optionspage() const { return m_optionspage; }
 
 private:
-    QSerialPort*  serialHandle;
+    QSerialPort *serialHandle;
     bool enablePolling;
     SerialPluginConfiguration *m_config;
     SerialPluginOptionsPage *m_optionspage;
@@ -84,9 +83,8 @@ protected:
     QTimer periodicTimer;
 };
 
-//class SERIAL_EXPORT SerialPlugin
-class SerialPlugin
-    : public ExtensionSystem::IPlugin
+// class SERIAL_EXPORT SerialPlugin
+class SerialPlugin : public ExtensionSystem::IPlugin
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.dronin.plugins.Serial")
@@ -97,9 +95,9 @@ public:
 
     virtual bool initialize(const QStringList &arguments, QString *error_message);
     virtual void extensionsInitialized();
+
 private:
     SerialConnection *m_connection;
 };
-
 
 #endif // SERIALPLUGIN_H

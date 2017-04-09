@@ -34,28 +34,27 @@
 
 #include <random>
 
-
-BrainRE1Configuration::BrainRE1Configuration(QWidget *parent) :
-    ConfigTaskWidget(parent),
-    ui(new Ui::BrainRE1Configuration)
+BrainRE1Configuration::BrainRE1Configuration(QWidget *parent)
+    : ConfigTaskWidget(parent)
+    , ui(new Ui::BrainRE1Configuration)
 {
     ui->setupUi(this);
 
     re1_settings_obj = HwBrainRE1::GetInstance(getObjectManager());
 
-    addApplySaveButtons(ui->applySettings,ui->saveSettings);
-    addUAVObjectToWidgetRelation("HwBrainRE1", "RxPort",ui->cmbRxPort);
+    addApplySaveButtons(ui->applySettings, ui->saveSettings);
+    addUAVObjectToWidgetRelation("HwBrainRE1", "RxPort", ui->cmbRxPort);
     addUAVObjectToWidgetRelation("HwBrainRE1", "DSMxMode", ui->cmbDSMxMode);
 
-    addUAVObjectToWidgetRelation("HwBrainRE1", "SerialPort",ui->cmbSerialPort);
+    addUAVObjectToWidgetRelation("HwBrainRE1", "SerialPort", ui->cmbSerialPort);
 
-    addUAVObjectToWidgetRelation("HwBrainRE1", "MultiPortMode",ui->cmbMultiPortMode);
-    addUAVObjectToWidgetRelation("HwBrainRE1", "MultiPortSerial",ui->cmbMultiPortSerial);
-    addUAVObjectToWidgetRelation("HwBrainRE1", "MultiPortSerial2",ui->cmbMultiPortSerial2);
+    addUAVObjectToWidgetRelation("HwBrainRE1", "MultiPortMode", ui->cmbMultiPortMode);
+    addUAVObjectToWidgetRelation("HwBrainRE1", "MultiPortSerial", ui->cmbMultiPortSerial);
+    addUAVObjectToWidgetRelation("HwBrainRE1", "MultiPortSerial2", ui->cmbMultiPortSerial2);
 
-    addUAVObjectToWidgetRelation("HwBrainRE1", "I2CExtBaro",ui->cmbI2CExtBaro);
-    addUAVObjectToWidgetRelation("HwBrainRE1", "I2CExtMag",ui->cmbI2CExtMag);
-    addUAVObjectToWidgetRelation("HwBrainRE1", "ExtMagOrientation",ui->cmbExtMagOrientation);
+    addUAVObjectToWidgetRelation("HwBrainRE1", "I2CExtBaro", ui->cmbI2CExtBaro);
+    addUAVObjectToWidgetRelation("HwBrainRE1", "I2CExtMag", ui->cmbI2CExtMag);
+    addUAVObjectToWidgetRelation("HwBrainRE1", "ExtMagOrientation", ui->cmbExtMagOrientation);
 
     addUAVObjectToWidgetRelation("HwBrainRE1", "USB_HIDPort", ui->cmbUsbHidPort);
     addUAVObjectToWidgetRelation("HwBrainRE1", "USB_VCPPort", ui->cmbUsbVcpPort);
@@ -63,13 +62,14 @@ BrainRE1Configuration::BrainRE1Configuration(QWidget *parent) :
     addUAVObjectToWidgetRelation("HwBrainRE1", "IRProtocol", ui->cmbIRProtocol);
     addUAVObjectToWidgetRelation("HwBrainRE1", "IRIDILap", ui->sbILapID);
     addUAVObjectToWidgetRelation("HwBrainRE1", "IRIDTrackmate", ui->sbTrackmateID);
-    connect(ui->pbGenerateILap ,&QAbstractButton::clicked, 
-        this, &BrainRE1Configuration::generateILapID);
-    connect(ui->pbGenerateTrackmate ,&QAbstractButton::clicked,
-        this, &BrainRE1Configuration::generateTrackmateID);
+    connect(ui->pbGenerateILap, &QAbstractButton::clicked, this,
+            &BrainRE1Configuration::generateILapID);
+    connect(ui->pbGenerateTrackmate, &QAbstractButton::clicked, this,
+            &BrainRE1Configuration::generateTrackmateID);
 
     addUAVObjectToWidgetRelation("HwBrainRE1", "BuzzerType", ui->cmbBuzzerType);
-    addUAVObjectToWidgetRelation("HwBrainRE1", "VideoSyncDetectorThreshold", ui->sbVideoSyncDetectorThreshold);
+    addUAVObjectToWidgetRelation("HwBrainRE1", "VideoSyncDetectorThreshold",
+                                 ui->sbVideoSyncDetectorThreshold);
 
     // Load UAVObjects to widget relations from UI file
     // using objrelation dynamic property
@@ -100,18 +100,17 @@ void BrainRE1Configuration::widgetsContentsChanged()
 {
     ConfigTaskWidget::widgetsContentsChanged();
 
-    if ((ui->cmbUsbHidPort->currentIndex() == HwBrainRE1::USB_HIDPORT_USBTELEMETRY) && (ui->cmbUsbVcpPort->currentIndex() == HwBrainRE1::USB_VCPPORT_USBTELEMETRY))
-    {
+    if ((ui->cmbUsbHidPort->currentIndex() == HwBrainRE1::USB_HIDPORT_USBTELEMETRY)
+        && (ui->cmbUsbVcpPort->currentIndex() == HwBrainRE1::USB_VCPPORT_USBTELEMETRY)) {
         enableControls(false);
-        ui->lblMsg->setText(tr("Warning: you have configured both USB HID Port and USB VCP Port for telemetry, this currently is not supported"));
-    }
-    else if ((ui->cmbUsbHidPort->currentIndex() != HwBrainRE1::USB_HIDPORT_USBTELEMETRY) && (ui->cmbUsbVcpPort->currentIndex() != HwBrainRE1::USB_VCPPORT_USBTELEMETRY))
-    {
+        ui->lblMsg->setText(tr("Warning: you have configured both USB HID Port and USB VCP Port "
+                               "for telemetry, this currently is not supported"));
+    } else if ((ui->cmbUsbHidPort->currentIndex() != HwBrainRE1::USB_HIDPORT_USBTELEMETRY)
+               && (ui->cmbUsbVcpPort->currentIndex() != HwBrainRE1::USB_VCPPORT_USBTELEMETRY)) {
         enableControls(false);
-        ui->lblMsg->setText(tr("Warning: you have disabled USB Telemetry on both USB HID Port and USB VCP Port, this currently is not supported"));
-    }
-    else
-    {
+        ui->lblMsg->setText(tr("Warning: you have disabled USB Telemetry on both USB HID Port and "
+                               "USB VCP Port, this currently is not supported"));
+    } else {
         ui->lblMsg->setText("");
         enableControls(true);
     }
@@ -119,7 +118,7 @@ void BrainRE1Configuration::widgetsContentsChanged()
 
 void BrainRE1Configuration::openHelp()
 {
-    QDesktopServices::openUrl( QUrl("http://www.brainfpv.com/support", QUrl::StrictMode) );
+    QDesktopServices::openUrl(QUrl("http://www.brainfpv.com/support", QUrl::StrictMode));
 }
 
 void BrainRE1Configuration::generateILapID()
@@ -150,10 +149,10 @@ void BrainRE1Configuration::generateTrackmateID()
 
 int BrainRE1Configuration::generateRandomNumber(int max)
 {
-    //std::default_random_engine generator;
+    // std::default_random_engine generator;
     std::random_device generator;
     std::uniform_int_distribution<int> distribution(0, max);
-    //generator.seed(QTime::currentTime().msec());
+    // generator.seed(QTime::currentTime().msec());
     return distribution(generator);
 }
 
@@ -164,8 +163,7 @@ void BrainRE1Configuration::mpChanged(int idx)
         img = QPixmap(":/brainfpv/images/re1_mp_normal.png");
         ui->cmbMultiPortSerial2->setHidden(true);
         ui->labelMultiPortSerial2->setHidden(true);
-    }
-    else {
+    } else {
         img = QPixmap(":/brainfpv/images/re1_mp_4pwm.png");
         ui->cmbMultiPortSerial2->setHidden(false);
         ui->labelMultiPortSerial2->setHidden(false);
@@ -178,8 +176,7 @@ void BrainRE1Configuration::extMagChanged(int idx)
     if (idx == 0) {
         ui->cmbExtMagOrientation->setHidden(true);
         ui->labelExtMagOrientation->setHidden(true);
-    }
-    else {
+    } else {
         ui->cmbExtMagOrientation->setHidden(false);
         ui->labelExtMagOrientation->setHidden(false);
     }

@@ -47,22 +47,26 @@
 Revolution::Revolution(void)
 {
     // Common USB IDs
-    addBootloaderUSBInfo(USBInfo(DRONIN_VID_DRONIN_BOOTLOADER, DRONIN_PID_DRONIN_BOOTLOADER, BCD_DEVICE_BOOTLOADER));
-    addFirmwareUSBInfo(USBInfo(DRONIN_VID_DRONIN_FIRMWARE, DRONIN_PID_DRONIN_FIRMWARE, BCD_DEVICE_FIRMWARE));
+    addBootloaderUSBInfo(
+        USBInfo(DRONIN_VID_DRONIN_BOOTLOADER, DRONIN_PID_DRONIN_BOOTLOADER, BCD_DEVICE_BOOTLOADER));
+    addFirmwareUSBInfo(
+        USBInfo(DRONIN_VID_DRONIN_FIRMWARE, DRONIN_PID_DRONIN_FIRMWARE, BCD_DEVICE_FIRMWARE));
     // Legacy USB IDs
-    addBootloaderUSBInfo(USBInfo(DRONIN_VID_OPENPILOT_REVOLUTION, DRONIN_PID_OPENPILOT_REVOLUTION, BCD_DEVICE_BOOTLOADER));
-    addFirmwareUSBInfo(USBInfo(DRONIN_VID_OPENPILOT_REVOLUTION, DRONIN_PID_OPENPILOT_REVOLUTION, BCD_DEVICE_FIRMWARE));
+    addBootloaderUSBInfo(USBInfo(DRONIN_VID_OPENPILOT_REVOLUTION, DRONIN_PID_OPENPILOT_REVOLUTION,
+                                 BCD_DEVICE_BOOTLOADER));
+    addFirmwareUSBInfo(USBInfo(DRONIN_VID_OPENPILOT_REVOLUTION, DRONIN_PID_OPENPILOT_REVOLUTION,
+                               BCD_DEVICE_FIRMWARE));
 
     boardType = 0x09;
 
     // Define the bank of channels that are connected to a given timer
     channelBanks.resize(6);
-    channelBanks[0] = QVector<int> () << 1 << 2;             //Tim3
-    channelBanks[1] = QVector<int> () << 3;                  //Tim9
-    channelBanks[2] = QVector<int> () << 4;                  //Tim2
-    channelBanks[3] = QVector<int> () << 5 << 6;             //Tim5
-    channelBanks[4] = QVector<int> () << 7 << 12;            //Tim12
-    channelBanks[5] = QVector<int> () << 8 << 9 << 10 << 11; //Tim8
+    channelBanks[0] = QVector<int>() << 1 << 2; // Tim3
+    channelBanks[1] = QVector<int>() << 3; // Tim9
+    channelBanks[2] = QVector<int>() << 4; // Tim2
+    channelBanks[3] = QVector<int>() << 5 << 6; // Tim5
+    channelBanks[4] = QVector<int>() << 7 << 12; // Tim12
+    channelBanks[5] = QVector<int>() << 8 << 9 << 10 << 11; // Tim8
 
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     uavoUtilManager = pm->getObject<UAVObjectUtilManager>();
@@ -70,7 +74,6 @@ Revolution::Revolution(void)
 
 Revolution::~Revolution()
 {
-
 }
 
 int Revolution::minBootLoaderVersion()
@@ -91,7 +94,7 @@ QString Revolution::boardDescription()
 //! Return which capabilities this board has
 bool Revolution::queryCapabilities(BoardCapabilities capability)
 {
-    switch(capability) {
+    switch (capability) {
     case BOARD_CAPABILITIES_GYROS:
     case BOARD_CAPABILITIES_ACCELS:
     case BOARD_CAPABILITIES_MAGS:
@@ -102,7 +105,7 @@ bool Revolution::queryCapabilities(BoardCapabilities capability)
     default:
         break;
     }
-    
+
     return false;
 }
 
@@ -117,7 +120,7 @@ QString Revolution::getHwUAVO()
 }
 
 //! Get the settings object
-HwRevolution * Revolution::getSettings()
+HwRevolution *Revolution::getSettings()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
@@ -136,7 +139,7 @@ bool Revolution::isInputConfigurationSupported(Core::IBoardType::InputType type)
     default:
         break;
     }
-    
+
     return true;
 }
 
@@ -156,7 +159,7 @@ bool Revolution::setInputType(Core::IBoardType::InputType type)
 
     HwRevolution::DataFields settings = hwRevolution->getData();
 
-    switch(type) {
+    switch (type) {
     case INPUT_TYPE_PPM:
         settings.RxPort = HwRevolution::RXPORT_PPM;
         break;
@@ -212,7 +215,7 @@ Core::IBoardType::InputType Revolution::getInputType()
 
     HwRevolution::DataFields settings = hwRevolution->getData();
 
-    switch(settings.MainPort) {
+    switch (settings.MainPort) {
     case HwRevolution::MAINPORT_DSM:
         return INPUT_TYPE_DSM;
     case HwRevolution::MAINPORT_HOTTSUMD:
@@ -233,7 +236,7 @@ Core::IBoardType::InputType Revolution::getInputType()
         break;
     }
 
-    switch(settings.FlexiPort) {
+    switch (settings.FlexiPort) {
     case HwRevolution::FLEXIPORT_DSM:
         return INPUT_TYPE_DSM;
     case HwRevolution::FLEXIPORT_HOTTSUMD:
@@ -252,7 +255,7 @@ Core::IBoardType::InputType Revolution::getInputType()
         break;
     }
 
-    switch(settings.RxPort) {
+    switch (settings.RxPort) {
     case HwRevolution::RXPORT_PPM:
     case HwRevolution::RXPORT_PPMPWM:
     case HwRevolution::RXPORT_PPMOUTPUTS:
@@ -262,7 +265,7 @@ Core::IBoardType::InputType Revolution::getInputType()
     case HwRevolution::RXPORT_PWM:
         return INPUT_TYPE_PWM;
     case HwRevolution::RXPORT_UART:
-        switch(settings.RxPortUsart) {
+        switch (settings.RxPortUsart) {
         case HwRevolution::RXPORTUSART_DSM:
             return INPUT_TYPE_DSM;
         case HwRevolution::RXPORTUSART_HOTTSUMD:
@@ -299,7 +302,7 @@ int Revolution::queryMaxGyroRate()
 
     HwRevolution::DataFields settings = hwRevolution->getData();
 
-    switch(settings.GyroRange) {
+    switch (settings.GyroRange) {
     case HwRevolution::GYRORANGE_250:
         return 250;
     case HwRevolution::GYRORANGE_500:
@@ -311,10 +314,9 @@ int Revolution::queryMaxGyroRate()
     default:
         break;
     }
-    
+
     return 2000;
 }
-
 
 /**
  * Get the RFM22b device ID this modem
@@ -326,7 +328,7 @@ quint32 Revolution::getRfmID()
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
 
     // Flight controllers are instance 1
-    RFM22BStatus *rfm22bStatus = RFM22BStatus::GetInstance(uavoManager,1);
+    RFM22BStatus *rfm22bStatus = RFM22BStatus::GetInstance(uavoManager, 1);
     Q_ASSERT(rfm22bStatus);
     RFM22BStatus::DataFields rfm22b = rfm22bStatus->getData();
 
@@ -339,13 +341,13 @@ quint32 Revolution::getRfmID()
  * @return true if successful or false if not
  */
 bool Revolution::bindRadio(quint32 id, quint32 baud_rate, float rf_power,
-                         Core::IBoardType::LinkMode linkMode, quint8 min, quint8 max)
+                           Core::IBoardType::LinkMode linkMode, quint8 min, quint8 max)
 {
     HwRevolution::DataFields settings = getSettings()->getData();
 
     settings.CoordID = id;
 
-    switch(baud_rate) {
+    switch (baud_rate) {
     case 9600:
         settings.MaxRfSpeed = HwRevolution::MAXRFSPEED_9600;
         break;
@@ -368,7 +370,7 @@ bool Revolution::bindRadio(quint32 id, quint32 baud_rate, float rf_power,
 
     // Round to an integer to use a switch statement
     quint32 rf_power_100 = (rf_power * 100) + 0.5;
-    switch(rf_power_100) {
+    switch (rf_power_100) {
     case 0:
         settings.MaxRfPower = HwRevolution::MAXRFPOWER_0;
         break;
@@ -398,7 +400,7 @@ bool Revolution::bindRadio(quint32 id, quint32 baud_rate, float rf_power,
         break;
     }
 
-    switch(linkMode) {
+    switch (linkMode) {
     case Core::IBoardType::LINK_TELEM:
         settings.Radio = HwRevolution::RADIO_TELEM;
         break;
@@ -421,5 +423,6 @@ bool Revolution::bindRadio(quint32 id, quint32 baud_rate, float rf_power,
 
 QStringList Revolution::getAdcNames()
 {
-    return QStringList() << "Pwr Sen Pin 3" << "Pwr Sen Pin 4";
+    return QStringList() << "Pwr Sen Pin 3"
+                         << "Pwr Sen Pin 4";
 }

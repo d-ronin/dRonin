@@ -28,9 +28,9 @@
 #include "notyetimplementedpage.h"
 #include "ui_notyetimplementedpage.h"
 
-NotYetImplementedPage::NotYetImplementedPage(SetupWizard *wizard, QWidget *parent) :
-    AbstractWizardPage(wizard, parent),
-    ui(new Ui::NotYetImplementedPage)
+NotYetImplementedPage::NotYetImplementedPage(SetupWizard *wizard, QWidget *parent)
+    : AbstractWizardPage(wizard, parent)
+    , ui(new Ui::NotYetImplementedPage)
 {
     ui->setupUi(this);
     setFinalPage(true);

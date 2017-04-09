@@ -27,8 +27,8 @@
 
 #include "abstractwizardpage.h"
 
-AbstractWizardPage::AbstractWizardPage(SetupWizard *wizard, QWidget *parent) :
-    QWizardPage(parent)
+AbstractWizardPage::AbstractWizardPage(SetupWizard *wizard, QWidget *parent)
+    : QWizardPage(parent)
 {
     m_wizard = wizard;
 }

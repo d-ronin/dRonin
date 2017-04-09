@@ -48,12 +48,19 @@ using namespace mapcontrol;
  * and provides synchronization, both when the model changes updating the UI and
  * if it is modified on the UI propagating changes to the model
  */
-class ModelMapProxy:public QObject
+class ModelMapProxy : public QObject
 {
-    typedef enum {OVERLAY_LINE, OVERLAY_CURVE_RIGHT, OVERLAY_CURVE_LEFT, OVERLAY_CIRCLE_RIGHT, OVERLAY_CIRCLE_LEFT} overlayType;
+    typedef enum {
+        OVERLAY_LINE,
+        OVERLAY_CURVE_RIGHT,
+        OVERLAY_CURVE_LEFT,
+        OVERLAY_CIRCLE_RIGHT,
+        OVERLAY_CIRCLE_LEFT
+    } overlayType;
     Q_OBJECT
 public:
-    explicit ModelMapProxy(QObject *parent,TLMapWidget * map,FlightDataModel * model,QItemSelectionModel * selectionModel);
+    explicit ModelMapProxy(QObject *parent, TLMapWidget *map, FlightDataModel *model,
+                           QItemSelectionModel *selectionModel);
 
     //! Get the handle to a waypoint graphical item
     WayPointItem *findWayPointNumber(int number);
@@ -69,30 +76,33 @@ public:
 private slots:
 
     //! Data in the model is changed, update the UI
-    void dataChanged ( const QModelIndex & topLeft, const QModelIndex & bottomRight );
+    void dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight);
 
     //! Rows inserted into the model, update the UI
-    void rowsInserted ( const QModelIndex & parent, int first, int last );
+    void rowsInserted(const QModelIndex &parent, int first, int last);
 
     //! Rows removed from the model, update the UI
-    void rowsRemoved ( const QModelIndex & parent, int first, int last );
+    void rowsRemoved(const QModelIndex &parent, int first, int last);
 
     //! The UI changed a waypoint, update the model
     void WPValuesChanged(WayPointItem *wp);
 
     //! When a row is changed, highlight the waypoint
-    void currentRowChanged(QModelIndex,QModelIndex);
+    void currentRowChanged(QModelIndex, QModelIndex);
 
     //! When a list of waypoints are changed, select them in model
-    void selectedWPChanged(QList<WayPointItem*>);
+    void selectedWPChanged(QList<WayPointItem *>);
+
 private:
     overlayType overlayTranslate(int type);
-    void createOverlay(WayPointItem *from, WayPointItem * to, overlayType type, QColor color, double radius);
-    void createOverlay(WayPointItem *from, HomeItem *to, ModelMapProxy::overlayType type, QColor color);
-    TLMapWidget * myMap;
+    void createOverlay(WayPointItem *from, WayPointItem *to, overlayType type, QColor color,
+                       double radius);
+    void createOverlay(WayPointItem *from, HomeItem *to, ModelMapProxy::overlayType type,
+                       QColor color);
+    TLMapWidget *myMap;
     FlightDataModel *model;
     void refreshOverlays();
-    QItemSelectionModel * selection;
+    QItemSelectionModel *selection;
 };
 
 #endif // MODELMAPPROXY_H

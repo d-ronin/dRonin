@@ -31,9 +31,9 @@
 #include <configgadgetfactory.h>
 #include <QMessageBox>
 
-TLEndPage::TLEndPage(SetupWizard *wizard, QWidget *parent) :
-    AbstractWizardPage(wizard, parent),
-    ui(new Ui::EndPage)
+TLEndPage::TLEndPage(SetupWizard *wizard, QWidget *parent)
+    : AbstractWizardPage(wizard, parent)
+    , ui(new Ui::EndPage)
 {
     ui->setupUi(this);
     setFinalPage(true);
@@ -56,7 +56,8 @@ void TLEndPage::openInputWizard()
         configGadgetFactory->startInputWizard();
     } else {
         QMessageBox msgBox;
-        msgBox.setText(tr("Unable to open Input Wizard since the Config Plugin is not\nloaded in the current workspace."));
+        msgBox.setText(tr("Unable to open Input Wizard since the Config Plugin is not\nloaded in "
+                          "the current workspace."));
         msgBox.setStandardButtons(QMessageBox::Ok);
         msgBox.setDefaultButton(QMessageBox::Ok);
         msgBox.exec();

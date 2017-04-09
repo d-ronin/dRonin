@@ -67,10 +67,11 @@ private slots:
     void on_tbUnfilletPath_clicked();
 
     void on_waypointSendProgress(int);
+
 private:
-    Ui_PathPlanner  *ui;
+    Ui_PathPlanner *ui;
     FlightDataModel *model;
-    ModelUavoProxy  *proxy;
+    ModelUavoProxy *proxy;
     QItemSelectionModel *selection;
 
     //! Store previous models for rolling back changes

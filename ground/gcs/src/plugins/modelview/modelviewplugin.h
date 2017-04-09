@@ -31,7 +31,8 @@
 
 class ModelViewGadgetFactory;
 
-class ModelViewPlugin : public ExtensionSystem::IPlugin {
+class ModelViewPlugin : public ExtensionSystem::IPlugin
+{
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.dronin.plugins.ModelView")
 
@@ -40,8 +41,9 @@ public:
     ~ModelViewPlugin();
 
     void extensionsInitialized();
-    bool initialize(const QStringList & arguments, QString *errorString);
+    bool initialize(const QStringList &arguments, QString *errorString);
     void shutdown();
+
 private:
     ModelViewGadgetFactory *mvf;
 };

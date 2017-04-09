@@ -3,7 +3,7 @@
  *
  * @file       notifypluginfactory.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
- * @brief      
+ * @brief
  * @see        The GNU Public License (GPL) Version 3
  *
  * @addtogroup GCSPlugins GCS Plugins
@@ -29,7 +29,6 @@
 
 #ifndef NOTIFYPLUGINFACTORY_H
 #define NOTIFYPLUGINFACTORY_H
-
 
 #include <coreplugin/iuavgadgetfactory.h>
 

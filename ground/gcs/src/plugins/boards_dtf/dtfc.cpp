@@ -47,24 +47,27 @@
 Dtfc::Dtfc(void)
 {
     // Common USB IDs
-    addBootloaderUSBInfo(USBInfo(DRONIN_VID_DRONIN_BOOTLOADER, DRONIN_PID_DRONIN_BOOTLOADER, BCD_DEVICE_BOOTLOADER));
-    addFirmwareUSBInfo(USBInfo(DRONIN_VID_DRONIN_FIRMWARE, DRONIN_PID_DRONIN_FIRMWARE, BCD_DEVICE_FIRMWARE));
+    addBootloaderUSBInfo(
+        USBInfo(DRONIN_VID_DRONIN_BOOTLOADER, DRONIN_PID_DRONIN_BOOTLOADER, BCD_DEVICE_BOOTLOADER));
+    addFirmwareUSBInfo(
+        USBInfo(DRONIN_VID_DRONIN_FIRMWARE, DRONIN_PID_DRONIN_FIRMWARE, BCD_DEVICE_FIRMWARE));
     // Legacy USB IDs
-    addBootloaderUSBInfo(USBInfo(DRONIN_VID_DTFAIR_DTFC, DRONIN_PID_DTFAIR_DTFC, BCD_DEVICE_BOOTLOADER));
-    addFirmwareUSBInfo(USBInfo(DRONIN_VID_DTFAIR_DTFC, DRONIN_PID_DTFAIR_DTFC, BCD_DEVICE_FIRMWARE));
+    addBootloaderUSBInfo(
+        USBInfo(DRONIN_VID_DTFAIR_DTFC, DRONIN_PID_DTFAIR_DTFC, BCD_DEVICE_BOOTLOADER));
+    addFirmwareUSBInfo(
+        USBInfo(DRONIN_VID_DTFAIR_DTFC, DRONIN_PID_DTFAIR_DTFC, BCD_DEVICE_FIRMWARE));
 
     boardType = 0xD7;
 
     // Define the bank of channels that are connected to a given timer
     channelBanks.resize(3);
-    channelBanks[0] = QVector<int> () << 1 << 2; // TIM4
-    channelBanks[1] = QVector<int> () << 3 << 4 << 5 << 6; // TIM2
-    channelBanks[2] = QVector<int> () << 7 << 8; // TIM3
+    channelBanks[0] = QVector<int>() << 1 << 2; // TIM4
+    channelBanks[1] = QVector<int>() << 3 << 4 << 5 << 6; // TIM2
+    channelBanks[2] = QVector<int>() << 7 << 8; // TIM3
 }
 
 Dtfc::~Dtfc()
 {
-
 }
 
 QString Dtfc::shortName()
@@ -80,7 +83,7 @@ QString Dtfc::boardDescription()
 //! Return which capabilities this board has
 bool Dtfc::queryCapabilities(BoardCapabilities capability)
 {
-    switch(capability) {
+    switch (capability) {
     case BOARD_CAPABILITIES_GYROS:
     case BOARD_CAPABILITIES_ACCELS:
     case BOARD_CAPABILITIES_BAROS:
@@ -89,7 +92,7 @@ bool Dtfc::queryCapabilities(BoardCapabilities capability)
     default:
         break;
     }
-    
+
     return false;
 }
 
@@ -113,7 +116,7 @@ bool Dtfc::isInputConfigurationSupported(Core::IBoardType::InputType type)
     default:
         break;
     }
-    
+
     return true;
 }
 
@@ -133,7 +136,7 @@ bool Dtfc::setInputType(Core::IBoardType::InputType type)
 
     HwDtfc::DataFields settings = hwDtfc->getData();
 
-    switch(type) {
+    switch (type) {
     case INPUT_TYPE_PPM:
         settings.RcvrPort = HwDtfc::RCVRPORT_PPM;
         break;
@@ -185,7 +188,7 @@ Core::IBoardType::InputType Dtfc::getInputType()
 
     HwDtfc::DataFields settings = hwDtfc->getData();
 
-    switch(settings.RcvrPort) {
+    switch (settings.RcvrPort) {
     case HwDtfc::RCVRPORT_PPM:
         return INPUT_TYPE_PPM;
     case HwDtfc::RCVRPORT_SBUS:
@@ -207,8 +210,8 @@ Core::IBoardType::InputType Dtfc::getInputType()
     default:
         break;
     }
-    
-    switch(settings.Uart1) {
+
+    switch (settings.Uart1) {
     case HwDtfc::UART1_SBUS:
         return INPUT_TYPE_SBUS;
     case HwDtfc::UART1_SBUSNONINVERTED:
@@ -228,8 +231,8 @@ Core::IBoardType::InputType Dtfc::getInputType()
     default:
         break;
     }
-    
-    switch(settings.Uart2) {
+
+    switch (settings.Uart2) {
     case HwDtfc::UART2_SBUS:
         return INPUT_TYPE_SBUS;
     case HwDtfc::UART2_SBUSNONINVERTED:
@@ -249,7 +252,7 @@ Core::IBoardType::InputType Dtfc::getInputType()
     default:
         break;
     }
-    
+
     return INPUT_TYPE_UNKNOWN;
 }
 
@@ -264,7 +267,7 @@ int Dtfc::queryMaxGyroRate()
 
     HwDtfc::DataFields settings = hwDtfc->getData();
 
-    switch(settings.GyroRange) {
+    switch (settings.GyroRange) {
     case HwDtfc::GYRORANGE_250:
         return 250;
     case HwDtfc::GYRORANGE_500:
@@ -276,13 +279,14 @@ int Dtfc::queryMaxGyroRate()
     default:
         break;
     }
-    
+
     return 500;
 }
 
 QStringList Dtfc::getAdcNames()
 {
-    return QStringList() << "Current" << "Battery";
+    return QStringList() << "Current"
+                         << "Battery";
 }
 
 QWidget *Dtfc::getBoardConfiguration(QWidget *parent, bool connected)

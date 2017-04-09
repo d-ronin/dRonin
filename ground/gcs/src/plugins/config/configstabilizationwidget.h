@@ -36,8 +36,7 @@
 #include <QTimer>
 #include <expocurve.h>
 
-
-class ConfigStabilizationWidget: public ConfigTaskWidget
+class ConfigStabilizationWidget : public ConfigTaskWidget
 {
     Q_OBJECT
 
@@ -59,7 +58,7 @@ private slots:
     void linkCheckBoxes(int value);
     void ratesLink(int value);
 
-    void processLinkedWidgets(QWidget*);
+    void processLinkedWidgets(QWidget *);
     void setMaximums();
     void derivedValuesChanged();
     void sourceValuesChanged();

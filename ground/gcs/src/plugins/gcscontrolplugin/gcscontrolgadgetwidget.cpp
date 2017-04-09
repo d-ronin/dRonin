@@ -33,46 +33,45 @@
 #include <QVBoxLayout>
 #include <QPushButton>
 
-
 #include "uavobject.h"
 #include "uavobjectmanager.h"
 #include "manualcontrolcommand.h"
 #include "extensionsystem/pluginmanager.h"
 #include "flightstatus.h"
 
-GCSControlGadgetWidget::GCSControlGadgetWidget(QWidget *parent) : QLabel(parent)
+GCSControlGadgetWidget::GCSControlGadgetWidget(QWidget *parent)
+    : QLabel(parent)
 {
     m_gcscontrol = new Ui_GCSControl();
     m_gcscontrol->setupUi(this);
-
 
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
 
     // Set up the drop down box for the flightmode
-    FlightStatus* flightStatus = FlightStatus::GetInstance(objManager);;
+    FlightStatus *flightStatus = FlightStatus::GetInstance(objManager);
+    ;
     m_gcscontrol->comboBoxFlightMode->addItems(flightStatus->getField("FlightMode")->getOptions());
 
     // Set up slots and signals for joysticks
-    connect(m_gcscontrol->widgetLeftStick, &JoystickControl::positionClicked,
-            this, &GCSControlGadgetWidget::leftStickClicked);
-    connect(m_gcscontrol->widgetRightStick, &JoystickControl::positionClicked,
-            this, &GCSControlGadgetWidget::rightStickClicked);
+    connect(m_gcscontrol->widgetLeftStick, &JoystickControl::positionClicked, this,
+            &GCSControlGadgetWidget::leftStickClicked);
+    connect(m_gcscontrol->widgetRightStick, &JoystickControl::positionClicked, this,
+            &GCSControlGadgetWidget::rightStickClicked);
 
     // Connect misc controls
-    connect(m_gcscontrol->checkBoxGcsControl, &QAbstractButton::clicked,
-            this, &GCSControlGadgetWidget::toggleControl);
+    connect(m_gcscontrol->checkBoxGcsControl, &QAbstractButton::clicked, this,
+            &GCSControlGadgetWidget::toggleControl);
     connect(m_gcscontrol->comboBoxFlightMode, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &GCSControlGadgetWidget::selectFlightMode);
 
-    connect(m_gcscontrol->checkBoxUDPControl, &QCheckBox::stateChanged,
-            this, &GCSControlGadgetWidget::toggleUDPControl); //UDP control checkbox
+    connect(m_gcscontrol->checkBoxUDPControl, &QCheckBox::stateChanged, this,
+            &GCSControlGadgetWidget::toggleUDPControl); // UDP control checkbox
 
     // Connect object updated event from UAVObject to also update check boxes and dropdown
-    connect(flightStatus,&FlightStatus::FlightModeChanged,
-            this, &GCSControlGadgetWidget::flightModeChanged);
-    connect(flightStatus,&FlightStatus::ArmedChanged,
-            this, &GCSControlGadgetWidget::armedChanged);
+    connect(flightStatus, &FlightStatus::FlightModeChanged, this,
+            &GCSControlGadgetWidget::flightModeChanged);
+    connect(flightStatus, &FlightStatus::ArmedChanged, this, &GCSControlGadgetWidget::armedChanged);
 
     leftX = 0;
     leftY = 0;
@@ -80,25 +79,29 @@ GCSControlGadgetWidget::GCSControlGadgetWidget(QWidget *parent) : QLabel(parent)
     rightY = 0;
 }
 
-void GCSControlGadgetWidget::updateSticks(double nleftX, double nleftY, double nrightX, double nrightY) {
+void GCSControlGadgetWidget::updateSticks(double nleftX, double nleftY, double nrightX,
+                                          double nrightY)
+{
     leftX = nleftX;
     leftY = nleftY;
     rightX = nrightX;
     rightY = nrightY;
-    m_gcscontrol->widgetLeftStick->changePosition(leftX,leftY);
-    m_gcscontrol->widgetRightStick->changePosition(rightX,rightY);
+    m_gcscontrol->widgetLeftStick->changePosition(leftX, leftY);
+    m_gcscontrol->widgetRightStick->changePosition(rightX, rightY);
 }
 
-void GCSControlGadgetWidget::leftStickClicked(double X, double Y) {
+void GCSControlGadgetWidget::leftStickClicked(double X, double Y)
+{
     leftX = X;
     leftY = Y;
-    emit sticksChanged(leftX,leftY,rightX,rightY);
+    emit sticksChanged(leftX, leftY, rightX, rightY);
 }
 
-void GCSControlGadgetWidget::rightStickClicked(double X, double Y) {
+void GCSControlGadgetWidget::rightStickClicked(double X, double Y)
+{
     rightX = X;
     rightY = Y;
-    emit sticksChanged(leftX,leftY,rightX,rightY);
+    emit sticksChanged(leftX, leftY, rightX, rightY);
 }
 
 /*!
@@ -122,10 +125,9 @@ void GCSControlGadgetWidget::armedChanged(quint8 armed)
 
 void GCSControlGadgetWidget::toggleUDPControl(int state)
 {
-    if(state)
-    {
+    if (state) {
         setUDPControl(true);
-    }else{
+    } else {
         setUDPControl(false);
     }
 }
@@ -143,11 +145,10 @@ void GCSControlGadgetWidget::allowGcsControl(bool allow)
 {
     m_gcscontrol->checkBoxGcsControl->setEnabled(allow);
     if (allow)
-        m_gcscontrol->checkBoxGcsControl->setToolTip(
-                    tr("Take control of the board from GCS"));
+        m_gcscontrol->checkBoxGcsControl->setToolTip(tr("Take control of the board from GCS"));
     else
         m_gcscontrol->checkBoxGcsControl->setToolTip(
-                    tr("Disabled for safety. Enable this in the options page."));
+            tr("Disabled for safety. Enable this in the options page."));
 }
 
 void GCSControlGadgetWidget::setGCSControl(bool newState)
@@ -169,9 +170,7 @@ bool GCSControlGadgetWidget::getUDPControl(void)
     return m_gcscontrol->checkBoxUDPControl->isChecked();
 }
 
-
 /**
   * @}
   * @}
   */
-

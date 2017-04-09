@@ -19,9 +19,9 @@
 
 #include "utils/pathutils.h"
 
-PfdQmlGadget::PfdQmlGadget(QString classId, PfdQmlGadgetWidget *widget, QWidget *parent) :
-        IUAVGadget(classId, parent),
-        m_widget(widget)
+PfdQmlGadget::PfdQmlGadget(QString classId, PfdQmlGadgetWidget *widget, QWidget *parent)
+    : IUAVGadget(classId, parent)
+    , m_widget(widget)
 {
     m_container = NULL;
     m_parent = parent;
@@ -38,9 +38,9 @@ PfdQmlGadget::~PfdQmlGadget()
   first time, so you have to be careful not to assume all the plugin values are initialized
   the first time you use them
  */
-void PfdQmlGadget::loadConfiguration(IUAVGadgetConfiguration* config)
+void PfdQmlGadget::loadConfiguration(IUAVGadgetConfiguration *config)
 {
-    PfdQmlGadgetConfiguration *m = qobject_cast<PfdQmlGadgetConfiguration*>(config);
+    PfdQmlGadgetConfiguration *m = qobject_cast<PfdQmlGadgetConfiguration *>(config);
     m_widget->setQmlFile(m->qmlFile());
     m_widget->setSettingsMap(m->settings());
 }

@@ -28,9 +28,9 @@
 #include "helipage.h"
 #include "ui_helipage.h"
 
-HeliPage::HeliPage(SetupWizard *wizard, QWidget *parent) :
-    AbstractWizardPage(wizard, parent),
-    ui(new Ui::HeliPage)
+HeliPage::HeliPage(SetupWizard *wizard, QWidget *parent)
+    : AbstractWizardPage(wizard, parent)
+    , ui(new Ui::HeliPage)
 {
     ui->setupUi(this);
     setFinalPage(true);

@@ -32,12 +32,11 @@
 
 deviceDescriptorStruct::deviceDescriptorStruct()
 {
-
 }
 
 quint16 deviceDescriptorStruct::boardID()
 {
-    return ( (boardType << 8) | boardRevision );
+    return ((boardType << 8) | boardRevision);
 }
 
 //! Get the name for a board via the plugin system
@@ -47,7 +46,7 @@ QString deviceDescriptorStruct::idToBoardName(quint16 id)
     if (pm == NULL)
         return "Unknown";
 
-    QList <Core::IBoardType *> boards = pm->getObjects<Core::IBoardType>();
+    QList<Core::IBoardType *> boards = pm->getObjects<Core::IBoardType>();
     foreach (Core::IBoardType *board, boards) {
         if (board->getBoardType() == (id >> 8))
             return board->shortName();
@@ -63,7 +62,7 @@ QPixmap deviceDescriptorStruct::idToBoardPicture(quint16 id)
     if (pm == NULL)
         return QPixmap();
 
-    QList <Core::IBoardType *> boards = pm->getObjects<Core::IBoardType>();
+    QList<Core::IBoardType *> boards = pm->getObjects<Core::IBoardType>();
     foreach (Core::IBoardType *board, boards) {
         if (board->getBoardType() == (id >> 8)) {
             qDebug() << "Found board. " << board->getBoardPicture().isNull();

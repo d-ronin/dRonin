@@ -36,11 +36,11 @@
 class IPConnectionConfiguration;
 
 namespace Core {
-    class IUAVGadgetConfiguration;
+class IUAVGadgetConfiguration;
 }
 
 namespace Ui {
-    class IPconnectionOptionsPage;
+class IPconnectionOptionsPage;
 }
 
 using namespace Core;
@@ -49,7 +49,7 @@ class IPConnectionOptionsModel;
 
 class IPConnectionOptionsPage : public IOptionsPage
 {
-Q_OBJECT
+    Q_OBJECT
 public:
     explicit IPConnectionOptionsPage(IPConnectionConfiguration *config, QObject *parent = 0);
     virtual ~IPConnectionOptionsPage();
@@ -63,12 +63,7 @@ public:
     void apply();
     void finish();
 
-    enum Columns {
-        ColumnProtocol = 0,
-        ColumnHostname,
-        ColumnPort,
-        ColumnCount
-    };
+    enum Columns { ColumnProtocol = 0, ColumnHostname, ColumnPort, ColumnCount };
 
 signals:
     void availableDevChanged();
@@ -86,33 +81,35 @@ class IPConnectionOptionsDelegate : public QStyledItemDelegate
 
 public:
     explicit IPConnectionOptionsDelegate(QObject *parent = nullptr)
-        : QStyledItemDelegate(parent) {}
+        : QStyledItemDelegate(parent)
+    {
+    }
 
     QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
                           const QModelIndex &index) const override;
     void setEditorData(QWidget *editor, const QModelIndex &index) const override;
     void setModelData(QWidget *editor, QAbstractItemModel *model,
                       const QModelIndex &index) const override;
-    void updateEditorGeometry(QWidget *editor,
-        const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+    void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option,
+                              const QModelIndex &index) const override;
 };
 
 class IPConnectionOptionsModel : public QAbstractTableModel
 {
-Q_OBJECT
+    Q_OBJECT
 
 public:
     explicit IPConnectionOptionsModel(QObject *parent = nullptr)
-        : QAbstractTableModel(parent) {}
+        : QAbstractTableModel(parent)
+    {
+    }
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
     int columnCount(const QModelIndex &parent = QModelIndex()) const;
     QVariant data(const QModelIndex &index, int role = Qt::EditRole) const;
-    QVariant headerData(int section, Qt::Orientation orientation,
-                        int role = Qt::DisplayRole) const;
+    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
     Qt::ItemFlags flags(const QModelIndex &index) const;
-    bool setData(const QModelIndex &index, const QVariant &value,
-                 int role = Qt::EditRole);
+    bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole);
     bool insertRows(int position, int rows, const QModelIndex &index = QModelIndex());
     bool removeRows(int position, int rows, const QModelIndex &index = QModelIndex());
 

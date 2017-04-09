@@ -41,17 +41,15 @@ class UAVSETTINGSIMPORTEXPORT_EXPORT UAVSettingsImportExportPlugin : public Exte
     Q_PLUGIN_METADATA(IID "org.dronin.plugins.uavsettingsimportexport")
 
 public:
-   UAVSettingsImportExportPlugin();
-   ~UAVSettingsImportExportPlugin();
+    UAVSettingsImportExportPlugin();
+    ~UAVSettingsImportExportPlugin();
 
-   void extensionsInitialized();
-   bool initialize(const QStringList & arguments, QString * errorString);
-   void shutdown();
+    void extensionsInitialized();
+    bool initialize(const QStringList &arguments, QString *errorString);
+    void shutdown();
+
 private:
-   UAVSettingsImportExportManager *mf;
-
-
-
+    UAVSettingsImportExportManager *mf;
 };
 
 #endif // UAVSETTINGSIMPORTEXPORT_H

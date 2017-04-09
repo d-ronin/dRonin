@@ -11,17 +11,17 @@
  * @brief The Core GCS plugin
  *****************************************************************************/
 /*
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
@@ -34,60 +34,58 @@
 namespace Core {
 namespace Internal {
 
-class CoreImpl : public ICore
-{
-    Q_OBJECT
+    class CoreImpl : public ICore
+    {
+        Q_OBJECT
 
-public:
-    CoreImpl(MainWindow *mainwindow);
-    ~CoreImpl() {}
+    public:
+        CoreImpl(MainWindow *mainwindow);
+        ~CoreImpl() {}
 
-    bool showOptionsDialog(const QString &group = QString(),
-                           const QString &page = QString(),
-                           QWidget *parent = 0);
-    bool showWarningWithOptions(const QString &title, const QString &text,
-                                const QString &details = QString(),
-                                const QString &settingsCategory = QString(),
-                                const QString &settingsId = QString(),
-                                QWidget *parent = 0);
+        bool showOptionsDialog(const QString &group = QString(), const QString &page = QString(),
+                               QWidget *parent = 0);
+        bool showWarningWithOptions(const QString &title, const QString &text,
+                                    const QString &details = QString(),
+                                    const QString &settingsCategory = QString(),
+                                    const QString &settingsId = QString(), QWidget *parent = 0);
 
-    ActionManager *actionManager() const;
-    UniqueIDManager *uniqueIDManager() const;
-    ConnectionManager *connectionManager() const;
-    BoardManager *boardManager() const;
-    GlobalMessaging *globalMessaging() const;
-    UAVGadgetInstanceManager *uavGadgetInstanceManager() const;
-    ModeManager *modeManager() const;
+        ActionManager *actionManager() const;
+        UniqueIDManager *uniqueIDManager() const;
+        ConnectionManager *connectionManager() const;
+        BoardManager *boardManager() const;
+        GlobalMessaging *globalMessaging() const;
+        UAVGadgetInstanceManager *uavGadgetInstanceManager() const;
+        ModeManager *modeManager() const;
 
-    QSettings *settings(QSettings::Scope scope = QSettings::UserScope) const;
-    void readMainSettings(QSettings* qs, bool workspaceDiffOnly);
-    void saveMainSettings(QSettings* qs);
-    void readSettings(IConfigurablePlugin* plugin, QSettings* qs = 0 );
-    void saveSettings(IConfigurablePlugin* plugin, QSettings* qs = 0 );
-    void deleteSettings();
+        QSettings *settings(QSettings::Scope scope = QSettings::UserScope) const;
+        void readMainSettings(QSettings *qs, bool workspaceDiffOnly);
+        void saveMainSettings(QSettings *qs);
+        void readSettings(IConfigurablePlugin *plugin, QSettings *qs = 0);
+        void saveSettings(IConfigurablePlugin *plugin, QSettings *qs = 0);
+        void deleteSettings();
 
-    QString resourcePath() const;
+        QString resourcePath() const;
 
-    IContext *currentContextObject() const;
+        IContext *currentContextObject() const;
 
-    QMainWindow *mainWindow() const;
+        QMainWindow *mainWindow() const;
 
-    // adds and removes additional active contexts, this context is appended to the
-    // currently active contexts. call updateContext after changing
-    void addAdditionalContext(int context);
-    void removeAdditionalContext(int context);
-    bool hasContext(int context) const;
-    void addContextObject(IContext *contex);
-    void removeContextObject(IContext *contex);
+        // adds and removes additional active contexts, this context is appended to the
+        // currently active contexts. call updateContext after changing
+        void addAdditionalContext(int context);
+        void removeAdditionalContext(int context);
+        bool hasContext(int context) const;
+        void addContextObject(IContext *contex);
+        void removeContextObject(IContext *contex);
 
-    void updateContext();
+        void updateContext();
 
-    void openFiles(const QStringList &fileNames);
+        void openFiles(const QStringList &fileNames);
 
-private:
-    MainWindow *m_mainwindow;
-    friend class MainWindow;
-};
+    private:
+        MainWindow *m_mainwindow;
+        friend class MainWindow;
+    };
 
 } // namespace Internal
 } // namespace Core

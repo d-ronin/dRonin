@@ -32,8 +32,9 @@
 #include "extensionsystem/pluginmanager.h"
 #include "uavobjectmanager.h"
 
-BoardtypeUnknown::BoardtypeUnknown(SetupWizard *wizard, QWidget *parent) :
-    AbstractWizardPage(wizard, parent),
+BoardtypeUnknown::BoardtypeUnknown(SetupWizard *wizard, QWidget *parent)
+    : AbstractWizardPage(wizard, parent)
+    ,
 
     ui(new Ui::BoardtypeUnknown)
 {
@@ -54,7 +55,8 @@ void BoardtypeUnknown::setFailureType(FailureType type)
 {
     switch (type) {
     case UNKNOWN_FIRMWARE:
-        ui->lblReason->setText(tr("The firmware version on the board does not match this version of GCS."));
+        ui->lblReason->setText(
+            tr("The firmware version on the board does not match this version of GCS."));
         break;
     case UNKNOWN_BOARD:
         ui->lblReason->setText(tr("Unknown board type."));

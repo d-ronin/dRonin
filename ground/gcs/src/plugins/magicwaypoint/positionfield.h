@@ -24,7 +24,6 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
-
 #ifndef POSITIONFIELD_H
 #define POSITIONFIELD_H
 
@@ -34,7 +33,7 @@
 #include <QtSvg/QGraphicsSvgItem>
 
 namespace Ui {
-    class PositionField;
+class PositionField;
 }
 
 class PositionField : public QGraphicsView

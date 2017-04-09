@@ -11,17 +11,17 @@
  * @brief The Core GCS plugin
  *****************************************************************************/
 /*
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
@@ -191,7 +191,8 @@ using namespace Core::Internal;
 */
 
 CommandPrivate::CommandPrivate(int id)
-    : m_attributes(0), m_id(id)
+    : m_attributes(0)
+    , m_id(id)
 {
 }
 
@@ -247,8 +248,9 @@ bool CommandPrivate::hasAttribute(CommandAttribute attr) const
 
 QString CommandPrivate::stringWithAppendedShortcut(const QString &str) const
 {
-    return QString("%1 <span style=\"color: gray; font-size: small\">%2</span>").arg(str).arg(
-            keySequence().toString(QKeySequence::NativeText));
+    return QString("%1 <span style=\"color: gray; font-size: small\">%2</span>")
+        .arg(str)
+        .arg(keySequence().toString(QKeySequence::NativeText));
 }
 
 // ---------- Shortcut ------------
@@ -259,9 +261,9 @@ QString CommandPrivate::stringWithAppendedShortcut(const QString &str) const
 */
 
 Shortcut::Shortcut(int id)
-    : CommandPrivate(id), m_shortcut(0)
+    : CommandPrivate(id)
+    , m_shortcut(0)
 {
-
 }
 
 QString Shortcut::name() const
@@ -344,9 +346,9 @@ bool Shortcut::isActive() const
   \internal
 */
 Action::Action(int id)
-    : CommandPrivate(id), m_action(0)
+    : CommandPrivate(id)
+    , m_action(0)
 {
-
 }
 
 QString Action::name() const
@@ -416,8 +418,10 @@ QKeySequence Action::keySequence() const
 */
 
 OverrideableAction::OverrideableAction(int id)
-    : Action(id), m_currentAction(0), m_active(false),
-    m_contextInitialized(false)
+    : Action(id)
+    , m_currentAction(0)
+    , m_active(false)
+    , m_contextInitialized(false)
 {
 }
 
@@ -452,7 +456,8 @@ bool OverrideableAction::setCurrentContext(const QList<int> &context)
         connect(m_currentAction, SIGNAL(changed()), this, SLOT(actionChanged()));
         // we want to avoid the toggling semantic on slot trigger(), so we just connect the signals
         connect(m_action, SIGNAL(triggered(bool)), m_currentAction, SIGNAL(triggered(bool)));
-        // we need to update the checked state, so we connect to setChecked slot, which also fires a toggled signal
+        // we need to update the checked state, so we connect to setChecked slot, which also fires a
+        // toggled signal
         connect(m_action, SIGNAL(toggled(bool)), m_currentAction, SLOT(setChecked(bool)));
         actionChanged();
         m_active = true;
@@ -470,10 +475,12 @@ void OverrideableAction::addOverrideAction(QAction *action, const QList<int> &co
     if (context.isEmpty()) {
         m_contextActionMap.insert(0, action);
     } else {
-        for (int i=0; i<context.size(); ++i) {
+        for (int i = 0; i < context.size(); ++i) {
             int k = context.at(i);
             if (m_contextActionMap.contains(k))
-                qWarning() << QString("addOverrideAction: action already registered for context when registering '%1'").arg(action->text());
+                qWarning() << QString("addOverrideAction: action already registered for context "
+                                      "when registering '%1'")
+                                  .arg(action->text());
             m_contextActionMap.insert(k, action);
         }
     }

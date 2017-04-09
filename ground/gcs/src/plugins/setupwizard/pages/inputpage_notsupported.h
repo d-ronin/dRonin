@@ -38,7 +38,8 @@ class InputPageNotSupported;
  * @brief The InputPageNotSupported class Inform the user that
  * they must manually configure input first.
  */
-class InputPageNotSupported : public AbstractWizardPage {
+class InputPageNotSupported : public AbstractWizardPage
+{
     Q_OBJECT
 
 public:

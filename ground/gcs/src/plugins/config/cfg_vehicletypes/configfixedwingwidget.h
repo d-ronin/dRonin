@@ -38,7 +38,7 @@
 
 class Ui_Widget;
 
-class ConfigFixedWingWidget: public VehicleConfig
+class ConfigFixedWingWidget : public VehicleConfig
 {
     Q_OBJECT
 
@@ -55,7 +55,7 @@ private:
     bool setupFrameElevon(SystemSettings::AirframeTypeOptions airframeType);
     bool setupFrameVtail(SystemSettings::AirframeTypeOptions airframeType);
 
-    virtual void ResetActuators(GUIConfigDataUnion* configData);
+    virtual void ResetActuators(GUIConfigDataUnion *configData);
     static QStringList getChannelDescriptions();
 
 private slots:
@@ -63,8 +63,6 @@ private slots:
     void refreshAirframeWidgetsValues(SystemSettings::AirframeTypeOptions frameType);
     virtual SystemSettings::AirframeTypeOptions updateConfigObjectsFromWidgets();
     virtual bool throwConfigError(SystemSettings::AirframeTypeOptions airframeType);
-
 };
-
 
 #endif // CONFIGFIXEDWINGWIDGET_H

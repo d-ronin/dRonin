@@ -28,10 +28,9 @@
 #ifndef EXPOCURVE_H
 #define EXPOCURVE_H
 
-
 #include <QWidget>
 #ifndef QWT_DLL
-    #define QWT_DLL
+#define QWT_DLL
 #endif
 #include "qwt/src/qwt.h"
 #include "qwt/src/qwt_plot.h"
@@ -50,15 +49,15 @@ class ExpoCurve : public QwtPlot
 public:
     explicit ExpoCurve(QWidget *parent = 0);
 
-    typedef struct ExpoPlotElements {
-      QwtPlotCurve Curve;
+    typedef struct ExpoPlotElements
+    {
+        QwtPlotCurve Curve;
     } ExpoPlotElements_t;
 
     void init();
 
     //! Show expo data for one of the stick channels
-    void plotData(int value, int max, int exponent,
-            ExpoPlotElements_t &plot_elements);
+    void plotData(int value, int max, int exponent, ExpoPlotElements_t &plot_elements);
 
 public slots:
 
@@ -72,12 +71,11 @@ public slots:
     void plotDataYaw(int value, int max, int exponent);
 
     //! Show/Hide a expo curve and markers
-    void showCurve(const QVariant & itemInfo, bool on, int index);
+    void showCurve(const QVariant &itemInfo, bool on, int index);
 
 signals:
 
 private:
-
     int steps;
     int curve_cnt;
     double *x_data;

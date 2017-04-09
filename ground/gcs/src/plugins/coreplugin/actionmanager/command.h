@@ -11,17 +11,17 @@
  * @brief The Core GCS plugin
  *****************************************************************************/
 /*
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
@@ -38,7 +38,6 @@ class QShortcut;
 class QKeySequence;
 QT_END_NAMESPACE
 
-
 namespace Core {
 
 class CORE_EXPORT Command : public QObject
@@ -46,11 +45,11 @@ class CORE_EXPORT Command : public QObject
     Q_OBJECT
 public:
     enum CommandAttribute {
-        CA_Hide             = 0x0100,
-        CA_UpdateText       = 0x0200,
-        CA_UpdateIcon       = 0x0400,
+        CA_Hide = 0x0100,
+        CA_UpdateText = 0x0200,
+        CA_UpdateIcon = 0x0400,
         CA_NonConfigureable = 0x8000,
-        CA_Mask             = 0xFF00
+        CA_Mask = 0xFF00
     };
 
     virtual void setDefaultKeySequence(const QKeySequence &key) = 0;

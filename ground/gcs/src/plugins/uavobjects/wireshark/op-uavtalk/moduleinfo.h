@@ -7,7 +7,6 @@
 /* Name of package */
 #define PACKAGE "op-uavtalk"
 
-
 #ifdef VERSION
 #undef VERSION
 #endif

@@ -32,17 +32,17 @@
 
 #include "hwbrain.h"
 
-BrainConfiguration::BrainConfiguration(QWidget *parent) :
-    ConfigTaskWidget(parent),
-    ui(new Ui::BrainConfiguration)
+BrainConfiguration::BrainConfiguration(QWidget *parent)
+    : ConfigTaskWidget(parent)
+    , ui(new Ui::BrainConfiguration)
 {
     ui->setupUi(this);
 
-    addApplySaveButtons(ui->applySettings,ui->saveSettings);
-    addUAVObjectToWidgetRelation("HwBrain", "RxPort",ui->cmbRxPort);
-    addUAVObjectToWidgetRelation("HwBrain", "RxPortUsart",ui->cmbRxPortUsart);
-    addUAVObjectToWidgetRelation("HwBrain", "MainPort",ui->cmbMainPort);
-    addUAVObjectToWidgetRelation("HwBrain", "FlxPort",ui->cmbFlxPort);
+    addApplySaveButtons(ui->applySettings, ui->saveSettings);
+    addUAVObjectToWidgetRelation("HwBrain", "RxPort", ui->cmbRxPort);
+    addUAVObjectToWidgetRelation("HwBrain", "RxPortUsart", ui->cmbRxPortUsart);
+    addUAVObjectToWidgetRelation("HwBrain", "MainPort", ui->cmbMainPort);
+    addUAVObjectToWidgetRelation("HwBrain", "FlxPort", ui->cmbFlxPort);
 
     addUAVObjectToWidgetRelation("HwBrain", "Magnetometer", ui->cmbMagnetometer);
     addUAVObjectToWidgetRelation("HwBrain", "ExtMagOrientation", ui->cmbExtMagOrientation);
@@ -52,18 +52,18 @@ BrainConfiguration::BrainConfiguration(QWidget *parent) :
     addUAVObjectToWidgetRelation("HwBrain", "AccelFullScale", ui->cmbAccelRange);
     addUAVObjectToWidgetRelation("HwBrain", "MPU9250GyroLPF", ui->cmbGyroLpf);
     addUAVObjectToWidgetRelation("HwBrain", "MPU9250AccelLPF", ui->cmbAccelLpf);
-	addUAVObjectToWidgetRelation("HwBrain", "DSMxMode", ui->cbDsmxMode);
-    
+    addUAVObjectToWidgetRelation("HwBrain", "DSMxMode", ui->cbDsmxMode);
+
     // Load UAVObjects to widget relations from UI file
     // using objrelation dynamic property
     autoLoadWidgets();
 
-    //enableControls(false);
+    // enableControls(false);
     enableControls(true);
     populateWidgets();
     refreshWidgetsValues();
     forceConnectedState();
-    
+
     img = QPixmap(":/brainfpv/images/brain.png");
     ui->imgLabel->setPixmap(img);
 }
@@ -75,5 +75,5 @@ BrainConfiguration::~BrainConfiguration()
 
 void BrainConfiguration::openHelp()
 {
-    QDesktopServices::openUrl( QUrl("http://www.brainfpv.com/support", QUrl::StrictMode) );
+    QDesktopServices::openUrl(QUrl("http://www.brainfpv.com/support", QUrl::StrictMode));
 }

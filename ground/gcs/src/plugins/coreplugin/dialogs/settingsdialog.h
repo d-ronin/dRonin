@@ -11,17 +11,17 @@
  * @brief The Core GCS plugin
  *****************************************************************************/
 /*
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
@@ -40,51 +40,48 @@ class UAVGadgetInstanceManager;
 
 namespace Internal {
 
-class SettingsDialog : public QDialog, public ::Ui::SettingsDialog
-{
-    Q_OBJECT
+    class SettingsDialog : public QDialog, public ::Ui::SettingsDialog
+    {
+        Q_OBJECT
 
-public:
-    SettingsDialog(QWidget *parent,
-                   const QString &initialCategory = QString(),
-                   const QString &initialPage = QString());
-    ~SettingsDialog();
+    public:
+        SettingsDialog(QWidget *parent, const QString &initialCategory = QString(),
+                       const QString &initialPage = QString());
+        ~SettingsDialog();
 
-    // Run the dialog and return true if 'Ok' was choosen or 'Apply' was invoked
-    // at least once
-    bool execDialog();
-    void insertPage(IOptionsPage* page);
-    void deletePage();
-    void updateText(QString text);
-    void disableApplyOk(bool disable);
+        // Run the dialog and return true if 'Ok' was choosen or 'Apply' was invoked
+        // at least once
+        bool execDialog();
+        void insertPage(IOptionsPage *page);
+        void deletePage();
+        void updateText(QString text);
+        void disableApplyOk(bool disable);
 
-signals:
-    void settingsDialogShown(Core::Internal::SettingsDialog*);
-    void settingsDialogRemoved();
-    void categoryItemSelected();
+    signals:
+        void settingsDialogShown(Core::Internal::SettingsDialog *);
+        void settingsDialogRemoved();
+        void categoryItemSelected();
 
-public slots:
-    void done(int);
+    public slots:
+        void done(int);
 
-private slots:
-    void pageSelected();
-    void accept();
-    void reject();
-    void apply();
-    void categoryItemSelectedShowChildInstead();
+    private slots:
+        void pageSelected();
+        void accept();
+        void reject();
+        void apply();
+        void categoryItemSelectedShowChildInstead();
 
-
-private:
-
-    QList<Core::IOptionsPage*> m_pages;
-    QMap<QString, QList<QTreeWidgetItem *> *> m_categoryItemsMap;
-    UAVGadgetInstanceManager *m_instanceManager;
-    bool m_applied;
-    QString m_currentCategory;
-    QString m_currentPage;
-    int m_windowWidth;
-    int m_windowHeight;
-};
+    private:
+        QList<Core::IOptionsPage *> m_pages;
+        QMap<QString, QList<QTreeWidgetItem *> *> m_categoryItemsMap;
+        UAVGadgetInstanceManager *m_instanceManager;
+        bool m_applied;
+        QString m_currentCategory;
+        QString m_currentPage;
+        int m_windowWidth;
+        int m_windowHeight;
+    };
 
 } // namespace Internal
 } // namespace Core

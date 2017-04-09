@@ -15,17 +15,17 @@
  * @brief      The UAVUObjects GCS plugin
  *****************************************************************************/
 /*
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  *
  * Additional note on redistribution: The copyright and license notices above
@@ -47,9 +47,9 @@
 #include "uavobjectfield.h"
 
 #ifdef _MSC_VER
-#define PACK( __Declaration__ ) __pragma( pack(push, 1) ) __Declaration__ __pragma( pack(pop) )
+#define PACK(__Declaration__) __pragma(pack(push, 1)) __Declaration__ __pragma(pack(pop))
 #else
-#define PACK( __Declaration__ ) __Declaration__ __attribute__((__packed__))
+#define PACK(__Declaration__) __Declaration__ __attribute__((__packed__))
 #endif
 
 #define UAVOBJ_ACCESS_SHIFT 0
@@ -62,29 +62,26 @@
 
 class UAVObjectField;
 
-class UAVOBJECTS_EXPORT UAVObject: public QObject
+class UAVOBJECTS_EXPORT UAVObject : public QObject
 {
     Q_OBJECT
 
 public:
-
     /**
      * Object update mode
      */
     typedef enum {
-            UPDATEMODE_MANUAL = 0,  /** Manually update object, by calling the updated() function */
-            UPDATEMODE_PERIODIC = 1, /** Automatically update object at periodic intervals */
-            UPDATEMODE_ONCHANGE = 2, /** Only update object when its data changes */
-            UPDATEMODE_THROTTLED = 3 /** Object is updated on change, but not more often than the interval time */
+        UPDATEMODE_MANUAL = 0, /** Manually update object, by calling the updated() function */
+        UPDATEMODE_PERIODIC = 1, /** Automatically update object at periodic intervals */
+        UPDATEMODE_ONCHANGE = 2, /** Only update object when its data changes */
+        UPDATEMODE_THROTTLED =
+            3 /** Object is updated on change, but not more often than the interval time */
     } UpdateMode;
 
     /**
      * Access mode
      */
-    typedef enum {
-            ACCESS_READWRITE = 0,
-            ACCESS_READONLY = 1
-    } AccessMode;
+    typedef enum { ACCESS_READWRITE = 0, ACCESS_READONLY = 1 } AccessMode;
 
     /**
      * Object metadata, each object has a meta object that holds its metadata. The metadata define
@@ -95,22 +92,32 @@ public:
      *
      *   Bit(s)  Name                       Meaning
      *   ------  ----                       -------
-     *      0    access                     Defines the access level for the local transactions (readonly=0 and readwrite=1)
-     *      1    gcsAccess                  Defines the access level for the local GCS transactions (readonly=0 and readwrite=1), not used in the flight s/w
-     *      2    telemetryAcked             Defines if an ack is required for the transactions of this object (1:acked, 0:not acked)
-     *      3    gcsTelemetryAcked          Defines if an ack is required for the transactions of this object (1:acked, 0:not acked)
-     *    4-5    telemetryUpdateMode        Update mode used by the telemetry module (UAVObjUpdateMode)
+     *      0    access                     Defines the access level for the local transactions
+     * (readonly=0 and readwrite=1)
+     *      1    gcsAccess                  Defines the access level for the local GCS transactions
+     * (readonly=0 and readwrite=1), not used in the flight s/w
+     *      2    telemetryAcked             Defines if an ack is required for the transactions of
+     * this object (1:acked, 0:not acked)
+     *      3    gcsTelemetryAcked          Defines if an ack is required for the transactions of
+     * this object (1:acked, 0:not acked)
+     *    4-5    telemetryUpdateMode        Update mode used by the telemetry module
+     * (UAVObjUpdateMode)
      *    6-7    gcsTelemetryUpdateMode     Update mode used by the GCS (UAVObjUpdateMode)
      */
-     PACK(typedef struct {
-        quint8 flags; /** Defines flags for update and logging modes and whether an update should be ACK'd (bits defined above) */
-        quint16 flightTelemetryUpdatePeriod; /** Update period used by the telemetry module (only if telemetry mode is PERIODIC) */
-        quint16 gcsTelemetryUpdatePeriod; /** Update period used by the GCS (only if telemetry mode is PERIODIC) */
-        quint16 loggingUpdatePeriod; /** Update period used by the logging module (only if logging mode is PERIODIC) */
-     }) Metadata;
+    PACK(
+        typedef struct {
+            quint8 flags; /** Defines flags for update and logging modes and whether an update
+                             should be ACK'd (bits defined above) */
+            quint16 flightTelemetryUpdatePeriod; /** Update period used by the telemetry module
+                                                    (only if telemetry mode is PERIODIC) */
+            quint16 gcsTelemetryUpdatePeriod; /** Update period used by the GCS (only if telemetry
+                                                 mode is PERIODIC) */
+            quint16 loggingUpdatePeriod; /** Update period used by the logging module (only if
+                                            logging mode is PERIODIC) */
+        })
+    Metadata;
 
-
-    UAVObject(quint32 objID, bool isSingleInst, const QString& name);
+    UAVObject(quint32 objID, bool isSingleInst, const QString &name);
     void initialize(quint32 instID);
     quint32 getObjID();
     quint32 getInstID();
@@ -118,15 +125,15 @@ public:
     QString getName();
     QString getCategory();
     QString getDescription();
-    quint32 getNumBytes(); 
-    qint32 pack(quint8* dataOut);
-    qint32 unpack(const quint8* dataIn);
-    virtual void setMetadata(const Metadata& mdata) = 0;
+    quint32 getNumBytes();
+    qint32 pack(quint8 *dataOut);
+    qint32 unpack(const quint8 *dataIn);
+    virtual void setMetadata(const Metadata &mdata) = 0;
     virtual Metadata getMetadata() = 0;
     virtual Metadata getDefaultMetadata() = 0;
     qint32 getNumFields();
-    QList<UAVObjectField*> getFields();
-    UAVObjectField* getField(const QString& name);
+    QList<UAVObjectField *> getFields();
+    UAVObjectField *getField(const QString &name);
     QString toString();
     QString toStringBrief();
     QString toStringData();
@@ -137,20 +144,20 @@ public:
     void emitInstanceRemoved(UAVObject *);
 
     // Metadata accessors
-    static void MetadataInitialize(Metadata& meta);
-    static AccessMode GetFlightAccess(const Metadata& meta);
-    static void SetFlightAccess(Metadata& meta, AccessMode mode);
-    static AccessMode GetGcsAccess(const Metadata& meta);
-    static void SetGcsAccess(Metadata& meta, AccessMode mode);
-    static quint8 GetFlightTelemetryAcked(const Metadata& meta);
-    static void SetFlightTelemetryAcked(Metadata& meta, quint8 val);
-    static quint8 GetGcsTelemetryAcked(const Metadata& meta);
-    static void SetGcsTelemetryAcked(Metadata& meta, quint8 val);
-    static UpdateMode GetFlightTelemetryUpdateMode(const Metadata& meta);
-    static void SetFlightTelemetryUpdateMode(Metadata& meta, UpdateMode val);
-    static UpdateMode GetGcsTelemetryUpdateMode(const Metadata& meta);
-    static void SetGcsTelemetryUpdateMode(Metadata& meta, UpdateMode val);
-		
+    static void MetadataInitialize(Metadata &meta);
+    static AccessMode GetFlightAccess(const Metadata &meta);
+    static void SetFlightAccess(Metadata &meta, AccessMode mode);
+    static AccessMode GetGcsAccess(const Metadata &meta);
+    static void SetGcsAccess(Metadata &meta, AccessMode mode);
+    static quint8 GetFlightTelemetryAcked(const Metadata &meta);
+    static void SetFlightTelemetryAcked(Metadata &meta, quint8 val);
+    static quint8 GetGcsTelemetryAcked(const Metadata &meta);
+    static void SetGcsTelemetryAcked(Metadata &meta, quint8 val);
+    static UpdateMode GetFlightTelemetryUpdateMode(const Metadata &meta);
+    static void SetFlightTelemetryUpdateMode(Metadata &meta, UpdateMode val);
+    static UpdateMode GetGcsTelemetryUpdateMode(const Metadata &meta);
+    static void SetGcsTelemetryUpdateMode(Metadata &meta, UpdateMode val);
+
 public slots:
     void requestUpdate();
     void requestUpdateAllInstances();
@@ -167,16 +174,17 @@ signals:
      * as well.
      *
      */
-    void objectUpdated(UAVObject* obj);
+    void objectUpdated(UAVObject *obj);
 
     /**
-     * @brief objectUpdatedAuto: triggered on "setData" only (Object data updated by changing the data structure)
+     * @brief objectUpdatedAuto: triggered on "setData" only (Object data updated by changing the
+     * data structure)
      *
      * The telemetry manager listens to this signal, and sends updates on the telemetry
      * link.
      * @param obj
      */
-    void objectUpdatedAuto(UAVObject* obj);
+    void objectUpdatedAuto(UAVObject *obj);
 
     /**
      * @brief objectUpdatedManual: triggered only from the "updated" slot in uavobject
@@ -184,32 +192,32 @@ signals:
      * link.
      * @param obj
      */
-    void objectUpdatedManual(UAVObject* obj);
+    void objectUpdatedManual(UAVObject *obj);
 
     /**
      * @brief objectUpdatedPeriodic: not used anywhere ?
      * @param obj
      */
-    void objectUpdatedPeriodic(UAVObject* obj);
+    void objectUpdatedPeriodic(UAVObject *obj);
 
     /**
      * @brief objectUnpacked: triggered whenever an object is unpacked
      * (i.e. arrives from the telemetry link)
      * @param obj
      */
-    void objectUnpacked(UAVObject* obj);
+    void objectUnpacked(UAVObject *obj);
 
     /**
      * @brief updateRequested
      * @param obj
      */
-    void updateRequested(UAVObject* obj);
+    void updateRequested(UAVObject *obj);
 
     /**
      * @brief updateAllInstancesRequested
      * @param obj
      */
-    void updateAllInstancesRequested(UAVObject* obj);
+    void updateAllInstancesRequested(UAVObject *obj);
     /**
      * @brief transactionCompleted. Triggered by a call to
      * emitTransactionCompleted - done in telemetry.cpp whenever a
@@ -217,22 +225,22 @@ signals:
      * @param obj
      * @param success
      */
-    void transactionCompleted(UAVObject* obj, bool success);
-    void transactionCompleted(UAVObject* obj, bool success, bool nack);
+    void transactionCompleted(UAVObject *obj, bool success);
+    void transactionCompleted(UAVObject *obj, bool success, bool nack);
     /**
      * @brief newInstance
      * @param obj
      */
-    void newInstance(UAVObject* obj);
+    void newInstance(UAVObject *obj);
 
     /**
      * @brief instance removed from manager
      * @param obj
      */
-    void instanceRemoved(UAVObject* obj);
+    void instanceRemoved(UAVObject *obj);
 
 private slots:
-    void fieldUpdated(UAVObjectField* field);
+    void fieldUpdated(UAVObjectField *field);
 
 protected:
     quint32 objID;
@@ -242,12 +250,11 @@ protected:
     QString description;
     QString category;
     quint32 numBytes;
-    quint8* data;
-    QList<UAVObjectField*> fields;
-    void initializeFields(QList<UAVObjectField*>& fields, quint8* data, quint32 numBytes);
-    void setDescription(const QString& description);
-    void setCategory(const QString& category);
-
+    quint8 *data;
+    QList<UAVObjectField *> fields;
+    void initializeFields(QList<UAVObjectField *> &fields, quint8 *data, quint32 numBytes);
+    void setDescription(const QString &description);
+    void setCategory(const QString &category);
 };
 
 #endif // UAVOBJECT_H

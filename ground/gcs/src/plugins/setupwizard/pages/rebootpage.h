@@ -34,7 +34,8 @@ namespace Ui {
 class RebootPage;
 }
 
-class RebootPage : public AbstractWizardPage {
+class RebootPage : public AbstractWizardPage
+{
     Q_OBJECT
 
 public:

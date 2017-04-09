@@ -13,17 +13,17 @@
  * @brief The Core GCS plugin
  *****************************************************************************/
 /*
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 #include "coreplugin.h"
@@ -35,12 +35,12 @@
 
 using namespace Core::Internal;
 
-CorePlugin::CorePlugin() :
-    m_mainWindow(new MainWindow)
+CorePlugin::CorePlugin()
+    : m_mainWindow(new MainWindow)
 {
-    connect(m_mainWindow,SIGNAL(splashMessages(QString)),this,SIGNAL(splashMessages(QString)));
-    connect(m_mainWindow,SIGNAL(hideSplash()),this,SIGNAL(hideSplash()));
-    connect(m_mainWindow,SIGNAL(showSplash()),this,SIGNAL(showSplash()));
+    connect(m_mainWindow, SIGNAL(splashMessages(QString)), this, SIGNAL(splashMessages(QString)));
+    connect(m_mainWindow, SIGNAL(hideSplash()), this, SIGNAL(hideSplash()));
+    connect(m_mainWindow, SIGNAL(showSplash()), this, SIGNAL(showSplash()));
 }
 
 CorePlugin::~CorePlugin()
@@ -50,8 +50,8 @@ CorePlugin::~CorePlugin()
 
 bool CorePlugin::initialize(const QStringList &arguments, QString *errorMessage)
 {
-    if(arguments.contains("crashme")) {
-        if((arguments.length() > 1) && (arguments.at(arguments.indexOf("crashme") + 1) == "yes")) {
+    if (arguments.contains("crashme")) {
+        if ((arguments.length() > 1) && (arguments.at(arguments.indexOf("crashme") + 1) == "yes")) {
             QString *s = 0;
             s->append("crash");
         }
@@ -68,7 +68,7 @@ void CorePlugin::extensionsInitialized()
     m_mainWindow->extensionsInitialized();
 }
 
-void CorePlugin::remoteArgument(const QString& arg)
+void CorePlugin::remoteArgument(const QString &arg)
 {
     // An empty argument is sent to trigger activation
     // of the window via QtSingleApplication. It should be

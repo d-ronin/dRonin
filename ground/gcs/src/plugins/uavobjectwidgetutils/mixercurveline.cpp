@@ -32,7 +32,6 @@
 
 #include <qmath.h>
 
-
 Edge::Edge(MixerNode *sourceNode, MixerNode *destNode)
     : arrowSize(10)
 {
@@ -97,8 +96,8 @@ QRectF Edge::boundingRect() const
     qreal penWidth = 1;
     qreal extra = (penWidth + arrowSize) / 2.0;
 
-    return QRectF(sourcePoint, QSizeF(destPoint.x() - sourcePoint.x(),
-                                      destPoint.y() - sourcePoint.y()))
+    return QRectF(sourcePoint,
+                  QSizeF(destPoint.x() - sourcePoint.x(), destPoint.y() - sourcePoint.y()))
         .normalized()
         .adjusted(-extra, -extra, extra, extra);
 }
@@ -115,5 +114,4 @@ void Edge::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
     // Draw the line itself
     painter->setPen(QPen(Qt::black, 1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
     painter->drawLine(line);
-
 }

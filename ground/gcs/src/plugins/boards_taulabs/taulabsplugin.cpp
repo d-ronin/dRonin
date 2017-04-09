@@ -30,22 +30,21 @@
 #include "sparky2.h"
 #include "taulink.h"
 
-
 TauLabsPlugin::TauLabsPlugin()
 {
-   // Do nothing
+    // Do nothing
 }
 
 TauLabsPlugin::~TauLabsPlugin()
 {
-   // Do nothing
+    // Do nothing
 }
 
-bool TauLabsPlugin::initialize(const QStringList& args, QString *errMsg)
+bool TauLabsPlugin::initialize(const QStringList &args, QString *errMsg)
 {
-   Q_UNUSED(args);
-   Q_UNUSED(errMsg);
-   return true;
+    Q_UNUSED(args);
+    Q_UNUSED(errMsg);
+    return true;
 }
 
 void TauLabsPlugin::extensionsInitialized()
@@ -54,13 +53,13 @@ void TauLabsPlugin::extensionsInitialized()
      * Create the board objects here.
      *
      */
-    Sparky* sparky = new Sparky();
+    Sparky *sparky = new Sparky();
     addAutoReleasedObject(sparky);
 
-    Sparky2* sparky2 = new Sparky2();
+    Sparky2 *sparky2 = new Sparky2();
     addAutoReleasedObject(sparky2);
 
-    TauLink* taulink = new TauLink();
+    TauLink *taulink = new TauLink();
     addAutoReleasedObject(taulink);
 }
 

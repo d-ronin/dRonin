@@ -40,11 +40,15 @@
 TauLink::TauLink(void)
 {
     // Common USB IDs
-    addBootloaderUSBInfo(USBInfo(DRONIN_VID_DRONIN_BOOTLOADER, DRONIN_PID_DRONIN_BOOTLOADER, BCD_DEVICE_BOOTLOADER));
-    addFirmwareUSBInfo(USBInfo(DRONIN_VID_DRONIN_FIRMWARE, DRONIN_PID_DRONIN_FIRMWARE, BCD_DEVICE_FIRMWARE));
+    addBootloaderUSBInfo(
+        USBInfo(DRONIN_VID_DRONIN_BOOTLOADER, DRONIN_PID_DRONIN_BOOTLOADER, BCD_DEVICE_BOOTLOADER));
+    addFirmwareUSBInfo(
+        USBInfo(DRONIN_VID_DRONIN_FIRMWARE, DRONIN_PID_DRONIN_FIRMWARE, BCD_DEVICE_FIRMWARE));
     // Legacy USB IDs
-    addBootloaderUSBInfo(USBInfo(DRONIN_VID_OPENPILOT_PIPX, DRONIN_PID_OPENPILOT_PIPX, BCD_DEVICE_BOOTLOADER));
-    addFirmwareUSBInfo(USBInfo(DRONIN_VID_OPENPILOT_PIPX, DRONIN_PID_OPENPILOT_PIPX, BCD_DEVICE_FIRMWARE));
+    addBootloaderUSBInfo(
+        USBInfo(DRONIN_VID_OPENPILOT_PIPX, DRONIN_PID_OPENPILOT_PIPX, BCD_DEVICE_BOOTLOADER));
+    addFirmwareUSBInfo(
+        USBInfo(DRONIN_VID_OPENPILOT_PIPX, DRONIN_PID_OPENPILOT_PIPX, BCD_DEVICE_FIRMWARE));
 
     boardType = 0x03;
 
@@ -54,9 +58,7 @@ TauLink::TauLink(void)
 
 TauLink::~TauLink()
 {
-
 }
-
 
 QString TauLink::shortName()
 {
@@ -71,7 +73,7 @@ QString TauLink::boardDescription()
 //! Return which capabilities this board has
 bool TauLink::queryCapabilities(BoardCapabilities capability)
 {
-    switch(capability) {
+    switch (capability) {
     case BOARD_CAPABILITIES_RADIO:
         return true;
     default:
@@ -91,7 +93,7 @@ QString TauLink::getHwUAVO()
 }
 
 //! Get the settings object
-HwTauLink * TauLink::getSettings()
+HwTauLink *TauLink::getSettings()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
@@ -111,7 +113,7 @@ quint32 TauLink::getRfmID()
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
 
     // Modem has instance 0
-    RFM22BStatus *rfm22bStatus = RFM22BStatus::GetInstance(uavoManager,0);
+    RFM22BStatus *rfm22bStatus = RFM22BStatus::GetInstance(uavoManager, 0);
     Q_ASSERT(rfm22bStatus);
     RFM22BStatus::DataFields rfm22b = rfm22bStatus->getData();
 
@@ -123,13 +125,14 @@ quint32 TauLink::getRfmID()
  * be a coordinator.
  * @return true if successful or false if not
  */
-bool TauLink::bindRadio(quint32 id, quint32 baud_rate, float rf_power, Core::IBoardType::LinkMode linkMode, quint8 min, quint8 max)
+bool TauLink::bindRadio(quint32 id, quint32 baud_rate, float rf_power,
+                        Core::IBoardType::LinkMode linkMode, quint8 min, quint8 max)
 {
     HwTauLink::DataFields settings = getSettings()->getData();
 
     settings.CoordID = id;
 
-    switch(baud_rate) {
+    switch (baud_rate) {
     case 9600:
         settings.MaxRfSpeed = HwTauLink::MAXRFSPEED_9600;
         break;
@@ -152,7 +155,7 @@ bool TauLink::bindRadio(quint32 id, quint32 baud_rate, float rf_power, Core::IBo
 
     // Round to an integer to use a switch statement
     quint32 rf_power_100 = (rf_power * 100) + 0.5;
-    switch(rf_power_100) {
+    switch (rf_power_100) {
     case 0:
         settings.MaxRfPower = HwTauLink::MAXRFPOWER_0;
         break;
@@ -182,7 +185,7 @@ bool TauLink::bindRadio(quint32 id, quint32 baud_rate, float rf_power, Core::IBo
         break;
     }
 
-    switch(linkMode) {
+    switch (linkMode) {
     case Core::IBoardType::LINK_TELEM:
         settings.Radio = HwTauLink::RADIO_TELEM;
         break;
@@ -198,7 +201,7 @@ bool TauLink::bindRadio(quint32 id, quint32 baud_rate, float rf_power, Core::IBo
     settings.MaxChannel = max;
 
     getSettings()->setData(settings);
-    uavoUtilManager->saveObjectToFlash( getSettings());
+    uavoUtilManager->saveObjectToFlash(getSettings());
 
     return true;
 }

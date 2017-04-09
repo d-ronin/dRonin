@@ -1,10 +1,10 @@
-    /**
- ******************************************************************************
- *
- * @file       calibration.h
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
- * @brief      Gui-less support class for calibration
- *****************************************************************************/
+/**
+******************************************************************************
+*
+* @file       calibration.h
+* @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
+* @brief      Gui-less support class for calibration
+*****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,13 +55,21 @@ public:
 
 private:
     enum CALIBRATION_STATE {
-        IDLE, LEVELING, YAW_ORIENTATION,
-        SIX_POINT_WAIT1, SIX_POINT_COLLECT1,
-        SIX_POINT_WAIT2, SIX_POINT_COLLECT2,
-        SIX_POINT_WAIT3, SIX_POINT_COLLECT3,
-        SIX_POINT_WAIT4, SIX_POINT_COLLECT4,
-        SIX_POINT_WAIT5, SIX_POINT_COLLECT5,
-        SIX_POINT_WAIT6, SIX_POINT_COLLECT6,
+        IDLE,
+        LEVELING,
+        YAW_ORIENTATION,
+        SIX_POINT_WAIT1,
+        SIX_POINT_COLLECT1,
+        SIX_POINT_WAIT2,
+        SIX_POINT_COLLECT2,
+        SIX_POINT_WAIT3,
+        SIX_POINT_COLLECT3,
+        SIX_POINT_WAIT4,
+        SIX_POINT_COLLECT4,
+        SIX_POINT_WAIT5,
+        SIX_POINT_COLLECT5,
+        SIX_POINT_WAIT6,
+        SIX_POINT_COLLECT6,
         GYRO_TEMP_CAL
     } calibration_state;
 
@@ -154,13 +162,13 @@ private:
     void doStartLeveling();
 
     //! Get the object manager
-    UAVObjectManager* getObjectManager();
+    UAVObjectManager *getObjectManager();
 
     //! Get the object manager utility
-    UAVObjectUtilManager* getObjectUtilManager();
+    UAVObjectUtilManager *getObjectUtilManager();
 
     //! Assign the metadata update rate
-    void assignUpdateRate(UAVObject* obj, quint32 updatePeriod);
+    void assignUpdateRate(UAVObject *obj, quint32 updatePeriod);
 
     QTimer timer;
 
@@ -215,13 +223,13 @@ private:
     TempCompCurve *zCurve;
 
 protected:
-    enum sensor_type {ACCEL, GYRO, MAG};
+    enum sensor_type { ACCEL, GYRO, MAG };
 
     //! Connect and speed up or disconnect a sensor
     void connectSensor(sensor_type sensor, bool connect);
 
     //! Store a measurement at this position and indicate if it is the last one
-    bool storeSixPointMeasurement(UAVObject * obj, int position);
+    bool storeSixPointMeasurement(UAVObject *obj, int position);
 
     //! Store yaw orientation sample and compute orientation if finished
     bool storeYawOrientationMeasurement(UAVObject *obj);
@@ -232,7 +240,8 @@ protected:
     //! Computes the scale and bias for the accelerometer and mag
     int computeScaleBias();
 
-    int SixPointInConstFieldCal(double ConstMag, double x[6], double y[6], double z[6], double S[3], double b[3]);
+    int SixPointInConstFieldCal(double ConstMag, double x[6], double y[6], double z[6], double S[3],
+                                double b[3]);
 
     //! Rotate a vector by the rotation matrix, optionally trasposing
     void rotate_vector(double R[3][3], const double vec[3], double vec_out[3], bool transpose);
@@ -241,7 +250,10 @@ protected:
     void Euler2R(double rpy[3], double Rbe[3][3]);
 
     //! Compute the mean value of a list
-    static inline double listMean(QList<double> list) { return std::accumulate(list.begin(), list.end(), 0.0) / list.size(); }
+    static inline double listMean(QList<double> list)
+    {
+        return std::accumulate(list.begin(), list.end(), 0.0) / list.size();
+    }
 
     //! Reset sensor settings to pre-calibration values
     void resetSensorCalibrationToOriginalValues();
@@ -254,7 +266,6 @@ protected:
 
     //! Update the graphs with the temperature compensation
     void updateTempCompCalibrationDisplay();
-
 };
 
 #endif // CALIBRATION_H

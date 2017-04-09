@@ -26,10 +26,11 @@
 #include "debuggadget.h"
 #include "debuggadgetwidget.h"
 
-DebugGadget::DebugGadget(QString classId, DebugGadgetWidget *widget, QWidget *parent) :
-    IUAVGadget(classId, parent),
-    m_widget(widget)
-{}
+DebugGadget::DebugGadget(QString classId, DebugGadgetWidget *widget, QWidget *parent)
+    : IUAVGadget(classId, parent)
+    , m_widget(widget)
+{
+}
 
 DebugGadget::~DebugGadget()
 {

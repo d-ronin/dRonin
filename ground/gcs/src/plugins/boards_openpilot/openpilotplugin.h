@@ -35,13 +35,12 @@ class OpenPilotPlugin : public ExtensionSystem::IPlugin
     Q_PLUGIN_METADATA(IID "org.dronin.plugins.OpenPilot")
 
 public:
-   OpenPilotPlugin();
-   ~OpenPilotPlugin();
+    OpenPilotPlugin();
+    ~OpenPilotPlugin();
 
-   void extensionsInitialized();
-   bool initialize(const QStringList & arguments, QString * errorString);
-   void shutdown();
-
+    void extensionsInitialized();
+    bool initialize(const QStringList &arguments, QString *errorString);
+    void shutdown();
 };
 
 #endif // OPENPILOTPLUGIN_H

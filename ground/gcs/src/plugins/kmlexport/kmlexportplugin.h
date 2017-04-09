@@ -50,7 +50,7 @@ public:
     KmlExportPlugin();
 
     void extensionsInitialized();
-    bool initialize(const QStringList & arguments, QString * errorString);
+    bool initialize(const QStringList &arguments, QString *errorString);
     void shutdown();
 
 private slots:
@@ -58,7 +58,6 @@ private slots:
 
 private:
     Core::Command *exportToKmlCmd;
-
 };
 #endif /* KMLEXPORTPLUGING_ */
 /**

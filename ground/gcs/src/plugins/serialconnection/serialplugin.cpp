@@ -10,17 +10,17 @@
  * @brief Impliments serial connection to the flight hardware for Telemetry
  *****************************************************************************/
 /*
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
@@ -37,14 +37,14 @@
 #include <QFontMetrics>
 
 SerialConnection::SerialConnection()
-    : enablePolling(true),
-      m_deviceOpened(false)
+    : enablePolling(true)
+    , m_deviceOpened(false)
 {
     serialHandle = NULL;
     m_config = new SerialPluginConfiguration("Serial Telemetry", NULL, this);
     m_config->restoresettings();
 
-    m_optionspage = new SerialPluginOptionsPage(m_config,this);
+    m_optionspage = new SerialPluginOptionsPage(m_config, this);
 
     connect(&periodicTimer, &QTimer::timeout, this, &SerialConnection::periodic);
     periodicTimer.start(1000);
@@ -66,33 +66,33 @@ bool sortPorts(const QSerialPortInfo &s1, const QSerialPortInfo &s2)
 void SerialConnection::periodic()
 {
     if (!this->deviceOpened()) {
-        QList <Core::IDevice*> newDev = this->availableDevices();
+        QList<Core::IDevice *> newDev = this->availableDevices();
 
         // Ignore the output, as now availableDevices signals!
     }
 }
 
-QList <IDevice *> SerialConnection::availableDevices()
+QList<IDevice *> SerialConnection::availableDevices()
 {
-    static QList <Core::IDevice*> m_available_device_list;
+    static QList<Core::IDevice *> m_available_device_list;
     if (enablePolling) {
         bool changed = false;
 
         QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts();
 
-        //sort the list by port number (nice idea from PT_Dreamer :))
-        qSort(ports.begin(), ports.end(),sortPorts);
+        // sort the list by port number (nice idea from PT_Dreamer :))
+        qSort(ports.begin(), ports.end(), sortPorts);
         bool port_exists;
-        foreach(QSerialPortInfo port, ports) {
+        foreach (QSerialPortInfo port, ports) {
             port_exists = false;
-            foreach(IDevice *device, m_available_device_list) {
-                if(device->getName() == port.portName()) {
+            foreach (IDevice *device, m_available_device_list) {
+                if (device->getName() == port.portName()) {
                     port_exists = true;
                     break;
                 }
             }
-            if(!port_exists) {
-                SerialDevice* d = new SerialDevice();
+            if (!port_exists) {
+                SerialDevice *d = new SerialDevice();
                 QStringList disp;
                 if (port.description().length()) {
                     QFontMetrics font((QFont()));
@@ -106,16 +106,15 @@ QList <IDevice *> SerialConnection::availableDevices()
                 changed = true;
             }
         }
-        foreach(IDevice *device,m_available_device_list) {
+        foreach (IDevice *device, m_available_device_list) {
             port_exists = false;
-            foreach(QSerialPortInfo port, ports) {
-                if(device->getName() == port.portName()) {
+            foreach (QSerialPortInfo port, ports) {
+                if (device->getName() == port.portName()) {
                     port_exists = true;
                     break;
                 }
             }
-            if(!port_exists)
-            {
+            if (!port_exists) {
                 m_available_device_list.removeOne(device);
                 device->deleteLater();
 
@@ -133,23 +132,23 @@ QList <IDevice *> SerialConnection::availableDevices()
 
 QIODevice *SerialConnection::openDevice(IDevice *deviceName)
 {
-    if (serialHandle){
+    if (serialHandle) {
         closeDevice(deviceName->getName());
     }
     QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts();
-    foreach(QSerialPortInfo port, ports) {
+    foreach (QSerialPortInfo port, ports) {
         if (port.portName() == deviceName->getName()) {
-            //we need to handle port settings here...
+            // we need to handle port settings here...
 
             serialHandle = new QSerialPort(port);
             if (serialHandle->open(QIODevice::ReadWrite)) {
-                 if (serialHandle->setBaudRate(m_config->speed().toInt())
-	                    && serialHandle->setDataBits(QSerialPort::Data8)
-	                    && serialHandle->setParity(QSerialPort::NoParity)
- 	                    && serialHandle->setStopBits(QSerialPort::OneStop)
- 	                    && serialHandle->setFlowControl(QSerialPort::NoFlowControl)) {
-                            m_deviceOpened = true;
-                 }
+                if (serialHandle->setBaudRate(m_config->speed().toInt())
+                    && serialHandle->setDataBits(QSerialPort::Data8)
+                    && serialHandle->setParity(QSerialPort::NoParity)
+                    && serialHandle->setStopBits(QSerialPort::OneStop)
+                    && serialHandle->setFlowControl(QSerialPort::NoFlowControl)) {
+                    m_deviceOpened = true;
+                }
             }
             return serialHandle;
         }
@@ -160,14 +159,13 @@ QIODevice *SerialConnection::openDevice(IDevice *deviceName)
 void SerialConnection::closeDevice(const QString &deviceName)
 {
     Q_UNUSED(deviceName);
-    //we have to delete the serial connection we created
-    if (serialHandle){
+    // we have to delete the serial connection we created
+    if (serialHandle) {
         serialHandle->deleteLater();
         serialHandle = NULL;
         m_deviceOpened = false;
     }
 }
-
 
 QString SerialConnection::connectionName()
 {
@@ -214,9 +212,9 @@ bool SerialPlugin::initialize(const QStringList &arguments, QString *errorString
     Q_UNUSED(arguments);
     Q_UNUSED(errorString);
     m_connection = new SerialConnection();
-    //must manage this registration of child object ourselves
-    //if we use an autorelease here it causes the GCS to crash
-    //as it is deleting objects as the app closes...
+    // must manage this registration of child object ourselves
+    // if we use an autorelease here it causes the GCS to crash
+    // as it is deleting objects as the app closes...
     addObject(m_connection->Optionspage());
     return true;
 }

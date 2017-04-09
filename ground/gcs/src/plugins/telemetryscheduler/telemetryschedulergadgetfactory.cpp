@@ -28,19 +28,17 @@
 #include <coreplugin/iuavgadget.h>
 #include <QDebug>
 
-TelemetrySchedulerGadgetFactory::TelemetrySchedulerGadgetFactory(QObject *parent) :
-        IUAVGadgetFactory(QString("TelemetrySchedulerGadget"),
-                          tr("Telemetry Scheduler"),
-                          parent)
+TelemetrySchedulerGadgetFactory::TelemetrySchedulerGadgetFactory(QObject *parent)
+    : IUAVGadgetFactory(QString("TelemetrySchedulerGadget"), tr("Telemetry Scheduler"), parent)
 {
 }
 
 TelemetrySchedulerGadgetFactory::~TelemetrySchedulerGadgetFactory()
 {
-
 }
 
-IUAVGadget* TelemetrySchedulerGadgetFactory::createGadget(QWidget *parent) {
-    TelemetrySchedulerGadgetWidget* gadgetWidget = new TelemetrySchedulerGadgetWidget(parent);
+IUAVGadget *TelemetrySchedulerGadgetFactory::createGadget(QWidget *parent)
+{
+    TelemetrySchedulerGadgetWidget *gadgetWidget = new TelemetrySchedulerGadgetWidget(parent);
     return new TelemetrySchedulerGadget(QString("TelemetrySchedulerGadget"), gadgetWidget, parent);
 }

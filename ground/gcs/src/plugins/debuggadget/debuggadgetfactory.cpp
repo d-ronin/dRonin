@@ -54,23 +54,24 @@ void customMessageHandler(QtMsgType type, const QMessageLogContext &context, con
         QTextStream(stderr) << "[FATAL] " << msg << endl;
         break;
     }
-    DebugEngine::getInstance()->message(level, msg, QString(context.file), context.line, QString(context.function));
+    DebugEngine::getInstance()->message(level, msg, QString(context.file), context.line,
+                                        QString(context.function));
 }
 
-DebugGadgetFactory::DebugGadgetFactory(QObject *parent) :
-    IUAVGadgetFactory(QString("DebugGadget"),
-                      tr("DebugGadget"),
-                      parent)
+DebugGadgetFactory::DebugGadgetFactory(QObject *parent)
+    : IUAVGadgetFactory(QString("DebugGadget"), tr("DebugGadget"), parent)
 {
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     if (env.contains("NO_DEBUG_GADGET"))
-        DebugEngine::getInstance()->message(DebugEngine::INFO, "Debug gadget disabled by NO_DEBUG_GADGET env. var.");
+        DebugEngine::getInstance()->message(DebugEngine::INFO,
+                                            "Debug gadget disabled by NO_DEBUG_GADGET env. var.");
     else
         qInstallMessageHandler(customMessageHandler);
 }
 
 DebugGadgetFactory::~DebugGadgetFactory()
-{}
+{
+}
 
 IUAVGadget *DebugGadgetFactory::createGadget(QWidget *parent)
 {

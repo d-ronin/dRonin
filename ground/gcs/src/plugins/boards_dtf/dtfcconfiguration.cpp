@@ -33,12 +33,12 @@
 
 #include "hwdtfc.h"
 
-DtfcConfiguration::DtfcConfiguration(QWidget *parent) :
-    ConfigTaskWidget(parent),
-    ui(new Ui::DtfcConfiguration)
+DtfcConfiguration::DtfcConfiguration(QWidget *parent)
+    : ConfigTaskWidget(parent)
+    , ui(new Ui::DtfcConfiguration)
 {
     ui->setupUi(this);
-    
+
     // Load UAVObjects to widget relations from UI file
     // using objrelation dynamic property
     autoLoadWidgets();

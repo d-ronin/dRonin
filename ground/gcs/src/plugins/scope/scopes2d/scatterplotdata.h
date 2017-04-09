@@ -35,7 +35,6 @@
 #include <QTime>
 #include <QVector>
 
-
 /**
  * @brief The Scatterplot2dData class Base class that keeps the data for each curve in the plot.
  */
@@ -43,20 +42,21 @@ class ScatterplotData : public Plot2dData
 {
     Q_OBJECT
 public:
-    ScatterplotData(QString uavObject, QString uavField):
-        Plot2dData(uavObject, uavField){curve = 0;}
-    ~ScatterplotData(){}
+    ScatterplotData(QString uavObject, QString uavField)
+        : Plot2dData(uavObject, uavField)
+    {
+        curve = 0;
+    }
+    ~ScatterplotData() {}
 
     virtual void deletePlots(PlotData *);
     void clearPlots();
 
-    void setCurve(QwtPlotCurve *val){curve = val;}
+    void setCurve(QwtPlotCurve *val) { curve = val; }
 
 protected:
-    QwtPlotCurve* curve;
+    QwtPlotCurve *curve;
 };
-
-
 
 /**
  * @brief The SeriesPlotData class The sequential plot have a fixed size
@@ -67,22 +67,22 @@ class SeriesPlotData : public ScatterplotData
     Q_OBJECT
 public:
     SeriesPlotData(QString uavObject, QString uavField)
-            : ScatterplotData(uavObject, uavField) {}
+        : ScatterplotData(uavObject, uavField)
+    {
+    }
     ~SeriesPlotData() {}
 
     /*!
       \brief Append new data to the plot
       */
-    bool append(UAVObject* obj);
-
+    bool append(UAVObject *obj);
 
     /*!
       \brief Removes the old data from the buffer
       */
-    virtual void removeStaleData(){}
+    virtual void removeStaleData() {}
     virtual void plotNewData(PlotData *, ScopeConfig *, ScopeGadgetWidget *);
 };
-
 
 /**
  * @brief The TimeSeriesPlotData class The chrono plot has a variable sized buffer of data,
@@ -93,13 +93,13 @@ class TimeSeriesPlotData : public ScatterplotData
     Q_OBJECT
 public:
     TimeSeriesPlotData(QString uavObject, QString uavField)
-            : ScatterplotData(uavObject, uavField) {
+        : ScatterplotData(uavObject, uavField)
+    {
         scalePower = 1;
     }
-    ~TimeSeriesPlotData() {
-    }
+    ~TimeSeriesPlotData() {}
 
-    bool append(UAVObject* obj);
+    bool append(UAVObject *obj);
 
     virtual void removeStaleData();
     virtual void plotNewData(PlotData *, ScopeConfig *, ScopeGadgetWidget *);

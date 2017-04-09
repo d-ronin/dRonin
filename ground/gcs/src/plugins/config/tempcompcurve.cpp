@@ -25,8 +25,10 @@
 
 #include "tempcompcurve.h"
 
-TempCompCurve::TempCompCurve(QWidget *parent) :
-    QwtPlot(parent), dataCurve(NULL), fitCurve(NULL)
+TempCompCurve::TempCompCurve(QWidget *parent)
+    : QwtPlot(parent)
+    , dataCurve(NULL)
+    , fitCurve(NULL)
 {
     setMouseTracking(true);
 
@@ -35,7 +37,7 @@ TempCompCurve::TempCompCurve(QWidget *parent) :
 
     setCanvasBackground(QColor(64, 64, 64));
 
-    //Add grid lines
+    // Add grid lines
     QwtPlotGrid *grid = new QwtPlotGrid;
     grid->setMajorPen(QPen(Qt::gray, 0, Qt::DashLine));
     grid->setMinorPen(QPen(Qt::lightGray, 0, Qt::DotLine));
@@ -48,7 +50,7 @@ TempCompCurve::TempCompCurve(QWidget *parent) :
  * @param temp The set of temperature measurements
  * @param gyro The set of gyro measurements
  */
-void TempCompCurve::plotData(QList<double> temp, QList<double> gyro, QList <double> coeff)
+void TempCompCurve::plotData(QList<double> temp, QList<double> gyro, QList<double> coeff)
 {
     // TODO: Keep the curves and free them in the destructors
     const int STEPS = 100;
@@ -61,7 +63,7 @@ void TempCompCurve::plotData(QList<double> temp, QList<double> gyro, QList <doub
     double min = temp[0];
     double max = temp[0];
     for (int i = 0; i < temp.size(); i++) {
-        points.append(QPointF(temp[i],gyro[i]));
+        points.append(QPointF(temp[i], gyro[i]));
         min = qMin(min, temp[i]);
         max = qMax(max, temp[i]);
     }
@@ -69,7 +71,7 @@ void TempCompCurve::plotData(QList<double> temp, QList<double> gyro, QList <doub
     double step = (max - min) / STEPS;
     for (int i = 0; i < STEPS; i++) {
         double t = min + step * i;
-        double f = coeff[0] + coeff[1] * t + coeff[2] * pow(t,2) + coeff[3] * pow(t,3);
+        double f = coeff[0] + coeff[1] * t + coeff[2] * pow(t, 2) + coeff[3] * pow(t, 3);
         fit.append(QPointF(t, f));
     }
 
@@ -84,7 +86,7 @@ void TempCompCurve::plotData(QList<double> temp, QList<double> gyro, QList <doub
 
     // Plot the fit
     pen.setStyle(Qt::SolidLine);
-    pen.setColor(QColor(0,255,0));
+    pen.setColor(QColor(0, 255, 0));
 
     fitCurve = new QwtPlotCurve("Fit");
     fitCurve->setPen(pen);

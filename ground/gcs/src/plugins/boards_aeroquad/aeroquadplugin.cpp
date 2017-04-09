@@ -29,19 +29,19 @@
 
 AeroQuadPlugin::AeroQuadPlugin()
 {
-   // Do nothing
+    // Do nothing
 }
 
 AeroQuadPlugin::~AeroQuadPlugin()
 {
-   // Do nothing
+    // Do nothing
 }
 
-bool AeroQuadPlugin::initialize(const QStringList& args, QString *errMsg)
+bool AeroQuadPlugin::initialize(const QStringList &args, QString *errMsg)
 {
-   Q_UNUSED(args);
-   Q_UNUSED(errMsg);
-   return true;
+    Q_UNUSED(args);
+    Q_UNUSED(errMsg);
+    return true;
 }
 
 void AeroQuadPlugin::extensionsInitialized()
@@ -50,7 +50,7 @@ void AeroQuadPlugin::extensionsInitialized()
      * Create the board objects here.
      *
      */
-    AQ32* aq32 = new AQ32();
+    AQ32 *aq32 = new AQ32();
     addAutoReleasedObject(aq32);
 }
 

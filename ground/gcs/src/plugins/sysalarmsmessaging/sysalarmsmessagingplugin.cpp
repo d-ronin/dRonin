@@ -12,17 +12,17 @@
  * system
  *****************************************************************************/
 /*
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
@@ -48,9 +48,9 @@ void SysAlarmsMessagingPlugin::extensionsInitialized()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
-    SystemAlarms* obj = dynamic_cast<SystemAlarms*>(objManager->getObject(QString("SystemAlarms")));
+    SystemAlarms *obj =
+        dynamic_cast<SystemAlarms *>(objManager->getObject(QString("SystemAlarms")));
     connect(obj, &UAVObject::objectUpdated, this, &SysAlarmsMessagingPlugin::updateAlarms);
-
 }
 
 /**
@@ -64,21 +64,23 @@ bool SysAlarmsMessagingPlugin::initialize(const QStringList &arguments, QString 
     Q_UNUSED(errorString);
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
-    SystemAlarms* obj = SystemAlarms::GetInstance(objManager);
+    SystemAlarms *obj = SystemAlarms::GetInstance(objManager);
 
     foreach (UAVObjectField *field, obj->getFields()) {
         for (uint i = 0; i < field->getNumElements(); ++i) {
             QString element = field->getElementNames()[i];
-            GlobalMessage * msg=Core::ICore::instance()->globalMessaging()->addErrorMessage(element,"");
+            GlobalMessage *msg =
+                Core::ICore::instance()->globalMessaging()->addErrorMessage(element, "");
             msg->setActive(false);
-            errorMessages.insert(element,msg);
-            msg=Core::ICore::instance()->globalMessaging()->addWarningMessage(element,"");
+            errorMessages.insert(element, msg);
+            msg = Core::ICore::instance()->globalMessaging()->addWarningMessage(element, "");
             msg->setActive(false);
-            warningMessages.insert(element,msg);
+            warningMessages.insert(element, msg);
         }
     }
-    TelemetryManager* telMngr = pm->getObject<TelemetryManager>();
-    connect(telMngr, &TelemetryManager::disconnected, this, &SysAlarmsMessagingPlugin::onAutopilotDisconnect);
+    TelemetryManager *telMngr = pm->getObject<TelemetryManager>();
+    connect(telMngr, &TelemetryManager::disconnected, this,
+            &SysAlarmsMessagingPlugin::onAutopilotDisconnect);
     return true;
 }
 
@@ -87,38 +89,29 @@ bool SysAlarmsMessagingPlugin::initialize(const QStringList &arguments, QString 
  * object is updated to set the alarm messages appropriately.
  * @param[in] systemAlarm Must be the SystemAlarms object
  */
-void SysAlarmsMessagingPlugin::updateAlarms(UAVObject* systemAlarm)
+void SysAlarmsMessagingPlugin::updateAlarms(UAVObject *systemAlarm)
 {
     UAVObjectField *field = systemAlarm->getField(QString("Alarm"));
 
     for (uint i = 0; i < field->getNumElements(); ++i) {
         const QString element = field->getElementNames()[i];
         const QString value = field->getValue(i).toString();
-        if(value==field->getOptions().at(SystemAlarms::ALARM_ERROR))
-        {
+        if (value == field->getOptions().at(SystemAlarms::ALARM_ERROR)) {
             errorMessages.value(element)->setActive(true);
-            errorMessages.value(element)->setDescription(element+" module is in error state");
+            errorMessages.value(element)->setDescription(element + " module is in error state");
             warningMessages.value(element)->setActive(false);
-        }
-        else if(value==field->getOptions().at(SystemAlarms::ALARM_CRITICAL))
-        {
+        } else if (value == field->getOptions().at(SystemAlarms::ALARM_CRITICAL)) {
             errorMessages.value(element)->setActive(true);
-            errorMessages.value(element)->setDescription(element+" module is in CRITICAL state");
+            errorMessages.value(element)->setDescription(element + " module is in CRITICAL state");
             warningMessages.value(element)->setActive(false);
-        }
-        else if(value==field->getOptions().at(SystemAlarms::ALARM_WARNING))
-        {
+        } else if (value == field->getOptions().at(SystemAlarms::ALARM_WARNING)) {
             warningMessages.value(element)->setActive(true);
-            warningMessages.value(element)->setDescription(element+" module is in warning state");
+            warningMessages.value(element)->setDescription(element + " module is in warning state");
             errorMessages.value(element)->setActive(false);
-        }
-        else if(value==field->getOptions().at(SystemAlarms::ALARM_UNINITIALISED))
-        {
+        } else if (value == field->getOptions().at(SystemAlarms::ALARM_UNINITIALISED)) {
             warningMessages.value(element)->setActive(false);
             errorMessages.value(element)->setActive(false);
-        }
-        else if(value==field->getOptions().at(SystemAlarms::ALARM_OK))
-        {
+        } else if (value == field->getOptions().at(SystemAlarms::ALARM_OK)) {
             warningMessages.value(element)->setActive(false);
             errorMessages.value(element)->setActive(false);
         }
@@ -127,8 +120,8 @@ void SysAlarmsMessagingPlugin::updateAlarms(UAVObject* systemAlarm)
 
 void SysAlarmsMessagingPlugin::onAutopilotDisconnect()
 {
-    foreach(GlobalMessage * msg,errorMessages.values())
+    foreach (GlobalMessage *msg, errorMessages.values())
         msg->setActive(false);
-    foreach(GlobalMessage * msg,warningMessages.values())
+    foreach (GlobalMessage *msg, warningMessages.values())
         msg->setActive(false);
 }

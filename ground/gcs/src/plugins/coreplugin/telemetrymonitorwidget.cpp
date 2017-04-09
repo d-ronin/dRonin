@@ -31,7 +31,8 @@
 #include <QFont>
 #include <QDebug>
 
-TelemetryMonitorWidget::TelemetryMonitorWidget(QWidget *parent) : QGraphicsView(parent)
+TelemetryMonitorWidget::TelemetryMonitorWidget(QWidget *parent)
+    : QGraphicsView(parent)
 {
     setMinimumSize(200, parent->height());
     setMaximumSize(200, parent->height());
@@ -55,7 +56,7 @@ TelemetryMonitorWidget::TelemetryMonitorWidget(QWidget *parent) : QGraphicsView(
         graph->setElementId("txrxBackground");
 
         QString name;
-        QGraphicsSvgItem* pt;
+        QGraphicsSvgItem *pt;
 
         QRectF orig;
         QMatrix Matrix;
@@ -142,17 +143,17 @@ void TelemetryMonitorWidget::connected()
 {
     m_connected = true;
 
-    //flash the lights
+    // flash the lights
     updateTelemetry(maxValue, maxValue);
 }
 
 void TelemetryMonitorWidget::disconnect()
 {
-    //flash the lights
+    // flash the lights
     updateTelemetry(maxValue, maxValue);
 
     m_connected = false;
-    updateTelemetry(0.0,0.0);
+    updateTelemetry(0.0, 0.0);
 }
 
 /**
@@ -172,24 +173,26 @@ void TelemetryMonitorWidget::updateTelemetry(double txRate, double rxRate)
  */
 void TelemetryMonitorWidget::showTelemetry()
 {
-    txIndex = (txValue-minValue)/(maxValue-minValue) * NODE_NUMELEM;
-    rxIndex = (rxValue-minValue)/(maxValue-minValue) * NODE_NUMELEM;
+    txIndex = (txValue - minValue) / (maxValue - minValue) * NODE_NUMELEM;
+    rxIndex = (rxValue - minValue) / (maxValue - minValue) * NODE_NUMELEM;
 
     if (m_connected)
-        this->setToolTip(QString("Tx: %0 bytes/sec\nRx: %1 bytes/sec").arg(txValue, 0, 'f', 0).arg(rxValue, 0, 'f', 0));
+        this->setToolTip(QString("Tx: %0 bytes/sec\nRx: %1 bytes/sec")
+                             .arg(txValue, 0, 'f', 0)
+                             .arg(rxValue, 0, 'f', 0));
     else
         this->setToolTip(QString("Disconnected"));
 
     int i;
-    QGraphicsItem* node;
+    QGraphicsItem *node;
 
-    for (i=0; i < txNodes.count(); i++) {
+    for (i = 0; i < txNodes.count(); i++) {
         node = txNodes.at(i);
         node->setVisible(m_connected && i < txIndex);
         node->update();
     }
 
-    for (i=0; i < rxNodes.count(); i++) {
+    for (i = 0; i < rxNodes.count(); i++) {
         node = rxNodes.at(i);
         node->setVisible(m_connected && i < rxIndex);
         node->update();
@@ -211,10 +214,9 @@ void TelemetryMonitorWidget::showEvent(QShowEvent *event)
     fitInView(graph, Qt::KeepAspectRatio);
 }
 
-void TelemetryMonitorWidget::resizeEvent(QResizeEvent* event)
+void TelemetryMonitorWidget::resizeEvent(QResizeEvent *event)
 {
     Q_UNUSED(event);
 
     fitInView(graph, Qt::KeepAspectRatio);
 }
-

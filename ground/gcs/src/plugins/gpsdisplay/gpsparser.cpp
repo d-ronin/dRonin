@@ -26,17 +26,19 @@
 
 #include "gpsparser.h"
 
-GPSParser::GPSParser(QObject *parent) : QObject(parent)
+GPSParser::GPSParser(QObject *parent)
+    : QObject(parent)
 {
-    qRegisterMetaType<QList<int> >("QList<int>");
+    qRegisterMetaType<QList<int>>("QList<int>");
 }
 
 GPSParser::~GPSParser()
 {
-
 }
 
-void GPSParser::processInputStream(char c) {
+void GPSParser::processInputStream(char c)
 {
-    Q_UNUSED(c)}
+    {
+        Q_UNUSED(c)
+    }
 }

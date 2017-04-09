@@ -31,36 +31,32 @@
 #include <QtSvg/QSvgRenderer>
 #include <QtSvg/QGraphicsSvgItem>
 
-
 class GpsConstellationWidget : public QGraphicsView
 {
     Q_OBJECT
 
 public:
-   explicit GpsConstellationWidget(QWidget *parent = 0);
-   ~GpsConstellationWidget();
+    explicit GpsConstellationWidget(QWidget *parent = 0);
+    ~GpsConstellationWidget();
 
 public slots:
-   void updateSat(int index, int prn, int elevation, int azimuth, int snr);
-
+    void updateSat(int index, int prn, int elevation, int azimuth, int snr);
 
 private slots:
 
 private:
-   static const int MAX_SATELLITES = 32;
-   int satellites[MAX_SATELLITES][4];
-   QGraphicsScene *scene;
-   QSvgRenderer *renderer;
-   QGraphicsSvgItem* world;
-   QGraphicsSvgItem* satIcons[MAX_SATELLITES];
-   QGraphicsSimpleTextItem* satTexts[MAX_SATELLITES];
+    static const int MAX_SATELLITES = 32;
+    int satellites[MAX_SATELLITES][4];
+    QGraphicsScene *scene;
+    QSvgRenderer *renderer;
+    QGraphicsSvgItem *world;
+    QGraphicsSvgItem *satIcons[MAX_SATELLITES];
+    QGraphicsSimpleTextItem *satTexts[MAX_SATELLITES];
 
-   QPointF polarToCoord(int elevation, int azimuth);
+    QPointF polarToCoord(int elevation, int azimuth);
 
 protected:
     void showEvent(QShowEvent *event);
     void resizeEvent(QResizeEvent *event);
-
-
 };
 #endif /* GPSCONSTELLATIONWIDGET_H_ */

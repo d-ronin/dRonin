@@ -32,12 +32,14 @@
 #include "ui_biascalibrationpage.h"
 #include "setupwizard.h"
 
-BiasCalibrationPage::BiasCalibrationPage(SetupWizard *wizard, QWidget *parent) :
-    AbstractWizardPage(wizard, parent),
-    ui(new Ui::BiasCalibrationPage), m_calibrationUtil(0)
+BiasCalibrationPage::BiasCalibrationPage(SetupWizard *wizard, QWidget *parent)
+    : AbstractWizardPage(wizard, parent)
+    , ui(new Ui::BiasCalibrationPage)
+    , m_calibrationUtil(0)
 {
     ui->setupUi(this);
-    connect(ui->levelButton, &QAbstractButton::clicked, this, &BiasCalibrationPage::performCalibration);
+    connect(ui->levelButton, &QAbstractButton::clicked, this,
+            &BiasCalibrationPage::performCalibration);
 }
 
 BiasCalibrationPage::~BiasCalibrationPage()
@@ -70,7 +72,8 @@ void BiasCalibrationPage::performCalibration()
     if (!getWizard()->getConnectionManager()->isConnected()) {
         QMessageBox msgBox;
         msgBox.setText(tr("A flight controller must be connected to your computer to perform bias "
-                          "calculations.\nPlease connect your flight controller to your computer and try again."));
+                          "calculations.\nPlease connect your flight controller to your computer "
+                          "and try again."));
         msgBox.setStandardButtons(QMessageBox::Ok);
         msgBox.setDefaultButton(QMessageBox::Ok);
         msgBox.exec();
@@ -93,8 +96,10 @@ void BiasCalibrationPage::performCalibration()
     timer->setSingleShot(true);
     timer->setInterval(20000);
 
-    connect(m_calibrationUtil, &Calibration::levelingProgressChanged, this, &BiasCalibrationPage::calibrationProgress);
-    connect(m_calibrationUtil, &Calibration::calibrationCompleted, this, &BiasCalibrationPage::calibrationDone);
+    connect(m_calibrationUtil, &Calibration::levelingProgressChanged, this,
+            &BiasCalibrationPage::calibrationProgress);
+    connect(m_calibrationUtil, &Calibration::calibrationCompleted, this,
+            &BiasCalibrationPage::calibrationDone);
     connect(m_calibrationUtil, &Calibration::calibrationCompleted, timer, &QTimer::stop);
     connect(timer, &QTimer::timeout, this, &BiasCalibrationPage::calibrationTimeout);
     timer->start();
@@ -133,8 +138,10 @@ void BiasCalibrationPage::calibrationTimeout()
 void BiasCalibrationPage::stopCalibration()
 {
     if (m_calibrationUtil) {
-        disconnect(m_calibrationUtil, &Calibration::levelingProgressChanged, this, &BiasCalibrationPage::calibrationProgress);
-        disconnect(m_calibrationUtil, &Calibration::calibrationCompleted, this, &BiasCalibrationPage::calibrationDone);
+        disconnect(m_calibrationUtil, &Calibration::levelingProgressChanged, this,
+                   &BiasCalibrationPage::calibrationProgress);
+        disconnect(m_calibrationUtil, &Calibration::calibrationCompleted, this,
+                   &BiasCalibrationPage::calibrationDone);
         ui->progressLabel->setText(QString(tr("<font color='green'>Done!</font>")));
         enableButtons(true);
     }

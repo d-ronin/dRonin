@@ -11,17 +11,17 @@
  * @brief The Core GCS plugin
  *****************************************************************************/
 /*
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
@@ -39,119 +39,120 @@
 namespace Core {
 namespace Internal {
 
-class CommandPrivate : public Core::Command
-{
-    Q_OBJECT
-public:
-    CommandPrivate(int id);
-    virtual ~CommandPrivate() {}
+    class CommandPrivate : public Core::Command
+    {
+        Q_OBJECT
+    public:
+        CommandPrivate(int id);
+        virtual ~CommandPrivate() {}
 
-    virtual QString name() const = 0;
+        virtual QString name() const = 0;
 
-    void setDefaultKeySequence(const QKeySequence &key);
-    QKeySequence defaultKeySequence() const;
+        void setDefaultKeySequence(const QKeySequence &key);
+        QKeySequence defaultKeySequence() const;
 
-    void setDefaultText(const QString &text);
-    QString defaultText() const;
+        void setDefaultText(const QString &text);
+        QString defaultText() const;
 
-    int id() const;
+        int id() const;
 
-    QAction *action() const;
-    QShortcut *shortcut() const;
+        QAction *action() const;
+        QShortcut *shortcut() const;
 
-    void setAttribute(CommandAttribute attr);
-    void removeAttribute(CommandAttribute attr);
-    bool hasAttribute(CommandAttribute attr) const;
+        void setAttribute(CommandAttribute attr);
+        void removeAttribute(CommandAttribute attr);
+        bool hasAttribute(CommandAttribute attr) const;
 
-    virtual bool setCurrentContext(const QList<int> &context) = 0;
+        virtual bool setCurrentContext(const QList<int> &context) = 0;
 
-    QString stringWithAppendedShortcut(const QString &str) const;
+        QString stringWithAppendedShortcut(const QString &str) const;
 
-protected:
-    QString m_category;
-    int m_attributes;
-    int m_id;
-    QKeySequence m_defaultKey;
-    QString m_defaultText;
-};
+    protected:
+        QString m_category;
+        int m_attributes;
+        int m_id;
+        QKeySequence m_defaultKey;
+        QString m_defaultText;
+    };
 
-class Shortcut : public CommandPrivate
-{
-    Q_OBJECT
-public:
-    Shortcut(int id);
+    class Shortcut : public CommandPrivate
+    {
+        Q_OBJECT
+    public:
+        Shortcut(int id);
 
-    QString name() const;
+        QString name() const;
 
-    void setDefaultKeySequence(const QKeySequence &key);
-    void setKeySequence(const QKeySequence &key);
-    QKeySequence keySequence() const;
+        void setDefaultKeySequence(const QKeySequence &key);
+        void setKeySequence(const QKeySequence &key);
+        QKeySequence keySequence() const;
 
-    virtual void setDefaultText(const QString &key);
-    virtual QString defaultText() const;
+        virtual void setDefaultText(const QString &key);
+        virtual QString defaultText() const;
 
-    void setShortcut(QShortcut *shortcut);
-    QShortcut *shortcut() const;
+        void setShortcut(QShortcut *shortcut);
+        QShortcut *shortcut() const;
 
-    void setContext(const QList<int> &context);
-    QList<int> context() const;
-    bool setCurrentContext(const QList<int> &context);
+        void setContext(const QList<int> &context);
+        QList<int> context() const;
+        bool setCurrentContext(const QList<int> &context);
 
-    bool isActive() const;
-private:
-    QList<int> m_context;
-    QShortcut *m_shortcut;
-    QString m_defaultText;
-};
+        bool isActive() const;
 
-class Action : public CommandPrivate
-{
-    Q_OBJECT
-public:
-    Action(int id);
+    private:
+        QList<int> m_context;
+        QShortcut *m_shortcut;
+        QString m_defaultText;
+    };
 
-    QString name() const;
+    class Action : public CommandPrivate
+    {
+        Q_OBJECT
+    public:
+        Action(int id);
 
-    void setDefaultKeySequence(const QKeySequence &key);
-    void setKeySequence(const QKeySequence &key);
-    QKeySequence keySequence() const;
+        QString name() const;
 
-    virtual void setAction(QAction *action);
-    QAction *action() const;
+        void setDefaultKeySequence(const QKeySequence &key);
+        void setKeySequence(const QKeySequence &key);
+        QKeySequence keySequence() const;
 
-    void setLocations(const QList<CommandLocation> &locations);
-    QList<CommandLocation> locations() const;
+        virtual void setAction(QAction *action);
+        QAction *action() const;
 
-protected:
-    void updateToolTipWithKeySequence();
-    
-    QAction *m_action;
-    QList<CommandLocation> m_locations;
-    QString m_toolTip;
-};
+        void setLocations(const QList<CommandLocation> &locations);
+        QList<CommandLocation> locations() const;
 
-class OverrideableAction : public Action
-{
-    Q_OBJECT
+    protected:
+        void updateToolTipWithKeySequence();
 
-public:
-    OverrideableAction(int id);
+        QAction *m_action;
+        QList<CommandLocation> m_locations;
+        QString m_toolTip;
+    };
 
-    void setAction(QAction *action);
-    bool setCurrentContext(const QList<int> &context);
-    void addOverrideAction(QAction *action, const QList<int> &context);
-    bool isActive() const;
+    class OverrideableAction : public Action
+    {
+        Q_OBJECT
 
-private slots:
-    void actionChanged();
+    public:
+        OverrideableAction(int id);
 
-private:
-    QPointer<QAction> m_currentAction;
-    QList<int> m_context;
-    QMap<int, QPointer<QAction> > m_contextActionMap;
-    bool m_active;
-    bool m_contextInitialized;
-};
+        void setAction(QAction *action);
+        bool setCurrentContext(const QList<int> &context);
+        void addOverrideAction(QAction *action, const QList<int> &context);
+        bool isActive() const;
+
+    private slots:
+        void actionChanged();
+
+    private:
+        QPointer<QAction> m_currentAction;
+        QList<int> m_context;
+        QMap<int, QPointer<QAction>> m_contextActionMap;
+        bool m_active;
+        bool m_contextInitialized;
+    };
 
 } // namespace Internal
 } // namespace Core

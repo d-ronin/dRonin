@@ -7,7 +7,7 @@
  * @{
  * @addtogroup GCSControlGadgetPlugin GCSControl Gadget Plugin
  * @{
- * @brief A place holder gadget plugin 
+ * @brief A place holder gadget plugin
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -71,8 +71,8 @@ protected slots:
 
 private:
     Ui_GCSControl *m_gcscontrol;
-    double leftX,leftY,rightX,rightY;
-    QMap<QString,ManualControlSettings::FlightModePositionOptions> flightModesMap;
+    double leftX, leftY, rightX, rightY;
+    QMap<QString, ManualControlSettings::FlightModePositionOptions> flightModesMap;
 };
 
 #endif /* GCSControlGADGETWIDGET_H_ */

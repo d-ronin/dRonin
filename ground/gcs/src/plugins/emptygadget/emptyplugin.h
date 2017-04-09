@@ -7,7 +7,7 @@
  * @{
  * @addtogroup EmptyGadgetPlugin Empty Gadget Plugin
  * @{
- * @brief A place holder gadget plugin 
+ * @brief A place holder gadget plugin
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -37,13 +37,14 @@ class EmptyPlugin : public ExtensionSystem::IPlugin
     Q_PLUGIN_METADATA(IID "org.dronin.plugins.EmptyGadget")
 
 public:
-        EmptyPlugin();
-   ~EmptyPlugin();
+    EmptyPlugin();
+    ~EmptyPlugin();
 
-   void extensionsInitialized();
-   bool initialize(const QStringList & arguments, QString * errorString);
-   void shutdown();
+    void extensionsInitialized();
+    bool initialize(const QStringList &arguments, QString *errorString);
+    void shutdown();
+
 private:
-   EmptyGadgetFactory *mf;
+    EmptyGadgetFactory *mf;
 };
 #endif /* EMPTYPLUGIN_H_ */

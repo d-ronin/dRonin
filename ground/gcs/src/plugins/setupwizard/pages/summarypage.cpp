@@ -30,9 +30,9 @@
 #include "setupwizard.h"
 #include <uavobjectwidgetutils/connectiondiagram.h>
 
-SummaryPage::SummaryPage(SetupWizard *wizard, QWidget *parent) :
-    AbstractWizardPage(wizard, parent),
-    ui(new Ui::SummaryPage)
+SummaryPage::SummaryPage(SetupWizard *wizard, QWidget *parent)
+    : AbstractWizardPage(wizard, parent)
+    , ui(new Ui::SummaryPage)
 {
     ui->setupUi(this);
     connect(ui->illustrationButton, &QAbstractButton::clicked, this, &SummaryPage::showDiagram);

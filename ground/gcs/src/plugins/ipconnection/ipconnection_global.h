@@ -30,9 +30,9 @@
 #include <QtCore/qglobal.h>
 
 #if defined(IPconnection_LIBRARY)
-#  define IPconnection_EXPORT Q_DECL_EXPORT
+#define IPconnection_EXPORT Q_DECL_EXPORT
 #else
-#  define IPconnection_EXPORT Q_DECL_IMPORT
+#define IPconnection_EXPORT Q_DECL_IMPORT
 #endif
 
 #endif // IPconnection_GLOBAL_H
