@@ -186,7 +186,7 @@ p, li { white-space: pre-wrap; }
       </widget>
      </item>
      <item>
-      <widget class="QToolButton" name="sbusnoninvertedButton">
+      <widget class="QToolButton" name="sbusNonInvertedButton">
        <property name="font">
         <font>
          <pointsize>10</pointsize>
@@ -280,7 +280,7 @@ p, li { white-space: pre-wrap; }
       <number>0</number>
      </property>
      <item>
-      <widget class="QToolButton" name="hottsumdButton">
+      <widget class="QToolButton" name="hottSumDButton">
        <property name="font">
         <font>
          <pointsize>10</pointsize>
@@ -322,7 +322,7 @@ p, li { white-space: pre-wrap; }
       </widget>
      </item>
      <item>
-      <widget class="QToolButton" name="hottsumhButton">
+      <widget class="QToolButton" name="hottSumHButton">
        <property name="font">
         <font>
          <pointsize>10</pointsize>
@@ -448,7 +448,7 @@ p, li { white-space: pre-wrap; }
       </widget>
      </item>
      <item>
-      <widget class="QToolButton" name="tbscrossfireButton">
+      <widget class="QToolButton" name="tbsCrossfireButton">
        <property name="font">
         <font>
          <pointsize>10</pointsize>
