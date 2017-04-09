@@ -30,12 +30,9 @@
 				<option>CameraRoll</option>
 				<option>CameraPitch</option>
 				<option>CameraYaw</option>
-				<option>Accessory0</option>
-				<option>Accessory1</option>
-				<option>Accessory2</option>
 			</options>
 		</field>
-		<field name="Mixer1Vector" units="" type="int8" defaultvalue="0">
+		<field name="Mixer1Vector" units="" type="int16" defaultvalue="0">
 			<description>Mixer vector</description>
 			<elementnames>
 				<elementname>ThrottleCurve1</elementname>
@@ -43,6 +40,9 @@
 				<elementname>Roll</elementname>
 				<elementname>Pitch</elementname>
 				<elementname>Yaw</elementname>
+				<elementname>Accessory0</elementname>
+				<elementname>Accessory1</elementname>
+				<elementname>Accessory2</elementname>
 			</elementnames>
 		</field>
 		<field name="Mixer2Type" cloneof="Mixer1Type">

@@ -66,7 +66,7 @@
 #define TASK_PRIORITY PIOS_THREAD_PRIO_HIGHEST
 #define FAILSAFE_TIMEOUT_MS 100
 #define MAX_MIX_ACTUATORS ACTUATORCOMMAND_CHANNEL_NUMELEM
-#define MULTIROTOR_MIXER_UPPER_BOUND 128
+#define MIXER_SCALE 128
 
 // Private types
 
@@ -95,10 +95,12 @@ static void set_failsafe();
 static float throt_curve(const float input, const float* curve, uint8_t num_points);
 static float collective_curve(const float input, const float* curve, uint8_t num_points);
 static void actuator_set_servo_mode(void);
-float process_mixer(const int index, const float curve1, const float curve2,
-		ActuatorDesiredData *desired);
+
+static float process_mixer(int index, ActuatorDesiredData *desired,
+		ManualControlCommandData *cmd, float curve1, float curve2);
+
 static float mix_channel(int ct, ActuatorDesiredData *desired,
-		float curve1, float curve2);
+		ManualControlCommandData *cmd, float curve1, float curve2);
 
 static MixerSettingsMixer1TypeOptions get_mixer_type(int idx);
 static typeof(mixerSettings.Mixer1Vector) *get_mixer_vec(int idx);
@@ -239,7 +241,7 @@ static void actuator_task(void* parameters)
 	ActuatorDesiredData desired;
 	MixerStatusData mixerStatus;
 	FlightStatusData flightStatus;
-	ManualControlCommandData manual_control_command;
+	ManualControlCommandData manual_cmd;
 
 	SystemSettingsAirframeTypeOptions airframe_type;
 
@@ -298,7 +300,7 @@ static void actuator_task(void* parameters)
 		}
 
 		if (manualControlCommandUpdated) {
-			ManualControlCommandGet(&manual_control_command);
+			ManualControlCommandGet(&manual_cmd);
 			manualControlCommandUpdated = false;
 		}
 
@@ -323,7 +325,7 @@ static void actuator_task(void* parameters)
 			// Helis set throttle from manual control's throttle value,
 			// unless in failsafe.
 			if (flightStatus.FlightMode != FLIGHTSTATUS_FLIGHTMODE_FAILSAFE) {
-				throttle_source = manual_control_command.Throttle;
+				throttle_source = manual_cmd.Throttle;
 			}
 		} else {
 			throttle_source = desired.Thrust;
@@ -366,7 +368,8 @@ static void actuator_task(void* parameters)
 		int num_motors = 0;
 
 		for (int ct = 0; ct < MAX_MIX_ACTUATORS; ct++) {
-			status[ct] = mix_channel(ct, &desired, curve1, curve2);
+			status[ct] = mix_channel(ct, &desired,
+					&manual_cmd, curve1, curve2);
 
 			if (get_mixer_type(ct) == MIXERSETTINGS_MIXER1TYPE_MOTOR) {
 				min_chan = fminf(min_chan, status[ct]);
@@ -477,8 +480,8 @@ static void actuator_task(void* parameters)
 /**
  *Process mixing for one actuator
  */
-float process_mixer(const int index, const float curve1, const float curve2,
-		ActuatorDesiredData *desired)
+static float process_mixer(int index, ActuatorDesiredData *desired,
+		ManualControlCommandData *cmd, float curve1, float curve2)
 {
 	// Taking the pointer to the array preserves type information so smart compilers
 	// can detect accesses past the end.
@@ -488,7 +491,11 @@ float process_mixer(const int index, const float curve1, const float curve2,
 			((*vector)[MIXERSETTINGS_MIXER1VECTOR_THROTTLECURVE2] * curve2) +
 			((*vector)[MIXERSETTINGS_MIXER1VECTOR_ROLL] * desired->Roll) +
 			((*vector)[MIXERSETTINGS_MIXER1VECTOR_PITCH] * desired->Pitch) +
-			((*vector)[MIXERSETTINGS_MIXER1VECTOR_YAW] * desired->Yaw)) * (1.0f / MULTIROTOR_MIXER_UPPER_BOUND);
+			((*vector)[MIXERSETTINGS_MIXER1VECTOR_YAW] * desired->Yaw) +
+			((*vector)[MIXERSETTINGS_MIXER1VECTOR_ACCESSORY0] * cmd->Accessory[0]) +
+			((*vector)[MIXERSETTINGS_MIXER1VECTOR_ACCESSORY1] * cmd->Accessory[1]) +
+			((*vector)[MIXERSETTINGS_MIXER1VECTOR_ACCESSORY2] * cmd->Accessory[2]) +
+			0) * (1.0f / MIXER_SCALE);
 
 	return (result);
 }
@@ -604,7 +611,7 @@ static void actuator_set_servo_mode(void)
 }
 
 static float mix_channel(int ct, ActuatorDesiredData *desired,
-		float curve1, float curve2)
+		ManualControlCommandData *cmd, float curve1, float curve2)
 {
 	MixerSettingsMixer1TypeOptions type = get_mixer_type(ct);
 
@@ -615,42 +622,8 @@ static float mix_channel(int ct, ActuatorDesiredData *desired,
 		break;
 
 	case MIXERSETTINGS_MIXER1TYPE_SERVO:
-		return process_mixer(ct, curve1, curve2, desired);
-		break;
-
 	case MIXERSETTINGS_MIXER1TYPE_MOTOR:
-		(void) 0;               // nil statement
-		float val = process_mixer(ct, curve1, curve2, desired);
-
-		return val;
-		break;
-	// If an accessory channel is selected for direct bypass mode
-	// In this configuration the accessory channel is scaled and
-	// mapped directly to output.
-	// Note: THERE IS NO SAFETY CHECK HERE FOR ARMING
-	// these also will not be updated in failsafe mode.  I'm not sure
-	// what the correct behavior is since it seems domain specific.
-	// I don't love this code
-	case MIXERSETTINGS_MIXER1TYPE_ACCESSORY0:
-	case MIXERSETTINGS_MIXER1TYPE_ACCESSORY1:
-	case MIXERSETTINGS_MIXER1TYPE_ACCESSORY2:
-		(void) 0;
-
-		int idx = type - MIXERSETTINGS_MIXER1TYPE_ACCESSORY0;
-
-		if (idx < 0) {
-			return 0;
-		}
-
-		if (idx >= MANUALCONTROLCOMMAND_ACCESSORY_NUMELEM) {
-			return 0;
-		}
-
-		float accessories[MANUALCONTROLCOMMAND_ACCESSORY_NUMELEM];
-
-		ManualControlCommandAccessoryGet(accessories);
-
-		return accessories[idx];
+		return process_mixer(ct, desired, cmd, curve1, curve2);
 		break;
 	case MIXERSETTINGS_MIXER1TYPE_CAMERAPITCH:
 	case MIXERSETTINGS_MIXER1TYPE_CAMERAROLL:
