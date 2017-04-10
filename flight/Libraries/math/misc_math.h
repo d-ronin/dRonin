@@ -100,6 +100,58 @@ static inline int16_t sin_approx(int32_t x)
 	return x * ( (3<<s_qP) - (x*x>>qR) ) >> qS;
 }
 
+/* Multiplies out = a * b
+ *
+ * Matrices are stored in row order, that is a[i*cols + j]
+ *
+ * output is arows by bcols
+ * a is arows by acolsbrows
+ * b is acolsbrows by bcols
+ */
+static inline void matrix_mul(const float *a, const float *b,
+		float *out, int arows, int acolsbrows, int bcols)
+{
+	const float * restrict apos = a;
+	float * restrict opos = out;
+
+	for (int ar = 0; ar < arows; ar++) {
+		for (int bc = 0 ; bc < bcols; bc++) {
+			float sum = 0;
+
+			const float * restrict bpos = b + bc;
+
+			for (int acbr = 0; acbr < acolsbrows; acbr++) {
+				/*
+				sum += a[ar * acolsbrows + acbr] *
+					b[acbr * bcols + bc];
+				*/
+
+				sum += (apos[acbr]) * (*bpos);
+
+				bpos += bcols;
+			}
+
+			/* out[ar * bcols + bc] = sum; */
+
+			*opos = sum;
+
+			opos++;
+		}
+
+		apos += acolsbrows;
+	}
+}
+
+#define matrix_mul_check(a, b, out, arows, acolsbrows, bcols) \
+	do { \
+		/* Note the dimensions each get used multiple times */	\
+		const float (*my_a)[arows*acolsbrows] = &(a); \
+		const float (*my_b)[acolsbrows*bcols] = &(b); \
+		float (*my_out)[arows*bcols] = &(out); \
+		matrix_mul(*my_a, *my_b, *my_out, arows, acolsbrows, bcols); \
+	} while (0);
+
+
 /* Following functions from fastapprox https://code.google.com/p/fastapprox/
  * are governed by this license agreement: */
 

@@ -38,6 +38,7 @@
 #include <stdint.h>		/* uint*_t */
 
 extern "C" {
+#define restrict		/* neuter restrict keyword */
 
 #include "misc_math.h"		/* API for misc_math functions */
 
@@ -350,3 +351,101 @@ TEST_F(LinearInterpolate, CollectiveCurve1to1) {
     EXPECT_NEAR(range_max, linear_interpolate(input, curve, curve_numpts, range_min, range_max), eps);
   }
 };
+
+// Test fixture for matrix math
+class MatrixMath : public MiscMath {
+protected:
+  virtual void SetUp() {
+  }
+
+  virtual void TearDown() {
+  }
+};
+
+TEST_F(MatrixMath, Multiplies) {
+  const float eps = 0.000001f;
+  const float trivial[] = {
+    2.0f
+  };
+
+  const float row_vector[] = {
+    1.0f, 2.0f, 3.0f
+  };
+
+  const float col_vector[] = {
+    8.0f,
+    7.0f,
+    6.0f
+  };
+
+  const float identity_3x3[] = {
+    1.0f, 0, 0,
+    0, 1.0f, 0,
+    0, 0, 1.0f
+  };
+
+  const float simple_3x4[] = {
+    1.0f, 2.0f, 3.0f, 4.0f,
+    2.0f, 3.0f, 4.0f, 5.0f,
+    3.0f, 4.0f, 5.0f, 6.0f
+  };
+
+  const float simple_4x4[] = {
+     1.0f,  1.0f,  1.0f, 1.0f,
+    -1.0f, -1.0f,  1.0f, 1.0f,
+     1.0f, -1.0f, -1.0f, 1.0f, 
+    -1.0f,  1.0f, -1.0f, 1.0f,
+  };
+
+
+  float single[1];
+  float vect3[3];
+  float matr_3x3[3*3];
+  float matr_3x4[3*4];
+
+  matrix_mul_check(trivial, trivial, single, 1, 1, 1);
+
+  EXPECT_NEAR(4.0f, single[0], eps);
+
+  matrix_mul_check(row_vector, trivial, vect3, 3, 1, 1);
+
+  for (int i = 0; i < 3; i++) {
+    EXPECT_NEAR(row_vector[i] * 2, vect3[i], eps);
+  }
+
+  matrix_mul_check(trivial, col_vector, vect3, 1, 1, 3);
+
+  for (int i = 0; i < 3; i++) {
+    EXPECT_NEAR(col_vector[i] * 2, vect3[i], eps);
+  }
+
+  matrix_mul_check(row_vector, col_vector, single, 1, 3, 1);
+
+  EXPECT_NEAR(40, single[0], eps);
+
+  matrix_mul_check(identity_3x3, identity_3x3, matr_3x3, 3, 3, 3);
+
+  for (int i = 0; i < 9; i++) {
+    EXPECT_NEAR(identity_3x3[i], matr_3x3[i], eps);
+  }
+
+  matrix_mul_check(identity_3x3, simple_3x4, matr_3x4, 3, 3, 4);
+
+  for (int i = 0; i < 9; i++) {
+    EXPECT_NEAR(simple_3x4[i], matr_3x4[i], eps);
+  }
+
+  matrix_mul_check(simple_3x4, simple_4x4, matr_3x4, 3, 4, 4);
+
+  EXPECT_NEAR(-2, matr_3x4[0], eps);
+  for (int i = 0; i < 12; i += 4) {
+    EXPECT_NEAR(-2, matr_3x4[i], eps);
+    EXPECT_NEAR(0, matr_3x4[i+1], eps);
+    EXPECT_NEAR(-4, matr_3x4[i+2], eps);
+  }
+
+  EXPECT_NEAR(10, matr_3x4[3], eps);
+  EXPECT_NEAR(14, matr_3x4[7], eps);
+  EXPECT_NEAR(18, matr_3x4[11], eps);
+
+} 
