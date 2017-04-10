@@ -47,7 +47,6 @@
 #include "actuatorcommand.h"
 #include "flightstatus.h"
 #include "mixersettings.h"
-#include "mixerstatus.h"
 #include "cameradesired.h"
 #include "manualcontrolcommand.h"
 #include "pios_thread.h"
@@ -93,6 +92,8 @@ static volatile bool mixer_settings_updated = true;
 // The actual mixer settings data, pulled at the top of the actuator thread
 static MixerSettingsData mixerSettings;
 
+static float motor_mixer[MIXERSETTINGS_MIXER1VECTOR_NUMELEM * MAX_MIX_ACTUATORS];
+
 // Ditto, for the actuator settings.
 static ActuatorSettingsData actuatorSettings;
 
@@ -104,14 +105,7 @@ static float throt_curve(const float input, const float* curve, uint8_t num_poin
 static float collective_curve(const float input, const float* curve, uint8_t num_points);
 static void actuator_set_servo_mode(void);
 
-static float process_mixer(int index, ActuatorDesiredData *desired,
-		ManualControlCommandData *cmd, float curve1, float curve2);
-
-static float mix_channel(int ct, ActuatorDesiredData *desired,
-		ManualControlCommandData *cmd, float curve1, float curve2);
-
 static MixerSettingsMixer1TypeOptions get_mixer_type(int idx);
-static typeof(mixerSettings.Mixer1Vector) *get_mixer_vec(int idx);
 
 /**
  * @brief Module initialization
@@ -228,6 +222,76 @@ static float get_curve2_source(ActuatorDesiredData *desired, SystemSettingsAirfr
 	return 0;
 }
 
+static void compute_one_mixer(int i,
+		int16_t (*vals)[MIXERSETTINGS_MIXER1VECTOR_NUMELEM])
+{
+	MixerSettingsMixer1TypeOptions type = get_mixer_type(i);
+
+	i *= MIXERSETTINGS_MIXER1VECTOR_NUMELEM;
+
+	if ((type != MIXERSETTINGS_MIXER1TYPE_SERVO) &&
+			(type != MIXERSETTINGS_MIXER1TYPE_MOTOR)) {
+		for (int j = 0; j < MIXERSETTINGS_MIXER1VECTOR_NUMELEM; j++) {
+			// Ensure unused types are zero-filled
+			motor_mixer[i+j] = 0;
+		}
+	}
+
+	for (int j = 0; j < MIXERSETTINGS_MIXER1VECTOR_NUMELEM; j++) {
+		motor_mixer[i+j] = (*vals)[j] * (1.0f / MIXER_SCALE);
+	}
+}
+
+static void compute_mixer()
+{
+#if MAX_MIX_ACTUATORS > 0
+	compute_one_mixer(0, &mixerSettings.Mixer1Vector);
+#endif
+#if MAX_MIX_ACTUATORS > 1
+	compute_one_mixer(1, &mixerSettings.Mixer2Vector);
+#endif
+#if MAX_MIX_ACTUATORS > 2
+	compute_one_mixer(2, &mixerSettings.Mixer3Vector);
+#endif
+#if MAX_MIX_ACTUATORS > 3
+	compute_one_mixer(3, &mixerSettings.Mixer4Vector);
+#endif
+#if MAX_MIX_ACTUATORS > 4
+	compute_one_mixer(4, &mixerSettings.Mixer5Vector);
+#endif
+#if MAX_MIX_ACTUATORS > 5
+	compute_one_mixer(5, &mixerSettings.Mixer6Vector);
+#endif
+#if MAX_MIX_ACTUATORS > 6
+	compute_one_mixer(6, &mixerSettings.Mixer7Vector);
+#endif
+#if MAX_MIX_ACTUATORS > 7
+	compute_one_mixer(7, &mixerSettings.Mixer8Vector);
+#endif
+#if MAX_MIX_ACTUATORS > 8
+	compute_one_mixer(8, &mixerSettings.Mixer9Vector);
+#endif
+#if MAX_MIX_ACTUATORS > 9
+	compute_one_mixer(9, &mixerSettings.Mixer10Vector);
+#endif
+}
+
+static void fill_command_vector(
+		ActuatorDesiredData *desired,
+		ManualControlCommandData *cmd,
+		float curve1, float curve2,
+		float (*cmd_vector)[MIXERSETTINGS_MIXER1VECTOR_NUMELEM])
+{
+	(*cmd_vector)[MIXERSETTINGS_MIXER1VECTOR_THROTTLECURVE1] = curve1;
+	(*cmd_vector)[MIXERSETTINGS_MIXER1VECTOR_THROTTLECURVE2] = curve2;
+	(*cmd_vector)[MIXERSETTINGS_MIXER1VECTOR_ROLL] = desired->Roll;
+	(*cmd_vector)[MIXERSETTINGS_MIXER1VECTOR_PITCH] = desired->Pitch;
+	(*cmd_vector)[MIXERSETTINGS_MIXER1VECTOR_YAW] = desired->Yaw;
+	(*cmd_vector)[MIXERSETTINGS_MIXER1VECTOR_ACCESSORY0] = cmd->Accessory[0];
+	(*cmd_vector)[MIXERSETTINGS_MIXER1VECTOR_ACCESSORY1] = cmd->Accessory[1];
+	(*cmd_vector)[MIXERSETTINGS_MIXER1VECTOR_ACCESSORY2] = cmd->Accessory[2];
+}
+
 /**
  * @brief Main Actuator module task
  *
@@ -247,7 +311,6 @@ static void actuator_task(void* parameters)
 
 	ActuatorCommandData command;
 	ActuatorDesiredData desired;
-	MixerStatusData mixerStatus;
 	FlightStatusData flightStatus;
 	ManualControlCommandData manual_cmd;
 
@@ -268,10 +331,13 @@ static void actuator_task(void* parameters)
 			ActuatorSettingsGet(&actuatorSettings);
 			actuator_set_servo_mode();
 		}
+
 		if (mixer_settings_updated) {
 			mixer_settings_updated = false;
 			MixerSettingsGet(&mixerSettings);
 			SystemSettingsAirframeTypeGet(&airframe_type);
+
+			compute_mixer();
 		}
 
 		if (rc != true) {
@@ -310,19 +376,6 @@ static void actuator_task(void* parameters)
 		if (manualControlCommandUpdated) {
 			ManualControlCommandGet(&manual_cmd);
 			manualControlCommandUpdated = false;
-		}
-
-		int nMixers = 0;
-
-		for (int ct = 0; ct < MAX_MIX_ACTUATORS; ct++) {
-			if (get_mixer_type(ct) != MIXERSETTINGS_MIXER1TYPE_DISABLED) {
-				nMixers++;
-			}
-		}
-		if ((nMixers < 2) && !ActuatorCommandReadOnly()) {
-			// Nothing can fly with less than two mixers.
-			set_failsafe();
-			continue;
 		}
 
 		bool armed = flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED;
@@ -368,26 +421,73 @@ static void actuator_task(void* parameters)
 				mixerSettings.ThrottleCurve2,
 				MIXERSETTINGS_THROTTLECURVE2_NUMELEM);
 
-		float * status = (float *)&mixerStatus; //access status objects as an array of floats
-
 		float min_chan = INFINITY;
 		float max_chan = -INFINITY;
 		float neg_clip = 0;
 		int num_motors = 0;
 
+		float command_vect[MIXERSETTINGS_MIXER1VECTOR_NUMELEM];
+		float motor_vect[MAX_MIX_ACTUATORS];
+
+		fill_command_vector(&desired, &manual_cmd, curve1, curve2,
+				&command_vect);
+
+		matrix_mul_check(motor_mixer, command_vect, motor_vect,
+				MAX_MIX_ACTUATORS,
+				MIXERSETTINGS_MIXER1VECTOR_NUMELEM,
+				1);
+
 		for (int ct = 0; ct < MAX_MIX_ACTUATORS; ct++) {
-			status[ct] = mix_channel(ct, &desired,
-					&manual_cmd, curve1, curve2);
+			MixerSettingsMixer1TypeOptions type = get_mixer_type(ct);
 
-			if (get_mixer_type(ct) == MIXERSETTINGS_MIXER1TYPE_MOTOR) {
-				min_chan = fminf(min_chan, status[ct]);
-				max_chan = fmaxf(max_chan, status[ct]);
+			switch (type) {
+				case MIXERSETTINGS_MIXER1TYPE_DISABLED:
+					// Set to minimum if disabled.
+					// This is not the same as saying
+					// PWM pulse = 0 us
+					motor_vect[ct] = -1;
+					break;
 
-				if (status[ct] < 0.0f) {
-					neg_clip += status[ct];
-				}
+				case MIXERSETTINGS_MIXER1TYPE_SERVO:
+					break;
 
-				num_motors++;
+				case MIXERSETTINGS_MIXER1TYPE_MOTOR:
+					min_chan = fminf(min_chan, motor_vect[ct]);
+					max_chan = fmaxf(max_chan, motor_vect[ct]);
+
+					if (motor_vect[ct] < 0.0f) {
+						neg_clip += motor_vect[ct];
+					}
+
+					num_motors++;
+					break;
+				case MIXERSETTINGS_MIXER1TYPE_CAMERAPITCH:
+					if (CameraDesiredHandle()) {
+						CameraDesiredPitchGet(
+								&motor_vect[ct]);
+					} else {
+						motor_vect[ct] = -1;
+					}
+					break;
+				case MIXERSETTINGS_MIXER1TYPE_CAMERAROLL:
+					if (CameraDesiredHandle()) {
+						CameraDesiredRollGet(
+								&motor_vect[ct]);
+					} else {
+						motor_vect[ct] = -1;
+					}
+					break;
+				case MIXERSETTINGS_MIXER1TYPE_CAMERAYAW:
+					if (CameraDesiredHandle()) {
+						CameraDesiredRollGet(
+								&command_vect[ct]);
+					} else {
+						motor_vect[ct] = -1;
+					}
+					break;
+				default:
+					set_failsafe();
+					PIOS_Assert(0);
 			}
 		}
 
@@ -436,26 +536,26 @@ static void actuator_task(void* parameters)
 			// Motors have additional protection for when to be on
 			if (get_mixer_type(ct) == MIXERSETTINGS_MIXER1TYPE_MOTOR) {
 				if (!armed) {
-					status[ct] = -1;  //force min throttle
+					motor_vect[ct] = -1;  //force min throttle
 				} else if (!stabilize_now) {
 					if (!spin_while_armed) {
-						status[ct] = -1;
+						motor_vect[ct] = -1;
 					} else {
-						status[ct] = 0;
+						motor_vect[ct] = 0;
 					}
 				} else {
-					status[ct] = status[ct] * gain + offset;
+					motor_vect[ct] = motor_vect[ct] * gain + offset;
 
-					if (status[ct] > 0) {
+					if (motor_vect[ct] > 0) {
 						// Apply curve fitting, mapping the input to the propeller output.
-						status[ct] = powapprox(status[ct], actuatorSettings.MotorInputOutputCurveFit);
+						motor_vect[ct] = powapprox(motor_vect[ct], actuatorSettings.MotorInputOutputCurveFit);
 					} else {
-						status[ct] = 0;
+						motor_vect[ct] = 0;
 					}
 				}
 			}
 
-			command.Channel[ct] = scale_channel(status[ct], ct);
+			command.Channel[ct] = scale_channel(motor_vect[ct], ct);
 		}
 
 		// Store update time
@@ -472,9 +572,6 @@ static void actuator_task(void* parameters)
 			ActuatorCommandGet(&command);
 		}
 
-#if defined(MIXERSTATUS_DIAGNOSTICS)
-		MixerStatusSet(&mixerStatus);
-#endif
 		for (int n = 0; n < MAX_MIX_ACTUATORS; ++n) {
 			PIOS_Servo_Set(n, command.Channel[n]);
 		}
@@ -483,29 +580,6 @@ static void actuator_task(void* parameters)
 
 		AlarmsClear(SYSTEMALARMS_ALARM_ACTUATOR);
 	}
-}
-
-/**
- *Process mixing for one actuator
- */
-static float process_mixer(int index, ActuatorDesiredData *desired,
-		ManualControlCommandData *cmd, float curve1, float curve2)
-{
-	// Taking the pointer to the array preserves type information so smart compilers
-	// can detect accesses past the end.
-	typeof(mixerSettings.Mixer1Vector) *vector = get_mixer_vec(index);
-
-	float result = (((*vector)[MIXERSETTINGS_MIXER1VECTOR_THROTTLECURVE1] * curve1) +
-			((*vector)[MIXERSETTINGS_MIXER1VECTOR_THROTTLECURVE2] * curve2) +
-			((*vector)[MIXERSETTINGS_MIXER1VECTOR_ROLL] * desired->Roll) +
-			((*vector)[MIXERSETTINGS_MIXER1VECTOR_PITCH] * desired->Pitch) +
-			((*vector)[MIXERSETTINGS_MIXER1VECTOR_YAW] * desired->Yaw) +
-			((*vector)[MIXERSETTINGS_MIXER1VECTOR_ACCESSORY0] * cmd->Accessory[0]) +
-			((*vector)[MIXERSETTINGS_MIXER1VECTOR_ACCESSORY1] * cmd->Accessory[1]) +
-			((*vector)[MIXERSETTINGS_MIXER1VECTOR_ACCESSORY2] * cmd->Accessory[2]) +
-			0) * (1.0f / MIXER_SCALE);
-
-	return (result);
 }
 
 /**
@@ -618,47 +692,6 @@ static void actuator_set_servo_mode(void)
 			actuatorSettings.ChannelMin);
 }
 
-static float mix_channel(int ct, ActuatorDesiredData *desired,
-		ManualControlCommandData *cmd, float curve1, float curve2)
-{
-	MixerSettingsMixer1TypeOptions type = get_mixer_type(ct);
-
-	switch (type) {
-	case MIXERSETTINGS_MIXER1TYPE_DISABLED:
-		// Set to minimum if disabled.  This is not the same as saying PWM pulse = 0 us
-		return -1;
-		break;
-
-	case MIXERSETTINGS_MIXER1TYPE_SERVO:
-	case MIXERSETTINGS_MIXER1TYPE_MOTOR:
-		return process_mixer(ct, desired, cmd, curve1, curve2);
-		break;
-	case MIXERSETTINGS_MIXER1TYPE_CAMERAPITCH:
-	case MIXERSETTINGS_MIXER1TYPE_CAMERAROLL:
-	case MIXERSETTINGS_MIXER1TYPE_CAMERAYAW:
-		(void) 0;
-
-		CameraDesiredData cameraDesired;
-		if (CameraDesiredHandle() && CameraDesiredGet(&cameraDesired) == 0) {
-			switch (type) {
-			case MIXERSETTINGS_MIXER1TYPE_CAMERAROLL:
-				return cameraDesired.Roll;
-			case MIXERSETTINGS_MIXER1TYPE_CAMERAPITCH:
-				return cameraDesired.Pitch;
-			case MIXERSETTINGS_MIXER1TYPE_CAMERAYAW:
-				return cameraDesired.Yaw;
-			default:
-				break;
-			}
-		}
-		return -1;
-		/* No default-- make sure we handle all types positively here */
-	}
-
-	/* Can't get here. */
-	return -1;
-}
-
 static MixerSettingsMixer1TypeOptions get_mixer_type(int idx)
 {
 	switch (idx) {
@@ -691,45 +724,6 @@ static MixerSettingsMixer1TypeOptions get_mixer_type(int idx)
 		break;
 	case 9:
 		return mixerSettings.Mixer10Type;
-		break;
-	default:
-		// We can never get here unless there are mixer channels not handled in the above. Fail out.
-		PIOS_Assert(0);
-	}
-}
-
-static typeof(mixerSettings.Mixer1Vector) *get_mixer_vec(int idx)
-{
-	switch (idx) {
-	case 0:
-		return &mixerSettings.Mixer1Vector;
-		break;
-	case 1:
-		return &mixerSettings.Mixer2Vector;
-		break;
-	case 2:
-		return &mixerSettings.Mixer3Vector;
-		break;
-	case 3:
-		return &mixerSettings.Mixer4Vector;
-		break;
-	case 4:
-		return &mixerSettings.Mixer5Vector;
-		break;
-	case 5:
-		return &mixerSettings.Mixer6Vector;
-		break;
-	case 6:
-		return &mixerSettings.Mixer7Vector;
-		break;
-	case 7:
-		return &mixerSettings.Mixer8Vector;
-		break;
-	case 8:
-		return &mixerSettings.Mixer9Vector;
-		break;
-	case 9:
-		return &mixerSettings.Mixer10Vector;
 		break;
 	default:
 		// We can never get here unless there are mixer channels not handled in the above. Fail out.
