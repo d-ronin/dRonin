@@ -65,7 +65,15 @@
 
 #define TASK_PRIORITY PIOS_THREAD_PRIO_HIGHEST
 #define FAILSAFE_TIMEOUT_MS 100
+
+#ifndef MAX_MIX_ACTUATORS
 #define MAX_MIX_ACTUATORS ACTUATORCOMMAND_CHANNEL_NUMELEM
+#endif
+
+
+DONT_BUILD_IF(ACTUATORSETTINGS_TIMERUPDATEFREQ_NUMELEM > PIOS_SERVO_MAX_BANKS, TooManyServoBanks);
+DONT_BUILD_IF(MAX_MIX_ACTUATORS > ACTUATORCOMMAND_CHANNEL_NUMELEM, TooManyMixers);
+
 #define MIXER_SCALE 128
 
 // Private types
@@ -467,7 +475,7 @@ static void actuator_task(void* parameters)
 #if defined(MIXERSTATUS_DIAGNOSTICS)
 		MixerStatusSet(&mixerStatus);
 #endif
-		for (int n = 0; n < ACTUATORCOMMAND_CHANNEL_NUMELEM; ++n) {
+		for (int n = 0; n < MAX_MIX_ACTUATORS; ++n) {
 			PIOS_Servo_Set(n, command.Channel[n]);
 		}
 
@@ -579,7 +587,7 @@ static float channel_failsafe_value(int idx)
  */
 static void set_failsafe()
 {
-	float Channel[ACTUATORCOMMAND_CHANNEL_NUMELEM];
+	float Channel[MAX_MIX_ACTUATORS];
 
 	ActuatorCommandChannelGet(Channel);
 
@@ -728,8 +736,6 @@ static typeof(mixerSettings.Mixer1Vector) *get_mixer_vec(int idx)
 		PIOS_Assert(0);
 	}
 }
-
-DONT_BUILD_IF(ACTUATORSETTINGS_TIMERUPDATEFREQ_NUMELEM > PIOS_SERVO_MAX_BANKS, TooManyServoBanks);
 
 /**
  * @}
