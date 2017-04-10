@@ -158,6 +158,61 @@ static inline void matrix_mul(const float *a, const float *b,
 	}
 }
 
+static inline void matrix_mul_scalar(const float *a, float scalar, float *out,
+		int rows, int cols)
+{
+	int size = rows * cols;
+
+	const float * restrict apos = a;
+	float * restrict opos = out;
+
+	for (int i = 0; i < size; i++) {
+		*opos = (*apos) * scalar;
+		apos++; opos++;
+	}
+}
+
+static inline void matrix_add(const float *a, const float *b,
+		float *out, int rows, int cols)
+{
+	int size = rows * cols;
+
+	const float * restrict apos = a;
+	const float * restrict bpos = b;
+	float * restrict opos = out;
+
+	for (int i = 0; i < size; i++) {
+		*opos = *apos + *bpos;
+		apos++; bpos++; opos++;
+	}
+}
+
+static inline void matrix_sub(const float *a, const float *b,
+		float *out, int rows, int cols)
+{
+	int size = rows * cols;
+
+	const float * restrict apos = a;
+	const float * restrict bpos = b;
+	float * restrict opos = out;
+
+	for (int i = 0; i < size; i++) {
+		*opos = *a - *b;
+		apos++; bpos++; opos++;
+	}
+}
+
+/* Output is cols x rows */
+static inline void matrix_transpose(const float *a, float *out, int rows,
+		int cols)
+{
+	for (int i = 0; i < rows; i++) {
+		for (int j = 0; j < cols; j++) {
+			out[j * rows + i] = a[i * cols + j];
+		}
+	}
+}
+
 #define matrix_mul_check(a, b, out, arows, acolsbrows, bcols) \
 	do { \
 		/* Note the dimensions each get used multiple times */	\
@@ -167,6 +222,40 @@ static inline void matrix_mul(const float *a, const float *b,
 		matrix_mul(*my_a, *my_b, *my_out, arows, acolsbrows, bcols); \
 	} while (0);
 
+#define matrix_mul_scalar_check(a, scalar, out, rows, cols) \
+	do { \
+		/* Note the dimensions each get used multiple times */	\
+		const float (*my_a)[rows*cols] = &(a); \
+		float (*my_out)[rows*cols] = &(out); \
+		matrix_mul_scalar(*my_a, scalar, my_out, rows, cols); \
+	} while (0);
+
+#define matrix_add_check(a, b, out, rows, cols) \
+	do { \
+		/* Note the dimensions each get used multiple times */	\
+		const float (*my_a)[rows*cols] = &(a); \
+		const float (*my_b)[rows*cols] = &(b); \
+		float (*my_out)[rows*cols] = &(out); \
+		matrix_add(*my_a, *my_b, *my_out, rows, cols) \
+	} while (0);
+
+#define matrix_sub_check(a, b, out, rows, cols) \
+	do { \
+		/* Note the dimensions each get used multiple times */	\
+		const float (*my_a)[rows*cols] = &(a); \
+		const float (*my_b)[rows*cols] = &(b); \
+		float (*my_out)[rows*cols] = &(out); \
+		matrix_sub(*my_a, *my_b, *my_out, rows, cols) \
+	} while (0);
+
+#define matrix_transpose_check(a, b, out, rows, cols) \
+	do { \
+		/* Note the dimensions each get used multiple times */	\
+		const float (*my_a)[rows*cols] = &(a); \
+		const float (*my_b)[rows*cols] = &(b); \
+		float (*my_out)[rows*cols] = &(out); \
+		matrix_transpose(*my_a, *my_b, *my_out, rows, cols) \
+	} while (0);
 
 /* Following functions from fastapprox https://code.google.com/p/fastapprox/
  * are governed by this license agreement: */
