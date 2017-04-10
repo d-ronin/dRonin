@@ -120,17 +120,33 @@ static inline void matrix_mul(const float *a, const float *b,
 
 			const float * restrict bpos = b + bc;
 
-			for (int acbr = 0; acbr < acolsbrows; acbr++) {
+			int acbr;
+
+			for (acbr = 0; acbr < (acolsbrows & (~3)); acbr += 4) {
 				/*
 				sum += a[ar * acolsbrows + acbr] *
 					b[acbr * bcols + bc];
 				*/
 
 				sum += (apos[acbr]) * (*bpos);
-
+				bpos += bcols;
+				sum += (apos[acbr+1]) * (*bpos);
+				bpos += bcols;
+				sum += (apos[acbr+2]) * (*bpos);
+				bpos += bcols;
+				sum += (apos[acbr+3]) * (*bpos);
 				bpos += bcols;
 			}
 
+			for (; acbr < acolsbrows; acbr++) {
+				/*
+				sum += a[ar * acolsbrows + acbr] *
+					b[acbr * bcols + bc];
+				*/
+
+				sum += (apos[acbr]) * (*bpos);
+				bpos += bcols;
+			}
 			/* out[ar * bcols + bc] = sum; */
 
 			*opos = sum;
