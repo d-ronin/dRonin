@@ -649,6 +649,8 @@ static float channel_failsafe_value(int idx)
 		return actuatorSettings.ChannelMin[idx];
 	case MIXERSETTINGS_MIXER1TYPE_SERVO:
 		return actuatorSettings.ChannelNeutral[idx];
+	case MIXERSETTINGS_MIXER1TYPE_DISABLED:
+		return -1;
 	default:
 		// TODO: is this actually right/safe?
 		return 0;
