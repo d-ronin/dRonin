@@ -65,7 +65,8 @@
 
 #include GCS_VERSION_INFO_FILE
 
-#define USE_CRASHREPORTING
+//#define USE_CRASHREPORTING
+
 #ifdef Q_OS_WIN
 #ifndef _MSC_VER
 #undef USE_CRASHREPORTING
