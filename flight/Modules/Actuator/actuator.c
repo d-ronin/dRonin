@@ -69,7 +69,6 @@
 #define MAX_MIX_ACTUATORS ACTUATORCOMMAND_CHANNEL_NUMELEM
 #endif
 
-
 DONT_BUILD_IF(ACTUATORSETTINGS_TIMERUPDATEFREQ_NUMELEM > PIOS_SERVO_MAX_BANKS, TooManyServoBanks);
 DONT_BUILD_IF(MAX_MIX_ACTUATORS > ACTUATORCOMMAND_CHANNEL_NUMELEM, TooManyMixers);
 DONT_BUILD_IF((MIXERSETTINGS_MIXER1VECTOR_NUMELEM - MIXERSETTINGS_MIXER1VECTOR_ACCESSORY0) < MANUALCONTROLCOMMAND_ACCESSORY_NUMELEM, AccessoryMismatch);
@@ -89,11 +88,16 @@ static volatile bool manual_control_cmd_updated = true;
 static volatile bool actuator_settings_updated = true;
 static volatile bool mixer_settings_updated = true;
 
-static float motor_mixer[MIXERSETTINGS_MIXER1VECTOR_NUMELEM * MAX_MIX_ACTUATORS];
 static MixerSettingsMixer1TypeOptions types_mixer[MAX_MIX_ACTUATORS];
 
+/* In the mixer, a row consists of values for one output actuator.
+ * A column consists of values for scaling one axis's desired command.
+ */
+
+static float motor_mixer[MAX_MIX_ACTUATORS * MIXERSETTINGS_MIXER1VECTOR_NUMELEM];
+
+/* These are various settings objects used throughout the actuator code */
 static ActuatorSettingsData actuatorSettings;
-static FlightStatusData flightStatus;
 static SystemSettingsAirframeTypeOptions airframe_type;
 
 static float curve1[MIXERSETTINGS_THROTTLECURVE1_NUMELEM];
@@ -103,11 +107,14 @@ static MixerSettingsCurve2SourceOptions curve2_src;
 
 // Private functions
 static void actuator_task(void* parameters);
+
 static float scale_channel(float value, int idx);
 static void set_failsafe();
-static float throt_curve(const float input, const float* curve, uint8_t num_points);
-static float collective_curve(const float input, const float* curve, uint8_t num_points);
-static void actuator_set_servo_mode(void);
+
+static float throt_curve(const float input, const float* curve,
+		uint8_t num_points);
+static float collective_curve(const float input, const float* curve,
+		uint8_t num_points);
 
 /**
  * @brief Module initialization
@@ -296,7 +303,10 @@ static void fill_desired_vector(
 	(*cmd_vector)[MIXERSETTINGS_MIXER1VECTOR_ROLL] = desired->Roll;
 	(*cmd_vector)[MIXERSETTINGS_MIXER1VECTOR_PITCH] = desired->Pitch;
 	(*cmd_vector)[MIXERSETTINGS_MIXER1VECTOR_YAW] = desired->Yaw;
-	/* Accessory0..Accessory2 are filled in when ManualControl changes */
+
+	/* Accessory0..Accessory2 are filled in when ManualControl changes
+	 * in normalize_input_data
+	 */
 }
 
 static void post_process_scale_and_commit(float *motor_vect, float dT,
@@ -456,6 +466,8 @@ static void normalize_input_data(uint32_t this_systime,
 	float throttle_val = -1;
 	ActuatorDesiredData desired;
 
+	static FlightStatusData flightStatus;
+
 	ActuatorDesiredGet(&desired);
 
 	if (flight_status_updated) {
@@ -532,25 +544,31 @@ static void normalize_input_data(uint32_t this_systime,
  */
 static void actuator_task(void* parameters)
 {
-	float dT = 0.0f;
-
 	// Connect update callbacks
 	FlightStatusConnectCallbackCtx(UAVObjCbSetFlag, &flight_status_updated);
 	ManualControlCommandConnectCallbackCtx(UAVObjCbSetFlag, &manual_control_cmd_updated);
 
-	// Main task loop
-	uint32_t last_systime = PIOS_Thread_Systime();
-
-	bool rc = false;
+	// Ensure the initial state of actuators is safe.
+	set_failsafe();
 
 	/* This is out here because not everything may change each time */
+	uint32_t last_systime = PIOS_Thread_Systime();
 	float desired_vect[MIXERSETTINGS_MIXER1VECTOR_NUMELEM] = { 0 };
+	float dT = 0.0f;
 
+	// Main task loop
 	while (1) {
+		/* If settings objects have changed, update our internal
+		 * state appropriately.
+		 */
 		if (actuator_settings_updated) {
 			actuator_settings_updated = false;
 			ActuatorSettingsGet(&actuatorSettings);
-			actuator_set_servo_mode();
+
+			PIOS_Servo_SetMode(actuatorSettings.TimerUpdateFreq,
+					ACTUATORSETTINGS_TIMERUPDATEFREQ_NUMELEM,
+					actuatorSettings.ChannelMax,
+					actuatorSettings.ChannelMin);
 		}
 
 		if (mixer_settings_updated) {
@@ -558,16 +576,11 @@ static void actuator_task(void* parameters)
 			SystemSettingsAirframeTypeGet(&airframe_type);
 
 			compute_mixer();
+			// XXX compute_inverse_mixer();
 
 			MixerSettingsThrottleCurve1Get(curve1);
 			MixerSettingsThrottleCurve2Get(curve2);
 			MixerSettingsCurve2SourceGet(&curve2_src);
-		}
-
-		if (rc != true) {
-			/* Update of ActuatorDesired timed out,
-			 * or first iteration.  Go to failsafe, set alarm */
-			set_failsafe();
 		}
 
 		PIOS_WDG_UpdateFlag(PIOS_WDG_ACTUATOR);
@@ -575,35 +588,54 @@ static void actuator_task(void* parameters)
 		UAVObjEvent ev;
 
 		// Wait until the ActuatorDesired object is updated
-		rc = PIOS_Queue_Receive(queue, &ev, FAILSAFE_TIMEOUT_MS);
-
-		/* If we timed out, go to top of loop, which sets failsafe
-		 * and waits again. */
-		if (rc != true) {
+		if (PIOS_Queue_Receive(queue, &ev, FAILSAFE_TIMEOUT_MS)) {
+			// If we hit a timeout, set the actuator failsafe and
+			// try again.
+			set_failsafe();
 			continue;
 		}
 
-		// Check how long since last update
 		uint32_t this_systime = PIOS_Thread_Systime();
-		if (this_systime > last_systime) // reuse dt in case of wraparound
+
+		/* Check how long since last update; this is stored into the
+		 * UAVO to allow analysis of actuation jitter.
+		 */
+		if (this_systime > last_systime) {
 			dT = (this_systime - last_systime) / 1000.0f;
+			/* (Otherwise, the timer has wrapped [rare] and we should
+			 * just reuse dT)
+			 */
+		}
+
 		last_systime = this_systime;
 
 		float motor_vect[MAX_MIX_ACTUATORS];
 
 		bool armed, spin_while_armed, stabilize_now;
 
+		/* Receive manual control and desired UAV objects.  Perform
+		 * arming / hangtime checks; form a vector with desired
+		 * axis actions.
+		 */
 		normalize_input_data(this_systime, &desired_vect, &armed,
 				&spin_while_armed, &stabilize_now);
 
+		/* Multiply the actuators x desired matrix by the
+		 * desired x 1 column vector. */
 		matrix_mul_check(motor_mixer, desired_vect, motor_vect,
 				MAX_MIX_ACTUATORS,
 				MIXERSETTINGS_MIXER1VECTOR_NUMELEM,
 				1);
 
+		/* Perform clipping adjustments on the outputs, along with
+		 * state-related corrections (spin while armed, disarmed, etc).
+		 *
+		 * Program the actual values to the timer subsystem.
+		 */
 		post_process_scale_and_commit(motor_vect, dT, armed,
 				spin_while_armed, stabilize_now);
 
+		/* If we got this far, everything is OK. */
 		AlarmsClear(SYSTEMALARMS_ALARM_ACTUATOR);
 	}
 }
@@ -678,7 +710,7 @@ static float channel_failsafe_value(int idx)
 	case MIXERSETTINGS_MIXER1TYPE_DISABLED:
 		return -1;
 	default:
-		// TODO: is this actually right/safe?
+		/* Other channel types-- camera.  Center them. */
 		return 0;
 	}
 
@@ -707,17 +739,6 @@ static void set_failsafe()
 
 	// Update output object's parts that we changed
 	ActuatorCommandChannelSet(Channel);
-}
-
-/**
- * @brief Update the servo update rate
- */
-static void actuator_set_servo_mode(void)
-{
-	PIOS_Servo_SetMode(actuatorSettings.TimerUpdateFreq,
-			ACTUATORSETTINGS_TIMERUPDATEFREQ_NUMELEM,
-			actuatorSettings.ChannelMax,
-			actuatorSettings.ChannelMin);
 }
 
 /**
