@@ -89,10 +89,8 @@ static bool manualControlCommandUpdated = true;
 static volatile bool actuator_settings_updated = true;
 static volatile bool mixer_settings_updated = true;
 
-// The actual mixer settings data, pulled at the top of the actuator thread
-static MixerSettingsData mixerSettings;
-
 static float motor_mixer[MIXERSETTINGS_MIXER1VECTOR_NUMELEM * MAX_MIX_ACTUATORS];
+static MixerSettingsMixer1TypeOptions types_mixer[MAX_MIX_ACTUATORS];
 
 // Ditto, for the actuator settings.
 static ActuatorSettingsData actuatorSettings;
@@ -104,8 +102,6 @@ static void set_failsafe();
 static float throt_curve(const float input, const float* curve, uint8_t num_points);
 static float collective_curve(const float input, const float* curve, uint8_t num_points);
 static void actuator_set_servo_mode(void);
-
-static MixerSettingsMixer1TypeOptions get_mixer_type(int idx);
 
 /**
  * @brief Module initialization
@@ -223,9 +219,10 @@ static float get_curve2_source(ActuatorDesiredData *desired, SystemSettingsAirfr
 }
 
 static void compute_one_mixer(int i,
-		int16_t (*vals)[MIXERSETTINGS_MIXER1VECTOR_NUMELEM])
+		int16_t (*vals)[MIXERSETTINGS_MIXER1VECTOR_NUMELEM],
+		MixerSettingsMixer1TypeOptions type)
 {
-	MixerSettingsMixer1TypeOptions type = get_mixer_type(i);
+	types_mixer[i] = type;
 
 	i *= MIXERSETTINGS_MIXER1VECTOR_NUMELEM;
 
@@ -242,48 +239,55 @@ static void compute_one_mixer(int i,
 	}
 }
 
+/* Here be dragons */
+#define compute_one_token_paste(b) compute_one_mixer(b-1, &mixerSettings.Mixer ## b ## Vector, mixerSettings.Mixer ## b ## Type)
+
 static void compute_mixer()
 {
+	MixerSettingsData mixerSettings;
+
+	MixerSettingsGet(&mixerSettings);
+
 #if MAX_MIX_ACTUATORS > 0
-	compute_one_mixer(0, &mixerSettings.Mixer1Vector);
+	compute_one_token_paste(1);
 #endif
 #if MAX_MIX_ACTUATORS > 1
-	compute_one_mixer(1, &mixerSettings.Mixer2Vector);
+	compute_one_token_paste(2);
 #endif
 #if MAX_MIX_ACTUATORS > 2
-	compute_one_mixer(2, &mixerSettings.Mixer3Vector);
+	compute_one_token_paste(3);
 #endif
 #if MAX_MIX_ACTUATORS > 3
-	compute_one_mixer(3, &mixerSettings.Mixer4Vector);
+	compute_one_token_paste(4);
 #endif
 #if MAX_MIX_ACTUATORS > 4
-	compute_one_mixer(4, &mixerSettings.Mixer5Vector);
+	compute_one_token_paste(5);
 #endif
 #if MAX_MIX_ACTUATORS > 5
-	compute_one_mixer(5, &mixerSettings.Mixer6Vector);
+	compute_one_token_paste(6);
 #endif
 #if MAX_MIX_ACTUATORS > 6
-	compute_one_mixer(6, &mixerSettings.Mixer7Vector);
+	compute_one_token_paste(7);
 #endif
 #if MAX_MIX_ACTUATORS > 7
-	compute_one_mixer(7, &mixerSettings.Mixer8Vector);
+	compute_one_token_paste(8);
 #endif
 #if MAX_MIX_ACTUATORS > 8
-	compute_one_mixer(8, &mixerSettings.Mixer9Vector);
+	compute_one_token_paste(9);
 #endif
 #if MAX_MIX_ACTUATORS > 9
-	compute_one_mixer(9, &mixerSettings.Mixer10Vector);
+	compute_one_token_paste(10);
 #endif
 }
 
 static void fill_command_vector(
 		ActuatorDesiredData *desired,
 		ManualControlCommandData *cmd,
-		float curve1, float curve2,
+		float val1, float val2,
 		float (*cmd_vector)[MIXERSETTINGS_MIXER1VECTOR_NUMELEM])
 {
-	(*cmd_vector)[MIXERSETTINGS_MIXER1VECTOR_THROTTLECURVE1] = curve1;
-	(*cmd_vector)[MIXERSETTINGS_MIXER1VECTOR_THROTTLECURVE2] = curve2;
+	(*cmd_vector)[MIXERSETTINGS_MIXER1VECTOR_THROTTLECURVE1] = val1;
+	(*cmd_vector)[MIXERSETTINGS_MIXER1VECTOR_THROTTLECURVE2] = val2;
 	(*cmd_vector)[MIXERSETTINGS_MIXER1VECTOR_ROLL] = desired->Roll;
 	(*cmd_vector)[MIXERSETTINGS_MIXER1VECTOR_PITCH] = desired->Pitch;
 	(*cmd_vector)[MIXERSETTINGS_MIXER1VECTOR_YAW] = desired->Yaw;
@@ -325,6 +329,11 @@ static void actuator_task(void* parameters)
 
 	bool rc = false;
 
+	float curve1[MIXERSETTINGS_THROTTLECURVE1_NUMELEM];
+	float curve2[MIXERSETTINGS_THROTTLECURVE1_NUMELEM];
+
+	MixerSettingsCurve2SourceOptions curve2_src;
+
 	while (1) {
 		if (actuator_settings_updated) {
 			actuator_settings_updated = false;
@@ -334,10 +343,13 @@ static void actuator_task(void* parameters)
 
 		if (mixer_settings_updated) {
 			mixer_settings_updated = false;
-			MixerSettingsGet(&mixerSettings);
 			SystemSettingsAirframeTypeGet(&airframe_type);
 
 			compute_mixer();
+
+			MixerSettingsThrottleCurve1Get(curve1);
+			MixerSettingsThrottleCurve2Get(curve2);
+			MixerSettingsCurve2SourceGet(&curve2_src);
 		}
 
 		if (rc != true) {
@@ -413,13 +425,13 @@ static void actuator_task(void* parameters)
 			}
 		}
 
-		float curve1 = throt_curve(throttle_source, mixerSettings.ThrottleCurve1, MIXERSETTINGS_THROTTLECURVE1_NUMELEM);
+		float val1 = throt_curve(throttle_source, curve1,
+				MIXERSETTINGS_THROTTLECURVE1_NUMELEM);
 
 		//The source for the secondary curve is selectable
-		float curve2 = collective_curve(
-				get_curve2_source(&desired, airframe_type, mixerSettings.Curve2Source),
-				mixerSettings.ThrottleCurve2,
-				MIXERSETTINGS_THROTTLECURVE2_NUMELEM);
+		float val2 = collective_curve(
+				get_curve2_source(&desired, airframe_type, curve2_src),
+				curve2, MIXERSETTINGS_THROTTLECURVE2_NUMELEM);
 
 		float min_chan = INFINITY;
 		float max_chan = -INFINITY;
@@ -429,7 +441,7 @@ static void actuator_task(void* parameters)
 		float command_vect[MIXERSETTINGS_MIXER1VECTOR_NUMELEM];
 		float motor_vect[MAX_MIX_ACTUATORS];
 
-		fill_command_vector(&desired, &manual_cmd, curve1, curve2,
+		fill_command_vector(&desired, &manual_cmd, val1, val2,
 				&command_vect);
 
 		matrix_mul_check(motor_mixer, command_vect, motor_vect,
@@ -438,9 +450,7 @@ static void actuator_task(void* parameters)
 				1);
 
 		for (int ct = 0; ct < MAX_MIX_ACTUATORS; ct++) {
-			MixerSettingsMixer1TypeOptions type = get_mixer_type(ct);
-
-			switch (type) {
+			switch (types_mixer[ct]) {
 				case MIXERSETTINGS_MIXER1TYPE_DISABLED:
 					// Set to minimum if disabled.
 					// This is not the same as saying
@@ -534,7 +544,7 @@ static void actuator_task(void* parameters)
 
 		for (int ct = 0; ct < MAX_MIX_ACTUATORS; ct++) {
 			// Motors have additional protection for when to be on
-			if (get_mixer_type(ct) == MIXERSETTINGS_MIXER1TYPE_MOTOR) {
+			if (types_mixer[ct] == MIXERSETTINGS_MIXER1TYPE_MOTOR) {
 				if (!armed) {
 					motor_vect[ct] = -1;  //force min throttle
 				} else if (!stabilize_now) {
@@ -644,7 +654,7 @@ static float scale_channel(float value, int idx)
 
 static float channel_failsafe_value(int idx)
 {
-	switch (get_mixer_type(idx)) {
+	switch (types_mixer[idx]) {
 	case MIXERSETTINGS_MIXER1TYPE_MOTOR:
 		return actuatorSettings.ChannelMin[idx];
 	case MIXERSETTINGS_MIXER1TYPE_SERVO:
@@ -663,16 +673,16 @@ static float channel_failsafe_value(int idx)
  */
 static void set_failsafe()
 {
-	float Channel[MAX_MIX_ACTUATORS];
-
-	ActuatorCommandChannelGet(Channel);
+	float Channel[ACTUATORCOMMAND_CHANNEL_NUMELEM] = {0};
 
 	// Set alarm
 	AlarmsSet(SYSTEMALARMS_ALARM_ACTUATOR, SYSTEMALARMS_ALARM_CRITICAL);
 
 	// Update servo outputs
-	for (int n = 0; n < ACTUATORCOMMAND_CHANNEL_NUMELEM; ++n) {
+	for (int n = 0; n < MAX_MIX_ACTUATORS; ++n) {
 		float fs_val = channel_failsafe_value(n);
+
+		Channel[n] = fs_val;
 
 		PIOS_Servo_Set(n, fs_val);
 	}
@@ -692,45 +702,6 @@ static void actuator_set_servo_mode(void)
 			ACTUATORSETTINGS_TIMERUPDATEFREQ_NUMELEM,
 			actuatorSettings.ChannelMax,
 			actuatorSettings.ChannelMin);
-}
-
-static MixerSettingsMixer1TypeOptions get_mixer_type(int idx)
-{
-	switch (idx) {
-	case 0:
-		return mixerSettings.Mixer1Type;
-		break;
-	case 1:
-		return mixerSettings.Mixer2Type;
-		break;
-	case 2:
-		return mixerSettings.Mixer3Type;
-		break;
-	case 3:
-		return mixerSettings.Mixer4Type;
-		break;
-	case 4:
-		return mixerSettings.Mixer5Type;
-		break;
-	case 5:
-		return mixerSettings.Mixer6Type;
-		break;
-	case 6:
-		return mixerSettings.Mixer7Type;
-		break;
-	case 7:
-		return mixerSettings.Mixer8Type;
-		break;
-	case 8:
-		return mixerSettings.Mixer9Type;
-		break;
-	case 9:
-		return mixerSettings.Mixer10Type;
-		break;
-	default:
-		// We can never get here unless there are mixer channels not handled in the above. Fail out.
-		PIOS_Assert(0);
-	}
 }
 
 /**
