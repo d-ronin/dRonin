@@ -84,8 +84,8 @@ static struct pios_thread *taskHandle;
 
 // used to inform the actuator thread that actuator / mixer settings are updated
 // set true to ensure they're fetched on first run
-static volatile bool flightStatusUpdated = true;
-static volatile bool manualControlCommandUpdated = true;
+static volatile bool flight_status_updated = true;
+static volatile bool manual_control_cmd_updated = true;
 static volatile bool actuator_settings_updated = true;
 static volatile bool mixer_settings_updated = true;
 
@@ -452,23 +452,22 @@ static void normalize_input_data(uint32_t this_systime,
 		float (*desired_vect)[MIXERSETTINGS_MIXER1VECTOR_NUMELEM],
 		bool *armed, bool *spin_while_armed, bool *stabilize_now)
 {
+	static float manual_throt = -1;
+	float throttle_val = -1;
 	ActuatorDesiredData desired;
 
 	ActuatorDesiredGet(&desired);
 
-	if (flightStatusUpdated) {
+	if (flight_status_updated) {
 		FlightStatusGet(&flightStatus);
-		flightStatusUpdated = false;
+		flight_status_updated = false;
 	}
 
-	static float manual_throt = -1;
-
-	float throttle_val = -1;
-	if (manualControlCommandUpdated) {
+	if (manual_control_cmd_updated) {
 		// just pull out the throttle_val... and accessory0-2 and
 		// fill direct into the vect
 		ManualControlCommandThrottleGet(&throttle_val);
-		manualControlCommandUpdated = false;
+		manual_control_cmd_updated = false;
 		ManualControlCommandAccessoryGet(
 			&(*desired_vect)[MIXERSETTINGS_MIXER1VECTOR_ACCESSORY0]);
 	}
@@ -536,8 +535,8 @@ static void actuator_task(void* parameters)
 	float dT = 0.0f;
 
 	// Connect update callbacks
-	FlightStatusConnectCallbackCtx(UAVObjCbSetFlag, &flightStatusUpdated);
-	ManualControlCommandConnectCallbackCtx(UAVObjCbSetFlag, &manualControlCommandUpdated);
+	FlightStatusConnectCallbackCtx(UAVObjCbSetFlag, &flight_status_updated);
+	ManualControlCommandConnectCallbackCtx(UAVObjCbSetFlag, &manual_control_cmd_updated);
 
 	// Main task loop
 	uint32_t last_systime = PIOS_Thread_Systime();
