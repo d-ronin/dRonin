@@ -72,6 +72,7 @@
 
 DONT_BUILD_IF(ACTUATORSETTINGS_TIMERUPDATEFREQ_NUMELEM > PIOS_SERVO_MAX_BANKS, TooManyServoBanks);
 DONT_BUILD_IF(MAX_MIX_ACTUATORS > ACTUATORCOMMAND_CHANNEL_NUMELEM, TooManyMixers);
+DONT_BUILD_IF((MIXERSETTINGS_MIXER1VECTOR_NUMELEM - MIXERSETTINGS_MIXER1VECTOR_ACCESSORY0) < MANUALCONTROLCOMMAND_ACCESSORY_NUMELEM, AccessoryMismatch);
 
 #define MIXER_SCALE 128
 
@@ -80,7 +81,6 @@ DONT_BUILD_IF(MAX_MIX_ACTUATORS > ACTUATORCOMMAND_CHANNEL_NUMELEM, TooManyMixers
 // Private variables
 static struct pios_queue *queue;
 static struct pios_thread *taskHandle;
-
 
 // used to inform the actuator thread that actuator / mixer settings are updated
 // set true to ensure they're fetched on first run
@@ -94,6 +94,12 @@ static MixerSettingsMixer1TypeOptions types_mixer[MAX_MIX_ACTUATORS];
 
 static ActuatorSettingsData actuatorSettings;
 static FlightStatusData flightStatus;
+static SystemSettingsAirframeTypeOptions airframe_type;
+
+static float curve1[MIXERSETTINGS_THROTTLECURVE1_NUMELEM];
+static float curve2[MIXERSETTINGS_THROTTLECURVE2_NUMELEM];
+
+static MixerSettingsCurve2SourceOptions curve2_src;
 
 // Private functions
 static void actuator_task(void* parameters);
@@ -282,7 +288,6 @@ static void compute_mixer()
 
 static void fill_desired_vector(
 		ActuatorDesiredData *desired,
-		ManualControlCommandData *cmd,
 		float val1, float val2,
 		float (*cmd_vector)[MIXERSETTINGS_MIXER1VECTOR_NUMELEM])
 {
@@ -291,9 +296,7 @@ static void fill_desired_vector(
 	(*cmd_vector)[MIXERSETTINGS_MIXER1VECTOR_ROLL] = desired->Roll;
 	(*cmd_vector)[MIXERSETTINGS_MIXER1VECTOR_PITCH] = desired->Pitch;
 	(*cmd_vector)[MIXERSETTINGS_MIXER1VECTOR_YAW] = desired->Yaw;
-	(*cmd_vector)[MIXERSETTINGS_MIXER1VECTOR_ACCESSORY0] = cmd->Accessory[0];
-	(*cmd_vector)[MIXERSETTINGS_MIXER1VECTOR_ACCESSORY1] = cmd->Accessory[1];
-	(*cmd_vector)[MIXERSETTINGS_MIXER1VECTOR_ACCESSORY2] = cmd->Accessory[2];
+	/* Accessory0..Accessory2 are filled in when ManualControl changes */
 }
 
 static void post_process_scale_and_commit(float *motor_vect, float dT,
@@ -445,6 +448,76 @@ static void post_process_scale_and_commit(float *motor_vect, float dT,
 	PIOS_Servo_Update();
 }
 
+static void normalize_input_data(uint32_t this_systime,
+		float (*desired_vect)[MIXERSETTINGS_MIXER1VECTOR_NUMELEM],
+		bool *armed, bool *spin_while_armed, bool *stabilize_now)
+{
+	ActuatorDesiredData desired;
+
+	ActuatorDesiredGet(&desired);
+
+	if (flightStatusUpdated) {
+		FlightStatusGet(&flightStatus);
+		flightStatusUpdated = false;
+	}
+
+	static float manual_throt = -1;
+
+	float throttle_val = -1;
+	if (manualControlCommandUpdated) {
+		// just pull out the throttle_val... and accessory0-2 and
+		// fill direct into the vect
+		ManualControlCommandThrottleGet(&throttle_val);
+		manualControlCommandUpdated = false;
+		ManualControlCommandAccessoryGet(
+			&(*desired_vect)[MIXERSETTINGS_MIXER1VECTOR_ACCESSORY0]);
+	}
+
+	if (airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) {
+		// Helis set throttle from manual control's throttle value,
+		// unless in failsafe.
+		if (flightStatus.FlightMode != FLIGHTSTATUS_FLIGHTMODE_FAILSAFE) {
+			throttle_val = manual_throt;
+		}
+	} else {
+		throttle_val = desired.Thrust;
+	}
+
+	static uint32_t last_pos_throttle_time = 0;
+
+	*armed = flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED;
+	*spin_while_armed = actuatorSettings.MotorsSpinWhileArmed == ACTUATORSETTINGS_MOTORSSPINWHILEARMED_TRUE;
+
+	*stabilize_now = *armed && (throttle_val > 0.0f);
+
+	if (*stabilize_now) {
+		if (actuatorSettings.LowPowerStabilizationMaxTime) {
+			last_pos_throttle_time = this_systime;
+		}
+
+		// Could consider stabilizing on a positive arming edge,
+		// but this seems problematic.
+	} else if (last_pos_throttle_time) {
+		if ((this_systime - last_pos_throttle_time) <
+				1000.0f * actuatorSettings.LowPowerStabilizationMaxTime) {
+			*stabilize_now = true;
+			throttle_val = 0.0f;
+		} else {
+			last_pos_throttle_time = 0;
+		}
+	}
+
+	float val1 = throt_curve(throttle_val, curve1,
+			MIXERSETTINGS_THROTTLECURVE1_NUMELEM);
+
+	//The source for the secondary curve is selectable
+	float val2 = collective_curve(
+			get_curve2_source(&desired, airframe_type, curve2_src),
+			curve2, MIXERSETTINGS_THROTTLECURVE2_NUMELEM);
+
+	fill_desired_vector(&desired, val1, val2, desired_vect);
+}
+
 /**
  * @brief Main Actuator module task
  *
@@ -462,11 +535,6 @@ static void actuator_task(void* parameters)
 {
 	float dT = 0.0f;
 
-	ActuatorDesiredData desired;
-	ManualControlCommandData manual_cmd;
-
-	SystemSettingsAirframeTypeOptions airframe_type;
-
 	// Connect update callbacks
 	FlightStatusConnectCallbackCtx(UAVObjCbSetFlag, &flightStatusUpdated);
 	ManualControlCommandConnectCallbackCtx(UAVObjCbSetFlag, &manualControlCommandUpdated);
@@ -476,10 +544,8 @@ static void actuator_task(void* parameters)
 
 	bool rc = false;
 
-	float curve1[MIXERSETTINGS_THROTTLECURVE1_NUMELEM];
-	float curve2[MIXERSETTINGS_THROTTLECURVE1_NUMELEM];
-
-	MixerSettingsCurve2SourceOptions curve2_src;
+	/* This is out here because not everything may change each time */
+	float desired_vect[MIXERSETTINGS_MIXER1VECTOR_NUMELEM] = { 0 };
 
 	while (1) {
 		if (actuator_settings_updated) {
@@ -501,7 +567,7 @@ static void actuator_task(void* parameters)
 
 		if (rc != true) {
 			/* Update of ActuatorDesired timed out,
-			 * or first iteration.  Go to failsafe */
+			 * or first iteration.  Go to failsafe, set alarm */
 			set_failsafe();
 		}
 
@@ -524,66 +590,12 @@ static void actuator_task(void* parameters)
 			dT = (this_systime - last_systime) / 1000.0f;
 		last_systime = this_systime;
 
-		ActuatorDesiredGet(&desired);
-
-		if (flightStatusUpdated) {
-			FlightStatusGet(&flightStatus);
-			flightStatusUpdated = false;
-		}
-
-		if (manualControlCommandUpdated) {
-			ManualControlCommandGet(&manual_cmd);
-			manualControlCommandUpdated = false;
-		}
-
-		float throttle_val = -1;
-		if (airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) {
-			// Helis set throttle from manual control's throttle value,
-			// unless in failsafe.
-			if (flightStatus.FlightMode != FLIGHTSTATUS_FLIGHTMODE_FAILSAFE) {
-				throttle_val = manual_cmd.Throttle;
-			}
-		} else {
-			throttle_val = desired.Thrust;
-		}
-
-		static uint32_t last_pos_throttle_time = 0;
-
-		bool armed = flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED;
-		bool spin_while_armed = actuatorSettings.MotorsSpinWhileArmed == ACTUATORSETTINGS_MOTORSSPINWHILEARMED_TRUE;
-
-		bool stabilize_now = armed && (throttle_val > 0.0f);
-
-		if (stabilize_now) {
-			if (actuatorSettings.LowPowerStabilizationMaxTime) {
-				last_pos_throttle_time = this_systime;
-			}
-
-			// Could consider stabilizing on a positive arming edge,
-			// but this seems problematic.
-		} else if (last_pos_throttle_time) {
-			if ((this_systime - last_pos_throttle_time) <
-					1000.0f * actuatorSettings.LowPowerStabilizationMaxTime) {
-				stabilize_now = true;
-				throttle_val = 0.0f;
-			} else {
-				last_pos_throttle_time = 0;
-			}
-		}
-
-		float val1 = throt_curve(throttle_val, curve1,
-				MIXERSETTINGS_THROTTLECURVE1_NUMELEM);
-
-		//The source for the secondary curve is selectable
-		float val2 = collective_curve(
-				get_curve2_source(&desired, airframe_type, curve2_src),
-				curve2, MIXERSETTINGS_THROTTLECURVE2_NUMELEM);
-
-		float desired_vect[MIXERSETTINGS_MIXER1VECTOR_NUMELEM];
 		float motor_vect[MAX_MIX_ACTUATORS];
 
-		fill_desired_vector(&desired, &manual_cmd, val1, val2,
-				&desired_vect);
+		bool armed, spin_while_armed, stabilize_now;
+
+		normalize_input_data(this_systime, &desired_vect, &armed,
+				&spin_while_armed, &stabilize_now);
 
 		matrix_mul_check(motor_mixer, desired_vect, motor_vect,
 				MAX_MIX_ACTUATORS,
@@ -691,7 +703,7 @@ static void set_failsafe()
 
 		PIOS_Servo_Set(n, fs_val);
 	}
-	
+
 	PIOS_Servo_Update();
 
 	// Update output object's parts that we changed
