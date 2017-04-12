@@ -6,6 +6,7 @@
  * @{
  *
  * @file       math_misc.h
+ * @author     dRonin, http://dRonin.org, Copyright (C) 2017
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
  * @brief      Miscellaneous math support
  *
@@ -158,17 +159,23 @@ static inline void matrix_mul(const float *a, const float *b,
 	}
 }
 
+/* Unlike matrix_mul, matrix_mul_scalar, matrix_add, and matrix_sub
+ * are safe for in-place use.  The const in the parameters makes no promise
+ * that they will not change by aliasing if out=a etc.
+ *
+ * Note that this makes them inefficient, because the compiler doesn't know to
+ * unroll / scatter loads/stores.
+ */
 static inline void matrix_mul_scalar(const float *a, float scalar, float *out,
 		int rows, int cols)
 {
 	int size = rows * cols;
 
-	const float * restrict apos = a;
-	float * restrict opos = out;
+	const float * apos = a;
 
 	for (int i = 0; i < size; i++) {
-		*opos = (*apos) * scalar;
-		apos++; opos++;
+		*out = (*apos) * scalar;
+		apos++; out++;
 	}
 }
 
@@ -177,12 +184,12 @@ static inline void matrix_add(const float *a, const float *b,
 {
 	int size = rows * cols;
 
-	const float * restrict apos = a;
-	const float * restrict bpos = b;
-	float * restrict opos = out;
+	const float * apos = a;
+	const float * bpos = b;
+	float * opos = out;
 
 	for (int i = 0; i < size; i++) {
-		*opos = *apos + *bpos;
+		*opos = (*apos) + (*bpos);
 		apos++; bpos++; opos++;
 	}
 }
@@ -192,23 +199,23 @@ static inline void matrix_sub(const float *a, const float *b,
 {
 	int size = rows * cols;
 
-	const float * restrict apos = a;
-	const float * restrict bpos = b;
-	float * restrict opos = out;
+	const float * apos = a;
+	const float * bpos = b;
+	float * opos = out;
 
 	for (int i = 0; i < size; i++) {
-		*opos = *a - *b;
+		*opos = (*apos) - (*bpos);
 		apos++; bpos++; opos++;
 	}
 }
 
 /* Output is cols x rows */
-static inline void matrix_transpose(const float *a, float *out, int rows,
-		int cols)
+static inline void matrix_transpose(const float *a, float *out, int arows,
+		int acols)
 {
-	for (int i = 0; i < rows; i++) {
-		for (int j = 0; j < cols; j++) {
-			out[j * rows + i] = a[i * cols + j];
+	for (int i = 0; i < arows; i++) {
+		for (int j = 0; j < acols; j++) {
+			out[j * arows + i] = a[i * acols + j];
 		}
 	}
 }
