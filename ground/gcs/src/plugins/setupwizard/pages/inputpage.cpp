@@ -48,13 +48,13 @@ InputPage::InputPage(SetupWizard *wizard, QWidget *parent)
             board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_PWM));
         ui->ppmButton->setEnabled(
             board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_PPM));
-        ui->hottsumdButton->setEnabled(
+        ui->hottSumDButton->setEnabled(
             board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_HOTTSUMD));
-        ui->hottsumhButton->setEnabled(
+        ui->hottSumHButton->setEnabled(
             board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_HOTTSUMH));
         ui->sbusButton->setEnabled(
             board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_SBUS));
-        ui->sbusnoninvertedButton->setEnabled(
+        ui->sbusNonInvertedButton->setEnabled(
             board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_SBUSNONINVERTED));
         ui->spectrumButton->setEnabled(
             board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_DSM));
@@ -87,13 +87,13 @@ bool InputPage::validatePage()
         getWizard()->setInputType(Core::IBoardType::INPUT_TYPE_PPM);
     } else if (ui->sbusButton->isChecked()) {
         getWizard()->setInputType(Core::IBoardType::INPUT_TYPE_SBUS);
-    } else if (ui->sbusnoninvertedButton->isChecked()) {
+    } else if (ui->sbusNonInvertedButton->isChecked()) {
         getWizard()->setInputType(Core::IBoardType::INPUT_TYPE_SBUSNONINVERTED);
     } else if (ui->spectrumButton->isChecked()) {
         getWizard()->setInputType(Core::IBoardType::INPUT_TYPE_DSM);
-    } else if (ui->hottsumdButton->isChecked()) {
+    } else if (ui->hottSumDButton->isChecked()) {
         getWizard()->setInputType(Core::IBoardType::INPUT_TYPE_HOTTSUMD);
-    } else if (ui->hottsumhButton->isChecked()) {
+    } else if (ui->hottSumHButton->isChecked()) {
         getWizard()->setInputType(Core::IBoardType::INPUT_TYPE_HOTTSUMH);
     } else if (ui->ibusButton->isChecked()) {
         getWizard()->setInputType(Core::IBoardType::INPUT_TYPE_IBUS);
