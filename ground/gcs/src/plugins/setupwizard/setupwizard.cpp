@@ -268,6 +268,9 @@ QString SetupWizard::getSummaryText()
     case Core::IBoardType::INPUT_TYPE_SRXL:
         summary.append(tr("Multiplex SRXL"));
         break;
+    case Core::IBoardType::INPUT_TYPE_TBSCROSSFIRE:
+        summary.append(tr("Team BlackSheep Crossfire"));
+        break;
     default:
         summary.append(tr("Unknown"));
     }

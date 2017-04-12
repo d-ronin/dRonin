@@ -186,7 +186,7 @@ p, li { white-space: pre-wrap; }
       </widget>
      </item>
      <item>
-      <widget class="QToolButton" name="sbusnoninvertedButton">
+      <widget class="QToolButton" name="sbusNonInvertedButton">
        <property name="font">
         <font>
          <pointsize>10</pointsize>
@@ -280,7 +280,7 @@ p, li { white-space: pre-wrap; }
       <number>0</number>
      </property>
      <item>
-      <widget class="QToolButton" name="hottsumdButton">
+      <widget class="QToolButton" name="hottSumDButton">
        <property name="font">
         <font>
          <pointsize>10</pointsize>
@@ -322,7 +322,7 @@ p, li { white-space: pre-wrap; }
       </widget>
      </item>
      <item>
-      <widget class="QToolButton" name="hottsumhButton">
+      <widget class="QToolButton" name="hottSumHButton">
        <property name="font">
         <font>
          <pointsize>10</pointsize>
@@ -426,6 +426,48 @@ p, li { white-space: pre-wrap; }
          <normaloff>:/setupwizard/resources/bttn-ibus-up.png</normaloff>
          <normalon>:/setupwizard/resources/bttn-ibus-down.png</normalon>
          <disabledoff>:/setupwizard/resources/bttn-ibus-disabled.png</disabledoff>:/setupwizard/resources/bttn-ibus-up.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>100</width>
+         <height>100</height>
+        </size>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="autoExclusive">
+        <bool>true</bool>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonTextUnderIcon</enum>
+       </property>
+       <property name="autoRaise">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="tbsCrossfireButton">
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
+       <property name="toolTip">
+        <string>Team BlackSheep Crossfire</string>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QToolButton { border: none }</string>
+       </property>
+       <property name="text">
+        <string>Crossfire</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../wizardResources.qrc">
+         <normaloff>:/setupwizard/resources/bttn-tbscrossfire-up.png</normaloff>
+         <normalon>:/setupwizard/resources/bttn-tbscrossfire-down.png</normalon>
+         <disabledoff>:/setupwizard/resources/bttn-tbscrossfire-disabled.png</disabledoff>:/setupwizard/resources/bttn-tbscrossfire-up.png</iconset>
        </property>
        <property name="iconSize">
         <size>

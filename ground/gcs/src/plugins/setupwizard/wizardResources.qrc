@@ -32,6 +32,8 @@
         <file>resources/bttn-ibus-up.png</file>
         <file>resources/bttn-srxl-down.png</file>
         <file>resources/bttn-srxl-up.png</file>
+        <file>resources/bttn-tbscrossfire-down.png</file>
+        <file>resources/bttn-tbscrossfire-up.png</file>
         <file>resources/bttn-txwizard-off.png</file>
         <file>resources/bttn-txwizard-on.png</file>
         <file>resources/bttn-calculate-down.png</file>
@@ -58,6 +60,7 @@
         <file>resources/bttn-sumh-disabled.png</file>
         <file>resources/bttn-ibus-disabled.png</file>
         <file>resources/bttn-srxl-disabled.png</file>
+        <file>resources/bttn-tbscrossfire-disabled.png</file>
         <file>resources/bttn-dshot300-down.png</file>
         <file>resources/bttn-dshot300-up.png</file>
         <file>resources/bttn-dshot600-down.png</file>
