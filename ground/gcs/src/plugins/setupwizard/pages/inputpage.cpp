@@ -65,7 +65,6 @@ InputPage::InputPage(SetupWizard *wizard, QWidget *parent)
         ui->tbsCrossfireButton->setEnabled(
             board->isInputConfigurationSupported(Core::IBoardType::INPUT_TYPE_TBSCROSSFIRE));
     }
-    }
     // the default might have been disabled, choose one that's available
     foreach (QToolButton *button, findChildren<QToolButton *>()) {
         if (button->isEnabled()) {
