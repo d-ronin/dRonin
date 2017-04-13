@@ -32,6 +32,7 @@
 #define MISC_MATH_H
 
 #include <math.h>
+
 #include "stdint.h"
 #include "stdbool.h"
 
@@ -218,6 +219,149 @@ static inline void matrix_transpose(const float *a, float *out, int arows,
 			out[j * arows + i] = a[i * acols + j];
 		}
 	}
+}
+
+#define TOL_EPS 0.0001f
+static inline bool matrix_pseudoinv_convergecheck(const float *a,
+		const float *b, const float *prod, int rows, int cols)
+{
+	const float *pos = prod;
+	bool ret = true;
+
+	/* Product (desired pseudo identity matrix) is cols*cols */
+	for (int i = 0; i < cols; i++) {
+		float sum = 0.0f;
+
+		for (int j = 0; j < cols; j++) {
+			sum += *pos;
+
+			pos++;
+		}
+
+		/* It needs to be near 1 or 0 for us to be converged.
+		 * First, return false if outside 0..1
+		 */
+		if (sum > (1 + TOL_EPS)) {
+			ret = false;
+			break;
+		}
+
+		if (sum < (0 - TOL_EPS)) {
+			ret = false;
+			break;
+		}
+
+		/* Next, continue if very close to 1 or 0 */
+		if (sum > (1 - TOL_EPS)) {
+			continue;
+		}
+
+		if (sum < (0 + TOL_EPS)) {
+			continue;
+		}
+
+		/* We're between 0 and 1, outside of the tolerance */
+		ret = false;
+		break;
+	}
+
+	if (ret) {
+		return true;
+	}
+
+	/* Sometimes the pseudoidentity matrix doesn't meet this constraint; fall
+	 * back to verifying elements.
+	 * (Which in itself is numerically problematic)
+	 */
+
+	int elems = rows * cols;
+
+	for (int i = 0 ; i < elems; i++) {
+		float diff = (a[i] - b[i]);
+
+		/* This strange structure chosen because NaNs will return false
+		 * to both of these...
+		 */
+		if (diff < TOL_EPS) {
+			if (diff > -TOL_EPS) {
+				continue;
+			}
+		}
+
+		return false;
+	}
+
+	return true;
+}
+
+static inline bool matrix_pseudoinv_step(const float *a, float *ainv,
+		int arows, int acols)
+{
+	float prod[acols * acols];
+	float invcheck[acols * arows];
+
+	/* Calculate 2 * ainv - ainv * a * ainv */
+
+	/* prod = ainv * a */
+	matrix_mul(ainv, a, prod, acols, arows, acols);
+
+	/* invcheck = prod * ainv */
+	matrix_mul(prod, ainv, invcheck, acols, acols, arows);
+
+	if (matrix_pseudoinv_convergecheck(ainv, invcheck, prod, arows, acols)) {
+		return true;
+	}
+
+	/* ainv_ = 2 * ainv */
+	matrix_mul_scalar(ainv, 2, ainv, acols, arows);
+
+	/* ainv__ = ainv_ - invcheck */
+	/* AKA expanded ainv__ = 2 * ainv - ainv * a * ainv */
+	matrix_sub(ainv, invcheck, ainv, acols, arows);
+
+	return false;
+}
+
+static inline float matrix_getmaxabs(const float *a, int arows, int acols)
+{
+	float mx = 0.0f;
+
+	const int size = arows * acols;
+
+	for (int i = 0; i < size; i ++) {
+		float val = fabsf(a[i]);
+
+		if (val > mx) {
+			mx = val;
+		}
+	}
+
+	return mx;
+}
+
+#ifndef PSEUDOINV_CONVERGE_LIMIT
+#define PSEUDOINV_CONVERGE_LIMIT 75
+#endif
+
+static inline bool matrix_pseudoinv(const float *a, float *out,
+		int arows, int acols)
+{
+	matrix_transpose(a, out, arows, acols);
+
+	float scale = matrix_getmaxabs(a, arows, acols);
+
+	matrix_mul_scalar(out, 0.01f / scale, out, acols, arows);
+
+	for (int i = 0; i < PSEUDOINV_CONVERGE_LIMIT; i++) {
+		if (matrix_pseudoinv_step(a, out, arows, acols)) {
+			/* Do one more step when we look pretty good! */
+			matrix_pseudoinv_step(a, out, arows, acols);
+
+			return true;
+		}
+	}
+
+	return false;
 }
 
 #define matrix_mul_check(a, b, out, arows, acolsbrows, bcols) \
