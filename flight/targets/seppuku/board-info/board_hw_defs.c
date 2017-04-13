@@ -727,7 +727,7 @@ void PIOS_RTC_IRQ_Handler (void)
 /* Timers used for outputs (8, 14, 3, 5) */
 
 // Set up timers that only have inputs on APB1 - 3, 5, 14
-static const TIM_TimeBaseInitTypeDef tim_3_5_14_time_base = {
+static const TIM_TimeBaseInitTypeDef tim_3_4_5_14_time_base = {
 	.TIM_Prescaler = (PIOS_PERIPHERAL_APB1_COUNTER_CLOCK / 1000000) - 1,
 	.TIM_ClockDivision = TIM_CKD_DIV1,
 	.TIM_CounterMode = TIM_CounterMode_Up,
@@ -746,7 +746,7 @@ static const TIM_TimeBaseInitTypeDef tim_8_time_base = {
 
 static const struct pios_tim_clock_cfg tim_3_cfg = {
 	.timer = TIM3,
-	.time_base_init = &tim_3_5_14_time_base,
+	.time_base_init = &tim_3_4_5_14_time_base,
 	.irq = {
 		.init = {
 			.NVIC_IRQChannel                   = TIM3_IRQn,
@@ -757,9 +757,22 @@ static const struct pios_tim_clock_cfg tim_3_cfg = {
 	},
 };
 
+static const struct pios_tim_clock_cfg tim_4_cfg = {
+	.timer = TIM4,
+	.time_base_init = &tim_3_4_5_14_time_base,
+	.irq = {
+		.init = {
+			.NVIC_IRQChannel                   = TIM4_IRQn,
+			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
+			.NVIC_IRQChannelSubPriority        = 0,
+			.NVIC_IRQChannelCmd                = ENABLE,
+		},
+	},
+};
+
 static const struct pios_tim_clock_cfg tim_5_cfg = {
 	.timer = TIM5,
-	.time_base_init = &tim_3_5_14_time_base,
+	.time_base_init = &tim_3_4_5_14_time_base,
 	.irq = {
 		.init = {
 			.NVIC_IRQChannel                   = TIM5_IRQn,
@@ -772,7 +785,7 @@ static const struct pios_tim_clock_cfg tim_5_cfg = {
 
 static const struct pios_tim_clock_cfg tim_14_cfg = {
 	.timer = TIM14,
-	.time_base_init = &tim_3_5_14_time_base,
+	.time_base_init = &tim_3_4_5_14_time_base,
 	.irq = {
 		.init = {
 			.NVIC_IRQChannel                   = TIM8_TRG_COM_TIM14_IRQn,
@@ -947,6 +960,56 @@ static const struct pios_tim_channel pios_tim_servoport_all_pins[] = {
 };
 
 #if defined(PIOS_INCLUDE_SERVO) && defined(PIOS_INCLUDE_TIM)
+
+#if defined(PIOS_INCLUDE_DMASHOT)
+
+#include <pios_dmashot.h>
+
+/*
+TIM8 C4, C3
+TIM14 C1
+TIM3 C1, C3, C4
+TIM5 C1, C2
+*/
+
+static const struct pios_dmashot_timer_cfg dmashot_tim_cfg[] = {
+	{
+		.timer = TIM8,
+		.stream = DMA2_Stream1,
+		.channel = DMA_Channel_7,
+		.tcif = DMA_FLAG_TCIF1,
+	},
+	{
+		.timer = TIM14,
+		.master_timer = TIM4,
+		.master_config = DMASHOT_EVENTSOURCE_UP | DMASHOT_REG_CCR1,
+
+		.stream = DMA1_Stream6,
+		.channel = DMA_Channel_2,
+		.tcif = DMA_FLAG_TCIF6,
+	},
+	{
+		.timer = TIM3,
+		.stream = DMA1_Stream2,
+		.channel = DMA_Channel_5,
+		.tcif = DMA_FLAG_TCIF2,
+	},
+	{
+		.timer = TIM5,
+		.stream = DMA1_Stream0,
+		.channel = DMA_Channel_6,
+		.tcif = DMA_FLAG_TCIF0,
+	}
+};
+
+static const struct pios_dmashot_cfg dmashot_config = {
+	.timer_cfg = &dmashot_tim_cfg[0],
+	.num_timers = NELEMENTS(dmashot_tim_cfg)
+};
+
+#endif /* defined(PIOS_INCLUDE_DMASHOT) */
+
+
 /*
  * Servo outputs
  */

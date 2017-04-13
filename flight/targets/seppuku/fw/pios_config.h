@@ -90,6 +90,9 @@
 
 #define CAMERASTAB_POI_MODE
 
+/* DMA DShot */
+#define PIOS_INCLUDE_DMASHOT
+
 /* Alarm Thresholds */
 
 /*

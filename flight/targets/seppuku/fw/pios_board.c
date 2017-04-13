@@ -222,6 +222,7 @@ void PIOS_Board_Init(void) {
 	PIOS_TIM_InitClock(&tim_8_cfg);
 	PIOS_TIM_InitClock(&tim_14_cfg);
 	PIOS_TIM_InitClock(&tim_3_cfg);
+	PIOS_TIM_InitClock(&tim_4_cfg);
 	PIOS_TIM_InitClock(&tim_5_cfg);
 
 	/* IAP System Setup */
@@ -394,6 +395,10 @@ void PIOS_Board_Init(void) {
 #endif
 			break;
 	}
+
+#if defined(PIOS_INCLUDE_DMASHOT)
+	PIOS_DMAShot_Init(&dmashot_config);
+#endif
 
 #if defined(PIOS_INCLUDE_GCSRCVR)
 	GCSReceiverInitialize();
