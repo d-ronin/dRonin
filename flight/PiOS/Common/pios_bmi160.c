@@ -546,7 +546,11 @@ static void PIOS_BMI160_Task(void *parameters)
 		float gyro_y = (int16_t)(bmi160_rec_buf[IDX_GYRO_YOUT_H] << 8 | bmi160_rec_buf[IDX_GYRO_YOUT_L]);
 		float gyro_z = (int16_t)(bmi160_rec_buf[IDX_GYRO_ZOUT_H] << 8 | bmi160_rec_buf[IDX_GYRO_ZOUT_L]);
 
-		// Convert from sensor frame (x: forward y: left z: up) to TL convention (x: forward y: right z: down)
+		/* 
+		 * Convert from sensor frame (x: forward y: left z: up) to
+		 * TL convention (x: forward y: right z: down).
+		 * See flight/Doc/imu_orientation.md for more detail
+		 */
 		switch (dev->cfg->orientation) {
 		case PIOS_BMI160_TOP_0DEG:
 			accel_data.x = accel_x;
@@ -585,31 +589,31 @@ static void PIOS_BMI160_Task(void *parameters)
 			accel_data.y = accel_y;
 			accel_data.z = accel_z;
 			gyro_data.x  = gyro_x;
-			gyro_data.y  = gyro_x;
-			gyro_data.z  = gyro_z;
-			break;
-		case PIOS_BMI160_BOTTOM_90DEG:
-			accel_data.x = accel_y;
-			accel_data.y = -accel_x;
-			accel_data.z = accel_z;
-			gyro_data.x  = gyro_y;
-			gyro_data.y  = -gyro_x;
-			gyro_data.z  = gyro_z;
-			break;
-		case PIOS_BMI160_BOTTOM_180DEG:
-			accel_data.x = -accel_x;
-			accel_data.y = accel_y;
-			accel_data.z = accel_z;
-			gyro_data.x  = -gyro_x;
 			gyro_data.y  = gyro_y;
 			gyro_data.z  = gyro_z;
 			break;
-		case PIOS_BMI160_BOTTOM_270DEG:
+		case PIOS_BMI160_BOTTOM_90DEG:
 			accel_data.x = -accel_y;
 			accel_data.y = accel_x;
 			accel_data.z = accel_z;
 			gyro_data.x  = -gyro_y;
 			gyro_data.y  = gyro_x;
+			gyro_data.z  = gyro_z;
+			break;
+		case PIOS_BMI160_BOTTOM_180DEG:
+			accel_data.x = -accel_x;
+			accel_data.y = -accel_y;
+			accel_data.z = accel_z;
+			gyro_data.x  = -gyro_x;
+			gyro_data.y  = -gyro_y;
+			gyro_data.z  = gyro_z;
+			break;
+		case PIOS_BMI160_BOTTOM_270DEG:
+			accel_data.x = accel_y;
+			accel_data.y = -accel_x;
+			accel_data.z = accel_z;
+			gyro_data.x  = gyro_y;
+			gyro_data.y  = -gyro_x;
 			gyro_data.z  = gyro_z;
 			break;
 		}
