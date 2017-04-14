@@ -17,26 +17,14 @@ All known Invensense IMUs share the same gyro/accelerometer convention: X right,
 | PIOS_MPU_BOTTOM_270DEG | -X     | -Y     | Z      | -Y    | -X    | -Z    |
 
 In the following diagrams, the large axes are dRonin vehicle axes, and the small axes Invensense gyro/accelerometer axes. X is red, Y is green, and Z is blue.
-### PIOS_MPU_TOP_0DEG
-![Invensense top 0 degrees](images/mpu_top_0deg.png)
 
-### PIOS_MPU_TOP_90DEG
-![Invensense top 90 degrees](images/mpu_top_90deg.png)
-
-### PIOS_MPU_TOP_180DEG
-![Invensense top 180 degrees](images/mpu_top_180deg.png)
-
-### PIOS_MPU_TOP_270DEG
-![Invensense top 270 degrees](images/mpu_top_270deg.png)
-
-### PIOS_MPU_BOTTOM_0DEG
-![Invensense bottom 0 degrees](images/mpu_bottom_0deg.png)
-
-### PIOS_MPU_BOTTOM_90DEG
-![Invensense bottom 90 degrees](images/mpu_bottom_90deg.png)
-
-### PIOS_MPU_BOTTOM_180DEG
-![Invensense bottom 180 degrees](images/mpu_bottom_180deg.png)
-
-### PIOS_MPU_BOTTOM_270DEG
-![Invensense bottom 270 degrees](images/mpu_bottom_270deg.png)
+| Orientation            | Gyro/Accel | Magnetometer |
+|------------------------|------------|--------------|
+| PIOS_MPU_TOP_0DEG      | ![Invensense gyro top 0 degrees](images/mpu_top_0deg.png) | ![Invensense mag top 0 degrees](images/mpu_mag_top_0deg.png) |
+| PIOS_MPU_TOP_90DEG     | ![Invensense gyro top 90 degrees](images/mpu_top_90deg.png) | ![Invensense mag top 90 degrees](images/mpu_mag_top_90deg.png) |
+| PIOS_MPU_TOP_180DEG    | ![Invensense gyro top 180 degrees](images/mpu_top_180deg.png) | ![Invensense mag top 180 degrees](images/mpu_mag_top_180deg.png) |
+| PIOS_MPU_TOP_270DEG    | ![Invensense gyro top 270 degrees](images/mpu_top_270deg.png) | ![Invensense mag top 270 degrees](images/mpu_mag_top_270deg.png) |
+| PIOS_MPU_BOTTOM_0DEG   | ![Invensense gyro bottom 0 degrees](images/mpu_bottom_0deg.png) | ![Invensense mag bottom 0 degrees](images/mpu_mag_bottom_0deg.png) |
+| PIOS_MPU_BOTTOM_90DEG  | ![Invensense gyro bottom 90 degrees](images/mpu_bottom_90deg.png) | ![Invensense mag bottom 90 degrees](images/mpu_mag_bottom_90deg.png) |
+| PIOS_MPU_BOTTOM_180DEG | ![Invensense gyro bottom 180 degrees](images/mpu_bottom_180deg.png) | ![Invensense mag bottom 180 degrees](images/mpu_mag_bottom_180deg.png) |
+| PIOS_MPU_BOTTOM_270DEG | ![Invensense gyro bottom 270 degrees](images/mpu_bottom_270deg.png) | ![Invensense mag bottom 270 degrees](images/mpu_mag_bottom_270deg.png) |
