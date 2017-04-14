@@ -52,6 +52,15 @@ bool PIOS_Modules_IsEnabled(enum pios_modules module);
 #define PIOS_Modules_Enable(x) do { (void) (x); } while (0)
 #endif
 
+/* Couldn't really find a better place to put this declaration... */
+enum actuator_interlock {
+	ACTUATOR_INTERLOCK_OK,
+	ACTUATOR_INTERLOCK_STOPREQUEST,
+	ACTUATOR_INTERLOCK_STOPPED,
+};
+
+extern volatile enum actuator_interlock actuator_interlock;
+
 #endif // PIOS_MODULES_H_
 
 /**
