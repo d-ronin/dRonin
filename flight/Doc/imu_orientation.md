@@ -55,3 +55,17 @@ In the following diagrams, the large axes are dRonin vehicle axes, and the small
 | PIOS_BMI160_BOTTOM_90DEG  | ![BMI160 gyro bottom 90 degrees](images/bmi160_bottom_90deg.png)   |
 | PIOS_BMI160_BOTTOM_180DEG | ![BMI160 gyro bottom 180 degrees](images/bmi160_bottom_180deg.png) |
 | PIOS_BMI160_BOTTOM_270DEG | ![BMI160 gyro bottom 270 degrees](images/bmi160_bottom_270deg.png) |
+
+## ST LIS3MDL
+LIS3MDL magnetometer convention (with pin 1 at front-left corner): X left, Y rear, Z up.
+
+| Orientation            | Mag X  | Mag Y  | Mag Z  |
+|------------------------|--------|--------|--------|
+| PIOS_LIS_TOP_0DEG      | -Y     | -X     | -Z     |
+| PIOS_LIS_TOP_90DEG     | -Y     | X      | -Z     |
+| PIOS_LIS_TOP_180DEG    | X      | Y      | -Z     |
+| PIOS_LIS_TOP_270DEG    | Y      | -X     | -Z     |
+| PIOS_LIS_BOTTOM_0DEG   | -Y     | X      | Z      |
+| PIOS_LIS_BOTTOM_90DEG  | -X     | -Y     | Z      |
+| PIOS_LIS_BOTTOM_180DEG | Y      | -X     | Z      |
+| PIOS_LIS_BOTTOM_270DEG | X      | Y      | Z      |
