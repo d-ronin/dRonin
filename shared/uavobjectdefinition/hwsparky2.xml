@@ -111,9 +111,6 @@
 		<field name="MPU9250GyroLPF" units="Hz" type="enum" elements="1" options="184,92,41,20,10,5" defaultvalue="184">
 			<description>Gyro filter cutoff frequency</description>
 		</field>
-		<field name="MPU9250AccelLPF" units="Hz" type="enum" elements="1" options="460,184,92,41,20,10,5" defaultvalue="184">
-			<description>Accelerometer filter cutoff frequency</description>
-		</field>
 		<field name="VTX_Ch" units="Hz" type="enum" elements="1" defaultvalue="BoscamACh1 (5725)">
 			<description>Video transmitter frequency</description>
 			<options>

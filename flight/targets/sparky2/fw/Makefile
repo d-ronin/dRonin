@@ -115,7 +115,7 @@ include $(PIOS)/STM32F4xx/library_chibios.mk
 
 ## PIOS Hardware (Common)
 SRC += pios_delay.c
-SRC += pios_mpu9250_spi.c
+SRC += pios_mpu.c
 SRC += pios_etasv3.c
 SRC += pios_mpxv5004.c
 SRC += pios_mpxv7002.c
