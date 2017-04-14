@@ -1419,16 +1419,19 @@ int PIOS_HAL_ConfigureExternalMag(HwSharedMagOptions mag,
 		if (PIOS_HMC5883_Test())
 			goto mag_fail;
 
-		// XXX: Lame.  Move driver to HwShared constants.
+		/* XXX: Lame.  Move driver to HwShared constants.
+		 * Note: drivers rotate around vehicle Z-axis, this rotates around ??
+		 * This is dubious because both the sensor and vehicle Z-axis point down
+		 * in bottom orientation, whereas this is rotating around an upwards vector. */
 		enum pios_hmc5883_orientation hmc5883_orientation = 
 			(orientation == HWSHARED_MAGORIENTATION_TOP0DEGCW)      ? PIOS_HMC5883_TOP_0DEG      : 
 			(orientation == HWSHARED_MAGORIENTATION_TOP90DEGCW)     ? PIOS_HMC5883_TOP_90DEG     : 
 			(orientation == HWSHARED_MAGORIENTATION_TOP180DEGCW)    ? PIOS_HMC5883_TOP_180DEG    : 
 			(orientation == HWSHARED_MAGORIENTATION_TOP270DEGCW)    ? PIOS_HMC5883_TOP_270DEG    : 
 			(orientation == HWSHARED_MAGORIENTATION_BOTTOM0DEGCW)   ? PIOS_HMC5883_BOTTOM_0DEG   : 
-			(orientation == HWSHARED_MAGORIENTATION_BOTTOM90DEGCW)  ? PIOS_HMC5883_BOTTOM_90DEG  : 
+			(orientation == HWSHARED_MAGORIENTATION_BOTTOM90DEGCW)  ? PIOS_HMC5883_BOTTOM_270DEG : 
 			(orientation == HWSHARED_MAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5883_BOTTOM_180DEG : 
-			(orientation == HWSHARED_MAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5883_BOTTOM_270DEG : 
+			(orientation == HWSHARED_MAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5883_BOTTOM_90DEG  : 
 			external_hmc5883_cfg.Default_Orientation;
 
 		PIOS_HMC5883_SetOrientation(hmc5883_orientation);
@@ -1443,16 +1446,19 @@ int PIOS_HAL_ConfigureExternalMag(HwSharedMagOptions mag,
 		if (PIOS_HMC5983_Test())
 			goto mag_fail;
 
-		/* Annoying to do this, but infecting low-level drivers with UAVO deps is yucky */
+		/* Annoying to do this, but infecting low-level drivers with UAVO deps is yucky
+		 * Note: drivers rotate around vehicle Z-axis, this rotates around ??
+		 * This is dubious because both the sensor and vehicle Z-axis point down
+		 * in bottom orientation, whereas this is rotating around an upwards vector. */
 		enum pios_hmc5983_orientation hmc5983_orientation = 
 			(orientation == HWSHARED_MAGORIENTATION_TOP0DEGCW)      ? PIOS_HMC5983_TOP_0DEG      : 
 			(orientation == HWSHARED_MAGORIENTATION_TOP90DEGCW)     ? PIOS_HMC5983_TOP_90DEG     : 
 			(orientation == HWSHARED_MAGORIENTATION_TOP180DEGCW)    ? PIOS_HMC5983_TOP_180DEG    : 
 			(orientation == HWSHARED_MAGORIENTATION_TOP270DEGCW)    ? PIOS_HMC5983_TOP_270DEG    : 
 			(orientation == HWSHARED_MAGORIENTATION_BOTTOM0DEGCW)   ? PIOS_HMC5983_BOTTOM_0DEG   : 
-			(orientation == HWSHARED_MAGORIENTATION_BOTTOM90DEGCW)  ? PIOS_HMC5983_BOTTOM_90DEG  : 
+			(orientation == HWSHARED_MAGORIENTATION_BOTTOM90DEGCW)  ? PIOS_HMC5983_BOTTOM_270DEG : 
 			(orientation == HWSHARED_MAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5983_BOTTOM_180DEG : 
-			(orientation == HWSHARED_MAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5983_BOTTOM_270DEG : 
+			(orientation == HWSHARED_MAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5983_BOTTOM_90DEG  : 
 			external_hmc5983_cfg.Orientation;
 
 		PIOS_HMC5983_SetOrientation(hmc5983_orientation);

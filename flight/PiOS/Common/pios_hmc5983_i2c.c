@@ -360,8 +360,8 @@ static int32_t PIOS_HMC5983_ReadMag(struct pios_sensor_mag_data *mag_data, float
 			mag_data->z = mag_z;
 			break;
 		case PIOS_HMC5983_BOTTOM_90DEG:
-			mag_data->x = -mag_y;
-			mag_data->y = mag_x;
+			mag_data->x = mag_y;
+			mag_data->y = -mag_x;
 			mag_data->z = mag_z;
 			break;
 		case PIOS_HMC5983_BOTTOM_180DEG:
@@ -370,8 +370,8 @@ static int32_t PIOS_HMC5983_ReadMag(struct pios_sensor_mag_data *mag_data, float
 			mag_data->z = mag_z;
 			break;
 		case PIOS_HMC5983_BOTTOM_270DEG:
-			mag_data->x = mag_y;
-			mag_data->y = -mag_x;
+			mag_data->x = -mag_y;
+			mag_data->y = mag_x;
 			mag_data->z = mag_z;
 			break;
 	}
