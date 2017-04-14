@@ -349,10 +349,15 @@ static void PIOS_LIS_Task(void *parameters)
 
 		struct pios_sensor_mag_data mag_data;
 
+		/*
+		 * Vehicle axes = x front, y right, z down
+		 * LIS3MDL axes = x left, y rear, z up
+		 * See flight/Doc/imu_orientation.md
+		 */
 		switch (lis_dev->cfg->orientation) {
 			case PIOS_LIS_TOP_0DEG:
-				mag_data.y  =  mag_x;
-				mag_data.x  =  mag_y;
+				mag_data.y  = -mag_x;
+				mag_data.x  = -mag_y;
 				mag_data.z  = -mag_z;
 				break;
 			case PIOS_LIS_TOP_90DEG:
@@ -361,8 +366,8 @@ static void PIOS_LIS_Task(void *parameters)
 				mag_data.z  = -mag_z;
 				break;
 			case PIOS_LIS_TOP_180DEG:
-				mag_data.y  = -mag_x;
-				mag_data.x  = -mag_y;
+				mag_data.y  =  mag_x;
+				mag_data.x  =  mag_y;
 				mag_data.z  = -mag_z;
 				break;
 			case PIOS_LIS_TOP_270DEG:
@@ -371,23 +376,23 @@ static void PIOS_LIS_Task(void *parameters)
 				mag_data.z  = -mag_z;
 				break;
 			case PIOS_LIS_BOTTOM_0DEG:
-				mag_data.y  = -mag_x;
-				mag_data.x  =  mag_y;
-				mag_data.z  =  mag_z;
-				break;
-			case PIOS_LIS_BOTTOM_90DEG:
-				mag_data.y  =  mag_y;
-				mag_data.x  =  mag_x;
-				mag_data.z  =  mag_z;
-				break;
-			case PIOS_LIS_BOTTOM_180DEG:
 				mag_data.y  =  mag_x;
 				mag_data.x  = -mag_y;
 				mag_data.z  =  mag_z;
 				break;
-			case PIOS_LIS_BOTTOM_270DEG:
+			case PIOS_LIS_BOTTOM_90DEG:
 				mag_data.y  = -mag_y;
 				mag_data.x  = -mag_x;
+				mag_data.z  =  mag_z;
+				break;
+			case PIOS_LIS_BOTTOM_180DEG:
+				mag_data.y  = -mag_x;
+				mag_data.x  =  mag_y;
+				mag_data.z  =  mag_z;
+				break;
+			case PIOS_LIS_BOTTOM_270DEG:
+				mag_data.y  =  mag_y;
+				mag_data.x  =  mag_x;
 				mag_data.z  =  mag_z;
 				break;
 		}

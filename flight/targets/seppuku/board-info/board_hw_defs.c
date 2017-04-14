@@ -229,7 +229,7 @@ static const struct pios_bmi160_cfg pios_bmi160_cfg = {
 #include <pios_lis3mdl.h>
 
 static const struct pios_lis3mdl_cfg pios_lis3mdl_cfg = {
-	.orientation = PIOS_LIS_TOP_180DEG
+	.orientation = PIOS_LIS_TOP_0DEG
 };
 
 #endif /* PIOS_INCLUDE_LIS3MDL */
