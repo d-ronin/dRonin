@@ -39,7 +39,7 @@
 #define PIOS_INCLUDE_SPI
 
 /* Select the sensors to include */
-#define PIOS_INCLUDE_MPU9250_SPI
+#define PIOS_INCLUDE_MPU
 #define PIOS_MPU6000_ACCEL
 
 /* Com systems to include */
