@@ -22,13 +22,14 @@ FORMS    += mainwindow.ui
 RESOURCES += \
     resources.qrc
 
+# TODO: should really use the GCS revision rather than crashreporterapp
+# (it is possible to build it seperately, then the results are misleading)
 GIT_COMMIT = $$system(git rev-parse -q --short HEAD)
-GIT_BRANCH = $$system(git symbolic-ref -q --short HEAD)
-GIT_TAG    = $$system(git name-rev --tags --name-only HEAD)
+GIT_BRANCH = $$system(git for-each-ref --count=1 --format=$$system_quote(%(refname:strip=2)) --contains HEAD refs/heads)
+GIT_TAG    = $$system(git for-each-ref --count=1 --format=$$system_quote(%(refname:strip=2)) --points-at HEAD refs/tags)
+GIT_DIFF   = $$system(git status --porcelain)
 GIT_DIRTY  = true
-isEmpty($$system(git diff-files --shortstat)) {
-	GIT_DIRTY = false
-}
+isEmpty(GIT_DIFF): GIT_DIRTY = false
 
 DEFINES += GIT_COMMIT=\\\"$$GIT_COMMIT\\\" \
            GIT_BRANCH=\\\"$$GIT_BRANCH\\\" \
