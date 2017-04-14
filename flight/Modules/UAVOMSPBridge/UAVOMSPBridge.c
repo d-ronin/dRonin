@@ -731,6 +731,12 @@ static void msp_handle_4wif(struct msp_bridge *m) {
 	switch (protocol) {
 		case PROTOCOL_4WAY:
 #ifdef PIOS_INCLUDE_4WAY
+			actuator_interlock = ACTUATOR_INTERLOCK_STOPREQUEST;
+
+			while (actuator_interlock != ACTUATOR_INTERLOCK_STOPPED) {
+				PIOS_Thread_Sleep(3);
+			}
+
 			num_esc = esc4wayInit();
 			m->handler = MSP_HANDLER_4WIF;
 #endif
@@ -1021,6 +1027,9 @@ static void uavoMSPBridgeTask(void *parameters)
 		case MSP_HANDLER_4WIF:
 			esc4wayProcess(&msp->com);
 			msp->handler = MSP_HANDLER_MSP;
+
+			PIOS_Thread_Sleep(3);
+			actuator_interlock = ACTUATOR_INTERLOCK_OK;
 			break;
 #endif
 
