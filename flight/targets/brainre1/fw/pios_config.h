@@ -62,6 +62,8 @@
 
 #define PIOS_GPS_SETS_HOMELOCATION
 
+#define PIOS_INCLUDE_DMASHOT
+
 /* Supported receiver interfaces */
 
 

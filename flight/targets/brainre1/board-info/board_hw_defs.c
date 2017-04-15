@@ -1042,6 +1042,44 @@ static const struct pios_tim_channel pios_tim_servoport_all_pins[] = {
 	}
 };
 
+#if defined(PIOS_INCLUDE_DMASHOT)
+
+#include <pios_dmashot.h>
+
+static const struct pios_dmashot_timer_cfg dmashot_tim_cfg[] = {
+	{
+		.timer = TIM5,
+		.stream = DMA1_Stream6,
+		.channel = DMA_Channel_6,
+		.tcif = DMA_FLAG_TCIF6
+	},
+	{
+		.timer = TIM1,
+		.stream = DMA2_Stream5,
+		.channel = DMA_Channel_6,
+		.tcif = DMA_FLAG_TCIF5
+	},
+	{
+		.timer = TIM2,
+		.stream = DMA1_Stream7,
+		.channel = DMA_Channel_3,
+		.tcif = DMA_FLAG_TCIF7
+	},
+	{
+		.timer = TIM8,
+		.stream = DMA2_Stream1,
+		.channel = DMA_Channel_7,
+		.tcif = DMA_FLAG_TCIF1
+	}
+};
+
+static const struct pios_dmashot_cfg dmashot_config = {
+	.timer_cfg = &dmashot_tim_cfg[0],
+	.num_timers = NELEMENTS(dmashot_tim_cfg)
+};
+
+#endif /* defined(PIOS_INCLUDE_DMASHOT) */
+
 /*
  * Servo outputs
  */
