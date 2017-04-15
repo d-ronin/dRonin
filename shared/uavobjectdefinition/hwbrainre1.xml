@@ -31,6 +31,7 @@
 				<option>MavLinkTX</option>
 				<option>MavLinkTX_GPS_RX</option>
 				<option>VTX Config TBS SmartAudio</option>
+				<option>TBS Crossfire</option>
 			</options>
 		</field>
 		<field name="MultiPortMode" units="function" type="enum" elements="1" defaultvalue="Normal">
@@ -56,6 +57,7 @@
 				<option>MavLinkTX_GPS_RX</option>
 				<option>FrSKY Sensor Hub</option>
 				<option>FrSKY SPort Telemetry</option>
+				<option>TBS Crossfire</option>
 			</options>
 		</field>
 		<field name="MultiPortSerial2" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
@@ -73,6 +75,7 @@
 				<option>MavLinkTX</option>
 				<option>MavLinkTX_GPS_RX</option>
 				<option>VTX Config TBS SmartAudio</option>
+				<option>TBS Crossfire</option>
 			</options>
 		</field>
 		<field name="I2CExtBaro" units="function" type="enum" elements="1" parent="HwShared.ExtBaro" defaultvalue="None"/>
