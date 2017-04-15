@@ -162,7 +162,7 @@ void PIOS_DMAShot_Prepare()
 	if (dmashot_cfg) {
 		if (!servo_timers) {
 			// Allocate memory
-			servo_timers = PIOS_malloc_no_dma(sizeof(struct servo_timer) * MAX_TIMERS);
+			servo_timers = PIOS_malloc_no_dma(sizeof(struct servo_timer*) * MAX_TIMERS);
 			PIOS_Assert(servo_timers);
 
 			memset(servo_timers, 0, sizeof(struct servo_timer) * MAX_TIMERS);
