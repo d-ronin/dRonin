@@ -64,6 +64,7 @@
 /* Supported receiver interfaces */
 #define PIOS_INCLUDE_PWM
 
+#define PIOS_INCLUDE_DMASHOT
 
 /* OSD stuff */
 #define PIOS_VIDEO_TIM4_COUNTER

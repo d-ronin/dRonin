@@ -436,6 +436,10 @@ void PIOS_Board_Init(void) {
 	pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_GCS] = pios_gcsrcvr_rcvr_id;
 #endif	/* PIOS_INCLUDE_GCSRCVR */
 
+#if defined(PIOS_INCLUDE_SERVO) & defined(PIOS_INCLUDE_DMASHOT)
+	PIOS_DMAShot_Init(&dmashot_config);
+#endif // defined(PIOS_INCLUDE_DMASHOT)
+
 #ifndef PIOS_DEBUG_ENABLE_DEBUG_PINS
 	switch (hw_rxport) {
 	case HWBRAIN_RXPORT_DISABLED:

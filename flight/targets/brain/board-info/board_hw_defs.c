@@ -1056,6 +1056,36 @@ const struct pios_servo_cfg pios_servo_rcvr_all_cfg = {
 	.num_channels = NELEMENTS(pios_tim_servoport_rcvrport_pins),
 };
 
+#if defined(PIOS_INCLUDE_DMASHOT)
+
+#include <pios_dmashot.h>
+
+// Enable pins 1-8 for DMA.
+// Pins 9 & 10 on TIM12 should fall back onto GPIO DShot.
+// Unlikely that these find use configured as such.
+
+static const struct pios_dmashot_timer_cfg dmashot_tim_cfg[] = {
+	{
+		.timer = TIM5,
+		.stream = DMA1_Stream6,
+		.channel = DMA_Channel_6,
+		.tcif = DMA_FLAG_TCIF6
+	},
+	{
+		.timer = TIM8,
+		.stream = DMA2_Stream1,
+		.channel = DMA_Channel_7,
+		.tcif = DMA_FLAG_TCIF1
+	}
+};
+
+static const struct pios_dmashot_cfg dmashot_config = {
+	.timer_cfg = &dmashot_tim_cfg[0],
+	.num_timers = NELEMENTS(dmashot_tim_cfg)
+};
+
+#endif // defined(PIOS_INCLUDE_DMASHOT)
+
 #endif	/* PIOS_INCLUDE_SERVO && PIOS_INCLUDE_TIM */
 
 /*
