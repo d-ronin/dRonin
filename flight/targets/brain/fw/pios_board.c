@@ -477,10 +477,6 @@ void PIOS_Board_Init(void) {
 	PIOS_DEBUG_Init(&pios_tim_servo_all_channels, NELEMENTS(pios_tim_servo_all_channels));
 #endif
 
-#if defined(PIOS_INCLUDE_GPIO)
-	PIOS_GPIO_Init();
-#endif
-
 #ifdef PIOS_INCLUDE_DAC
         PIOS_DAC_init(&pios_dac, &pios_dac_cfg);
 

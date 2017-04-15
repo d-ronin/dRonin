@@ -526,10 +526,6 @@ void PIOS_Board_Init(void)
 		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_BARO);
 #endif
 
-#if defined(PIOS_INCLUDE_GPIO)
-	PIOS_GPIO_Init();
-#endif
-
 	/* Make sure we have at least one telemetry link configured or else fail initialization */
 	PIOS_Assert(pios_com_telem_serial_id || pios_com_telem_usb_id);
 }

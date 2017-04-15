@@ -519,10 +519,6 @@ void PIOS_Board_Init(void) {
 
 #endif    /* PIOS_INCLUDE_I2C */
 
-#if defined(PIOS_INCLUDE_GPIO)
-    PIOS_GPIO_Init();
-#endif
-
 #if defined(PIOS_INCLUDE_ADC)
     /* Configure the adc port(s) */
     uint8_t hw_adcport;

@@ -652,11 +652,6 @@ void PIOS_Board_Init(void) {
 
 #endif	/* PIOS_INCLUDE_I2C */
 
-
-#if defined(PIOS_INCLUDE_GPIO)
-	PIOS_GPIO_Init();
-#endif
-
 #if defined(PIOS_INCLUDE_ADC)
 	if (hw_inport == HWQUANTON_INPORT_OUTPUTSADC ||
 		hw_inport == HWQUANTON_INPORT_PPMADC ||
