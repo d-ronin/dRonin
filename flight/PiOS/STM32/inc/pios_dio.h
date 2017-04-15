@@ -63,6 +63,13 @@ enum dio_drive_strength {
 };
 #endif
 
+enum dio_pin_function {
+	DIO_PIN_INPUT = 0,
+	DIO_PIN_OUTPUT = 1,
+	DIO_PIN_ALTFUNC = 2,
+	DIO_PIN_ANALOG = 3
+};
+
 enum dio_pull {
 	DIO_PULL_NONE = 0,
 	DIO_PULL_UP,
@@ -235,7 +242,7 @@ static inline void DIO_altfunc(dio_tag_t t, int alt_func)
 	uint8_t pos = __builtin_ctz(pin);
 
 	DIO_SETREGS_FOURWIDE(gp->AFR[0], gp->AFR[1], pos, alt_func);
-	DIO_SETREG_TWOWIDE(gp->MODER, pos, 2);
+	DIO_SETREG_TWOWIDE(gp->MODER, pos, DIO_PIN_ALTFUNC);
 }
 
 static inline void DIO_analog(dio_tag_t t)
@@ -246,7 +253,7 @@ static inline void DIO_analog(dio_tag_t t)
 
 	DIO_SETREG_TWOWIDE(gp->PUPDR, pos, DIO_PULL_NONE);
 
-	DIO_SETREG_TWOWIDE(gp->MODER, pos, 3);
+	DIO_SETREG_TWOWIDE(gp->MODER, pos, DIO_PIN_ANALOG);
 }
 
 static inline void DIO_output(dio_tag_t t, bool open_collector,
@@ -275,7 +282,7 @@ static inline void DIO_output(dio_tag_t t, bool open_collector,
 	DIO_SETREG_TWOWIDE(gp->OSPEEDR, pos, strength);
 
 	/* Set appropriate position to output */
-	DIO_SETREG_TWOWIDE(gp->MODER, pos, 1);
+	DIO_SETREG_TWOWIDE(gp->MODER, pos, DIO_PIN_OUTPUT);
 }
 
 static inline void DIO_input(dio_tag_t t, enum dio_pull pull)
@@ -288,7 +295,7 @@ static inline void DIO_input(dio_tag_t t, enum dio_pull pull)
 	DIO_SETREG_TWOWIDE(gp->PUPDR, pos, pull);
 
 	/* Set appropriate position to input */
-	DIO_SETREG_TWOWIDE(gp->MODER, pos, 0);
+	DIO_SETREG_TWOWIDE(gp->MODER, pos, DIO_PIN_INPUT);
 }
 
 static inline bool DIO_read(dio_tag_t t)
@@ -299,7 +306,6 @@ static inline bool DIO_read(dio_tag_t t)
 }
 
 #endif /* _PIOS_DIO_H */
-
 
 /**
  * @}
