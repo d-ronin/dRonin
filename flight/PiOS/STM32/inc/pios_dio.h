@@ -72,13 +72,31 @@ enum dio_pull {
 typedef uintptr_t dio_tag_t;
 
 /**
+ * @brief Configures a GPIO as alternate function.
+ * Note that to configure drive strength, pullups, etc, DIO_output or
+ * DIO_input should be called first.
+ *
+ * @param[in] t The GPIO specifier tag (created with e.g. GPIOA_DIO(3) )
+ * @param[in] alt_func The alternate function specifier.
+ */
+static inline void DIO_altfunc(dio_tag_t t, int alt_func);
+
+/**
+ * @brief Configures a GPIO as analog.  Disables pullups/pulldowns, etc.
+ *
+ * @param[in] t The GPIO specifier tag (created with e.g. GPIOA_DIO(3) )
+ */
+static inline void DIO_analog(dio_tag_t t);
+
+/**
  * @brief Configures a GPIO as an output.
  * @param[in] t The GPIO specifier tag (created with e.g. GPIOA_DIO(3) )
  * @param[in] open_collector true for open-collector + pull-up semantics
  * @param[in] dio_drive_strength The drive strength to use for the GPIO
+ * @param[in] first_value Whether it should be initially driven high or low.
  */
 static inline void DIO_output(dio_tag_t t, bool open_collector,
-		enum dio_drive_strength strength);
+		enum dio_drive_strength strength, bool first_value);
 
 /**
  * @brief Toggles an output GPIO to the opposite level.
@@ -186,7 +204,18 @@ static inline void DIO_toggle(dio_tag_t t)
 
 /* Some of the bitfields here are two bits wide; some are 1 bit wide */
 
-// Uses reg twice, naughty.
+// Uses regs twice, naughty.
+#define DIO_SETREGS_FOURWIDE(reglow, reghigh, idx, val) \
+	do { \
+		int __pos = (idx); \
+		if (__pos >= 8) { \
+			__pos -= 8; \
+			(reghigh) = ((reghigh) & ~(15 << (__pos * 4))) | ( (val) << (__pos * 4)); \
+		} else { \
+			(reglow) = ((reglow) & ~(15 << (__pos * 4))) | ( (val) << (__pos * 4)); \
+		} \
+	} while (0)
+
 #define DIO_SETREG_TWOWIDE(reg, idx, val) \
 	do { \
 		int __pos = (idx); \
@@ -199,12 +228,35 @@ static inline void DIO_toggle(dio_tag_t t)
 		(reg) = ((reg) & ~(1 << (__pos))) | ( (val) << __pos); \
 	} while (0)
 
-static inline void DIO_output(dio_tag_t t, bool open_collector,
-		enum dio_drive_strength strength)
+static inline void DIO_altfunc(dio_tag_t t, int alt_func)
 {
 	_DIO_PRELUDE;
 
 	uint8_t pos = __builtin_ctz(pin);
+
+	DIO_SETREGS_FOURWIDE(gp->AFR[0], gp->AFR[1], pos, alt_func);
+	DIO_SETREG_TWOWIDE(gp->MODER, pos, 2);
+}
+
+static inline void DIO_analog(dio_tag_t t)
+{
+	_DIO_PRELUDE;
+
+	uint8_t pos = __builtin_ctz(pin);
+
+	DIO_SETREG_TWOWIDE(gp->PUPDR, pos, DIO_PULL_NONE);
+
+	DIO_SETREG_TWOWIDE(gp->MODER, pos, 3);
+}
+
+static inline void DIO_output(dio_tag_t t, bool open_collector,
+		enum dio_drive_strength strength, bool first_value)
+{
+	_DIO_PRELUDE;
+
+	uint8_t pos = __builtin_ctz(pin);
+
+	DIO_set(t, first_value);
 
 	/* F0/F3/F4 are like this */
 	if (open_collector) {
