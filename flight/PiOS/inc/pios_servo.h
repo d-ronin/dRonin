@@ -30,6 +30,8 @@
 #ifndef PIOS_SERVO_H
 #define PIOS_SERVO_H
 
+#include <pios_dio.h>
+
 #define PIOS_SERVO_MAX_BANKS 6
 
 /* Used in out_rate.  If 65535, we really mean 65535Hz.  Values close to that
@@ -50,6 +52,8 @@ struct pios_servo_callbacks {
 
 	void (*update)();
 };
+
+extern int PIOS_Servo_GetPins(dio_tag_t *dios, int max_dio);
 
 /* Only applicable to simulation; takes reference to cb */
 extern void PIOS_Servo_SetCallbacks(const struct pios_servo_callbacks *cb);
