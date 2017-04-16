@@ -38,6 +38,8 @@
 #include "pios_servo_priv.h"
 #include "pios_tim_priv.h"
 
+#include <pios_dio.h>
+
 #ifndef STM32F0XX	// No high-res delay on F0 yet
 #include "pios_inlinedelay.h"
 #include "pios_irq.h"
@@ -149,6 +151,22 @@ int32_t PIOS_Servo_Init(const struct pios_servo_cfg *cfg)
 	memset(output_channels, 0, servo_cfg->num_channels * sizeof(*output_channels));
 
 	return 0;
+}
+
+int PIOS_Servo_GetPins(dio_tag_t *dios, int max_dio)
+{
+	int i;
+
+	for (i = 0; i < max_dio; i++) {
+		if (i >= servo_cfg->num_channels) {
+			break;
+		}
+
+		dios[i] = DIO_MAKE_TAG(servo_cfg->channels[i].pin.gpio,
+				servo_cfg->channels[i].pin.init.GPIO_Pin);
+	}
+
+	return i;
 }
 
 struct timer_bank {
