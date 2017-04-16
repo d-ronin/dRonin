@@ -91,7 +91,7 @@ typedef uintptr_t dio_tag_t;
  * @param[in] open_collector true for open-collector + pull-up semantics
  * @param[in] dio_drive_strength The drive strength to use for the GPIO
  */
-static inline void DIO_altfunc_output(dio_tag_t t, int alt_func,
+static inline void dio_set_altfunc_output(dio_tag_t t, int alt_func,
 		bool open_collector, enum dio_drive_strength strength);
 
 /**
@@ -101,7 +101,7 @@ static inline void DIO_altfunc_output(dio_tag_t t, int alt_func,
  * @param[in] alt_func The alternate function specifier.
  * @param[in] pull Pullup/Pulldown configuration.
  */
-static inline void DIO_altfunc_input(dio_tag_t t, int alt_func,
+static inline void dio_set_altfunc_input(dio_tag_t t, int alt_func,
 		enum dio_pull pull);
 
 /**
@@ -109,7 +109,7 @@ static inline void DIO_altfunc_input(dio_tag_t t, int alt_func,
  *
  * @param[in] t The GPIO specifier tag (created with e.g. GPIOA_DIO(3) )
  */
-static inline void DIO_analog(dio_tag_t t);
+static inline void dio_set_analog(dio_tag_t t);
 
 /**
  * @brief Configures a GPIO as an output.
@@ -118,47 +118,47 @@ static inline void DIO_analog(dio_tag_t t);
  * @param[in] dio_drive_strength The drive strength to use for the GPIO
  * @param[in] first_value Whether it should be initially driven high or low.
  */
-static inline void DIO_output(dio_tag_t t, bool open_collector,
+static inline void dio_set_output(dio_tag_t t, bool open_collector,
 		enum dio_drive_strength strength, bool first_value);
 
 /**
  * @brief Toggles an output GPIO to the opposite level.
  * @param[in] t The GPIO specifier tag
  */
-static inline void DIO_toggle(dio_tag_t t);
+static inline void dio_toggle(dio_tag_t t);
 
 /**
  * @brief Sets an output GPIO high.
  * @param[in] t The GPIO specifier tag
  */
-static inline void DIO_high(dio_tag_t t);
+static inline void dio_high(dio_tag_t t);
 
 /**
  * @brief Sets an output GPIO low.
  * @param[in] t The GPIO specifier tag
  */
-static inline void DIO_low(dio_tag_t t);
+static inline void dio_low(dio_tag_t t);
 
 /**
  * @brief Sets an output GPIO to a chosen logical level.
  * @param[in] t The GPIO specifier tag
  * @param[in] high Whether the GPIO should be high.
  */
-static inline void DIO_set(dio_tag_t t, bool high);
+static inline void dio_write(dio_tag_t t, bool high);
 
 /**
  * @brief Configures a GPIO as an input.
  * @param[in] t The GPIO specifier tag (created with e.g. GPIOA_DIO(3) )
  * @param[in] pull Pullup/Pulldown configuration.
  */
-static inline void DIO_input(dio_tag_t t, enum dio_pull pull);
+static inline void dio_set_input(dio_tag_t t, enum dio_pull pull);
 
 /**
  * @brief Reads a GPIO logical value.
  * @param[in] t The GPIO specifier tag 
  * @retval True if the GPIO is high; otherwise low.
  */
-static inline bool DIO_read(dio_tag_t t);
+static inline bool dio_read(dio_tag_t t);
 
 /* Implementation crud below here */
 
@@ -183,7 +183,7 @@ static inline bool DIO_read(dio_tag_t t);
 	GPIO_TypeDef * gp = GET_DIO_PORT(t); \
 	uint16_t pin = GET_DIO_PIN(t);
 
-static inline void DIO_high(dio_tag_t t)
+static inline void dio_high(dio_tag_t t)
 {
 	_DIO_PRELUDE;
 
@@ -194,7 +194,7 @@ static inline void DIO_high(dio_tag_t t)
 #endif
 }
 
-static inline void DIO_low(dio_tag_t t)
+static inline void dio_low(dio_tag_t t)
 {
 	_DIO_PRELUDE;
 
@@ -205,20 +205,20 @@ static inline void DIO_low(dio_tag_t t)
 #endif
 }
 
-static inline void DIO_set(dio_tag_t t, bool high)
+static inline void dio_write(dio_tag_t t, bool high)
 {
 	if (high) {
-		DIO_high(t);
+		dio_high(t);
 	} else {
-		DIO_low(t);
+		dio_low(t);
 	}
 }
 
-static inline void DIO_toggle(dio_tag_t t)
+static inline void dio_toggle(dio_tag_t t)
 {
 	_DIO_PRELUDE;
 
-	DIO_set(t, ! (gp->ODR & pin) );
+	dio_write(t, ! (gp->ODR & pin) );
 }
 
 /* Some of the bitfields here are two bits wide; some are 1 bit wide */
@@ -252,7 +252,7 @@ static inline void DIO_toggle(dio_tag_t t)
  * would need to disable interrupts to be safe.
  */
 #if defined(STM32F10X_MD)
-static inline void _DIO_Remap(int alt_func)
+static inline void _dio_remap(int alt_func)
 {
 	if (alt_func) {
 		 GPIO_PinRemapConfig(alt_func, ENABLE);
@@ -260,7 +260,7 @@ static inline void _DIO_Remap(int alt_func)
 }
 #endif
 
-static inline void DIO_altfunc_output(dio_tag_t t, int alt_func,
+static inline void dio_set_altfunc_output(dio_tag_t t, int alt_func,
 		bool open_collector, enum dio_drive_strength strength)
 {
 	_DIO_PRELUDE;
@@ -268,7 +268,7 @@ static inline void DIO_altfunc_output(dio_tag_t t, int alt_func,
 	uint8_t pos = __builtin_ctz(pin);
 
 #if defined(STM32F10X_MD)
-	_DIO_Remap(alt_func);
+	_dio_remap(alt_func);
 
 	/* MODE .. CNF = 1cSS
 	 * where S is strength and c is true for open collector
@@ -281,21 +281,21 @@ static inline void DIO_altfunc_output(dio_tag_t t, int alt_func,
 
 	DIO_SETREGS_FOURWIDE(gp->CRL, gp->CRH, pos, val);
 #else
-	DIO_output(t, open_collector, strength, false);
+	dio_set_output(t, open_collector, strength, false);
 
 	DIO_SETREGS_FOURWIDE(gp->AFR[0], gp->AFR[1], pos, alt_func);
 	DIO_SETREG_TWOWIDE(gp->MODER, pos, DIO_PIN_ALTFUNC);
 #endif
 }
 
-static inline void DIO_altfunc_input(dio_tag_t t, int alt_func,
+static inline void dio_set_altfunc_input(dio_tag_t t, int alt_func,
 		enum dio_pull pull)
 {
 #if defined(STM32F10X_MD)
-	_DIO_Remap(alt_func);
+	_dio_remap(alt_func);
 #endif
 
-	DIO_input(t, pull);
+	dio_set_input(t, pull);
 
 	/* F1 altfunc inputs are just normal inputs */
 
@@ -309,7 +309,7 @@ static inline void DIO_altfunc_input(dio_tag_t t, int alt_func,
 #endif
 }
 
-static inline void DIO_analog(dio_tag_t t)
+static inline void dio_set_analog(dio_tag_t t)
 {
 	_DIO_PRELUDE;
 	uint8_t pos = __builtin_ctz(pin);
@@ -323,7 +323,7 @@ static inline void DIO_analog(dio_tag_t t)
 #endif
 }
 
-static inline void DIO_output(dio_tag_t t, bool open_collector,
+static inline void dio_set_output(dio_tag_t t, bool open_collector,
 		enum dio_drive_strength strength, bool first_value)
 {
 	_DIO_PRELUDE;
@@ -331,7 +331,7 @@ static inline void DIO_output(dio_tag_t t, bool open_collector,
 	uint8_t pos = __builtin_ctz(pin);
 
 	/* Set output data register to first alue */
-	DIO_set(t, first_value);
+	dio_write(t, first_value);
 #if defined(STM32F10X_MD)
 	/* MODE .. CNF = 0cSS
 	 * where S is strength and c is true for open collector
@@ -365,7 +365,7 @@ static inline void DIO_output(dio_tag_t t, bool open_collector,
 #endif
 }
 
-static inline void DIO_input(dio_tag_t t, enum dio_pull pull)
+static inline void dio_set_input(dio_tag_t t, enum dio_pull pull)
 {
 	_DIO_PRELUDE;
 
@@ -383,9 +383,9 @@ static inline void DIO_input(dio_tag_t t, enum dio_pull pull)
 	DIO_SETREGS_FOURWIDE(gp->CRL, gp->CRH, pos, val);
 
 	if (pull == DIO_PULL_UP) {
-		DIO_high(t);
+		dio_high(t);
 	} else if (pull == DIO_PULL_DOWN) {
-		DIO_low(t);
+		dio_low(t);
 	}
 #else
 	/* Set caller-specified pullup/pulldown */
@@ -396,7 +396,7 @@ static inline void DIO_input(dio_tag_t t, enum dio_pull pull)
 #endif
 }
 
-static inline bool DIO_read(dio_tag_t t)
+static inline bool dio_read(dio_tag_t t)
 {
 	_DIO_PRELUDE;
 
