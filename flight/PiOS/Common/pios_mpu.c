@@ -772,8 +772,10 @@ int32_t PIOS_MPU_SPI_Init(pios_mpu_dev_t *dev, uint32_t spi_id, uint32_t slave_n
 	mpu_dev->com_slave_addr = slave_num;
 	mpu_dev->cfg = cfg;
 
-	if (PIOS_MPU_SPI_Probe(&mpu_dev->mpu_type)) {
-		return -1;
+	int32_t ret = PIOS_MPU_SPI_Probe(&mpu_dev->mpu_type);
+
+	if (ret) {
+		return ret;
 	}
 
 	return PIOS_MPU_Common_Init();
