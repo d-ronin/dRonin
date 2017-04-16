@@ -63,8 +63,8 @@ static const uint8_t pios_mpu_whoami[PIOS_MPU_NUM] = {
 	[PIOS_MPU60X0]   = 0x68,
 	[PIOS_MPU6500]   = 0x70,
 	[PIOS_MPU9150]   = 0x68,
-	[PIOS_MPU9250]   = 0x70,
-	[PIOS_ICM20608G] = 0x2E,
+	[PIOS_MPU9250]   = 0x71,
+	[PIOS_ICM20608G] = 0xAF,
 };
 
 /**
@@ -230,7 +230,7 @@ static int32_t PIOS_MPU_CheckWhoAmI(enum pios_mpu_type *detected_device)
 		return -PIOS_MPU_ERROR_READFAILED;
 
 	for (int i = 0; i < PIOS_MPU_NUM; i++) {
-		if ((uint8_t)(retval & 0x7E) == pios_mpu_whoami[i]) {
+		if (((uint8_t) retval) == pios_mpu_whoami[i]) {
 			*detected_device = i;
 			return 0;
 		}
@@ -772,7 +772,9 @@ int32_t PIOS_MPU_SPI_Init(pios_mpu_dev_t *dev, uint32_t spi_id, uint32_t slave_n
 	mpu_dev->com_slave_addr = slave_num;
 	mpu_dev->cfg = cfg;
 
-	PIOS_MPU_SPI_Probe(&mpu_dev->mpu_type);
+	if (PIOS_MPU_SPI_Probe(&mpu_dev->mpu_type)) {
+		return -1;
+	}
 
 	return PIOS_MPU_Common_Init();
 }
