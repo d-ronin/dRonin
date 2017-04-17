@@ -568,6 +568,11 @@ void PIOS_Servo_Set(uint8_t servo, float position)
 		case SYNC_DSHOT_DMA:
 #if defined(PIOS_INCLUDE_DMASHOT)
 			if (PIOS_DMAShot_IsConfigured()) {
+				if (position > 2047)
+					position = 2047;
+				else if (position < 0)
+					position = 0;
+
 				PIOS_DMAShot_WriteValue(&servo_cfg->channels[servo], position);
 			}
 #endif
