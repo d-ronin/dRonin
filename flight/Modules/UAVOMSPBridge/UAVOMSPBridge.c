@@ -275,7 +275,7 @@ static void msp_send_motor(struct msp_bridge *m)
 {
 	union {
 		uint8_t buf[0];
-		uint8_t mspeed[8];
+		uint16_t mspeed[8];
 	} data;
 
 	/* Tell me lies */
