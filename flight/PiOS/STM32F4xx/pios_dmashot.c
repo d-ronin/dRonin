@@ -325,7 +325,8 @@ bool PIOS_DMAShot_RegisterServo(const struct pios_tim_channel *servo_channel)
 	if (!s_timer)
 		return false;
 
-	if (s_timer->dma->master_timer && PIOS_DMAShot_GetNumChannels(s_timer) > 0) {
+	if (s_timer->dma->master_timer && (PIOS_DMAShot_GetNumChannels(s_timer) > 0) &&
+		(s_timer->low_channel != servo_channel->timer_chan)) {
 		// I'm sorry, Dave, I'm afraid I cannot do that!
 
 		// If DMA'ing to CCR, can only do one channel per timer.
