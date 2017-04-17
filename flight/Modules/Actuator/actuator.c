@@ -588,7 +588,7 @@ static void actuator_task(void* parameters)
 		UAVObjEvent ev;
 
 		// Wait until the ActuatorDesired object is updated
-		if (PIOS_Queue_Receive(queue, &ev, FAILSAFE_TIMEOUT_MS)) {
+		if (!PIOS_Queue_Receive(queue, &ev, FAILSAFE_TIMEOUT_MS)) {
 			// If we hit a timeout, set the actuator failsafe and
 			// try again.
 			set_failsafe();
