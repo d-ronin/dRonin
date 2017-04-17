@@ -15,18 +15,18 @@
  * @see        The GNU Public License (GPL) Version 3
  *
  *****************************************************************************/
-/* 
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+/*
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
@@ -46,7 +46,7 @@ static uint8_t pios_exti_line_to_cfg_map[EXTI_MAX_LINES] = {
 extern struct pios_exti_cfg __start__exti __attribute__((weak));
 extern struct pios_exti_cfg __stop__exti  __attribute__((weak));
 
-static uint8_t PIOS_EXTI_line_to_index (uint32_t line)
+static uint8_t PIOS_EXTI_line_to_index(uint32_t line)
 {
 	switch (line) {
 	case EXTI_Line0: return 0;
@@ -73,13 +73,13 @@ static uint8_t PIOS_EXTI_line_to_index (uint32_t line)
 
 uint8_t PIOS_EXTI_gpio_port_to_exti_source_port(GPIO_TypeDef * gpio_port)
 {
-	switch((uint32_t)gpio_port) {
-		case (uint32_t)GPIOA: return (EXTI_PortSourceGPIOA);
-		case (uint32_t)GPIOB: return (EXTI_PortSourceGPIOB);
-		case (uint32_t)GPIOC: return (EXTI_PortSourceGPIOC);
-		case (uint32_t)GPIOD: return (EXTI_PortSourceGPIOD);
-		case (uint32_t)GPIOE: return (EXTI_PortSourceGPIOE);
-		case (uint32_t)GPIOF: return (EXTI_PortSourceGPIOF);
+	switch ((uint32_t)gpio_port) {
+	case (uint32_t)GPIOA: return (EXTI_PortSourceGPIOA);
+	case (uint32_t)GPIOB: return (EXTI_PortSourceGPIOB);
+	case (uint32_t)GPIOC: return (EXTI_PortSourceGPIOC);
+	case (uint32_t)GPIOD: return (EXTI_PortSourceGPIOD);
+	case (uint32_t)GPIOE: return (EXTI_PortSourceGPIOE);
+	case (uint32_t)GPIOF: return (EXTI_PortSourceGPIOF);
 	}
 
 	PIOS_Assert(0);
@@ -88,7 +88,7 @@ uint8_t PIOS_EXTI_gpio_port_to_exti_source_port(GPIO_TypeDef * gpio_port)
 
 uint8_t PIOS_EXTI_gpio_pin_to_exti_source_pin(uint32_t gpio_pin)
 {
-	switch((uint32_t)gpio_pin) {
+	switch ((uint32_t)gpio_pin) {
 	case GPIO_Pin_0: return (GPIO_PinSource0);
 	case GPIO_Pin_1: return (GPIO_PinSource1);
 	case GPIO_Pin_2: return (GPIO_PinSource2);
@@ -113,7 +113,7 @@ uint8_t PIOS_EXTI_gpio_pin_to_exti_source_pin(uint32_t gpio_pin)
 
 int32_t PIOS_EXTI_Init(const struct pios_exti_cfg * cfg)
 {
-  	PIOS_Assert(cfg);
+	PIOS_Assert(cfg);
 	PIOS_Assert(&__start__exti);
 	PIOS_Assert(cfg >= &__start__exti);
 	PIOS_Assert(cfg < &__stop__exti);
@@ -182,7 +182,7 @@ static bool PIOS_EXTI_generic_irq_handler(uint8_t line_index)
 	PIOS_Assert(&__start__exti);
 
 	if (cfg_index > NELEMENTS(pios_exti_line_to_cfg_map) ||
-		cfg_index == PIOS_EXTI_INVALID) {
+			cfg_index == PIOS_EXTI_INVALID) {
 		/* Unconfigured interrupt just fired! */
 		return false;
 	}
@@ -192,13 +192,13 @@ static bool PIOS_EXTI_generic_irq_handler(uint8_t line_index)
 }
 
 /* Bind Interrupt Handlers */
-#define PIOS_EXTI_HANDLE_LINE(line)			\
-	if (EXTI_GetITStatus(EXTI_Line##line) != RESET) {	\
-		EXTI_ClearITPendingBit(EXTI_Line##line);	\
-		PIOS_EXTI_generic_irq_handler(line);		\
+#define PIOS_EXTI_HANDLE_LINE(line)                     \
+	if (EXTI_GetITStatus(EXTI_Line ## line) != RESET) {       \
+		EXTI_ClearITPendingBit(EXTI_Line ## line);        \
+		PIOS_EXTI_generic_irq_handler(line);            \
 	}
 
-static void PIOS_EXTI_0_irq_handler (void)
+static void PIOS_EXTI_0_irq_handler(void)
 {
 #if defined(PIOS_INCLUDE_CHIBIOS)
 	CH_IRQ_PROLOGUE();
@@ -210,9 +210,9 @@ static void PIOS_EXTI_0_irq_handler (void)
 	CH_IRQ_EPILOGUE();
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 }
-void EXTI0_IRQHandler(void) __attribute__ ((alias ("PIOS_EXTI_0_irq_handler")));
+void EXTI0_IRQHandler(void) __attribute__ ((alias("PIOS_EXTI_0_irq_handler")));
 
-static void PIOS_EXTI_1_irq_handler (void)
+static void PIOS_EXTI_1_irq_handler(void)
 {
 #if defined(PIOS_INCLUDE_CHIBIOS)
 	CH_IRQ_PROLOGUE();
@@ -224,9 +224,9 @@ static void PIOS_EXTI_1_irq_handler (void)
 	CH_IRQ_EPILOGUE();
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 }
-void EXTI1_IRQHandler(void) __attribute__ ((alias ("PIOS_EXTI_1_irq_handler")));
+void EXTI1_IRQHandler(void) __attribute__ ((alias("PIOS_EXTI_1_irq_handler")));
 
-static void PIOS_EXTI_2_irq_handler (void)
+static void PIOS_EXTI_2_irq_handler(void)
 {
 #if defined(PIOS_INCLUDE_CHIBIOS)
 	CH_IRQ_PROLOGUE();
@@ -238,9 +238,9 @@ static void PIOS_EXTI_2_irq_handler (void)
 	CH_IRQ_EPILOGUE();
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 }
-void EXTI2_IRQHandler(void) __attribute__ ((alias ("PIOS_EXTI_2_irq_handler")));
+void EXTI2_IRQHandler(void) __attribute__ ((alias("PIOS_EXTI_2_irq_handler")));
 
-static void PIOS_EXTI_3_irq_handler (void)
+static void PIOS_EXTI_3_irq_handler(void)
 {
 #if defined(PIOS_INCLUDE_CHIBIOS)
 	CH_IRQ_PROLOGUE();
@@ -252,9 +252,9 @@ static void PIOS_EXTI_3_irq_handler (void)
 	CH_IRQ_EPILOGUE();
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 }
-void EXTI3_IRQHandler(void) __attribute__ ((alias ("PIOS_EXTI_3_irq_handler")));
+void EXTI3_IRQHandler(void) __attribute__ ((alias("PIOS_EXTI_3_irq_handler")));
 
-static void PIOS_EXTI_4_irq_handler (void)
+static void PIOS_EXTI_4_irq_handler(void)
 {
 #if defined(PIOS_INCLUDE_CHIBIOS)
 	CH_IRQ_PROLOGUE();
@@ -266,9 +266,9 @@ static void PIOS_EXTI_4_irq_handler (void)
 	CH_IRQ_EPILOGUE();
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 }
-void EXTI4_IRQHandler(void) __attribute__ ((alias ("PIOS_EXTI_4_irq_handler")));
+void EXTI4_IRQHandler(void) __attribute__ ((alias("PIOS_EXTI_4_irq_handler")));
 
-static void PIOS_EXTI_9_5_irq_handler (void)
+static void PIOS_EXTI_9_5_irq_handler(void)
 {
 #if defined(PIOS_INCLUDE_CHIBIOS)
 	CH_IRQ_PROLOGUE();
@@ -284,9 +284,9 @@ static void PIOS_EXTI_9_5_irq_handler (void)
 	CH_IRQ_EPILOGUE();
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 }
-void EXTI9_5_IRQHandler(void) __attribute__ ((alias ("PIOS_EXTI_9_5_irq_handler")));
+void EXTI9_5_IRQHandler(void) __attribute__ ((alias("PIOS_EXTI_9_5_irq_handler")));
 
-static void PIOS_EXTI_15_10_irq_handler (void)
+static void PIOS_EXTI_15_10_irq_handler(void)
 {
 #if defined(PIOS_INCLUDE_CHIBIOS)
 	CH_IRQ_PROLOGUE();
@@ -303,7 +303,7 @@ static void PIOS_EXTI_15_10_irq_handler (void)
 	CH_IRQ_EPILOGUE();
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 }
-void EXTI15_10_IRQHandler(void) __attribute__ ((alias ("PIOS_EXTI_15_10_irq_handler")));
+void EXTI15_10_IRQHandler(void) __attribute__ ((alias("PIOS_EXTI_15_10_irq_handler")));
 
 #endif /* PIOS_INCLUDE_EXTI */
 
