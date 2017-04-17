@@ -417,6 +417,13 @@ void PIOS_DMAShot_InitializeTimers(TIM_OCInitTypeDef *ocinit)
 		if (!s_timer || !s_timer->sysclock)
 			continue;
 
+		if(PIOS_DMAShot_GetNumChannels(s_timer) == 0) {
+			// Servo's should have been registered before InitializeTimers. If there's none,
+			// disable the timer.
+			s_timer->sysclock = 0;
+			continue;
+		}
+
 		PIOS_DMAShot_TimerSetup(s_timer, s_timer->sysclock, s_timer->dshot_freq, ocinit, false);
 
 		int f = s_timer->sysclock / s_timer->dshot_freq;

@@ -444,8 +444,8 @@ int PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_t
 #if defined (PIOS_INCLUDE_DMASHOT)
 	if (PIOS_DMAShot_IsConfigured()) {
 		PIOS_DMAShot_Validate();
-		PIOS_DMAShot_InitializeGPIOs();
 		PIOS_DMAShot_InitializeTimers((TIM_OCInitTypeDef *)&servo_cfg->tim_oc_init);
+		PIOS_DMAShot_InitializeGPIOs();
 		PIOS_DMAShot_InitializeDMAs();
 	}
 #endif
