@@ -390,8 +390,9 @@ void PIOS_DMAShot_InitializeGPIOs()
 	}
 }
 
-static void PIOS_DMAShot_TimerSetup(TIM_TypeDef *timer, uint32_t sysclock, uint32_t dshot_freq, TIM_OCInitTypeDef *ocinit)
+static void PIOS_DMAShot_TimerSetup(struct servo_timer *s_timer, uint32_t sysclock, uint32_t dshot_freq, TIM_OCInitTypeDef *ocinit, bool master)
 {
+	TIM_TypeDef *timer = master ? s_timer->dma->master_timer : s_timer->dma->timer;
 	TIM_TimeBaseInitTypeDef timerdef;
 
 	TIM_Cmd(timer, DISABLE);
@@ -406,17 +407,29 @@ static void PIOS_DMAShot_TimerSetup(TIM_TypeDef *timer, uint32_t sysclock, uint3
 
 	TIM_TimeBaseInit(timer, &timerdef);
 
-	TIM_OC1Init(timer, ocinit);
-	TIM_OC1PreloadConfig(timer, TIM_OCPreload_Enable);
-
-	TIM_OC2Init(timer, ocinit);
-	TIM_OC2PreloadConfig(timer, TIM_OCPreload_Enable);
-
-	TIM_OC3Init(timer, ocinit);
-	TIM_OC3PreloadConfig(timer, TIM_OCPreload_Enable);
-
-	TIM_OC4Init(timer, ocinit);
-	TIM_OC4PreloadConfig(timer, TIM_OCPreload_Enable);
+	// TIM_Channels are spread apart by 4 in stm32f4xx_tim.h
+	for(int i = s_timer->low_channel; i <= s_timer->high_channel; i+=4)
+	{
+		switch(i)
+		{
+			case TIM_Channel_1:
+				TIM_OC1Init(timer, ocinit);
+				TIM_OC1PreloadConfig(timer, TIM_OCPreload_Enable);
+				break;
+			case TIM_Channel_2:
+				TIM_OC2Init(timer, ocinit);
+				TIM_OC2PreloadConfig(timer, TIM_OCPreload_Enable);
+				break;
+			case TIM_Channel_3:
+				TIM_OC3Init(timer, ocinit);
+				TIM_OC3PreloadConfig(timer, TIM_OCPreload_Enable);
+				break;
+			case TIM_Channel_4:
+				TIM_OC4Init(timer, ocinit);
+				TIM_OC4PreloadConfig(timer, TIM_OCPreload_Enable);
+				break;
+		}
+	}
 
 	// Do this, in case SyncPWM was configured before.
 	TIM_SelectOnePulseMode(timer, TIM_OPMode_Repetitive);
@@ -436,7 +449,7 @@ void PIOS_DMAShot_InitializeTimers(TIM_OCInitTypeDef *ocinit)
 		if (!s_timer || !s_timer->sysclock)
 			continue;
 
-		PIOS_DMAShot_TimerSetup(s_timer->dma->timer, s_timer->sysclock, s_timer->dshot_freq, ocinit);
+		PIOS_DMAShot_TimerSetup(s_timer, s_timer->sysclock, s_timer->dshot_freq, ocinit, false);
 
 		int f = s_timer->sysclock / s_timer->dshot_freq;
 
@@ -444,7 +457,7 @@ void PIOS_DMAShot_InitializeTimers(TIM_OCInitTypeDef *ocinit)
 		s_timer->duty_cycle_1 = f * DSHOT_DUTY_CYCLE_1 / 100;
 
 		if (s_timer->dma->master_timer)
-			PIOS_DMAShot_TimerSetup(s_timer->dma->master_timer, s_timer->sysclock, s_timer->dshot_freq, ocinit);
+			PIOS_DMAShot_TimerSetup(s_timer, s_timer->sysclock, s_timer->dshot_freq, ocinit, true);
 	}
 }
 
