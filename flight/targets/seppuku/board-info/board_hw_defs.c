@@ -982,7 +982,7 @@ static const struct pios_dmashot_timer_cfg dmashot_tim_cfg[] = {
 	{
 		.timer = TIM14,
 		.master_timer = TIM4,
-		.master_config = DMASHOT_EVENTSOURCE_UP | DMASHOT_REG_CCR1,
+		.master_config = TIM_DMA_Update | TIM_DMABase_CCR1,
 
 		.stream = DMA1_Stream6,
 		.channel = DMA_Channel_2,
