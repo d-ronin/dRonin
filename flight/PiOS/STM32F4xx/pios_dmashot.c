@@ -529,13 +529,14 @@ void PIOS_DMAShot_TriggerUpdate()
 					s_timer->dma->master_config & 0xFF00,
 					DISABLE);
 			TIM_Cmd(s_timer->dma->master_timer, DISABLE);
+			TIM_SetCounter(s_timer->dma->master_timer, 0);
 		} else {
 			TIM_DMACmd(s_timer->dma->timer, TIM_DMA_Update, DISABLE);
 		}
 
 		TIM_Cmd(s_timer->dma->timer, DISABLE);
-
 		TIM_SetCounter(s_timer->dma->timer, 0);
+
 		DMA_ClearFlag(s_timer->dma->stream, s_timer->dma->tcif);
 		DMA_SetCurrDataCounter(s_timer->dma->stream, PIOS_DMAShot_GetNumChannels(s_timer) * DMASHOT_STM32_BUFFER);
 	}
@@ -551,6 +552,7 @@ void PIOS_DMAShot_TriggerUpdate()
 					// This results in a typical event source value
 					s_timer->dma->master_config & 0xFF00,
 					ENABLE);
+			TIM_Cmd(s_timer->dma->timer, ENABLE);
 			TIM_Cmd(s_timer->dma->master_timer, ENABLE);
 		} else {
 			int offset = s_timer->low_channel >> 2;
@@ -558,9 +560,9 @@ void PIOS_DMAShot_TriggerUpdate()
 			TIM_DMAConfig(s_timer->dma->timer, TIM_DMABase_CCR1 + offset, transfers << 8);
 
 			TIM_DMACmd(s_timer->dma->timer, TIM_DMA_Update, ENABLE);
+			TIM_Cmd(s_timer->dma->timer, ENABLE);
 		}
 
-		TIM_Cmd(s_timer->dma->timer, ENABLE);
 		DMA_Cmd(s_timer->dma->stream, ENABLE);
 	}
 }
