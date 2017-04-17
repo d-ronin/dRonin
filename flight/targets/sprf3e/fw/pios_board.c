@@ -309,24 +309,22 @@ void PIOS_Board_Init(void)
 	PIOS_WDG_Clear();
 #endif
 
-#if defined(PIOS_INCLUDE_MPU9250_SPI)
-#if !defined(PIOS_INCLUDE_SPI)
-	#error MPU9250_SPI requires SPI
-#endif
+#if defined(PIOS_INCLUDE_MPU)
 	uint8_t hw_mag;
 	uint8_t hw_orientation;
 	HwSprf3eMagnetometerGet(&hw_mag);
 	HwSprf3eExtMagOrientationGet(&hw_orientation);
 
+	// XXX TODO MIXING ENUMS HERE NOT SAFE/CORRECT
 	switch(hw_mag) {
 		case HWSPRF3E_MAGNETOMETER_INTERNAL:
-			pios_mpu9250_cfg.use_magnetometer=true;
+			pios_mpu_cfg.use_internal_mag=true;
 			break;
 		case HWSPRF3E_MAGNETOMETER_NONE:
-			pios_mpu9250_cfg.use_magnetometer=false;
+			pios_mpu_cfg.use_internal_mag=false;
 			break;
 		case HWSHARED_MAG_EXTERNALHMC5883:
-			pios_mpu9250_cfg.use_magnetometer=false;
+			pios_mpu_cfg.use_internal_mag=false;
 #if defined(PIOS_INCLUDE_I2C)
 			PIOS_WDG_Clear();
 			if (PIOS_HAL_ConfigureExternalMag(hw_mag, hw_orientation,
@@ -338,7 +336,7 @@ void PIOS_Board_Init(void)
 #endif // PIOS_INCLUDE_I2C
 			break;
 		case HWSHARED_MAG_EXTERNALHMC5983:
-			pios_mpu9250_cfg.use_magnetometer=false;
+			pios_mpu_cfg.use_internal_mag=false;
 #ifdef PIOS_INCLUDE_HMC5983_I2C
 			PIOS_WDG_Clear();
 			if (PIOS_HAL_ConfigureExternalMag(hw_mag, hw_orientation,
@@ -351,72 +349,57 @@ void PIOS_Board_Init(void)
 			break;
 	}
 
-	if (PIOS_MPU9250_SPI_Init(pios_spi_gyro_id, 0, &pios_mpu9250_cfg) != 0)
+	pios_mpu_dev_t mpu_dev = NULL;
+	if (PIOS_MPU_SPI_Init(&mpu_dev, pios_spi_gyro_id, 0, &pios_mpu_cfg) != 0)
 		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 
-	// To be safe map from UAVO enum to driver enum
-	uint8_t hw_gyro_range;
+	HwSprf3eGyroRangeOptions hw_gyro_range;
 	HwSprf3eGyroRangeGet(&hw_gyro_range);
+
 	switch(hw_gyro_range) {
 		case HWSPRF3E_GYRORANGE_250:
-			PIOS_MPU9250_SetGyroRange(PIOS_MPU60X0_SCALE_250_DEG);
+			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_250_DEG);
 			break;
 		case HWSPRF3E_GYRORANGE_500:
-			PIOS_MPU9250_SetGyroRange(PIOS_MPU60X0_SCALE_500_DEG);
+			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_500_DEG);
 			break;
 		case HWSPRF3E_GYRORANGE_1000:
-			PIOS_MPU9250_SetGyroRange(PIOS_MPU60X0_SCALE_1000_DEG);
+			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_1000_DEG);
 			break;
 		case HWSPRF3E_GYRORANGE_2000:
-			PIOS_MPU9250_SetGyroRange(PIOS_MPU60X0_SCALE_2000_DEG);
+			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_2000_DEG);
 			break;
 	}
 
-	uint8_t hw_accel_range;
+	HwSprf3eAccelRangeOptions hw_accel_range;
 	HwSprf3eAccelRangeGet(&hw_accel_range);
 	switch(hw_accel_range) {
 		case HWSPRF3E_ACCELRANGE_2G:
-			PIOS_MPU9250_SetAccelRange(PIOS_MPU60X0_ACCEL_2G);
+			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_2G);
 			break;
 		case HWSPRF3E_ACCELRANGE_4G:
-			PIOS_MPU9250_SetAccelRange(PIOS_MPU60X0_ACCEL_4G);
+			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_4G);
 			break;
 		case HWSPRF3E_ACCELRANGE_8G:
-			PIOS_MPU9250_SetAccelRange(PIOS_MPU60X0_ACCEL_8G);
+			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_8G);
 			break;
 		case HWSPRF3E_ACCELRANGE_16G:
-			PIOS_MPU9250_SetAccelRange(PIOS_MPU60X0_ACCEL_16G);
+			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_16G);
 			break;
 	}
 
-	// the filter has to be set before rate else divisor calculation will fail
-	uint8_t hw_mpu9250_dlpf;
-	HwSprf3eMPU9250GyroLPFGet(&hw_mpu9250_dlpf);
-	enum pios_mpu9250_gyro_filter mpu9250_gyro_lpf = \
-		(hw_mpu9250_dlpf == HWSPRF3E_MPU9250GYROLPF_184) ? PIOS_MPU9250_GYRO_LOWPASS_184_HZ : \
-		(hw_mpu9250_dlpf == HWSPRF3E_MPU9250GYROLPF_92) ? PIOS_MPU9250_GYRO_LOWPASS_92_HZ : \
-		(hw_mpu9250_dlpf == HWSPRF3E_MPU9250GYROLPF_41) ? PIOS_MPU9250_GYRO_LOWPASS_41_HZ : \
-		(hw_mpu9250_dlpf == HWSPRF3E_MPU9250GYROLPF_20) ? PIOS_MPU9250_GYRO_LOWPASS_20_HZ : \
-		(hw_mpu9250_dlpf == HWSPRF3E_MPU9250GYROLPF_10) ? PIOS_MPU9250_GYRO_LOWPASS_10_HZ : \
-		(hw_mpu9250_dlpf == HWSPRF3E_MPU9250GYROLPF_5) ? PIOS_MPU9250_GYRO_LOWPASS_5_HZ : \
-		pios_mpu9250_cfg.default_gyro_filter;
-	PIOS_MPU9250_SetGyroLPF(mpu9250_gyro_lpf);
-
-	HwSprf3eMPU9250AccelLPFGet(&hw_mpu9250_dlpf);
-	enum pios_mpu9250_accel_filter mpu9250_accel_lpf = \
-		(hw_mpu9250_dlpf == HWSPRF3E_MPU9250ACCELLPF_460) ? PIOS_MPU9250_ACCEL_LOWPASS_460_HZ : \
-		(hw_mpu9250_dlpf == HWSPRF3E_MPU9250ACCELLPF_184) ? PIOS_MPU9250_ACCEL_LOWPASS_184_HZ : \
-		(hw_mpu9250_dlpf == HWSPRF3E_MPU9250ACCELLPF_92) ? PIOS_MPU9250_ACCEL_LOWPASS_92_HZ : \
-		(hw_mpu9250_dlpf == HWSPRF3E_MPU9250ACCELLPF_41) ? PIOS_MPU9250_ACCEL_LOWPASS_41_HZ : \
-		(hw_mpu9250_dlpf == HWSPRF3E_MPU9250ACCELLPF_20) ? PIOS_MPU9250_ACCEL_LOWPASS_20_HZ : \
-		(hw_mpu9250_dlpf == HWSPRF3E_MPU9250ACCELLPF_10) ? PIOS_MPU9250_ACCEL_LOWPASS_10_HZ : \
-		(hw_mpu9250_dlpf == HWSPRF3E_MPU9250ACCELLPF_5) ? PIOS_MPU9250_ACCEL_LOWPASS_5_HZ : \
-		pios_mpu9250_cfg.default_accel_filter;
-	PIOS_MPU9250_SetAccelLPF(mpu9250_accel_lpf);
-#endif /* PIOS_INCLUDE_MPU9250_SPI */
-
-	//I2C is slow, sensor init as well, reset watchdog to prevent reset here
-	PIOS_WDG_Clear();
+	HwSprf3eMPU9250GyroLPFOptions hw_mpu_dlpf;
+	HwSprf3eMPU9250GyroLPFGet(&hw_mpu_dlpf);
+	uint16_t bandwidth = \
+		(hw_mpu_dlpf == HWSPRF3E_MPU9250GYROLPF_184) ? 184 : \
+		(hw_mpu_dlpf == HWSPRF3E_MPU9250GYROLPF_92)  ? 92  : \
+		(hw_mpu_dlpf == HWSPRF3E_MPU9250GYROLPF_41)  ? 41  : \
+		(hw_mpu_dlpf == HWSPRF3E_MPU9250GYROLPF_20)  ? 20  : \
+		(hw_mpu_dlpf == HWSPRF3E_MPU9250GYROLPF_10)  ? 10  : \
+		(hw_mpu_dlpf == HWSPRF3E_MPU9250GYROLPF_5)   ? 5   : \
+		188;
+	PIOS_MPU_SetGyroBandwidth(bandwidth);
+#endif
 
 	//I2C is slow, sensor init as well, reset watchdog to prevent reset here
 	PIOS_WDG_Clear();

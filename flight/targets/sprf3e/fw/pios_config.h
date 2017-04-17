@@ -41,8 +41,8 @@
 #define WDG_STATS_DIAGNOSTICS
 
 /* Select the sensors to include */
-#define PIOS_INCLUDE_MPU9250_SPI
-//#define PIOS_MPU6000_ACCEL
+#define PIOS_INCLUDE_MPU
+#define PIOS_INCLUDE_MPU_MAG
 #define PIOS_INCLUDE_BMP280
 #define PIOS_INCLUDE_HMC5883
 #define PIOS_INCLUDE_HMC5983_I2C
