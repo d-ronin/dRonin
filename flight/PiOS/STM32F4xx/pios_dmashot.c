@@ -43,7 +43,6 @@ union dma_buffer {
 
 // Internal structure for timer and DShot configuration.
 struct servo_timer {
-	TIM_TypeDef *timer;                                                             // What timer
 	uint32_t sysclock;                                                              // Flava Flav! Timer's clock frequency.
 
 	const struct pios_dmashot_timer_cfg *dma;                                       // DMA config
@@ -118,7 +117,7 @@ static inline uint16_t PIOS_DMAShot_GetEventSource(uint8_t c)
 static inline bool PIOS_DMAShot_HalfWord(struct servo_timer *s_timer)
 {
 	// In STM32F4 and STM32L4, these two are 32-bit, the rest is 16-bit.
-	return (s_timer->timer == TIM2 || s_timer->timer == TIM5 ? false : true);
+	return (s_timer->dma->timer == TIM2 || s_timer->dma->timer == TIM5 ? false : true);
 }
 
 static uint32_t PIOS_DMAShot_GetPeripheralBase(TIM_TypeDef *timer, uint8_t c)
@@ -186,10 +185,10 @@ static struct servo_timer *PIOS_DMAShot_GetServoTimer(const struct pios_tim_chan
 
 	for (int i = 0; i < MAX_TIMERS; i++) {
 		struct servo_timer *s_timer = servo_timers[i];
-		if (!s_timer || !s_timer->timer || !s_timer->sysclock)
+		if (!s_timer || !s_timer->sysclock)
 			continue;
 
-		if (s_timer->timer == servo_channel->timer) return s_timer;
+		if (s_timer->dma->timer == servo_channel->timer) return s_timer;
 	}
 
 	return NULL;
@@ -276,7 +275,7 @@ bool PIOS_DMAShot_RegisterTimer(TIM_TypeDef *timer, uint32_t clockrate, uint32_t
 
 	bool found = false;
 	for (int i = 0; i < MAX_TIMERS; i++) {
-		if (servo_timers[i] && servo_timers[i]->timer == timer) {
+		if (servo_timers[i] && servo_timers[i]->dma->timer == timer) {
 			s_timer = servo_timers[i];
 			found = true;
 			break;
@@ -301,7 +300,6 @@ bool PIOS_DMAShot_RegisterTimer(TIM_TypeDef *timer, uint32_t clockrate, uint32_t
 	// Why are we trying to register more than MAX_TIMERS, anyway?
 	PIOS_Assert(s_timer);
 
-	s_timer->timer = timer;
 	s_timer->sysclock = clockrate;
 	s_timer->dshot_freq = dshot_freq;
 	s_timer->dma = dma_config;
@@ -353,13 +351,13 @@ void PIOS_DMAShot_Validate()
 
 	for (int i = 0; i < MAX_TIMERS; i++) {
 		struct servo_timer *s_timer = servo_timers[i];
-		if (!s_timer || !s_timer->timer)
+		if (!s_timer || !s_timer->sysclock)
 			continue;
 
 		// If after servo "registration" there's a low channel higher than the high
 		// one, something went wrong, lets ignore the timer.
 		if (s_timer->low_channel > s_timer->high_channel) {
-			s_timer->timer = NULL;
+			s_timer->sysclock = 0;
 		}
 	}
 }
@@ -376,7 +374,7 @@ void PIOS_DMAShot_InitializeGPIOs()
 		for (int j = 0; j < 4; j++) {
 
 			struct servo_timer *s_timer = servo_timers[i];
-			if (!s_timer || !s_timer->timer || !s_timer->sysclock)
+			if (!s_timer || !s_timer->sysclock)
 				continue;
 
 			const struct pios_tim_channel *servo_channel = s_timer->servo_channels[j];
@@ -435,20 +433,18 @@ void PIOS_DMAShot_InitializeTimers(TIM_OCInitTypeDef *ocinit)
 	for (int i = 0; i < MAX_TIMERS; i++) {
 
 		struct servo_timer *s_timer = servo_timers[i];
-		if (!s_timer || !s_timer->timer || !s_timer->sysclock)
+		if (!s_timer || !s_timer->sysclock)
 			continue;
 
-		if (s_timer->timer) {
-			PIOS_DMAShot_TimerSetup(s_timer->timer, s_timer->sysclock, s_timer->dshot_freq, ocinit);
+		PIOS_DMAShot_TimerSetup(s_timer->dma->timer, s_timer->sysclock, s_timer->dshot_freq, ocinit);
 
-			int f = s_timer->sysclock / s_timer->dshot_freq;
+		int f = s_timer->sysclock / s_timer->dshot_freq;
 
-			s_timer->duty_cycle_0 = f * DSHOT_DUTY_CYCLE_0 / 100;
-			s_timer->duty_cycle_1 = f * DSHOT_DUTY_CYCLE_1 / 100;
+		s_timer->duty_cycle_0 = f * DSHOT_DUTY_CYCLE_0 / 100;
+		s_timer->duty_cycle_1 = f * DSHOT_DUTY_CYCLE_1 / 100;
 
-			if (s_timer->dma->master_timer)
-				PIOS_DMAShot_TimerSetup(s_timer->dma->master_timer, s_timer->sysclock, s_timer->dshot_freq, ocinit);
-		}
+		if (s_timer->dma->master_timer)
+			PIOS_DMAShot_TimerSetup(s_timer->dma->master_timer, s_timer->sysclock, s_timer->dshot_freq, ocinit);
 	}
 }
 
@@ -465,9 +461,9 @@ static void PIOS_DMAShot_DMASetup(struct servo_timer *s_timer)
 	dma.DMA_Channel = s_timer->dma->channel;
 	dma.DMA_Memory0BaseAddr = (uint32_t)s_timer->buffer.ptr;
 	if (s_timer->dma->master_timer) {
-		dma.DMA_PeripheralBaseAddr = PIOS_DMAShot_GetPeripheralBase(s_timer->timer, s_timer->dma->master_config);
+		dma.DMA_PeripheralBaseAddr = PIOS_DMAShot_GetPeripheralBase(s_timer->dma->timer, s_timer->dma->master_config);
 	} else {
-		dma.DMA_PeripheralBaseAddr = (uint32_t)(&s_timer->timer->DMAR);
+		dma.DMA_PeripheralBaseAddr = (uint32_t)(&s_timer->dma->timer->DMAR);
 	}
 
 	if (PIOS_DMAShot_HalfWord(s_timer)) {
@@ -509,10 +505,11 @@ void PIOS_DMAShot_InitializeDMAs()
 
 	for (int i = 0; i < MAX_TIMERS; i++) {
 		struct servo_timer *s_timer = servo_timers[i];
-		if (!s_timer || !s_timer->timer || !s_timer->sysclock)
+		if (!s_timer || !s_timer->sysclock)
 			continue;
 
 		if (!s_timer->buffer.ptr) {
+			// Allocate buffer at timer resolution.
 			if (PIOS_DMAShot_HalfWord(s_timer)) {
 				s_timer->buffer.ptr =
 						PIOS_malloc(PIOS_DMAShot_GetNumChannels(s_timer) * DMASHOT_STM32_BUFFER * sizeof(uint16_t));
@@ -538,7 +535,7 @@ void PIOS_DMAShot_TriggerUpdate()
 
 	for (int i = 0; i < MAX_TIMERS; i++) {
 		struct servo_timer *s_timer = servo_timers[i];
-		if (!s_timer || !s_timer->timer || !s_timer->sysclock)
+		if (!s_timer || !s_timer->sysclock)
 			continue;
 
 		DMA_Cmd(s_timer->dma->stream, DISABLE);
@@ -550,12 +547,12 @@ void PIOS_DMAShot_TriggerUpdate()
 					DISABLE);
 			TIM_Cmd(s_timer->dma->master_timer, DISABLE);
 		} else {
-			TIM_DMACmd(s_timer->timer, TIM_DMA_Update, DISABLE);
+			TIM_DMACmd(s_timer->dma->timer, TIM_DMA_Update, DISABLE);
 		}
 
-		TIM_Cmd(s_timer->timer, DISABLE);
+		TIM_Cmd(s_timer->dma->timer, DISABLE);
 
-		TIM_SetCounter(s_timer->timer, 0);
+		TIM_SetCounter(s_timer->dma->timer, 0);
 		DMA_ClearFlag(s_timer->dma->stream, s_timer->dma->tcif);
 		DMA_SetCurrDataCounter(s_timer->dma->stream, PIOS_DMAShot_GetNumChannels(s_timer) * DMASHOT_STM32_BUFFER);
 	}
@@ -563,7 +560,7 @@ void PIOS_DMAShot_TriggerUpdate()
 	// Re-enable the timers and DMA in a separate loop, to make the signals line up better.
 	for (int i = 0; i < MAX_TIMERS; i++) {
 		struct servo_timer *s_timer = servo_timers[i];
-		if (!s_timer || !s_timer->timer || !s_timer->sysclock)
+		if (!s_timer || !s_timer->sysclock)
 			continue;
 
 		if (s_timer->dma->master_timer) {
@@ -574,12 +571,12 @@ void PIOS_DMAShot_TriggerUpdate()
 		} else {
 			int offset = s_timer->low_channel >> 2;
 			int transfers = (s_timer->high_channel - s_timer->low_channel) >> 2;
-			TIM_DMAConfig(s_timer->timer, TIM_DMABase_CCR1 + offset, transfers << 8);
+			TIM_DMAConfig(s_timer->dma->timer, TIM_DMABase_CCR1 + offset, transfers << 8);
 
-			TIM_DMACmd(s_timer->timer, TIM_DMA_Update, ENABLE);
+			TIM_DMACmd(s_timer->dma->timer, TIM_DMA_Update, ENABLE);
 		}
 
-		TIM_Cmd(s_timer->timer, ENABLE);
+		TIM_Cmd(s_timer->dma->timer, ENABLE);
 		DMA_Cmd(s_timer->dma->stream, ENABLE);
 	}
 }
@@ -595,7 +592,7 @@ bool PIOS_DMAShot_IsReady()
 
 	for (int i = 0; i < MAX_TIMERS; i++) {
 		struct servo_timer *s_timer = servo_timers[i];
-		if (s_timer && s_timer->timer && s_timer->sysclock) return true;
+		if (s_timer && s_timer->sysclock) return true;
 	}
 
 	return false;
