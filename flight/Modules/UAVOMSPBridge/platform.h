@@ -5,12 +5,14 @@
 #include <pios_thread.h>
 
 #ifdef PIOS_INCLUDE_4WAY
+
+#include <pios_dio.h>
+
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
 #define MAX_SUPPORTED_MOTORS 8
 
-// XXX
-typedef void *IO_t;
+typedef dio_tag_t IO_t;
 
 typedef struct serialPort_s serialPort_t;
 typedef int ioConfig_t;
@@ -27,7 +29,6 @@ typedef struct {
 	IO_t io;
 } pwmOutputPort_t;
 
-// XXX
 #define IOCFG_IPU 0
 #define IOCFG_OUT_PP 1
 #define IOCFG_AF_PP 2
@@ -37,37 +38,29 @@ typedef struct {
  */
 static inline bool IORead(IO_t io)
 {
-	return (GPIOB->IDR & GPIO_Pin_4) != 0;
+	return dio_read(io);
 }
 
 static inline void IOLo(IO_t io)
 {
-	GPIOB->BSRRH = GPIO_Pin_4;
+	dio_low(io);
 }
 
 static inline void IOHi(IO_t io)
 {
-	GPIOB->BSRRL = GPIO_Pin_4;
+	dio_high(io);
 }
 
 static inline void IOConfigGPIO(IO_t io, ioConfig_t cfg)
 {
-	GPIO_InitTypeDef settings = {
-		.GPIO_Pin = GPIO_Pin_4,
-		.GPIO_Speed = GPIO_Speed_50MHz,
-		.GPIO_OType = GPIO_OType_PP,
-		.GPIO_PuPd = GPIO_PuPd_UP
-	};
-
 	if (cfg) {
-		settings.GPIO_Mode = GPIO_Mode_OUT;
+		dio_set_output(io, false, DIO_DRIVE_MEDIUM, true);
 	} else {
-		settings.GPIO_Mode = GPIO_Mode_IN;
+		dio_set_input(io, DIO_PULL_UP);
 	}
-
-	GPIO_Init(GPIOB, &settings);
 }
 
+// Handled by the layer above-- the UAVO MSP Bridge-- in our code
 static inline void pwmDisableMotors(void)
 {
 }
@@ -76,11 +69,26 @@ static inline void pwmEnableMotors(void)
 {
 }
 
-static pwmOutputPort_t pwm_tmp[MAX_SUPPORTED_MOTORS] = { { .enabled = 1, .io="hi"} };
 
 static inline pwmOutputPort_t *pwmGetMotors(void)
 {
-	return pwm_tmp;
+	static pwmOutputPort_t pwm_val[MAX_SUPPORTED_MOTORS];
+	dio_tag_t dios_tmp[MAX_SUPPORTED_MOTORS];
+	int num_mot = PIOS_Servo_GetPins(dios_tmp, MAX_SUPPORTED_MOTORS);
+
+	int i;
+
+	for (i = 0; i < num_mot; i++) {
+		pwm_val[i].enabled = true;
+		pwm_val[i].io = dios_tmp[i];
+	}
+
+	for (; i < MAX_SUPPORTED_MOTORS; i++) {
+		pwm_val[i].enabled = false;
+		pwm_val[i].io = IO_NONE;
+	}
+
+	return pwm_val;
 }
 
 /* Trivial wrappers on top of current delay mechanisms */
