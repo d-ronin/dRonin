@@ -165,7 +165,7 @@ void PIOS_DMAShot_Prepare()
 			servo_timers = PIOS_malloc_no_dma(sizeof(struct servo_timer*) * MAX_TIMERS);
 			PIOS_Assert(servo_timers);
 
-			memset(servo_timers, 0, sizeof(struct servo_timer) * MAX_TIMERS);
+			memset(servo_timers, 0, sizeof(struct servo_timer*) * MAX_TIMERS);
 		}
 		for (int i = 0; i < MAX_TIMERS; i++) {
 			if (servo_timers[i]) {
