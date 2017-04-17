@@ -43,20 +43,6 @@
 #define DMASHOT_600                                             600000
 #define DMASHOT_1200                                            1200000
 
-// Which register to target in master-slave mode.
-#define DMASHOT_REG_CCR1                                        0x01
-#define DMASHOT_REG_CCR2                                        0x02
-#define DMASHOT_REG_CCR3                                        0x03
-#define DMASHOT_REG_CCR4                                        0x04
-
-// Which DMA event source to use in master-slave mode. Make sure the proper
-// DMA channel and stream are selected, too.
-#define DMASHOT_EVENTSOURCE_UP                                  0x10
-#define DMASHOT_EVENTSOURCE_CCR1                                0x20
-#define DMASHOT_EVENTSOURCE_CCR2                                0x30
-#define DMASHOT_EVENTSOURCE_CCR3                                0x40
-#define DMASHOT_EVENTSOURCE_CCR4                                0x50
-
 /**
  * @brief Configuration struct to assign a DMA channel and stream to a timer, and
                         optionally specify a master timer to update single timer registers of
@@ -70,7 +56,7 @@ struct pios_dmashot_timer_cfg {
 	uint32_t tcif;
 
 	TIM_TypeDef *master_timer;
-	uint8_t master_config;
+	uint16_t master_config;
 
 };
 

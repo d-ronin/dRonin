@@ -95,45 +95,11 @@ static inline int PIOS_DMAShot_GetFIFOCadence(int num_chan)
 	}
 }
 
-static inline uint16_t PIOS_DMAShot_GetEventSource(uint8_t c)
-{
-	switch (c & 0xF0)
-	{
-	default:
-	case DMASHOT_EVENTSOURCE_UP:
-		return TIM_DMA_Update;
-	case DMASHOT_EVENTSOURCE_CCR1:
-		return TIM_DMA_CC1;
-	case DMASHOT_EVENTSOURCE_CCR2:
-		return TIM_DMA_CC2;
-	case DMASHOT_EVENTSOURCE_CCR3:
-		return TIM_DMA_CC3;
-	case DMASHOT_EVENTSOURCE_CCR4:
-		return TIM_DMA_CC4;
-	}
-}
-
 // Whether a timer is 16- or 32-bit.
 static inline bool PIOS_DMAShot_HalfWord(struct servo_timer *s_timer)
 {
 	// In STM32F4 and STM32L4, these two are 32-bit, the rest is 16-bit.
 	return (s_timer->dma->timer == TIM2 || s_timer->dma->timer == TIM5 ? false : true);
-}
-
-static uint32_t PIOS_DMAShot_GetPeripheralBase(TIM_TypeDef *timer, uint8_t c)
-{
-	switch (c & 0x0F)
-	{
-	default:
-	case DMASHOT_REG_CCR1:
-		return (uint32_t)&timer->CCR1;
-	case DMASHOT_REG_CCR2:
-		return (uint32_t)&timer->CCR2;
-	case DMASHOT_REG_CCR3:
-		return (uint32_t)&timer->CCR3;
-	case DMASHOT_REG_CCR4:
-		return (uint32_t)&timer->CCR4;
-	}
 }
 
 static int PIOS_DMAShot_GetNumChannels(struct servo_timer *timer)
@@ -475,7 +441,9 @@ static void PIOS_DMAShot_DMASetup(struct servo_timer *s_timer)
 	dma.DMA_Channel = s_timer->dma->channel;
 	dma.DMA_Memory0BaseAddr = (uint32_t)s_timer->buffer.ptr;
 	if (s_timer->dma->master_timer) {
-		dma.DMA_PeripheralBaseAddr = PIOS_DMAShot_GetPeripheralBase(s_timer->dma->timer, s_timer->dma->master_config);
+		// The DMABase shift is in count of 32-bit registers. 16-bit registers are padded with 16-bit reserved ones,
+		// and thus defacto 32-bit.
+		dma.DMA_PeripheralBaseAddr = ((uint32_t)&s_timer->dma->timer->CR1) + ((s_timer->dma->master_config & 0x00FF) << 2);
 	} else {
 		dma.DMA_PeripheralBaseAddr = (uint32_t)(&s_timer->dma->timer->DMAR);
 	}
@@ -557,7 +525,8 @@ void PIOS_DMAShot_TriggerUpdate()
 
 		if (s_timer->dma->master_timer) {
 			TIM_DMACmd(s_timer->dma->master_timer,
-					PIOS_DMAShot_GetEventSource(s_timer->dma->master_config),
+					// This results in a typical event source value
+					s_timer->dma->master_config & 0xFF00,
 					DISABLE);
 			TIM_Cmd(s_timer->dma->master_timer, DISABLE);
 		} else {
@@ -579,7 +548,8 @@ void PIOS_DMAShot_TriggerUpdate()
 
 		if (s_timer->dma->master_timer) {
 			TIM_DMACmd(s_timer->dma->master_timer,
-					PIOS_DMAShot_GetEventSource(s_timer->dma->master_config),
+					// This results in a typical event source value
+					s_timer->dma->master_config & 0xFF00,
 					ENABLE);
 			TIM_Cmd(s_timer->dma->master_timer, ENABLE);
 		} else {
