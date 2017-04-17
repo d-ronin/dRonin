@@ -180,6 +180,7 @@ bool PIOS_DMAShot_WriteValue(const struct pios_tim_channel *servo_channel, uint1
 	// Wriiiiiiiiiiiiiiiite!
 
 	int shift = (servo_channel->timer_chan - s_timer->low_channel) >> 2;
+	int channels = PIOS_DMAShot_GetNumChannels(s_timer);
 
 	if (throttle > 2047)
 		throttle = 2047;
@@ -192,7 +193,7 @@ bool PIOS_DMAShot_WriteValue(const struct pios_tim_channel *servo_channel, uint1
 
 	// Leading zero, trailing zero.
 	for (int i = DMASHOT_MESSAGE_PAUSE; i < DMASHOT_MESSAGE_WIDTH+DMASHOT_MESSAGE_PAUSE; i++) {
-		int addr = i * PIOS_DMAShot_GetNumChannels(s_timer) + shift;
+		int addr = i * channels + shift;
 		if (PIOS_DMAShot_HalfWord(s_timer)) {
 			s_timer->buffer.hw[addr] = throttle & 0x8000 ? s_timer->duty_cycle_1 : s_timer->duty_cycle_0;
 		} else {
