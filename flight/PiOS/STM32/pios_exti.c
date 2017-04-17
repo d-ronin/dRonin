@@ -10,6 +10,7 @@
  * @file       pios_exti.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
+ * @author     dRonin, http://dRonin.org, Copyright (C) 2017
  * @brief      External Interrupt Handlers
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -70,7 +71,7 @@ static uint8_t PIOS_EXTI_line_to_index(uint32_t line)
 	return 0xFF;
 }
 
-uint8_t PIOS_EXTI_gpio_port_to_exti_source_port(GPIO_TypeDef * gpio_port)
+static uint8_t PIOS_EXTI_gpio_port_to_exti_source_port(GPIO_TypeDef * gpio_port)
 {
 	switch ((uint32_t)gpio_port) {
 #ifdef STM32F10X_MD
@@ -100,7 +101,7 @@ uint8_t PIOS_EXTI_gpio_port_to_exti_source_port(GPIO_TypeDef * gpio_port)
 	return 0xFF;
 }
 
-uint8_t PIOS_EXTI_gpio_pin_to_exti_source_pin(uint32_t gpio_pin)
+static uint8_t PIOS_EXTI_gpio_pin_to_exti_source_pin(uint32_t gpio_pin)
 {
 	switch ((uint32_t)gpio_pin) {
 	case GPIO_Pin_0: return (GPIO_PinSource0);
