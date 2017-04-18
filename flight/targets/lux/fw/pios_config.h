@@ -53,6 +53,7 @@
 
 /* Flags that alter behaviors - mostly to lower resources for CC */
 #define AUTOTUNE_AVERAGING_MODE
+#define AUTOTUNE_AVERAGING_DECIMATION 2
 
 /* Alarm Thresholds */
 
