@@ -245,10 +245,10 @@ static void compute_one_mixer(int i,
 			// Ensure unused types are zero-filled
 			motor_mixer[i+j] = 0;
 		}
-	}
-
-	for (int j = 0; j < MIXERSETTINGS_MIXER1VECTOR_NUMELEM; j++) {
-		motor_mixer[i+j] = (*vals)[j] * (1.0f / MIXER_SCALE);
+	} else {
+		for (int j = 0; j < MIXERSETTINGS_MIXER1VECTOR_NUMELEM; j++) {
+			motor_mixer[i+j] = (*vals)[j] * (1.0f / MIXER_SCALE);
+		}
 	}
 }
 
