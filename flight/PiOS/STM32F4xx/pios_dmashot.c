@@ -163,16 +163,16 @@ static struct servo_timer *PIOS_DMAShot_GetServoTimer(const struct pios_tim_chan
  * @param[in] throttle The desired throttle value (0-2047).
  * @retval TRUE on success, FALSE if the channel's not set up for DMA.
  */
-bool PIOS_DMAShot_WriteValue(const struct pios_tim_channel *servo_channel, uint16_t throttle)
+void PIOS_DMAShot_WriteValue(const struct pios_tim_channel *servo_channel, uint16_t throttle)
 {
 	// Fail hard if trying to write values without configured DMAShot. We shouldn't be getting to
 	// this point in that case.
 	PIOS_Assert(dmashot_cfg);
 
-	// Can't find a matching timer, tell upstream to use GPIO.
+	// If we can't find a timer for this, something's wrong. We shouldn't be getting to this point.
+	// Fail hard.
 	struct servo_timer *s_timer = PIOS_DMAShot_GetServoTimer(servo_channel);
-	if (!s_timer)
-		return false;
+	PIOS_Assert(s_timer);
 
 	int shift = (servo_channel->timer_chan - s_timer->low_channel) >> 2;
 	int channels = PIOS_DMAShot_GetNumChannels(s_timer);
@@ -196,8 +196,6 @@ bool PIOS_DMAShot_WriteValue(const struct pios_tim_channel *servo_channel, uint1
 		}
 		throttle <<= 1;
 	}
-
-	return true;
 }
 
 /**

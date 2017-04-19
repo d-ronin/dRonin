@@ -83,7 +83,7 @@ void PIOS_DMAShot_InitializeTimers(TIM_OCInitTypeDef *ocinit);
 void PIOS_DMAShot_InitializeDMAs();
 void PIOS_DMAShot_Validate();
 
-bool PIOS_DMAShot_WriteValue(const struct pios_tim_channel *servo_channel, uint16_t throttle);
+void PIOS_DMAShot_WriteValue(const struct pios_tim_channel *servo_channel, uint16_t throttle);
 
 void PIOS_DMAShot_TriggerUpdate();
 
