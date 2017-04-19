@@ -76,22 +76,6 @@ struct servo_timer {
 const struct pios_dmashot_cfg *dmashot_cfg;
 struct servo_timer **servo_timers;
 
-static inline int PIOS_DMAShot_GetFIFOCadence(int num_chan)
-{
-	switch (num_chan)
-	{
-	default:
-	case 1:
-		return DMA_FIFOThreshold_1QuarterFull;
-	case 2:
-		return DMA_FIFOThreshold_HalfFull;
-	case 3:
-		return DMA_FIFOThreshold_3QuartersFull;
-	case 4:
-		return DMA_FIFOThreshold_Full;
-	}
-}
-
 // Whether a timer is 16- or 32-bit wide.
 static inline bool PIOS_DMAShot_HalfWord(struct servo_timer *s_timer)
 {
@@ -469,8 +453,7 @@ static void PIOS_DMAShot_DMASetup(struct servo_timer *s_timer)
 	dma.DMA_MemoryBurst = DMA_MemoryBurst_Single;
 	dma.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
 
-	dma.DMA_FIFOMode = DMA_FIFOMode_Enable;
-	dma.DMA_FIFOThreshold = PIOS_DMAShot_GetFIFOCadence(PIOS_DMAShot_GetNumChannels(s_timer));
+	dma.DMA_FIFOMode = DMA_FIFOMode_Disable;
 
 	DMA_Init(s_timer->dma->stream, &dma);
 
