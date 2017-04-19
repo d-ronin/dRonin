@@ -80,50 +80,13 @@ UAVTalkConnection UAVTalkInitialize(UAVTalkOutputStream outputStream)
 }
 
 /**
- * Set the communication output stream
- * \param[in] connection UAVTalkConnection to be used
- * \param[in] outputStream Function pointer that is called to send a data buffer
- * \return 0 Success
- * \return -1 Failure
- */
-int32_t UAVTalkSetOutputStream(UAVTalkConnection connectionHandle, UAVTalkOutputStream outputStream)
-{
-
-	UAVTalkConnectionData *connection;
-	CHECKCONHANDLE(connectionHandle,connection,return -1);
-
-	// Lock
-	PIOS_Recursive_Mutex_Lock(connection->lock, PIOS_MUTEX_TIMEOUT_MAX);
-
-	// set output stream
-	connection->outStream = outputStream;
-
-	// Release lock
-	PIOS_Recursive_Mutex_Unlock(connection->lock);
-
-	return 0;
-
-}
-
-/**
- * Get current output stream
- * \param[in] connection UAVTalkConnection to be used
- * @return UAVTarlkOutputStream the output stream used
- */
-UAVTalkOutputStream UAVTalkGetOutputStream(UAVTalkConnection connectionHandle)
-{
-	UAVTalkConnectionData *connection;
-	CHECKCONHANDLE(connectionHandle,connection,return NULL);
-	return connection->outStream;
-}
-
-/**
  * Get communication statistics counters
  * \param[in] connection UAVTalkConnection to be used
  * @param[out] statsOut Statistics counters
  */
 void UAVTalkGetStats(UAVTalkConnection connectionHandle, UAVTalkStats* statsOut)
 {
+	// XXX Get/reset need to be atomic for telemetry's use to make sense
 	UAVTalkConnectionData *connection;
 	CHECKCONHANDLE(connectionHandle,connection,return );
 
@@ -817,6 +780,8 @@ static int32_t receiveObject(UAVTalkConnectionData *connection, uint8_t type, ui
 			sendObject(connection, obj, instId, UAVTALK_TYPE_OBJ);
 		break;
 	case UAVTALK_TYPE_NACK:
+		// XXX can treat a NACK like an ACK; ground has done all it wants
+		// with it.
 		// Do nothing on flight side, let it time out.
 		break;
 	case UAVTALK_TYPE_ACK:
