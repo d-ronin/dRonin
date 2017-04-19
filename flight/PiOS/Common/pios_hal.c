@@ -670,20 +670,47 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 
 	case HWSHARED_PORTTYPES_FRSKYSENSORHUB:
 #if defined(PIOS_INCLUDE_FRSKY_SENSOR_HUB)
-		usart_port_params.init.USART_BaudRate            = 57600;
+		usart_port_params.init.USART_BaudRate            = 9600;
 		usart_port_params.init.USART_WordLength          = USART_WordLength_8b;
 		usart_port_params.init.USART_Parity              = USART_Parity_No;
 		usart_port_params.init.USART_StopBits            = USART_StopBits_1;
 		usart_port_params.init.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
 		usart_port_params.init.USART_Mode                = USART_Mode_Tx;
 
+#if defined(STM32F30X)
+		// F3 has internal inverters and can switch rx/tx pins
 		usart_port_params.rx_invert   = false;
 		usart_port_params.tx_invert   = true;
 		usart_port_params.single_wire = false;
+#endif // STM32F30X
 
 		PIOS_HAL_ConfigureCom(usart_port_cfg, &usart_port_params, 0, PIOS_COM_FRSKYSENSORHUB_TX_BUF_LEN, com_driver, &port_driver_id);
 		target = &pios_com_frsky_sensor_hub_id;
 		PIOS_Modules_Enable(PIOS_MODULE_UAVOFRSKYSENSORHUBBRIDGE);
+#endif /* PIOS_INCLUDE_FRSKY_SENSOR_HUB */
+		break;
+
+	case HWSHARED_PORTTYPES_FRSKYSENSORHUBGPSRX:
+#if defined(PIOS_INCLUDE_FRSKY_SENSOR_HUB)
+		usart_port_params.init.USART_BaudRate            = 9600;
+		usart_port_params.init.USART_WordLength          = USART_WordLength_8b;
+		usart_port_params.init.USART_Parity              = USART_Parity_No;
+		usart_port_params.init.USART_StopBits            = USART_StopBits_1;
+		usart_port_params.init.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+		usart_port_params.init.USART_Mode                = USART_Mode_Rx | USART_Mode_Tx;
+
+#if defined(STM32F30X)
+		// F3 has internal inverters and can switch rx/tx pins
+		usart_port_params.rx_invert   = false;
+		usart_port_params.tx_invert   = true;
+		usart_port_params.single_wire = false;
+#endif // STM32F30X
+
+		PIOS_HAL_ConfigureCom(usart_port_cfg, &usart_port_params, PIOS_COM_GPS_RX_BUF_LEN, PIOS_COM_FRSKYSENSORHUB_TX_BUF_LEN, com_driver, &port_driver_id);
+		target = &pios_com_frsky_sensor_hub_id;
+		target2 = &pios_com_gps_id;
+		PIOS_Modules_Enable(PIOS_MODULE_UAVOFRSKYSENSORHUBBRIDGE);
+		PIOS_Modules_Enable(PIOS_MODULE_GPS);
 #endif /* PIOS_INCLUDE_FRSKY_SENSOR_HUB */
 		break;
 
