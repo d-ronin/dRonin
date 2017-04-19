@@ -65,7 +65,6 @@ OPTMODULES += OnScreenDisplay
 OPTMODULES += UAVOCrossfireTelemetry
 
 # Paths
-OPUAVTALKINC = $(OPUAVTALK)/inc
 OPUAVOBJINC = $(OPUAVOBJ)/inc
 PIOSINC = $(PIOS)/inc
 FLIGHTLIBINC = $(FLIGHTLIB)/inc
@@ -103,7 +102,6 @@ SRC += ${OPMODULEDIR}/System/rgbleds.c
 SRC += chibi_main.c
 SRC += pios_board.c
 SRC += pios_usb_board_data.c
-SRC += $(OPUAVTALK)/uavtalk.c
 SRC += $(OPUAVOBJ)/uavobjectmanager.c
 
 ifeq ($(DEBUG),YES)
@@ -183,8 +181,6 @@ CPPSRC =
 EXTRAINCDIRS += $(SHAREDAPIDIR)
 EXTRAINCDIRS += $(PIOS)
 EXTRAINCDIRS += $(PIOSINC)
-EXTRAINCDIRS += $(OPUAVTALK)
-EXTRAINCDIRS += $(OPUAVTALKINC)
 EXTRAINCDIRS += $(OPUAVOBJ)
 EXTRAINCDIRS += $(OPUAVOBJINC)
 EXTRAINCDIRS += $(OPUAVSYNTHDIR)
