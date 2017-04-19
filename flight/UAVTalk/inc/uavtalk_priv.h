@@ -45,14 +45,13 @@ typedef struct {
 } uavtalk_min_header;
 #define UAVTALK_MIN_HEADER_LENGTH       sizeof(uavtalk_min_header)
 
-//! Full UAVTalk header with an instance and timestamp field
+//! Full UAVTalk header with an instance field
 typedef struct {
 	uint8_t sync;
 	uint8_t type;
 	uint16_t size;
 	uint32_t objId;
 	uint16_t instId;
-	uint16_t timestamp;
 } uavtalk_max_header;
 #define UAVTALK_MAX_HEADER_LENGTH       sizeof(uavtalk_max_header)
 
@@ -71,9 +70,7 @@ typedef struct {
 	uint16_t instId;
 	uint32_t length;
 	uint8_t instanceLength;
-	uint8_t timestampLength;
 	uint8_t cs;
-	uint16_t timestamp;
 	int32_t rxCount;
 	UAVTalkRxState state;
 	uint16_t rxPacketLength;
@@ -108,7 +105,6 @@ typedef struct {
 #define UAVTALK_TYPE_ACK       (UAVTALK_TYPE_VER | 0x03)
 #define UAVTALK_TYPE_NACK      (UAVTALK_TYPE_VER | 0x04)
 #define UAVTALK_TYPE_OBJ_TS       (UAVTALK_TIMESTAMPED | UAVTALK_TYPE_OBJ)
-#define UAVTALK_TYPE_OBJ_ACK_TS   (UAVTALK_TIMESTAMPED | UAVTALK_TYPE_OBJ_ACK)
 
 //macros
 #define CHECKCONHANDLE(handle,variable,failcommand) \
