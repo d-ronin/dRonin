@@ -405,8 +405,8 @@ void PIOS_DMAShot_InitializeTimers(TIM_OCInitTypeDef *ocinit)
 
 		int f = s_timer->sysclock / s_timer->dshot_freq;
 
-		s_timer->duty_cycle_0 = f * DSHOT_DUTY_CYCLE_0 / 100;
-		s_timer->duty_cycle_1 = f * DSHOT_DUTY_CYCLE_1 / 100;
+		s_timer->duty_cycle_0 = (f * DSHOT_DUTY_CYCLE_0 + 50) / 100;
+		s_timer->duty_cycle_1 = (f * DSHOT_DUTY_CYCLE_1 + 50) / 100;
 
 		if (s_timer->dma->master_timer)
 			PIOS_DMAShot_TimerSetup(s_timer, s_timer->sysclock, s_timer->dshot_freq, ocinit, true);
