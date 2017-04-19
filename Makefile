@@ -813,21 +813,8 @@ ef_$(1)_%: $(5)
 		$$*
 endef
 
-# When building any of the "all*" targets, tell all sub makefiles to display
-# additional details on each line of output to describe which build and target
-# that each line applies to.
-ifneq ($(strip $(filter all%,$(MAKECMDGOALS))),)
+# Always output information on the target and build type in the build summary
 export ENABLE_MSG_EXTRA := yes
-endif
-ifneq (,$(filter sim%, $(MAKECMDGOALS)))
-export ENABLE_MSG_EXTRA := yes
-endif
-
-# When building more than one goal in a single make invocation, also
-# enable the extra context for each output line
-ifneq ($(word 2,$(MAKECMDGOALS)),)
-export ENABLE_MSG_EXTRA := yes
-endif
 
 UAVOLIB_SOFT_OUT_DIR = $(BUILD_DIR)/uavobjects_armsoftfp
 UAVOLIB_HARD_OUT_DIR = $(BUILD_DIR)/uavobjects_armhardfp
