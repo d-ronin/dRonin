@@ -151,7 +151,8 @@ static struct servo_timer *PIOS_DMAShot_GetServoTimer(const struct pios_tim_chan
 		if (!s_timer || !s_timer->sysclock)
 			continue;
 
-		if (s_timer->dma->timer == servo_channel->timer) return s_timer;
+		if (s_timer->dma->timer == servo_channel->timer)
+			return s_timer;
 	}
 
 	return NULL;
@@ -244,6 +245,9 @@ bool PIOS_DMAShot_RegisterTimer(TIM_TypeDef *timer, uint32_t clockrate, uint32_t
 		for (int i = 0; i < MAX_TIMERS; i++) {
 			if (!servo_timers[i]) {
 				s_timer = PIOS_malloc_no_dma(sizeof(struct servo_timer));
+				// No point in returning false and falling back to GPIO, because that
+				// also needs to allocate stuff later on, so we might just fail here.
+				PIOS_Assert(s_timer);
 				memset(s_timer, 0, sizeof(struct servo_timer));
 				s_timer->low_channel = TIM_Channel_4;
 				s_timer->high_channel = TIM_Channel_1;
@@ -515,6 +519,10 @@ void PIOS_DMAShot_TriggerUpdate()
 	for (int i = 0; i < MAX_TIMERS; i++) {
 		struct servo_timer *s_timer = servo_timers[i];
 		if (!s_timer || !s_timer->sysclock)
+			continue;
+
+		// DMA transfer not done yet, skip this update.
+		if(DMA_GetFlagStatus(s_timer->dma->stream, s_timer->dma->tcif) != SET)
 			continue;
 
 		DMA_Cmd(s_timer->dma->stream, DISABLE);

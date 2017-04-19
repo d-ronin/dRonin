@@ -389,7 +389,19 @@ int PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_t
 			ret = 1;
 #if defined(PIOS_INCLUDE_DMASHOT)
 			if (PIOS_DMAShot_IsConfigured()) {
-				uint32_t freq = rate == SHOT_DSHOT1200 ? DMASHOT_1200 : rate == SHOT_DSHOT600 ? DMASHOT_600 : DMASHOT_300;
+				uint32_t freq;
+				switch(rate) {
+					default:
+					case SHOT_DSHOT300:
+						freq = DMASHOT_300;
+						break;
+					case SHOT_DSHOT600:
+						freq = DMASHOT_600;
+						break;
+					case SHOT_DSHOT1200:
+						freq = DMASHOT_1200;
+						break;
+				}
 				ret = PIOS_DMAShot_RegisterTimer(timer_banks[i].timer, max_tim_clock, freq) ? 0 : 1;
 			}
 #endif
