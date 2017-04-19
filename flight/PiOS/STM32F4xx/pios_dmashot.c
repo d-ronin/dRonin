@@ -46,20 +46,18 @@ struct servo_timer {
 	uint32_t sysclock;                                                              // Flava Flav! Timer's clock frequency.
 
 	const struct pios_dmashot_timer_cfg *dma;                                       // DMA config
-	const struct pios_tim_channel *servo_channels[4];                               // Original channels
+	const struct pios_tim_channel *servo_channels[4];                               // DMAShot configured channels
 
 	// Tracking used TIM channels to allocate least memory.
-	uint8_t low_channel;                                                            // Lowest known TIM channel
+	uint8_t low_channel;                                                            // Lowest registered TIM channel
 	uint8_t high_channel;                                                           // Duh
 
 	uint32_t dshot_freq;                                                            // Stores the desired frequency for
-	// timer initialization
+	                                                                                // timer initialization
 	uint16_t duty_cycle_0;                                                          // Calculated duty cycle for 0-bit
 	uint16_t duty_cycle_1;                                                          // And for 1-bit
 
 	union dma_buffer buffer;                                                        // DMA buffer
-
-	// Total 42 bytes
 };
 
 // DShot signal is 16-bit. Use a pause before and after to delimit signal and quell the timer CC
@@ -77,7 +75,6 @@ struct servo_timer {
 
 const struct pios_dmashot_cfg *dmashot_cfg;
 struct servo_timer **servo_timers;
-// Total 8 bytes
 
 static inline int PIOS_DMAShot_GetFIFOCadence(int num_chan)
 {
@@ -95,7 +92,7 @@ static inline int PIOS_DMAShot_GetFIFOCadence(int num_chan)
 	}
 }
 
-// Whether a timer is 16- or 32-bit.
+// Whether a timer is 16- or 32-bit wide.
 static inline bool PIOS_DMAShot_HalfWord(struct servo_timer *s_timer)
 {
 	// In STM32F4 and STM32L4, these two are 32-bit, the rest is 16-bit.
@@ -168,16 +165,14 @@ static struct servo_timer *PIOS_DMAShot_GetServoTimer(const struct pios_tim_chan
  */
 bool PIOS_DMAShot_WriteValue(const struct pios_tim_channel *servo_channel, uint16_t throttle)
 {
-	// Fail hard if writes to unconfigured channels happen. Bitbang DShot should be
-	// doing this, if it's still there.
-
+	// Fail hard if trying to write values without configured DMAShot. We shouldn't be getting to
+	// this point in that case.
 	PIOS_Assert(dmashot_cfg);
 
+	// Can't find a matching timer, tell upstream to use GPIO.
 	struct servo_timer *s_timer = PIOS_DMAShot_GetServoTimer(servo_channel);
 	if (!s_timer)
 		return false;
-
-	// Wriiiiiiiiiiiiiiiite!
 
 	int shift = (servo_channel->timer_chan - s_timer->low_channel) >> 2;
 	int channels = PIOS_DMAShot_GetNumChannels(s_timer);
@@ -215,14 +210,12 @@ bool PIOS_DMAShot_WriteValue(const struct pios_tim_channel *servo_channel, uint1
  */
 bool PIOS_DMAShot_RegisterTimer(TIM_TypeDef *timer, uint32_t clockrate, uint32_t dshot_freq)
 {
-	// No config, push for bitbanging.
-
+	// No configuration, push for GPIO in upstream.
 	if (!dmashot_cfg || !servo_timers)
 		return false;
 
 	// Check whether the timer is configured for DMA first. If not, bail and
 	// tell upstairs that DMA DShot is a no-go.
-
 	const struct pios_dmashot_timer_cfg *dma_config = NULL;
 
 	for (int i = 0; i < dmashot_cfg->num_timers; i++) {
@@ -234,10 +227,9 @@ bool PIOS_DMAShot_RegisterTimer(TIM_TypeDef *timer, uint32_t clockrate, uint32_t
 	if (!dma_config)
 		return false;
 
-	// Find if there's an existing config from a previous registration,
+	// Check whether there's an existing config from a previous registration,
 	// since we can't clean up due to a lack of free(). Timer/pin stuff is
 	// static anyway.
-
 	struct servo_timer *s_timer = NULL;
 
 	bool found = false;
@@ -249,8 +241,7 @@ bool PIOS_DMAShot_RegisterTimer(TIM_TypeDef *timer, uint32_t clockrate, uint32_t
 		}
 	}
 
-	// Nothing found? Find free slot for timer.
-
+	// Nothing found? Allocate a new slot for the timer.
 	if (!found) {
 		for (int i = 0; i < MAX_TIMERS; i++) {
 			if (!servo_timers[i]) {
@@ -282,13 +273,13 @@ bool PIOS_DMAShot_RegisterTimer(TIM_TypeDef *timer, uint32_t clockrate, uint32_t
  */
 bool PIOS_DMAShot_RegisterServo(const struct pios_tim_channel *servo_channel)
 {
-	// Bitbang!
+	// No configuration? kthxbye!
 	if (!dmashot_cfg || !servo_timers)
 		return false;
 
 	struct servo_timer *s_timer = PIOS_DMAShot_GetServoTimer(servo_channel);
 
-	// No timer found, bitbang!
+	// No timer found, tell upstream to GPIO!
 	if (!s_timer)
 		return false;
 
@@ -296,8 +287,8 @@ bool PIOS_DMAShot_RegisterServo(const struct pios_tim_channel *servo_channel)
 		(s_timer->low_channel != servo_channel->timer_chan)) {
 		// I'm sorry, Dave, I'm afraid I cannot do that!
 
-		// If DMA'ing to CCR, can only do one channel per timer.
-		// Tell PIOS_Servo to bitbang instead.
+		// If DMA'ing directly to CCR, can only do one channel per timer.
+		// Tell upstream to GPIO instead.
 		return false;
 	}
 
@@ -322,7 +313,7 @@ void PIOS_DMAShot_Validate()
 		if (!s_timer || !s_timer->sysclock)
 			continue;
 
-		// If after servo "registration" there's a low channel higher than the high
+		// If after servo "registration", there's a low channel higher than the high
 		// one, something went wrong, lets ignore the timer.
 		if (s_timer->low_channel > s_timer->high_channel) {
 			s_timer->sysclock = 0;

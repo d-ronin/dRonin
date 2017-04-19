@@ -418,10 +418,13 @@ int PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_t
 					if (PIOS_DMAShot_IsConfigured() && PIOS_DMAShot_RegisterServo(chan)) {
 						output_channels[j].mode = SYNC_DSHOT_DMA;
 					} else {
+						// If RegisterServo fails, the relevant timer wasn't registered, or DMAShot
+						// isn't configured, so we expect the bank to be set up already higher up in this
+						// section.
 						ChannelSetup_DShot(j, rate);
 					}
 #else
-						ChannelSetup_DShot(j, rate);
+					ChannelSetup_DShot(j, rate);
 #endif
 					break;
 				case SHOT_ONESHOT:
