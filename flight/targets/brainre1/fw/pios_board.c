@@ -354,6 +354,11 @@ void PIOS_Board_Init(void) {
 
 	/* Configure PWM Outputs */
 #if defined(PIOS_INCLUDE_SERVO) && defined(PIOS_INCLUDE_TIM)
+
+#if defined(PIOS_INCLUDE_DMASHOT)
+	PIOS_DMAShot_Init(&dmashot_config);
+#endif // defined(PIOS_INCLUDE_DMASHOT)
+
 	switch (hw_mp_mode) {
 		case HWBRAINRE1_MULTIPORTMODE_NORMAL:
 			if (hw_mp_serial == HWBRAINRE1_MULTIPORTSERIAL_PWM) {
