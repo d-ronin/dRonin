@@ -60,7 +60,7 @@ static void smoothcontrol_update(smoothcontrol_state state, struct smoothcontrol
 		case SMOOTHCONTROL_EXTENDED:
 			axis->differential = signal_diff * SMOOTHCONTROL_PREDICTOR_SLOPE / (float)state->control_interval;
 			axis->current = axis->signal + signal_diff * SMOOTHCONTROL_CHAMFER_START;
-			axis->integrator_timeout = (uint8_t)MAX((float)state->control_interval*
+			axis->integrator_timeout = (uint8_t)MAX((float)state->control_interval *
 				(axis->mode == SMOOTHCONTROL_NORMAL ? SMOOTHCONTROL_DUTY_CYCLE : SMOOTHCONTROL_EXTENDED_DUTY_CYCLE), 255);
 			break;
 	}
@@ -165,9 +165,9 @@ void smoothcontrol_initialize(smoothcontrol_state *state)
 	PIOS_Assert(state);
 
 	if(!*state) {
-		*state = PIOS_malloc_no_dma(sizeof(struct smoothcontrol_state_internal));
+		*state = PIOS_malloc_no_dma(sizeof(**state));
 		PIOS_Assert(*state);
-		memset(*state, 0, sizeof(struct smoothcontrol_state_internal));
+		memset(*state, 0, sizeof(**state));
 	}
 }
 
