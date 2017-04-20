@@ -110,10 +110,10 @@ void PIOS_DMAShot_Prepare()
 	if (dmashot_cfg) {
 		if (!servo_timers) {
 			// Allocate memory
-			servo_timers = PIOS_malloc_no_dma(sizeof(struct servo_timer*) * MAX_TIMERS);
+			servo_timers = PIOS_malloc_no_dma(sizeof(servo_timers) * MAX_TIMERS);
 			PIOS_Assert(servo_timers);
 
-			memset(servo_timers, 0, sizeof(struct servo_timer*) * MAX_TIMERS);
+			memset(servo_timers, 0, sizeof(servo_timers) * MAX_TIMERS);
 		}
 		for (int i = 0; i < MAX_TIMERS; i++) {
 			if (servo_timers[i]) {
@@ -230,11 +230,11 @@ bool PIOS_DMAShot_RegisterTimer(TIM_TypeDef *timer, uint32_t clockrate, uint32_t
 	if (!found) {
 		for (int i = 0; i < MAX_TIMERS; i++) {
 			if (!servo_timers[i]) {
-				s_timer = PIOS_malloc_no_dma(sizeof(struct servo_timer));
+				s_timer = PIOS_malloc_no_dma(sizeof(*s_timer));
 				// No point in returning false and falling back to GPIO, because that
 				// also needs to allocate stuff later on, so we might just fail here.
 				PIOS_Assert(s_timer);
-				memset(s_timer, 0, sizeof(struct servo_timer));
+				memset(s_timer, 0, sizeof(*s_timer));
 				s_timer->low_channel = TIM_Channel_4;
 				s_timer->high_channel = TIM_Channel_1;
 				servo_timers[i] = s_timer;
