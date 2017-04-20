@@ -70,21 +70,78 @@ struct pios_dmashot_cfg {
 
 };
 
+/**
+ * @brief Initializes the DMAShot driver by loading the configuration.
+ * @param[in] config Configuration struct.
+ */
 void PIOS_DMAShot_Init(const struct pios_dmashot_cfg *config);
+
+/**
+ * @brief Makes sure the DMAShot driver has allocated all internal structs.
+ */
 void PIOS_DMAShot_Prepare();
+
+/**
+ * @brief Checks whether DMAShot has been configured.
+ * @retval TRUE on success, FALSE when there's no configuration.
+ */
 bool PIOS_DMAShot_IsConfigured();
+
+/**
+ * @brief Checks whether DMAShot is ready for use (i.e. at least one DMA configured timer).
+ * @retval TRUE on success, FALSE when there's no configuration or DMA capable timers.
+ */
 bool PIOS_DMAShot_IsReady();
 
+/**
+ * @brief Tells the DMAShot driver about a timer that needs to be set up.
+ * @param[in] timer The STM32 timer in question.
+ * @param[in] clockrate The frequency the timer's set up to run.
+ * @param[in] dshot_freq The desired DShot signal frequency (in KHz).
+ * @retval TRUE on success, FALSE when there's no configuration for the specific timer,
+                        or DMAShot isn't set up correctly.
+ */
 bool PIOS_DMAShot_RegisterTimer(TIM_TypeDef *timer, uint32_t clockrate, uint32_t dshot_freq);
+
+/**
+ * @brief Tells the DMAShot driver about a servo that needs to be set up.
+ * @param[in] servo_channel The servo in question.
+ * @retval TRUE on success, FALSE when the related timer isn't set up, or DMAShot
+                        isn't set up correctly.
+ */
 bool PIOS_DMAShot_RegisterServo(const struct pios_tim_channel *servo_channel);
 
+/**
+ * @brief Initializes the GPIO on the registered servos for DMAShot operation.
+ */
 void PIOS_DMAShot_InitializeGPIOs();
+
+/**
+ * @brief Initializes and configures the registered timers for DMAShot operation.
+ */
 void PIOS_DMAShot_InitializeTimers(TIM_OCInitTypeDef *ocinit);
+
+/**
+ * @brief Initializes and configures the known DMA channels for DMAShot operation.
+ */
 void PIOS_DMAShot_InitializeDMAs();
+
+/**
+ * @brief Validates any timer and servo registrations.
+ */
 void PIOS_DMAShot_Validate();
 
+/**
+ * @brief Sets the throttle value of a specific servo.
+ * @param[in] servo_channel The servo to update.
+ * @param[in] throttle The desired throttle value (0-2047).
+ * @retval TRUE on success, FALSE if the channel's not set up for DMA.
+ */
 void PIOS_DMAShot_WriteValue(const struct pios_tim_channel *servo_channel, uint16_t throttle);
 
+/**
+ * @brief Triggers the configured DMA channels to fire and send throttle values to the timer DMAR and optional CCRx registers.
+ */
 void PIOS_DMAShot_TriggerUpdate();
 
 #endif // PIOS_DMASHOT_H
