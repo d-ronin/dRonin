@@ -58,6 +58,8 @@ struct servo_timer {
 	uint16_t duty_cycle_1;                                                          // And for 1-bit
 
 	union dma_buffer buffer;                                                        // DMA buffer
+	uint8_t dma_started;                                                            // Whether DMA transfers have been initiated
+
 };
 
 // DShot signal is 16-bit. Use a pause before and after to delimit signal and quell the timer CC
@@ -519,9 +521,10 @@ void PIOS_DMAShot_TriggerUpdate()
 		if (!s_timer || !s_timer->sysclock)
 			continue;
 
-		// DMA transfer not done yet, skip this update.
-		if(DMA_GetFlagStatus(s_timer->dma->stream, s_timer->dma->tcif) != SET)
-			continue;
+		// Wait for DMA to finish.
+		if(s_timer->dma_started) {
+			while(DMA_GetFlagStatus(s_timer->dma->stream, s_timer->dma->tcif) != SET) ;
+		}
 
 		DMA_Cmd(s_timer->dma->stream, DISABLE);
 		while (DMA_GetCmdStatus(s_timer->dma->stream) == ENABLE) ;
@@ -567,6 +570,7 @@ void PIOS_DMAShot_TriggerUpdate()
 		}
 
 		DMA_Cmd(s_timer->dma->stream, ENABLE);
+		s_timer->dma_started = 1;
 	}
 }
 
