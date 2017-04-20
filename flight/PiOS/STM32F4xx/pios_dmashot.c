@@ -412,6 +412,8 @@ void PIOS_DMAShot_InitializeTimers(TIM_OCInitTypeDef *ocinit)
 
 		if (s_timer->dma->master_timer)
 			PIOS_DMAShot_TimerSetup(s_timer, s_timer->sysclock, s_timer->dshot_freq, ocinit, true);
+
+		s_timer->dma_started = 0;
 	}
 }
 
