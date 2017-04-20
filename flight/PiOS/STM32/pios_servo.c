@@ -392,6 +392,9 @@ int PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_t
 				uint32_t freq;
 				switch(rate) {
 					default:
+						// If for whatever reason new frequencies show up in the GPIO version,
+						// we oughta know about it. So fail if that happens.
+						PIOS_Assert(0);
 					case SHOT_DSHOT300:
 						freq = DMASHOT_300;
 						break;

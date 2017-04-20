@@ -36,7 +36,7 @@
 // are 16-bit. Can do full word writes to 16bit regardless, but it doubles DMA buffer size
 // unnecessarily.
 union dma_buffer {
-	void *ptr;
+	uint32_t ptr;
 	uint32_t *fw;
 	uint16_t *hw;
 };
@@ -424,7 +424,7 @@ static void PIOS_DMAShot_DMASetup(struct servo_timer *s_timer)
 	DMA_StructInit(&dma);
 
 	dma.DMA_Channel = s_timer->dma->channel;
-	dma.DMA_Memory0BaseAddr = (uint32_t)s_timer->buffer.ptr;
+	dma.DMA_Memory0BaseAddr = s_timer->buffer.ptr;
 	if (s_timer->dma->master_timer) {
 		// The DMABase shift is in count of 32-bit registers. 16-bit registers are padded with 16-bit reserved ones,
 		// and thus defacto 32-bit.
@@ -453,12 +453,32 @@ static void PIOS_DMAShot_DMASetup(struct servo_timer *s_timer)
 	dma.DMA_MemoryBurst = DMA_MemoryBurst_Single;
 	dma.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
 
-	dma.DMA_FIFOMode = DMA_FIFOMode_Disable;
+	dma.DMA_FIFOMode = DMA_FIFOMode_Enable;
+	dma.DMA_FIFOThreshold = DMA_FIFOThreshold_Full;
 
 	DMA_Init(s_timer->dma->stream, &dma);
 
 	// Don't do interrupts.
 	DMA_ITConfig(s_timer->dma->stream, DMA_IT_TC, DISABLE);
+}
+
+// Allocates an aligned buffer for DMA burst transfers. Returns uint32_t, since
+// that's the pointer type for Mem0 base address in DMA_InitTypeDef.
+static uint32_t PIOS_DMAShot_AllocateBuffer(uint16_t size)
+{
+	size += 12;
+	uint32_t ptr = (uint32_t)PIOS_malloc(size);
+
+	// Blow up if we didn't get a buffer.
+	PIOS_Assert(ptr);
+
+	memset((void*)ptr, 0, size);
+
+	// Align to 16-byte boundary.
+	uint32_t shift = 16 - (ptr % 16);
+	if(shift != 16) ptr += shift;
+
+	return ptr;
 }
 
 /**
@@ -476,15 +496,10 @@ void PIOS_DMAShot_InitializeDMAs()
 
 		if (!s_timer->buffer.ptr) {
 			// Allocate buffer at timer resolution.
-			if (PIOS_DMAShot_HalfWord(s_timer)) {
-				s_timer->buffer.ptr =
-						PIOS_malloc(PIOS_DMAShot_GetNumChannels(s_timer) * DMASHOT_STM32_BUFFER * sizeof(uint16_t));
-				memset(s_timer->buffer.ptr, 0, PIOS_DMAShot_GetNumChannels(s_timer) * DMASHOT_STM32_BUFFER * sizeof(uint16_t));
-			} else {
-				s_timer->buffer.ptr =
-						PIOS_malloc(PIOS_DMAShot_GetNumChannels(s_timer) * DMASHOT_STM32_BUFFER * sizeof(uint32_t));
-				memset(s_timer->buffer.ptr, 0, PIOS_DMAShot_GetNumChannels(s_timer) * DMASHOT_STM32_BUFFER * sizeof(uint32_t));
-			}
+			s_timer->buffer.ptr = PIOS_DMAShot_AllocateBuffer(
+					PIOS_DMAShot_GetNumChannels(s_timer) * DMASHOT_STM32_BUFFER *
+					(PIOS_DMAShot_HalfWord(s_timer) ? sizeof(uint16_t) : sizeof(uint32_t))
+				);
 		}
 
 		PIOS_DMAShot_DMASetup(s_timer);
