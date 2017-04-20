@@ -102,7 +102,7 @@ void smoothcontrol_run(smoothcontrol_state state, uint8_t axis_num, float *new_s
 		smoothcontrol_update(state, axis, *new_signal);
 	}
 
-	if(state->tick_counter <= axis->integrator_timeout && state->tick_counter < state->time_bomb) {
+	if(state->tick_counter < axis->integrator_timeout && state->tick_counter < state->time_bomb) {
 		// Don't fiddle with first value after update.
 		if(state->tick_counter > 0)
 			axis->current += axis->differential;
