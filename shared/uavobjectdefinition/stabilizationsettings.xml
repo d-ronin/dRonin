@@ -52,6 +52,9 @@
 		<field name="DeadbandSlope" units="%" type="uint8" elementnames="Roll,Pitch,Yaw" defaultvalue="60,60,50" limits="%BE:0:100,%BE:0:100,%BE:0:100">
 			<description>Sets the slope of the deadband area in the PID controller.</description>
 		</field>
+		<field name="RCControlSmoothing" units="" type="enum" elementnames="Axes,Thrust" options="None,Normal,Extended" defaultvalue="None">
+			<description>Enables different ways of input signal smoothing, to reduce excessive P- and D-term excitation in the PID controller. Normal and Extended modes chamfer the leading edges in combination with some amount of prediction, to avoid delay.</description>
+		</field>
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
 		<telemetryflight acked="true" updatemode="onchange" period="0"/>

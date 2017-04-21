@@ -151,6 +151,7 @@ SRC += $(MATHLIB)/coordinate_conversions.c
 SRC += $(MATHLIB)/misc_math.c
 SRC += $(MATHLIB)/pid.c
 SRC += $(MATHLIB)/lpfilter.c
+SRC += $(MATHLIB)/smoothcontrol.c
 
 include $(PIOS)/posix/library.mk
 
