@@ -439,7 +439,10 @@ static void post_process_scale_and_commit(float *motor_vect, float dT,
 
 	// Store update time
 	command.UpdateTime = 1000.0f*dT;
-	if (1000.0f*dT > command.MaxUpdateTime)
+
+	ActuatorCommandMaxUpdateTimeGet(&command.MaxUpdateTime);
+
+	if (command.UpdateTime > command.MaxUpdateTime)
 		command.MaxUpdateTime = 1000.0f*dT;
 
 	// Update output object
