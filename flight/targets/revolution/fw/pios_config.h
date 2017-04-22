@@ -79,6 +79,8 @@
 /* Supported receiver interfaces */
 #define PIOS_INCLUDE_PWM
 
+#define PIOS_INCLUDE_DMASHOT
+
 //#define PIOS_INCLUDE_DEBUG_CONSOLE
 
 /* Flags that alter behaviors - mostly to lower resources for CC */
