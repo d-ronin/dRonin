@@ -421,7 +421,7 @@ static void PIOS_DMAShot_DMASetup(struct servo_timer *s_timer)
 	dma.DMA_BufferSize = PIOS_DMAShot_GetNumChannels(s_timer) * DMASHOT_STM32_BUFFER;
 
 	dma.DMA_Priority = DMA_Priority_VeryHigh;
-	dma.DMA_MemoryBurst = DMA_MemoryBurst_Single;
+	dma.DMA_MemoryBurst = DMA_MemoryBurst_INC4;
 	dma.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
 
 	dma.DMA_FIFOMode = DMA_FIFOMode_Enable;
