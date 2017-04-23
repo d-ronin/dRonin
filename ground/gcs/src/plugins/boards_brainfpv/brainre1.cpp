@@ -200,6 +200,72 @@ Core::IBoardType::InputType BrainRE1::getInputType()
         break;
     }
 
+    switch (settings.SerialPort) {
+    case HwBrainRE1::SERIALPORT_SBUS:
+        return INPUT_TYPE_SBUS;
+    case HwBrainRE1::SERIALPORT_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;
+    case HwBrainRE1::SERIALPORT_DSM:
+        return INPUT_TYPE_DSM;
+    case HwBrainRE1::SERIALPORT_HOTTSUMD:
+        return INPUT_TYPE_HOTTSUMD;
+    case HwBrainRE1::SERIALPORT_HOTTSUMH:
+        return INPUT_TYPE_HOTTSUMH;
+    case HwBrainRE1::SERIALPORT_IBUS:
+        return INPUT_TYPE_IBUS;
+    case HwBrainRE1::SERIALPORT_SRXL:
+        return INPUT_TYPE_SRXL;
+    case HwBrainRE1::SERIALPORT_TBSCROSSFIRE:
+        return INPUT_TYPE_TBSCROSSFIRE;
+    default:
+        break;
+    }
+
+    switch (settings.MultiPortSerial) {
+    case HwBrainRE1::MULTIPORTSERIAL_SBUS:
+        return INPUT_TYPE_SBUS;
+    case HwBrainRE1::MULTIPORTSERIAL_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;
+    case HwBrainRE1::MULTIPORTSERIAL_DSM:
+        return INPUT_TYPE_DSM;
+    case HwBrainRE1::MULTIPORTSERIAL_HOTTSUMD:
+        return INPUT_TYPE_HOTTSUMD;
+    case HwBrainRE1::MULTIPORTSERIAL_HOTTSUMH:
+        return INPUT_TYPE_HOTTSUMH;
+    case HwBrainRE1::MULTIPORTSERIAL_IBUS:
+        return INPUT_TYPE_IBUS;
+    case HwBrainRE1::MULTIPORTSERIAL_SRXL:
+        return INPUT_TYPE_SRXL;
+    case HwBrainRE1::MULTIPORTSERIAL_TBSCROSSFIRE:
+        return INPUT_TYPE_TBSCROSSFIRE;
+    default:
+        break;
+    }
+    
+    if (settings.MultiPortMode == HwBrainRE1::MULTIPORTMODE_DUALSERIAL4PWM)
+    {
+        switch (settings.MultiPortSerial2) {
+        case HwBrainRE1::MULTIPORTSERIAL2_SBUS:
+            return INPUT_TYPE_SBUS;
+        case HwBrainRE1::MULTIPORTSERIAL2_SBUSNONINVERTED:
+            return INPUT_TYPE_SBUSNONINVERTED;
+        case HwBrainRE1::MULTIPORTSERIAL2_DSM:
+            return INPUT_TYPE_DSM;
+        case HwBrainRE1::MULTIPORTSERIAL2_HOTTSUMD:
+            return INPUT_TYPE_HOTTSUMD;
+        case HwBrainRE1::MULTIPORTSERIAL2_HOTTSUMH:
+            return INPUT_TYPE_HOTTSUMH;
+        case HwBrainRE1::MULTIPORTSERIAL2_IBUS:
+            return INPUT_TYPE_IBUS;
+        case HwBrainRE1::MULTIPORTSERIAL2_SRXL:
+            return INPUT_TYPE_SRXL;
+        case HwBrainRE1::MULTIPORTSERIAL2_TBSCROSSFIRE:
+            return INPUT_TYPE_TBSCROSSFIRE;
+        default:
+            break;
+        }
+    }
+
     return INPUT_TYPE_UNKNOWN;
 }
 

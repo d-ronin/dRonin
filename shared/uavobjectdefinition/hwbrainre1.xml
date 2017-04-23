@@ -31,6 +31,13 @@
 				<option>MavLinkTX</option>
 				<option>MavLinkTX_GPS_RX</option>
 				<option>VTX Config TBS SmartAudio</option>
+				<option>S.Bus</option>
+				<option>S.Bus Non Inverted</option>
+				<option>DSM</option>
+				<option>HoTT SUMD</option>
+				<option>HoTT SUMH</option>
+				<option>SRXL</option>
+				<option>IBus</option>
 				<option>TBS Crossfire</option>
 			</options>
 		</field>
@@ -55,8 +62,16 @@
 				<option>LighttelemetryTx</option>
 				<option>MavLinkTX</option>
 				<option>MavLinkTX_GPS_RX</option>
+				<option>VTX Config TBS SmartAudio</option>
 				<option>FrSKY Sensor Hub</option>
 				<option>FrSKY SPort Telemetry</option>
+				<option>S.Bus</option>
+				<option>S.Bus Non Inverted</option>
+				<option>DSM</option>
+				<option>HoTT SUMD</option>
+				<option>HoTT SUMH</option>
+				<option>SRXL</option>
+				<option>IBus</option>
 				<option>TBS Crossfire</option>
 			</options>
 		</field>
@@ -75,6 +90,13 @@
 				<option>MavLinkTX</option>
 				<option>MavLinkTX_GPS_RX</option>
 				<option>VTX Config TBS SmartAudio</option>
+				<option>S.Bus</option>
+				<option>S.Bus Non Inverted</option>
+				<option>DSM</option>
+				<option>HoTT SUMD</option>
+				<option>HoTT SUMH</option>
+				<option>SRXL</option>
+				<option>IBus</option>
 				<option>TBS Crossfire</option>
 			</options>
 		</field>
