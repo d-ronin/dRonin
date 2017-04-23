@@ -659,6 +659,7 @@ static uint8_t updateFixedDesiredAttitude()
 	// TODO implement raw control mode for yaw and base on Accels.Y
 	stabDesired.Yaw = 0;
 
+	stabDesired.ReprojectionMode = STABILIZATIONDESIRED_REPROJECTIONMODE_NONE;
 
 	stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
 	stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;

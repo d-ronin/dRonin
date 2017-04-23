@@ -494,6 +494,8 @@ int32_t vtol_follower_control_attitude(float dT, const float *att_adj)
 	stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
 	stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
 
+	stabDesired.ReprojectionMode = STABILIZATIONDESIRED_REPROJECTIONMODE_NONE;
+
 	// Calculate the throttle setting or use pass through from transmitter
 	if (guidanceSettings.ThrottleControl == VTOLPATHFOLLOWERSETTINGS_THROTTLECONTROL_FALSE) {
 		stabDesired.Thrust = (system_settings.AirframeType == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) ? manual_control_command.Collective : manual_control_command.Throttle;
