@@ -40,6 +40,13 @@
         <option>Time- 4 Second Period</option>
       </options>
     </field>
+    <field defaultvalue="TRUE" elements="1" name="DimWhenUSB" type="enum" units="">
+      <description>If true, when USB is connected at startup the LEDs will be run at half brightness.</description>
+      <options>
+        <option>FALSE</option>
+        <option>TRUE</option>
+      </options>
+    </field>
     <field defaultvalue="Time- Second Period" elements="1" name="RangeColorBlendUnarmedSource" parent="RGBLEDSettings.RangeColorBlendSource" type="enum" units="function">
       <description>What chooses the mix of basecolor and endcolor to use when disarmed</description>
     </field>
