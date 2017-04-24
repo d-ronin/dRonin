@@ -583,6 +583,9 @@ static void stabilizationTask(void* parameters)
 					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], get_deadband(i),  rateDesiredAxis[i],  gyro_filtered[i], dT_expected);
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 
+					// apply integral decay to roll and pitch if integral decay is non-zero
+					if((i == ROLL || i == PITCH) && settings.IntegralDecay[i] > 0.001f) pids[PID_GROUP_RATE + i].iAccumulator *= powf(0.01f,dT_expected/settings.IntegralDecay[i]);
+
 					break;
 
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_ACRODYNE:
