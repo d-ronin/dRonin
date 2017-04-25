@@ -991,16 +991,20 @@ static void PIOS_MPU_Task(void *parameters)
 		float mag_z = (int16_t)(mpu_rec_buf[IDX_MAG_ZOUT_H] << 8 | mpu_rec_buf[IDX_MAG_ZOUT_L]);
 #endif // PIOS_INCLUDE_MPU_MAG
 
-		// Rotate the sensor to our convention.  The datasheet defines X as towards the right
-		// and Y as forward. Our convention transposes this.  Also the Z is defined negatively
-		// to our convention. This is true for accels and gyros. Magnetometer corresponds our convention.
+		/* 
+		 * Rotate the sensor to our convention (x forward, y right, z down).
+		 * Sensor orientation for all supported Invensense variants is
+		 * x right, y forward, z up.
+		 * The embedded AK8xxx magnetometer in MPU9x50 variants matches our convention.
+		 * See flight/Doc/imu_orientation.md for further detail
+		 */
 		switch (mpu_dev->cfg->orientation) {
 		case PIOS_MPU_TOP_0DEG:
-			accel_data.y =  accel_x;
 			accel_data.x =  accel_y;
+			accel_data.y =  accel_x;
 			accel_data.z = -accel_z;
-			gyro_data.y  =  gyro_x;
 			gyro_data.x  =  gyro_y;
+			gyro_data.y  =  gyro_x;
 			gyro_data.z  = -gyro_z;
 #ifdef PIOS_INCLUDE_MPU_MAG
 			mag_data.x   =  mag_x;
@@ -1009,11 +1013,11 @@ static void PIOS_MPU_Task(void *parameters)
 #endif // PIOS_INCLUDE_MPU_MAG
 			break;
 		case PIOS_MPU_TOP_90DEG:
-			accel_data.y = -accel_y;
-			accel_data.x =  accel_x;
+			accel_data.x = -accel_x;
+			accel_data.y =  accel_y;
 			accel_data.z = -accel_z;
-			gyro_data.y  = -gyro_y;
-			gyro_data.x  =  gyro_x;
+			gyro_data.x  = -gyro_x;
+			gyro_data.y  =  gyro_y;
 			gyro_data.z  = -gyro_z;
 #ifdef PIOS_INCLUDE_MPU_MAG
 			mag_data.x   = -mag_y;
@@ -1022,11 +1026,11 @@ static void PIOS_MPU_Task(void *parameters)
 #endif // PIOS_INCLUDE_MPU_MAG
 			break;
 		case PIOS_MPU_TOP_180DEG:
-			accel_data.y = -accel_x;
 			accel_data.x = -accel_y;
+			accel_data.y = -accel_x;
 			accel_data.z = -accel_z;
-			gyro_data.y  = -gyro_x;
 			gyro_data.x  = -gyro_y;
+			gyro_data.y  = -gyro_x;
 			gyro_data.z  = -gyro_z;
 #ifdef PIOS_INCLUDE_MPU_MAG
 			mag_data.x   = -mag_x;
@@ -1035,11 +1039,11 @@ static void PIOS_MPU_Task(void *parameters)
 #endif // PIOS_INCLUDE_MPU_MAG
 			break;
 		case PIOS_MPU_TOP_270DEG:
-			accel_data.y =  accel_y;
-			accel_data.x = -accel_x;
+			accel_data.x =  accel_x;
+			accel_data.y = -accel_y;
 			accel_data.z = -accel_z;
-			gyro_data.y  =  gyro_y;
-			gyro_data.x  = -gyro_x;
+			gyro_data.x  =  gyro_x;
+			gyro_data.y  = -gyro_y;
 			gyro_data.z  = -gyro_z;
 #ifdef PIOS_INCLUDE_MPU_MAG
 			mag_data.x   =  mag_y;
@@ -1048,11 +1052,11 @@ static void PIOS_MPU_Task(void *parameters)
 #endif // PIOS_INCLUDE_MPU_MAG
 			break;
 		case PIOS_MPU_BOTTOM_0DEG:
-			accel_data.y = -accel_x;
 			accel_data.x =  accel_y;
+			accel_data.y = -accel_x;
 			accel_data.z =  accel_z;
-			gyro_data.y  = -gyro_x;
 			gyro_data.x  =  gyro_y;
+			gyro_data.y  = -gyro_x;
 			gyro_data.z  =  gyro_z;
 #ifdef PIOS_INCLUDE_MPU_MAG
 			mag_data.x   =  mag_x;
@@ -1062,25 +1066,25 @@ static void PIOS_MPU_Task(void *parameters)
 			break;
 
 		case PIOS_MPU_BOTTOM_90DEG:
-			accel_data.y =  accel_y;
 			accel_data.x =  accel_x;
+			accel_data.y =  accel_y;
 			accel_data.z =  accel_z;
-			gyro_data.y  =  gyro_y;
 			gyro_data.x  =  gyro_x;
+			gyro_data.y  =  gyro_y;
 			gyro_data.z  =  gyro_z;
 #ifdef PIOS_INCLUDE_MPU_MAG
-			mag_data.x   = -mag_y;
-			mag_data.y   = -mag_x;
+			mag_data.x   =  mag_y;
+			mag_data.y   =  mag_x;
 			mag_data.z   = -mag_z;
 #endif // PIOS_INCLUDE_MPU_MAG
 			break;
 
 		case PIOS_MPU_BOTTOM_180DEG:
-			accel_data.y =  accel_x;
 			accel_data.x = -accel_y;
+			accel_data.y =  accel_x;
 			accel_data.z =  accel_z;
-			gyro_data.y  =  gyro_x;
 			gyro_data.x  = -gyro_y;
+			gyro_data.y  =  gyro_x;
 			gyro_data.z  =  gyro_z;
 #ifdef PIOS_INCLUDE_MPU_MAG
 			mag_data.x   = -mag_x;
@@ -1090,15 +1094,15 @@ static void PIOS_MPU_Task(void *parameters)
 			break;
 
 		case PIOS_MPU_BOTTOM_270DEG:
-			accel_data.y = -accel_y;
 			accel_data.x = -accel_x;
+			accel_data.y = -accel_y;
 			accel_data.z =  accel_z;
-			gyro_data.y  = -gyro_y;
 			gyro_data.x  = -gyro_x;
+			gyro_data.y  = -gyro_y;
 			gyro_data.z  =  gyro_z;
 #ifdef PIOS_INCLUDE_MPU_MAG
-			mag_data.x   =  mag_y;
-			mag_data.y   =  mag_x;
+			mag_data.x   = -mag_y;
+			mag_data.y   = -mag_x;
 			mag_data.z   = -mag_z;
 #endif // PIOS_INCLUDE_MPU_MAG
 			break;
