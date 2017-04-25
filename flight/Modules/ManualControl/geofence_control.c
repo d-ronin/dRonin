@@ -83,9 +83,10 @@ int32_t geofence_control_select(bool reset_controller)
 	StabilizationDesiredGet(&stabilization_desired);
 	StabilizationDesiredGet(&stabilization_desired);
 	stabilization_desired.Thrust = (airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) ? 0 : -1;
-	stabilization_desired.Roll = 0;
+	stabilization_desired.Roll  = 0;
 	stabilization_desired.Pitch = 0;
 	stabilization_desired.Yaw   = 0;
+	stabilization_desired.ReprojectionMode = STABILIZATIONDESIRED_REPROJECTIONMODE_NONE;
 
 	if (!geofence_armed_when_enabled) {
 		/* disable stabilization so outputs do not move when system was not armed */

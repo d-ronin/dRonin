@@ -262,6 +262,8 @@ static void altitudeHoldTask(void *parameters)
 
 			stabilizationDesired.Thrust = bound_min_max(throttle_desired, min_throttle, 1.0f);
 
+			stabilizationDesired.ReprojectionMode = STABILIZATIONDESIRED_REPROJECTIONMODE_NONE;
+
 			if (landing) {
 				stabilizationDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
 				stabilizationDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;

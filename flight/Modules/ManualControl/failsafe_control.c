@@ -82,6 +82,8 @@ int32_t failsafe_control_select(bool reset_controller)
 	stabilization_desired.Pitch = 0;
 	stabilization_desired.Yaw   = 0;
 
+	stabilization_desired.ReprojectionMode = STABILIZATIONDESIRED_REPROJECTIONMODE_NONE;
+
 	if (!armed_when_enabled) {
 		/* disable stabilization so outputs do not move when system was not armed */
 		stabilization_desired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] = STABILIZATIONDESIRED_STABILIZATIONMODE_DISABLED;
