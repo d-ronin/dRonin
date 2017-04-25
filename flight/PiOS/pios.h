@@ -107,7 +107,6 @@
 #include <pios_wdg.h>
 
 #if !defined(SIM_POSIX) && !defined(PIOS_NO_HW)
-#include <pios_gpio.h>
 #include <pios_exti.h>
 #include <pios_usart.h>
 #include <pios_srxl.h>

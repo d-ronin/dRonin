@@ -57,7 +57,6 @@ include $(PIOS_DEVLIB)/library.mk
 SRC += pios_bl_helper.c
 SRC += pios_exti.c
 SRC += pios_flash_internal.c
-SRC += pios_gpio.c
 SRC += pios_iap.c
 SRC += pios_annunc.c
 SRC += pios_rtc.c

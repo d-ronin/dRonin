@@ -99,7 +99,6 @@ SRC += pios_sys.c
 SRC += pios_annunc.c
 SRC += pios_usart.c
 SRC += pios_flash_internal.c
-SRC += pios_gpio.c
 SRC += pios_exti.c
 SRC += pios_rtc.c
 SRC += pios_tim.c

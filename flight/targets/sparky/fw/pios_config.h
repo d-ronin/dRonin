@@ -38,7 +38,6 @@
 
 #define PIOS_INCLUDE_I2C
 #define PIOS_INCLUDE_CAN
-//#define PIOS_INCLUDE_GPIO
 
 /* Select the sensors to include */
 #define PIOS_INCLUDE_MS5611

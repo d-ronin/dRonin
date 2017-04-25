@@ -59,7 +59,6 @@ SRC += $(BUCOMMONDIR)/pios_board.c
 ## PIOS Hardware (STM32F10x)
 SRC += pios_sys.c
 SRC += pios_annunc.c
-SRC += pios_gpio.c
 SRC += pios_flash_internal.c
 
 ## PIOS Hardware (Common)

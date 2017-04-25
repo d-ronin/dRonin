@@ -516,10 +516,6 @@ void PIOS_Board_Init(void) {
 	/* I2C is slow, sensor init as well, reset watchdog to prevent reset here */
 	PIOS_WDG_Clear();
 
-#if defined(PIOS_INCLUDE_GPIO)
-	PIOS_GPIO_Init();
-#endif
-
 #if defined(PIOS_INCLUDE_ADC)
 	uint32_t internal_adc_id;
 	PIOS_INTERNAL_ADC_Init(&internal_adc_id, &pios_adc_cfg);

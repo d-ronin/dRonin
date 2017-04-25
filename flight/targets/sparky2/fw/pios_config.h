@@ -38,7 +38,6 @@
 /* Enable/Disable PiOS Modules */
 #define PIOS_INCLUDE_I2C
 #define PIOS_INCLUDE_SPI
-//#define PIOS_INCLUDE_GPIO
 #define PIOS_INCLUDE_CAN
 #define PIOS_INCLUDE_FASTHEAP
 

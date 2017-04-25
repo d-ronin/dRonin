@@ -48,9 +48,6 @@ void PIOS_Board_Init(void)
 	/* Delay system */
 	PIOS_DELAY_Init();
 
-	/* Initialize the PiOS library */
-	PIOS_GPIO_Init();
-
 #if defined(PIOS_INCLUDE_ANNUNC)
  	PIOS_ANNUNC_Init(&pios_annunc_cfg);
 #endif	/* PIOS_INCLUDE_ANNUNC */
