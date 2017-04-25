@@ -9,6 +9,7 @@
  *
  * @file       pios_exti.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
  * @brief      External Interrupt Handlers
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -72,6 +73,7 @@ static uint8_t PIOS_EXTI_line_to_index(uint32_t line)
 uint8_t PIOS_EXTI_gpio_port_to_exti_source_port(GPIO_TypeDef * gpio_port)
 {
 	switch ((uint32_t)gpio_port) {
+#ifdef STM32F10X_MD
 	case (uint32_t)GPIOA: return (GPIO_PortSourceGPIOA);
 	case (uint32_t)GPIOB: return (GPIO_PortSourceGPIOB);
 	case (uint32_t)GPIOC: return (GPIO_PortSourceGPIOC);
@@ -79,6 +81,19 @@ uint8_t PIOS_EXTI_gpio_port_to_exti_source_port(GPIO_TypeDef * gpio_port)
 	case (uint32_t)GPIOE: return (GPIO_PortSourceGPIOE);
 	case (uint32_t)GPIOF: return (GPIO_PortSourceGPIOF);
 	case (uint32_t)GPIOG: return (GPIO_PortSourceGPIOG);
+#else
+	case (uint32_t)GPIOA: return (EXTI_PortSourceGPIOA);
+	case (uint32_t)GPIOB: return (EXTI_PortSourceGPIOB);
+	case (uint32_t)GPIOC: return (EXTI_PortSourceGPIOC);
+	case (uint32_t)GPIOD: return (EXTI_PortSourceGPIOD);
+	case (uint32_t)GPIOE: return (EXTI_PortSourceGPIOE);
+	case (uint32_t)GPIOF: return (EXTI_PortSourceGPIOF);
+
+#ifdef GPIOG
+	case (uint32_t)GPIOG: return (EXTI_PortSourceGPIOG);
+#endif
+
+#endif /* !STM32F10X_MD */
 	}
 
 	PIOS_Assert(0);
@@ -136,7 +151,13 @@ int32_t PIOS_EXTI_Init(const struct pios_exti_cfg * cfg)
 	/* Set up the EXTI interrupt source */
 	uint8_t exti_source_port = PIOS_EXTI_gpio_port_to_exti_source_port(cfg->pin.gpio);
 	uint8_t exti_source_pin = PIOS_EXTI_gpio_pin_to_exti_source_pin(cfg->pin.init.GPIO_Pin);
+
+#ifdef STM32F10X_MD
 	GPIO_EXTILineConfig(exti_source_port, exti_source_pin);
+#else
+	SYSCFG_EXTILineConfig(exti_source_port, exti_source_pin);
+#endif
+
 	EXTI_Init((EXTI_InitTypeDef*)&cfg->exti.init);
 
 	/* Enable the interrupt channel */
@@ -163,7 +184,12 @@ void PIOS_EXTI_DeInit(const struct pios_exti_cfg *cfg)
 	uint8_t exti_source_pin = PIOS_EXTI_gpio_pin_to_exti_source_pin(cfg->pin.init.GPIO_Pin);
 	// sadly std-periph doesn't provide a way to disable the exti line
 	uint32_t tmp = ((uint32_t)0x0F) << (0x04 * (exti_source_pin & (uint8_t)0x03));
-	AFIO->EXTICR[exti_source_pin >> 0x02] &= ~tmp;
+
+#ifdef STM32F10X_MD
+	AFIO  ->EXTICR[exti_source_pin >> 0x02] &= ~tmp;
+#else
+	SYSCFG->EXTICR[exti_source_pin >> 0x02] &= ~tmp;
+#endif
 
 	/* Disable EXTI */
 	EXTI_InitTypeDef init = {
@@ -190,13 +216,13 @@ static bool PIOS_EXTI_generic_irq_handler(uint8_t line_index)
 	return cfg->vector();
 }
 
-#define PIOS_EXTI_HANDLE_LINE(line, woken)                      \
+/* Bind Interrupt Handlers */
+
+#define PIOS_EXTI_HANDLE_LINE(line)                     \
 	if (EXTI_GetITStatus(EXTI_Line ## line) != RESET) {       \
 		EXTI_ClearITPendingBit(EXTI_Line ## line);        \
 		PIOS_EXTI_generic_irq_handler(line);            \
 	}
-
-/* Bind Interrupt Handlers */
 
 static void PIOS_EXTI_0_irq_handler(void)
 {
@@ -204,7 +230,7 @@ static void PIOS_EXTI_0_irq_handler(void)
 	CH_IRQ_PROLOGUE();
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 
-	PIOS_EXTI_HANDLE_LINE(0, xHigherPriorityTaskWoken);
+	PIOS_EXTI_HANDLE_LINE(0);
 
 #if defined(PIOS_INCLUDE_CHIBIOS)
 	CH_IRQ_EPILOGUE();
@@ -218,7 +244,7 @@ static void PIOS_EXTI_1_irq_handler(void)
 	CH_IRQ_PROLOGUE();
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 
-	PIOS_EXTI_HANDLE_LINE(1, xHigherPriorityTaskWoken);
+	PIOS_EXTI_HANDLE_LINE(1);
 
 #if defined(PIOS_INCLUDE_CHIBIOS)
 	CH_IRQ_EPILOGUE();
@@ -232,7 +258,7 @@ static void PIOS_EXTI_2_irq_handler(void)
 	CH_IRQ_PROLOGUE();
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 
-	PIOS_EXTI_HANDLE_LINE(2, xHigherPriorityTaskWoken);
+	PIOS_EXTI_HANDLE_LINE(2);
 
 #if defined(PIOS_INCLUDE_CHIBIOS)
 	CH_IRQ_EPILOGUE();
@@ -246,7 +272,7 @@ static void PIOS_EXTI_3_irq_handler(void)
 	CH_IRQ_PROLOGUE();
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 
-	PIOS_EXTI_HANDLE_LINE(3, xHigherPriorityTaskWoken);
+	PIOS_EXTI_HANDLE_LINE(3);
 
 #if defined(PIOS_INCLUDE_CHIBIOS)
 	CH_IRQ_EPILOGUE();
@@ -260,7 +286,7 @@ static void PIOS_EXTI_4_irq_handler(void)
 	CH_IRQ_PROLOGUE();
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 
-	PIOS_EXTI_HANDLE_LINE(4, xHigherPriorityTaskWoken);
+	PIOS_EXTI_HANDLE_LINE(4);
 
 #if defined(PIOS_INCLUDE_CHIBIOS)
 	CH_IRQ_EPILOGUE();
@@ -274,11 +300,11 @@ static void PIOS_EXTI_9_5_irq_handler(void)
 	CH_IRQ_PROLOGUE();
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 
-	PIOS_EXTI_HANDLE_LINE(5, xHigherPriorityTaskWoken);
-	PIOS_EXTI_HANDLE_LINE(6, xHigherPriorityTaskWoken);
-	PIOS_EXTI_HANDLE_LINE(7, xHigherPriorityTaskWoken);
-	PIOS_EXTI_HANDLE_LINE(8, xHigherPriorityTaskWoken);
-	PIOS_EXTI_HANDLE_LINE(9, xHigherPriorityTaskWoken);
+	PIOS_EXTI_HANDLE_LINE(5);
+	PIOS_EXTI_HANDLE_LINE(6);
+	PIOS_EXTI_HANDLE_LINE(7);
+	PIOS_EXTI_HANDLE_LINE(8);
+	PIOS_EXTI_HANDLE_LINE(9);
 
 #if defined(PIOS_INCLUDE_CHIBIOS)
 	CH_IRQ_EPILOGUE();
@@ -292,12 +318,12 @@ static void PIOS_EXTI_15_10_irq_handler(void)
 	CH_IRQ_PROLOGUE();
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 
-	PIOS_EXTI_HANDLE_LINE(10, xHigherPriorityTaskWoken);
-	PIOS_EXTI_HANDLE_LINE(11, xHigherPriorityTaskWoken);
-	PIOS_EXTI_HANDLE_LINE(12, xHigherPriorityTaskWoken);
-	PIOS_EXTI_HANDLE_LINE(13, xHigherPriorityTaskWoken);
-	PIOS_EXTI_HANDLE_LINE(14, xHigherPriorityTaskWoken);
-	PIOS_EXTI_HANDLE_LINE(15, xHigherPriorityTaskWoken);
+	PIOS_EXTI_HANDLE_LINE(10);
+	PIOS_EXTI_HANDLE_LINE(11);
+	PIOS_EXTI_HANDLE_LINE(12);
+	PIOS_EXTI_HANDLE_LINE(13);
+	PIOS_EXTI_HANDLE_LINE(14);
+	PIOS_EXTI_HANDLE_LINE(15);
 
 #if defined(PIOS_INCLUDE_CHIBIOS)
 	CH_IRQ_EPILOGUE();
