@@ -700,7 +700,7 @@ int UploaderGadgetWidget::isCloudReleaseAvailable(QString srcRelease)
 
     connect(&timeout, &QTimer::timeout, &loop, &QEventLoop::quit);
     connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-    timeout.start(20000); /* 20 seconds */
+    timeout.start(64000); /* 64 seconds */
     loop.exec();
 
     timeout.stop();
