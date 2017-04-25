@@ -230,7 +230,7 @@ static int32_t PIOS_MPU_CheckWhoAmI(enum pios_mpu_type *detected_device)
 		return -PIOS_MPU_ERROR_READFAILED;
 
 	for (int i = 0; i < PIOS_MPU_NUM; i++) {
-		if ((uint8_t)(retval & 0x7E) == pios_mpu_whoami[i]) {
+		if (((uint8_t) retval) == pios_mpu_whoami[i]) {
 			*detected_device = i;
 			return 0;
 		}
@@ -358,6 +358,7 @@ static int32_t PIOS_MPU_Mag_Config(void)
 		if (PIOS_MPU_Mag_WriteReg(PIOS_MPU_AK8963_CNTL2_REG, PIOS_MPU_AK8963_CNTL2_SRST) != 0)
 			return -3;
 	}
+
 	// AK8975 (MPU-9150) doesn't have soft reset function
 
 	// give chip some time to initialize
@@ -771,9 +772,11 @@ int32_t PIOS_MPU_SPI_Init(pios_mpu_dev_t *dev, uint32_t spi_id, uint32_t slave_n
 	mpu_dev->com_slave_addr = slave_num;
 	mpu_dev->cfg = cfg;
 
-	PIOS_MPU_SPI_Probe(&mpu_dev->mpu_type);
+	int32_t ret = PIOS_MPU_SPI_Probe(&mpu_dev->mpu_type);
 
-	// TODO: detect mag?
+	if (ret) {
+		return ret;
+	}
 
 	return PIOS_MPU_Common_Init();
 }

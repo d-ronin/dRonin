@@ -1627,14 +1627,13 @@ static const struct pios_ms5611_cfg pios_ms5611_cfg = {
 };
 #endif /* PIOS_INCLUDE_MS5611 */
 
-
 /**
- * Configuration for the MPU9250 chip
+ * Configuration for the MPU chip
  */
-#if defined(PIOS_INCLUDE_MPU9250_SPI)
-#include "pios_mpu9250.h"
-static const struct pios_exti_cfg pios_exti_mpu9250_cfg __exti_config = {
-	.vector = PIOS_MPU9250_IRQHandler,
+#if defined(PIOS_INCLUDE_MPU)
+#include "pios_mpu.h"
+static const struct pios_exti_cfg pios_exti_mpu_cfg __exti_config = {
+	.vector = PIOS_MPU_IRQHandler,
 	.line = EXTI_Line5,
 	.pin = {
 		.gpio = GPIOC,
@@ -1664,17 +1663,13 @@ static const struct pios_exti_cfg pios_exti_mpu9250_cfg __exti_config = {
 	},
 };
 
-static struct pios_mpu9250_cfg pios_mpu9250_cfg = {
-	.exti_cfg = &pios_exti_mpu9250_cfg,
+static struct pios_mpu_cfg pios_mpu_cfg = {
+	.exti_cfg = &pios_exti_mpu_cfg,
 	.default_samplerate = 1000,
-	.interrupt_cfg = PIOS_MPU60X0_INT_CLR_ANYRD,
-
-	.use_magnetometer = true,
-	.default_gyro_filter = PIOS_MPU9250_GYRO_LOWPASS_184_HZ,
-	.default_accel_filter = PIOS_MPU9250_ACCEL_LOWPASS_184_HZ,
-	.orientation = PIOS_MPU9250_TOP_180DEG
+	.orientation = PIOS_MPU_TOP_180DEG,
+	.use_internal_mag = true,
 };
-#endif /* PIOS_INCLUDE_MPU9250_SPI */
+#endif /* PIOS_INCLUDE_MPU */
 
 /**
  * Configuration for the external HMC5883 chip
