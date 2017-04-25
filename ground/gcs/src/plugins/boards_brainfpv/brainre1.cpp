@@ -200,6 +200,30 @@ Core::IBoardType::InputType BrainRE1::getInputType()
         break;
     }
 
+    switch (settings.SerialPort) {
+    case HwBrainRE1::SERIALPORT_TBSCROSSFIRE:
+        return INPUT_TYPE_TBSCROSSFIRE;
+    default:
+        break;
+    }
+
+    switch (settings.MultiPortSerial) {
+    case HwBrainRE1::MULTIPORTSERIAL_TBSCROSSFIRE:
+        return INPUT_TYPE_TBSCROSSFIRE;
+    default:
+        break;
+    }
+    
+    if (settings.MultiPortMode == HwBrainRE1::MULTIPORTMODE_DUALSERIAL4PWM)
+    {
+        switch (settings.MultiPortSerial2) {
+        case HwBrainRE1::MULTIPORTSERIAL2_TBSCROSSFIRE:
+            return INPUT_TYPE_TBSCROSSFIRE;
+        default:
+            break;
+        }
+    }
+
     return INPUT_TYPE_UNKNOWN;
 }
 
