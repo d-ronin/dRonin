@@ -113,6 +113,7 @@ include $(PIOS)/STM32F30x/library_chibios.mk
 ## PIOS Hardware (Common)
 SRC += pios_delay.c
 SRC += pios_mpu.c
+SRC += pios_exti.c
 SRC += pios_crc.c
 SRC += pios_com.c
 SRC += pios_dsm.c

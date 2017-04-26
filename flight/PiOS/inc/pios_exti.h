@@ -42,8 +42,10 @@ struct pios_exti_cfg {
 	struct stm32_exti exti;
 };
 
-/* must be added to any pios_exti_cfg definition for it to be valid */
-#define __exti_config	__attribute__((section("_exti")))
+/* This still exists just as legacy.  No longer do exti_cfg's need to be in a
+ * special section.
+ */
+#define __exti_config
 
 extern int32_t PIOS_EXTI_Init(const struct pios_exti_cfg *cfg);
 extern void PIOS_EXTI_DeInit(const struct pios_exti_cfg *cfg);
