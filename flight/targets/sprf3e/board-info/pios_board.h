@@ -8,7 +8,7 @@
  * @file       sprf3e/board-info/pios_board.h
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
- * @brief      Board header file for lux board.
+ * @brief      Board header file for sprf3e board.
  * @see        The GNU Public License (GPL) Version 3
  *
  *****************************************************************************/

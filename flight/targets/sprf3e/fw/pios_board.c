@@ -323,7 +323,7 @@ void PIOS_Board_Init(void)
 		case HWSPRF3E_MAGNETOMETER_NONE:
 			pios_mpu_cfg.use_internal_mag=false;
 			break;
-		case HWSHARED_MAG_EXTERNALHMC5883:
+		case HWSPRF3E_MAGNETOMETER_EXTERNALHMC5883:
 			pios_mpu_cfg.use_internal_mag=false;
 #if defined(PIOS_INCLUDE_I2C)
 			PIOS_WDG_Clear();
@@ -335,7 +335,7 @@ void PIOS_Board_Init(void)
 			PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
 #endif // PIOS_INCLUDE_I2C
 			break;
-		case HWSHARED_MAG_EXTERNALHMC5983:
+		case HWSPRF3E_MAGNETOMETER_EXTERNALHMC5983:
 			pios_mpu_cfg.use_internal_mag=false;
 #ifdef PIOS_INCLUDE_HMC5983_I2C
 			PIOS_WDG_Clear();

@@ -10,7 +10,7 @@
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @brief      Defines board specific static initializers for hardware for the
- *             lux board.
+ *             sprf3e board.
  * @see        The GNU Public License (GPL) Version 3
  * 
  *****************************************************************************/
@@ -1008,7 +1008,7 @@ static const struct pios_hmc5883_cfg pios_hmc5883_external_cfg = {
 	.Meas_Conf = PIOS_HMC5883_MEASCONF_NORMAL,
 	.Gain = PIOS_HMC5883_GAIN_1_9,
 	.Mode = PIOS_HMC5883_MODE_CONTINUOUS,
-	.Default_Orientation = PIOS_HMC5883_TOP_90DEG,
+	.Default_Orientation = PIOS_HMC5883_TOP_0DEG,
 };
 #endif
 
@@ -1020,7 +1020,7 @@ static const struct pios_hmc5983_cfg pios_hmc5983_external_cfg = {
 	.M_ODR               = PIOS_HMC5983_ODR_75,
 	.Meas_Conf           = PIOS_HMC5983_MEASCONF_NORMAL,
 	.Gain                = PIOS_HMC5983_GAIN_1_9,
-	.Mode                = PIOS_HMC5983_MODE_SINGLE,
+	.Mode                = PIOS_HMC5983_MODE_CONTINUOUS,
 	.Averaging           = PIOS_HMC5983_AVERAGING_1,
 	.Orientation         = PIOS_HMC5983_TOP_0DEG,
 };
