@@ -134,6 +134,8 @@ private slots:
     void openAutotuneDialog();
     void openAutotuneDialog(bool autoOpened);
 
+    void openAutotuneFile();
+
     void atConnected();
     void atDisconnected();
 };

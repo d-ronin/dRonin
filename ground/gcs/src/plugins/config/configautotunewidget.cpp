@@ -25,10 +25,22 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
+
+#define _USE_MATH_DEFINES
+
+#include <memory>
+#include <cmath>
+#include <vector>
+#include <algorithm>
+#include <numeric>
+
+#include "ffft/FFTReal.h"
+
 #include "configautotunewidget.h"
 
 #include <QCryptographicHash>
 #include <QDebug>
+#include <QFileDialog>
 #include <QStringList>
 #include <QWidget>
 #include <QTextEdit>
@@ -87,6 +99,9 @@ ConfigAutotuneWidget::ConfigAutotuneWidget(ConfigGadgetWidget *parent)
             &ConfigAutotuneWidget::atDisconnected, Qt::QueuedConnection);
     connect(m_autotune->adjustTune, &QPushButton::pressed, this,
             QOverload<>::of(&ConfigAutotuneWidget::openAutotuneDialog));
+    connect(m_autotune->fromDataFileBtn, &QPushButton::pressed, this,
+            &ConfigAutotuneWidget::openAutotuneFile);
+
 
     m_autotune->adjustTune->setEnabled(isAutopilotConnected());
 }
@@ -410,6 +425,252 @@ void ConfigAutotuneWidget::stuffShareForm(AutotuneFinalPage *autotuneShareForm)
 void ConfigAutotuneWidget::openAutotuneDialog()
 {
     openAutotuneDialog(false);
+}
+
+// XXX appropriately encapsulate all this crap
+#define ATFLASH_MAGIC 0x656e755480008041        /* A...Tune */
+struct at_flash_header {
+        uint64_t magic;
+        uint16_t wiggle_points;
+        uint16_t aux_data_len;
+        uint16_t sample_rate;
+
+        // Consider total number of averages here
+        uint16_t resv;
+};
+
+struct at_measurement {
+        float y[3];             /* Gyro measurements */
+        float u[3];             /* Actuator desired */
+};
+
+struct at_flash {
+	struct at_flash_header hdr;
+
+	struct at_measurement data[];
+};
+
+/* Run a Butterworth biquad filter on a circular buffer.  First go around once
+ * to "prime" the filter, then actually filter in place.  This is derived from
+ * @glowtape's excellent flight implementation
+ */
+void biquad_filter_in_place(float cutoff, int pts, float *data) {
+	float f = 1.0f / tan(M_PI * cutoff);
+	float q = 1.4142f;
+
+	float y2 = 0, y1 = 0, x2 = 0, x1 = 0;
+
+        float b0 = 1.0f / (1.0f + q*f + f*f);
+        float a1 = 2.0f * (f*f - 1.0f) * b0;
+        float a2 = -(1.0f - q*f + f*f) * b0;
+
+	for (int i = 0; i < pts; i++) {
+		float y = b0 * (data[i] + 2.0f * x1 + x2) +
+			a1 * y1 + a2 * y2;
+
+		y2 = y1;
+		y1 = y;
+
+		x2 = x1;
+		x1 = data[i];
+	}
+
+	for (int i = 0; i < pts; i++) {
+		float y = b0 * (data[i] + 2.0f * x1 + x2) +
+			a1 * y1 + a2 * y2;
+
+		y2 = y1;
+		y1 = y;
+
+		x2 = x1;
+		x1 = data[i];
+
+		data[i] = y;
+	}
+}
+
+/* Returns number of samples of delay between series */
+float get_sample_delay(int pts, const float *delayed,
+		const float *orig) {
+	ffft::FFTReal <float> fft (pts);
+
+        /* XXX avoid all these VLAs on stack */
+	/* Convert to frequency domain */
+	float delayed_fft[pts];
+	fft.do_fft(delayed_fft, delayed);
+
+	float orig_fft[pts];
+	fft.do_fft(orig_fft, orig);
+
+	/* Now perform a correlation by multiplying -orig_fft* by delayed_fft.
+	 * The types are all floats here, so we need to do the heavy lifting
+	 * ourselves.   gfft = x+yi, dfft = u+vi, dfft* = u-vi,
+	 * -dfft* = -u + vi
+	 *
+	 * -dfft* x gfft = (-ux - vy) + (vx - uy)i
+	 */
+
+	float product[pts];
+
+	int fpts = pts / 2;
+
+	// Memory layout here is annoyin'.  All reals, then all imaginaries
+	for (int i=0; i < fpts; i++) {
+		float x = delayed_fft[i];
+		float y = delayed_fft[i + fpts];
+		float u = orig_fft[i];
+		float v = orig_fft[i + fpts];
+
+		product[i] = -(u * x) - (v * y);
+		product[i + fpts] = (v * x) - (u * y);
+	}
+
+	/* Inverse FFT converts this to the time domain */
+	float prod_time[pts];
+
+	fft.do_ifft(product, prod_time);
+
+	/* And we take magnitudes to find tau. */
+	float mags[fpts];
+
+	int max_idx = 0;
+	float max_val = 0;
+
+	for (int i=0; i<fpts; i++) {
+		float real = prod_time[i];
+		float imag = prod_time[i + fpts];
+		mags[i] = sqrt( real * real + imag * imag);
+
+		if (mags[i] > max_val) {
+			max_val = mags[i];
+			max_idx = i;
+		}
+
+		//cout << i << "\t" << mags[i] << "\n";
+	}
+
+	//cout << "Maximum mags[" << max_idx << "] = " << max_val << "\n";
+
+	// TODO / optional: interpolate/find a better peak around max_idx.
+
+	return max_idx;
+}
+
+void ConfigAutotuneWidget::openAutotuneFile()
+{
+    QString fileName = QFileDialog::getOpenFileName(this,
+            tr("Open autotune partition"), "",
+            tr("Partition image Files (*.bin) ;; All files (*.*)"));
+
+    if (fileName.isEmpty()) {
+        return;
+    }
+
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly)) {
+        /* XXX error dialog */
+        return;
+    }
+
+    QByteArray loadedFile = file.readAll();
+
+    const at_flash *flash_data = reinterpret_cast<const at_flash *> ((const void *) loadedFile);
+
+    unsigned int size = loadedFile.size();
+
+    /* Determine whether we have a sane amount of data, etc. */
+    if ((size < sizeof(at_flash)) ||
+            (flash_data->hdr.magic != ATFLASH_MAGIC)) {
+        /* XXX error dialog */
+        return;
+    }
+
+    unsigned int size_expected = sizeof(at_flash) +
+        sizeof(at_measurement) * flash_data->hdr.wiggle_points +
+        flash_data->hdr.aux_data_len;
+
+    if (size < size_expected) {
+        /* XXX error dialog */
+        return;
+    }
+
+    float duration = (float) flash_data->hdr.wiggle_points /
+        flash_data->hdr.sample_rate;
+
+    if ((duration < 0.25f) || (duration > 5.0f)) {
+        /* XXX error dialog */
+        return;
+    }
+
+    int pts = flash_data->hdr.wiggle_points;
+
+    for (int axis=0; axis<3; axis++) {
+        // XXX use a QT type?
+        std::vector<float> gyro_deriv(pts);
+        std::vector<float> actu_desired(pts);
+
+        for (int i=0; i<pts; i++) {
+            actu_desired[i] = flash_data->data[i].u[axis];
+        }
+
+        // Differentiate the gyro data
+        for (int i=1; i<pts; i++) {
+            gyro_deriv[i] = flash_data->data[i].y[axis] -
+                flash_data->data[i-1].y[axis];
+        }
+
+        gyro_deriv[0] = flash_data->data[0].y[axis] -
+            flash_data->data[pts - 1].y[axis];
+
+        float sample_tau = get_sample_delay(pts, gyro_deriv.data(),
+                actu_desired.data());
+
+        float tau = sample_tau / flash_data->hdr.sample_rate;
+
+        biquad_filter_in_place(1 / (sample_tau * M_PI * 1.414), pts, actu_desired.data());
+
+        std::vector<float> gyro_sorted = gyro_deriv;
+        std::vector<float> actu_sorted = actu_desired;
+
+        std::sort(gyro_sorted.begin(), gyro_sorted.end());
+        std::sort(actu_sorted.begin(), actu_sorted.end());
+
+        int low_idx = pts * 0.02 + 0.5;
+        int high_idx = pts - 1 - low_idx;
+
+        float gyro_span = gyro_sorted[high_idx] - gyro_sorted[low_idx];
+        float actu_span = actu_sorted[high_idx] - actu_sorted[low_idx];
+
+        float gain = gyro_span / actu_span * flash_data->hdr.sample_rate;
+
+        float avg = std::accumulate(gyro_deriv.begin(), gyro_deriv.end(), 0) / pts;
+
+        for (int i = 0; i < pts; i++) {
+            gyro_deriv[i] = gyro_deriv[i] - avg;
+        }
+
+        float avg_act = std::accumulate(actu_desired.begin(), actu_desired.end(), 0) / pts;
+
+        for (int i = 0; i < pts; i++) {
+            actu_desired[i] = (actu_desired[i] - avg_act) *
+                (gain / flash_data->hdr.sample_rate);
+        }
+
+        float bias = avg - avg_act * (gain / flash_data->hdr.sample_rate);
+
+        double noise = 0;
+
+        for (int i = 0; i < pts; i++) {
+            noise += (actu_desired[i] - gyro_deriv[i]) *
+                (actu_desired[i] - gyro_deriv[i]);
+        }
+
+        noise = sqrt(noise / pts);
+
+        qDebug() << "Series " << axis << ": tau=" << tau <<
+            "; gain=" << gain << " (" << log(gain) <<
+            "); bias=" << bias << " noise=" << noise << "";
+    }
 }
 
 void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened)
