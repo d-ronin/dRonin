@@ -133,6 +133,7 @@ void PIOS_Board_Init(void)
 
 	/* Set up pulse timers */
 	//inputs
+	PIOS_TIM_InitClock(&tim_8_cfg);
 
 	//outputs
 	PIOS_TIM_InitClock(&tim_1_cfg);

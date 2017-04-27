@@ -527,7 +527,7 @@ void PIOS_RTC_IRQ_Handler (void)
 
 #include "pios_tim_priv.h"
 
-static const TIM_TimeBaseInitTypeDef tim_1_15_16_17_time_base = {
+static const TIM_TimeBaseInitTypeDef tim_1_8_15_16_17_time_base = {
 	.TIM_Prescaler = (PIOS_PERIPHERAL_APB2_CLOCK / 1000000) - 1,
 	.TIM_ClockDivision = TIM_CKD_DIV1,
 	.TIM_CounterMode = TIM_CounterMode_Up,
@@ -571,7 +571,7 @@ static const struct pios_tim_clock_cfg tim_3_cfg = {
 
 static const struct pios_tim_clock_cfg tim_1_cfg = {
 	.timer = TIM1,
-	.time_base_init = &tim_1_15_16_17_time_base,
+	.time_base_init = &tim_1_8_15_16_17_time_base,
 	.irq = {
 		.init = {
 			.NVIC_IRQChannel                   = TIM1_CC_IRQn,
@@ -581,9 +581,23 @@ static const struct pios_tim_clock_cfg tim_1_cfg = {
 		},
 	},
 };
+
+static const struct pios_tim_clock_cfg tim_8_cfg = {
+	.timer = TIM8,
+	.time_base_init = &tim_1_8_15_16_17_time_base,
+	.irq = {
+		.init = {
+			.NVIC_IRQChannel                   = TIM8_CC_IRQn,
+			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
+			.NVIC_IRQChannelSubPriority        = 0,
+			.NVIC_IRQChannelCmd                = ENABLE,
+		},
+	},
+};
+
 static const struct pios_tim_clock_cfg tim_15_cfg = {
 	.timer = TIM15,
-	.time_base_init = &tim_1_15_16_17_time_base,
+	.time_base_init = &tim_1_8_15_16_17_time_base,
 	.irq = {
 		.init = {
 			.NVIC_IRQChannel                   = TIM1_BRK_TIM15_IRQn,
@@ -596,7 +610,7 @@ static const struct pios_tim_clock_cfg tim_15_cfg = {
 
 static const struct pios_tim_clock_cfg tim_16_cfg = {
 	.timer = TIM16,
-	.time_base_init = &tim_1_15_16_17_time_base,
+	.time_base_init = &tim_1_8_15_16_17_time_base,
 	.irq = {
 		.init = {
 			.NVIC_IRQChannel                   = TIM1_UP_TIM16_IRQn,
@@ -606,9 +620,10 @@ static const struct pios_tim_clock_cfg tim_16_cfg = {
 		},
 	},
 };
+
 static const struct pios_tim_clock_cfg tim_17_cfg = {
 	.timer = TIM17,
-	.time_base_init = &tim_1_15_16_17_time_base,
+	.time_base_init = &tim_1_8_15_16_17_time_base,
 	.irq = {
 		.init = {
 			.NVIC_IRQChannel                   = TIM1_TRG_COM_TIM17_IRQn,
