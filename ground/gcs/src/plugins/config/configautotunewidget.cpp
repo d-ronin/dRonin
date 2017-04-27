@@ -141,9 +141,10 @@ void ConfigAutotuneWidget::checkNewAutotune()
     }
 }
 
-QString ConfigAutotuneWidget::systemIdentValid(SystemIdent::DataFields &data, bool *okToContinue)
+QString ConfigAutotuneWidget::tuneValid(AutotunedValues &data,
+        bool *okToContinue)
 {
-    if (data.Tau == 0) {
+    if (data.tau[0] == 0) {
         // Invalid / no tune.
 
         *okToContinue = false;
@@ -155,58 +156,32 @@ QString ConfigAutotuneWidget::systemIdentValid(SystemIdent::DataFields &data, bo
 
     *okToContinue = true;
 
-    if (data.NumAfPredicts < 5000) {
-        // Wayyyyy too few points to be plausible.  CC3D is expected to do
-        // 333 * 60 = 20000 give or take a bit, with most other platforms way
-        // more.  If you don't get this many, it doesn't make sense.
-
-        retVal.append(
-            tr("Error: Too few measurements were obtained to successfully autotune this craft."));
-        retVal.append("<br/>");
-        *okToContinue = false;
-    }
-
-    if (data.NumSpilledPts > (data.NumAfPredicts / 8)) {
-        // Greater than 12.5% points spilled / not processed.  You're not going
-        // to have a good time.
-
-        retVal.append(tr("Error: Many measurements were lost because the flight controller was "
-                         "unable to keep up with the tuning process."));
-        retVal.append("<br/>");
-        *okToContinue = false;
-    } else if (data.NumSpilledPts > 10) {
-        // We shouldn't spill points at all.  Warn!
-        retVal.append(tr("Warning: Some measurements were lost because the flight controller was "
-                         "unable to keep up with the tuning process."));
-        retVal.append("<br/>");
-    }
-
-    if (data.Tau < -5.3) {
+    if (data.tau[0] < 0.005) {
         // Too low of tau to be plausible. (5ms)
         retVal.append(tr("Error: Autotune did not measure valid values for this craft (low tau).  "
                          "Consider slightly lowering the starting roll/pitch rate P values or "
                          "slightly decreasing Motor Input/Output Curve Fit on the output pane."));
         retVal.append("<br/>");
         *okToContinue = false;
-    } else if (data.Tau < -4.9) {
+    } else if (data.tau[0] < 0.0074) {
         // Probably too low to be real-- 7.4ms-- warn!
         retVal.append(tr("Warning: The tau value measured for this craft is very low."));
         retVal.append("<br/>");
-    } else if (data.Tau > -1.4) {
-        // Too high of a tau to be plausible / accurate (247ms)-- warn!
+    } else if (data.tau[0] > .240) {
+        // Too high of a tau to be plausible / accurate (240ms)-- warn!
         retVal.append(tr("Warning: The tau value measured for this craft is very high."));
         retVal.append("<br/>");
     }
 
     // Lowest valid gains seen have been 7.9, with most values in the range 9..11
-    if (data.Beta[SystemIdent::BETA_ROLL] < 7.25) {
+    if (data.beta[0] < 7.25) {
         retVal.append(
             tr("Error: Autotune did not measure valid values for this craft (low roll gain)."));
         retVal.append("<br/>");
         *okToContinue = false;
     }
 
-    if (data.Beta[SystemIdent::BETA_PITCH] < 7.25) {
+    if (data.beta[0] < 7.25) {
         retVal.append(
             tr("Error: Autotune did not measure valid values for this craft (low pitch gain)."));
         retVal.append("<br/>");
@@ -235,7 +210,7 @@ QString ConfigAutotuneWidget::systemIdentValid(SystemIdent::DataFields &data, bo
  * @return QJsonDocument containing autotune result data
  */
 QJsonDocument ConfigAutotuneWidget::getResultsJson(AutotuneFinalPage *autotuneShareForm,
-                                                   struct AutotunedValues *av)
+                                                   AutotunedValues *av)
 {
     deviceDescriptorStruct firmware;
     utilMngr->getBoardDescriptionStruct(firmware);
@@ -308,28 +283,29 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson(AutotuneFinalPage *autotuneSh
 
     json["userObservations"] = autotuneShareForm->teObservations->toPlainText();
 
-    SystemIdent::DataFields data = systemIdent->getData();
-
     QJsonObject identification;
     QJsonObject roll_ident;
-    roll_ident["gain"] = data.Beta[SystemIdent::BETA_ROLL];
-    roll_ident["bias"] = data.Bias[SystemIdent::BIAS_ROLL];
-    roll_ident["noise"] = data.Noise[SystemIdent::NOISE_ROLL];
+    roll_ident["gain"] = av->beta[0];
+    roll_ident["bias"] = av->bias[0];
+    roll_ident["noise"] = av->noise[0];
+    roll_ident["tau"] = av->tau[0];
     identification["roll"] = roll_ident;
 
     QJsonObject pitch_ident;
-    pitch_ident["gain"] = data.Beta[SystemIdent::BETA_PITCH];
-    pitch_ident["bias"] = data.Bias[SystemIdent::BIAS_PITCH];
-    pitch_ident["noise"] = data.Noise[SystemIdent::BIAS_PITCH];
+    pitch_ident["gain"] = av->beta[1];
+    pitch_ident["bias"] = av->bias[1];
+    pitch_ident["noise"] = av->noise[1];
+    pitch_ident["tau"] = av->tau[1];
     identification["pitch"] = pitch_ident;
 
     QJsonObject yaw_ident;
-    yaw_ident["gain"] = data.Beta[SystemIdent::BETA_YAW];
-    yaw_ident["bias"] = data.Bias[SystemIdent::BIAS_YAW];
-    yaw_ident["noise"] = data.Noise[SystemIdent::BIAS_YAW];
+    yaw_ident["gain"] = av->beta[2];
+    yaw_ident["bias"] = av->bias[2];
+    yaw_ident["noise"] = av->noise[2];
+    yaw_ident["tau"] = av->tau[2];
     identification["yaw"] = yaw_ident;
 
-    identification["tau"] = exp(data.Tau);
+    identification["tau"] = av->tau[0];
     json["identification"] = identification;
 
     QJsonObject tuning, parameters, computed, misc;
@@ -420,11 +396,6 @@ void ConfigAutotuneWidget::stuffShareForm(AutotuneFinalPage *autotuneShareForm)
         autotuneShareForm->acBoard->setText(board->shortName());
         autotuneShareForm->acBoard->setEnabled(false);
     }
-}
-
-void ConfigAutotuneWidget::openAutotuneDialog()
-{
-    openAutotuneDialog(false);
 }
 
 // XXX appropriately encapsulate all this crap
@@ -602,6 +573,8 @@ void ConfigAutotuneWidget::openAutotuneFile()
         return;
     }
 
+    AutotunedValues vals = { };
+
     int pts = flash_data->hdr.wiggle_points;
 
     for (int axis=0; axis<3; axis++) {
@@ -670,10 +643,22 @@ void ConfigAutotuneWidget::openAutotuneFile()
         qDebug() << "Series " << axis << ": tau=" << tau <<
             "; gain=" << gain << " (" << log(gain) <<
             "); bias=" << bias << " noise=" << noise << "";
+
+        vals.tau[axis] = tau;
+        vals.beta[axis] = log(gain);
+        vals.bias[axis] = bias;
+        vals.noise[axis] = noise;
     }
+
+    openAutotuneDialog(false, &vals);
 }
 
-void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened)
+void ConfigAutotuneWidget::openAutotuneDialog() {
+    openAutotuneDialog(false);
+}
+
+void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened,
+        AutotunedValues *precalc_vals)
 {
     QWizard wizard(NULL, Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint
                        | Qt::WindowCloseButtonHint);
@@ -683,8 +668,33 @@ void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened)
     SystemIdent *systemIdent = SystemIdent::GetInstance(getObjectManager());
     SystemIdent::DataFields systemIdentData = systemIdent->getData();
 
+    // Used to track state across the entire wizard path.
+    AutotunedValues av;
+
+    if (precalc_vals) {
+        av = *precalc_vals;
+    } else {
+        av.tau[0] = exp(systemIdentData.Tau);
+        av.tau[1] = exp(systemIdentData.Tau);
+        av.tau[2] = exp(systemIdentData.Tau);
+
+        av.beta[0] = systemIdentData.Beta[SystemIdent::BETA_ROLL];
+        av.beta[1] = systemIdentData.Beta[SystemIdent::BETA_PITCH];
+        av.beta[2] = systemIdentData.Beta[SystemIdent::BETA_YAW];
+
+        av.bias[0] = systemIdentData.Bias[SystemIdent::BIAS_ROLL];
+        av.bias[1] = systemIdentData.Bias[SystemIdent::BIAS_PITCH];
+        av.bias[2] = systemIdentData.Bias[SystemIdent::BIAS_YAW];
+
+        av.noise[0] = systemIdentData.Noise[SystemIdent::NOISE_ROLL];
+        av.noise[1] = systemIdentData.Noise[SystemIdent::NOISE_PITCH];
+        av.noise[2] = systemIdentData.Noise[SystemIdent::NOISE_YAW];
+    }
+
+    av.converged = false;
+
     bool dataValid;
-    QString initialWarnings = systemIdentValid(systemIdentData, &dataValid);
+    QString initialWarnings = tuneValid(av, &dataValid);
 
     // The first page is simple; construct it from scratch.
     QWizardPage *beginning = new QWizardPage;
@@ -714,16 +724,11 @@ void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened)
 
     wizard.addPage(beginning);
 
-    // Needed for sliders page to communicate with final page and end of wiz
-    struct AutotunedValues av;
-
-    av.converged = false;
-
     AutotuneFinalPage *pg = new AutotuneFinalPage(NULL);
 
     if (dataValid) {
-        wizard.addPage(new AutotuneMeasuredPropertiesPage(NULL, systemIdentData));
-        wizard.addPage(new AutotuneSlidersPage(NULL, systemIdentData, &av));
+        wizard.addPage(new AutotuneMeasuredPropertiesPage(NULL, &av));
+        wizard.addPage(new AutotuneSlidersPage(NULL, &av));
 
         stuffShareForm(pg);
 
@@ -787,41 +792,40 @@ void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened)
 }
 
 AutotuneMeasuredPropertiesPage::AutotuneMeasuredPropertiesPage(
-    QWidget *parent, SystemIdent::DataFields &systemIdentData)
+    QWidget *parent, AutotunedValues *autoValues)
     : QWizardPage(parent)
 {
     setupUi(this);
 
-    this->sysIdent = systemIdentData;
+    this->av = autoValues;
 }
 
 void AutotuneMeasuredPropertiesPage::initializePage()
 {
-    measuredRollGain->setText(QString::number(sysIdent.Beta[SystemIdent::BETA_ROLL], 'f', 2));
-    measuredPitchGain->setText(QString::number(sysIdent.Beta[SystemIdent::BETA_PITCH], 'f', 2));
-    measuredYawGain->setText(QString::number(sysIdent.Beta[SystemIdent::BETA_YAW], 'f', 2));
+    measuredRollGain->setText(QString::number(av->beta[0], 'f', 2));
+    measuredPitchGain->setText(QString::number(av->beta[1], 'f', 2));
+    measuredYawGain->setText(QString::number(av->beta[2], 'f', 2));
 
-    measuredRollBias->setText(QString::number(sysIdent.Bias[SystemIdent::BIAS_ROLL], 'f', 3));
-    measuredPitchBias->setText(QString::number(sysIdent.Bias[SystemIdent::BIAS_PITCH], 'f', 3));
-    measuredYawBias->setText(QString::number(sysIdent.Bias[SystemIdent::BIAS_YAW], 'f', 3));
+    measuredRollBias->setText(QString::number(av->bias[0], 'f', 3));
+    measuredPitchBias->setText(QString::number(av->bias[1], 'f', 3));
+    measuredYawBias->setText(QString::number(av->bias[2], 'f', 3));
 
-    double tau = exp(sysIdent.Tau);
+    double tau = av->tau[0];
 
     rollTau->setText(QString::number(tau, 'f', 4));
     pitchTau->setText(QString::number(tau, 'f', 4));
 
-    measuredRollNoise->setText(QString::number(sysIdent.Noise[SystemIdent::NOISE_ROLL], 'f', 2));
-    measuredPitchNoise->setText(QString::number(sysIdent.Noise[SystemIdent::NOISE_PITCH], 'f', 2));
-    measuredYawNoise->setText(QString::number(sysIdent.Noise[SystemIdent::NOISE_YAW], 'f', 2));
+    measuredRollNoise->setText(QString::number(av->noise[0], 'f', 2));
+    measuredPitchNoise->setText(QString::number(av->noise[1], 'f', 2));
+    measuredYawNoise->setText(QString::number(av->noise[2], 'f', 2));
 }
 
-AutotuneSlidersPage::AutotuneSlidersPage(QWidget *parent, SystemIdent::DataFields &systemIdentData,
-                                         struct AutotunedValues *autoValues)
+AutotuneSlidersPage::AutotuneSlidersPage(QWidget *parent,
+                                         AutotunedValues *autoValues)
     : QWizardPage(parent)
 {
     setupUi(this);
 
-    sysIdent = systemIdentData;
     av = autoValues;
 
     // connect sliders to computation
@@ -873,10 +877,10 @@ void AutotuneSlidersPage::compute()
     av->damping = damp;
     av->noiseSens = ghf;
 
-    double tau = exp(sysIdent.Tau);
-    double beta_roll = sysIdent.Beta[SystemIdent::BETA_ROLL];
-    double beta_pitch = sysIdent.Beta[SystemIdent::BETA_PITCH];
-    double beta_yaw = sysIdent.Beta[SystemIdent::BETA_YAW];
+    double tau = av->tau[0];
+    double beta_roll = av->beta[0];
+    double beta_pitch = av->beta[1];
+    double beta_yaw = av->beta[2];
 
     // First clear out warnings..
     lblWarnings->setText("");
@@ -962,7 +966,7 @@ void AutotuneSlidersPage::compute()
     }
 
     for (int i = 0; i < 2; i++) {
-        double beta = exp(sysIdent.Beta[i]);
+        double beta = exp(av->beta[i]);
 
         double ki;
         double kp;
@@ -985,7 +989,7 @@ void AutotuneSlidersPage::compute()
         // scenarios from coupling between axes.  If yaw is far less
         // powerful than other axes, even a small amount of nonlinearity
         // or cross-axis coupling will excite pitch and roll.
-        double scale = exp(0.6 * (sysIdent.Beta[0] - sysIdent.Beta[2]));
+        double scale = exp(0.6 * (av->beta[0] - av->beta[2]));
         av->kp[2] = av->kp[0] * scale;
         av->ki[2] = 0.8 * av->ki[0] * scale;
         av->kd[2] = 0.8 * av->kd[0] * scale;

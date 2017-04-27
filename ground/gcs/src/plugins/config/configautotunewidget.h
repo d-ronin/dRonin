@@ -47,6 +47,12 @@
 
 struct AutotunedValues
 {
+    // Parameters
+    float tau[3];
+    float beta[3];
+    float bias[3];
+    float noise[3];
+
     // Inputs
     float damping;
     float noiseSens;
@@ -74,11 +80,11 @@ class AutotuneMeasuredPropertiesPage : public QWizardPage, private Ui::AutotuneP
 
 public:
     explicit AutotuneMeasuredPropertiesPage(QWidget *parent,
-                                            SystemIdent::DataFields &systemIdentData);
+                                            AutotunedValues *autoValues);
     void initializePage();
 
 private:
-    SystemIdent::DataFields sysIdent;
+    AutotunedValues *av;
 };
 
 class AutotuneSlidersPage : public QWizardPage, private Ui::AutotuneSliders
@@ -86,13 +92,12 @@ class AutotuneSlidersPage : public QWizardPage, private Ui::AutotuneSliders
     Q_OBJECT
 
 public:
-    explicit AutotuneSlidersPage(QWidget *parent, SystemIdent::DataFields &systemIdentData,
-                                 struct AutotunedValues *autoValues);
+    explicit AutotuneSlidersPage(QWidget *parent,
+                                 AutotunedValues *autoValues);
 
     bool isComplete() const;
 
 private:
-    SystemIdent::DataFields sysIdent;
     AutotunedValues *av;
 
     void setText(QLabel *lbl, double value, int precision);
@@ -122,9 +127,9 @@ private:
     ConfigGadgetWidget *parentConfigWidget;
     static const QString databaseUrl;
 
-    QString systemIdentValid(SystemIdent::DataFields &data, bool *okToContinue);
+    QString tuneValid(AutotunedValues &data, bool *okToContinue);
 
-    QJsonDocument getResultsJson(AutotuneFinalPage *autotuneShareForm, struct AutotunedValues *av);
+    QJsonDocument getResultsJson(AutotuneFinalPage *autotuneShareForm, AutotunedValues *av);
 
     void stuffShareForm(AutotuneFinalPage *autotuneShareForm);
     void persistShareForm(AutotuneFinalPage *autotuneShareForm);
@@ -132,7 +137,7 @@ private:
 
 private slots:
     void openAutotuneDialog();
-    void openAutotuneDialog(bool autoOpened);
+    void openAutotuneDialog(bool autoOpened, AutotunedValues *precalc_vals = 0);
 
     void openAutotuneFile();
 
