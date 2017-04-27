@@ -69,7 +69,9 @@ struct pios_sensor_optical_flow_data {
 //! Pios sensor structure for generic rangefinder data
 struct pios_sensor_rangefinder_data {
 	float range;
-	uint8_t range_status;
+	float velocity;
+	bool range_status;
+	bool velocity_status;
 };
 
 //! Pios sensor structure for generic baro data
