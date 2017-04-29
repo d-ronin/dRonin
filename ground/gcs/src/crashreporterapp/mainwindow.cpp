@@ -112,6 +112,9 @@ void MainWindow::onSendReport()
     json["currentArch"] = QSysInfo::currentCpuArchitecture();
     json["buildInfo"] = QSysInfo::buildAbi();
 
+    json["qtRuntimeVersion"] = qVersion();
+    json["qtBuildVersion"] = QT_VERSION_STR;
+
     QUrl url(postUrl);
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json; charset=utf-8");
