@@ -27,9 +27,7 @@
 
 #define _USE_MATH_DEFINES
 
-#include <memory>
 #include <cmath>
-#include <vector>
 #include <algorithm>
 #include <numeric>
 
@@ -610,13 +608,13 @@ void ConfigAutotuneWidget::openAutotuneFile()
 
         float gain = gyro_span / actu_span * flash_data->hdr.sample_rate;
 
-        float avg = std::accumulate(gyro_deriv.begin(), gyro_deriv.end(), 0) / pts;
+        float avg = std::accumulate(gyro_deriv.begin(), gyro_deriv.end(), 0.0f) / pts;
 
         for (int i = 0; i < pts; i++) {
             gyro_deriv[i] = gyro_deriv[i] - avg;
         }
 
-        float avg_act = std::accumulate(actu_desired.begin(), actu_desired.end(), 0) / pts;
+        float avg_act = std::accumulate(actu_desired.begin(), actu_desired.end(), 0.0f) / pts;
 
         for (int i = 0; i < pts; i++) {
             actu_desired[i] = (actu_desired[i] - avg_act) * (gain / flash_data->hdr.sample_rate);
