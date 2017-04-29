@@ -600,7 +600,7 @@ void ConfigAutotuneWidget::openAutotuneFile()
         qSort(gyro_sorted.begin(), gyro_sorted.end());
         qSort(actu_sorted.begin(), actu_sorted.end());
 
-        int low_idx = pts * 0.02 + 0.5;
+        int low_idx = pts * 0.05 + 0.5;
         int high_idx = pts - 1 - low_idx;
 
         float gyro_span = gyro_sorted[high_idx] - gyro_sorted[low_idx];
