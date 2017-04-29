@@ -46,7 +46,6 @@
 #include "modulesettings.h"
 #include "rgbledsettings.h"
 
-
 uintptr_t pios_com_openlog_logging_id;
 uintptr_t pios_uavo_settings_fs_id;
 uintptr_t pios_internal_adc_id;
@@ -372,6 +371,10 @@ void PIOS_Board_Init(void) {
     }
     pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_GCS] = pios_gcsrcvr_rcvr_id;
 #endif    /* PIOS_INCLUDE_GCSRCVR */
+
+#if defined(PIOS_INCLUDE_SERVO) & defined(PIOS_INCLUDE_DMASHOT)
+	PIOS_DMAShot_Init(&dmashot_config);
+#endif
 
 #if defined(PIOS_INCLUDE_TIM) && defined(PIOS_INCLUDE_SERVO)
 #ifndef PIOS_DEBUG_ENABLE_DEBUG_PINS
