@@ -314,7 +314,7 @@ LIBS += $(FLIGHTLIBFILE)
 LDFLAGS = -nostartfiles -Wl,-Map=$(OUTDIR)/$(TARGET).map,--cref,--gc-sections
 LDFLAGS += $(patsubst %,-L%,$(EXTRA_LIBDIRS))
 LDFLAGS += $(patsubst %,-l%,$(EXTRA_LIBS))
-LDFLAGS += -lc -lgcc -lm
+LDFLAGS += -lc_nano -lgcc -lm
 LDFLAGS += -Wl,--warn-common
 LDFLAGS += -Wl,--fatal-warnings
 LDFLAGS += -u _printf_float
