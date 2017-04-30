@@ -13,6 +13,7 @@
 			<description>The port labelled "SER"</description>
 			<options>
 				<option>Disabled</option>
+				<option>ComBridge</option>
 				<option>DebugConsole</option>
 				<option>FrSKY Sensor Hub</option>
 				<option>FrSKY SPort Telemetry</option>
@@ -28,6 +29,7 @@
 			<description>The port labelled "GPS"</description>
 			<options>
 				<option>Disabled</option>
+				<option>ComBridge</option>
 				<option>GPS</option>
 				<option>MavLinkTX_GPS_RX</option>
 			</options>
