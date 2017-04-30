@@ -83,7 +83,7 @@ def main():
         elif name.endswith('-install.exe'):
             label = "Windows (installer)"
         elif name.endswith('.dmg'):
-            label = "Mac OS X"
+            label = "macOS"
         else:
             label = name
         asset['new_label'] = label
