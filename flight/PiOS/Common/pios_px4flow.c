@@ -165,11 +165,9 @@ static int32_t PIOS_PX4Flow_Config(const struct pios_px4flow_cfg * cfg)
 
 /**
  * @brief Read current optical flow and sonar rangefinding measurements
- * \param[out] optical_flow_data Struct containing translational x-, y-, and z-axis velocity
- * \param[out] rangefinder_data Struct containing sonar ranging measurement along z-axis
  * \return 0 for success or -1 for failure
  */
-static int32_t PIOS_PX4Flow_ReadData(struct pios_sensor_optical_flow_data *optical_flow_data, struct pios_sensor_rangefinder_data *rangefinder_data)
+static int32_t PIOS_PX4Flow_ReadData()
 {
 	if (PIOS_PX4Flow_Validate(dev) != 0) {
 		return -1;
@@ -191,7 +189,7 @@ static int32_t PIOS_PX4Flow_ReadData(struct pios_sensor_optical_flow_data *optic
 		int16_t pixel_flow_y_sum_px10; // latest y flow measurement in pixels*10 [pixels]
 		int16_t flow_comp_x_m1000; // x velocity*1000 [meters/sec]
 		int16_t flow_comp_y_m1000; // y velocity*1000 [meters/sec]
-		int16_t qual; // Optical flow solution quality [0: bad, 255: maximum quality]
+		uint16_t qual; // Optical flow solution quality [0: bad, 255: maximum quality]
 		int16_t gyro_x_R; // latest gyro x rate [rad/sec]
 		int16_t gyro_y_R; // latest gyro y rate [rad/sec]
 		int16_t gyro_z_R; // latest gyro z rate [rad/sec]
@@ -200,23 +198,6 @@ static int32_t PIOS_PX4Flow_ReadData(struct pios_sensor_optical_flow_data *optic
 		int16_t ground_distance_m1000; // Ground distance in meters*1000 [meters]. Positive value: distance known. Negative value: Unknown distance
 	} __attribute__((packed)) i2c_frame;
 
-/*
-	// Leaving this struct definition in as aid for future implementation
-	struct I2C_Integral_Frame
-	{
-		uint16_t frame_count_since_last_readout; //number of flow measurements since last I2C readout [#frames]
-		int16_t pixel_flow_x_integral; //accumulated flow in radians*10000 around x axis since last I2C readout [rad*10000]
-		int16_t pixel_flow_y_integral; //accumulated flow in radians*10000 around y axis since last I2C readout [rad*10000]
-		int16_t gyro_x_rate_integral; //accumulated gyro x rates in radians*10000 since last I2C readout [rad*10000]
-		int16_t gyro_y_rate_integral; //accumulated gyro y rates in radians*10000 since last I2C readout [rad*10000]
-		int16_t gyro_z_rate_integral; //accumulated gyro z rates in radians*10000 since last I2C readout [rad*10000]
-		uint32_t integration_timespan; //accumulation timespan in microseconds since last I2C readout [microseconds]
-		uint32_t sonar_timestamp; // time since last sonar update [microseconds]
-		int16_t ground_distance_m1000; // Ground distance in meters*1000 [meters*1000]
-		int16_t gyro_temperature; // Temperature * 100 in centi-degrees Celsius [degcelsius*100]
-		uint8_t quality; // averaged quality of accumulated flow values [0:bad quality;255: max quality]
-	} __attribute__((packed)) i2c_integral_frame;
-*/
 	const struct pios_i2c_txn txn_list[] = {
 		{
 			.info = __func__,
@@ -241,22 +222,23 @@ static int32_t PIOS_PX4Flow_ReadData(struct pios_sensor_optical_flow_data *optic
 
 	// PX4Flow docs state that `quality` is an int16, but that it only takes values
 	// from 0..255. This provides a useful check for corruption.
-	if (i2c_frame.qual < 0 || i2c_frame.qual > 255) {
+	if (i2c_frame.qual > 255) {
 		return -1;
 	}
 
-	// Only update rangefinder queue if data is fresh
-	if (i2c_frame.sonar_timestamp > 0) {
-		rangefinder_data->range = i2c_frame.ground_distance_m1000 / 1000.0f;
+	struct pios_sensor_optical_flow_data optical_flow_data = { 0 };
+	struct pios_sensor_rangefinder_data rangefinder_data = { 0 };
 
-		// If the range is less than 0, then set the range status to 0
-		if (rangefinder_data->range < 0) {
-			rangefinder_data->range_status = 0;
-		} else {
-			rangefinder_data->range_status = 1;
+	// Only update rangefinder queue if data is fresh XXX this conditional looks
+	// wrong
+	if (i2c_frame.sonar_timestamp > 0) {
+		rangefinder_data.range = i2c_frame.ground_distance_m1000 / 1000.0f;
+
+		if (rangefinder_data.range >= 0) {
+			rangefinder_data.range_status = true;
 		}
 
-		PIOS_Queue_Send(dev->rangefinder_queue, rangefinder_data, 0);
+		PIOS_Queue_Send(dev->rangefinder_queue, &rangefinder_data, 0);
 	}
 
 	/* Rotate the flow from the sensor frame into the body frame. It's not
@@ -268,13 +250,13 @@ static int32_t PIOS_PX4Flow_ReadData(struct pios_sensor_optical_flow_data *optic
 	float flow_sensor_frame[3] = {i2c_frame.flow_comp_x_m1000 / 1000.0f, i2c_frame.flow_comp_y_m1000 / 1000.0f, 0 / 1000.0f};
 	float flow_rotated[3];
 	rot_mult(dev->Rsb, flow_sensor_frame, flow_rotated, true);
-	optical_flow_data->x_dot = flow_rotated[0];
-	optical_flow_data->y_dot = flow_rotated[1];
-	optical_flow_data->z_dot = flow_rotated[2];
+	optical_flow_data.x_dot = flow_rotated[0];
+	optical_flow_data.y_dot = flow_rotated[1];
+	optical_flow_data.z_dot = flow_rotated[2];
 
-	optical_flow_data->quality = i2c_frame.qual;
+	optical_flow_data.quality = i2c_frame.qual;
 
-	PIOS_Queue_Send(dev->optical_flow_queue, optical_flow_data, 0);
+	PIOS_Queue_Send(dev->optical_flow_queue, &optical_flow_data, 0);
 
 	return 0;
 }
@@ -294,9 +276,7 @@ static void PIOS_PX4Flow_Task(void *parameters)
 	while (1) {
 		PIOS_Thread_Sleep_Until(&now, PX4FLOW_SAMPLE_PERIOD_MS);
 
-		struct pios_sensor_optical_flow_data optical_flow_data;
-		struct pios_sensor_rangefinder_data rangefinder_data;
-		PIOS_PX4Flow_ReadData(&optical_flow_data, &rangefinder_data);
+		PIOS_PX4Flow_ReadData();
 	}
 }
 

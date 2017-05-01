@@ -53,7 +53,7 @@ extern uintptr_t external_i2c_adapter_id;
 #include "opticalflowsettings.h"
 #include "opticalflow.h"
 #include "sensorsettings.h"
-#include "rangefinderdistance.h"
+#include "rangefinder.h"
 #include "inssettings.h"
 #include "magnetometer.h"
 #include "magbias.h"
@@ -184,7 +184,7 @@ int32_t SensorsInitialize(void)
 
 #if defined (PIOS_INCLUDE_RANGEFINDER)
 	if (PIOS_SENSORS_GetQueue(PIOS_SENSOR_RANGEFINDER) != NULL ) {
-		if (RangefinderDistanceInitialize() == -1) {
+		if (RangefinderInitialize() == -1) {
 			return -1;
 		}
 	}
@@ -529,23 +529,26 @@ void update_optical_flow(struct pios_sensor_optical_flow_data *optical_flow)
  * @param [in] rangefinder raw rangefinder data
  */
 #if defined (PIOS_INCLUDE_RANGEFINDER)
-static void update_rangefinder(struct pios_sensor_rangefinder_data *rangefinder)
+static void update_rangefinder(struct pios_sensor_rangefinder_data *data)
 {
-	RangefinderDistanceData rangefinderAltitude;
-	RangefinderDistanceGet(&rangefinderAltitude);
+	RangefinderData rangefinder = { 0 };
 
-	AttitudeActualData attitude;
-	AttitudeActualGet(&attitude);
+	rangefinder.Range = data->range;
+	rangefinder.Velocity = data->velocity;
 
-	rangefinderAltitude.Range = rangefinder->range;
-
-	if (rangefinder->range_status == 0) {
-		rangefinderAltitude.RangingStatus = RANGEFINDERDISTANCE_RANGINGSTATUS_OUTOFRANGE;
+	if (data->range_status) {
+		rangefinder.RangingStatus = RANGEFINDER_RANGINGSTATUS_INRANGE;
 	} else {
-		rangefinderAltitude.RangingStatus = RANGEFINDERDISTANCE_RANGINGSTATUS_INRANGE;
+		rangefinder.RangingStatus = RANGEFINDER_RANGINGSTATUS_OUTOFRANGE;
 	}
 
-	RangefinderDistanceSet(&rangefinderAltitude);
+	if (data->velocity_status) {
+		rangefinder.RangingStatus = RANGEFINDER_VELOCITYSTATUS_VALID;
+	} else {
+		rangefinder.RangingStatus = RANGEFINDER_VELOCITYSTATUS_INVALID;
+	}
+
+	RangefinderSet(&rangefinder);
 }
 #endif /* PIOS_INCLUDE_RANGEFINDER */
 
