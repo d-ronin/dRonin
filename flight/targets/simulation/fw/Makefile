@@ -184,6 +184,7 @@ SRC += pios_irq.c
 SRC += pios_ms5611.c
 SRC += pios_ms5611_spi.c
 SRC += pios_px4flow.c
+SRC += pios_omnip.c
 SRC += pios_reset.c
 SRC += pios_serial.c
 SRC += pios_servo.c
