@@ -111,9 +111,9 @@ static void actuator_task(void* parameters);
 static float scale_channel(float value, int idx);
 static void set_failsafe();
 
-static float throt_curve(const float input, const float* curve,
+static float throt_curve(const float input, const float *curve,
 		uint8_t num_points);
-static float collective_curve(const float input, const float* curve,
+static float collective_curve(const float input, const float *curve,
 		uint8_t num_points);
 
 /**
@@ -231,23 +231,23 @@ static float get_curve2_source(ActuatorDesiredData *desired, SystemSettingsAirfr
 	return 0;
 }
 
-static void compute_one_mixer(int i,
+static void compute_one_mixer(int mixnum,
 		int16_t (*vals)[MIXERSETTINGS_MIXER1VECTOR_NUMELEM],
 		MixerSettingsMixer1TypeOptions type)
 {
-	types_mixer[i] = type;
+	types_mixer[mixnum] = type;
 
-	i *= MIXERSETTINGS_MIXER1VECTOR_NUMELEM;
+	mixnum *= MIXERSETTINGS_MIXER1VECTOR_NUMELEM;
 
 	if ((type != MIXERSETTINGS_MIXER1TYPE_SERVO) &&
 			(type != MIXERSETTINGS_MIXER1TYPE_MOTOR)) {
-		for (int j = 0; j < MIXERSETTINGS_MIXER1VECTOR_NUMELEM; j++) {
+		for (int i = 0; i < MIXERSETTINGS_MIXER1VECTOR_NUMELEM; i++) {
 			// Ensure unused types are zero-filled
-			motor_mixer[i+j] = 0;
+			motor_mixer[mixnum+i] = 0;
 		}
 	} else {
-		for (int j = 0; j < MIXERSETTINGS_MIXER1VECTOR_NUMELEM; j++) {
-			motor_mixer[i+j] = (*vals)[j] * (1.0f / MIXER_SCALE);
+		for (int i = 0; i < MIXERSETTINGS_MIXER1VECTOR_NUMELEM; i++) {
+			motor_mixer[mixnum+i] = (*vals)[i] * (1.0f / MIXER_SCALE);
 		}
 	}
 }

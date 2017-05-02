@@ -33,7 +33,7 @@
 			</options>
 		</field>
 		<field name="Mixer1Vector" units="" type="int16" defaultvalue="0">
-			<description>Mixer vector</description>
+			<description>Mixer vector.  All of these values are in Q7 form (e.g. 128 represents 100 percent).  Values over 100% are not recommended because of implementation details.  These represent the values that are multplied by each of the axis commands to determine actuator output.</description>
 			<elementnames>
 				<elementname>ThrottleCurve1</elementname>
 				<elementname>ThrottleCurve2</elementname>
@@ -49,55 +49,55 @@
 			<description>Mixer type</description>
 		</field>
 		<field name="Mixer2Vector" cloneof="Mixer1Vector">
-			<description>Mixer vector</description>
+			<description>Mixer vector.  All of these values are in Q7 form (e.g. 128 represents 100 percent).  Values over 100% are not recommended because of implementation details.  These represent the values that are multplied by each of the axis commands to determine actuator output.</description>
 		</field>
 		<field name="Mixer3Type" cloneof="Mixer1Type">
 			<description>Mixer type</description>
 		</field>
 		<field name="Mixer3Vector" cloneof="Mixer1Vector">
-			<description>Mixer vector</description>
+			<description>Mixer vector.  All of these values are in Q7 form (e.g. 128 represents 100 percent).  Values over 100% are not recommended because of implementation details.  These represent the values that are multplied by each of the axis commands to determine actuator output.</description>
 		</field>
 		<field name="Mixer4Type" cloneof="Mixer1Type">
 			<description>Mixer type</description>
 		</field>
 		<field name="Mixer4Vector" cloneof="Mixer1Vector">
-			<description>Mixer vector</description>
+			<description>Mixer vector.  All of these values are in Q7 form (e.g. 128 represents 100 percent).  Values over 100% are not recommended because of implementation details.  These represent the values that are multplied by each of the axis commands to determine actuator output.</description>
 		</field>
 		<field name="Mixer5Type" cloneof="Mixer1Type">
 			<description>Mixer type</description>
 		</field>
 		<field name="Mixer5Vector" cloneof="Mixer1Vector">
-			<description>Mixer vector</description>
+			<description>Mixer vector.  All of these values are in Q7 form (e.g. 128 represents 100 percent).  Values over 100% are not recommended because of implementation details.  These represent the values that are multplied by each of the axis commands to determine actuator output.</description>
 		</field>
 		<field name="Mixer6Type" cloneof="Mixer1Type">
 			<description>Mixer type</description>
 		</field>
 		<field name="Mixer6Vector" cloneof="Mixer1Vector">
-			<description>Mixer vector</description>
+			<description>Mixer vector.  All of these values are in Q7 form (e.g. 128 represents 100 percent).  Values over 100% are not recommended because of implementation details.  These represent the values that are multplied by each of the axis commands to determine actuator output.</description>
 		</field>
 		<field name="Mixer7Type" cloneof="Mixer1Type">
 			<description>Mixer type</description>
 		</field>
 		<field name="Mixer7Vector" cloneof="Mixer1Vector">
-			<description>Mixer vector</description>
+			<description>Mixer vector.  All of these values are in Q7 form (e.g. 128 represents 100 percent).  Values over 100% are not recommended because of implementation details.  These represent the values that are multplied by each of the axis commands to determine actuator output.</description>
 		</field>
 		<field name="Mixer8Type" cloneof="Mixer1Type">
 			<description>Mixer type</description>
 		</field>
 		<field name="Mixer8Vector" cloneof="Mixer1Vector">
-			<description>Mixer vector</description>
+			<description>Mixer vector.  All of these values are in Q7 form (e.g. 128 represents 100 percent).  Values over 100% are not recommended because of implementation details.  These represent the values that are multplied by each of the axis commands to determine actuator output.</description>
 		</field>
 		<field name="Mixer9Type" cloneof="Mixer1Type">
 			<description>Mixer type</description>
 		</field>
 		<field name="Mixer9Vector" cloneof="Mixer1Vector">
-			<description>Mixer vector</description>
+			<description>Mixer vector.  All of these values are in Q7 form (e.g. 128 represents 100 percent).  Values over 100% are not recommended because of implementation details.  These represent the values that are multplied by each of the axis commands to determine actuator output.</description>
 		</field>
 		<field name="Mixer10Type" cloneof="Mixer1Type">
 			<description>Mixer type</description>
 		</field>
 		<field name="Mixer10Vector" cloneof="Mixer1Vector">
-			<description>Mixer vector</description>
+			<description>Mixer vector.  All of these values are in Q7 form (e.g. 128 represents 100 percent).  Values over 100% are not recommended because of implementation details.  These represent the values that are multplied by each of the axis commands to determine actuator output.</description>
 		</field>
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="true" updatemode="onchange" period="0"/>

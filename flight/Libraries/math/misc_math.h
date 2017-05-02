@@ -80,9 +80,11 @@ static inline bool IS_NOT_FINITE(float x) {
 	return (!isfinite(x));
 }
 
-// The well known 3rd order expansion of sine; 2^15 units/circle
-// Based on http://www.coranac.com/2009/07/sines/
-// Output is Q12
+/** @brief Fast approximation of sine; 3rd order taylor expansion.
+ * Based on http://www.coranac.com/2009/07/sines/
+ * @param[in] x angle, 2^15 units/circle
+ * @returns approximately sin(x / 2^15 * 2 * PI) in Q12 form
+ */
 static inline int16_t sin_approx(int32_t x)
 {
 #define s_qN 13
@@ -102,28 +104,45 @@ static inline int16_t sin_approx(int32_t x)
 	return x * ( (3<<s_qP) - (x*x>>qR) ) >> qS;
 }
 
-/* Multiplies out = a * b
+/** @brief Multiplies out = a b
  *
  * Matrices are stored in row order, that is a[i*cols + j]
+ * a, b, and output must be distinct.
  *
- * output is arows by bcols
- * a is arows by acolsbrows
- * b is acolsbrows by bcols
+ * @param[in] a multiplicand dimensioned arows by acolsbrows
+ * @param[in] b multiplicand dimensioned acolsbrows by bcols
+ * @param[out] output product dimensioned arows by bcols
+ * @param[in] arows matrix dimension
+ * @param[in] acolsbrows matrix dimension
+ * @param[in] bcols matrix dimension
  */
 static inline void matrix_mul(const float *a, const float *b,
 		float *out, int arows, int acolsbrows, int bcols)
 {
-	const float * restrict apos = a;
-	float * restrict opos = out;
+	const float *restrict apos = a;
+	float *restrict opos = out;
 
 	for (int ar = 0; ar < arows; ar++) {
 		for (int bc = 0 ; bc < bcols; bc++) {
 			float sum = 0;
 
-			const float * restrict bpos = b + bc;
+			const float *restrict bpos = b + bc;
 
 			int acbr;
 
+			/* This is manually unrolled.  -Os doesn't really want to
+			 * unroll things, but this is a case where we want to
+			 * encourage it to.
+			 *
+			 * This structure was chosen / experimented with across
+			 * many compilers to always do the right things-- namely
+			 *
+			 * A) vectorize when appropriate on the architecture
+			 * B) eliminate the loop when there's a static, small number
+			 * of cols (10 or less)
+			 * C) generate pretty good code when the dimensions aren't
+			 * known.
+			 */
 			for (acbr = 0; acbr < (acolsbrows & (~3)); acbr += 4) {
 				/*
 				sum += a[ar * acolsbrows + acbr] *
@@ -160,12 +179,14 @@ static inline void matrix_mul(const float *a, const float *b,
 	}
 }
 
-/* Unlike matrix_mul, matrix_mul_scalar, matrix_add, and matrix_sub
- * are safe for in-place use.  The const in the parameters makes no promise
- * that they will not change by aliasing if out=a etc.
+/** @brief Multiplies a matrix by a scalar
+ * Can safely be done in-place. (e.g. is slow and not vectorized/unrolled)
  *
- * Note that this makes them inefficient, because the compiler doesn't know to
- * unroll / scatter loads/stores.
+ * @param[in] a Matrix of dimension rows x cols
+ * @param[in] scalar the amount to multiply by
+ * @param[out] out Product matrix of dimensions rows x cols
+ * @param[in] rows Matrix dimension
+ * @param[in] cols Matrix dimension
  */
 static inline void matrix_mul_scalar(const float *a, float scalar, float *out,
 		int rows, int cols)
@@ -180,6 +201,16 @@ static inline void matrix_mul_scalar(const float *a, float scalar, float *out,
 	}
 }
 
+/** @brief Adds two matrices
+ * Can safely be done in-place. (e.g. is slow and not vectorized/unrolled)
+ *
+ * @param[in] a Matrix of dimension rows x cols
+ * @param[in] b Matrix of dimension rows x cols
+ * @param[in] scalar the amount to multiply by
+ * @param[out] out Matrix of dimensions rows x cols
+ * @param[in] rows Matrix dimension
+ * @param[in] cols Matrix dimension
+ */
 static inline void matrix_add(const float *a, const float *b,
 		float *out, int rows, int cols)
 {
@@ -195,6 +226,16 @@ static inline void matrix_add(const float *a, const float *b,
 	}
 }
 
+/** @brief Subtracts two matrices
+ * Can safely be done in-place. (e.g. is slow and not vectorized/unrolled)
+ *
+ * @param[in] a Matrix of dimension rows x cols
+ * @param[in] b Matrix of dimension rows x cols
+ * @param[in] scalar the amount to multiply by
+ * @param[out] out Matrix of dimensions rows x cols
+ * @param[in] rows Matrix dimension
+ * @param[in] cols Matrix dimension
+ */
 static inline void matrix_sub(const float *a, const float *b,
 		float *out, int rows, int cols)
 {
@@ -210,7 +251,15 @@ static inline void matrix_sub(const float *a, const float *b,
 	}
 }
 
-/* Output is cols x rows */
+/** @brief Transposes a matrix
+ *
+ * Not safe in place.
+ *
+ * @param[in] a Matrix of dimension arows x acols
+ * @param[out] out Matrix of dimension acols x arows
+ * @param[in] arows Matrix dimension
+ * @param[in] acols Matrix dimension
+ */
 static inline void matrix_transpose(const float *a, float *out, int arows,
 		int acols)
 {
@@ -222,6 +271,10 @@ static inline void matrix_transpose(const float *a, float *out, int arows,
 }
 
 #define TOL_EPS 0.0001f
+
+/* Not intended for outside use (at least just yet).  Sees whether
+ * a and b look like good inverses.
+ */
 static inline bool matrix_pseudoinv_convergecheck(const float *a,
 		const float *b, const float *prod, int rows, int cols)
 {
@@ -276,7 +329,7 @@ static inline bool matrix_pseudoinv_convergecheck(const float *a,
 
 	int elems = rows * cols;
 
-	for (int i = 0 ; i < elems; i++) {
+	for (int i = 0; i < elems; i++) {
 		float diff = (a[i] - b[i]);
 
 		/* This strange structure chosen because NaNs will return false
@@ -294,6 +347,8 @@ static inline bool matrix_pseudoinv_convergecheck(const float *a,
 	return true;
 }
 
+/* Not intended for outside use.  Performs one step of the pseudoinverse
+ * approximation by calculating 2 * ainv - ainv * a * ainv */
 static inline bool matrix_pseudoinv_step(const float *a, float *ainv,
 		int arows, int acols)
 {
@@ -322,6 +377,12 @@ static inline bool matrix_pseudoinv_step(const float *a, float *ainv,
 	return false;
 }
 
+/** @brief Finds the largest value in a matrix.
+ *
+ * @param[in] a Matrix of dimension arows x acols
+ * @param[in] arows Matrix dimension
+ * @param[in] acols Matrix dimension
+ */
 static inline float matrix_getmaxabs(const float *a, int arows, int acols)
 {
 	float mx = 0.0f;
@@ -343,6 +404,20 @@ static inline float matrix_getmaxabs(const float *a, int arows, int acols)
 #define PSEUDOINV_CONVERGE_LIMIT 75
 #endif
 
+/** @brief Finds a pseudo-inverse of a matrix.
+ *
+ * This is an inverse when an inverse exists, and is equivalent to least
+ * squares when the system is overdetermined or underdetermined.  AKA happiness.
+ *
+ * It works by iterative approximation.  Note it may run away or orbit the
+ * solution in a few degenerate cases and return failure.
+ *
+ * @param[in] a Matrix of dimension arows x acols
+ * @param[out] out Pseudoinverse matrix of dimensions arows x acols
+ * @param[in] arows Matrix dimension
+ * @param[in] acols Matrix dimension
+ * @returns true if a good pseudoinverse was found, false otherwise.
+ */
 static inline bool matrix_pseudoinv(const float *a, float *out,
 		int arows, int acols)
 {
@@ -364,6 +439,9 @@ static inline bool matrix_pseudoinv(const float *a, float *out,
 	return false;
 }
 
+/* The following are wrappers which attempt to do compile-time checking of
+ * array dimensions.
+ */
 #define matrix_mul_check(a, b, out, arows, acolsbrows, bcols) \
 	do { \
 		/* Note the dimensions each get used multiple times */	\

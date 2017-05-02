@@ -38,7 +38,7 @@
 #include <stdint.h>		/* uint*_t */
 
 extern "C" {
-#define restrict		/* neuter restrict keyword */
+#define restrict		/* neuter restrict keyword since it's not in C++ */
 
 /* Run unit tests with a much more conservative convergence limit than flight */
 #define PSEUDOINV_CONVERGE_LIMIT 19
@@ -615,7 +615,7 @@ TEST_F(MatrixMath, MixerMatrixInverses) {
 
   matrix_mul_check(temporary, quad_mixer, should_be_motor_mixer, 10, 10, 8);
 
-  for (int i=0; i<10*8; i++) {
+  for (int i = 0; i < 10*8; i++) {
     EXPECT_NEAR(quad_mixer[i], should_be_motor_mixer[i], eps);
   }
 
@@ -625,11 +625,11 @@ TEST_F(MatrixMath, MixerMatrixInverses) {
 
   matrix_mul_check(temporary, hexacoax_mixer, should_be_motor_mixer, 10, 10, 8);
 
-  for (int i=0; i<10*8; i++) {
+  for (int i = 0; i< 10*8; i++) {
     EXPECT_NEAR(hexacoax_mixer[i], should_be_motor_mixer[i], eps);
   }
 
-  for (int j=0; j<500; j++) {
+  for (int j = 0; j < 500; j++) {
     /* Round trip a few times */
 
     EXPECT_TRUE(matrix_pseudoinv(should_be_motor_mixer, inv_motor_mixer, 10, 8));
@@ -637,7 +637,7 @@ TEST_F(MatrixMath, MixerMatrixInverses) {
 
     matrix_mul_check(temporary, hexacoax_mixer, should_be_motor_mixer, 10, 10, 8);
 
-    for (int i=0; i<10*8; i++) {
+    for (int i = 0; i < 10*8; i++) {
       EXPECT_NEAR(hexacoax_mixer[i], should_be_motor_mixer[i], eps);
     }
   }
@@ -648,7 +648,7 @@ TEST_F(MatrixMath, MixerMatrixInverses) {
 
   matrix_mul_check(temporary, lotsquad_mixer, should_be_motor_mixer, 10, 10, 8);
 
-  for (int i=0; i<10*8; i++) {
+  for (int i = 0; i < 10*8; i++) {
     EXPECT_NEAR(lotsquad_mixer[i], should_be_motor_mixer[i], eps);
   }
 
@@ -658,7 +658,7 @@ TEST_F(MatrixMath, MixerMatrixInverses) {
 
   matrix_mul_check(temporary, octo_mixer, should_be_motor_mixer, 10, 10, 8);
 
-  for (int i=0; i<10*8; i++) {
+  for (int i = 0; i < 10*8; i++) {
     EXPECT_NEAR(octo_mixer[i], should_be_motor_mixer[i], eps);
   }
 
@@ -668,55 +668,55 @@ TEST_F(MatrixMath, MixerMatrixInverses) {
 
   matrix_mul_check(temporary, elevon_mixer, should_be_motor_mixer, 10, 10, 8);
 
-  for (int i=0; i<10*8; i++) {
+  for (int i = 0; i < 10*8; i++) {
     EXPECT_NEAR(elevon_mixer[i], should_be_motor_mixer[i], eps);
   }
 
   /* Now try more and more cut-down versions of them */
-  for (int j=9; j>0; j--) {
+  for (int j = 9; j > 0; j--) {
     EXPECT_TRUE(matrix_pseudoinv(lotsquad_mixer, inv_motor_mixer, j, 8));
 
     matrix_mul(lotsquad_mixer, inv_motor_mixer, temporary, j, 8, j);
 
     matrix_mul(temporary, lotsquad_mixer, should_be_motor_mixer, j, j, 8);
 
-    for (int i=0; i<j*8; i++) {
+    for (int i = 0; i < j*8; i++) {
       EXPECT_NEAR(lotsquad_mixer[i], should_be_motor_mixer[i], eps);
     }
   }
 
-  for (int j=9; j>0; j--) {
+  for (int j = 9; j > 0; j--) {
     EXPECT_TRUE(matrix_pseudoinv(hexacoax_mixer, inv_motor_mixer, j, 8));
 
     matrix_mul(hexacoax_mixer, inv_motor_mixer, temporary, j, 8, j);
 
     matrix_mul(temporary, hexacoax_mixer, should_be_motor_mixer, j, j, 8);
 
-    for (int i=0; i<j*8; i++) {
+    for (int i=0; i < j*8; i++) {
       EXPECT_NEAR(hexacoax_mixer[i], should_be_motor_mixer[i], eps);
     }
   }
 
-  for (int j=9; j>0; j--) {
+  for (int j = 9; j > 0; j--) {
     EXPECT_TRUE(matrix_pseudoinv(octo_mixer, inv_motor_mixer, j, 8));
 
     matrix_mul(octo_mixer, inv_motor_mixer, temporary, j, 8, j);
 
     matrix_mul(temporary, octo_mixer, should_be_motor_mixer, j, j, 8);
 
-    for (int i=0; i<j*8; i++) {
+    for (int i = 0; i < j*8; i++) {
       EXPECT_NEAR(octo_mixer[i], should_be_motor_mixer[i], eps);
     }
   }
 
-  for (int j=9; j>0; j--) {
+  for (int j = 9; j > 0; j--) {
     EXPECT_TRUE(matrix_pseudoinv(elevon_mixer, inv_motor_mixer, j, 8));
 
     matrix_mul(elevon_mixer, inv_motor_mixer, temporary, j, 8, j);
 
     matrix_mul(temporary, elevon_mixer, should_be_motor_mixer, j, j, 8);
 
-    for (int i=0; i<j*8; i++) {
+    for (int i = 0; i < j*8; i++) {
       EXPECT_NEAR(elevon_mixer[i], should_be_motor_mixer[i], eps);
     }
   }
@@ -724,8 +724,8 @@ TEST_F(MatrixMath, MixerMatrixInverses) {
   float tempb[8*10];
 
   /* Play with cutting out columns too */
-  for (int j=7; j>0; j--) {
-    for (int i=0; i<10; i++) {
+  for (int j = 7; j > 0; j--) {
+    for (int i = 0; i < 10; i++) {
       memcpy(tempb + i * j, octo_mixer + i * 8, j * sizeof(float));
     }
 
@@ -735,7 +735,7 @@ TEST_F(MatrixMath, MixerMatrixInverses) {
 
     matrix_mul(temporary, tempb, should_be_motor_mixer, 10, 10, j);
 
-    for (int i=0; i<j*10; i++) {
+    for (int i = 0; i < j*10; i++) {
       EXPECT_NEAR(tempb[i], should_be_motor_mixer[i], eps);
     }
   }
