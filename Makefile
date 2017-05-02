@@ -1099,7 +1099,7 @@ ifneq ($(strip $(filter uncrustify_flight,$(MAKECMDGOALS))),)
 endif
 
 .PHONY: uncrustify_flight
-uncrustify_flight: UNCRUSTIFY_OPTIONS := -c make/uncrustify.cfg --replace
+uncrustify_flight: UNCRUSTIFY_OPTIONS := -c make/uncrustify.cfg --replace -l C
 uncrustify_flight:
 	$(V1) $(UNCRUSTIFY) $(UNCRUSTIFY_OPTIONS) $(FILE)
 
