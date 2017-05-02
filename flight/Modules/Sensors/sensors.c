@@ -545,9 +545,9 @@ static void update_rangefinder(struct pios_sensor_rangefinder_data *data)
 	}
 
 	if (data->velocity_status) {
-		rangefinder.RangingStatus = RANGEFINDER_VELOCITYSTATUS_VALID;
+		rangefinder.VelocityStatus = RANGEFINDER_VELOCITYSTATUS_VALID;
 	} else {
-		rangefinder.RangingStatus = RANGEFINDER_VELOCITYSTATUS_INVALID;
+		rangefinder.VelocityStatus = RANGEFINDER_VELOCITYSTATUS_INVALID;
 	}
 
 	RangefinderSet(&rangefinder);
