@@ -59,6 +59,7 @@
 
 /* Supported receiver interfaces */
 
+#define PIOS_INCLUDE_DMASHOT
 
 /* Flags that alter behaviours - mostly to lower resources for CC */
 

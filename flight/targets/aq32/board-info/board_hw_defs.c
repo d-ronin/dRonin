@@ -918,13 +918,13 @@ static const struct pios_tim_clock_cfg tim_8_cfg = {
 
 /*
  * Outputs
-	1:  TIM8_CH4 (PC9)
+	1:  TIM8_CH4 (PC9)        DMA2 Stream 1 Channel 7
 	2:  TIM8_CH3 (PC8)
-	3:  TIM2_CH1 (PA15)
+	3:  TIM2_CH1 (PA15)       DMA1 Stream 7 Channel 3
 	4:  TIM2_CH2 (PB3)
-	5:  TIM3_CH1 (PB4)
+	5:  TIM3_CH1 (PB4)        DMA1 Stream 2 Channel 5
 	6:  TIM3_CH2 (PB5)
-	7:  TIM4_CH1 (PD12)  RX1
+	7:  TIM4_CH1 (PD12)  RX1  DMA1 Stream 6 Channel 2
 	8:  TIM4_CH2 (PD13)  RX2
 	9:  TIM4_CH3 (PD14)  RX3
 	10: TIM4_CH4 (PD15)  RX4
@@ -1091,6 +1091,46 @@ static const struct pios_tim_channel pios_tim_outputs_pins[] = {
 		},
 	},
 };
+
+#if defined(PIOS_INCLUDE_DMASHOT)
+
+#include <pios_dmashot.h>
+
+// Enable pins 1-10 for DMA1
+
+static const struct pios_dmashot_timer_cfg dmashot_tim_cfg[] = {
+	{
+		.timer   = TIM8,
+		.stream  = DMA2_Stream1,
+		.channel = DMA_Channel_7,
+		.tcif    = DMA_FLAG_TCIF1
+	},
+	{
+		.timer   = TIM2,
+		.stream  = DMA1_Stream7,
+		.channel = DMA_Channel_3,
+		.tcif    = DMA_FLAG_TCIF7
+	},
+	{
+		.timer   = TIM3,
+		.stream  = DMA1_Stream2,
+		.channel = DMA_Channel_5,
+		.tcif    = DMA_FLAG_TCIF2
+	},
+	{
+		.timer   = TIM4,
+		.stream  = DMA1_Stream6,
+		.channel = DMA_Channel_2,
+		.tcif    = DMA_FLAG_TCIF6
+	}
+};
+
+static const struct pios_dmashot_cfg dmashot_config = {
+	.timer_cfg =  &dmashot_tim_cfg[0],
+	.num_timers = NELEMENTS(dmashot_tim_cfg)
+};
+
+#endif // defined(PIOS_INCLUDE_DMASHOT)
 
 #if defined(PIOS_INCLUDE_SERVO) && defined(PIOS_INCLUDE_TIM)
 /*
