@@ -357,10 +357,7 @@ static int32_t PIOS_MS5611_Read(uint8_t address, uint8_t *buffer, uint8_t len)
 
 	int32_t rc;
 
-	if (PIOS_SPI_TransferByte(dev->spi_id, address) < 0) {
-		rc = -3;
-		goto out;
-	}
+	PIOS_SPI_TransferByte(dev->spi_id, address);
 
 	if (PIOS_SPI_TransferBlock(dev->spi_id, NULL, buffer, len) < 0) {
 		rc = -3;
@@ -392,18 +389,11 @@ static int32_t PIOS_MS5611_WriteCommand(uint8_t command)
 	if (PIOS_MS5611_ClaimBus() != 0)
 		return -2;
 
-	int32_t rc;
-	if (PIOS_SPI_TransferByte(dev->spi_id, command) < 0) {
-		rc = -3;
-		goto out;
-	}
+	PIOS_SPI_TransferByte(dev->spi_id, command);
 
-	rc = 0;
-
-out:
 	PIOS_MS5611_ReleaseBus();
 
-	return rc;
+	return 0;
 }
 
 /**

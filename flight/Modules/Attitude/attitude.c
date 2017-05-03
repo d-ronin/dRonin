@@ -952,12 +952,6 @@ static int32_t setNavigationRaw()
 //! Set the navigation information to the raw estimates
 static int32_t setNavigationNone()
 {
-	UAVObjEvent ev;
-
-	// Throw away data to prevent queue overflows
-	PIOS_Queue_Receive(gpsQueue, &ev, 0);
-	PIOS_Queue_Receive(gpsVelQueue, &ev, 0);
-
 	PositionActualDownSet(&cfvert.position_z);
 	VelocityActualDownSet(&cfvert.velocity_z);
 
@@ -1489,6 +1483,9 @@ static void updateNedAccel()
 	accel_ned[2] += GRAVITY;
 	
 	NedAccelData accelData;
+	
+	/* XXX this is redundant with another set when in INS modes... */
+	NedAccelGet(&accelData);
 	accelData.North = accelData.North * TAU + accel_ned[0] * (1 - TAU);
 	accelData.East = accelData.East * TAU + accel_ned[1] * (1 - TAU);
 	accelData.Down = accelData.Down * TAU + accel_ned[2] * (1 - TAU);
