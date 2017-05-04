@@ -1308,11 +1308,11 @@ void PIOS_HAL_ConfigureSerialSpeed(uintptr_t com_id,
 	}
 }
 
-#ifndef SIM_POSIX
 
 #ifdef PIOS_INCLUDE_I2C
 static int PIOS_HAL_ConfigureI2C(uint32_t *id,
 		const struct pios_i2c_adapter_cfg *cfg) {
+#ifndef SIM_POSIX
 	if (!*id) {
 		// Not already initialized.
 		if (PIOS_I2C_Init(id, cfg)) {
@@ -1334,6 +1334,7 @@ static int PIOS_HAL_ConfigureI2C(uint32_t *id,
 	}
 
 	PIOS_WDG_Clear();
+#endif /* SIM_POSIX */
 
 	return 0;
 }
@@ -1478,8 +1479,6 @@ mag_fail:
 	return -2;
 #endif /* PIOS_INCLUDE_I2C */
 }
-
-#endif /* !SIM_POSIX */
 
 #ifdef PIOS_INCLUDE_DAC
 int PIOS_HAL_ConfigureDAC(dac_dev_t dac)

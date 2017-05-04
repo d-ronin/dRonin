@@ -182,6 +182,7 @@ SRC += pios_flyingpio.c
 SRC += pios_gcsrcvr.c
 SRC += pios_hal.c
 SRC += pios_heap.c
+SRC += pios_hmc5883.c
 SRC += pios_iap.c
 SRC += pios_i2c.c
 SRC += pios_irq.c

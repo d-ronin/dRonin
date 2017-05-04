@@ -86,6 +86,7 @@ int num_i2c = 0;
 uintptr_t i2c_devs[16];
 
 #include "pios_px4flow_priv.h"
+#include "pios_hmc5883_priv.h"
 #endif
 
 static void Usage(char *cmdName) {
@@ -106,7 +107,7 @@ static void Usage(char *cmdName) {
 #ifdef PIOS_INCLUDE_I2C
 		"\t-I i2cdev\tConfigures an I2C interface on i2cdev\n"
 		"\t-i drvname:bus\tStarts a driver instance on bus\n"
-		"\t\t\tAvailable drivers: px4flow\n"
+		"\t\t\tAvailable drivers: px4flow hmc5883\n"
 #endif
 		"",
 		cmdName);
@@ -230,6 +231,17 @@ static int handle_i2c_device(const char *optarg) {
 		if (ret) {
 			goto fail;
 		}
+	} else if (!strcmp(drv_name, "hmc5883")) {
+		if (PIOS_HAL_ConfigureExternalMag(HWSHARED_MAG_EXTERNALHMC5883,
+					HWSHARED_MAGORIENTATION_TOP0DEGCW,
+					i2c_devs + bus_num,
+					NULL)) {
+			goto fail;
+		}
+
+#if 0
+		PIOS_HMC5883_SetOrientation(hmc5883_orientation);
+#endif
 	} else {
 		goto fail;
 	}

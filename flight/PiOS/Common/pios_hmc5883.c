@@ -119,6 +119,7 @@ int32_t PIOS_HMC5883_Init(uint32_t i2c_id, const struct pios_hmc5883_cfg *cfg)
 	dev->orientation = cfg->Default_Orientation;
 
 	/* check if we are using an irq line */
+#ifndef PIOS_HMC5883_NO_EXTI
 	if (cfg->exti_cfg != NULL) {
 		PIOS_EXTI_Init(cfg->exti_cfg);
 
@@ -128,6 +129,7 @@ int32_t PIOS_HMC5883_Init(uint32_t i2c_id, const struct pios_hmc5883_cfg *cfg)
 	else {
 		dev->data_ready_sema = NULL;
 	}
+#endif
 
 	if (PIOS_HMC5883_Config(cfg) != 0)
 		return -2;
@@ -466,6 +468,7 @@ int32_t PIOS_HMC5883_Test(void)
 /**
  * @brief IRQ Handler
  */
+#ifndef PIOS_HMC5883_NO_EXTI
 bool PIOS_HMC5883_IRQHandler(void)
 {
 	if (PIOS_HMC5883_Validate(dev) != 0)
@@ -476,6 +479,7 @@ bool PIOS_HMC5883_IRQHandler(void)
 
 	return woken;
 }
+#endif
 
 /**
  * The HMC5883 task

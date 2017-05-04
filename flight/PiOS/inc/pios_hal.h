@@ -95,7 +95,9 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 		const struct pios_dsm_cfg *dsm_cfg,
 		HwSharedDSMxModeOptions dsm_mode,
 		const struct pios_sbus_cfg *sbus_cfg);
+#endif
 
+#ifdef PIOS_INCLUDE_I2C
 int PIOS_HAL_ConfigureExternalBaro(HwSharedExtBaroOptions baro,
 		uint32_t *i2c_id,
 		const struct pios_i2c_adapter_cfg *i2c_cfg);
