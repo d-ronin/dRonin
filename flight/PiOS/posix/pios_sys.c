@@ -57,12 +57,6 @@
 #include "pios_tcp_priv.h"
 #include "pios_thread.h"
 
-#include "pios_spi_posix_priv.h"
-#include "pios_ms5611_priv.h"
-#include "pios_bmm150_priv.h"
-#include "pios_bmx055_priv.h"
-#include "pios_flyingpio.h"
-
 #include "pios_hal.h"
 #include "pios_adc_priv.h"
 #include "pios_rcvr_priv.h"
@@ -76,8 +70,23 @@ static bool debug_fpe=false;
 
 bool are_realtime = false;
 
+#ifdef PIOS_INCLUDE_SPI
 int num_spi = 0;
 uintptr_t spi_devs[16];
+
+#include "pios_spi_posix_priv.h"
+#include "pios_ms5611_priv.h"
+#include "pios_bmm150_priv.h"
+#include "pios_bmx055_priv.h"
+#include "pios_flyingpio.h"
+#endif
+
+#ifdef PIOS_INCLUDE_I2C
+int num_i2c = 0;
+uintptr_t i2c_devs[16];
+
+#include "pios_px4flow_priv.h"
+#endif
 
 static void Usage(char *cmdName) {
 	printf( "usage: %s [-f] [-r] [-l logfile] [-s spibase] [-d drvname:bus:id]\n"
@@ -93,6 +102,11 @@ static void Usage(char *cmdName) {
 		"\t-s spibase\tConfigures a SPI interface on the base path\n"
 		"\t-d drvname:bus:id\tStarts driver drvname on bus/id\n"
 		"\t\t\tAvailable drivers: bmm150 bmx055 flyingpio ms5611\n"
+#endif
+#ifdef PIOS_INCLUDE_I2C
+		"\t-I i2cdev\tConfigures an I2C interface on i2cdev\n"
+		"\t-i drvname:bus\tStarts a driver instance on bus\n"
+		"\t\t\tAvailable drivers: px4flow\n"
 #endif
 		"",
 		cmdName);
@@ -174,6 +188,49 @@ static int handle_serial_device(const char *optarg) {
 		PIOS_COM_TELEM_USB = com_id;
 	} else {
 		printf("Unknown serial driver %s\n", drv_name);
+		goto fail;
+	}
+
+	return 0;
+fail:
+	return -1;
+}
+#endif
+
+#ifdef PIOS_INCLUDE_I2C
+static int handle_i2c_device(const char *optarg) {
+	char arg_copy[128];
+
+	strncpy(arg_copy, optarg, sizeof(arg_copy));
+	arg_copy[sizeof(arg_copy)-1] = 0;
+
+	char *saveptr;
+
+	char *drv_name = strtok_r(arg_copy, ":", &saveptr);
+	if (drv_name == NULL) goto fail;
+
+	char *bus_num_str = strtok_r(NULL, ":", &saveptr);
+	if (bus_num_str == NULL) goto fail;
+
+	int bus_num = atoi(bus_num_str);
+	if ((bus_num < 0) || (bus_num >= num_i2c)) {
+		goto fail;
+	}
+
+	if (!strcmp(drv_name, "px4flow")) {
+		struct pios_px4flow_cfg *px4_cfg;
+
+		px4_cfg = PIOS_malloc(sizeof(*px4_cfg));
+
+		/* XXX rotation */
+		*px4_cfg = (struct pios_px4flow_cfg) { 0 };
+
+		int ret = PIOS_PX4Flow_Init(px4_cfg, i2c_devs[bus_num]);
+
+		if (ret) {
+			goto fail;
+		}
+	} else {
 		goto fail;
 	}
 
@@ -337,7 +394,7 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 	
 	bool first_arg = true;
 
-	while ((opt = getopt(argc, argv, "frl:s:d:S:")) != -1) {
+	while ((opt = getopt(argc, argv, "frl:s:d:S:I:i:")) != -1) {
 		switch (opt) {
 			case 'f':
 				debug_fpe = true;
@@ -374,6 +431,27 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 			case 'S':
 				if (handle_serial_device(optarg)) {
 					printf("Coudln't init device\n");
+					exit(1);
+				}
+				break;
+#endif
+#ifdef PIOS_INCLUDE_I2C
+			case 'I':
+			{
+				int ret = PIOS_I2C_Init(i2c_devs + num_i2c,
+					optarg);
+
+				if (ret < 0) {
+					printf("Couldn't init I2C\n");
+					exit(1);
+				}
+
+				num_i2c++;
+				break;
+			}
+			case 'i':
+				if (handle_i2c_device(optarg)) {
+					printf("Couldn't init i2c device\n");
 					exit(1);
 				}
 				break;
