@@ -93,6 +93,7 @@
 /* Hardware support on Linux only */
 #ifdef __linux__
 #define PIOS_INCLUDE_SERIAL
+#define PIOS_INCLUDE_I2C
 #define PIOS_INCLUDE_SPI
 #define PIOS_INCLUDE_MS5611_SPI
 #define PIOS_INCLUDE_BMM150
