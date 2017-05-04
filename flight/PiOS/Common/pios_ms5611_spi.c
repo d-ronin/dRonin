@@ -445,7 +445,7 @@ static void PIOS_MS5611_Task(void *parameters)
 			PIOS_MS5611_ClaimDevice();
 			PIOS_MS5611_StartADC(TEMPERATURE_CONV);
 			PIOS_Thread_Sleep(PIOS_MS5611_GetDelay());
-			read_adc_result = PIOS_MS5611_ReadADC();
+			PIOS_MS5611_ReadADC();
 			PIOS_MS5611_ReleaseDevice();
 
 			temp_press_interleave_count = dev->cfg->temperature_interleaving;

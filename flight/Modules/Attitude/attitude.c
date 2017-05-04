@@ -505,8 +505,6 @@ static int32_t updateAttitudeComplementary(float dT, bool first_run, bool second
 					set_state_estimation_error(SYSTEMALARMS_STATEESTIMATION_GYROQUEUENOTUPDATING);
 				else if (accelTimeout)
 					set_state_estimation_error(SYSTEMALARMS_STATEESTIMATION_ACCELEROMETERQUEUENOTUPDATING);
-				else
-					set_state_estimation_error(SYSTEMALARMS_STATEESTIMATION_UNDEFINED);
 
 				return -1;
 			}
