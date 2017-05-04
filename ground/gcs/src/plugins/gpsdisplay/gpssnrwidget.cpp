@@ -101,7 +101,7 @@ void GpsSnrWidget::drawSat(int drawIndex, int index)
     const int prn = satellites[index][0];
     const int snr = satellites[index][3];
     if (prn && snr) {
-        boxes[index]->show();
+        boxes[drawIndex]->show();
 
         // When using integer values, width and height are the
         // box width and height, but the left and bottom borders are drawn on the box,
@@ -118,43 +118,43 @@ void GpsSnrWidget::drawSat(int drawIndex, int index)
         // SNR = 1-99 (0 is special)..
         qreal height = int((scene->height() / 99) * snr + 0.5);
         // 1 for showing a pixel of white to the left.
-        qreal x = availableWidth * index + 1;
+        qreal x = availableWidth * drawIndex + 1;
         // Rember, 0 is at the top.
         qreal y = scene->height() - height;
         // Compensate for the extra pixel for the border.
-        boxes[index]->setRect(0, 0, width - 1, height - 1);
-        boxes[index]->setPos(x, y);
+        boxes[drawIndex]->setRect(0, 0, width - 1, height - 1);
+        boxes[drawIndex]->setPos(x, y);
 
-        QRectF boxRect = boxes[index]->boundingRect();
+        QRectF boxRect = boxes[drawIndex]->boundingRect();
         QString prnString = QString().number(prn);
         if (prnString.length() == 1) {
             prnString = "0" + prnString;
         }
-        satTexts[index]->setText(prnString);
-        QRectF textRect = satTexts[index]->boundingRect();
+        satTexts[drawIndex]->setText(prnString);
+        QRectF textRect = satTexts[drawIndex]->boundingRect();
 
         QTransform matrix;
         qreal scale = 0.85 * (boxRect.width() / textRect.width());
         matrix.translate(boxRect.width() / 2, boxRect.height());
         matrix.scale(scale, scale);
         matrix.translate(-textRect.width() / 2, -textRect.height());
-        satTexts[index]->setTransform(matrix, false);
+        satTexts[drawIndex]->setTransform(matrix, false);
 
         QString snrString = QString().number(snr);
         if (snrString.length() == 1) { // Will probably never happen!
             snrString = "0" + snrString;
         }
-        satSNRs[index]->setText(snrString);
-        textRect = satSNRs[index]->boundingRect();
+        satSNRs[drawIndex]->setText(snrString);
+        textRect = satSNRs[drawIndex]->boundingRect();
 
         matrix.reset();
         scale = 0.85 * (boxRect.width() / textRect.width());
         matrix.translate(boxRect.width() / 2, 0);
         matrix.scale(scale, scale);
         matrix.translate(-textRect.width() / 2, -textRect.height());
-        satSNRs[index]->setTransform(matrix, false);
+        satSNRs[drawIndex]->setTransform(matrix, false);
 
     } else {
-        boxes[index]->hide();
+        boxes[drawIndex]->hide();
     }
 }

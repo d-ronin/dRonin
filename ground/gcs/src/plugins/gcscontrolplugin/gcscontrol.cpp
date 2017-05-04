@@ -199,7 +199,7 @@ bool GCSControl::setYaw(float value)
 
 bool GCSControl::setChannel(quint8 channel, float value)
 {
-    if (value > 1 || value < -1 || channel > GCSReceiver::CHANNEL_NUMELEM || !hasControl)
+    if (value > 1 || value < -1 || channel >= GCSReceiver::CHANNEL_NUMELEM || !hasControl)
         return false;
     quint16 pwmValue;
     if (value >= 0)

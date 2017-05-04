@@ -44,8 +44,9 @@ namespace core {
     int KiberTileCache::MemoryCacheCapacity()
     {
         kiberCacheLock.lockForRead();
-        return _MemoryCacheCapacity;
+        int ret = _MemoryCacheCapacity;
         kiberCacheLock.unlock();
+        return ret;
     }
 
     void KiberTileCache::RemoveMemoryOverload()
