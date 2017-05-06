@@ -77,13 +77,13 @@ def main():
         elif name.endswith('.tar.xz'):
             label = "Linux 64-bit portable"
         elif name.endswith('.deb'):
-            label = "Linux 64-bit Debian-style package"
+            label = "Ubuntu 64-bit package"
         elif name.endswith('.zip'):
             label = "Windows (portable)"
         elif name.endswith('-install.exe'):
             label = "Windows (installer)"
         elif name.endswith('.dmg'):
-            label = "Mac OS X"
+            label = "macOS"
         else:
             label = name
         asset['new_label'] = label
