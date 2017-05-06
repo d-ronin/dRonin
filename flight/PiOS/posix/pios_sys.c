@@ -82,6 +82,8 @@ uintptr_t spi_devs[16];
 #endif
 
 #ifdef PIOS_INCLUDE_I2C
+char mag_orientation = 255;
+
 int num_i2c = 0;
 uintptr_t i2c_devs[16];
 
@@ -90,7 +92,8 @@ uintptr_t i2c_devs[16];
 #endif
 
 static void Usage(char *cmdName) {
-	printf( "usage: %s [-f] [-r] [-l logfile] [-s spibase] [-d drvname:bus:id]\n"
+	printf( "usage: %s [-f] [-r] [-m orientation] [-s spibase] [-d drvname:bus:id]\n"
+		"\t\t[-l logfile] [-I i2cdev] [-i drvname:bus]"
 		"\n"
 		"\t-f\tEnables floating point exception trapping mode\n"
 		"\t-r\tGoes realtime-class and pins all memory (requires root)\n"
@@ -105,9 +108,10 @@ static void Usage(char *cmdName) {
 		"\t\t\tAvailable drivers: bmm150 bmx055 flyingpio ms5611\n"
 #endif
 #ifdef PIOS_INCLUDE_I2C
+		"\t-m orientation\tSets the orientation of an external mag\n"
 		"\t-I i2cdev\tConfigures an I2C interface on i2cdev\n"
 		"\t-i drvname:bus\tStarts a driver instance on bus\n"
-		"\t\t\tAvailable drivers: px4flow hmc5883\n"
+		"\t\t\tAvailable drivers: px4flow hmc5883 hmc5983 bmp280 ms5611\n"
 #endif
 		"",
 		cmdName);
@@ -233,15 +237,27 @@ static int handle_i2c_device(const char *optarg) {
 		}
 	} else if (!strcmp(drv_name, "hmc5883")) {
 		if (PIOS_HAL_ConfigureExternalMag(HWSHARED_MAG_EXTERNALHMC5883,
-					HWSHARED_MAGORIENTATION_TOP0DEGCW,
+					mag_orientation,
 					i2c_devs + bus_num,
 					NULL)) {
 			goto fail;
 		}
-
-#if 0
-		PIOS_HMC5883_SetOrientation(hmc5883_orientation);
-#endif
+	} else if (!strcmp(drv_name, "hmc5983")) {
+		if (PIOS_HAL_ConfigureExternalMag(HWSHARED_MAG_EXTERNALHMC5983,
+					mag_orientation, i2c_devs + bus_num,
+					NULL)) {
+			goto fail;
+		}
+	} else if (!strcmp(drv_name, "bmp280")) {
+		if (PIOS_HAL_ConfigureExternalBaro(HWSHARED_EXTBARO_BMP280,
+					i2c_devs + bus_num, NULL)) {
+			goto fail;
+		}
+	} else if (!strcmp(drv_name, "ms5611")) {
+		if (PIOS_HAL_ConfigureExternalBaro(HWSHARED_EXTBARO_MS5611,
+					i2c_devs + bus_num, NULL)) {
+			goto fail;
+		}
 	} else {
 		goto fail;
 	}
@@ -308,7 +324,12 @@ static int handle_device(const char *optarg) {
 		bmm150_cfg = PIOS_malloc(sizeof(*bmm150_cfg));
 		bzero(bmm150_cfg, sizeof(*bmm150_cfg));
 
-		bmm150_cfg->orientation = PIOS_BMM_TOP_90DEG;
+		if (mag_orientation == 255) {
+			bmm150_cfg->orientation = PIOS_BMM_TOP_90DEG;
+		} else {
+			/* XXX figure out orientation properly */
+			goto fail;
+		}
 
 		int ret = PIOS_BMM150_SPI_Init(&dev, spi_devs[bus_num], dev_num, bmm150_cfg);
 
@@ -413,7 +434,7 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 				break;
 			case 'r':
 				if (!first_arg) {
-					printf("Realtime must be first arg\n");
+					printf("Realtime must be before hw\n");
 					exit(1);
 				}
 
@@ -437,17 +458,35 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 					printf("Couldn't init fileout com layer\n");
 					exit(1);
 				}
+				first_arg = false;
 				break;
 			}
 #ifdef PIOS_INCLUDE_SERIAL
 			case 'S':
 				if (handle_serial_device(optarg)) {
-					printf("Coudln't init device\n");
+					printf("Couldn't init device\n");
 					exit(1);
 				}
+				first_arg = false;
 				break;
 #endif
 #ifdef PIOS_INCLUDE_I2C
+			case 'm':
+			{
+				char *endptr;
+
+				if (!first_arg) {
+					printf("Mag orientation must be before hw\n");
+					exit(1);
+				}
+
+				mag_orientation = strtol(optarg, &endptr, 10);
+
+				if (!endptr || (*endptr != '\0')) {
+					printf("Invalid mag orientation\n");
+					exit(1);
+				}
+			}
 			case 'I':
 			{
 				int ret = PIOS_I2C_Init(i2c_devs + num_i2c,
@@ -466,6 +505,7 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 					printf("Couldn't init i2c device\n");
 					exit(1);
 				}
+				first_arg = false;
 				break;
 #endif
 #ifdef PIOS_INCLUDE_SPI
@@ -495,6 +535,8 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 				}
 
 				num_spi++;
+
+				first_arg = false;
 				break;
 			}
 #endif
@@ -503,8 +545,6 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 				Usage(argv[0]);
 				break;
 		}
-
-		first_arg = false;
 	}
 
 	if (optind < argc) {

@@ -1404,6 +1404,9 @@ int PIOS_HAL_ConfigureExternalMag(HwSharedMagOptions mag,
 #if !defined(PIOS_INCLUDE_I2C)
 	return -1;
 #else
+	if (!HwSharedMagOrientationIsValid(orientation)) {
+		return -2;
+	}
 
 	/* internal mag should be handled in pios_board_init */
 	if (mag == HWSHARED_MAG_NONE || mag == HWSHARED_MAG_INTERNAL) {
