@@ -234,7 +234,7 @@ static int autotune_save_averaging() {
 		.magic = ATFLASH_MAGIC,
 		.wiggle_points = decim_wiggle_points,
 		.aux_data_len = 0,
-		.sample_rate = PIOS_SENSORS_GetSampleRate(PIOS_SENSOR_GYRO) / AUTOTUNE_AVERAGING_DECIMATION,
+		.sample_rate = PIOS_Sensors_GetUpdateRate(PIOS_Sensors_GetSensor(PIOS_SENSOR_GYRO)) / AUTOTUNE_AVERAGING_DECIMATION,
 	};
 
 	uint32_t offset = 0;
