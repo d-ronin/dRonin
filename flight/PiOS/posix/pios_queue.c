@@ -190,6 +190,12 @@ bool PIOS_Queue_Receive(struct pios_queue *queuep,
 	return true;
 }
 
+size_t PIOS_Queue_GetItemSize(struct pios_queue *queuep)
+{
+	PIOS_Assert(queuep);
+	return queuep->item_size;
+}
+
 /**
   * @}
   * @}
