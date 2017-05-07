@@ -87,6 +87,8 @@ char mag_orientation = 255;
 int num_i2c = 0;
 uintptr_t i2c_devs[16];
 
+uintptr_t external_i2c_adapter_id;
+
 #include "pios_px4flow_priv.h"
 #include "pios_hmc5883_priv.h"
 #endif
@@ -227,14 +229,7 @@ static int handle_i2c_device(const char *optarg) {
 
 		px4_cfg = PIOS_malloc(sizeof(*px4_cfg));
 
-		/* XXX rotation */
-		*px4_cfg = (struct pios_px4flow_cfg) { 0 };
-
-		int ret = PIOS_PX4Flow_Init(px4_cfg, i2c_devs[bus_num]);
-
-		if (ret) {
-			goto fail;
-		}
+		external_i2c_adapter_id = i2c_devs[bus_num];
 	} else if (!strcmp(drv_name, "hmc5883")) {
 		if (PIOS_HAL_ConfigureExternalMag(HWSHARED_MAG_EXTERNALHMC5883,
 					mag_orientation,
