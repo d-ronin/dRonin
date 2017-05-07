@@ -324,7 +324,7 @@ static void AttitudeTask(void *parameters)
 	last_algorithm = 0xfffffff;
 	last_complementary = false;
 
-	uint16_t samp_rate = PIOS_SENSORS_GetSampleRate(PIOS_SENSOR_GYRO);
+	uint16_t samp_rate = PIOS_Sensors_GetUpdateRate(PIOS_Sensors_GetSensor(PIOS_SENSOR_GYRO));
 
 	if (samp_rate) {
 		dT_expected = 1.0f / samp_rate;
@@ -521,7 +521,8 @@ static int32_t updateAttitudeComplementary(float dT, bool first_run, bool second
 		magData.z = 0;
 
 		// Wait for a mag reading if a magnetometer was registered
-		if (PIOS_SENSORS_GetQueue(PIOS_SENSOR_MAG) != NULL) {
+		// TODO, Glowtape: Add stuff to sensors to deal with this.
+		if (PIOS_Sensors_Available(PIOS_SENSOR_MAG)) {
 			if (!secondary && PIOS_Queue_Receive(magQueue, &ev, 20) != true) {
 				return -1;
 			}
