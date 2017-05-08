@@ -552,6 +552,13 @@ static void actuator_task(void* parameters)
 	ManualControlCommandConnectCallbackCtx(UAVObjCbSetFlag, &manual_control_cmd_updated);
 
 	// Ensure the initial state of actuators is safe.
+	actuator_settings_updated = false;
+	ActuatorSettingsGet(&actuatorSettings);
+
+	PIOS_Servo_SetMode(actuatorSettings.TimerUpdateFreq,
+			ACTUATORSETTINGS_TIMERUPDATEFREQ_NUMELEM,
+			actuatorSettings.ChannelMax,
+			actuatorSettings.ChannelMin);
 	set_failsafe();
 
 	/* This is out here because not everything may change each time */
