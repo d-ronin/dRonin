@@ -41,6 +41,7 @@
 #endif /* !defined(_GNU_SOURCE) */
 
 #include <unistd.h>
+#include <ctype.h>
 
 #if !(defined(_WIN32) || defined(WIN32) || defined(__MINGW32__))
 #ifndef __APPLE__
@@ -68,6 +69,8 @@
 #include "pios_rcvr_priv.h"
 
 #include "manualcontrolsettings.h"
+
+#include "sha1.h"
 
 #if defined(PIOS_INCLUDE_SYS)
 static bool debug_fpe=false;
@@ -334,7 +337,7 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 	saved_argv = argv;
 
 	int opt;
-	
+
 	bool first_arg = true;
 
 	while ((opt = getopt(argc, argv, "frl:s:d:S:")) != -1) {
@@ -408,7 +411,7 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 				break;
 			}
 #endif
-				
+
 			default:
 				Usage(argv[0]);
 				break;
@@ -446,6 +449,14 @@ static void sigfpe_handler(int signum, siginfo_t *siginfo, void *ucontext)
 
 void PIOS_SYS_Init(void)
 {
+	char ser_text[PIOS_SYS_SERIAL_NUM_ASCII_LEN + 1];
+
+	int ret = PIOS_SYS_SerialNumberGet(ser_text);
+
+	if (ret == 0) {
+		printf("HW serial number-- hex: %s\n", ser_text);
+	}
+
 #if !(defined(_WIN32) || defined(WIN32) || defined(__MINGW32__))
 	struct sigaction sa_int = {
 		.sa_sigaction = sigint_handler,
@@ -521,37 +532,178 @@ int32_t PIOS_SYS_Reset(void)
 	return -1;
 }
 
+static inline uint64_t find_ser_in_buf(const char *buf)
+{
+	char *serial = strstr(buf, "Serial");
+
+	if (!serial) {
+		return 0;
+	}
+
+	serial += 6;
+
+	while ((*serial) && (isblank(*serial))) {
+		serial++;
+	}
+
+	if (*serial != ':') {
+		return 0;
+	}
+
+	serial++;
+
+	while (isblank(*serial)) {
+		serial++;
+	}
+
+	char *endptr;
+
+	uint64_t ret = strtoull(serial, &endptr, 16);
+
+	if (ret == 0) {
+		return 0;
+	}
+
+	if (*endptr != '\n' && (!*endptr)) {
+		return 0;
+	}
+
+	return ret;
+}
+
+DONT_BUILD_IF(PIOS_SYS_SERIAL_NUM_BINARY_LEN < 12, cpuSerLen);
+
 /**
 * Returns the serial number as a string
-* param[out] uint8_t pointer to a string which can store at least 12 bytes
-* (12 bytes returned for STM32)
+* param[out] uint8_t pointer to a buf which can store at least
+* PIOS_SYS_SERIAL_NUM_BINARY_LEN
 * return < 0 if feature not supported
 */
 int32_t PIOS_SYS_SerialNumberGetBinary(uint8_t *array)
 {
-	/* Stored in the so called "electronic signature" */
-	for (int i = 0; i < PIOS_SYS_SERIAL_NUM_BINARY_LEN; ++i) {
-		array[i] = 0xff;
+	uint8_t buf[8192];
+
+	int fd;
+	int len;
+
+	uint64_t ret = 0;
+
+	fd = open("/proc/cpuinfo", O_RDONLY);
+
+	if (fd >= 0) {
+		len = read(fd, buf, sizeof(buf) - 1);
+
+		if (len >= 0) {
+			buf[len] = 0;
+
+			ret = find_ser_in_buf((const char *) buf);
+		}
+
+		close(fd);
+
+		if (ret) {
+			array[0] = 'C';
+			array[1] = 'P';
+			array[2] = 'U';
+			array[3] = ':';
+
+			for (int i = 4; i < PIOS_SYS_SERIAL_NUM_BINARY_LEN; i++) {
+				array[i] = ret >> 56;
+
+				ret <<= 8;
+			}
+
+			return 0;
+		}
 	}
 
-	/* No error */
+	fd = open("/sys/class/dmi/id/board_serial", O_RDONLY);
+
+	if (fd >= 0) {
+		len = read(fd, buf, sizeof(buf) - 1);
+
+		if (len > 0) {
+			/* Chomp newline */
+			if (buf[len-1] == '\n') {
+				len--;
+			}
+
+			if (len < PIOS_SYS_SERIAL_NUM_BINARY_LEN) {
+				memcpy(array, buf, len);
+
+				for (int i = len; i < PIOS_SYS_SERIAL_NUM_BINARY_LEN;
+						i++) {
+					array[i] = 0;
+				}
+			} else {
+				/* Too long to all fit in.  So put the prefix of the
+				 * serial number, and then hash the rest.
+				 */
+				memcpy(array, buf, PIOS_SYS_SERIAL_NUM_BINARY_LEN - 4);
+
+				SHA1_CTX ctx;
+				sha1_init(&ctx);
+
+				sha1_update(&ctx,
+					buf + PIOS_SYS_SERIAL_NUM_BINARY_LEN - 4,
+					len - PIOS_SYS_SERIAL_NUM_BINARY_LEN + 4);
+
+				uint8_t hash[SHA1_BLOCK_SIZE];
+				sha1_final(&ctx, hash);
+
+				array[PIOS_SYS_SERIAL_NUM_BINARY_LEN - 4] = hash[0];
+				array[PIOS_SYS_SERIAL_NUM_BINARY_LEN - 3] = hash[1];
+				array[PIOS_SYS_SERIAL_NUM_BINARY_LEN - 2] = hash[2];
+				array[PIOS_SYS_SERIAL_NUM_BINARY_LEN - 1] = hash[3];
+			}
+
+			return 0;
+		}
+	}
+
+	/* Last resort: all zeroes */
+	for (int i = 0; i < PIOS_SYS_SERIAL_NUM_BINARY_LEN; i++) {
+		array[i] = 0;
+	}
+
 	return 0;
 }
 
+static inline char nibble_to_hex(uint8_t c)
+{
+	if (c < 10) {
+		return c + '0';
+	}
+
+	return c + 'A' - 10;
+}
+
+DONT_BUILD_IF(PIOS_SYS_SERIAL_NUM_BINARY_LEN * 2 != PIOS_SYS_SERIAL_NUM_ASCII_LEN,
+		serLenMismatch);
+
+
 /**
 * Returns the serial number as a string
-* param[out] str pointer to a string which can store at least 32 digits + zero terminator!
+* param[out] str pointer to a string which can store PIOS_SYS_SERIAL_NUM_ASCII_LEN+1
 * (24 digits returned for STM32)
 * return < 0 if feature not supported
 */
 int32_t PIOS_SYS_SerialNumberGet(char *str)
 {
-	/* Stored in the so called "electronic signature" */
-	int i;
-	for (i = 0; i < PIOS_SYS_SERIAL_NUM_ASCII_LEN; ++i) {
-		str[i] = 'F';
+	uint8_t array[PIOS_SYS_SERIAL_NUM_BINARY_LEN];
+
+	int ret = PIOS_SYS_SerialNumberGetBinary(array);
+
+	if (ret) {
+		return ret;
 	}
-	str[i] = '\0';
+
+	for (int i = 0; i < PIOS_SYS_SERIAL_NUM_BINARY_LEN; i++) {
+		str[i * 2]     = nibble_to_hex(array[i] >> 4);
+		str[i * 2 + 1] = nibble_to_hex(array[i] & 0xf);
+	}
+
+	str[PIOS_SYS_SERIAL_NUM_ASCII_LEN] = 0;
 
 	/* No error */
 	return 0;
