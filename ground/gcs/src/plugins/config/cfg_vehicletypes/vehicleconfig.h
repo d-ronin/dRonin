@@ -150,6 +150,7 @@ public:
     QStringList mixerVectors;
     QStringList mixerTypeDescriptions;
 
+    const static double mixerScale;
     const static double mixerRange;
 
 protected:

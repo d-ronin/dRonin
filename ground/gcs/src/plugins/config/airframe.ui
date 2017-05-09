@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>880</width>
-    <height>608</height>
+    <width>917</width>
+    <height>797</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -82,8 +82,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>850</width>
-            <height>459</height>
+            <width>889</width>
+            <height>634</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout">
@@ -1650,8 +1650,8 @@ margin:1px;</string>
                    <rect>
                     <x>0</x>
                     <y>0</y>
-                    <width>806</width>
-                    <height>361</height>
+                    <width>773</width>
+                    <height>226</height>
                    </rect>
                   </property>
                   <layout class="QVBoxLayout" name="verticalLayout_11">
@@ -2253,6 +2253,9 @@ margin:1px;</string>
                    <property name="alternatingRowColors">
                     <bool>true</bool>
                    </property>
+                   <property name="rowCount">
+                    <number>9</number>
+                   </property>
                    <attribute name="horizontalHeaderDefaultSectionSize">
                     <number>50</number>
                    </attribute>
@@ -2287,6 +2290,21 @@ margin:1px;</string>
                    <row>
                     <property name="text">
                      <string>Yaw</string>
+                    </property>
+                   </row>
+                   <row>
+                    <property name="text">
+                     <string>Acc0</string>
+                    </property>
+                   </row>
+                   <row>
+                    <property name="text">
+                     <string>Acc1</string>
+                    </property>
+                   </row>
+                   <row>
+                    <property name="text">
+                     <string>Acc2</string>
                     </property>
                    </row>
                    <column>
@@ -2812,6 +2830,246 @@ margin:1px;</string>
                     </property>
                    </item>
                    <item row="5" column="9">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                    <property name="textAlignment">
+                     <set>AlignCenter</set>
+                    </property>
+                   </item>
+                   <item row="6" column="0">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                    <property name="textAlignment">
+                     <set>AlignCenter</set>
+                    </property>
+                   </item>
+                   <item row="6" column="1">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                    <property name="textAlignment">
+                     <set>AlignCenter</set>
+                    </property>
+                   </item>
+                   <item row="6" column="2">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                    <property name="textAlignment">
+                     <set>AlignCenter</set>
+                    </property>
+                   </item>
+                   <item row="6" column="3">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                    <property name="textAlignment">
+                     <set>AlignCenter</set>
+                    </property>
+                   </item>
+                   <item row="6" column="4">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                    <property name="textAlignment">
+                     <set>AlignCenter</set>
+                    </property>
+                   </item>
+                   <item row="6" column="5">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                    <property name="textAlignment">
+                     <set>AlignCenter</set>
+                    </property>
+                   </item>
+                   <item row="6" column="6">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                    <property name="textAlignment">
+                     <set>AlignCenter</set>
+                    </property>
+                   </item>
+                   <item row="6" column="7">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                    <property name="textAlignment">
+                     <set>AlignCenter</set>
+                    </property>
+                   </item>
+                   <item row="6" column="8">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                    <property name="textAlignment">
+                     <set>AlignCenter</set>
+                    </property>
+                   </item>
+                   <item row="6" column="9">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                    <property name="textAlignment">
+                     <set>AlignCenter</set>
+                    </property>
+                   </item>
+                   <item row="7" column="0">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                    <property name="textAlignment">
+                     <set>AlignCenter</set>
+                    </property>
+                   </item>
+                   <item row="7" column="1">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                    <property name="textAlignment">
+                     <set>AlignCenter</set>
+                    </property>
+                   </item>
+                   <item row="7" column="2">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                    <property name="textAlignment">
+                     <set>AlignCenter</set>
+                    </property>
+                   </item>
+                   <item row="7" column="3">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                    <property name="textAlignment">
+                     <set>AlignCenter</set>
+                    </property>
+                   </item>
+                   <item row="7" column="4">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                    <property name="textAlignment">
+                     <set>AlignCenter</set>
+                    </property>
+                   </item>
+                   <item row="7" column="5">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                    <property name="textAlignment">
+                     <set>AlignCenter</set>
+                    </property>
+                   </item>
+                   <item row="7" column="6">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                    <property name="textAlignment">
+                     <set>AlignCenter</set>
+                    </property>
+                   </item>
+                   <item row="7" column="7">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                    <property name="textAlignment">
+                     <set>AlignCenter</set>
+                    </property>
+                   </item>
+                   <item row="7" column="8">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                    <property name="textAlignment">
+                     <set>AlignCenter</set>
+                    </property>
+                   </item>
+                   <item row="7" column="9">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                    <property name="textAlignment">
+                     <set>AlignCenter</set>
+                    </property>
+                   </item>
+                   <item row="8" column="0">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                    <property name="textAlignment">
+                     <set>AlignCenter</set>
+                    </property>
+                   </item>
+                   <item row="8" column="1">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                    <property name="textAlignment">
+                     <set>AlignCenter</set>
+                    </property>
+                   </item>
+                   <item row="8" column="2">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                    <property name="textAlignment">
+                     <set>AlignCenter</set>
+                    </property>
+                   </item>
+                   <item row="8" column="3">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                    <property name="textAlignment">
+                     <set>AlignCenter</set>
+                    </property>
+                   </item>
+                   <item row="8" column="4">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                    <property name="textAlignment">
+                     <set>AlignCenter</set>
+                    </property>
+                   </item>
+                   <item row="8" column="5">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                    <property name="textAlignment">
+                     <set>AlignCenter</set>
+                    </property>
+                   </item>
+                   <item row="8" column="6">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                    <property name="textAlignment">
+                     <set>AlignCenter</set>
+                    </property>
+                   </item>
+                   <item row="8" column="7">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                    <property name="textAlignment">
+                     <set>AlignCenter</set>
+                    </property>
+                   </item>
+                   <item row="8" column="8">
+                    <property name="text">
+                     <string>-</string>
+                    </property>
+                    <property name="textAlignment">
+                     <set>AlignCenter</set>
+                    </property>
+                   </item>
+                   <item row="8" column="9">
                     <property name="text">
                      <string>-</string>
                     </property>

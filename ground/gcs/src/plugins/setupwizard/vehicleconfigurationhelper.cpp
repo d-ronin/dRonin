@@ -363,11 +363,14 @@ void VehicleConfigurationHelper::applyMixerConfiguration(mixerChannelSettings ch
 
         field = mSettings->getField(mixerVectorPattern.arg(i + 1));
         Q_ASSERT(field);
-        field->setValue((channels[i].throttle1 * 127) / 100, 0);
-        field->setValue((channels[i].throttle2 * 127) / 100, 1);
-        field->setValue((channels[i].roll * 127) / 100, 2);
-        field->setValue((channels[i].pitch * 127) / 100, 3);
-        field->setValue((channels[i].yaw * 127) / 100, 4);
+        field->setValue((channels[i].throttle1 * 128) / 100, 0);
+        field->setValue((channels[i].throttle2 * 128) / 100, 1);
+        field->setValue((channels[i].roll * 128) / 100, 2);
+        field->setValue((channels[i].pitch * 128) / 100, 3);
+        field->setValue((channels[i].yaw * 128) / 100, 4);
+        field->setValue(0, 5);          // Accessory0..Accessory2
+        field->setValue(0, 6);
+        field->setValue(0, 7);
     }
 
     // Apply updates

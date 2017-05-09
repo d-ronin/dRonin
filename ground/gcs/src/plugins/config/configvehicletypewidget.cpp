@@ -695,6 +695,15 @@ void ConfigVehicleTypeWidget::updateCustomAirframeUI()
             m_aircraft->customMixerTable->item(5, channel)
                 ->setText(QString::number(vconfig->getMixerVectorValue(
                     mixerSettings, channel, MixerSettings::MIXER1VECTOR_YAW)));
+            m_aircraft->customMixerTable->item(6, channel)
+                ->setText(QString::number(vconfig->getMixerVectorValue(
+                    mixerSettings, channel, MixerSettings::MIXER1VECTOR_ACCESSORY0)));
+            m_aircraft->customMixerTable->item(7, channel)
+                ->setText(QString::number(vconfig->getMixerVectorValue(
+                    mixerSettings, channel, MixerSettings::MIXER1VECTOR_ACCESSORY1)));
+            m_aircraft->customMixerTable->item(8, channel)
+                ->setText(QString::number(vconfig->getMixerVectorValue(
+                    mixerSettings, channel, MixerSettings::MIXER1VECTOR_ACCESSORY2)));
         }
     }
 }
@@ -745,12 +754,6 @@ void ConfigVehicleTypeWidget::updateObjectsFromWidgets()
                                       MixerSettings::MIXER1TYPE_CAMERAPITCH);
             else if (q->currentText() == "CameraYaw")
                 vconfig->setMixerType(mixerSettings, channel, MixerSettings::MIXER1TYPE_CAMERAYAW);
-            else if (q->currentText() == "Accessory0")
-                vconfig->setMixerType(mixerSettings, channel, MixerSettings::MIXER1TYPE_ACCESSORY0);
-            else if (q->currentText() == "Accessory1")
-                vconfig->setMixerType(mixerSettings, channel, MixerSettings::MIXER1TYPE_ACCESSORY1);
-            else if (q->currentText() == "Accessory2")
-                vconfig->setMixerType(mixerSettings, channel, MixerSettings::MIXER1TYPE_ACCESSORY2);
 
             vconfig->setMixerVectorValue(
                 mixerSettings, channel, MixerSettings::MIXER1VECTOR_THROTTLECURVE1,
@@ -767,6 +770,15 @@ void ConfigVehicleTypeWidget::updateObjectsFromWidgets()
             vconfig->setMixerVectorValue(
                 mixerSettings, channel, MixerSettings::MIXER1VECTOR_YAW,
                 m_aircraft->customMixerTable->item(5, channel)->text().toDouble());
+            vconfig->setMixerVectorValue(
+                mixerSettings, channel, MixerSettings::MIXER1VECTOR_ACCESSORY0,
+                m_aircraft->customMixerTable->item(6, channel)->text().toDouble());
+            vconfig->setMixerVectorValue(
+                mixerSettings, channel, MixerSettings::MIXER1VECTOR_ACCESSORY1,
+                m_aircraft->customMixerTable->item(7, channel)->text().toDouble());
+            vconfig->setMixerVectorValue(
+                mixerSettings, channel, MixerSettings::MIXER1VECTOR_ACCESSORY2,
+                m_aircraft->customMixerTable->item(8, channel)->text().toDouble());
         }
 
         // set the airframe type
