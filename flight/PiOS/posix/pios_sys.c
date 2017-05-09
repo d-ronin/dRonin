@@ -78,8 +78,12 @@ static bool debug_fpe=false;
 bool are_realtime = false;
 
 #ifdef PIOS_INCLUDE_SPI
+#include <pios_dio.h>
+
 int num_spi = 0;
 pios_spi_t spi_devs[16];
+
+dio_tag_t gyro_int = NULL;
 
 #include "pios_spi_posix_priv.h"
 #include "pios_ms5611_priv.h"
@@ -103,7 +107,7 @@ pios_i2c_t external_i2c_adapter_id;
 int orig_stdout;
 
 static void Usage(char *cmdName) {
-	printf( "usage: %s [-f] [-r] [-m orientation] [-s spibase] [-d drvname:bus:id]\n"
+	printf( "usage: %s [-f] [-r] [-g num] [-m orientation] [-s spibase] [-d drvname:bus:id]\n"
 		"\t\t[-l logfile] [-I i2cdev] [-i drvname:bus] [-g port]"
 		"\n"
 		"\t-f\tEnables floating point exception trapping mode\n"
@@ -119,6 +123,7 @@ static void Usage(char *cmdName) {
 		"\t\t\tAvailable drivers: gps msp lighttelemetry telemetry omnip\n"
 #endif
 #ifdef PIOS_INCLUDE_SPI
+		"\t-g gpionum\tSpecifies the gyro interrupt is on gpionum\n"
 		"\t-s spibase\tConfigures a SPI interface on the base path\n"
 		"\t-d drvname:bus:id\tStarts driver drvname on bus/id\n"
 		"\t\t\tAvailable drivers: bmm150 bmx055 flyingpio ms5611\n"
@@ -347,6 +352,8 @@ static int handle_device(const char *optarg) {
 		bmx055_cfg = PIOS_malloc(sizeof(*bmx055_cfg));
 		bzero(bmx055_cfg, sizeof(*bmx055_cfg));
 
+		bmx055_cfg->int_pin = gyro_int;
+
 		int ret = PIOS_BMX055_SPI_Init(&dev, spi_devs[bus_num], dev_num, dev_num+1, bmx055_cfg);
 
 		if (ret) goto fail;
@@ -552,6 +559,29 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 				break;
 #endif
 #ifdef PIOS_INCLUDE_SPI
+			case 'g':
+			{
+				if (!first_arg) {
+					printf("Gyro int must be before hw\n");
+					exit(1);
+				}
+
+				char *endptr;
+
+				int num;
+
+				num = strtol(optarg, &endptr, 10);
+
+				if (!endptr || (*endptr != '\0')) {
+					printf("Invalid gyro int pin\n");
+					exit(1);
+				}
+
+				gyro_int = DIO_MAKE_TAG(num);
+
+				break;
+			}
+
 			case 'd':
 				if (handle_device(optarg)) {
 					printf("Couldn't init device\n");
