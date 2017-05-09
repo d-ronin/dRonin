@@ -209,15 +209,19 @@ static int handle_i2c_device(const char *optarg) {
 	char arg_copy[128];
 
 	strncpy(arg_copy, optarg, sizeof(arg_copy));
-	arg_copy[sizeof(arg_copy)-1] = 0;
+	arg_copy[sizeof(arg_copy) - 1] = 0;
 
 	char *saveptr;
 
 	char *drv_name = strtok_r(arg_copy, ":", &saveptr);
-	if (drv_name == NULL) goto fail;
+	if (drv_name == NULL) {
+		goto fail;
+	}
 
 	char *bus_num_str = strtok_r(NULL, ":", &saveptr);
-	if (bus_num_str == NULL) goto fail;
+	if (bus_num_str == NULL) {
+		goto fail;
+	}
 
 	int bus_num = atoi(bus_num_str);
 	if ((bus_num < 0) || (bus_num >= num_i2c)) {
