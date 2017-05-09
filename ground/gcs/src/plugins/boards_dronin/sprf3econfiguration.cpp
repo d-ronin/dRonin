@@ -1,7 +1,7 @@
 /**
  ******************************************************************************
- * @file       droninplugin.cpp
- * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
+ * @file       sprf3econfiguration.cpp
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2017
  * @addtogroup GCSPlugins GCS Plugins
  * @{
  * @addtogroup Boards_dRonin dRonin board support plugin
@@ -27,50 +27,25 @@
  * of this source file; otherwise redistribution is prohibited.
  */
 
-#include "droninplugin.h"
-#include "simulation.h"
-#include "pikoblx.h"
-#include "playuavosd.h"
-#include "seppuku.h"
-#include "sprf3e.h"
-#include <QtPlugin>
+#include "sprf3econfiguration.h"
 
-DroninPlugin::DroninPlugin()
+Sprf3eConfiguration::Sprf3eConfiguration(QWidget *parent) :
+    ConfigTaskWidget(parent),
+    ui(new Ui::Sprf3eConfiguration)
+    
 {
+    ui->setupUi(this);
+
+    autoLoadWidgets();
+    populateWidgets();
+    refreshWidgetsValues();
+
+    forceConnectedState();
 }
 
-DroninPlugin::~DroninPlugin()
+Sprf3eConfiguration::~Sprf3eConfiguration()
 {
-}
-
-bool DroninPlugin::initialize(const QStringList &arguments, QString *errorString)
-{
-    Q_UNUSED(arguments);
-    Q_UNUSED(errorString);
-    return true;
-}
-
-void DroninPlugin::extensionsInitialized()
-{
-    // Init boards
-    Simulation *sim = new Simulation();
-    addAutoReleasedObject(sim);
-
-    PikoBLX *pikoblx = new PikoBLX();
-    addAutoReleasedObject(pikoblx);
-
-    PlayUavOsd *playuav = new PlayUavOsd();
-    addAutoReleasedObject(playuav);
-
-    Seppuku *seppuku = new Seppuku();
-    addAutoReleasedObject(seppuku);
-
-    Sprf3e *sprf3e = new Sprf3e();
-    addAutoReleasedObject(sprf3e);
-}
-
-void DroninPlugin::shutdown()
-{
+    delete ui;
 }
 
 /**
