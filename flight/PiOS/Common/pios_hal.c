@@ -687,6 +687,16 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 #endif /* PIOS_INCLUDE_FRSKY_SENSOR_HUB */
 		break;
 
+	case HWSHARED_PORTTYPES_FRSKYSPORTNONINVERTED:
+#if defined(PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY)
+		usart_port_params.single_wire = true;
+
+		PIOS_HAL_ConfigureCom(usart_port_cfg, &usart_port_params, PIOS_COM_FRSKYSPORT_RX_BUF_LEN, PIOS_COM_FRSKYSPORT_TX_BUF_LEN, com_driver, &port_driver_id);
+		target = &pios_com_frsky_sport_id;
+		PIOS_Modules_Enable(PIOS_MODULE_UAVOFRSKYSPORTBRIDGE);
+#endif /* PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY */
+		break;
+
 	case HWSHARED_PORTTYPES_FRSKYSPORTTELEMETRY:
 #if defined(PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY)
 #if defined(STM32F30X) || defined(STM32F0XX)

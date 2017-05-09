@@ -31,6 +31,7 @@
 				<option>DSM</option>
 				<option>FrSKY Sensor Hub</option>
 				<option>FrSKY SPort Telemetry</option>
+				<option>FrSKY SPort Non Inverted</option>
 				<option>GPS</option>
 				<option>SRXL</option>
 				<option>HoTT SUMD</option>
@@ -57,6 +58,7 @@
 				<option>DSM</option>
 				<option>FrSKY Sensor Hub</option>
 				<option>FrSKY SPort Telemetry</option>
+				<option>FrSKY SPort Non Inverted</option>
 				<option>GPS</option>
 				<option>SRXL</option>
 				<option>HoTT SUMD</option>
@@ -84,6 +86,7 @@
 				<option>DSM</option>
 				<option>FrSKY Sensor Hub</option>
 				<option>FrSKY SPort Telemetry</option>
+				<option>FrSKY SPort Non Inverted</option>
 				<option>GPS</option>
 				<option>SRXL</option>
 				<option>HoTT SUMD</option>
@@ -111,6 +114,7 @@
 				<option>DSM</option>
 				<option>FrSKY Sensor Hub</option>
 				<option>FrSKY SPort Telemetry</option>
+				<option>FrSKY SPort Non Inverted</option>
 				<option>GPS</option>
 				<option>SRXL</option>
 				<option>HoTT SUMD</option>
@@ -138,6 +142,7 @@
 				<option>DSM</option>
 				<option>FrSKY Sensor Hub</option>
 				<option>FrSKY SPort Telemetry</option>
+				<option>FrSKY SPort Non Inverted</option>
 				<option>GPS</option>
 				<option>SRXL</option>
 				<option>HoTT SUMD</option>
@@ -164,6 +169,7 @@
 				<option>DSM</option>
 				<option>FrSKY Sensor Hub</option>
 				<option>FrSKY SPort Telemetry</option>
+				<option>FrSKY SPort Non Inverted</option>
 				<option>GPS</option>
 				<option>SRXL</option>
 				<option>HoTT SUMD</option>
