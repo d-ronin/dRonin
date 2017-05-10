@@ -23,7 +23,8 @@ def generate_udev(fp, defs):
                 print('# {} - {}'.format(group['name'], dev['name']), file=fp)
 
             usb = ('SUBSYSTEM=="usb", ATTR{{idVendor}}=="{:04x}", ATTR{{idProduct}}=="{:04x}", '
-                   'MODE="0664", GROUP="plugdev", TAG+="uaccess", TAG+="udev-acl"')
+                   'MODE="0664", GROUP="plugdev", TAG+="uaccess", TAG+="udev-acl", '
+                   'ENV{{ID_MM_DEVICE_IGNORE}}="1"')
             print(usb.format(dev['vid'], dev['pid']), file=fp)
 
             if 'hid' in dev['type']:
