@@ -18,9 +18,9 @@
 #define ROTLEFT(a, b) ((a << b) | (a >> (32 - b)))
 
 /*********************** FUNCTION DEFINITIONS ***********************/
-void sha1_transform(SHA1_CTX *ctx, const BYTE data[])
+void sha1_transform(SHA1_CTX *ctx, const uint8_t data[])
 {
-	WORD a, b, c, d, e, i, j, t, m[80];
+	uint32_t a, b, c, d, e, i, j, t, m[80];
 
 	for (i = 0, j = 0; i < 16; ++i, j += 4)
 		m[i] = (data[j] << 24) + (data[j + 1] << 16) + (data[j + 2] << 8) + (data[j + 3]);
@@ -90,7 +90,7 @@ void sha1_init(SHA1_CTX *ctx)
 	ctx->k[3] = 0xca62c1d6;
 }
 
-void sha1_update(SHA1_CTX *ctx, const BYTE data[], size_t len)
+void sha1_update(SHA1_CTX *ctx, const uint8_t data[], size_t len)
 {
 	size_t i;
 
@@ -105,9 +105,9 @@ void sha1_update(SHA1_CTX *ctx, const BYTE data[], size_t len)
 	}
 }
 
-void sha1_final(SHA1_CTX *ctx, BYTE hash[])
+void sha1_final(SHA1_CTX *ctx, uint8_t hash[])
 {
-	WORD i;
+	uint32_t i;
 
 	i = ctx->datalen;
 
