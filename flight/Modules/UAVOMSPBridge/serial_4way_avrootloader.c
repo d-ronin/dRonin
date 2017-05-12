@@ -85,21 +85,26 @@ static uint8_t suart_getc_(uint8_t *bt)
             return 0;
         }
     }
+
     // start bit
-    start_time = micros();
-    btime = start_time + START_BIT_TIME;
+    start_time = PIOS_INLINEDELAY_GetCycleCnt();
+
+    btime = start_time + PIOS_INLINEDELAY_NsToCycles(START_BIT_TIME * 1000);
     uint16_t bitmask = 0;
     uint8_t bit = 0;
-    while (micros() < btime);
+
+    PIOS_INLINEDELAY_TillCycleCnt(btime);
+
     while(1) {
         if (ESC_IS_HI)
         {
             bitmask |= (1 << bit);
         }
-        btime = btime + BIT_TIME;
+        btime = btime + PIOS_INLINEDELAY_NsToCycles(BIT_TIME * 1000);
         bit++;
         if (bit == 10) break;
-        while (micros() < btime);
+
+	PIOS_INLINEDELAY_TillCycleCnt(btime);
     }
 
     PIOS_WDG_Clear();
@@ -116,7 +121,7 @@ static void suart_putc_(uint8_t *tx_b)
 {
     // shift out stopbit first
     uint16_t bitmask = (*tx_b << 2) | 1 | (1 << 10);
-    uint32_t btime = micros();
+    uint32_t btime = PIOS_INLINEDELAY_GetCycleCnt();
     while(1) {
         if(bitmask & 1) {
             ESC_SET_HI; // 1
@@ -124,10 +129,11 @@ static void suart_putc_(uint8_t *tx_b)
         else {
             ESC_SET_LO; // 0
         }
-        btime = btime + BIT_TIME;
+        btime = btime + PIOS_INLINEDELAY_NsToCycles(BIT_TIME * 1000);
         bitmask = (bitmask >> 1);
         if (bitmask == 0) break; // stopbit shifted out - but don't wait
-        while (micros() < btime);
+
+	PIOS_INLINEDELAY_TillCycleCnt(btime);
     }
 
     PIOS_WDG_Clear();
