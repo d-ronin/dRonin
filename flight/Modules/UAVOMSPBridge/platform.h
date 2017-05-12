@@ -6,6 +6,7 @@
 
 #ifdef PIOS_INCLUDE_4WAY
 
+#include <pios_inlinedelay.h>
 #include <pios_dio.h>
 
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
