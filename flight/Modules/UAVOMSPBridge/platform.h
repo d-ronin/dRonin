@@ -10,7 +10,7 @@
 
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
-#define MAX_SUPPORTED_MOTORS 8
+#define MAX_SUPPORTED_MOTORS 10
 
 typedef dio_tag_t IO_t;
 
