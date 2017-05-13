@@ -6,8 +6,12 @@
 
 #ifdef PIOS_INCLUDE_4WAY
 
+#include <openpilot.h>
+
 #include <pios_inlinedelay.h>
 #include <pios_dio.h>
+
+#include <mixersettings.h>
 
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
@@ -70,12 +74,35 @@ static inline void pwmEnableMotors(void)
 {
 }
 
+static inline bool should_be_enabled(int type)
+{
+	switch (type) {
+		case MIXERSETTINGS_MIXER1TYPE_DISABLED:
+		case MIXERSETTINGS_MIXER1TYPE_MOTOR:
+			return true;
+		default:
+			return false;
+	}
+}
+
+/* Here be dragons */
+#define set_disabled_token_paste(b) \
+	do { \
+		int saved_idx = (b) - 1; \
+		if (saved_idx < MAX_SUPPORTED_MOTORS) { \
+			pwm_val[saved_idx].enabled = pwm_val[saved_idx].enabled && \
+				should_be_enabled(mixerSettings.Mixer ## b ## Type); \
+		} \
+	} while (0)
 
 static inline pwmOutputPort_t *pwmGetMotors(void)
 {
 	static pwmOutputPort_t pwm_val[MAX_SUPPORTED_MOTORS];
 	dio_tag_t dios_tmp[MAX_SUPPORTED_MOTORS];
 	int num_mot = PIOS_Servo_GetPins(dios_tmp, MAX_SUPPORTED_MOTORS);
+
+	MixerSettingsData mixerSettings;
+	MixerSettingsGet(&mixerSettings);
 
 	int i;
 
@@ -88,6 +115,17 @@ static inline pwmOutputPort_t *pwmGetMotors(void)
 		pwm_val[i].enabled = false;
 		pwm_val[i].io = IO_NONE;
 	}
+
+	set_disabled_token_paste(1);
+	set_disabled_token_paste(2);
+	set_disabled_token_paste(3);
+	set_disabled_token_paste(4);
+	set_disabled_token_paste(5);
+	set_disabled_token_paste(6);
+	set_disabled_token_paste(7);
+	set_disabled_token_paste(8);
+	set_disabled_token_paste(9);
+	set_disabled_token_paste(10);
 
 	return pwm_val;
 }

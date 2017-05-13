@@ -102,7 +102,7 @@
 
 #define MSP_PROTOCOL_VERSION  0
 #define MSP_API_VERSION_MAJOR 1
-#define MSP_API_VERSION_MINOR 31 // Matches 3.1.6
+#define MSP_API_VERSION_MINOR 36 // Matches bf master @ 20170512
 
 enum msp_handler {
 	MSP_HANDLER_MSP = 0,
