@@ -414,7 +414,6 @@ static void PIOS_MS5611_Task(void *parameters)
 	while (1) {
 
 		--temp_press_interleave_count;
-		read_adc_result = 0;
 
 		if (temp_press_interleave_count == 0)
 		{
@@ -422,7 +421,7 @@ static void PIOS_MS5611_Task(void *parameters)
 			PIOS_MS5611_ClaimDevice();
 			PIOS_MS5611_StartADC(TEMPERATURE_CONV);
 			PIOS_Thread_Sleep(PIOS_MS5611_GetDelay());
-			read_adc_result = PIOS_MS5611_ReadADC();
+			PIOS_MS5611_ReadADC();
 			PIOS_MS5611_ReleaseDevice();
 
 			temp_press_interleave_count = dev->cfg->temperature_interleaving;
@@ -434,7 +433,7 @@ static void PIOS_MS5611_Task(void *parameters)
 		PIOS_MS5611_ClaimDevice();
 		PIOS_MS5611_StartADC(PRESSURE_CONV);
 		PIOS_Thread_Sleep(PIOS_MS5611_GetDelay());
-		read_adc_result = PIOS_MS5611_ReadADC();
+		PIOS_MS5611_ReadADC();
 		PIOS_MS5611_ReleaseDevice();
 
 		// Compute the altitude from the pressure and temperature and send it out

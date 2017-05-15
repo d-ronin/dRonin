@@ -47,7 +47,8 @@ HighLightManager::HighLightManager(long checkingInterval, QTime *currentTime)
 
     if (currentTime == NULL)
         m_currentTime = new QTime;
-    m_currentTime = currentTime;
+
+    *m_currentTime = *currentTime;
 }
 
 /*
@@ -269,7 +270,8 @@ void TreeItem::setCurrentTime(QTime *currentTime)
 {
     if (m_currentTime == NULL)
         m_currentTime = new QTime;
-    m_currentTime = currentTime;
+
+    *m_currentTime = *currentTime;
 }
 
 void TreeItem::setIsDefaultValue(bool isDefault)

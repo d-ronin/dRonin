@@ -153,6 +153,8 @@ static void altitudeHoldTask(void *parameters)
 	UAVObjEvent ev;
 	struct pid velocity_pid;
 
+	pid_zero(&velocity_pid);
+
 	// Listen for object updates.
 	AltitudeHoldSettingsConnectQueue(queue);
 	FlightStatusConnectQueue(queue);
@@ -198,12 +200,6 @@ static void altitudeHoldTask(void *parameters)
 			continue;
 		}
 
-		bool landing = altitudeHoldDesired.Land == ALTITUDEHOLDDESIRED_LAND_TRUE;
-
-		// For landing mode allow throttle to go negative to allow the integrals
-		// to stop winding up
-		const float min_throttle = landing ? -0.1f : 0.0f;
-
 		// When engaged compute altitude controller output
 		if (engaged) {
 			float position_z, velocity_z, altitude_error;
@@ -216,6 +212,12 @@ static void altitudeHoldTask(void *parameters)
 			// Compute the altitude error
 			AltitudeHoldDesiredGet(&altitudeHoldDesired);
 			altitude_error = altitudeHoldDesired.Altitude - position_z;
+
+			bool landing = altitudeHoldDesired.Land == ALTITUDEHOLDDESIRED_LAND_TRUE;
+
+			// For landing mode allow throttle to go negative to allow the integrals
+			// to stop winding up
+			const float min_throttle = landing ? -0.1f : 0.0f;
 
 			// Velocity desired is from the outer controller plus the set point
 			float dT = PIOS_DELAY_DiffuS(timeval) * 1.0e-6f;

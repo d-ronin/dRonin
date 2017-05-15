@@ -228,9 +228,8 @@ static void pathfollowerTask(void *parameters)
 		// process it. This makes sure that the follower alarm state is
 		// updated.
 		bool process_path_desired_update = 
-		    (last_flight_mode == FLIGHTSTATUS_FLIGHTMODE_PATHPLANNER ||
-		     last_flight_mode == FLIGHTSTATUS_FLIGHTMODE_PATHPLANNER) &&
-		    path_desired_updated;
+			(last_flight_mode == FLIGHTSTATUS_FLIGHTMODE_PATHPLANNER) &&
+			path_desired_updated;
 		path_desired_updated = false;
 
 		// Process most of these when the flight mode changes

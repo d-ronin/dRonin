@@ -39,7 +39,7 @@ struct pios_thread
 
 struct pios_thread *PIOS_Thread_Create(void (*fp)(void *), const char *namep, size_t stack_bytes, void *argp, enum pios_thread_prio_e prio)
 {
-	struct pios_thread *thread = malloc(sizeof(thread));
+	struct pios_thread *thread = malloc(sizeof(*thread));
 
 	pthread_attr_t attr;
 

@@ -262,7 +262,7 @@ static bool NMEA_parse_real(int32_t * whole, uint32_t * fract, uint8_t * fract_u
 
 	*whole = strtol(field_w, NULL, 10);
 
-	if (field_w) {
+	if (field_f) {
 		/* decimal was found so we may have a fractional part */
 		*fract = strtoul(field_f, NULL, 10);
 		*fract_units = strlen(field_f);

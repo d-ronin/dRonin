@@ -450,6 +450,8 @@ int32_t PIOS_COM_SendFormattedStringNonBlocking(uintptr_t com_id, const char *fo
 
 	va_start(args, format);
 	vsprintf((char *)buffer, format, args);
+	va_end(args);
+
 	return PIOS_COM_SendBufferNonBlocking(com_id, buffer, (uint16_t)strlen((char *)buffer));
 }
 
@@ -469,6 +471,8 @@ int32_t PIOS_COM_SendFormattedString(uintptr_t com_id, const char *format, ...)
 
 	va_start(args, format);
 	vsprintf((char *)buffer, format, args);
+	va_end(args);
+
 	return PIOS_COM_SendBuffer(com_id, buffer, (uint16_t)strlen((char *)buffer));
 }
 
