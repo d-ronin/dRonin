@@ -1318,9 +1318,11 @@ void PIOS_HAL_ConfigureSerialSpeed(uintptr_t com_id,
 	}
 }
 
+
 #ifdef PIOS_INCLUDE_I2C
 static int PIOS_HAL_ConfigureI2C(uint32_t *id,
 		const struct pios_i2c_adapter_cfg *cfg) {
+#ifndef SIM_POSIX
 	if (!*id) {
 		// Not already initialized.
 		if (PIOS_I2C_Init(id, cfg)) {
@@ -1342,6 +1344,7 @@ static int PIOS_HAL_ConfigureI2C(uint32_t *id,
 	}
 
 	PIOS_WDG_Clear();
+#endif /* SIM_POSIX */
 
 	return 0;
 }
@@ -1411,6 +1414,9 @@ int PIOS_HAL_ConfigureExternalMag(HwSharedMagOptions mag,
 #if !defined(PIOS_INCLUDE_I2C)
 	return -1;
 #else
+	if (!HwSharedMagOrientationIsValid(orientation)) {
+		return -2;
+	}
 
 	/* internal mag should be handled in pios_board_init */
 	if (mag == HWSHARED_MAG_NONE || mag == HWSHARED_MAG_INTERNAL) {
