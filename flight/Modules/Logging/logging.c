@@ -430,7 +430,7 @@ static void loggingTask(void *parameters)
 */
 static void logAll(UAVObjHandle obj)
 {
-	UAVTalkSendObjectTimestamped(uavTalkCon, obj, 0, false, 0);
+	UAVTalkSendObjectTimestamped(uavTalkCon, obj, 0);
 }
 
  /**
@@ -440,7 +440,7 @@ static void logAll(UAVObjHandle obj)
 static void logSettings(UAVObjHandle obj)
 {
 	if (UAVObjIsSettings(obj)) {
-		UAVTalkSendObjectTimestamped(uavTalkCon, obj, 0, false, 0);
+		UAVTalkSendObjectTimestamped(uavTalkCon, obj, 0);
 	}
 }
 
@@ -485,7 +485,7 @@ static void obj_updated_callback(UAVObjEvent * ev, void* cb_ctx, void *uavo_data
 		return;
 	}
 
-	UAVTalkSendObjectTimestamped(uavTalkCon, ev->obj, ev->instId, false, 0);
+	UAVTalkSendObjectTimestamped(uavTalkCon, ev->obj, ev->instId);
 }
 
 

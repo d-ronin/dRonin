@@ -104,7 +104,6 @@ OPTMODULES += UAVOLighttelemetryBridge
 OPTMODULES += UAVOMSPBridge
 
 # Paths
-OPUAVTALKINC = $(OPUAVTALK)/inc
 OPUAVOBJINC = $(OPUAVOBJ)/inc
 PIOSINC = $(PIOS)/inc
 FLIGHTLIBINC = $(FLIGHTLIB)/inc
@@ -133,19 +132,11 @@ SRC += ${OPMODULEDIR}/System/systemmod.c
 SRC += ${OPMODULEDIR}/System/rgbleds.c
 SRC += main.c
 SRC += pios_board.c
-SRC += $(FLIGHTLIB)/alarms.c
-SRC += $(OPUAVTALK)/uavtalk.c
+SRC += $(wildcard $(FLIGHTLIB)/*.c)
 SRC += $(OPUAVOBJ)/uavobjectmanager.c
 
 ## Libraries for flight calculations
-SRC += $(FLIGHTLIB)/WorldMagModel.c
-SRC += $(FLIGHTLIB)/insgps14state.c
 SRC += taskmonitor.c
-SRC += $(FLIGHTLIB)/sanitycheck.c
-SRC += $(FLIGHTLIB)/paths.c
-SRC += $(FLIGHTLIB)/circqueue.c
-SRC += $(FLIGHTLIB)/morsel.c
-SRC += $(FLIGHTLIB)/timeutils.c
 
 SRC += $(MATHLIB)/atmospheric_math.c
 SRC += $(MATHLIB)/coordinate_conversions.c
@@ -228,8 +219,6 @@ EXTRAINCDIRS  += $(PIOS)
 EXTRAINCDIRS  += $(PIOSINC)
 EXTRAINCDIRS += $(PIOSCOMMON)/inc
 EXTRAINCDIRS  += $(ROOT_DIR)/flight/PiOS/inc
-EXTRAINCDIRS  += $(OPUAVTALK)
-EXTRAINCDIRS  += $(OPUAVTALKINC)
 EXTRAINCDIRS  += $(OPUAVOBJ)
 EXTRAINCDIRS  += $(OPUAVOBJINC)
 EXTRAINCDIRS  += $(OPUAVSYNTHDIR)

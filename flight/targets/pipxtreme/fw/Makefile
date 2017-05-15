@@ -60,7 +60,6 @@ MODULES += RadioComBridge
 MODULES += UAVOTaranis
 
 # Paths
-OPUAVTALKINC = $(OPUAVTALK)/inc
 OPUAVOBJINC = $(OPUAVOBJ)/inc
 OPTESTS  = ./Tests
 FLIGHTLIBINC = $(FLIGHTLIB)/inc
@@ -90,7 +89,6 @@ SRC += ${OPMODULEDIR}/System/systemmod.c
 SRC += ${OPMODULEDIR}/System/rgbleds.c
 SRC += chibi_main.c
 SRC += pios_board.c
-SRC += $(OPUAVTALK)/uavtalk.c
 SRC += $(OPUAVOBJ)/uavobjectmanager.c
 
 ## PIOS Hardware (STM32F10x)
@@ -176,8 +174,6 @@ ASRCARM =
 # List any extra directories to look for include files here.
 #    Each directory must be seperated by a space.
 EXTRAINCDIRS  += $(SHAREDAPIDIR)
-EXTRAINCDIRS  += $(OPUAVTALK)
-EXTRAINCDIRS  += $(OPUAVTALKINC)
 EXTRAINCDIRS  += $(OPUAVOBJ)
 EXTRAINCDIRS  += $(OPUAVOBJINC)
 EXTRAINCDIRS  += $(OPUAVSYNTHDIR)
