@@ -45,7 +45,7 @@ HighLightManager::HighLightManager(long checkingInterval, QTime *currentTime)
     m_expirationTimer.start(checkingInterval);
     connect(&m_expirationTimer, &QTimer::timeout, this, &HighLightManager::checkItemsExpired);
 
-    if (currentTime == NULL)
+    if (m_currentTime == NULL)
         m_currentTime = new QTime;
 
     *m_currentTime = *currentTime;
