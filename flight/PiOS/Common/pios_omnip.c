@@ -105,6 +105,8 @@ static void PIOS_OMNIP_ProcessMessage(omnip_dev_t dev)
 fail:
 	dev->line_pos = 0;
 	dev->num_invalid++;
+
+	//printf("failed cnt=%d-- %s\n", dev->num_invalid, dev->line_buffer);
 }
 
 static void PIOS_OMNIP_UpdateState(omnip_dev_t dev, uint8_t c)
@@ -118,6 +120,8 @@ static void PIOS_OMNIP_UpdateState(omnip_dev_t dev, uint8_t c)
 			PIOS_OMNIP_ProcessMessage(dev);
 		} else {
 			dev->num_invalid++;
+
+			dev->line_pos = 0;
 		}
 	} else if (c == '\n') {
 		/* Ignore \n at the beginning because of \r\n line separation.
