@@ -47,7 +47,6 @@ void UAVObjectBrowser::loadConfiguration(IUAVGadgetConfiguration *config)
     m_config = m;
     m_widget->setRecentlyUpdatedColor(m->recentlyUpdatedColor());
     m_widget->setManuallyChangedColor(m->manuallyChangedColor());
-    m_widget->setRecentlyUpdatedTimeout(m->recentlyUpdatedTimeout());
     m_widget->setOnlyHighlightChangedValues(m->onlyHighlightChangedValues());
     m_widget->setViewOptions(m->categorizedView(), m->scientificView(), m->showMetaData(),
                              m->hideNotPresentOnHw());

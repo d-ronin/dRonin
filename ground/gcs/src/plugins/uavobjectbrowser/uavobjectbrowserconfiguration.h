@@ -41,8 +41,6 @@ class UAVObjectBrowserConfiguration : public IUAVGadgetConfiguration
     Q_PROPERTY(
         QColor m_manuallyChangedColor READ manuallyChangedColor WRITE setManuallyChangedColor)
     Q_PROPERTY(QColor m_notPresentOnHwColor READ notPresentOnHwColor WRITE setNotPresentOnHwColor)
-    Q_PROPERTY(
-        int m_recentlyUpdatedTimeout READ recentlyUpdatedTimeout WRITE setRecentlyUpdatedTimeout)
     Q_PROPERTY(bool m_onlyHighlightChangedValues READ onlyHighlightChangedValues WRITE
                    setOnlyHighlightChangedValues)
     Q_PROPERTY(bool m_useCategorizedView READ categorizedView WRITE setCategorizedView)
@@ -73,7 +71,6 @@ public slots:
     void setRecentlyUpdatedColor(QColor color) { m_recentlyUpdatedColor = color; }
     void setManuallyChangedColor(QColor color) { m_manuallyChangedColor = color; }
     void setNotPresentOnHwColor(QColor color) { m_notPresentOnHwColor = color; }
-    void setRecentlyUpdatedTimeout(int timeout) { m_recentlyUpdatedTimeout = timeout; }
     void setOnlyHighlightChangedValues(bool highlight) { m_onlyHighlightChangedValues = highlight; }
     void setCategorizedView(bool value) { m_useCategorizedView = value; }
     void setScientificView(bool value) { m_useScientificView = value; }

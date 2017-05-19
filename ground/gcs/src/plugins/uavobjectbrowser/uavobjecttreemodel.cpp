@@ -40,7 +40,6 @@
 #include "uavobjectfield.h"
 #include "extensionsystem/pluginmanager.h"
 #include <QColor>
-//#include <QIcon>
 #include <QtCore/QTimer>
 #include <QtCore/QSignalMapper>
 #include <QtCore/QDebug>
@@ -51,9 +50,7 @@
 UAVObjectTreeModel::UAVObjectTreeModel(QObject *parent, bool useScientificNotation)
     : QAbstractItemModel(parent)
     , m_rootItem(NULL)
-    , m_recentlyUpdatedTimeout(500)
-    , // ms
-    m_recentlyUpdatedColor(QColor(255, 230, 230))
+    , m_recentlyUpdatedColor(QColor(255, 230, 230))
     , m_manuallyChangedColor(QColor(230, 230, 255))
     , m_updatedOnlyColor(QColor(174, 207, 250, 255))
     , m_isPresentOnHwColor(QApplication::palette().text().color())
@@ -66,14 +63,6 @@ UAVObjectTreeModel::UAVObjectTreeModel(QObject *parent, bool useScientificNotati
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     objManager = pm->getObject<UAVObjectManager>();
-
-    m_currentTime = QTime::currentTime();
-    // Create timer that sets the rhythm for all highlight events.
-    connect(&m_currentTimeTimer, &QTimer::timeout, this, &UAVObjectTreeModel::updateCurrentTime);
-    m_currentTimeTimer.start(lrint(fmax(m_recentlyUpdatedTimeout / 10.0f,
-                                        10))); // Update the timer 10 times faster than the time
-    // out. In any case, never go faster than 10ms.
-    TreeItem::setHighlightTime(m_recentlyUpdatedTimeout);
 
     QFont font;
     m_defaultValueFont = font;
@@ -107,18 +96,21 @@ void UAVObjectTreeModel::setupModelData(UAVObjectManager *objManager, bool categ
                    &UAVObjectTreeModel::newObject);
         disconnect(objManager, &UAVObjectManager::instanceRemoved, this,
                    &UAVObjectTreeModel::instanceRemove);
+        disconnect(m_highlightManager, &HighLightManager::updateHighlight, this,
+            &UAVObjectTreeModel::updateHighlight);
+
         delete m_highlightManager;
         int count = m_rootItem->childCount();
         beginRemoveRows(index(m_rootItem), 0, count);
         delete m_rootItem;
         endRemoveRows();
     }
-    // Create highlight manager, let it run every 300 ms.
-    m_highlightManager = new HighLightManager(300, &m_currentTime);
+
+    // Create highlight manager, let it run every 200 ms.
+    m_highlightManager = new HighLightManager(200);
     QList<QVariant> rootData;
     rootData << tr("Property") << tr("Value") << tr("Unit");
     m_rootItem = new TreeItem(rootData);
-    m_rootItem->setCurrentTime(&m_currentTime);
 
     m_settingsTree = new TopTreeItem(tr("Settings"), m_rootItem);
     m_settingsTree->setHighlightManager(m_highlightManager);
@@ -127,8 +119,7 @@ void UAVObjectTreeModel::setupModelData(UAVObjectManager *objManager, bool categ
     m_nonSettingsTree->setHighlightManager(m_highlightManager);
     m_rootItem->appendChild(m_nonSettingsTree);
     m_rootItem->setHighlightManager(m_highlightManager);
-    connect(m_settingsTree, &TreeItem::updateHighlight, this, &UAVObjectTreeModel::updateHighlight);
-    connect(m_nonSettingsTree, &TreeItem::updateHighlight, this,
+    connect(m_highlightManager, &HighLightManager::updateHighlight, this,
             &UAVObjectTreeModel::updateHighlight);
 
     QVector<QVector<UAVDataObject *>> objList = objManager->getDataObjectsVector();
@@ -171,6 +162,7 @@ void UAVObjectTreeModel::instanceRemove(UAVObject *obj)
         foreach (TreeItem *item, existing->treeChildren()) {
             InstanceTreeItem *inst = dynamic_cast<InstanceTreeItem *>(item);
             if (inst && inst->object() == obj) {
+                printf("removing an instance\n");
                 inst->parent()->removeChild(inst);
                 inst->deleteLater();
             }
@@ -197,8 +189,6 @@ void UAVObjectTreeModel::addDataObject(UAVDataObject *obj, bool categorize)
         DataObjectTreeItem *dataTreeItem = new DataObjectTreeItem(
             obj->getName() + " (" + QString::number(obj->getNumBytes()) + " bytes)");
         dataTreeItem->setHighlightManager(m_highlightManager);
-        connect(dataTreeItem, &TreeItem::updateHighlight, this,
-                &UAVObjectTreeModel::updateHighlight);
         parent->insertChild(dataTreeItem);
         root->addObjectTreeItem(obj->getObjID(), dataTreeItem);
         UAVMetaObject *meta = obj->getMetaObject();
@@ -215,8 +205,6 @@ TreeItem *UAVObjectTreeModel::createCategoryItems(QStringList categoryPath, Tree
         TreeItem *existing = parent->findChildByName(category);
         if (!existing) {
             TreeItem *categoryItem = new CategoryTreeItem(category);
-            connect(categoryItem, &TreeItem::updateHighlight, this,
-                    &UAVObjectTreeModel::updateHighlight);
             categoryItem->setHighlightManager(m_highlightManager);
             parent->insertChild(categoryItem);
             parent = categoryItem;
@@ -233,7 +221,6 @@ MetaObjectTreeItem *UAVObjectTreeModel::addMetaObject(UAVMetaObject *obj, TreeIt
     MetaObjectTreeItem *meta = new MetaObjectTreeItem(obj, tr("Meta Data"));
 
     meta->setHighlightManager(m_highlightManager);
-    connect(meta, &TreeItem::updateHighlight, this, &UAVObjectTreeModel::updateHighlight);
     foreach (UAVObjectField *field, obj->getFields()) {
         if (field->getNumElements() > 1) {
             addArrayField(field, meta);
@@ -258,7 +245,6 @@ void UAVObjectTreeModel::addInstance(UAVObject *obj, TreeItem *parent)
         QString name = tr("Instance") + " " + QString::number(obj->getInstID());
         item = new InstanceTreeItem(obj, name);
         item->setHighlightManager(m_highlightManager);
-        connect(item, &TreeItem::updateHighlight, this, &UAVObjectTreeModel::updateHighlight);
 
         // Inform the model that we will add a row
         beginInsertRows(index(parent), parent->childCount(), parent->childCount());
@@ -287,7 +273,6 @@ void UAVObjectTreeModel::addArrayField(UAVObjectField *field, TreeItem *parent)
 {
     TreeItem *item = new ArrayFieldTreeItem(field->getName());
     item->setHighlightManager(m_highlightManager);
-    connect(item, &TreeItem::updateHighlight, this, &UAVObjectTreeModel::updateHighlight);
     for (uint i = 0; i < field->getNumElements(); ++i) {
         addSingleField(i, field, item);
     }
@@ -335,7 +320,6 @@ void UAVObjectTreeModel::addSingleField(int index, UAVObjectField *field, TreeIt
     }
     item->setDescription(field->getDescription());
     item->setHighlightManager(m_highlightManager);
-    connect(item, &TreeItem::updateHighlight, this, &UAVObjectTreeModel::updateHighlight);
     parent->appendChild(item);
 }
 
@@ -537,7 +521,7 @@ void UAVObjectTreeModel::highlightUpdatedObject(UAVObject *obj)
     ObjectTreeItem *item = findObjectTreeItem(obj);
     Q_ASSERT(item);
     if (!m_onlyHighlightChangedValues) {
-        item->setHighlight(true);
+        item->setHighlight();
     }
     item->update();
     if (!m_onlyHighlightChangedValues) {
@@ -579,17 +563,13 @@ MetaObjectTreeItem *UAVObjectTreeModel::findMetaObjectTreeItem(UAVMetaObject *ob
 
 void UAVObjectTreeModel::updateHighlight(TreeItem *item)
 {
-    QModelIndex itemIndex = index(item);
-    Q_ASSERT(itemIndex != QModelIndex());
-    emit dataChanged(itemIndex, itemIndex.sibling(itemIndex.row(), TreeItem::dataColumn));
-}
+    if (item == m_rootItem) {
+        return;
+    }
 
-/**
- * @brief TreeItem::updateCurrentTime  This single timer sets the rhythm for all highlight events.
- */
-void UAVObjectTreeModel::updateCurrentTime()
-{
-    m_currentTime = QTime::currentTime();
+    QModelIndex itemIndex = index(item);
+    Q_ASSERT(itemIndex.isValid());
+    emit dataChanged(itemIndex, itemIndex.sibling(itemIndex.row(), TreeItem::dataColumn));
 }
 
 void UAVObjectTreeModel::presentOnHardwareChangedCB(UAVDataObject *obj)
