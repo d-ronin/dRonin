@@ -503,21 +503,20 @@ void PIOS_Board_Init(void) {
 	PIOS_WDG_Clear();
 
 	/* Magnetometer selection */
-	bool use_internal_mag = true;
 	uint8_t hw_magnetometer;
 	HwBrainMagnetometerGet(&hw_magnetometer);
 	switch (hw_magnetometer) {
 		case HWBRAIN_MAGNETOMETER_NONE:
-			use_internal_mag = false;
+			pios_mpu_cfg.use_internal_mag = false;
 			break;
 
 		case HWBRAIN_MAGNETOMETER_INTERNAL:
-			use_internal_mag = true;
+			pios_mpu_cfg.use_internal_mag = true;
 			break;
 
 		/* default external mags and handle them in PiOS HAL rather than maintaining list here */
 		default:
-			use_internal_mag = false;
+			pios_mpu_cfg.use_internal_mag = false;
 
 			if (hw_flxport == HWSHARED_PORTTYPES_I2C) {
 				uint8_t hw_orientation;
@@ -531,79 +530,73 @@ void PIOS_Board_Init(void) {
 			break;
 	}
 
-#if defined(PIOS_INCLUDE_MPU9250_BRAIN)
-#if defined(PIOS_INCLUDE_MPU6050)
-	// Enable autoprobing when both 6050 and 9050 compiled in
-	bool mpu9250_found = false;
-	if (PIOS_MPU9250_Probe(pios_i2c_internal_id, PIOS_MPU9250_I2C_ADD_A0_LOW) == 0) {
-		mpu9250_found = true;
-#else
-	{
-#endif /* PIOS_INCLUDE_MPU6050 */
-		uint8_t hw_mpu9250_dlpf;
-		HwBrainMPU9250GyroLPFGet(&hw_mpu9250_dlpf);
-		enum pios_mpu9250_gyro_filter mpu9250_gyro_lpf = \
-			(hw_mpu9250_dlpf == HWBRAIN_MPU9250GYROLPF_184) ? PIOS_MPU9250_GYRO_LOWPASS_184_HZ : \
-			(hw_mpu9250_dlpf == HWBRAIN_MPU9250GYROLPF_92) ? PIOS_MPU9250_GYRO_LOWPASS_92_HZ : \
-			(hw_mpu9250_dlpf == HWBRAIN_MPU9250GYROLPF_41) ? PIOS_MPU9250_GYRO_LOWPASS_41_HZ : \
-			(hw_mpu9250_dlpf == HWBRAIN_MPU9250GYROLPF_20) ? PIOS_MPU9250_GYRO_LOWPASS_20_HZ : \
-			(hw_mpu9250_dlpf == HWBRAIN_MPU9250GYROLPF_10) ? PIOS_MPU9250_GYRO_LOWPASS_10_HZ : \
-			(hw_mpu9250_dlpf == HWBRAIN_MPU9250GYROLPF_5) ? PIOS_MPU9250_GYRO_LOWPASS_5_HZ : \
-			PIOS_MPU9250_GYRO_LOWPASS_184_HZ;
+#if defined(PIOS_INCLUDE_MPU)
+	uint8_t hw_mpu9250_dlpf;
+	HwBrainMPU9250GyroLPFGet(&hw_mpu9250_dlpf);
+	uint16_t gyro_lpf = \
+		(hw_mpu9250_dlpf == HWBRAIN_MPU9250GYROLPF_184) ? 184 : \
+		(hw_mpu9250_dlpf == HWBRAIN_MPU9250GYROLPF_92) ? 92 : \
+		(hw_mpu9250_dlpf == HWBRAIN_MPU9250GYROLPF_41) ? 41 : \
+		(hw_mpu9250_dlpf == HWBRAIN_MPU9250GYROLPF_20) ? 20 : \
+		(hw_mpu9250_dlpf == HWBRAIN_MPU9250GYROLPF_10) ? 10 : \
+		(hw_mpu9250_dlpf == HWBRAIN_MPU9250GYROLPF_5) ? 5 : \
+		184;
 
-		HwBrainMPU9250AccelLPFGet(&hw_mpu9250_dlpf);
-		enum pios_mpu9250_accel_filter mpu9250_accel_lpf = \
-			(hw_mpu9250_dlpf == HWBRAIN_MPU9250ACCELLPF_460) ? PIOS_MPU9250_ACCEL_LOWPASS_460_HZ : \
-			(hw_mpu9250_dlpf == HWBRAIN_MPU9250ACCELLPF_184) ? PIOS_MPU9250_ACCEL_LOWPASS_184_HZ : \
-			(hw_mpu9250_dlpf == HWBRAIN_MPU9250ACCELLPF_92) ? PIOS_MPU9250_ACCEL_LOWPASS_92_HZ : \
-			(hw_mpu9250_dlpf == HWBRAIN_MPU9250ACCELLPF_41) ? PIOS_MPU9250_ACCEL_LOWPASS_41_HZ : \
-			(hw_mpu9250_dlpf == HWBRAIN_MPU9250ACCELLPF_20) ? PIOS_MPU9250_ACCEL_LOWPASS_20_HZ : \
-			(hw_mpu9250_dlpf == HWBRAIN_MPU9250ACCELLPF_10) ? PIOS_MPU9250_ACCEL_LOWPASS_10_HZ : \
-			(hw_mpu9250_dlpf == HWBRAIN_MPU9250ACCELLPF_5) ? PIOS_MPU9250_ACCEL_LOWPASS_5_HZ : \
-			PIOS_MPU9250_ACCEL_LOWPASS_184_HZ;
+	HwBrainMPU9250AccelLPFGet(&hw_mpu9250_dlpf);
+	uint16_t accel_lpf = \
+		(hw_mpu9250_dlpf == HWBRAIN_MPU9250ACCELLPF_460) ? 460 : \
+		(hw_mpu9250_dlpf == HWBRAIN_MPU9250ACCELLPF_184) ? 184 : \
+		(hw_mpu9250_dlpf == HWBRAIN_MPU9250ACCELLPF_92) ? 92 : \
+		(hw_mpu9250_dlpf == HWBRAIN_MPU9250ACCELLPF_41) ? 41 : \
+		(hw_mpu9250_dlpf == HWBRAIN_MPU9250ACCELLPF_20) ? 20 : \
+		(hw_mpu9250_dlpf == HWBRAIN_MPU9250ACCELLPF_10) ? 10 : \
+		(hw_mpu9250_dlpf == HWBRAIN_MPU9250ACCELLPF_5) ? 5 : \
+		184;
 
-		int retval;
-		retval = PIOS_MPU9250_Init(pios_i2c_internal_id, PIOS_MPU9250_I2C_ADD_A0_LOW, use_internal_mag,
-									mpu9250_gyro_lpf, mpu9250_accel_lpf, &pios_mpu9250_cfg);
-		if (retval == -10)
-			PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
-		if (retval != 0)
-			PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
+	pios_mpu_dev_t mpu_dev = NULL;
+	int retval;
+	retval = PIOS_MPU_I2C_Init(&mpu_dev, pios_i2c_internal_id, &pios_mpu_cfg);
+	if (retval == -10)
+		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
+	if (retval != 0)
+		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 
-		// To be safe map from UAVO enum to driver enum
-		uint8_t hw_gyro_range;
-		HwBrainGyroFullScaleGet(&hw_gyro_range);
-		switch(hw_gyro_range) {
-			case HWBRAIN_GYROFULLSCALE_250:
-				PIOS_MPU9250_SetGyroRange(PIOS_MPU60X0_SCALE_250_DEG);
-				break;
-			case HWBRAIN_GYROFULLSCALE_500:
-				PIOS_MPU9250_SetGyroRange(PIOS_MPU60X0_SCALE_500_DEG);
-				break;
-			case HWBRAIN_GYROFULLSCALE_1000:
-				PIOS_MPU9250_SetGyroRange(PIOS_MPU60X0_SCALE_1000_DEG);
-				break;
-			case HWBRAIN_GYROFULLSCALE_2000:
-				PIOS_MPU9250_SetGyroRange(PIOS_MPU60X0_SCALE_2000_DEG);
-				break;
-		}
+	PIOS_MPU_SetGyroBandwidth(gyro_lpf);
+	PIOS_MPU_SetAccelBandwidth(accel_lpf);
 
-		uint8_t hw_accel_range;
-		HwBrainAccelFullScaleGet(&hw_accel_range);
-		switch(hw_accel_range) {
-			case HWBRAIN_ACCELFULLSCALE_2G:
-				PIOS_MPU9250_SetAccelRange(PIOS_MPU60X0_ACCEL_2G);
-				break;
-			case HWBRAIN_ACCELFULLSCALE_4G:
-				PIOS_MPU9250_SetAccelRange(PIOS_MPU60X0_ACCEL_4G);
-				break;
-			case HWBRAIN_ACCELFULLSCALE_8G:
-				PIOS_MPU9250_SetAccelRange(PIOS_MPU60X0_ACCEL_8G);
-				break;
-			case HWBRAIN_ACCELFULLSCALE_16G:
-				PIOS_MPU9250_SetAccelRange(PIOS_MPU60X0_ACCEL_16G);
-				break;
-		}
+	// To be safe map from UAVO enum to driver enum
+	uint8_t hw_gyro_range;
+	HwBrainGyroFullScaleGet(&hw_gyro_range);
+	switch(hw_gyro_range) {
+		case HWBRAIN_GYROFULLSCALE_250:
+			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_250_DEG);
+			break;
+		case HWBRAIN_GYROFULLSCALE_500:
+			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_500_DEG);
+			break;
+		case HWBRAIN_GYROFULLSCALE_1000:
+			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_1000_DEG);
+			break;
+		case HWBRAIN_GYROFULLSCALE_2000:
+			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_2000_DEG);
+			break;
+	}
+
+	uint8_t hw_accel_range;
+	HwBrainAccelFullScaleGet(&hw_accel_range);
+	switch(hw_accel_range) {
+		case HWBRAIN_ACCELFULLSCALE_2G:
+			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_2G);
+			break;
+		case HWBRAIN_ACCELFULLSCALE_4G:
+			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_4G);
+			break;
+		case HWBRAIN_ACCELFULLSCALE_8G:
+			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_8G);
+			break;
+		case HWBRAIN_ACCELFULLSCALE_16G:
+			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_16G);
+			break;
 	}
 #endif /* PIOS_INCLUDE_MPU9250_BRAIN */
 
