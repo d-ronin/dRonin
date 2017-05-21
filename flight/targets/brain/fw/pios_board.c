@@ -556,8 +556,6 @@ void PIOS_Board_Init(void) {
 	pios_mpu_dev_t mpu_dev = NULL;
 	int retval;
 	retval = PIOS_MPU_I2C_Init(&mpu_dev, pios_i2c_internal_id, &pios_mpu_cfg);
-	if (retval == -10)
-		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 	if (retval != 0)
 		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 
@@ -567,7 +565,7 @@ void PIOS_Board_Init(void) {
 	// To be safe map from UAVO enum to driver enum
 	uint8_t hw_gyro_range;
 	HwBrainGyroFullScaleGet(&hw_gyro_range);
-	switch(hw_gyro_range) {
+	switch (hw_gyro_range) {
 		case HWBRAIN_GYROFULLSCALE_250:
 			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_250_DEG);
 			break;
@@ -584,7 +582,7 @@ void PIOS_Board_Init(void) {
 
 	uint8_t hw_accel_range;
 	HwBrainAccelFullScaleGet(&hw_accel_range);
-	switch(hw_accel_range) {
+	switch (hw_accel_range) {
 		case HWBRAIN_ACCELFULLSCALE_2G:
 			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_2G);
 			break;
