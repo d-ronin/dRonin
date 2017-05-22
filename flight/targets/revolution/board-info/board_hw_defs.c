@@ -168,7 +168,17 @@ static const struct pios_spi_cfg pios_spi_gyro_cfg = {
 			.GPIO_OType = GPIO_OType_PP,
 			.GPIO_PuPd = GPIO_PuPd_UP
 		} }
-	}
+	},
+	.spi_dma = {
+		.send = {
+			.stream = DMA2_Stream3,
+			.channel = DMA_Channel_3
+		},
+		.recv = {
+			.stream = DMA2_Stream2,
+			.channel = DMA_Channel_3
+		}
+	},
 };
 
 /*
