@@ -18,18 +18,27 @@ typedef struct quickdma_transfer* quickdma_transfer_t;
 
 #include "stm32f4xx.h"
 
-quickdma_transfer_t quickdma_initialize(DMA_Stream_TypeDef *stream, uint32_t channel, bool fifo);
+struct quickdma_config {
+	DMA_Stream_TypeDef *stream;
+	uint32_t channel;
 
 #elif defined(STM32F30X)
+#error MCU not supported.
 
 #include "stm32f30x.h"
 
-/* quickdma_transfer_t quickdma_initialize(DMA_Channel_TypeDef *stream, bool fifo); */
-#error MCU not supported.
+struct quickdma_config {
+	DMA_Channel_TypeDef *channel;
 
 #else
 #error MCU not supported.
 #endif
+
+	/* Common settings */
+	uint8_t fifo;
+};
+
+quickdma_transfer_t quickdma_initialize(const struct quickdma_config *cfg);
 
 void quickdma_mem_to_peripheral(quickdma_transfer_t tr, uint32_t memaddr, uint32_t phaddr, uint16_t len, uint8_t datasize);
 void quickdma_peripheral_to_mem(quickdma_transfer_t tr, uint32_t phaddr, uint32_t memaddr, uint16_t len, uint8_t datasize);

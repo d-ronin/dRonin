@@ -4,8 +4,8 @@
 #include "pios_quickdma.h"
 
 struct quickdma_transfer {
-	DMA_Stream_TypeDef *stream;
-	uint32_t channel;
+
+	const struct quickdma_config *c;
 
 	/*
 		ISR and IFCR flags are all the same on F4. Use one set for both checking
@@ -18,7 +18,6 @@ struct quickdma_transfer {
 
 	uint16_t transfer_length;
 
-	uint8_t fifo;
 };
 
 #define HIFCR_FLAG 0x80000000
@@ -192,16 +191,14 @@ void quickdma_deinit(DMA_Stream_TypeDef *s)
  *
  * @returns Configuration struct for further use.
  */
-quickdma_transfer_t quickdma_initialize(DMA_Stream_TypeDef *stream, uint32_t channel, bool fifo)
+quickdma_transfer_t quickdma_initialize(const struct quickdma_config *cfg)
 {
 	quickdma_transfer_t tr = PIOS_malloc_no_dma(sizeof(*tr));
 	PIOS_Assert(tr);
 	memset(tr, 0, sizeof(*tr));
 
-	tr->stream = stream;
-	tr->channel = channel;
-	tr->tcflag = quickdma_tcflag_map(stream);
-	tr->fifo = fifo ? 1 : 0;
+	tr->c = cfg;
+	tr->tcflag = quickdma_tcflag_map(cfg->stream);
 
 	return tr;
 }
@@ -218,23 +215,24 @@ quickdma_transfer_t quickdma_initialize(DMA_Stream_TypeDef *stream, uint32_t cha
 void quickdma_mem_to_peripheral(quickdma_transfer_t tr, uint32_t memaddr, uint32_t phaddr, uint16_t len, uint8_t datasize)
 {
 	PIOS_Assert(tr);
-	PIOS_Assert(tr->stream);
+	PIOS_Assert(tr->c);
+	PIOS_Assert(tr->c->stream);
 
-	DMA_Stream_TypeDef *s = tr->stream;
+	DMA_Stream_TypeDef *s = tr->c->stream;
 
 	s->CR &= ~DMA_SxCR_EN;
 	while (s->CR & DMA_SxCR_EN) ;
 
 	quickdma_deinit(s);
 
-	s->CR = tr->channel |
+	s->CR = tr->c->channel |
 	        //DMA_SxCR_PFCTRL |					/* Peripheral does flow control. */
 	        DMA_SxCR_DIR_0 |					/* Mem to peripheral. */
 	        DMA_SxCR_MINC |						/* Memory pointer increase. */
 	        quickdma_trsize_ph(datasize) |		/* Periph. data size */
 	        quickdma_trsize_mem(datasize);		/* Mem. data size */
 
-	if (tr->fifo && (memaddr % 16) == 0) {
+	if (tr->c->fifo && (memaddr % 16) == 0) {
 		/* Aligned to 16 bytes, do burst. */
 
 		s->FCR |= DMA_SxFCR_FTH_0 | DMA_SxFCR_FTH_1 | DMA_SxFCR_DMDIS;	/* Full threshold */
@@ -276,16 +274,17 @@ void quickdma_mem_to_peripheral(quickdma_transfer_t tr, uint32_t memaddr, uint32
 void quickdma_peripheral_to_mem(quickdma_transfer_t tr, uint32_t phaddr, uint32_t memaddr, uint16_t len, uint8_t datasize)
 {
 	PIOS_Assert(tr);
-	PIOS_Assert(tr->stream);
+	PIOS_Assert(tr->c);
+	PIOS_Assert(tr->c->stream);
 
-	DMA_Stream_TypeDef *s = tr->stream;
+	DMA_Stream_TypeDef *s = tr->c->stream;
 
 	s->CR &= ~DMA_SxCR_EN;
 	while (s->CR & DMA_SxCR_EN) ;
 
 	quickdma_deinit(s);
 
-	s->CR = tr->channel |
+	s->CR = tr->c->channel |
 	        //DMA_SxCR_PFCTRL |					/* Peripheral does flow control. */
 	        									/* Peripheral to mem. */
 	        DMA_SxCR_MINC |						/* Memory pointer increase. */
@@ -312,10 +311,11 @@ void quickdma_peripheral_to_mem(quickdma_transfer_t tr, uint32_t phaddr, uint32_
 void quickdma_set_priority(quickdma_transfer_t tr, uint8_t priority)
 {
 	PIOS_Assert(tr);
-	PIOS_Assert(tr->stream);
+	PIOS_Assert(tr->c);
+	PIOS_Assert(tr->c->stream);
 	PIOS_Assert(priority <= QUICKDMA_PRIORITY_VERYHIGH);
 
-	DMA_Stream_TypeDef *s = tr->stream;
+	DMA_Stream_TypeDef *s = tr->c->stream;
 
 	s->CR &= ~DMA_SxCR_PL;
 	s->CR |= quickdma_priority(priority);
@@ -329,10 +329,11 @@ void quickdma_set_priority(quickdma_transfer_t tr, uint8_t priority)
 void quickdma_stop_transfer(quickdma_transfer_t tr)
 {
 	PIOS_Assert(tr);
-	PIOS_Assert(tr->stream);
+	PIOS_Assert(tr->c);
+	PIOS_Assert(tr->c->stream);
 
-	DMA_Stream_TypeDef *s = tr->stream;
-	DMA_TypeDef *dma = tr->stream < DMA2_Stream0 ? DMA1 : DMA2;
+	DMA_Stream_TypeDef *s = tr->c->stream;
+	DMA_TypeDef *dma = s < DMA2_Stream0 ? DMA1 : DMA2;
 	volatile uint32_t *IFCR = (tr->tcflag & HIFCR_FLAG) ? &dma->HIFCR : &dma->LIFCR;
 	uint32_t tcflag = tr->tcflag & ~HIFCR_FLAG;
 
@@ -353,10 +354,11 @@ void quickdma_stop_transfer(quickdma_transfer_t tr)
 bool quickdma_start_transfer(quickdma_transfer_t tr)
 {
 	PIOS_Assert(tr);
-	PIOS_Assert(tr->stream);
+	PIOS_Assert(tr->c);
+	PIOS_Assert(tr->c->stream);
 
-	DMA_Stream_TypeDef *s = tr->stream;
-	DMA_TypeDef *dma = tr->stream < DMA2_Stream0 ? DMA1 : DMA2;
+	DMA_Stream_TypeDef *s = tr->c->stream;
+	DMA_TypeDef *dma = s < DMA2_Stream0 ? DMA1 : DMA2;
 	volatile uint32_t *ISR = (tr->tcflag & HIFCR_FLAG) ? &dma->HISR : &dma->LISR;
 	volatile uint32_t *IFCR = (tr->tcflag & HIFCR_FLAG) ? &dma->HIFCR : &dma->LIFCR;
 	uint32_t tcflag = tr->tcflag & ~HIFCR_FLAG;
@@ -389,10 +391,11 @@ bool quickdma_start_transfer(quickdma_transfer_t tr)
 void quickdma_wait_for_transfer(quickdma_transfer_t tr)
 {
 	PIOS_Assert(tr);
-	PIOS_Assert(tr->stream);
+	PIOS_Assert(tr->c);
+	PIOS_Assert(tr->c->stream);
 
-	DMA_Stream_TypeDef *s = tr->stream;
-	DMA_TypeDef *dma = tr->stream < DMA2_Stream0 ? DMA1 : DMA2;
+	DMA_Stream_TypeDef *s = tr->c->stream;
+	DMA_TypeDef *dma = s < DMA2_Stream0 ? DMA1 : DMA2;
 	volatile uint32_t *ISR = (tr->tcflag & HIFCR_FLAG) ? &dma->HISR : &dma->LISR;
 	uint32_t tcflag = tr->tcflag & ~HIFCR_FLAG;
 
@@ -414,10 +417,11 @@ void quickdma_wait_for_transfer(quickdma_transfer_t tr)
 bool quickdma_is_transferring(quickdma_transfer_t tr)
 {
 	PIOS_Assert(tr);
-	PIOS_Assert(tr->stream);
+	PIOS_Assert(tr->c);
+	PIOS_Assert(tr->c->stream);
 
-	DMA_Stream_TypeDef *s = tr->stream;
-	DMA_TypeDef *dma = tr->stream < DMA2_Stream0 ? DMA1 : DMA2;
+	DMA_Stream_TypeDef *s = tr->c->stream;
+	DMA_TypeDef *dma = s < DMA2_Stream0 ? DMA1 : DMA2;
 	volatile uint32_t *ISR = (tr->tcflag & HIFCR_FLAG) ? &dma->HISR : &dma->LISR;
 	uint32_t tcflag = tr->tcflag & ~HIFCR_FLAG;
 
@@ -446,9 +450,10 @@ bool quickdma_is_transferring(quickdma_transfer_t tr)
 void quickdma_set_meminc(quickdma_transfer_t tr, bool enabled)
 {
 	PIOS_Assert(tr);
-	PIOS_Assert(tr->stream);
+	PIOS_Assert(tr->c);
+	PIOS_Assert(tr->c->stream);
 
-	DMA_Stream_TypeDef *s = tr->stream;
+	DMA_Stream_TypeDef *s = tr->c->stream;
 
 	if (enabled) {
 		s->CR |= DMA_SxCR_MINC;
