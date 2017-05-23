@@ -1,37 +1,46 @@
 #include <pios.h>
 #include <pios_thread.h>
 
+#include "pios_semaphore.h"
 #include "pios_quickdma.h"
 
 struct quickdma_transfer {
 
+	/* Original configuration, to not duplicate static stuff like stream and channel stuff. */
 	const struct quickdma_config *c;
 
-	/*
-		ISR and IFCR flags are all the same on F4. Use one set for both checking
-		interrupt status and clearing them.
-	*/
-	uint32_t tcflag;
+	/* ISR and IFCR flags are all the same on F4. Use one set for both checking
+	   interrupt status and clearing them. */
+	uint32_t tcflag;						/* Transfer complete flag. */
 
 	uint32_t memaddr;
 	uint32_t phaddr;
-
 	uint16_t transfer_length;
 
+	struct pios_semaphore *irq_sema;		/* Semaphore for yielding. */
+	/*
+		To maintain a linked list of yielding enabled DMA streams/channels.
+	 */
+	struct quickdma_transfer *next;
 };
 
-#define HIFCR_FLAG 0x80000000
+/* Use a sufficienty large timeout, because if there's multiple SPI slaves, and
+   RTOS/PIOS jitter makes the semaphore timeout, everything goes sideways.
+   Seems especially dramatic on some targets, notably Seppuku. */
+#define IRQ_SEMA_TIMEOUT		5
+
+#define HIFCR_FLAG				0x80000000	/* Bit to store whether a flag belongs to LIFCR or HIFCR. */
+
+/* Root of linked-list of semaphore enabled transfers. */
+quickdma_transfer_t root;
 
 /**
  * @brief Generates interrupt flag clearing masks for (de)initialization.
  */
 uint32_t quickdma_ifcflag_mask(DMA_Stream_TypeDef *stream)
 {
-	/*
-		Ugly as hell.
-
-		Probably should do the sketchy bitshifting stuff like in StdPeriph.
-	*/
+	/* Ugly as hell.
+	   Probably should do the sketchy bitshifting stuff like in StdPeriph. */
 	switch ((uint32_t)stream) {
 	case (uint32_t)DMA1_Stream0:
 	case (uint32_t)DMA2_Stream0:
@@ -179,7 +188,22 @@ void quickdma_deinit(DMA_Stream_TypeDef *s)
 	DMA_TypeDef *dma = s < DMA2_Stream0 ? DMA1 : DMA2;
 	volatile uint32_t *IFCR = (quickdma_tcflag_map(s) & HIFCR_FLAG) ? &dma->HIFCR : &dma->LIFCR;
 
-	*IFCR = quickdma_ifcflag_mask(s);
+	/* Clear all flags. */
+	*IFCR |= quickdma_ifcflag_mask(s);
+}
+
+/**
+ * @brief Calculates NVIC interrupt priority from PIOS priority.
+ */
+uint8_t quickdma_calc_priority(uint8_t pios_prio)
+{
+	uint8_t prio = (uint8_t)((0x700 - ((SCB->AIRCR) & 0x700)) >> 0x8);
+	uint8_t pre = 0x4 - prio;
+
+	prio = pios_prio << pre;
+	prio <<= 0x4;
+
+	return prio;
 }
 
 /**
@@ -199,6 +223,14 @@ quickdma_transfer_t quickdma_initialize(const struct quickdma_config *cfg)
 
 	tr->c = cfg;
 	tr->tcflag = quickdma_tcflag_map(cfg->stream);
+
+	/* Enable interrupts, if desired. */
+	if (cfg->irq) {
+		uint8_t irq = cfg->irq;
+
+		NVIC->IP[irq] = quickdma_calc_priority(PIOS_IRQ_PRIO_HIGH);
+		NVIC->ISER[irq >> 0x5] = 1 << (irq & 0x1f);
+	}
 
 	return tr;
 }
@@ -226,15 +258,14 @@ void quickdma_mem_to_peripheral(quickdma_transfer_t tr, uint32_t memaddr, uint32
 	quickdma_deinit(s);
 
 	s->CR = tr->c->channel |
-	        //DMA_SxCR_PFCTRL |					/* Peripheral does flow control. */
 	        DMA_SxCR_DIR_0 |					/* Mem to peripheral. */
 	        DMA_SxCR_MINC |						/* Memory pointer increase. */
 	        quickdma_trsize_ph(datasize) |		/* Periph. data size */
 	        quickdma_trsize_mem(datasize);		/* Mem. data size */
 
 	if (tr->c->fifo && (memaddr % 16) == 0) {
+		/* TODO: Make more sophisticated, dealing with non-16 byte alignments. */
 		/* Aligned to 16 bytes, do burst. */
-
 		s->FCR |= DMA_SxFCR_FTH_0 | DMA_SxFCR_FTH_1 | DMA_SxFCR_DMDIS;	/* Full threshold */
 		switch (datasize) {
 		case QUICKDMA_SIZE_BYTE:
@@ -246,10 +277,8 @@ void quickdma_mem_to_peripheral(quickdma_transfer_t tr, uint32_t memaddr, uint32
 		case QUICKDMA_SIZE_WORD:
 			s->CR |= DMA_SxCR_MBURST_0;						/* INC4 */
 			break;
-		/*
-			Doesn't need default case, if the value is invalid, it'll crash
-			via quickdma_trsize_mem.
-		*/
+		/* Doesn't need default case, if the value is invalid, it'll crash
+		   via quickdma_trsize_mem. */
 		}
 	} else {
 		/* Clear FIFO flags. */
@@ -285,7 +314,6 @@ void quickdma_peripheral_to_mem(quickdma_transfer_t tr, uint32_t phaddr, uint32_
 	quickdma_deinit(s);
 
 	s->CR = tr->c->channel |
-	        //DMA_SxCR_PFCTRL |					/* Peripheral does flow control. */
 	        									/* Peripheral to mem. */
 	        DMA_SxCR_MINC |						/* Memory pointer increase. */
 	        quickdma_trsize_ph(datasize) |		/* Periph. data size */
@@ -335,12 +363,11 @@ void quickdma_stop_transfer(quickdma_transfer_t tr)
 	DMA_Stream_TypeDef *s = tr->c->stream;
 	DMA_TypeDef *dma = s < DMA2_Stream0 ? DMA1 : DMA2;
 	volatile uint32_t *IFCR = (tr->tcflag & HIFCR_FLAG) ? &dma->HIFCR : &dma->LIFCR;
-	uint32_t tcflag = tr->tcflag & ~HIFCR_FLAG;
 
 	s->CR &= ~DMA_SxCR_EN;
 	while (s->CR & DMA_SxCR_EN) ;
 
-	*IFCR |= tcflag;
+	*IFCR |= quickdma_ifcflag_mask(s);
 }
 
 /**
@@ -359,24 +386,22 @@ bool quickdma_start_transfer(quickdma_transfer_t tr)
 
 	DMA_Stream_TypeDef *s = tr->c->stream;
 	DMA_TypeDef *dma = s < DMA2_Stream0 ? DMA1 : DMA2;
-	volatile uint32_t *ISR = (tr->tcflag & HIFCR_FLAG) ? &dma->HISR : &dma->LISR;
 	volatile uint32_t *IFCR = (tr->tcflag & HIFCR_FLAG) ? &dma->HIFCR : &dma->LIFCR;
-	uint32_t tcflag = tr->tcflag & ~HIFCR_FLAG;
-
-	if ((s->CR & DMA_SxCR_EN) && !(*ISR & tcflag)) {
-		/* DMA is going, can't start. */
-		return false;
-	}
 
 	/* Wait for DMA to disable. */
 	s->CR &= ~DMA_SxCR_EN;
 	while (s->CR & DMA_SxCR_EN) ;
 
-	*IFCR |= tcflag;
-
 	s->M0AR = tr->memaddr;
 	s->PAR = tr->phaddr;
 	s->NDTR = tr->transfer_length;
+
+	*IFCR |= quickdma_ifcflag_mask(s);
+
+	if (tr->irq_sema) {
+		PIOS_Semaphore_Take(tr->irq_sema, 0);
+		s->CR |= DMA_SxCR_TCIE;
+	}
 
 	s->CR |= DMA_SxCR_EN;
 
@@ -387,6 +412,8 @@ bool quickdma_start_transfer(quickdma_transfer_t tr)
  * @brief		Waits for a DMA transfer to finish.
  *
  * @param[in] tr 				DMA configuration.
+ *
+ * @returns False if the transfer timed out.
  */
 void quickdma_wait_for_transfer(quickdma_transfer_t tr)
 {
@@ -397,14 +424,16 @@ void quickdma_wait_for_transfer(quickdma_transfer_t tr)
 	DMA_Stream_TypeDef *s = tr->c->stream;
 	DMA_TypeDef *dma = s < DMA2_Stream0 ? DMA1 : DMA2;
 	volatile uint32_t *ISR = (tr->tcflag & HIFCR_FLAG) ? &dma->HISR : &dma->LISR;
-	uint32_t tcflag = tr->tcflag & ~HIFCR_FLAG;
 
-	if (!(s->CR & DMA_SxCR_EN)) {
-		/* DMA not going. */
+	if (*ISR & (tr->tcflag & ~HIFCR_FLAG)) {
 		return;
 	}
 
-	while (!(*ISR & tcflag)) ;
+	if (tr->irq_sema) {
+		PIOS_Semaphore_Take(tr->irq_sema, IRQ_SEMA_TIMEOUT);
+	} else {
+		while (!(*ISR & (tr->tcflag & ~HIFCR_FLAG))) ;
+	}
 }
 
 /**
@@ -423,14 +452,13 @@ bool quickdma_is_transferring(quickdma_transfer_t tr)
 	DMA_Stream_TypeDef *s = tr->c->stream;
 	DMA_TypeDef *dma = s < DMA2_Stream0 ? DMA1 : DMA2;
 	volatile uint32_t *ISR = (tr->tcflag & HIFCR_FLAG) ? &dma->HISR : &dma->LISR;
-	uint32_t tcflag = tr->tcflag & ~HIFCR_FLAG;
 
 	if (!(s->CR & DMA_SxCR_EN)) {
 		/* DMA not going. */
 		return false;
 	}
 
-	if (*ISR & tcflag) {
+	if (*ISR & (tr->tcflag & ~HIFCR_FLAG)) {
 		/* DMA has finished. */
 		return false;
 	}
@@ -460,4 +488,80 @@ void quickdma_set_meminc(quickdma_transfer_t tr, bool enabled)
 	} else {
 		s->CR &= ~DMA_SxCR_MINC;
 	}
+}
+
+/**
+ * @brief		Enables yielding while waiting on DMA transfers.
+ *
+ * @param[in]	DMA configuration.
+ */
+void quickdma_enable_yielding(quickdma_transfer_t tr)
+{
+	PIOS_Assert(tr);
+
+	if (!tr->c->irq) {
+		/* No point in setting everything up if there is no interrupt configured. */
+		return;
+	}
+
+	if (!tr->irq_sema) {
+		tr->irq_sema = PIOS_Semaphore_Create();
+	}
+
+	if (!root) {
+		root = tr;
+		return;
+	}
+
+	quickdma_transfer_t x = root;
+	while (x->next) {
+		x = x->next;
+	}
+	x->next = tr;
+}
+
+/**
+ * @brief		Call from DMA IRQ handler to release a semaphore on an interrupt.
+ *
+ * @param[in]	Configuration struct as reference.
+ */
+void quickdma_irq_trigger(const struct quickdma_config *cfg)
+{
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_PROLOGUE();
+#endif /* PIOS_INCLUDE_CHIBIOS */
+
+	/* Uh, don't pass NULL please? */
+	PIOS_Assert(cfg);
+
+	quickdma_transfer_t tr = root;
+
+	while (tr) {
+		if (tr->c == cfg) {
+			/* Found related config. */
+
+			DMA_Stream_TypeDef *s = tr->c->stream;
+			DMA_TypeDef *dma = s < DMA2_Stream0 ? DMA1 : DMA2;
+			volatile uint32_t *IFCR = (tr->tcflag & HIFCR_FLAG) ? &dma->HIFCR : &dma->LIFCR;
+
+			/* Clear transfer complete flag */
+			*IFCR |= tr->tcflag & ~HIFCR_FLAG;
+
+			/* Trigger semaphore. */
+			if (tr->irq_sema) {
+				bool woken;
+				PIOS_Semaphore_Give_FromISR(tr->irq_sema, &woken);
+			}
+
+			/* Disable DMA and interrupts. */
+			//s->CR &= ~(DMA_SxCR_EN | DMA_SxCR_TCIE);
+
+			break;
+		}
+
+		tr = tr->next;
+	}
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_EPILOGUE();
+#endif /* PIOS_INCLUDE_CHIBIOS */
 }
