@@ -320,8 +320,7 @@ static bool PIOS_USB_CDC_Available (uintptr_t usbcdc_id)
 	bool valid = PIOS_USB_CDC_validate(usb_cdc_dev);
 	PIOS_Assert(valid);
 
-	return (PIOS_USB_CheckAvailable(usb_cdc_dev->lower_id) &&
-		(control_line_state & USB_CDC_CONTROL_LINE_STATE_DTE_PRESENT));
+	return PIOS_USB_CheckAvailable(usb_cdc_dev->lower_id);
 }
 
 static struct usb_cdc_line_coding line_coding = {
@@ -370,13 +369,13 @@ const uint8_t *PIOS_USB_CDC_GetLineCoding(uint16_t Length)
 	}
 }
 
-struct usb_cdc_serial_state_report uart_state = {
+const struct usb_cdc_serial_state_report uart_state = {
 	.bmRequestType = 0xA1,
 	.bNotification = USB_CDC_NOTIFICATION_SERIAL_STATE,
 	.wValue        = 0,
 	.wIndex        = htousbs(1),
 	.wLength       = htousbs(2),
-	.bmUartState   = htousbs(0),
+	.bmUartState   = htousbs(2 /* DSR */ | 1 /* DCD */),
 };
 	
 static void PIOS_USB_CDC_CTRL_EP_IN_Callback(void)
@@ -386,22 +385,10 @@ static void PIOS_USB_CDC_CTRL_EP_IN_Callback(void)
 	bool valid = PIOS_USB_CDC_validate(usb_cdc_dev);
 	PIOS_Assert(valid);
 
-	/* Give back UART State Bitmap */
-	/* UART State Bitmap
-	 *   15-7: reserved
-	 *      6:  bOverRun    overrun error
-	 *      5:  bParity     parity error
-	 *      4:  bFraming    framing error
-	 *      3:  bRingSignal RI
-	 *      2:  bBreak      break reception
-	 *      1:  bTxCarrier  DSR
-	 *      0:  bRxCarrier  DCD
-	 */
-	uart_state.bmUartState = htousbs(0x0003);
-
-	UserToPMABufferCopy((uint8_t *) &uart_state,
+	UserToPMABufferCopy((const uint8_t *) &uart_state,
 			GetEPTxAddr(usb_cdc_dev->cfg->ctrl_tx_ep),
 			sizeof(uart_state));
+
 	SetEPTxCount(usb_cdc_dev->cfg->ctrl_tx_ep, PIOS_USB_BOARD_CDC_MGMT_LENGTH);
 	SetEPTxValid(usb_cdc_dev->cfg->ctrl_tx_ep);
 }

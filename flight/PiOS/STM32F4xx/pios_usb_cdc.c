@@ -198,6 +198,8 @@ static bool PIOS_USB_CDC_SendData(struct pios_usb_cdc_dev * usb_cdc_dev)
 					       NULL,
 					       &need_yield);
 	if (bytes_to_tx == 0) {
+		usb_cdc_dev->tx_active = false;
+
 		return false;
 	}
 
@@ -391,8 +393,7 @@ static bool PIOS_USB_CDC_Available (uintptr_t usbcdc_id)
 	bool valid = PIOS_USB_CDC_validate(usb_cdc_dev);
 	PIOS_Assert(valid);
 
-	return (PIOS_USB_CheckAvailable(usb_cdc_dev->lower_id) &&
-		(control_line_state & USB_CDC_CONTROL_LINE_STATE_DTE_PRESENT));
+	return PIOS_USB_CheckAvailable(usb_cdc_dev->lower_id);
 }
 
 /**
@@ -453,7 +454,7 @@ static struct usb_cdc_serial_state_report uart_state = {
 	.wValue        = 0,
 	.wIndex        = htousbs(1),
 	.wLength       = htousbs(2),
-	.bmUartState   = htousbs(0),
+	.bmUartState   = htousbs(2 /* DSR */ | 1 /* DCD */),
 };
 	
 static bool PIOS_USB_CDC_CTRL_EP_IN_Callback(uintptr_t usb_cdc_id, uint8_t epnum, uint16_t len)
@@ -463,39 +464,9 @@ static bool PIOS_USB_CDC_CTRL_EP_IN_Callback(uintptr_t usb_cdc_id, uint8_t epnum
 	bool valid = PIOS_USB_CDC_validate(usb_cdc_dev);
 	PIOS_Assert(valid);
 
-	/* Give back UART State Bitmap */
-	/* UART State Bitmap
-	 *   15-7: reserved
-	 *      6:  bOverRun    overrun error
-	 *      5:  bParity     parity error
-	 *      4:  bFraming    framing error
-	 *      3:  bRingSignal RI
-	 *      2:  bBreak      break reception
-	 *      1:  bTxCarrier  DSR
-	 *      0:  bRxCarrier  DCD
-	 */
-
-	/* Currently, we only handle TxCarrier and RxCarrier reporting */
-	uint16_t new_uart_state = 0;
-	if (usb_cdc_dev->tx_out_cb) {
-		/* Someone is going to providing FC->PC data, advertise an RxCarrier to the host */
-		new_uart_state |= 0x1;
-	}
-	if (usb_cdc_dev->rx_in_cb) {
-		/* Someone is consuming PC->FC data, advertise a TxCarrier to the host */
-		new_uart_state |= 0x2;
-	}
-
-	/* Has anything changed since we last sent a notification? */
-	if ((new_uart_state ^ usb_cdc_dev->prev_uart_state) & 0x3) {
-		usb_cdc_dev->prev_uart_state = new_uart_state;
-
-		uart_state.bmUartState = htousbs(new_uart_state);
-
-		PIOS_USBHOOK_EndpointTx(usb_cdc_dev->cfg->ctrl_tx_ep,
-					(uint8_t *)&uart_state,
-					sizeof(uart_state));
-	}
+	PIOS_USBHOOK_EndpointTx(usb_cdc_dev->cfg->ctrl_tx_ep,
+			(uint8_t *)&uart_state,
+			sizeof(uart_state));
 
 	return true;
 }
@@ -573,10 +544,6 @@ static bool PIOS_USB_CDC_DATA_EP_IN_Callback(uintptr_t usb_cdc_id, uint8_t epnum
 	PIOS_Assert(valid);
 
 	bool rc = PIOS_USB_CDC_SendData(usb_cdc_dev);
-	if (!rc) {
-		/* No additional data was transmitted, note that tx is no longer active */
-		usb_cdc_dev->tx_active = false;
-	}
 
 	return rc;
 }
