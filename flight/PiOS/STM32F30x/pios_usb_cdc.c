@@ -375,7 +375,7 @@ const struct usb_cdc_serial_state_report uart_state = {
 	.wValue        = 0,
 	.wIndex        = htousbs(1),
 	.wLength       = htousbs(2),
-	.bmUartState   = htousbs(3),
+	.bmUartState   = htousbs(2 /* DSR */ | 1 /* DCD */),
 };
 	
 static void PIOS_USB_CDC_CTRL_EP_IN_Callback(void)
