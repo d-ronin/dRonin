@@ -116,6 +116,8 @@ static float throt_curve(const float input, const float *curve,
 static float collective_curve(const float input, const float *curve,
 		uint8_t num_points);
 
+volatile enum actuator_interlock actuator_interlock = ACTUATOR_INTERLOCK_OK;
+
 /**
  * @brief Module initialization
  * @return 0
@@ -618,6 +620,41 @@ static void actuator_task(void* parameters)
 		}
 
 		last_systime = this_systime;
+
+		if (actuator_interlock != ACTUATOR_INTERLOCK_OK) {
+			/* Chosen because: 50Hz does 4-6 updates in 100ms */
+			uint32_t exp_time = this_systime + 100;
+
+			while (actuator_interlock != ACTUATOR_INTERLOCK_OK) {
+				/* Simple state machine.  If someone has asked us to
+				 * stop, set actuator failsafe for a short while.
+				 * Then, set the flag to STOPPED.
+				 *
+				 * Setting to STOPPED isn't atomic, so we rely on
+				 * anyone who has stopped us to waitfor STOPPED
+				 * before putting us back to OK.
+				 */
+				if (actuator_interlock == ACTUATOR_INTERLOCK_STOPREQUEST) {
+					set_failsafe();
+
+					this_systime = PIOS_Thread_Systime();
+
+					if ((exp_time - this_systime) > 100) {
+						actuator_interlock = ACTUATOR_INTERLOCK_STOPPED;
+					}
+				}
+
+				PIOS_Thread_Sleep(3);
+				PIOS_WDG_UpdateFlag(PIOS_WDG_ACTUATOR);
+			}
+
+			PIOS_Servo_SetMode(actuatorSettings.TimerUpdateFreq,
+					ACTUATORSETTINGS_TIMERUPDATEFREQ_NUMELEM,
+					actuatorSettings.ChannelMax,
+					actuatorSettings.ChannelMin);
+			continue;
+		}
+
 
 		float motor_vect[MAX_MIX_ACTUATORS];
 
