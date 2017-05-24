@@ -481,7 +481,7 @@ static void normalize_input_data(uint32_t this_systime,
 	if (manual_control_cmd_updated) {
 		// just pull out the throttle_val... and accessory0-2 and
 		// fill direct into the vect
-		ManualControlCommandThrottleGet(&throttle_val);
+		ManualControlCommandThrottleGet(&manual_throt);
 		manual_control_cmd_updated = false;
 		ManualControlCommandAccessoryGet(
 			&(*desired_vect)[MIXERSETTINGS_MIXER1VECTOR_ACCESSORY0]);
