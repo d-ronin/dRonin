@@ -53,225 +53,39 @@
           <string>dRonin SP Racing F3 Evo / FrSky XSRF3E Hardware Configuration</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_2">
-          <item row="2" column="4">
-           <spacer name="horizontalSpacer_3">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+          <item row="1" column="2">
+           <widget class="QLabel" name="imgLabel">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
-            <property name="sizeHint" stdset="0">
+            <property name="minimumSize">
              <size>
-              <width>40</width>
-              <height>20</height>
+              <width>320</width>
+              <height>331</height>
              </size>
             </property>
-           </spacer>
-          </item>
-          <item row="0" column="0" rowspan="2" colspan="2">
-           <layout class="QVBoxLayout" name="verticalLayout_2">
-            <property name="spacing">
-             <number>0</number>
-            </property>
-            <item>
-             <spacer name="verticalSpacer_2">
-              <property name="orientation">
-               <enum>Qt::Vertical</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Fixed</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>20</width>
-                <height>113</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <layout class="QFormLayout" name="formLayout_3">
-              <property name="labelAlignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-              <item row="1" column="0">
-               <widget class="QLabel" name="lblUart3">
-                <property name="styleSheet">
-                 <string notr="true">background-color: #ab37c8;
-color: white;
-border-radius: 5px;
-padding: 3px;
-margin: 2px 0 2px;</string>
-                </property>
-                <property name="text">
-                 <string>UART3:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="1">
-               <widget class="QComboBox" name="cbUart3">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>100</width>
-                  <height>0</height>
-                 </size>
-                </property>
-                <property name="objrelation" stdset="0">
-                 <stringlist notr="true">
-                  <string>objname:HwSprf3e</string>
-                  <string>fieldname:Uart3</string>
-                  <string>haslimits:yes</string>
-                 </stringlist>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="lblUart2">
-                <property name="styleSheet">
-                 <string notr="true">background-color: #ff6600;
-color: white;
-border-radius: 5px;
-padding: 3px;
-margin: 2px 0 2px;</string>
-                </property>
-                <property name="text">
-                 <string>UART2:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="1">
-               <widget class="QComboBox" name="cbUart2">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>100</width>
-                  <height>0</height>
-                 </size>
-                </property>
-                <property name="objrelation" stdset="0">
-                 <stringlist notr="true">
-                  <string>objname:HwSprf3e</string>
-                  <string>fieldname:Uart2</string>
-                  <string>haslimits:yes</string>
-                 </stringlist>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="0">
-               <widget class="QLabel" name="lblUart1">
-                <property name="styleSheet">
-                 <string notr="true">background-color: #de8787;
-color: white;
-border-radius: 5px;
-padding: 3px;
-margin: 2px 0 2px;</string>
-                </property>
-                <property name="text">
-                 <string>UART1:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="1">
-               <widget class="QComboBox" name="cbUart1">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>100</width>
-                  <height>0</height>
-                 </size>
-                </property>
-                <property name="objrelation" stdset="0">
-                 <stringlist notr="true">
-                  <string>objname:HwSprf3e</string>
-                  <string>fieldname:Uart1</string>
-                  <string>haslimits:yes</string>
-                 </stringlist>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="0" colspan="2">
-               <spacer name="verticalSpacer_3">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>40</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item row="5" column="0">
-               <widget class="QLabel" name="lblRcvr">
-                <property name="styleSheet">
-                 <string notr="true">background-color: #8888dd;
-color: white;
-border-radius: 5px;
-padding: 3px;
-margin: 2px 0 2px;</string>
-                </property>
-                <property name="text">
-                 <string>IR-Port</string>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="1">
-               <widget class="QComboBox" name="cbLED">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>100</width>
-                  <height>0</height>
-                 </size>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-           </layout>
-          </item>
-          <item row="8" column="1" colspan="3">
-           <spacer name="verticalSpacer_4">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
+            <property name="maximumSize">
              <size>
-              <width>20</width>
-              <height>40</height>
+              <width>320</width>
+              <height>331</height>
              </size>
             </property>
-           </spacer>
-          </item>
-          <item row="2" column="0">
-           <spacer name="horizontalSpacer_2">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+            <property name="text">
+             <string/>
             </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
+            <property name="pixmap">
+             <pixmap resource="dronin.qrc">:/dronin/images/sprf3e.png</pixmap>
             </property>
-           </spacer>
+            <property name="scaledContents">
+             <bool>true</bool>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
           </item>
           <item row="2" column="1" colspan="3">
            <layout class="QFormLayout" name="formLayout_2">
@@ -284,7 +98,7 @@ margin: 2px 0 2px;</string>
             <item row="0" column="0">
              <widget class="QLabel" name="lblMag">
               <property name="styleSheet">
-               <string notr="true">background-color: #ab37c8;
+               <string notr="true">background-color: #000093;
 color: white;
 border-radius: 5px;
 padding: 3px;
@@ -321,7 +135,7 @@ margin: 2px 0 2px;</string>
                <bool>true</bool>
               </property>
               <property name="styleSheet">
-               <string notr="true">background-color: #ab37c8;
+               <string notr="true">background-color: #000093;
 color: white;
 border-radius: 5px;
 padding: 3px;
@@ -355,10 +169,7 @@ margin: 2px 0 2px;</string>
             <item row="2" column="0">
              <widget class="QLabel" name="lblBarometer">
               <property name="styleSheet">
-               <string notr="true">background-color: #ab37c8;
-color: white;
-border-radius: 5px;
-padding: 3px;
+               <string notr="true">padding: 3px;
 margin: 2px 0 2px;</string>
               </property>
               <property name="text">
@@ -389,10 +200,7 @@ margin: 2px 0 2px;</string>
             <item row="3" column="0">
              <widget class="QLabel" name="lblGyroRange">
               <property name="styleSheet">
-               <string notr="true">background-color: #ab37c8;
-color: white;
-border-radius: 5px;
-padding: 3px;
+               <string notr="true">padding: 3px;
 margin: 2px 0 2px;</string>
               </property>
               <property name="text">
@@ -423,10 +231,7 @@ margin: 2px 0 2px;</string>
             <item row="4" column="0">
              <widget class="QLabel" name="lblAccelRangel">
               <property name="styleSheet">
-               <string notr="true">background-color: #ab37c8;
-color: white;
-border-radius: 5px;
-padding: 3px;
+               <string notr="true">padding: 3px;
 margin: 2px 0 2px;</string>
               </property>
               <property name="text">
@@ -457,10 +262,7 @@ margin: 2px 0 2px;</string>
             <item row="5" column="0">
              <widget class="QLabel" name="lblMPU9250GyroLPF">
               <property name="styleSheet">
-               <string notr="true">background-color: #ab37c8;
-color: white;
-border-radius: 5px;
-padding: 3px;
+               <string notr="true">padding: 3px;
 margin: 2px 0 2px;</string>
               </property>
               <property name="text">
@@ -491,10 +293,7 @@ margin: 2px 0 2px;</string>
             <item row="6" column="0">
              <widget class="QLabel" name="lblMmPU9250AccelLPF">
               <property name="styleSheet">
-               <string notr="true">background-color: #ab37c8;
-color: white;
-border-radius: 5px;
-padding: 3px;
+               <string notr="true">padding: 3px;
 margin: 2px 0 2px;</string>
               </property>
               <property name="text">
@@ -524,13 +323,26 @@ margin: 2px 0 2px;</string>
             </item>
            </layout>
           </item>
+          <item row="2" column="4">
+           <spacer name="horizontalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
           <item row="0" column="3" rowspan="2" colspan="2">
            <layout class="QVBoxLayout" name="verticalLayout_3">
             <property name="spacing">
              <number>0</number>
             </property>
             <item>
-             <spacer name="verticalSpacer">
+             <spacer name="verticalSpacer_3">
               <property name="orientation">
                <enum>Qt::Vertical</enum>
               </property>
@@ -539,8 +351,8 @@ margin: 2px 0 2px;</string>
               </property>
               <property name="sizeHint" stdset="0">
                <size>
-                <width>20</width>
-                <height>113</height>
+                <width>0</width>
+                <height>25</height>
                </size>
               </property>
              </spacer>
@@ -624,43 +436,242 @@ margin: 2px 0 2px;</string>
                 </property>
                </widget>
               </item>
+              <item row="4" column="1">
+               <widget class="QComboBox" name="cbLED">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>100</width>
+                  <height>0</height>
+                 </size>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="QLabel" name="lblRcvr">
+                <property name="styleSheet">
+                 <string notr="true">background-color: #8888dd;
+color: white;
+border-radius: 5px;
+padding: 3px;
+margin: 2px 0 2px;</string>
+                </property>
+                <property name="text">
+                 <string>IR-Port</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="lblUart1">
+                <property name="styleSheet">
+                 <string notr="true">background-color: #de8787;
+color: white;
+border-radius: 5px;
+padding: 3px;
+margin: 2px 0 2px;</string>
+                </property>
+                <property name="text">
+                 <string>UART1:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QComboBox" name="cbUart1">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>100</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:HwSprf3e</string>
+                  <string>fieldname:Uart1</string>
+                  <string>haslimits:yes</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <spacer name="verticalSpacer_5">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Fixed</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>0</width>
+                  <height>30</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
              </layout>
             </item>
            </layout>
           </item>
-          <item row="1" column="2">
-           <widget class="QLabel" name="imgLabel">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
+          <item row="2" column="0">
+           <spacer name="horizontalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
             </property>
-            <property name="minimumSize">
+            <property name="sizeHint" stdset="0">
              <size>
-              <width>256</width>
-              <height>269</height>
+              <width>40</width>
+              <height>20</height>
              </size>
             </property>
-            <property name="maximumSize">
+           </spacer>
+          </item>
+          <item row="3" column="1" colspan="3">
+           <spacer name="verticalSpacer_4">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
              <size>
-              <width>256</width>
-              <height>269</height>
+              <width>20</width>
+              <height>40</height>
              </size>
             </property>
-            <property name="text">
-             <string/>
+           </spacer>
+          </item>
+          <item row="0" column="0" rowspan="2" colspan="2">
+           <layout class="QVBoxLayout" name="verticalLayout_2">
+            <property name="spacing">
+             <number>0</number>
             </property>
-            <property name="pixmap">
-             <pixmap>:/dronin/images/sprf3e.png</pixmap>
-            </property>
-            <property name="scaledContents">
-             <bool>true</bool>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
+            <item>
+             <spacer name="verticalSpacer_2">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>0</width>
+                <height>115</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <layout class="QFormLayout" name="formLayout_3">
+              <property name="labelAlignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+              <item row="0" column="0">
+               <widget class="QLabel" name="lblUart3">
+                <property name="styleSheet">
+                 <string notr="true">background-color: #ab37c8;
+color: white;
+border-radius: 5px;
+padding: 3px;
+margin: 2px 0 2px;</string>
+                </property>
+                <property name="text">
+                 <string>UART3:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="cbUart3">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>100</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:HwSprf3e</string>
+                  <string>fieldname:Uart3</string>
+                  <string>haslimits:yes</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <spacer name="verticalSpacer">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Fixed</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>0</width>
+                  <height>55</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="lblUart2">
+                <property name="styleSheet">
+                 <string notr="true">background-color: #ff6600;
+color: white;
+border-radius: 5px;
+padding: 3px;
+margin: 2px 0 2px;</string>
+                </property>
+                <property name="text">
+                 <string>UART2:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QComboBox" name="cbUart2">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>100</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:HwSprf3e</string>
+                  <string>fieldname:Uart2</string>
+                  <string>haslimits:yes</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0" colspan="2">
+               <widget class="QLabel" name="label">
+                <property name="text">
+                 <string>Note: S.BUS port on FrSky variants.</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
           </item>
          </layout>
         </widget>
