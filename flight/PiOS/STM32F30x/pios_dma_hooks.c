@@ -72,39 +72,122 @@ static inline void PIOS_DMA_Mapper(uint32_t index)
 }
 
 static void PIOS_DMA_11_irq_handler(void){
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_PROLOGUE();
+#endif /* PIOS_INCLUDE_CHIBIOS */
 	PIOS_DMA_Mapper(0);
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_EPILOGUE();
+#endif /* PIOS_INCLUDE_CHIBIOS */
 }
+
 static void PIOS_DMA_12_irq_handler(void){
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_PROLOGUE();
+#endif /* PIOS_INCLUDE_CHIBIOS */
 	PIOS_DMA_Mapper(1);
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_EPILOGUE();
+#endif /* PIOS_INCLUDE_CHIBIOS */
 }
+
 static void PIOS_DMA_13_irq_handler(void){
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_PROLOGUE();
+#endif /* PIOS_INCLUDE_CHIBIOS */
 	PIOS_DMA_Mapper(2);
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_EPILOGUE();
+#endif /* PIOS_INCLUDE_CHIBIOS */
 }
+
 static void PIOS_DMA_14_irq_handler(void){
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_PROLOGUE();
+#endif /* PIOS_INCLUDE_CHIBIOS */
 	PIOS_DMA_Mapper(3);
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_EPILOGUE();
+#endif /* PIOS_INCLUDE_CHIBIOS */
 }
+
 static void PIOS_DMA_15_irq_handler(void){
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_PROLOGUE();
+#endif /* PIOS_INCLUDE_CHIBIOS */
 	PIOS_DMA_Mapper(4);
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_EPILOGUE();
+#endif /* PIOS_INCLUDE_CHIBIOS */
 }
+
 static void PIOS_DMA_16_irq_handler(void){
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_PROLOGUE();
+#endif /* PIOS_INCLUDE_CHIBIOS */
 	PIOS_DMA_Mapper(5);
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_EPILOGUE();
+#endif /* PIOS_INCLUDE_CHIBIOS */
 }
+
 static void PIOS_DMA_17_irq_handler(void){
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_PROLOGUE();
+#endif /* PIOS_INCLUDE_CHIBIOS */
 	PIOS_DMA_Mapper(6);
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_EPILOGUE();
+#endif /* PIOS_INCLUDE_CHIBIOS */
 }
+
 static void PIOS_DMA_21_irq_handler(void){
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_PROLOGUE();
+#endif /* PIOS_INCLUDE_CHIBIOS */
 	PIOS_DMA_Mapper(7);
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_EPILOGUE();
+#endif /* PIOS_INCLUDE_CHIBIOS */
 }
+
 static void PIOS_DMA_22_irq_handler(void){
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_PROLOGUE();
+#endif /* PIOS_INCLUDE_CHIBIOS */
 	PIOS_DMA_Mapper(8);
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_EPILOGUE();
+#endif /* PIOS_INCLUDE_CHIBIOS */
 }
+
 static void PIOS_DMA_23_irq_handler(void){
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_PROLOGUE();
+#endif /* PIOS_INCLUDE_CHIBIOS */
 	PIOS_DMA_Mapper(9);
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_EPILOGUE();
+#endif /* PIOS_INCLUDE_CHIBIOS */
 }
+
 static void PIOS_DMA_24_irq_handler(void){
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_PROLOGUE();
+#endif /* PIOS_INCLUDE_CHIBIOS */
 	PIOS_DMA_Mapper(10);
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_EPILOGUE();
+#endif /* PIOS_INCLUDE_CHIBIOS */
 }
+
 static void PIOS_DMA_25_irq_handler(void){
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_PROLOGUE();
+#endif /* PIOS_INCLUDE_CHIBIOS */
 	PIOS_DMA_Mapper(11);
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_EPILOGUE();
+#endif /* PIOS_INCLUDE_CHIBIOS */
 }
 #endif /* PIOS_INCLUDE_DMA_CB_SUBSCRIBING_FUNCTION */
