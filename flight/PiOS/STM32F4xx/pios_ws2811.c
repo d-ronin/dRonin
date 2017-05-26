@@ -391,6 +391,7 @@ void PIOS_WS2811_dma_interrupt_handler(ws2811_dev_t dev)
 			dev->pixel_data_end, dev->gpio_bit);
 
 epilogue:
+	; /* Fix non-ChibiOS builds. */
 #if defined(PIOS_INCLUDE_CHIBIOS)
 	CH_IRQ_EPILOGUE();
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
