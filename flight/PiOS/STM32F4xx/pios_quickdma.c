@@ -11,13 +11,14 @@ struct quickdma_transfer {
 
 	/* ISR and IFCR flags are all the same on F4. Use one set for both checking
 	   interrupt status and clearing them. */
-	uint32_t tcflag;						/* Transfer complete flag. */
+	uint32_t tcflag;					/* Transfer complete flag. */
 
 	uint32_t memaddr;
 	uint32_t phaddr;
 	uint16_t transfer_length;
 
-	struct pios_semaphore *irq_sema;		/* Semaphore for yielding. */
+	struct pios_semaphore *irq_sema;	/* Semaphore for yielding. */
+	volatile uint8_t dma_go;			/* Whether the DMA IRQ is for data or for DMA disable. */
 	/*
 		To maintain a linked list of yielding enabled DMA streams/channels.
 	 */
@@ -400,6 +401,7 @@ bool quickdma_start_transfer(quickdma_transfer_t tr)
 
 	if (tr->irq_sema) {
 		PIOS_Semaphore_Take(tr->irq_sema, 0);
+		tr->dma_go = 1;
 		s->CR |= DMA_SxCR_TCIE;
 	}
 
@@ -423,16 +425,19 @@ void quickdma_wait_for_transfer(quickdma_transfer_t tr)
 
 	DMA_Stream_TypeDef *s = tr->c->stream;
 	DMA_TypeDef *dma = s < DMA2_Stream0 ? DMA1 : DMA2;
-	volatile uint32_t *ISR = (tr->tcflag & HIFCR_FLAG) ? &dma->HISR : &dma->LISR;
-
-	if (*ISR & (tr->tcflag & ~HIFCR_FLAG)) {
-		return;
-	}
 
 	if (tr->irq_sema) {
 		PIOS_Semaphore_Take(tr->irq_sema, IRQ_SEMA_TIMEOUT);
-	} else {
-		while (!(*ISR & (tr->tcflag & ~HIFCR_FLAG))) ;
+		/* If for some reason things drop through the semaphore, sit on the 
+		   dma_go gate variable. If DMA went awry (TC IRQ didn't fire), it'll
+		   lock up the system. */
+		while (tr->dma_go) ;
+		return;
+	}
+
+	while (1) {
+		volatile uint32_t ISR = (tr->tcflag & HIFCR_FLAG) ? dma->HISR : dma->LISR;
+		if (ISR & (tr->tcflag & ~HIFCR_FLAG)) break;
 	}
 }
 
@@ -451,14 +456,14 @@ bool quickdma_is_transferring(quickdma_transfer_t tr)
 
 	DMA_Stream_TypeDef *s = tr->c->stream;
 	DMA_TypeDef *dma = s < DMA2_Stream0 ? DMA1 : DMA2;
-	volatile uint32_t *ISR = (tr->tcflag & HIFCR_FLAG) ? &dma->HISR : &dma->LISR;
 
 	if (!(s->CR & DMA_SxCR_EN)) {
 		/* DMA not going. */
 		return false;
 	}
 
-	if (*ISR & (tr->tcflag & ~HIFCR_FLAG)) {
+	volatile uint32_t ISR = (tr->tcflag & HIFCR_FLAG) ? dma->HISR : dma->LISR;
+	if (ISR & (tr->tcflag & ~HIFCR_FLAG)) {
 		/* DMA has finished. */
 		return false;
 	}
@@ -548,14 +553,11 @@ void quickdma_irq_trigger(const struct quickdma_config *cfg)
 			*IFCR |= tr->tcflag & ~HIFCR_FLAG;
 
 			/* Trigger semaphore. */
-			if (tr->irq_sema) {
+			if (tr->irq_sema && tr->dma_go) {
+				tr->dma_go = 0;
 				bool woken;
 				PIOS_Semaphore_Give_FromISR(tr->irq_sema, &woken);
 			}
-
-			/* Disable DMA and interrupts. */
-			//s->CR &= ~(DMA_SxCR_EN | DMA_SxCR_TCIE);
-
 			break;
 		}
 
