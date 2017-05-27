@@ -238,9 +238,7 @@ extern ws2811_dev_t pios_ws2811;
 //-------------------------
 #define PIOS_ADC_SUB_DRIVER_MAX_INSTANCES       3
 
-// PIOS_ADC_PinGet(0) = IN7
-// PIOS_ADC_PinGet(1) = IN8
-#define PIOS_ADC_MAX_OVERSAMPLING       2
+#define PIOS_ADC_MAX_OVERSAMPLING       4
 #define VREF_PLUS                     3.3
 
 //-------------------------
