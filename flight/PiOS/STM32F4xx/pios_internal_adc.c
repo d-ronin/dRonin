@@ -55,13 +55,8 @@ enum pios_adc_dev_magic {
 };
 
 struct pios_internal_adc_dev {
-	const struct pios_internal_adc_cfg * cfg;
-	volatile int16_t *valid_data_buffer;
-	volatile uint8_t adc_oversample;
-	uint8_t dma_block_size;
-	uint16_t dma_half_buffer_size;
-	uint16_t max_samples;
 	enum pios_adc_dev_magic magic;
+	const struct pios_internal_adc_cfg * cfg;
 };
 
 static struct pios_internal_adc_dev * pios_adc_dev;
@@ -131,7 +126,7 @@ static void init_dma(void)
 	DMA_DeInit(pios_adc_dev->cfg->dma.rx.channel);
 	DMA_InitTypeDef DMAInit = pios_adc_dev->cfg->dma.rx.init;
 	DMAInit.DMA_Memory0BaseAddr		= (uint32_t)&adc_raw_buffer_0[0];
-	DMAInit.DMA_BufferSize			= pios_adc_dev->max_samples * pios_adc_dev->cfg->adc_pin_count;
+	DMAInit.DMA_BufferSize			= PIOS_ADC_MAX_OVERSAMPLING * pios_adc_dev->cfg->adc_pin_count;
 	DMAInit.DMA_DIR					= DMA_DIR_PeripheralToMemory;
 	DMAInit.DMA_PeripheralInc		= DMA_PeripheralInc_Disable;
 	DMAInit.DMA_MemoryInc			= DMA_MemoryInc_Enable;
@@ -150,7 +145,6 @@ static void init_dma(void)
 	DMA_DoubleBufferModeConfig(pios_adc_dev->cfg->dma.rx.channel, (uint32_t)&adc_raw_buffer_1[0], DMA_Memory_0);
 	DMA_DoubleBufferModeCmd(pios_adc_dev->cfg->dma.rx.channel, ENABLE);
 	DMA_ITConfig(pios_adc_dev->cfg->dma.rx.channel, DMA_IT_TC, ENABLE);
-	//DMA_ITConfig(pios_adc_dev->cfg->dma.rx.channel, DMA_IT_HT, ENABLE);
 
 	/* enable DMA */
 	DMA_Cmd(pios_adc_dev->cfg->dma.rx.channel, ENABLE);
@@ -200,9 +194,10 @@ static void init_adc(void)
 		ADC_RegularChannelConfig(pios_adc_dev->cfg->adc_dev_master,
 				pios_adc_dev->cfg->adc_pins[i].adc_channel,
 				i+1,
-				ADC_SampleTime_56Cycles);		/* XXX this is totally arbitrary... */
+				ADC_SampleTime_480Cycles);
 	}
 
+	/* After one scan, keep generating requests */
 	ADC_DMARequestAfterLastTransferCmd(pios_adc_dev->cfg->adc_dev_master, ENABLE);
 
 	/* Finally start initial conversion */
@@ -223,14 +218,10 @@ static struct pios_internal_adc_dev * PIOS_INTERNAL_ADC_Allocate(const struct pi
 {
 	struct pios_internal_adc_dev * adc_dev;
 
-	adc_dev = (struct pios_internal_adc_dev *)PIOS_malloc(sizeof(*adc_dev));
+	adc_dev = (struct pios_internal_adc_dev *)PIOS_malloc_no_dma(sizeof(*adc_dev));
 	if (!adc_dev) {
 		return NULL;
 	}
-
-	// Maxmimum number of samples (XXX: not sure where the dependency on the ADC used comes from..)
-	bool use_adc_2 = cfg->adc_dev_master == ADC2;
-	adc_dev->max_samples = (((cfg->adc_pin_count + use_adc_2) >> use_adc_2) << use_adc_2) * PIOS_ADC_MAX_OVERSAMPLING * 2;
 
 	accumulator = (struct adc_accumulator *)PIOS_malloc_no_dma(cfg->adc_pin_count * sizeof(struct adc_accumulator));
 	if (!accumulator) {
@@ -238,14 +229,14 @@ static struct pios_internal_adc_dev * PIOS_INTERNAL_ADC_Allocate(const struct pi
 		return NULL;
 	}
 
-	adc_raw_buffer_0 = (uint16_t *)PIOS_malloc(adc_dev->max_samples * cfg->adc_pin_count * sizeof(uint16_t));
+	adc_raw_buffer_0 = (uint16_t *)PIOS_malloc(PIOS_ADC_MAX_OVERSAMPLING * cfg->adc_pin_count * sizeof(uint16_t));
 	if (!adc_raw_buffer_0) {
 		PIOS_free(adc_dev);
 		PIOS_free(accumulator);
 		return NULL;
 	}
 
-	adc_raw_buffer_1 = (uint16_t *)PIOS_malloc(adc_dev->max_samples * cfg->adc_pin_count * sizeof(uint16_t));
+	adc_raw_buffer_1 = (uint16_t *)PIOS_malloc(PIOS_ADC_MAX_OVERSAMPLING * cfg->adc_pin_count * sizeof(uint16_t));
 	if (!adc_raw_buffer_1) {
 		PIOS_free(adc_dev);
 		PIOS_free(accumulator);
@@ -275,15 +266,6 @@ int32_t PIOS_INTERNAL_ADC_Init(uint32_t * internal_adc_id, const struct pios_int
 #endif
 	*internal_adc_id = (uint32_t)pios_adc_dev;
 	return 0;
-}
-
-/**
- * @brief Configure the ADC to run at a fixed oversampling
- * @param[in] oversampling the amount of oversampling to run at
- */
-void PIOS_ADC_Config(uint32_t oversampling)
-{
-	/* we ignore this */
 }
 
 /**
@@ -324,49 +306,9 @@ static int32_t PIOS_INTERNAL_ADC_PinGet(uint32_t internal_adc_id, uint32_t pin)
 }
 
 /**
- * @brief Return the address of the downsampled data buffer
- * @note Not currently supported.
- */
-float * PIOS_ADC_GetBuffer(void)
-{
-	return NULL;
-}
-
-/**
- * @brief Return the address of the raw data data buffer 
- * @note Not currently supported.
- */
-int16_t * PIOS_ADC_GetRawBuffer(void)
-{
-	return NULL;
-}
-
-/**
- * @brief Return the amount of over sampling
- * @note Not currently supported (always returns 1)
- */
-uint8_t PIOS_ADC_GetOverSampling(void)
-{
-	return 1;
-}
-
-/**
- * @brief Set the fir coefficients.  Takes as many samples as the 
- * current filter order plus one (normalization)
- *
- * @param new_filter Array of adc_oversampling floats plus one for the
- * filter coefficients
- * @note Not currently supported.
- */
-void PIOS_ADC_SetFIRCoefficients(float * new_filter)
-{
-	// not implemented
-}
-
-/**
  * @brief accumulate the data for each of the channels.
  */
-void accumulate(uint16_t *buffer, uint32_t count)
+static inline void accumulate(uint16_t *buffer, uint32_t count)
 {
 #if defined(PIOS_INCLUDE_ADC)
 	uint16_t	*sp = buffer;
@@ -412,10 +354,10 @@ void PIOS_INTERNAL_ADC_DMA_Handler(void)
 
 		/* accumulate results from the buffer that was just completed */
 		if (DMA_GetCurrentMemoryTarget(pios_adc_dev->cfg->dma.rx.channel) == 0) {
-			accumulate(adc_raw_buffer_0, pios_adc_dev->max_samples);
+			accumulate(adc_raw_buffer_0, PIOS_ADC_MAX_OVERSAMPLING);
 		}
 		else {
-			accumulate(adc_raw_buffer_1, pios_adc_dev->max_samples);
+			accumulate(adc_raw_buffer_1, PIOS_ADC_MAX_OVERSAMPLING);
 		}
 	}
 #endif
