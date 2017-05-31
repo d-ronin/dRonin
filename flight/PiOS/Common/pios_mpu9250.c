@@ -711,6 +711,10 @@ static void PIOS_MPU9250_Task(void *parameters)
 		struct pios_sensor_accel_data accel_data;
 		struct pios_sensor_gyro_data gyro_data;
 
+
+		gyro_data.z  = -1.0f * (int16_t)(mpu9250_rec_buf[IDX_GYRO_ZOUT_H] << 8 | mpu9250_rec_buf[IDX_GYRO_ZOUT_L]);
+		accel_data.z = -1.0f * (int16_t)(mpu9250_rec_buf[IDX_ACCEL_ZOUT_H] << 8 | mpu9250_rec_buf[IDX_ACCEL_ZOUT_L]);
+
 		switch (dev->cfg->orientation) {
 		case PIOS_MPU60X0_TOP_0DEG:
 			accel_data.y = (int16_t)(mpu9250_rec_buf[IDX_ACCEL_XOUT_H] << 8 | mpu9250_rec_buf[IDX_ACCEL_XOUT_L]);
@@ -770,9 +774,6 @@ static void PIOS_MPU9250_Task(void *parameters)
 			break;
 		}
 
-		gyro_data.z  = -1.0f * (int16_t)(mpu9250_rec_buf[IDX_GYRO_ZOUT_H] << 8 | mpu9250_rec_buf[IDX_GYRO_ZOUT_L]);
-		accel_data.z = -1.0f * (int16_t)(mpu9250_rec_buf[IDX_ACCEL_ZOUT_H] << 8 | mpu9250_rec_buf[IDX_ACCEL_ZOUT_L]);
-
 		int16_t raw_temp = (int16_t)(mpu9250_rec_buf[IDX_TEMP_OUT_H] << 8 | mpu9250_rec_buf[IDX_TEMP_OUT_L]);
 		float temperature = 21.0f + ((float)raw_temp) / 333.87f;
 
@@ -797,6 +798,9 @@ static void PIOS_MPU9250_Task(void *parameters)
 			struct pios_sensor_mag_data mag_data;
 			uint8_t mpu9250_mag_buffer[6];
 			if (PIOS_MPU9250_Mag_Read(MPU9250_MAG_XH, mpu9250_mag_buffer, sizeof(mpu9250_mag_buffer)) == 0) {
+
+				mag_data.z = (int16_t) (mpu9250_mag_buffer[5] << 0x08 | mpu9250_mag_buffer[4]);
+
 				switch(dev->cfg->orientation) {
 				case PIOS_MPU60X0_TOP_0DEG:
 					mag_data.x = (int16_t) (mpu9250_mag_buffer[1] << 0x08 | mpu9250_mag_buffer[0]);
@@ -835,7 +839,6 @@ static void PIOS_MPU9250_Task(void *parameters)
 					mag_data.z = -1.0f * (int16_t) (mpu9250_mag_buffer[5] << 0x08 | mpu9250_mag_buffer[4]);
 					break;
 				}
-				mag_data.z = (int16_t) (mpu9250_mag_buffer[5] << 0x08 | mpu9250_mag_buffer[4]);
 
 				float mag_scale = PIOS_MPU9250_GetMagScale();
 				mag_data.x *= mag_scale;
