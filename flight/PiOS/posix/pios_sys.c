@@ -105,7 +105,7 @@ static void Usage(char *cmdName) {
 		"\t-l log\tWrites simulation data to a log\n"
 #ifdef PIOS_INCLUDE_SERIAL
 		"\t-S drvname:serialpath\tStarts a serial driver on serialpath\n"
-		"\t\t\tAvailable drivers: gps msp lighttelemetry telemetry\n"
+		"\t\t\tAvailable drivers: gps msp lighttelemetry telemetry omnip\n"
 #endif
 #ifdef PIOS_INCLUDE_SPI
 		"\t-s spibase\tConfigures a SPI interface on the base path\n"
@@ -125,6 +125,10 @@ static void Usage(char *cmdName) {
 }
 
 #ifdef PIOS_INCLUDE_SERIAL
+
+#ifdef PIOS_INCLUDE_OMNIP
+#include <pios_omnip.h>
+#endif
 
 #define SERIAL_BUF_LEN 384
 static int handle_serial_device(const char *optarg) {
@@ -150,9 +154,11 @@ static int handle_serial_device(const char *optarg) {
 	port = strtol(ser_path, &endptr, 10);
 
 	uintptr_t com_id;
+	uintptr_t lower_id;
+
+	const struct pios_com_driver *com_driver;
 
 	if ((port > 0) && (port < 65536) && !(*endptr)) {
-		uint32_t tcp_id;
 		struct pios_tcp_cfg *virtserial_cfg;
 
 		virtserial_cfg = PIOS_malloc(sizeof(*virtserial_cfg));
@@ -160,29 +166,26 @@ static int handle_serial_device(const char *optarg) {
 		virtserial_cfg->ip = "0.0.0.0";
 		virtserial_cfg->port = port;
 
-		if (PIOS_TCP_Init(&tcp_id, virtserial_cfg)) {
+		if (PIOS_TCP_Init(&lower_id, virtserial_cfg)) {
 			printf("Can't init PIOS_TCP\n");
 			goto fail;
 		}
 
-		if (PIOS_COM_Init(&com_id, &pios_tcp_com_driver,
-				tcp_id, SERIAL_BUF_LEN, SERIAL_BUF_LEN)) {
-			printf("Can't init PIOS_COM on TCP\n");
-			goto fail;
-		}
-	} else {
-		uint32_t ser_id;
+		com_driver = &pios_tcp_com_driver;
 
-		if (PIOS_SERIAL_Init(&ser_id, ser_path)) {
+	} else {
+		if (PIOS_SERIAL_Init(&lower_id, ser_path)) {
 			printf("Can't init serial\n");
 			goto fail;
 		}
 
-		if (PIOS_COM_Init(&com_id, &pios_serial_com_driver,
-				ser_id, SERIAL_BUF_LEN, SERIAL_BUF_LEN)) {
-			printf("Can't init PIOS_COM on serial\n");
-			goto fail;
-		}
+		com_driver = &pios_serial_com_driver;
+	}
+
+	if (PIOS_COM_Init(&com_id, com_driver, lower_id,
+				SERIAL_BUF_LEN, SERIAL_BUF_LEN)) {
+		printf("Can't init PIOS_COM\n");
+		goto fail;
 	}
 
 	if (!strcmp(drv_name, "gps")) {
@@ -196,6 +199,15 @@ static int handle_serial_device(const char *optarg) {
 		PIOS_COM_LIGHTTELEMETRY = com_id;
 	} else if (!strcmp(drv_name, "telemetry")) {
 		PIOS_COM_TELEM_USB = com_id;
+#ifdef PIOS_INCLUDE_OMNIP
+	} else if (!strcmp(drv_name, "omnip")) {
+		omnip_dev_t dontcare;
+
+		if (PIOS_OMNIP_Init(&dontcare, com_driver, lower_id)) {
+			printf("Can't init OmniP radar\n");
+			goto fail;
+		}
+#endif
 	} else {
 		printf("Unknown serial driver %s\n", drv_name);
 		goto fail;

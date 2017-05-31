@@ -138,9 +138,10 @@ int32_t PIOS_SERIAL_Init(uintptr_t *serial_id, const char *path)
 
 	*serial_id = (uintptr_t) ser_dev;
 
+	PIOS_SERIAL_ChangeBaud(*serial_id, 9600);
+
 	return 0;
 }
-
 
 void PIOS_SERIAL_ChangeBaud(uintptr_t serial_id, uint32_t baud)
 {
@@ -152,35 +153,54 @@ void PIOS_SERIAL_ChangeBaud(uintptr_t serial_id, uint32_t baud)
 
 	PIOS_Assert(ser_dev);
 
-	struct serial_struct serinfo;
+	/* This serinfo magic for baud rate is deprecated in favor of BOTHER
+	 * on Linux.  However, that requires termios2 and there's various conflict
+	 * that makes it hard to do.
+	 *
+	 * Only consequence right now is an angry kprintf.
+	 */
 
-	if (ioctl(ser_dev->fd, TIOCGSERIAL, &serinfo)) {
-		perror("ioctl-TIOCGSERIAL");
-	}
+	if (baud != 9600) {
+		struct serial_struct serinfo;
 
-	serinfo.flags = (serinfo.flags & ~ASYNC_SPD_MASK) | ASYNC_SPD_CUST;
-	serinfo.custom_divisor = (serinfo.baud_base + (baud / 2)) / baud;
-	uint32_t closest_speed = serinfo.baud_base / serinfo.custom_divisor;
+		if (ioctl(ser_dev->fd, TIOCGSERIAL, &serinfo)) {
+			perror("ioctl-TIOCGSERIAL");
+		}
 
-	if ((closest_speed < baud * 99 / 100) ||
-			(closest_speed > baud * 101 / 100)) {
-		printf("Can't attain serial rate %d; using %d\n",
-				baud, closest_speed);
-	}
+		serinfo.flags = (serinfo.flags & ~ASYNC_SPD_MASK) | ASYNC_SPD_CUST;
+		serinfo.custom_divisor = (serinfo.baud_base + (baud / 2)) / baud;
+		uint32_t closest_speed = serinfo.baud_base / serinfo.custom_divisor;
 
-	if (ioctl(ser_dev->fd, TIOCSSERIAL, &serinfo)) {
-		perror("ioctl-TIOCSSERIAL");
+		if ((closest_speed < baud * 99 / 100) ||
+				(closest_speed > baud * 101 / 100)) {
+			printf("Can't attain serial rate %d; using %d\n",
+					baud, closest_speed);
+		}
+
+		if (ioctl(ser_dev->fd, TIOCSSERIAL, &serinfo)) {
+			perror("ioctl-TIOCSSERIAL");
+		}
 	}
 
 	struct termios options;
-	tcgetattr(ser_dev->fd, &options);
 
-	cfsetispeed(&options, B38400);
-	cfsetospeed(&options, B38400);
+	memset(&options, 0, sizeof(options));
 
-	cfmakeraw(&options);
-	options.c_cflag |= CLOCAL | CREAD;
-	options.c_cflag &= ~CRTSCTS;
+	options.c_cflag = CLOCAL | CREAD | CS8;
+
+	if (baud == 9600) {
+		cfsetispeed(&options, B9600);
+		cfsetospeed(&options, B9600);
+	} else {
+		/* The magic above replaces B38400 with the custom rate */
+		cfsetispeed(&options, B38400);
+		cfsetospeed(&options, B38400);
+	}
+
+	/* 1 character is enough to wake us.  Leave VTIME at 0, so we will
+	 * block arbitrarily long.
+	 */
+	options.c_cc[VMIN] = 1;
 
 	if (tcsetattr(ser_dev->fd, TCSANOW, &options)) {
 		perror("tcsetattr");
