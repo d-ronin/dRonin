@@ -107,11 +107,6 @@ public:
         m_notPresentOnHwColor = color;
         m_model->setNotPresentOnHwColor(color);
     }
-    void setRecentlyUpdatedTimeout(int timeout)
-    {
-        m_recentlyUpdatedTimeout = timeout;
-        m_model->setRecentlyUpdatedTimeout(timeout);
-    }
     void setOnlyHighlightChangedValues(bool highlight)
     {
         m_onlyHighlightChangedValues = highlight;

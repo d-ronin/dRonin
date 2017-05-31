@@ -121,7 +121,7 @@ public:
         int valIndex = options.indexOf(value.toString());
         if (data() != valIndex || changed()) {
             TreeItem::setData(valIndex);
-            setHighlight(true);
+            setHighlight();
         }
         UAVDataObject *obj = qobject_cast<UAVDataObject *>(m_field->getObject());
         if (obj && obj->isSettings())
@@ -282,7 +282,7 @@ public:
                 Q_ASSERT(false);
                 break;
             }
-            setHighlight(true);
+            setHighlight();
         }
 
         UAVDataObject *obj = qobject_cast<UAVDataObject *>(m_field->getObject());
@@ -332,7 +332,7 @@ public:
         double value = m_field->getValue(m_index).toDouble();
         if (data() != value || changed()) {
             TreeItem::setData(value);
-            setHighlight(true);
+            setHighlight();
         }
     }
 

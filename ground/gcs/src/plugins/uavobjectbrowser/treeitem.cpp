@@ -36,19 +36,12 @@
 #include "fieldtreeitem.h"
 #include <math.h>
 
-QTime *HighLightManager::m_currentTime = NULL;
-
 /* Constructor */
-HighLightManager::HighLightManager(long checkingInterval, QTime *currentTime)
+HighLightManager::HighLightManager(long checkingInterval)
 {
     // Start the timer and connect it to the callback
     m_expirationTimer.start(checkingInterval);
     connect(&m_expirationTimer, &QTimer::timeout, this, &HighLightManager::checkItemsExpired);
-
-    if (m_currentTime == NULL)
-        m_currentTime = new QTime;
-
-    *m_currentTime = *currentTime;
 }
 
 /*
@@ -57,22 +50,21 @@ HighLightManager::HighLightManager(long checkingInterval, QTime *currentTime)
  */
 bool HighLightManager::add(TreeItem *itemToAdd)
 {
-    // Check so that the item isn't already in the list
-    if (!m_itemsList.contains(itemToAdd)) {
-        m_itemsList.append(itemToAdd);
-        return true;
+    if (m_itemsToUnhighlight.remove(itemToAdd)) {
+        m_itemsWaiting.insert(itemToAdd);
     }
-    return false;
-}
 
-/*
- * Called to remove item from list.
- * Returns true if item was removed, otherwise false.
- */
-bool HighLightManager::remove(TreeItem *itemToRemove)
-{
-    // Remove item and return result
-    return m_itemsList.removeOne(itemToRemove);
+    if (m_itemsWaiting.contains(itemToAdd)) {
+        return false;
+    }
+
+    if (m_itemsToHighlight.contains(itemToAdd)) {
+        return false;
+    }
+
+    m_itemsToHighlight.insert(itemToAdd);
+
+    return true;
 }
 
 /*
@@ -83,24 +75,26 @@ bool HighLightManager::remove(TreeItem *itemToRemove)
  */
 void HighLightManager::checkItemsExpired()
 {
-    // Get a mutable iterator for the list
-    QMutableLinkedListIterator<TreeItem *> iter(m_itemsList);
+    for (QSet<TreeItem *>::const_iterator i = m_itemsToUnhighlight.begin();
+            i != m_itemsToUnhighlight.end(); ++i) {
+        TreeItem *item = *i;
 
-    // Loop over all items, check if they expired.
-    while (iter.hasNext()) {
-        TreeItem *item = iter.next();
-        if (item->getHiglightExpires() < *m_currentTime) {
-            // If expired, call removeHighlight
-            item->removeHighlight();
-
-            // Remove from list since it is restored.
-            iter.remove();
-        }
+        item->removeHighlight();
+        emit updateHighlight(item);
     }
-}
 
-int TreeItem::m_highlightTimeMs = 500;
-QTime *TreeItem::m_currentTime = NULL;
+    m_itemsToUnhighlight.clear();
+    m_itemsToUnhighlight.swap(m_itemsWaiting);
+
+    for (QSet<TreeItem *>::const_iterator i = m_itemsToHighlight.begin();
+            i != m_itemsToHighlight.end(); ++i) {
+        TreeItem *item = *i;
+
+        emit updateHighlight(item);
+    }
+
+    m_itemsWaiting.swap(m_itemsToHighlight);
+}
 
 TreeItem::TreeItem(const QList<QVariant> &data, TreeItem *parent)
     : QObject(0)
@@ -198,32 +192,19 @@ void TreeItem::apply()
 /*
  * Called after a value has changed to trigger highlightning of tree item.
  */
-void TreeItem::setHighlight(bool highlight)
+void TreeItem::setHighlight()
 {
-    m_highlight = highlight;
+    m_highlight = true;
     m_changed = false;
-    if (highlight) {
-        // Update the expires timestamp
-        if (m_currentTime != NULL)
-            m_highlightExpires = m_currentTime->addMSecs(m_highlightTimeMs);
-        else
-            m_highlightExpires = QTime::currentTime().addMSecs(m_highlightTimeMs);
-
-        // Add to highlightmanager
-        if (m_highlightManager->add(this)) {
-            // Only emit signal if it was added
-            emit updateHighlight(this);
-        }
-    } else if (m_highlightManager->remove(this)) {
-        // Only emit signal if it was removed
-        emit updateHighlight(this);
-    }
+    // Add to highlightmanager
+    
+    m_highlightManager->add(this);
 
     // If we have a parent, call recursively to update highlight status of parents.
     // This will ensure that the root of a leaf that is changed also is highlighted.
     // Only updates that really changes values will trigger highlight of parents.
     if (m_parent) {
-        m_parent->setHighlight(highlight);
+        m_parent->setHighlight();
     }
 }
 
@@ -252,26 +233,11 @@ void TreeItem::setUpdatedOnlyParent()
 void TreeItem::removeHighlight()
 {
     m_highlight = false;
-    // update();
-    emit updateHighlight(this);
 }
 
 void TreeItem::setHighlightManager(HighLightManager *mgr)
 {
     m_highlightManager = mgr;
-}
-
-QTime TreeItem::getHiglightExpires()
-{
-    return m_highlightExpires;
-}
-
-void TreeItem::setCurrentTime(QTime *currentTime)
-{
-    if (m_currentTime == NULL)
-        m_currentTime = new QTime;
-
-    *m_currentTime = *currentTime;
 }
 
 void TreeItem::setIsDefaultValue(bool isDefault)

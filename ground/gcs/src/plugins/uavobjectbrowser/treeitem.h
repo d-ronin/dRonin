@@ -70,14 +70,14 @@ class HighLightManager : public QObject
     Q_OBJECT
 public:
     // Constructor taking the checking interval in ms.
-    HighLightManager(long checkingInterval, QTime *currentTime);
+    HighLightManager(long checkingInterval);
 
     // This is called when an item has been set to
     // highlighted = true.
     bool add(TreeItem *itemToAdd);
 
-    // This is called when an item is set to highlighted = false;
-    bool remove(TreeItem *itemToRemove);
+signals:
+    void updateHighlight(TreeItem *);
 
 private slots:
     // Timer callback method.
@@ -87,11 +87,10 @@ private:
     // The timer checking highlight expiration.
     QTimer m_expirationTimer;
 
-    // The list holding all items due to be updated.
-    QLinkedList<TreeItem *> m_itemsList;
-
-    // This is the timestamp to compare with
-    static QTime *m_currentTime;
+    // The sets holding all items due to be updated.
+    QSet<TreeItem *> m_itemsToHighlight;
+    QSet<TreeItem *> m_itemsWaiting;
+    QSet<TreeItem *> m_itemsToUnhighlight;
 };
 
 class TreeItem : public QObject
@@ -137,8 +136,7 @@ public:
     virtual void apply();
 
     inline bool highlighted() { return m_highlight; }
-    void setHighlight(bool highlight);
-    static void setHighlightTime(int time) { m_highlightTimeMs = time; }
+    void setHighlight();
 
     inline bool changed() { return m_changed; }
     inline bool updatedOnly() { return m_updated; }
@@ -154,8 +152,6 @@ public:
     void setUpdatedOnly(bool updated);
     void setUpdatedOnlyParent();
     virtual void setHighlightManager(HighLightManager *mgr);
-
-    QTime getHiglightExpires();
 
     virtual void removeHighlight();
 
@@ -178,12 +174,8 @@ public:
         return 0;
     }
 
-    void setCurrentTime(QTime *currentTime);
     bool isDefaultValue();
     void setIsDefaultValue(bool isDefault);
-
-signals:
-    void updateHighlight(TreeItem *);
 
 private slots:
 
@@ -197,11 +189,8 @@ private:
     bool m_changed;
     bool m_updated;
     bool m_defaultValue;
-    QTime m_highlightExpires;
     HighLightManager *m_highlightManager;
     static int m_highlightTimeMs;
-    // This is the timestamp to compare with
-    static QTime *m_currentTime;
 
 public:
     static const int dataColumn = 1;

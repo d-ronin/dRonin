@@ -75,11 +75,6 @@ public:
     void setRecentlyUpdatedColor(QColor color) { m_recentlyUpdatedColor = color; }
     void setManuallyChangedColor(QColor color) { m_manuallyChangedColor = color; }
     void setNotPresentOnHwColor(QColor color) { m_notPresentOnHwColor = color; }
-    void setRecentlyUpdatedTimeout(int timeout)
-    {
-        m_recentlyUpdatedTimeout = timeout;
-        TreeItem::setHighlightTime(timeout);
-    }
     void setOnlyHighlightChangedValues(bool highlight) { m_onlyHighlightChangedValues = highlight; }
 
     QList<QModelIndex> getMetaDataIndexes();
@@ -99,7 +94,6 @@ public slots:
 private slots:
     void highlightUpdatedObject(UAVObject *obj);
     void updateHighlight(TreeItem *);
-    void updateCurrentTime();
     void presentOnHardwareChangedCB(UAVDataObject *);
 
 private:
@@ -122,7 +116,6 @@ private:
     TreeItem *m_rootItem;
     TopTreeItem *m_settingsTree;
     TopTreeItem *m_nonSettingsTree;
-    int m_recentlyUpdatedTimeout;
     QColor m_recentlyUpdatedColor;
     QColor m_manuallyChangedColor;
     QColor m_updatedOnlyColor;
@@ -134,8 +127,6 @@ private:
     bool m_useScientificFloatNotation;
     bool m_hideNotPresent;
     bool m_categorize;
-    QTimer m_currentTimeTimer;
-    QTime m_currentTime;
     UAVObjectManager *objManager;
     // Highlight manager to handle highlighting of tree items.
     HighLightManager *m_highlightManager;
