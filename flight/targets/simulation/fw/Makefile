@@ -124,6 +124,15 @@ DOXYGENDIR = ../Doc/Doxygen
 
 SRC = 
 
+include $(FLIGHTLIB)/CMSIS/library.mk
+
+ifneq ($(PI_CROSS_SIM)x,x)
+# Pretend that a Pi is a Cortex M4, since it can run the same instructions!
+CFLAGS += -DARM_MATH_CM4 -D__FPU_PRESENT
+else
+CFLAGS += -DARM_MATH_GENERIC
+endif
+
 # List C source files here. (C dependencies are automatically generated.)
 # use file-extension c for "c-only"-files
 
@@ -137,6 +146,8 @@ SRC += $(OPUAVOBJ)/uavobjectmanager.c
 
 ## Libraries for flight calculations
 SRC += taskmonitor.c
+
+SRC += $(wildcard $(FLIGHTLIB)/CMSIS/DSP_Lib/MatrixFunctions/*f32.c)
 
 SRC += $(MATHLIB)/atmospheric_math.c
 SRC += $(MATHLIB)/coordinate_conversions.c
@@ -343,10 +354,6 @@ LDFLAGS += -lpthread
 ifdef WINDOWS
 LDFLAGS += -lws2_32
 endif
-
-# To include simulation model
-LDFLAGS += -L$(OUTDIR)
-#LDFLAGS += -lsimmodel
 
 # Define programs and commands.
 REMOVE  = rm -f
