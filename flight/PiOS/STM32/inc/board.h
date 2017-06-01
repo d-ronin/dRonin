@@ -29,6 +29,10 @@
 
 #include "pios_chibios_transition_priv.h"
 
+/* Some older STM32F4 revisions might get antsy when flash prefetching is enabled.
+   This makes sure the affected revs don't get enabled by ChibiOS. */
+#define STM32_USE_REVISION_A_FIX
+
 /*
  * Board oscillators-related settings.
  * NOTE: LSE not fitted.
