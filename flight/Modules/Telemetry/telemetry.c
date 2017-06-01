@@ -110,6 +110,8 @@ int32_t TelemetryStart(void)
 	UAVObjEvent ev;
 	memset(&ev, 0, sizeof(UAVObjEvent));
 
+	EventPeriodicQueueCreate(&ev, telem->queue, STATS_UPDATE_PERIOD_MS);
+
 	// Listen to objects of interest
 	GCSTelemetryStatsConnectQueue(telem_state.queue);
     
@@ -487,6 +489,9 @@ static void updateTelemetryStats(telem_t telem)
 
 	// Update stats object
 	if (flightStats.Status == FLIGHTTELEMETRYSTATS_STATUS_CONNECTED) {
+		/* This is bogus because updates to GCSTelemetryStats trigger
+		 * this call, in addition to just the periodic stuff.
+		 */
 		flightStats.RxDataRate = (float)utalkStats.rxBytes / ((float)STATS_UPDATE_PERIOD_MS / 1000.0f);
 		flightStats.TxDataRate = (float)utalkStats.txBytes / ((float)STATS_UPDATE_PERIOD_MS / 1000.0f);
 		flightStats.RxFailures += utalkStats.rxErrors;
