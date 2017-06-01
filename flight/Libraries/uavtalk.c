@@ -400,21 +400,31 @@ UAVTalkRxState UAVTalkProcessInputStreamQuiet(UAVTalkConnection connectionHandle
  * \param[in] rxbyte Received byte
  * \return UAVTalkRxState
  */
-UAVTalkRxState UAVTalkProcessInputStream(UAVTalkConnection connectionHandle, uint8_t rxbyte)
+void UAVTalkProcessInputStream(UAVTalkConnection connectionHandle, uint8_t *rxbytes,
+		int numbytes)
 {
-	UAVTalkRxState state = UAVTalkProcessInputStreamQuiet(connectionHandle, rxbyte);
+	UAVTalkConnectionData *connection;
 
-	if (state == UAVTALK_STATE_COMPLETE) {
-		UAVTalkConnectionData *connection;
-		CHECKCONHANDLE(connectionHandle,connection,return -1);
-		UAVTalkInputProcessor *iproc = &connection->iproc;
+	CHECKCONHANDLE(connectionHandle,connection,return);
 
-		PIOS_Recursive_Mutex_Lock(connection->lock, PIOS_MUTEX_TIMEOUT_MAX);
-		receiveObject(connection, iproc->type, iproc->objId, iproc->instId, connection->rxBuffer, iproc->length);
-		PIOS_Recursive_Mutex_Unlock(connection->lock);
+	UAVTalkInputProcessor *iproc = &connection->iproc;
+
+	for (int i = 0; i < numbytes; i++) {
+		UAVTalkRxState state =
+			UAVTalkProcessInputStreamQuiet(connectionHandle,
+					rxbytes[i]);
+
+		if (state == UAVTALK_STATE_COMPLETE) {
+			PIOS_Recursive_Mutex_Lock(connection->lock,
+					PIOS_MUTEX_TIMEOUT_MAX);
+
+			receiveObject(connection, iproc->type, iproc->objId,
+					iproc->instId, connection->rxBuffer,
+					iproc->length);
+
+			PIOS_Recursive_Mutex_Unlock(connection->lock);
+		}
 	}
-
-	return state;
 }
 
 /**

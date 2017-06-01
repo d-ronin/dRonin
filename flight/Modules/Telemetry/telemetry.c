@@ -367,10 +367,9 @@ static void telemetryRxTask(void *parameters)
 			uint16_t bytes_to_process;
 
 			bytes_to_process = PIOS_COM_ReceiveBuffer(inputPort, serial_data, sizeof(serial_data), 500);
+
 			if (bytes_to_process > 0) {
-				for (uint8_t i = 0; i < bytes_to_process; i++) {
-					UAVTalkProcessInputStream(uavTalkCon,serial_data[i]);
-				}
+				UAVTalkProcessInputStream(uavTalkCon, serial_data, bytes_to_process);
 
 #if defined(PIOS_INCLUDE_USB)
 				if (inputPort == PIOS_COM_TELEM_USB) {
