@@ -509,15 +509,7 @@ static int32_t UAVTalkSendHandler(void *ctx, uint8_t * buf, int32_t length)
 #endif /* PIOS_INCLUDE_USB */
 
 	if (outputPort) {
-		// Following call can fail with -2 error code (buffer full) or -3 error code (could not acquire send mutex)
-		// It is the caller responsibility to retry in such cases...
-		ret = -2;
-		uint8_t count = 5;
-		while (count-- > 0 && ret < -1) {
-			ret =
-			    PIOS_COM_SendBufferNonBlocking(outputPort, buf,
-							   length);
-		}
+		ret = PIOS_COM_SendBuffer(outputPort, buf, length);
 	} else {
 		ret = -1;
 	}
@@ -540,17 +532,7 @@ static int32_t RadioSendHandler(void *ctx, uint8_t * buf, int32_t length)
 
 	// Don't send any data unless the radio port is available.
 	if (outputPort && PIOS_COM_Available(outputPort)) {
-		// Following call can fail with -2 error code (buffer full) or -3 error code (could not acquire send mutex)
-		// It is the caller responsibility to retry in such cases...
-		// XXX This is completely wrong.
-		int32_t ret = -2;
-		uint8_t count = 5;
-		while (count-- > 0 && ret < -1) {
-			ret =
-			    PIOS_COM_SendBufferNonBlocking(outputPort, buf,
-							   length);
-		}
-		return ret;
+		return PIOS_COM_SendBuffer(outputPort, buf, length);
 	} else {
 		return -1;
 	}
