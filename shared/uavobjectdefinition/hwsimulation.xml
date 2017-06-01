@@ -14,8 +14,8 @@
 			</options>
 		</field>
 		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="0"/>
+		<telemetrygcs acked="false" updatemode="onchange" period="0"/>
+		<telemetryflight acked="false" updatemode="onchange" period="0"/>
 		<logging updatemode="manual" period="0"/>
 	</object>
 </xml>
