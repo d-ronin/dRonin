@@ -46,7 +46,6 @@ static int32_t sendObject(UAVTalkConnectionData *connection, UAVObjHandle obj, u
 static int32_t sendSingleObject(UAVTalkConnectionData *connection, UAVObjHandle obj, uint16_t instId, uint8_t type);
 static int32_t sendNack(UAVTalkConnectionData *connection, uint32_t objId);
 static int32_t receiveObject(UAVTalkConnectionData *connection, uint8_t type, uint32_t objId, uint16_t instId, uint8_t* data, int32_t length);
-static void updateAck(UAVTalkConnectionData *connection, UAVObjHandle obj, uint16_t instId);
 
 /**
  * Initialize the UAVTalk library
@@ -713,6 +712,23 @@ static int32_t receiveObject(UAVTalkConnectionData *connection, uint8_t type, ui
 	UAVObjHandle obj;
 	int32_t ret = 0;
 
+	/* Handle ACK/NACK first --- don't bother to look up IDs etc for these
+	 * because we don't need it.
+	 *
+	 * Treat NACKs and ACKs identically -- ground has done all it wants
+	 * with them.  This incurs a small penalty from calling the callback
+	 * when GCS is a mismatched version and likes NACKing us, but ensures
+	 * that we don't start blocking the telemetry session for an ACK that
+	 * will never come.
+	 */
+	if ((type == UAVTALK_TYPE_NACK) || (type == UAVTALK_TYPE_ACK)) {
+		if (connection->ackCb) {
+			connection->ackCb(connection->cbCtx, objId, instId);
+		}
+
+		return 0;
+	}
+
 	// Get the handle to the Object. Will be zero
 	// if object does not exist.
 	obj = UAVObjGetByID(objId);
@@ -752,36 +768,11 @@ static int32_t receiveObject(UAVTalkConnectionData *connection, uint8_t type, ui
 		else
 			sendObject(connection, obj, instId, UAVTALK_TYPE_OBJ);
 		break;
-	case UAVTALK_TYPE_NACK:
-		// XXX can treat a NACK like an ACK; ground has done all it wants
-		// with it.
-		// Do nothing on flight side, let it time out.
-		break;
-	case UAVTALK_TYPE_ACK:
-		// All instances, not allowed for ACK messages
-		if (obj && (instId != UAVOBJ_ALL_INSTANCES)) {
-			// Check if an ack is pending
-			updateAck(connection, obj, instId);
-		} else {
-			ret = -1;
-		}
-		break;
 	default:
 		ret = -1;
 	}
 	// Done
 	return ret;
-}
-
-/**
- * Check if an ack is pending on an object and give response semaphore
- * \param[in] connection UAVTalkConnection to be used
- * \param[in] obj Object
- * \param[in] instId The instance ID of UAVOBJ_ALL_INSTANCES for all instances.
- */
-static void updateAck(UAVTalkConnectionData *connection, UAVObjHandle obj, uint16_t instId)
-{
-	/* XXX impl call ack callback */
 }
 
 /**
@@ -805,8 +796,10 @@ static int32_t sendObject(UAVTalkConnectionData *connection, UAVObjHandle obj, u
 
 	// Process message type
 	// XXX some of these combinations don't make sense, like obj with ack
-	// requested for all instances
-	if (type == UAVTALK_TYPE_OBJ || type == UAVTALK_TYPE_OBJ_TS || type == UAVTALK_TYPE_OBJ_ACK) {
+	// requested for all instances [because if we implemented it properly
+	// it would be -exceptionally- costly]
+	if (type == UAVTALK_TYPE_OBJ || type == UAVTALK_TYPE_OBJ_TS ||
+			type == UAVTALK_TYPE_OBJ_ACK) {
 		if (instId == UAVOBJ_ALL_INSTANCES) {
 			// Get number of instances
 			numInst = UAVObjGetNumInstances(obj);

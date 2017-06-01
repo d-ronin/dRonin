@@ -39,6 +39,7 @@
 #include "modulesettings.h"
 #include "sessionmanaging.h"
 #include "pios_thread.h"
+#include "pios_mutex.h"
 #include "pios_queue.h"
 
 #include "pios_hal.h"
@@ -50,25 +51,42 @@
 #define STACK_SIZE_BYTES PIOS_TELEM_STACK_SIZE
 #define TASK_PRIORITY_RX PIOS_THREAD_PRIO_NORMAL
 #define TASK_PRIORITY_TX PIOS_THREAD_PRIO_NORMAL
-#define REQ_TIMEOUT_MS 250
 #define MAX_RETRIES 2
-#define STATS_UPDATE_PERIOD_MS 4000
+
+#define STATS_UPDATE_PERIOD_MS 1753
 #define CONNECTION_TIMEOUT_MS 8000
 #define USB_ACTIVITY_TIMEOUT_MS 6000
+
+#define MAX_ACKS_PENDING 3
+#define ACK_TIMEOUT_MS 250
 
 // Private types
 
 // Private variables
 
-static struct telemetry_state {
+struct pending_ack {
+	UAVObjHandle obj;
+	uint32_t timeout;
+
+	uint16_t inst_id;
+	uint8_t retry_count;
+};
+
+struct telemetry_state {
 	struct pios_queue *queue;
 
-	uint32_t txErrors;
-	uint32_t txRetries;
-	uint32_t timeOfLastObjectUpdate;
-	UAVTalkConnection uavTalkCon;
+	uint32_t tx_errors;
+	uint32_t tx_retries;
+	uint32_t time_of_last_update;
 
-} telem_state;
+	struct pending_ack acks[MAX_ACKS_PENDING];
+
+	struct pios_mutex *ack_mutex;
+
+	UAVTalkConnection uavTalkCon;
+};
+
+static struct telemetry_state telem_state = { };
 
 #if defined(PIOS_INCLUDE_USB)
 static volatile uint32_t usb_timeout_time;
@@ -79,7 +97,11 @@ typedef struct telemetry_state *telem_t;
 // Private functions
 static void telemetryTxTask(void *parameters);
 static void telemetryRxTask(void *parameters);
+
 static int32_t transmitData(void *ctx, uint8_t *data, int32_t length);
+static void addAckPending(telem_t telem, UAVObjHandle obj, uint16_t inst_id);
+static void ackCallback(void *ctx, uint32_t obj_id, uint16_t inst_id);
+
 static void registerObject(telem_t telem, UAVObjHandle obj);
 static void updateObject(telem_t telem, UAVObjHandle obj, int32_t eventType);
 static int32_t setUpdatePeriod(telem_t telem, UAVObjHandle obj, int32_t updatePeriodMs);
@@ -110,7 +132,7 @@ int32_t TelemetryStart(void)
 	UAVObjEvent ev;
 	memset(&ev, 0, sizeof(UAVObjEvent));
 
-	EventPeriodicQueueCreate(&ev, telem->queue, STATS_UPDATE_PERIOD_MS);
+	EventPeriodicQueueCreate(&ev, telem_state.queue, STATS_UPDATE_PERIOD_MS);
 
 	// Listen to objects of interest
 	GCSTelemetryStatsConnectQueue(telem_state.queue);
@@ -137,23 +159,27 @@ int32_t TelemetryStart(void)
  */
 int32_t TelemetryInitialize(void)
 {
-	if (FlightTelemetryStatsInitialize() == -1 || GCSTelemetryStatsInitialize() == -1) {
+	if (FlightTelemetryStatsInitialize() == -1 ||
+			GCSTelemetryStatsInitialize() == -1 ||
+			SessionManagingInitialize() == -1) {
+		return -1;
+	}
+
+	telem_state.ack_mutex = PIOS_Mutex_Create();
+
+	if (!telem_state.ack_mutex) {
 		return -1;
 	}
 
 	// Initialize vars
-	telem_state.timeOfLastObjectUpdate = 0;
+	telem_state.time_of_last_update = 0;
 
 	// Create object queues
 	telem_state.queue = PIOS_Queue_Create(MAX_QUEUE_SIZE, sizeof(UAVObjEvent));
 
 	// Initialise UAVTalk
-	telem_state.uavTalkCon = UAVTalkInitialize(&telem_state, &transmitData, NULL);
+	telem_state.uavTalkCon = UAVTalkInitialize(&telem_state, &transmitData, &ackCallback);
 
-	if (SessionManagingInitialize() == -1) {
-		return -1;
-	}
-	
 	SessionManagingConnectCallback(session_managing_updated);
 
 	//register the new uavo instance callback function in the uavobjectmanager
@@ -256,6 +282,130 @@ static void updateObject(telem_t telem, UAVObjHandle obj, int32_t eventType)
 	}
 }
 
+static void ackResendOrTimeout(telem_t telem, int idx)
+{
+	uint32_t obj_id = UAVObjGetID(telem->acks[idx].obj);
+
+	if (telem->acks[idx].retry_count++ > MAX_RETRIES) {
+		printf("telem: abandoning ack wait for %d/%d\n", obj_id,
+				telem->acks[idx].inst_id);
+
+		/* Two different kinds of things in tx_errors-- objects that
+		 * failed to transfer, and send errors (shouldn't happen) */
+		telem->tx_errors++;
+
+		telem->acks[idx].obj = NULL;
+	} else {
+		printf("telem: abandoning ack wait for %d/%d\n", obj_id,
+				telem->acks[idx].inst_id);
+
+		int32_t success;
+
+		success = UAVTalkSendObject(telem->uavTalkCon,
+				telem->acks[idx].obj,
+				telem->acks[idx].inst_id,
+				true);
+
+		telem->tx_retries++;
+
+		if (success == -1) {
+			telem->tx_errors++;
+		}
+	}
+}
+
+static void ackHousekeeping(telem_t telem)
+{
+	uint32_t tm = PIOS_Thread_Systime();
+
+	for (int i = 0; i < MAX_ACKS_PENDING; i++) {
+		if (telem->acks[i].obj) {
+			if (tm > telem->acks[i].timeout) {
+				ackResendOrTimeout(telem, i);
+			}
+		}
+	}
+
+}
+
+static void addAckPending(telem_t telem, UAVObjHandle obj, uint16_t inst_id)
+{
+	uint32_t obj_id = UAVObjGetID(obj);
+
+	printf("telem: want ack for %d/%d\n", obj_id, inst_id);
+
+	while (true) {
+		PIOS_Mutex_Lock(telem->ack_mutex, PIOS_MUTEX_TIMEOUT_MAX);
+		ackHousekeeping(telem);
+
+		/* There's a slight race here, if we're --already-- waiting
+		 * for an ack on an object, we can end up putting it in here
+		 * to wait again.  In a perfect storm-- past retries cause two
+		 * acks, and then the new object is lost-- we can be fooled.
+		 * It seems like a lesser evil than most of the alternatives
+		 * that keep good pipelining, though
+		 */
+		for (int i = 0; i < MAX_ACKS_PENDING; i++) {
+			if (!telem->acks[i].obj) {
+				telem->acks[i].obj = obj;
+				telem->acks[i].inst_id = inst_id;
+				telem->acks[i].timeout =
+					PIOS_Thread_Systime() +
+					ACK_TIMEOUT_MS;
+
+				telem->acks[i].retry_count = 0;
+
+				PIOS_Mutex_Unlock(telem->ack_mutex);
+				return;
+			}
+		}
+
+		printf("telem: blocking because acks are full\n");
+
+		/* Oh no.  This is the bad case--- maximum number of things
+		 * needing ack in flight.
+		 */
+
+		PIOS_Mutex_Unlock(telem->ack_mutex);
+
+		/* TODO: Consider nicer wakeup mechanism here. */
+		PIOS_Thread_Sleep(3);
+	}
+}
+
+static void ackCallback(void *ctx, uint32_t obj_id, uint16_t inst_id)
+{
+	telem_t telem = ctx;
+
+	PIOS_Mutex_Lock(telem->ack_mutex, PIOS_MUTEX_TIMEOUT_MAX);
+
+	for (int i = 0; i < MAX_ACKS_PENDING; i++) {
+		if (!telem->acks[i].obj) {
+			continue;
+		}
+
+		if (inst_id != telem->acks[i].inst_id) {
+			continue;
+		}
+
+		uint32_t other_obj_id = UAVObjGetID(telem->acks[i].obj);
+
+		if (obj_id != other_obj_id) {
+			continue;
+		}
+
+		telem->acks[i].obj = NULL;
+
+		printf("telem: Got ack for %d/%d\n", obj_id, inst_id);
+		PIOS_Mutex_Unlock(telem->ack_mutex);
+		return;
+	}
+
+	PIOS_Mutex_Unlock(telem->ack_mutex);
+
+	printf("telem: Got UNEXPECTED ack for %d/%d\n", obj_id, inst_id);
+}
+
 /**
  * Processes queue events
  */
@@ -269,7 +419,6 @@ static void processObjEvent(telem_t telem, UAVObjEvent * ev)
 		// Act on event
 		if (ev->event == EV_UPDATED || ev->event == EV_UPDATED_MANUAL ||
 				ev->event == EV_UPDATED_PERIODIC) {
-			int32_t retries;
 			int32_t success = -1;
 
 			UAVObjMetadata metadata;
@@ -281,23 +430,16 @@ static void processObjEvent(telem_t telem, UAVObjEvent * ev)
 
 			if (UAVObjGetTelemetryAcked(&metadata)) {
 				acked = true;
+
+				addAckPending(telem, ev->obj, ev->instId);
 			}
 
-			for (retries = 0; retries < MAX_RETRIES; retries++) {
-				success = UAVTalkSendObject(telem->uavTalkCon,
-						ev->obj, ev->instId,
-						acked);
-
-				if (success == 0) {
-					break;
-				}
-			}
-
-			// Update stats
-			telem->txRetries += (retries - 1);
+			success = UAVTalkSendObject(telem->uavTalkCon,
+					ev->obj, ev->instId,
+					acked);
 
 			if (success == -1) {
-				telem->txErrors++;
+				telem->tx_errors++;
 			}
 		} 
 
@@ -321,15 +463,19 @@ static void telemetryTxTask(void *parameters)
 	// Update telemetry settings
 	updateSettings();
 
-	UAVObjEvent ev;
-
 	// Loop forever
 	while (1) {
+		UAVObjEvent ev;
+
 		// Wait for queue message
 		if (PIOS_Queue_Receive(telem->queue,&ev,
 					PIOS_QUEUE_TIMEOUT_MAX) == true) {
 			// Process event
 			processObjEvent(telem, &ev);
+
+			PIOS_Mutex_Lock(telem->ack_mutex, PIOS_MUTEX_TIMEOUT_MAX);
+			ackHousekeeping(telem);
+			PIOS_Mutex_Unlock(telem->ack_mutex);
 		}
 	}
 }
@@ -495,26 +641,26 @@ static void updateTelemetryStats(telem_t telem)
 		flightStats.RxDataRate = (float)utalkStats.rxBytes / ((float)STATS_UPDATE_PERIOD_MS / 1000.0f);
 		flightStats.TxDataRate = (float)utalkStats.txBytes / ((float)STATS_UPDATE_PERIOD_MS / 1000.0f);
 		flightStats.RxFailures += utalkStats.rxErrors;
-		flightStats.TxFailures += telem->txErrors;
-		flightStats.TxRetries += telem->txRetries;
-		telem->txErrors = 0;
-		telem->txRetries = 0;
+		flightStats.TxFailures += telem->tx_errors;
+		flightStats.TxRetries += telem->tx_retries;
+		telem->tx_errors = 0;
+		telem->tx_retries = 0;
 	} else {
 		flightStats.RxDataRate = 0;
 		flightStats.TxDataRate = 0;
 		flightStats.RxFailures = 0;
 		flightStats.TxFailures = 0;
 		flightStats.TxRetries = 0;
-		telem->txErrors = 0;
-		telem->txRetries = 0;
+		telem->tx_errors = 0;
+		telem->tx_retries = 0;
 	}
 
 	// Check for connection timeout
 	timeNow = PIOS_Thread_Systime();
 	if (utalkStats.rxObjects > 0) {
-		telem->timeOfLastObjectUpdate = timeNow;
+		telem->time_of_last_update = timeNow;
 	}
-	if ((timeNow - telem->timeOfLastObjectUpdate) > CONNECTION_TIMEOUT_MS) {
+	if ((timeNow - telem->time_of_last_update) > CONNECTION_TIMEOUT_MS) {
 		connectionTimeout = 1;
 	} else {
 		connectionTimeout = 0;
