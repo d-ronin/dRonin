@@ -109,8 +109,8 @@ static void telemetryRxTask(void *parameters);
 static void radioTxTask(void *parameters);
 static void radioRxTask(void *parameters);
 static void PPMInputTask(void *parameters);
-static int32_t UAVTalkSendHandler(uint8_t * buf, int32_t length);
-static int32_t RadioSendHandler(uint8_t * buf, int32_t length);
+static int32_t UAVTalkSendHandler(void *ctx, uint8_t * buf, int32_t length);
+static int32_t RadioSendHandler(void *ctx, uint8_t * buf, int32_t length);
 static void ProcessTelemetryStream(UAVTalkConnection inConnectionHandle,
 				   UAVTalkConnection outConnectionHandle,
 				   uint8_t rxbyte);
@@ -219,8 +219,8 @@ static int32_t RadioComBridgeInitialize(void)
 	}
 
 	// Initialise UAVTalk
-	data->telemUAVTalkCon = UAVTalkInitialize(&UAVTalkSendHandler);
-	data->radioUAVTalkCon = UAVTalkInitialize(&RadioSendHandler);
+	data->telemUAVTalkCon = UAVTalkInitialize(NULL, &UAVTalkSendHandler, NULL);
+	data->radioUAVTalkCon = UAVTalkInitialize(NULL, &RadioSendHandler, NULL);
 	if (data->telemUAVTalkCon == 0 || data->radioUAVTalkCon == 0) {
 		return -1;
 	}
@@ -329,7 +329,7 @@ static void telemetryTxTask( __attribute__ ((unused))
 			int32_t ret = -1;
 			uint32_t retries = 0;
 			while (retries <= MAX_RETRIES && ret == -1) {
-				ret = UAVTalkSendObject(data->telemUAVTalkCon, ev.obj, ev.instId, 0, RETRY_TIMEOUT_MS);
+				ret = UAVTalkSendObject(data->telemUAVTalkCon, ev.obj, ev.instId, 0);
 				if (ret == -1) {
 					++retries;
 				}
@@ -366,11 +366,9 @@ static void radioTxTask( __attribute__ ((unused))
 				uint32_t retries = 0;
 				while (retries <= MAX_RETRIES && ret == -1) {
 					ret =
-					    UAVTalkSendObject(data->
-							      radioUAVTalkCon,
+					    UAVTalkSendObject(data->radioUAVTalkCon,
 							      ev.obj,
-							      ev.instId, 0,
-							      RETRY_TIMEOUT_MS);
+							      ev.instId, 0);
 					if (ret == -1) {
 						++retries;
 					}
@@ -496,8 +494,10 @@ static void PPMInputTask( __attribute__ ((unused))
  * @return -1 on failure
  * @return number of bytes transmitted on success
  */
-static int32_t UAVTalkSendHandler(uint8_t * buf, int32_t length)
+static int32_t UAVTalkSendHandler(void *ctx, uint8_t * buf, int32_t length)
 {
+	(void) ctx;
+
 	int32_t ret;
 	uint32_t outputPort = PIOS_COM_TELEMETRY;
 
@@ -532,14 +532,17 @@ static int32_t UAVTalkSendHandler(uint8_t * buf, int32_t length)
  * @return -1 on failure
  * @return number of bytes transmitted on success
  */
-static int32_t RadioSendHandler(uint8_t * buf, int32_t length)
+static int32_t RadioSendHandler(void *ctx, uint8_t * buf, int32_t length)
 {
+	(void) NULL;
+
 	uint32_t outputPort = PIOS_COM_RFM22B;
 
 	// Don't send any data unless the radio port is available.
 	if (outputPort && PIOS_COM_Available(outputPort)) {
 		// Following call can fail with -2 error code (buffer full) or -3 error code (could not acquire send mutex)
 		// It is the caller responsibility to retry in such cases...
+		// XXX This is completely wrong.
 		int32_t ret = -2;
 		uint8_t count = 5;
 		while (count-- > 0 && ret < -1) {

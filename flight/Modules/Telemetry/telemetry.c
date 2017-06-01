@@ -73,7 +73,7 @@ static volatile uint32_t usb_timeout_time;
 // Private functions
 static void telemetryTxTask(void *parameters);
 static void telemetryRxTask(void *parameters);
-static int32_t transmitData(uint8_t * data, int32_t length);
+static int32_t transmitData(void *ctx, uint8_t *data, int32_t length);
 static void registerObject(UAVObjHandle obj);
 static void updateObject(UAVObjHandle obj, int32_t eventType);
 static int32_t setUpdatePeriod(UAVObjHandle obj, int32_t updatePeriodMs);
@@ -133,7 +133,7 @@ int32_t TelemetryInitialize(void)
 	queue = PIOS_Queue_Create(MAX_QUEUE_SIZE, sizeof(UAVObjEvent));
 
 	// Initialise UAVTalk
-	uavTalkCon = UAVTalkInitialize(&transmitData);
+	uavTalkCon = UAVTalkInitialize(NULL, &transmitData, NULL);
 
 	if (SessionManagingInitialize() == -1) {
 		return -1;
@@ -266,8 +266,9 @@ static void processObjEvent(UAVObjEvent * ev)
 		if (ev->event == EV_UPDATED || ev->event == EV_UPDATED_MANUAL ||
 				ev->event == EV_UPDATED_PERIODIC) {
 			// Send update to GCS (with retries)
+			// XXX actually check for ack properly
 			while (retries < MAX_RETRIES && success == -1) {
-				success = UAVTalkSendObject(uavTalkCon, ev->obj, ev->instId, UAVObjGetTelemetryAcked(&metadata), REQ_TIMEOUT_MS);	// call blocks until ack is received or timeout
+				success = UAVTalkSendObject(uavTalkCon, ev->obj, ev->instId, UAVObjGetTelemetryAcked(&metadata));
 
 				++retries;
 			}
@@ -390,8 +391,10 @@ static void telemetryRxTask(void *parameters)
  * \return -1 on failure
  * \return number of bytes transmitted on success
  */
-static int32_t transmitData(uint8_t * data, int32_t length)
+static int32_t transmitData(void *ctx, uint8_t * data, int32_t length)
 {
+	(void) ctx;
+
 	uintptr_t outputPort = getComPort();
 
 	if (outputPort)

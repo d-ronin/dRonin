@@ -41,7 +41,7 @@
 #include "pios_thread.h"
 
 // Private functions
-static int32_t objectTransaction(UAVTalkConnectionData *connection, UAVObjHandle objectId, uint16_t instId, uint8_t type, int32_t timeout);
+static int32_t objectTransaction(UAVTalkConnectionData *connection, UAVObjHandle objectId, uint16_t instId, uint8_t type);
 static int32_t sendObject(UAVTalkConnectionData *connection, UAVObjHandle obj, uint16_t instId, uint8_t type);
 static int32_t sendSingleObject(UAVTalkConnectionData *connection, UAVObjHandle obj, uint16_t instId, uint8_t type);
 static int32_t sendNack(UAVTalkConnectionData *connection, uint32_t objId);
@@ -55,7 +55,8 @@ static void updateAck(UAVTalkConnectionData *connection, UAVObjHandle obj, uint1
  * \return 0 Success
  * \return -1 Failure
  */
-UAVTalkConnection UAVTalkInitialize(UAVTalkOutputStream outputStream)
+UAVTalkConnection UAVTalkInitialize(void *ctx, UAVTalkOutputCb outputStream,
+		UAVTalkAckCb ackCallback)
 {
 	// allocate object
 	UAVTalkConnectionData * connection = PIOS_malloc_no_dma(sizeof(UAVTalkConnectionData));
@@ -63,18 +64,18 @@ UAVTalkConnection UAVTalkInitialize(UAVTalkOutputStream outputStream)
 	connection->canari = UAVTALK_CANARI;
 	connection->iproc.rxPacketLength = 0;
 	connection->iproc.state = UAVTALK_STATE_SYNC;
-	connection->outStream = outputStream;
+
+	connection->cbCtx = ctx;
+	connection->outCb = outputStream;
+	connection->ackCb = ackCallback;
+
 	connection->lock = PIOS_Recursive_Mutex_Create();
 	PIOS_Assert(connection->lock != NULL);
-	connection->transLock = PIOS_Recursive_Mutex_Create();
-	PIOS_Assert(connection->transLock != NULL);
 	// allocate buffers
 	connection->rxBuffer = PIOS_malloc(UAVTALK_MAX_PACKET_LENGTH);
 	if (!connection->rxBuffer) return 0;
 	connection->txBuffer = PIOS_malloc(UAVTALK_MAX_PACKET_LENGTH);
 	if (!connection->txBuffer) return 0;
-	connection->respSema = PIOS_Semaphore_Create();
-	PIOS_Semaphore_Take(connection->respSema, 0); // reset to zero
 	UAVTalkResetStats( (UAVTalkConnection) connection );
 	return (UAVTalkConnection) connection;
 }
@@ -120,41 +121,23 @@ void UAVTalkResetStats(UAVTalkConnection connectionHandle)
 }
 
 /**
- * Request an update for the specified object, on success the object data would have been
- * updated by the GCS.
- * \param[in] connection UAVTalkConnection to be used
- * \param[in] obj Object to update
- * \param[in] instId The instance ID or UAVOBJ_ALL_INSTANCES for all instances.
- * \param[in] timeout Time to wait for the response, when zero it will return immediately
- * \return 0 Success
- * \return -1 Failure
- */
-int32_t UAVTalkSendObjectRequest(UAVTalkConnection connectionHandle, UAVObjHandle obj, uint16_t instId, int32_t timeout)
-{
-	UAVTalkConnectionData *connection;
-	CHECKCONHANDLE(connectionHandle,connection,return -1);
-	return objectTransaction(connection, obj, instId, UAVTALK_TYPE_OBJ_REQ, timeout);
-}
-
-/**
  * Send the specified object through the telemetry link.
  * \param[in] connection UAVTalkConnection to be used
  * \param[in] obj Object to send
  * \param[in] instId The instance ID or UAVOBJ_ALL_INSTANCES for all instances.
- * \param[in] acked Selects if an ack is required (1:ack required, 0: ack not required)
- * \param[in] timeoutMs Time to wait for the ack, when zero it will return immediately
+ * \param[in] acked True if an ack is requested
  * \return 0 Success
  * \return -1 Failure
  */
-int32_t UAVTalkSendObject(UAVTalkConnection connectionHandle, UAVObjHandle obj, uint16_t instId, uint8_t acked, int32_t timeoutMs)
+int32_t UAVTalkSendObject(UAVTalkConnection connectionHandle, UAVObjHandle obj, uint16_t instId, uint8_t acked)
 {
 	UAVTalkConnectionData *connection;
 	CHECKCONHANDLE(connectionHandle,connection,return -1);
 	// Send object
-	if (acked == 1) {
-		return objectTransaction(connection, obj, instId, UAVTALK_TYPE_OBJ_ACK, timeoutMs);
+	if (acked) {
+		return objectTransaction(connection, obj, instId, UAVTALK_TYPE_OBJ_ACK);
 	} else {
-		return objectTransaction(connection, obj, instId, UAVTALK_TYPE_OBJ, timeoutMs);
+		return objectTransaction(connection, obj, instId, UAVTALK_TYPE_OBJ);
 	}
 }
 
@@ -173,7 +156,7 @@ int32_t UAVTalkSendObjectTimestamped(UAVTalkConnection connectionHandle, UAVObjH
 	UAVTalkConnectionData *connection;
 	CHECKCONHANDLE(connectionHandle,connection,return -1);
 	// Send object
-	return objectTransaction(connection, obj, instId, UAVTALK_TYPE_OBJ_TS, 0);
+	return objectTransaction(connection, obj, instId, UAVTALK_TYPE_OBJ_TS);
 }
 
 /**
@@ -188,35 +171,18 @@ int32_t UAVTalkSendObjectTimestamped(UAVTalkConnection connectionHandle, UAVObjH
  * \return 0 Success
  * \return -1 Failure
  */
-static int32_t objectTransaction(UAVTalkConnectionData *connection, UAVObjHandle obj, uint16_t instId, uint8_t type, int32_t timeoutMs)
+static int32_t objectTransaction(UAVTalkConnectionData *connection, UAVObjHandle obj, uint16_t instId, uint8_t type)
 {
-	bool respReceived;
-
 	// Send object depending on if a response is needed
-	if (type == UAVTALK_TYPE_OBJ_ACK || type == UAVTALK_TYPE_OBJ_REQ) {
-		// Get transaction lock (will block if a transaction is pending)
-		PIOS_Recursive_Mutex_Lock(connection->transLock, PIOS_MUTEX_TIMEOUT_MAX);
+	if (type == UAVTALK_TYPE_OBJ_ACK) {
 		// Send object
 		PIOS_Recursive_Mutex_Lock(connection->lock, PIOS_MUTEX_TIMEOUT_MAX);
 		connection->respObj = obj;
 		connection->respInstId = instId;
 		sendObject(connection, obj, instId, type);
 		PIOS_Recursive_Mutex_Unlock(connection->lock);
-		// Wait for response (or timeout)
-		respReceived = PIOS_Semaphore_Take(connection->respSema, timeoutMs);
-		// Check if a response was received
-		if (respReceived == false) {
-			// Cancel transaction
-			PIOS_Recursive_Mutex_Lock(connection->lock, PIOS_MUTEX_TIMEOUT_MAX);
-			PIOS_Semaphore_Take(connection->respSema, 0); // non blocking call to make sure the value is reset to zero (binary sema)
-			connection->respObj = 0;
-			PIOS_Recursive_Mutex_Unlock(connection->lock);
-			PIOS_Recursive_Mutex_Unlock(connection->transLock);
-			return -1;
-		} else {
-			PIOS_Recursive_Mutex_Unlock(connection->transLock);
-			return 0;
-		}
+
+		return 0;
 	} else if (type == UAVTALK_TYPE_OBJ || type == UAVTALK_TYPE_OBJ_TS) {
 		PIOS_Recursive_Mutex_Lock(connection->lock, PIOS_MUTEX_TIMEOUT_MAX);
 		sendObject(connection, obj, instId, type);
@@ -478,7 +444,7 @@ int32_t UAVTalkRelayPacket(UAVTalkConnection inConnectionHandle, UAVTalkConnecti
 	UAVTalkConnectionData *outConnection;
 	CHECKCONHANDLE(outConnectionHandle, outConnection, return -1);
 
-	if (!outConnection->outStream) {
+	if (!outConnection->outCb) {
 		outConnection->stats.txErrors++;
 
 		return -1;
@@ -520,7 +486,7 @@ int32_t UAVTalkRelayPacket(UAVTalkConnection inConnectionHandle, UAVTalkConnecti
 	outConnection->txBuffer[headerLength + inIproc->length] = inIproc->cs;
 
 	// Send the buffer.
-	int32_t rc = (*outConnection->outStream)(outConnection->txBuffer, headerLength + inIproc->length + UAVTALK_CHECKSUM_LENGTH);
+	int32_t rc = (*outConnection->outCb)(outConnection->cbCtx, outConnection->txBuffer, headerLength + inIproc->length + UAVTALK_CHECKSUM_LENGTH);
 
 	// Update stats
 	outConnection->stats.txBytes += (rc > 0) ? rc : 0;
@@ -606,7 +572,7 @@ UAVTalkRxState UAVTalkRelayInputStream(UAVTalkConnection connectionHandle, uint8
 		CHECKCONHANDLE(connectionHandle,connection,return -1);
 		UAVTalkInputProcessor *iproc = &connection->iproc;
 
-		if (!connection->outStream) return -1;
+		if (!connection->outCb) return -1;
 
 		// Setup type and object id fields
 		connection->txBuffer[0] = UAVTALK_SYNC_VAL;  // sync byte
@@ -707,7 +673,7 @@ int32_t UAVTalkSendBuf(UAVTalkConnection connectionHandle, uint8_t *buf, uint16_
 	PIOS_Recursive_Mutex_Lock(connection->lock, PIOS_MUTEX_TIMEOUT_MAX);
 
 	// Output the buffer
-	int32_t rc = (*connection->outStream)(buf, len);
+	int32_t rc = (*connection->outCb)(connection->cbCtx, buf, len);
 
 	// Update stats
 	connection->stats.txBytes += len;
@@ -744,13 +710,10 @@ static int32_t receiveObject(UAVTalkConnectionData *connection, uint8_t type, ui
 	// Process message type
 	switch (type) {
 	case UAVTALK_TYPE_OBJ:
-	case UAVTALK_TYPE_OBJ_TS:
 		// All instances, not allowed for OBJ messages
 		if (obj && (instId != UAVOBJ_ALL_INSTANCES)) {
 			// Unpack object, if the instance does not exist it will be created!
 			UAVObjUnpack(obj, instId, data);
-			// Check if an ack is pending
-			updateAck(connection, obj, instId);
 		} else {
 			ret = -1;
 		}
@@ -808,10 +771,7 @@ static int32_t receiveObject(UAVTalkConnectionData *connection, uint8_t type, ui
  */
 static void updateAck(UAVTalkConnectionData *connection, UAVObjHandle obj, uint16_t instId)
 {
-	if (connection->respObj == obj && (connection->respInstId == instId || connection->respInstId == UAVOBJ_ALL_INSTANCES)) {
-		PIOS_Semaphore_Give(connection->respSema);
-		connection->respObj = 0;
-	}
+	/* XXX impl call ack callback */
 }
 
 /**
@@ -834,6 +794,8 @@ static int32_t sendObject(UAVTalkConnectionData *connection, UAVObjHandle obj, u
 	}
 
 	// Process message type
+	// XXX some of these combinations don't make sense, like obj with ack
+	// requested for all instances
 	if (type == UAVTALK_TYPE_OBJ || type == UAVTALK_TYPE_OBJ_TS || type == UAVTALK_TYPE_OBJ_ACK) {
 		if (instId == UAVOBJ_ALL_INSTANCES) {
 			// Get number of instances
@@ -874,7 +836,7 @@ static int32_t sendSingleObject(UAVTalkConnectionData *connection, UAVObjHandle 
 	int32_t dataOffset;
 	uint32_t objId;
 
-	if (!connection->outStream) return -1;
+	if (!connection->outCb) return -1;
 
 	// Setup type and object id fields
 	objId = UAVObjGetID(obj);
@@ -930,7 +892,8 @@ static int32_t sendSingleObject(UAVTalkConnectionData *connection, UAVObjHandle 
 	connection->txBuffer[dataOffset+length] = PIOS_CRC_updateCRC(0, connection->txBuffer, dataOffset+length);
 
 	uint16_t tx_msg_len = dataOffset+length+UAVTALK_CHECKSUM_LENGTH;
-	int32_t rc = (*connection->outStream)(connection->txBuffer, tx_msg_len);
+	int32_t rc = (*connection->outCb)(connection->cbCtx, connection->txBuffer,
+			tx_msg_len);
 
 	if (rc == tx_msg_len) {
 		// Update stats
@@ -954,7 +917,7 @@ static int32_t sendNack(UAVTalkConnectionData *connection, uint32_t objId)
 {
 	int32_t dataOffset;
 
-	if (!connection->outStream) return -1;
+	if (!connection->outCb) return -1;
 
 	connection->txBuffer[0] = UAVTALK_SYNC_VAL;  // sync byte
 	connection->txBuffer[1] = UAVTALK_TYPE_NACK;
@@ -974,7 +937,8 @@ static int32_t sendNack(UAVTalkConnectionData *connection, uint32_t objId)
 	connection->txBuffer[dataOffset] = PIOS_CRC_updateCRC(0, connection->txBuffer, dataOffset);
 
 	uint16_t tx_msg_len = dataOffset+UAVTALK_CHECKSUM_LENGTH;
-	int32_t rc = (*connection->outStream)(connection->txBuffer, tx_msg_len);
+	int32_t rc = (*connection->outCb)(connection->cbCtx, connection->txBuffer,
+			tx_msg_len);
 
 	if (rc == tx_msg_len) {
 		// Update stats

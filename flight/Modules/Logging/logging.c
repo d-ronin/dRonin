@@ -93,7 +93,7 @@ static LoggingStatsData loggingData;
 // Private functions
 static void    loggingTask(void *parameters);
 static int32_t send_data(uint8_t *data, int32_t length);
-static int32_t send_data_nonblock(uint8_t *data, int32_t length);
+static int32_t send_data_nonblock(void *ctx, uint8_t *data, int32_t length);
 static uint16_t get_minimum_logging_period();
 static void unregister_object(UAVObjHandle obj);
 static void register_object(UAVObjHandle obj);
@@ -181,8 +181,9 @@ int32_t LoggingInitialize(void)
 	}
 
 	// Initialise UAVTalk
-	uavTalkCon = UAVTalkInitialize(&send_data_nonblock);
-	if (uavTalkCon == 0) {
+	uavTalkCon = UAVTalkInitialize(NULL, &send_data_nonblock, NULL);
+
+	if (!uavTalkCon) {
 		module_enabled = false;
 		return -1;
 	}
@@ -445,13 +446,6 @@ static void logSettings(UAVObjHandle obj)
 }
 
 
-/**
- * Forward data from UAVTalk out the serial port
- * \param[in] data Data buffer to send
- * \param[in] length Length of buffer
- * \return -1 on failure
- * \return number of bytes transmitted on success
- */
 static int32_t send_data(uint8_t *data, int32_t length)
 {
 	if (PIOS_COM_SendBuffer(logging_com_id, data, length) < 0)
@@ -462,8 +456,17 @@ static int32_t send_data(uint8_t *data, int32_t length)
 	return length;
 }
 
-static int32_t send_data_nonblock(uint8_t *data, int32_t length)
+/**
+ * Forward data from UAVTalk out the serial port
+ * \param[in] data Data buffer to send
+ * \param[in] length Length of buffer
+ * \return -1 on failure
+ * \return number of bytes transmitted on success
+ */
+static int32_t send_data_nonblock(void *ctx, uint8_t *data, int32_t length)
 {
+	(void) ctx;
+
 	if (PIOS_COM_SendBufferNonBlocking(logging_com_id, data, length) < 0)
 		return -1;
 
