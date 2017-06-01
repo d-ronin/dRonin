@@ -284,10 +284,9 @@ static void updateObject(telem_t telem, UAVObjHandle obj, int32_t eventType)
 
 static void ackResendOrTimeout(telem_t telem, int idx)
 {
-	uint32_t obj_id = UAVObjGetID(telem->acks[idx].obj);
-
 	if (telem->acks[idx].retry_count++ > MAX_RETRIES) {
-		printf("telem: abandoning ack wait for %d/%d\n", obj_id,
+		DEBUG_PRINTF(3, "telem: abandoning ack wait for %d/%d\n",
+				UAVObjGetID(telem->acks[idx].obj),
 				telem->acks[idx].inst_id);
 
 		/* Two different kinds of things in tx_errors-- objects that
@@ -296,7 +295,8 @@ static void ackResendOrTimeout(telem_t telem, int idx)
 
 		telem->acks[idx].obj = NULL;
 	} else {
-		printf("telem: abandoning ack wait for %d/%d\n", obj_id,
+		DEBUG_PRINTF(3, "telem: abandoning ack wait for %d/%d\n",
+				UAVObjGetID(telem->acks[idx].obj),
 				telem->acks[idx].inst_id);
 
 		int32_t success;
@@ -330,9 +330,8 @@ static void ackHousekeeping(telem_t telem)
 
 static void addAckPending(telem_t telem, UAVObjHandle obj, uint16_t inst_id)
 {
-	uint32_t obj_id = UAVObjGetID(obj);
-
-	printf("telem: want ack for %d/%d\n", obj_id, inst_id);
+	DEBUG_PRINTF(3, "telem: want ack for %d/%d\n", UAVObjGetID(obj),
+			inst_id);
 
 	while (true) {
 		PIOS_Mutex_Lock(telem->ack_mutex, PIOS_MUTEX_TIMEOUT_MAX);
@@ -360,7 +359,7 @@ static void addAckPending(telem_t telem, UAVObjHandle obj, uint16_t inst_id)
 			}
 		}
 
-		printf("telem: blocking because acks are full\n");
+		DEBUG_PRINTF(3, "telem: blocking because acks are full\n");
 
 		/* Oh no.  This is the bad case--- maximum number of things
 		 * needing ack in flight.
@@ -396,14 +395,14 @@ static void ackCallback(void *ctx, uint32_t obj_id, uint16_t inst_id)
 
 		telem->acks[i].obj = NULL;
 
-		printf("telem: Got ack for %d/%d\n", obj_id, inst_id);
+		DEBUG_PRINTF(3, "telem: Got ack for %d/%d\n", obj_id, inst_id);
 		PIOS_Mutex_Unlock(telem->ack_mutex);
 		return;
 	}
 
 	PIOS_Mutex_Unlock(telem->ack_mutex);
 
-	printf("telem: Got UNEXPECTED ack for %d/%d\n", obj_id, inst_id);
+	DEBUG_PRINTF(3, "telem: Got UNEXPECTED ack for %d/%d\n", obj_id, inst_id);
 }
 
 /**
