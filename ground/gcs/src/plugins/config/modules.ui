@@ -31,414 +31,436 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
-        <widget class="QGroupBox" name="gbManualModules">
-         <property name="title">
-          <string>Manually Enabled Modules</string>
+        <widget class="QScrollArea" name="scrollArea_3">
+         <property name="sizeAdjustPolicy">
+          <enum>QAbstractScrollArea::AdjustToContents</enum>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_8">
-          <item>
-           <widget class="QLabel" name="lblManual">
-            <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Some modules are shown greyed out, these modules are enabled from their own configuration tabs. After enabling a module, a &lt;span style=&quot; font-weight:600;&quot;&gt;reboot&lt;/span&gt; is required before the module will start.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="wordWrap">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="cbAirspeed">
-            <property name="text">
-             <string>Airspeed</string>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:ModuleSettings</string>
-              <string>fieldname:AdminState</string>
-              <string>element:Airspeed</string>
-              <string>checkedoption:Enabled</string>
-              <string>uncheckedoption:Disabled</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="cbAltitudeHold">
-            <property name="text">
-             <string>Altitude Hold</string>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:ModuleSettings</string>
-              <string>fieldname:AdminState</string>
-              <string>element:AltitudeHold</string>
-              <string>checkedoption:Enabled</string>
-              <string>uncheckedoption:Disabled</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="cbAutotune">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The autotune module enables automated tuning of PIDs from observed flight characteristics.  See the Autotune configuration tab for more information and to enable this module.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>Autotune</string>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:ModuleSettings</string>
-              <string>fieldname:AdminState</string>
-              <string>element:Autotune</string>
-              <string>checkedoption:Enabled</string>
-              <string>uncheckedoption:Disabled</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="cbBattery">
-            <property name="text">
-             <string>Battery Monitoring</string>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:ModuleSettings</string>
-              <string>fieldname:AdminState</string>
-              <string>element:Battery</string>
-              <string>checkedoption:Enabled</string>
-              <string>uncheckedoption:Disabled</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="cbCameraStab">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;See &amp;quot;Camera Stab&amp;quot; tab to enable/disable this module.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>Camera Stabilisation</string>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:ModuleSettings</string>
-              <string>fieldname:AdminState</string>
-              <string>element:CameraStab</string>
-              <string>checkedoption:Enabled</string>
-              <string>uncheckedoption:Disabled</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="cbFixedWingPathFollower">
-            <property name="text">
-             <string>Fixed Wing Path Follower</string>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:ModuleSettings</string>
-              <string>fieldname:AdminState</string>
-              <string>element:FixedWingPathFollower</string>
-              <string>checkedoption:Enabled</string>
-              <string>uncheckedoption:Disabled</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="cbFlightStats">
-            <property name="text">
-             <string>Flight Statistics</string>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:ModuleSettings</string>
-              <string>fieldname:AdminState</string>
-              <string>element:FlightStats</string>
-              <string>checkedoption:Enabled</string>
-              <string>uncheckedoption:Disabled</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="cbGeofence">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This enables the geofence module, which will cause the UAV to crash at the geofence boundary. Please see the submodule tab or help for more information.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>Geofence</string>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:ModuleSettings</string>
-              <string>fieldname:AdminState</string>
-              <string>element:Geofence</string>
-              <string>checkedoption:Enabled</string>
-              <string>uncheckedoption:Disabled</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="cbLogging">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select to enable logging to on-board flash memory.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>Logging</string>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:ModuleSettings</string>
-              <string>fieldname:AdminState</string>
-              <string>element:Logging</string>
-              <string>checkedoption:Enabled</string>
-              <string>uncheckedoption:Disabled</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="cbPathPlanner">
-            <property name="toolTip">
-             <string>This enables the path planner module which is required for waypoint navigation.</string>
-            </property>
-            <property name="text">
-             <string>Path Planner</string>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:ModuleSettings</string>
-              <string>fieldname:AdminState</string>
-              <string>element:PathPlanner</string>
-              <string>checkedoption:Enabled</string>
-              <string>uncheckedoption:Disabled</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="cbTxPid">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The TxPID module allows settings to be tuned in-flight using the transmitter.  See the TxPID configuration tab for more information and to enable this module.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>TxPID</string>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:ModuleSettings</string>
-              <string>fieldname:AdminState</string>
-              <string>element:TxPID</string>
-              <string>checkedoption:Enabled</string>
-              <string>uncheckedoption:Disabled</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="cbVibrationAnalysis">
-            <property name="text">
-             <string>Vibration Analysis</string>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:ModuleSettings</string>
-              <string>fieldname:AdminState</string>
-              <string>element:VibrationAnalysis</string>
-              <string>checkedoption:Enabled</string>
-              <string>uncheckedoption:Disabled</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="cbVtolFollower">
-            <property name="toolTip">
-             <string>Enable the VTOL path follower module which is required for RTH, PH and navigation</string>
-            </property>
-            <property name="text">
-             <string>VTOL Path Follower</string>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:ModuleSettings</string>
-              <string>fieldname:AdminState</string>
-              <string>element:VtolPathFollower</string>
-              <string>checkedoption:Enabled</string>
-              <string>uncheckedoption:Disabled</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         <property name="widgetResizable">
+          <bool>true</bool>
+         </property>
+         <widget class="QWidget" name="scrollAreaWidgetContents_3">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>1059</width>
+            <height>889</height>
+           </rect>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_15">
+           <item>
+            <widget class="QGroupBox" name="gbManualModules">
+             <property name="title">
+              <string>Manually Enabled Modules</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_8">
+              <item>
+               <widget class="QLabel" name="lblManual">
+                <property name="text">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Some modules are shown greyed out, these modules are enabled from their own configuration tabs. After enabling a module, a &lt;span style=&quot; font-weight:600;&quot;&gt;reboot&lt;/span&gt; is required before the module will start.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="cbAirspeed">
+                <property name="text">
+                 <string>Airspeed</string>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:ModuleSettings</string>
+                  <string>fieldname:AdminState</string>
+                  <string>element:Airspeed</string>
+                  <string>checkedoption:Enabled</string>
+                  <string>uncheckedoption:Disabled</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="cbAltitudeHold">
+                <property name="text">
+                 <string>Altitude Hold</string>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:ModuleSettings</string>
+                  <string>fieldname:AdminState</string>
+                  <string>element:AltitudeHold</string>
+                  <string>checkedoption:Enabled</string>
+                  <string>uncheckedoption:Disabled</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="cbAutotune">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The autotune module enables automated tuning of PIDs from observed flight characteristics.  See the Autotune configuration tab for more information and to enable this module.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Autotune</string>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:ModuleSettings</string>
+                  <string>fieldname:AdminState</string>
+                  <string>element:Autotune</string>
+                  <string>checkedoption:Enabled</string>
+                  <string>uncheckedoption:Disabled</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="cbBattery">
+                <property name="text">
+                 <string>Battery Monitoring</string>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:ModuleSettings</string>
+                  <string>fieldname:AdminState</string>
+                  <string>element:Battery</string>
+                  <string>checkedoption:Enabled</string>
+                  <string>uncheckedoption:Disabled</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="cbCameraStab">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;See &amp;quot;Camera Stab&amp;quot; tab to enable/disable this module.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Camera Stabilisation</string>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:ModuleSettings</string>
+                  <string>fieldname:AdminState</string>
+                  <string>element:CameraStab</string>
+                  <string>checkedoption:Enabled</string>
+                  <string>uncheckedoption:Disabled</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="cbFixedWingPathFollower">
+                <property name="text">
+                 <string>Fixed Wing Path Follower</string>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:ModuleSettings</string>
+                  <string>fieldname:AdminState</string>
+                  <string>element:FixedWingPathFollower</string>
+                  <string>checkedoption:Enabled</string>
+                  <string>uncheckedoption:Disabled</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="cbFlightStats">
+                <property name="text">
+                 <string>Flight Statistics</string>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:ModuleSettings</string>
+                  <string>fieldname:AdminState</string>
+                  <string>element:FlightStats</string>
+                  <string>checkedoption:Enabled</string>
+                  <string>uncheckedoption:Disabled</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="cbGeofence">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This enables the geofence module, which will cause the UAV to crash at the geofence boundary. Please see the submodule tab or help for more information.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Geofence</string>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:ModuleSettings</string>
+                  <string>fieldname:AdminState</string>
+                  <string>element:Geofence</string>
+                  <string>checkedoption:Enabled</string>
+                  <string>uncheckedoption:Disabled</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="cbLogging">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select to enable logging to on-board flash memory.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Logging</string>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:ModuleSettings</string>
+                  <string>fieldname:AdminState</string>
+                  <string>element:Logging</string>
+                  <string>checkedoption:Enabled</string>
+                  <string>uncheckedoption:Disabled</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="cbPathPlanner">
+                <property name="toolTip">
+                 <string>This enables the path planner module which is required for waypoint navigation.</string>
+                </property>
+                <property name="text">
+                 <string>Path Planner</string>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:ModuleSettings</string>
+                  <string>fieldname:AdminState</string>
+                  <string>element:PathPlanner</string>
+                  <string>checkedoption:Enabled</string>
+                  <string>uncheckedoption:Disabled</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="cbTxPid">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The TxPID module allows settings to be tuned in-flight using the transmitter.  See the TxPID configuration tab for more information and to enable this module.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>TxPID</string>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:ModuleSettings</string>
+                  <string>fieldname:AdminState</string>
+                  <string>element:TxPID</string>
+                  <string>checkedoption:Enabled</string>
+                  <string>uncheckedoption:Disabled</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="cbVibrationAnalysis">
+                <property name="text">
+                 <string>Vibration Analysis</string>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:ModuleSettings</string>
+                  <string>fieldname:AdminState</string>
+                  <string>element:VibrationAnalysis</string>
+                  <string>checkedoption:Enabled</string>
+                  <string>uncheckedoption:Disabled</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="cbVtolFollower">
+                <property name="toolTip">
+                 <string>Enable the VTOL path follower module which is required for RTH, PH and navigation</string>
+                </property>
+                <property name="text">
+                 <string>VTOL Path Follower</string>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:ModuleSettings</string>
+                  <string>fieldname:AdminState</string>
+                  <string>element:VtolPathFollower</string>
+                  <string>checkedoption:Enabled</string>
+                  <string>uncheckedoption:Disabled</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="gbAutoModules">
+             <property name="title">
+              <string>Automatically Enabled Modules</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_9">
+              <item>
+               <widget class="QLabel" name="lblAuto">
+                <property name="text">
+                 <string>These modules are  are automatically enabled by configuring appropriate ports on the &quot;Hardware&quot; configuration tab. Note that &quot;Hardware&quot; tab settings won't take effect until after a reboot.</string>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QReadOnlyCheckBox" name="cbComBridge">
+                <property name="toolTip">
+                 <string>Select to enable USB serial relay to a serial port (select the board on the board options)</string>
+                </property>
+                <property name="text">
+                 <string>Com Bridge (USB VCP to Serial Port)</string>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:TaskInfo</string>
+                  <string>fieldname:Running</string>
+                  <string>element:Com2UsbBridge</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QReadOnlyCheckBox" name="cbUAVOFrskyBridge">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This enables Frsky Telemetry&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>FrSky Sensor Hub Telemetry</string>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:TaskInfo</string>
+                  <string>fieldname:Running</string>
+                  <string>element:UAVOFrSKYSBridge</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QReadOnlyCheckBox" name="cbUAVOFrSkySPortBridge">
+                <property name="text">
+                 <string>FrSky S.PORT Telemetry</string>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:TaskInfo</string>
+                  <string>fieldname:Running</string>
+                  <string>element:UAVOFrSkySPortBridge</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QReadOnlyCheckBox" name="cbGPS">
+                <property name="toolTip">
+                 <string>Select to enable the GPS module</string>
+                </property>
+                <property name="text">
+                 <string>GPS</string>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:TaskInfo</string>
+                  <string>fieldname:Running</string>
+                  <string>element:GPS</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QReadOnlyCheckBox" name="cbUAVOHottBridge">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This enables the Graupner HoTT Telemetry&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>HoTT Telemetry</string>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:TaskInfo</string>
+                  <string>fieldname:Running</string>
+                  <string>element:UAVOHoTTBridge</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QReadOnlyCheckBox" name="cbUAVOLighttelemetryBridge">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable UAVOLighttelemetryBridge module which is required for LightTelemetry protocol&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Light Telemetry (LTM)</string>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:TaskInfo</string>
+                  <string>fieldname:Running</string>
+                  <string>element:UAVOLighttelemetryBridge</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QReadOnlyCheckBox" name="cbUavoMavlink">
+                <property name="text">
+                 <string>Mavlink Telemetry</string>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:TaskInfo</string>
+                  <string>fieldname:Running</string>
+                  <string>element:UAVOMavlinkBridge</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QReadOnlyCheckBox" name="cbUAVOMSPBridge">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This enables the UAVOMSPBridge module, which allows the Multiwii Serial Protocol to be used.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>MSP Telemetry</string>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:TaskInfo</string>
+                  <string>fieldname:Running</string>
+                  <string>element:UAVOMSPBridge</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_4">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>2</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
         </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="gbAutoModules">
-         <property name="title">
-          <string>Automatically Enabled Modules</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_9">
-          <item>
-           <widget class="QLabel" name="lblAuto">
-            <property name="text">
-             <string>These modules are  are automatically enabled by configuring appropriate ports on the &quot;Hardware&quot; configuration tab. Note that &quot;Hardware&quot; tab settings won't take effect until after a reboot.</string>
-            </property>
-            <property name="wordWrap">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QReadOnlyCheckBox" name="cbComBridge">
-            <property name="toolTip">
-             <string>Select to enable USB serial relay to a serial port (select the board on the board options)</string>
-            </property>
-            <property name="text">
-             <string>Com Bridge (USB VCP to Serial Port)</string>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:TaskInfo</string>
-              <string>fieldname:Running</string>
-              <string>element:Com2UsbBridge</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QReadOnlyCheckBox" name="cbUAVOFrskyBridge">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This enables Frsky Telemetry&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>FrSky Sensor Hub Telemetry</string>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:TaskInfo</string>
-              <string>fieldname:Running</string>
-              <string>element:UAVOFrSKYSBridge</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QReadOnlyCheckBox" name="cbUAVOFrSkySPortBridge">
-            <property name="text">
-             <string>FrSky S.PORT Telemetry</string>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:TaskInfo</string>
-              <string>fieldname:Running</string>
-              <string>element:UAVOFrSkySPortBridge</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QReadOnlyCheckBox" name="cbGPS">
-            <property name="toolTip">
-             <string>Select to enable the GPS module</string>
-            </property>
-            <property name="text">
-             <string>GPS</string>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:TaskInfo</string>
-              <string>fieldname:Running</string>
-              <string>element:GPS</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QReadOnlyCheckBox" name="cbUAVOHottBridge">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This enables the Graupner HoTT Telemetry&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>HoTT Telemetry</string>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:TaskInfo</string>
-              <string>fieldname:Running</string>
-              <string>element:UAVOHoTTBridge</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QReadOnlyCheckBox" name="cbUAVOLighttelemetryBridge">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable UAVOLighttelemetryBridge module which is required for LightTelemetry protocol&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>Light Telemetry (LTM)</string>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:TaskInfo</string>
-              <string>fieldname:Running</string>
-              <string>element:UAVOLighttelemetryBridge</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QReadOnlyCheckBox" name="cbUavoMavlink">
-            <property name="text">
-             <string>Mavlink Telemetry</string>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:TaskInfo</string>
-              <string>fieldname:Running</string>
-              <string>element:UAVOMavlinkBridge</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QReadOnlyCheckBox" name="cbUAVOMSPBridge">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This enables the UAVOMSPBridge module, which allows the Multiwii Serial Protocol to be used.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>MSP Telemetry</string>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:TaskInfo</string>
-              <string>fieldname:Running</string>
-              <string>element:UAVOMSPBridge</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <spacer name="verticalSpacer_4">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>0</height>
-          </size>
-         </property>
-        </spacer>
        </item>
       </layout>
      </widget>
@@ -448,663 +470,708 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_7">
        <item>
-        <widget class="QGroupBox" name="gbBatteryData">
-         <property name="title">
-          <string>Battery Data</string>
+        <widget class="QScrollArea" name="scrollArea_2">
+         <property name="sizeAdjustPolicy">
+          <enum>QAbstractScrollArea::AdjustToContents</enum>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_5">
-          <item>
-           <widget class="QGroupBox" name="gbAutoCellDetection">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="title">
-             <string>Automatic cell count detection</string>
-            </property>
-            <property name="checkable">
-             <bool>true</bool>
-            </property>
-            <property name="checked">
-             <bool>false</bool>
-            </property>
-            <layout class="QFormLayout" name="formLayout_6">
-             <item row="0" column="0">
-              <widget class="QLabel" name="lblMaxCellVoltage">
-               <property name="text">
-                <string>Max voltage per cell:</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QDoubleSpinBox" name="sbMaxCellVoltage">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
-               <property name="suffix">
-                <string> V</string>
-               </property>
-               <property name="singleStep">
-                <double>0.050000000000000</double>
-               </property>
-               <property name="value">
-                <double>0.000000000000000</double>
-               </property>
-               <property name="objrelation" stdset="0">
-                <stringlist>
-                 <string>objname:FlightBatterySettings</string>
-                 <string>fieldname:MaxCellVoltage</string>
-                </stringlist>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QLabel" name="lblLiveCellCount">
-               <property name="text">
-                <string>Live detected cell count*:</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QLineEdit" name="leLiveCellCount">
-               <property name="readOnly">
-                <bool>true</bool>
-               </property>
-               <property name="objrelation" stdset="0">
-                <stringlist>
-                 <string>objname:FlightBatteryState</string>
-                 <string>fieldname:DetectedCellCount</string>
-                </stringlist>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <widget class="QFrame" name="frame">
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="frameShape">
-             <enum>QFrame::StyledPanel</enum>
-            </property>
-            <property name="frameShadow">
-             <enum>QFrame::Raised</enum>
-            </property>
-            <layout class="QGridLayout" name="gridLayout_3">
-             <item row="0" column="1">
-              <widget class="QLabel" name="lblNumBatteryCells">
-               <property name="enabled">
-                <bool>true</bool>
-               </property>
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="text">
-                <string>Number of cells:</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="2">
-              <widget class="QSpinBox" name="sb_numBatteryCells">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
-               <property name="minimum">
-                <number>1</number>
-               </property>
-               <property name="objrelation" stdset="0">
-                <stringlist>
-                 <string>objname:FlightBatterySettings</string>
-                 <string>fieldname:NbCells</string>
-                </stringlist>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="3">
-              <spacer name="horizontalSpacer_10">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeType">
-                <enum>QSizePolicy::Fixed</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item row="0" column="4">
-              <widget class="QLabel" name="lblBatteryCapacity">
-               <property name="enabled">
-                <bool>true</bool>
-               </property>
-               <property name="text">
-                <string>Capacity:</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="6">
-              <spacer name="horizontalSpacer_4">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item row="0" column="5">
-              <widget class="QSpinBox" name="sb_batteryCapacity">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
-               <property name="suffix">
-                <string>mAhr</string>
-               </property>
-               <property name="minimum">
-                <number>1</number>
-               </property>
-               <property name="maximum">
-                <number>1000000</number>
-               </property>
-               <property name="singleStep">
-                <number>100</number>
-               </property>
-               <property name="value">
-                <number>2000</number>
-               </property>
-               <property name="objrelation" stdset="0">
-                <stringlist>
-                 <string>objname:FlightBatterySettings</string>
-                 <string>fieldname:Capacity</string>
-                </stringlist>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="0">
-              <spacer name="horizontalSpacer_11">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="gb_measureVoltage">
-         <property name="title">
-          <string>Measure voltage</string>
-         </property>
-         <property name="checkable">
+         <property name="widgetResizable">
           <bool>true</bool>
          </property>
-         <property name="checked">
-          <bool>false</bool>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_2">
-          <item row="6" column="1">
-           <widget class="QLabel" name="label_11">
-            <property name="text">
-             <string>Low cell voltage alarm:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="6" column="2">
-           <widget class="QDoubleSpinBox" name="sb_lowVoltageAlarm">
-            <property name="suffix">
-             <string> V</string>
-            </property>
-            <property name="singleStep">
-             <double>0.100000000000000</double>
-            </property>
-            <property name="value">
-             <double>3.300000000000000</double>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:FlightBatterySettings</string>
-              <string>fieldname:CellVoltageThresholds</string>
-              <string>element:Alarm</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="4">
-           <widget class="QDoubleSpinBox" name="sb_voltageRatio">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="suffix">
-             <string>:1 ratio</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QLabel" name="label_23">
-            <property name="text">
-             <string>Voltage Pin:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="2">
-           <widget class="QDoubleSpinBox" name="sb_voltageFactor">
-            <property name="suffix">
-             <string> mV/V</string>
-            </property>
-            <property name="decimals">
-             <number>4</number>
-            </property>
-            <property name="maximum">
-             <double>1000.000000000000000</double>
-            </property>
-            <property name="singleStep">
-             <double>0.010000000000000</double>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:FlightBatterySettings</string>
-              <string>fieldname:SensorCalibrationFactor</string>
-              <string>element:Voltage</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="7" column="1">
-           <widget class="QLabel" name="label_12">
-            <property name="text">
-             <string>Low cell voltage warning:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="7" column="2">
-           <widget class="QDoubleSpinBox" name="sb_lowVoltageWarning">
-            <property name="suffix">
-             <string> V</string>
-            </property>
-            <property name="singleStep">
-             <double>0.100000000000000</double>
-            </property>
-            <property name="value">
-             <double>3.500000000000000</double>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:FlightBatterySettings</string>
-              <string>fieldname:CellVoltageThresholds</string>
-              <string>element:Warning</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="2">
-           <widget class="QLineEdit" name="le_liveVoltageReading">
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:FlightBatteryState</string>
-              <string>fieldname:Voltage</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="1">
-           <widget class="QLabel" name="label_31">
-            <property name="text">
-             <string>Calibration offset:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="2">
-           <widget class="QDoubleSpinBox" name="sb_voltageOffSet">
-            <property name="suffix">
-             <string> V</string>
-            </property>
-            <property name="decimals">
-             <number>4</number>
-            </property>
-            <property name="minimum">
-             <double>-100.000000000000000</double>
-            </property>
-            <property name="maximum">
-             <double>100.000000000000000</double>
-            </property>
-            <property name="singleStep">
-             <double>0.100000000000000</double>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:FlightBatterySettings</string>
-              <string>fieldname:SensorCalibrationOffset</string>
-              <string>element:Voltage</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="2">
-           <widget class="QComboBox" name="cbVoltagePin">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select an ADC pin to measure the voltage. Pins not available with the current board configuration are labeled &amp;quot;Disabled&amp;quot;. These pins may be enabled by settings on the &amp;quot;Hardware&amp;quot; tab. Pins labeled &amp;quot;N/A&amp;quot; are not available due to the board hardware design.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:FlightBatterySettings</string>
-              <string>fieldname:VoltagePin</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLabel" name="label_13">
-            <property name="text">
-             <string>Calibration factor:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QLabel" name="label_14">
-            <property name="text">
-             <string>Live reading (V)*:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <spacer name="horizontalSpacer">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="2" column="3">
-           <widget class="QLabel" name="label_5">
-            <property name="text">
-             <string>or</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="5">
-           <spacer name="horizontalSpacer_2">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="gb_measureCurrent">
-         <property name="title">
-          <string>Measure current</string>
-         </property>
-         <property name="checkable">
-          <bool>true</bool>
-         </property>
-         <property name="checked">
-          <bool>false</bool>
-         </property>
-         <layout class="QFormLayout" name="formLayout_2">
-          <property name="fieldGrowthPolicy">
-           <enum>QFormLayout::FieldsStayAtSizeHint</enum>
+         <widget class="QWidget" name="scrollAreaWidgetContents_2">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>1059</width>
+            <height>889</height>
+           </rect>
           </property>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_9">
-            <property name="text">
-             <string>Live reading (A)*:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QLineEdit" name="le_liveCurrentReading">
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:FlightBatteryState</string>
-              <string>fieldname:Current</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_36">
-            <property name="text">
-             <string>Consumed capacity (mAh):</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QLineEdit" name="le_liveConsumedEnergy">
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:FlightBatteryState</string>
-              <string>fieldname:ConsumedEnergy</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_37">
-            <property name="text">
-             <string>Remaining flight time (s):</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLineEdit" name="le_liveEstimatedFlightTime">
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:FlightBatteryState</string>
-              <string>fieldname:EstimatedFlightTime</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="0">
-           <widget class="QLabel" name="label_24">
-            <property name="text">
-             <string>Current Pin:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="1">
-           <widget class="QComboBox" name="cbCurrentPin">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select an ADC pin to measure the current. Pins not available with the current board configuration are labeled &amp;quot;Disabled&amp;quot;. These pins may be enabled by settings on the &amp;quot;Hardware&amp;quot; tab. Pins labeled &amp;quot;N/A&amp;quot; are not available due to the board hardware design.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:FlightBatterySettings</string>
-              <string>fieldname:CurrentPin</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="0">
-           <widget class="QLabel" name="label_8">
-            <property name="text">
-             <string>Calibration factor:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="1">
-           <widget class="QDoubleSpinBox" name="sb_currentFactor">
-            <property name="suffix">
-             <string> mV/A</string>
-            </property>
-            <property name="decimals">
-             <number>4</number>
-            </property>
-            <property name="maximum">
-             <double>1000.000000000000000</double>
-            </property>
-            <property name="singleStep">
-             <double>0.000010000000000</double>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:FlightBatterySettings</string>
-              <string>fieldname:SensorCalibrationFactor</string>
-              <string>element:Current</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="6" column="0">
-           <widget class="QLabel" name="label_32">
-            <property name="text">
-             <string>Calibration offset:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="6" column="1">
-           <widget class="QDoubleSpinBox" name="sb_currentOffSet">
-            <property name="suffix">
-             <string> A</string>
-            </property>
-            <property name="decimals">
-             <number>4</number>
-            </property>
-            <property name="minimum">
-             <double>-200.000000000000000</double>
-            </property>
-            <property name="maximum">
-             <double>200.000000000000000</double>
-            </property>
-            <property name="singleStep">
-             <double>0.100000000000000</double>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:FlightBatterySettings</string>
-              <string>fieldname:SensorCalibrationOffset</string>
-              <string>element:Current</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="7" column="0">
-           <widget class="QLabel" name="label_33">
-            <property name="text">
-             <string>Flight time alarm:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="7" column="1">
-           <widget class="QSpinBox" name="sb_flightTimeAlarm">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Raise an alarm when the remaining flight time (calculated based on battery capacity and current consumed) is below this threshold. Set to 0s to disable.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="suffix">
-             <string> s</string>
-            </property>
-            <property name="maximum">
-             <number>255</number>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:FlightBatterySettings</string>
-              <string>fieldname:FlightTimeThresholds</string>
-              <string>element:Alarm</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="8" column="0">
-           <widget class="QLabel" name="label_35">
-            <property name="text">
-             <string>Flight time warning:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="8" column="1">
-           <widget class="QSpinBox" name="sb_flightTimeWarning">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Issue a warning when the remaining flight time (calculated based on battery capacity and current consumed) is below this threshold. Set to 0s to disable.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="suffix">
-             <string> s</string>
-            </property>
-            <property name="maximum">
-             <number>255</number>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:FlightBatterySettings</string>
-              <string>fieldname:FlightTimeThresholds</string>
-              <string>element:Warning</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-         </layout>
+          <layout class="QVBoxLayout" name="verticalLayout_14">
+           <item>
+            <widget class="QGroupBox" name="gbBatteryData">
+             <property name="title">
+              <string>Battery Data</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_5">
+              <item>
+               <widget class="QGroupBox" name="gbAutoCellDetection">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="title">
+                 <string>Automatic cell count detection</string>
+                </property>
+                <property name="checkable">
+                 <bool>true</bool>
+                </property>
+                <property name="checked">
+                 <bool>false</bool>
+                </property>
+                <layout class="QFormLayout" name="formLayout_6">
+                 <item row="0" column="0">
+                  <widget class="QLabel" name="lblMaxCellVoltage">
+                   <property name="text">
+                    <string>Max voltage per cell:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="1">
+                  <widget class="QDoubleSpinBox" name="sbMaxCellVoltage">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="suffix">
+                    <string> V</string>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.050000000000000</double>
+                   </property>
+                   <property name="value">
+                    <double>0.000000000000000</double>
+                   </property>
+                   <property name="objrelation" stdset="0">
+                    <stringlist>
+                     <string>objname:FlightBatterySettings</string>
+                     <string>fieldname:MaxCellVoltage</string>
+                    </stringlist>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="0">
+                  <widget class="QLabel" name="lblLiveCellCount">
+                   <property name="text">
+                    <string>Live detected cell count*:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="1">
+                  <widget class="QLineEdit" name="leLiveCellCount">
+                   <property name="readOnly">
+                    <bool>true</bool>
+                   </property>
+                   <property name="objrelation" stdset="0">
+                    <stringlist>
+                     <string>objname:FlightBatteryState</string>
+                     <string>fieldname:DetectedCellCount</string>
+                    </stringlist>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item>
+               <widget class="QFrame" name="frame">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="frameShape">
+                 <enum>QFrame::StyledPanel</enum>
+                </property>
+                <property name="frameShadow">
+                 <enum>QFrame::Raised</enum>
+                </property>
+                <layout class="QGridLayout" name="gridLayout_3">
+                 <item row="0" column="1">
+                  <widget class="QLabel" name="lblNumBatteryCells">
+                   <property name="enabled">
+                    <bool>true</bool>
+                   </property>
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>Number of cells:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="2">
+                  <widget class="QSpinBox" name="sb_numBatteryCells">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="minimum">
+                    <number>1</number>
+                   </property>
+                   <property name="objrelation" stdset="0">
+                    <stringlist>
+                     <string>objname:FlightBatterySettings</string>
+                     <string>fieldname:NbCells</string>
+                    </stringlist>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="3">
+                  <spacer name="horizontalSpacer_10">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeType">
+                    <enum>QSizePolicy::Fixed</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item row="0" column="4">
+                  <widget class="QLabel" name="lblBatteryCapacity">
+                   <property name="enabled">
+                    <bool>true</bool>
+                   </property>
+                   <property name="text">
+                    <string>Capacity:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="6">
+                  <spacer name="horizontalSpacer_4">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item row="0" column="5">
+                  <widget class="QSpinBox" name="sb_batteryCapacity">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="suffix">
+                    <string>mAhr</string>
+                   </property>
+                   <property name="minimum">
+                    <number>1</number>
+                   </property>
+                   <property name="maximum">
+                    <number>1000000</number>
+                   </property>
+                   <property name="singleStep">
+                    <number>100</number>
+                   </property>
+                   <property name="value">
+                    <number>2000</number>
+                   </property>
+                   <property name="objrelation" stdset="0">
+                    <stringlist>
+                     <string>objname:FlightBatterySettings</string>
+                     <string>fieldname:Capacity</string>
+                    </stringlist>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="0">
+                  <spacer name="horizontalSpacer_11">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="gb_measureVoltage">
+             <property name="title">
+              <string>Measure voltage</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+             <property name="checked">
+              <bool>false</bool>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_2">
+              <item row="6" column="1">
+               <widget class="QLabel" name="label_11">
+                <property name="text">
+                 <string>Low cell voltage alarm:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="2">
+               <widget class="QDoubleSpinBox" name="sb_lowVoltageAlarm">
+                <property name="suffix">
+                 <string> V</string>
+                </property>
+                <property name="singleStep">
+                 <double>0.100000000000000</double>
+                </property>
+                <property name="value">
+                 <double>3.300000000000000</double>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:FlightBatterySettings</string>
+                  <string>fieldname:CellVoltageThresholds</string>
+                  <string>element:Alarm</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="4">
+               <widget class="QDoubleSpinBox" name="sb_voltageRatio">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="suffix">
+                 <string>:1 ratio</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QLabel" name="label_23">
+                <property name="text">
+                 <string>Voltage Pin:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="2">
+               <widget class="QDoubleSpinBox" name="sb_voltageFactor">
+                <property name="suffix">
+                 <string> mV/V</string>
+                </property>
+                <property name="decimals">
+                 <number>4</number>
+                </property>
+                <property name="maximum">
+                 <double>1000.000000000000000</double>
+                </property>
+                <property name="singleStep">
+                 <double>0.010000000000000</double>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:FlightBatterySettings</string>
+                  <string>fieldname:SensorCalibrationFactor</string>
+                  <string>element:Voltage</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="7" column="1">
+               <widget class="QLabel" name="label_12">
+                <property name="text">
+                 <string>Low cell voltage warning:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="7" column="2">
+               <widget class="QDoubleSpinBox" name="sb_lowVoltageWarning">
+                <property name="suffix">
+                 <string> V</string>
+                </property>
+                <property name="singleStep">
+                 <double>0.100000000000000</double>
+                </property>
+                <property name="value">
+                 <double>3.500000000000000</double>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:FlightBatterySettings</string>
+                  <string>fieldname:CellVoltageThresholds</string>
+                  <string>element:Warning</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <widget class="QLineEdit" name="le_liveVoltageReading">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:FlightBatteryState</string>
+                  <string>fieldname:Voltage</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="1">
+               <widget class="QLabel" name="label_31">
+                <property name="text">
+                 <string>Calibration offset:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="2">
+               <widget class="QDoubleSpinBox" name="sb_voltageOffSet">
+                <property name="suffix">
+                 <string> V</string>
+                </property>
+                <property name="decimals">
+                 <number>4</number>
+                </property>
+                <property name="minimum">
+                 <double>-100.000000000000000</double>
+                </property>
+                <property name="maximum">
+                 <double>100.000000000000000</double>
+                </property>
+                <property name="singleStep">
+                 <double>0.100000000000000</double>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:FlightBatterySettings</string>
+                  <string>fieldname:SensorCalibrationOffset</string>
+                  <string>element:Voltage</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QComboBox" name="cbVoltagePin">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select an ADC pin to measure the voltage. Pins not available with the current board configuration are labeled &amp;quot;Disabled&amp;quot;. These pins may be enabled by settings on the &amp;quot;Hardware&amp;quot; tab. Pins labeled &amp;quot;N/A&amp;quot; are not available due to the board hardware design.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:FlightBatterySettings</string>
+                  <string>fieldname:VoltagePin</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QLabel" name="label_13">
+                <property name="text">
+                 <string>Calibration factor:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QLabel" name="label_14">
+                <property name="text">
+                 <string>Live reading (V)*:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <spacer name="horizontalSpacer">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="2" column="3">
+               <widget class="QLabel" name="label_5">
+                <property name="text">
+                 <string>or</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="5">
+               <spacer name="horizontalSpacer_2">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="gb_measureCurrent">
+             <property name="title">
+              <string>Measure current</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+             <property name="checked">
+              <bool>false</bool>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_4">
+              <item row="0" column="1">
+               <widget class="QLabel" name="label_9">
+                <property name="text">
+                 <string>Live reading (A)*:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <widget class="QLineEdit" name="le_liveCurrentReading">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:FlightBatteryState</string>
+                  <string>fieldname:Current</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="7" column="1">
+               <widget class="QLabel" name="label_35">
+                <property name="text">
+                 <string>Flight time warning:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="7" column="2">
+               <widget class="QSpinBox" name="sb_flightTimeWarning">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Issue a warning when the remaining flight time (calculated based on battery capacity and current consumed) is below this threshold. Set to 0s to disable.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="suffix">
+                 <string> s</string>
+                </property>
+                <property name="maximum">
+                 <number>255</number>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:FlightBatterySettings</string>
+                  <string>fieldname:FlightTimeThresholds</string>
+                  <string>element:Warning</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QLabel" name="label_24">
+                <property name="text">
+                 <string>Current Pin:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="2">
+               <widget class="QComboBox" name="cbCurrentPin">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select an ADC pin to measure the current. Pins not available with the current board configuration are labeled &amp;quot;Disabled&amp;quot;. These pins may be enabled by settings on the &amp;quot;Hardware&amp;quot; tab. Pins labeled &amp;quot;N/A&amp;quot; are not available due to the board hardware design.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:FlightBatterySettings</string>
+                  <string>fieldname:CurrentPin</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="1">
+               <widget class="QLabel" name="label_8">
+                <property name="text">
+                 <string>Calibration factor:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="1">
+               <widget class="QLabel" name="label_32">
+                <property name="text">
+                 <string>Calibration offset:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="2">
+               <widget class="QDoubleSpinBox" name="sb_currentOffSet">
+                <property name="suffix">
+                 <string> A</string>
+                </property>
+                <property name="decimals">
+                 <number>4</number>
+                </property>
+                <property name="minimum">
+                 <double>-200.000000000000000</double>
+                </property>
+                <property name="maximum">
+                 <double>200.000000000000000</double>
+                </property>
+                <property name="singleStep">
+                 <double>0.100000000000000</double>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:FlightBatterySettings</string>
+                  <string>fieldname:SensorCalibrationOffset</string>
+                  <string>element:Current</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="1">
+               <widget class="QLabel" name="label_33">
+                <property name="text">
+                 <string>Flight time alarm:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="2">
+               <widget class="QSpinBox" name="sb_flightTimeAlarm">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Raise an alarm when the remaining flight time (calculated based on battery capacity and current consumed) is below this threshold. Set to 0s to disable.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="suffix">
+                 <string> s</string>
+                </property>
+                <property name="maximum">
+                 <number>255</number>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:FlightBatterySettings</string>
+                  <string>fieldname:FlightTimeThresholds</string>
+                  <string>element:Alarm</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <spacer name="horizontalSpacer_3">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="1" column="1">
+               <widget class="QLabel" name="label_36">
+                <property name="text">
+                 <string>Consumed capacity (mAh):</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QLineEdit" name="le_liveConsumedEnergy">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:FlightBatteryState</string>
+                  <string>fieldname:ConsumedEnergy</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QLabel" name="label_37">
+                <property name="text">
+                 <string>Remaining flight time (s):</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="2">
+               <widget class="QDoubleSpinBox" name="sb_currentFactor">
+                <property name="suffix">
+                 <string> mV/A</string>
+                </property>
+                <property name="decimals">
+                 <number>4</number>
+                </property>
+                <property name="maximum">
+                 <double>1000.000000000000000</double>
+                </property>
+                <property name="singleStep">
+                 <double>0.000010000000000</double>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:FlightBatterySettings</string>
+                  <string>fieldname:SensorCalibrationFactor</string>
+                  <string>element:Current</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="2">
+               <widget class="QLineEdit" name="le_liveEstimatedFlightTime">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:FlightBatteryState</string>
+                  <string>fieldname:EstimatedFlightTime</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="3">
+               <spacer name="horizontalSpacer_25">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="lblForNoobs">
+             <property name="text">
+              <string>* Settings need to be applied before their effect will be seen here.</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_6">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>2</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
         </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="lblForNoobs">
-         <property name="text">
-          <string>* Settings need to be applied before their effect will be seen here.</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <spacer name="verticalSpacer_6">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>2</height>
-          </size>
-         </property>
-        </spacer>
        </item>
       </layout>
      </widget>
@@ -1114,93 +1181,125 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_11">
        <item>
-        <widget class="QGroupBox" name="groupBox">
-         <property name="title">
-          <string>GPS Settings</string>
+        <widget class="QScrollArea" name="scrollArea_4">
+         <property name="widgetResizable">
+          <bool>true</bool>
          </property>
-         <layout class="QFormLayout" name="formLayout_12">
-          <item row="0" column="0">
-           <widget class="QLabel" name="lblGPSProtocol">
-            <property name="text">
-             <string>Protocol:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QComboBox" name="cbGPSProtocol">
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:ModuleSettings</string>
-              <string>fieldname:GPSDataProtocol</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="lblGPSConstellation">
-            <property name="text">
-             <string>Constellation:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
-           <widget class="QComboBox" name="cbGPSConstellation">
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:ModuleSettings</string>
-              <string>fieldname:GPSConstellation</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0" colspan="2">
-           <widget class="QCheckBox" name="cbxGPSAutoConfig">
-            <property name="text">
-             <string>Auto Configure u-blox</string>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:ModuleSettings</string>
-              <string>fieldname:GPSAutoConfigure</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="0">
-           <widget class="QLabel" name="label">
-            <property name="text">
-             <string>SBAS Constellation:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="1">
-           <widget class="QComboBox" name="cbGPSSBASConstellation">
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:ModuleSettings</string>
-              <string>fieldname:GPSSBASConstellation</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="lbGPS">
-            <property name="text">
-             <string>Serial baudrate:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QComboBox" name="cb_gpsSpeed">
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:ModuleSettings</string>
-              <string>fieldname:GPSSpeed</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         <widget class="QWidget" name="scrollAreaWidgetContents_4">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>1059</width>
+            <height>889</height>
+           </rect>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_16">
+           <item>
+            <widget class="QGroupBox" name="groupBox">
+             <property name="title">
+              <string>GPS Settings</string>
+             </property>
+             <layout class="QFormLayout" name="formLayout_12">
+              <item row="0" column="0">
+               <widget class="QLabel" name="lblGPSProtocol">
+                <property name="text">
+                 <string>Protocol:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="cbGPSProtocol">
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:ModuleSettings</string>
+                  <string>fieldname:GPSDataProtocol</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="lblGPSConstellation">
+                <property name="text">
+                 <string>Constellation:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QComboBox" name="cbGPSConstellation">
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:ModuleSettings</string>
+                  <string>fieldname:GPSConstellation</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0" colspan="2">
+               <widget class="QCheckBox" name="cbxGPSAutoConfig">
+                <property name="text">
+                 <string>Auto Configure u-blox</string>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:ModuleSettings</string>
+                  <string>fieldname:GPSAutoConfigure</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="QLabel" name="label">
+                <property name="text">
+                 <string>SBAS Constellation:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="1">
+               <widget class="QComboBox" name="cbGPSSBASConstellation">
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:ModuleSettings</string>
+                  <string>fieldname:GPSSBASConstellation</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="lbGPS">
+                <property name="text">
+                 <string>Serial baudrate:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QComboBox" name="cb_gpsSpeed">
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:ModuleSettings</string>
+                  <string>fieldname:GPSSpeed</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_8">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>653</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
         </widget>
        </item>
       </layout>
@@ -1211,80 +1310,112 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_12">
        <item>
-        <widget class="QGroupBox" name="groupBox_2">
-         <property name="title">
-          <string>Logging Settings</string>
+        <widget class="QScrollArea" name="scrollArea_5">
+         <property name="widgetResizable">
+          <bool>true</bool>
          </property>
-         <layout class="QFormLayout" name="formLayout_5">
-          <item row="0" column="0">
-           <widget class="QLabel" name="lblLogBehavior">
-            <property name="text">
-             <string>Behavior:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QComboBox" name="cbLogBehavior">
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:LoggingSettings</string>
-              <string>fieldname:LogBehavior</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="lblLogProfile">
-            <property name="text">
-             <string>Profile:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QComboBox" name="cbLogProfile">
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:LoggingSettings</string>
-              <string>fieldname:Profile</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="lblMaxLogRate">
-            <property name="text">
-             <string>Maximum Rate:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QComboBox" name="cbMaxLogRate">
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:LoggingSettings</string>
-              <string>fieldname:MaxLogRate</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="lbGPS_3">
-            <property name="text">
-             <string>OpenLog baudrate:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
-           <widget class="QComboBox" name="cb_gpsSpeed_2">
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:ModuleSettings</string>
-              <string>fieldname:OpenLogSpeed</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         <widget class="QWidget" name="scrollAreaWidgetContents_5">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>1059</width>
+            <height>889</height>
+           </rect>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_17">
+           <item>
+            <widget class="QGroupBox" name="groupBox_2">
+             <property name="title">
+              <string>Logging Settings</string>
+             </property>
+             <layout class="QFormLayout" name="formLayout_5">
+              <item row="0" column="0">
+               <widget class="QLabel" name="lblLogBehavior">
+                <property name="text">
+                 <string>Behavior:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="cbLogBehavior">
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:LoggingSettings</string>
+                  <string>fieldname:LogBehavior</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="lblLogProfile">
+                <property name="text">
+                 <string>Profile:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QComboBox" name="cbLogProfile">
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:LoggingSettings</string>
+                  <string>fieldname:Profile</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="lblMaxLogRate">
+                <property name="text">
+                 <string>Maximum Rate:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QComboBox" name="cbMaxLogRate">
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:LoggingSettings</string>
+                  <string>fieldname:MaxLogRate</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="lbGPS_3">
+                <property name="text">
+                 <string>OpenLog baudrate:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QComboBox" name="cb_gpsSpeed_2">
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:ModuleSettings</string>
+                  <string>fieldname:OpenLogSpeed</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_9">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>685</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
         </widget>
        </item>
       </layout>
@@ -1295,326 +1426,345 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_10">
        <item>
-        <widget class="QGroupBox" name="gbxLEDBasic">
-         <property name="title">
-          <string>Basic Settings</string>
+        <widget class="QScrollArea" name="scrollArea_7">
+         <property name="widgetResizable">
+          <bool>true</bool>
          </property>
-         <layout class="QFormLayout" name="formLayout_8">
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>Total LEDs:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QSpinBox" name="sbLEDTotal">
-            <property name="objrelation" stdset="0">
-             <stringlist notr="true">
-              <string>objname:RGBLEDSettings</string>
-              <string>fieldname:NumLeds</string>
-              <string>haslimits:yes</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_15">
-            <property name="text">
-             <string>Alarm Group Begin:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_17">
-            <property name="text">
-             <string>Alarm Group End:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QSpinBox" name="sbLEDAlarmsBegin">
-            <property name="objrelation" stdset="0">
-             <stringlist notr="true">
-              <string>objname:RGBLEDSettings</string>
-              <string>fieldname:AnnunciateRangeBegin</string>
-              <string>haslimits:yes</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QSpinBox" name="sbLEDAlarmsEnd">
-            <property name="objrelation" stdset="0">
-             <stringlist notr="true">
-              <string>objname:RGBLEDSettings</string>
-              <string>fieldname:AnnunciateRangeEnd</string>
-              <string>haslimits:yes</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_27">
-            <property name="text">
-             <string>Default Color:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
-           <layout class="QHBoxLayout" name="horizontalLayout_22">
-            <item>
-             <widget class="QLabel" name="lblLEDDefaultColor">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>25</width>
-                <height>25</height>
-               </size>
-              </property>
-              <property name="frameShape">
-               <enum>QFrame::Box</enum>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="btnLEDDefaultColor">
-              <property name="text">
-               <string>Pick</string>
-              </property>
-              <property name="fieldname" stdset="0">
-               <string notr="true">DefaultColor</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
+         <widget class="QWidget" name="scrollAreaWidgetContents_7">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>1059</width>
+            <height>889</height>
+           </rect>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_19">
+           <item>
+            <widget class="QGroupBox" name="gbxLEDBasic">
+             <property name="title">
+              <string>Basic Settings</string>
+             </property>
+             <layout class="QFormLayout" name="formLayout_8">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_2">
+                <property name="text">
+                 <string>Total LEDs:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QSpinBox" name="sbLEDTotal">
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:RGBLEDSettings</string>
+                  <string>fieldname:NumLeds</string>
+                  <string>haslimits:yes</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_15">
+                <property name="text">
+                 <string>Alarm Group Begin:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_17">
+                <property name="text">
+                 <string>Alarm Group End:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QSpinBox" name="sbLEDAlarmsBegin">
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:RGBLEDSettings</string>
+                  <string>fieldname:AnnunciateRangeBegin</string>
+                  <string>haslimits:yes</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QSpinBox" name="sbLEDAlarmsEnd">
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:RGBLEDSettings</string>
+                  <string>fieldname:AnnunciateRangeEnd</string>
+                  <string>haslimits:yes</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="label_27">
+                <property name="text">
+                 <string>Default Color:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <layout class="QHBoxLayout" name="horizontalLayout_22">
+                <item>
+                 <widget class="QLabel" name="lblLEDDefaultColor">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>25</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="frameShape">
+                   <enum>QFrame::Box</enum>
+                  </property>
+                  <property name="text">
+                   <string/>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="btnLEDDefaultColor">
+                  <property name="text">
+                   <string>Pick</string>
+                  </property>
+                  <property name="fieldname" stdset="0">
+                   <string notr="true">DefaultColor</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="gbxLEDGroup1">
+             <property name="title">
+              <string>LED Group 1</string>
+             </property>
+             <layout class="QFormLayout" name="formLayout">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_10">
+                <property name="text">
+                 <string>Range Begin:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QSpinBox" name="sbLEDRange1Begin">
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:RGBLEDSettings</string>
+                  <string>fieldname:RangeBegin</string>
+                  <string>haslimits:yes</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_6">
+                <property name="text">
+                 <string>Range End:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QSpinBox" name="sbLEDRange1End">
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:RGBLEDSettings</string>
+                  <string>fieldname:RangeEnd</string>
+                  <string>haslimits:yes</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_18">
+                <property name="text">
+                 <string>Color Begin:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <layout class="QHBoxLayout" name="horizontalLayout_7">
+                <item>
+                 <widget class="QLabel" name="lblLEDRange1Begin">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>25</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="frameShape">
+                   <enum>QFrame::Box</enum>
+                  </property>
+                  <property name="text">
+                   <string/>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="btnLEDRange1Begin">
+                  <property name="text">
+                   <string>Pick</string>
+                  </property>
+                  <property name="fieldname" stdset="0">
+                   <string notr="true">RangeBaseColor</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="label_19">
+                <property name="text">
+                 <string>Color End:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <layout class="QHBoxLayout" name="horizontalLayout_8">
+                <item>
+                 <widget class="QLabel" name="lblLEDRange1End">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>25</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="frameShape">
+                   <enum>QFrame::Box</enum>
+                  </property>
+                  <property name="text">
+                   <string/>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="btnLEDRange1End">
+                  <property name="text">
+                   <string>Pick</string>
+                  </property>
+                  <property name="fieldname" stdset="0">
+                   <string notr="true">RangeEndColor</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="4" column="0">
+               <widget class="QLabel" name="label_20">
+                <property name="text">
+                 <string>Blend Source:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="1">
+               <widget class="QComboBox" name="cbLEDRange1Source">
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:RGBLEDSettings</string>
+                  <string>fieldname:RangeColorBlendSource</string>
+                  <string>haslimits:yes</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="0">
+               <widget class="QLabel" name="label_21">
+                <property name="text">
+                 <string>Disarmed Source:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="1">
+               <widget class="QComboBox" name="cbLEDRange1SourceDisarmed">
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:RGBLEDSettings</string>
+                  <string>fieldname:RangeColorBlendUnarmedSource</string>
+                  <string>haslimits:yes</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="0">
+               <widget class="QLabel" name="label_22">
+                <property name="text">
+                 <string>Blend Type:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="1">
+               <widget class="QComboBox" name="cbLEDRange1BlendType">
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:RGBLEDSettings</string>
+                  <string>fieldname:RangeColorBlendType</string>
+                  <string>haslimits:yes</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="7" column="0">
+               <widget class="QLabel" name="label_26">
+                <property name="text">
+                 <string>Blend Mode:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="7" column="1">
+               <widget class="QComboBox" name="cbLEDRange1BlendMode">
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:RGBLEDSettings</string>
+                  <string>fieldname:RangeColorBlendMode</string>
+                  <string>haslimits:yes</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>355</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
         </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="gbxLEDGroup1">
-         <property name="title">
-          <string>LED Group 1</string>
-         </property>
-         <layout class="QFormLayout" name="formLayout">
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_10">
-            <property name="text">
-             <string>Range Begin:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QSpinBox" name="sbLEDRange1Begin">
-            <property name="objrelation" stdset="0">
-             <stringlist notr="true">
-              <string>objname:RGBLEDSettings</string>
-              <string>fieldname:RangeBegin</string>
-              <string>haslimits:yes</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_6">
-            <property name="text">
-             <string>Range End:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QSpinBox" name="sbLEDRange1End">
-            <property name="objrelation" stdset="0">
-             <stringlist notr="true">
-              <string>objname:RGBLEDSettings</string>
-              <string>fieldname:RangeEnd</string>
-              <string>haslimits:yes</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_18">
-            <property name="text">
-             <string>Color Begin:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <layout class="QHBoxLayout" name="horizontalLayout_7">
-            <item>
-             <widget class="QLabel" name="lblLEDRange1Begin">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>25</width>
-                <height>25</height>
-               </size>
-              </property>
-              <property name="frameShape">
-               <enum>QFrame::Box</enum>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="btnLEDRange1Begin">
-              <property name="text">
-               <string>Pick</string>
-              </property>
-              <property name="fieldname" stdset="0">
-               <string notr="true">RangeBaseColor</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_19">
-            <property name="text">
-             <string>Color End:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
-           <layout class="QHBoxLayout" name="horizontalLayout_8">
-            <item>
-             <widget class="QLabel" name="lblLEDRange1End">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>25</width>
-                <height>25</height>
-               </size>
-              </property>
-              <property name="frameShape">
-               <enum>QFrame::Box</enum>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="btnLEDRange1End">
-              <property name="text">
-               <string>Pick</string>
-              </property>
-              <property name="fieldname" stdset="0">
-               <string notr="true">RangeEndColor</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item row="4" column="0">
-           <widget class="QLabel" name="label_20">
-            <property name="text">
-             <string>Blend Source:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="1">
-           <widget class="QComboBox" name="cbLEDRange1Source">
-            <property name="objrelation" stdset="0">
-             <stringlist notr="true">
-              <string>objname:RGBLEDSettings</string>
-              <string>fieldname:RangeColorBlendSource</string>
-              <string>haslimits:yes</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="0">
-           <widget class="QLabel" name="label_21">
-            <property name="text">
-             <string>Disarmed Source:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="1">
-           <widget class="QComboBox" name="cbLEDRange1SourceDisarmed">
-            <property name="objrelation" stdset="0">
-             <stringlist notr="true">
-              <string>objname:RGBLEDSettings</string>
-              <string>fieldname:RangeColorBlendUnarmedSource</string>
-              <string>haslimits:yes</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="6" column="0">
-           <widget class="QLabel" name="label_22">
-            <property name="text">
-             <string>Blend Type:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="6" column="1">
-           <widget class="QComboBox" name="cbLEDRange1BlendType">
-            <property name="objrelation" stdset="0">
-             <stringlist notr="true">
-              <string>objname:RGBLEDSettings</string>
-              <string>fieldname:RangeColorBlendType</string>
-              <string>haslimits:yes</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="7" column="0">
-           <widget class="QLabel" name="label_26">
-            <property name="text">
-             <string>Blend Mode:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="7" column="1">
-           <widget class="QComboBox" name="cbLEDRange1BlendMode">
-            <property name="objrelation" stdset="0">
-             <stringlist notr="true">
-              <string>objname:RGBLEDSettings</string>
-              <string>fieldname:RangeColorBlendMode</string>
-              <string>haslimits:yes</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <spacer name="verticalSpacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
        </item>
       </layout>
      </widget>
@@ -1624,153 +1774,172 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_6">
        <item>
-        <widget class="QGroupBox" name="gb_airspeedGPS">
-         <property name="title">
-          <string>GPS</string>
-         </property>
-         <property name="checkable">
+        <widget class="QScrollArea" name="scrollArea_8">
+         <property name="widgetResizable">
           <bool>true</bool>
          </property>
-         <property name="checked">
-          <bool>false</bool>
-         </property>
-         <layout class="QFormLayout" name="formLayout_3">
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_3">
-            <property name="text">
-             <string>Update rate:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QSpinBox" name="sb_gpsUpdateRate">
-            <property name="suffix">
-             <string>ms</string>
-            </property>
-            <property name="minimum">
-             <number>1</number>
-            </property>
-            <property name="maximum">
-             <number>1000</number>
-            </property>
-            <property name="singleStep">
-             <number>50</number>
-            </property>
-            <property name="value">
-             <number>100</number>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:AirspeedSettings</string>
-              <string>field:GPSSamplePeriod_ms</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         <widget class="QWidget" name="scrollAreaWidgetContents_8">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>1059</width>
+            <height>889</height>
+           </rect>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_20">
+           <item>
+            <widget class="QGroupBox" name="gb_airspeedGPS">
+             <property name="title">
+              <string>GPS</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+             <property name="checked">
+              <bool>false</bool>
+             </property>
+             <layout class="QFormLayout" name="formLayout_3">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_3">
+                <property name="text">
+                 <string>Update rate:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QSpinBox" name="sb_gpsUpdateRate">
+                <property name="suffix">
+                 <string>ms</string>
+                </property>
+                <property name="minimum">
+                 <number>1</number>
+                </property>
+                <property name="maximum">
+                 <number>1000</number>
+                </property>
+                <property name="singleStep">
+                 <number>50</number>
+                </property>
+                <property name="value">
+                 <number>100</number>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:AirspeedSettings</string>
+                  <string>field:GPSSamplePeriod_ms</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="gb_airspeedPitot">
+             <property name="title">
+              <string>Pitot sensor</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+             <property name="checked">
+              <bool>false</bool>
+             </property>
+             <layout class="QFormLayout" name="formLayout_7">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_4">
+                <property name="text">
+                 <string>Type:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="cb_airspeedSensorType">
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:AirspeedSettings</string>
+                  <string>fieldname:AirspeedSensorType</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_7">
+                <property name="text">
+                 <string>Calibration value:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QDoubleSpinBox" name="sb_pitotScale">
+                <property name="singleStep">
+                 <double>0.100000000000000</double>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:AirspeedSettings</string>
+                  <string>fieldname:Scale</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_16">
+                <property name="text">
+                 <string>Calibration zero pt:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QDoubleSpinBox" name="sb_pitotZeroPoint">
+                <property name="singleStep">
+                 <double>0.100000000000000</double>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:AirspeedSettings</string>
+                  <string>fieldname:ZeroPoint</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="label_25">
+                <property name="text">
+                 <string>ADC Pin:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QComboBox" name="cbAirspeedAnalog">
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:AirspeedSettings</string>
+                  <string>fieldname:AnalogPin</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_5">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>601</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
         </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="gb_airspeedPitot">
-         <property name="title">
-          <string>Pitot sensor</string>
-         </property>
-         <property name="checkable">
-          <bool>true</bool>
-         </property>
-         <property name="checked">
-          <bool>false</bool>
-         </property>
-         <layout class="QFormLayout" name="formLayout_7">
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_4">
-            <property name="text">
-             <string>Type:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QComboBox" name="cb_airspeedSensorType">
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:AirspeedSettings</string>
-              <string>fieldname:AirspeedSensorType</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_7">
-            <property name="text">
-             <string>Calibration value:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QDoubleSpinBox" name="sb_pitotScale">
-            <property name="singleStep">
-             <double>0.100000000000000</double>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:AirspeedSettings</string>
-              <string>fieldname:Scale</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_16">
-            <property name="text">
-             <string>Calibration zero pt:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QDoubleSpinBox" name="sb_pitotZeroPoint">
-            <property name="singleStep">
-             <double>0.100000000000000</double>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:AirspeedSettings</string>
-              <string>fieldname:ZeroPoint</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_25">
-            <property name="text">
-             <string>ADC Pin:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
-           <widget class="QComboBox" name="cbAirspeedAnalog">
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:AirspeedSettings</string>
-              <string>fieldname:AnalogPin</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <spacer name="verticalSpacer_5">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
        </item>
       </layout>
      </widget>
@@ -1873,8 +2042,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>360</width>
-            <height>714</height>
+            <width>1059</width>
+            <height>855</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout">
@@ -3865,111 +4034,130 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
-        <widget class="QGroupBox" name="gbModuleSpeeds">
-         <property name="title">
-          <string>Module Baudrates</string>
+        <widget class="QScrollArea" name="scrollArea_9">
+         <property name="widgetResizable">
+          <bool>true</bool>
          </property>
-         <layout class="QFormLayout" name="formLayout_4">
-          <item row="0" column="0">
-           <widget class="QLabel" name="lbTelemetry">
-            <property name="text">
-             <string>Telemetry: </string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QComboBox" name="cb_TelemetryBaudRate">
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:ModuleSettings</string>
-              <string>fieldname:TelemetrySpeed</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="lbComBridge">
-            <property name="text">
-             <string>ComBridge:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QComboBox" name="cb_combridgeSpeed">
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:ModuleSettings</string>
-              <string>fieldname:ComUsbBridgeSpeed</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="lbLightTelemetry">
-            <property name="text">
-             <string>LightTelemetry:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
-           <widget class="QComboBox" name="cb_LightTelemetrySpeed">
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:ModuleSettings</string>
-              <string>fieldname:LightTelemetrySpeed</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="0">
-           <widget class="QLabel" name="lbMavLink">
-            <property name="text">
-             <string>MavLink:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="1">
-           <widget class="QComboBox" name="cb_MavlinkSpeed">
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:ModuleSettings</string>
-              <string>fieldname:MavlinkSpeed</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="lbMsp">
-            <property name="text">
-             <string>MSP:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QComboBox" name="cb_MspSpeed">
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:ModuleSettings</string>
-              <string>fieldname:MSPSpeed</string>
-             </stringlist>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         <widget class="QWidget" name="scrollAreaWidgetContents_9">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>1059</width>
+            <height>889</height>
+           </rect>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_21">
+           <item>
+            <widget class="QGroupBox" name="gbModuleSpeeds">
+             <property name="title">
+              <string>Module Baudrates</string>
+             </property>
+             <layout class="QFormLayout" name="formLayout_4">
+              <item row="0" column="0">
+               <widget class="QLabel" name="lbTelemetry">
+                <property name="text">
+                 <string>Telemetry: </string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="cb_TelemetryBaudRate">
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:ModuleSettings</string>
+                  <string>fieldname:TelemetrySpeed</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="lbComBridge">
+                <property name="text">
+                 <string>ComBridge:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QComboBox" name="cb_combridgeSpeed">
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:ModuleSettings</string>
+                  <string>fieldname:ComUsbBridgeSpeed</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="lbLightTelemetry">
+                <property name="text">
+                 <string>LightTelemetry:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QComboBox" name="cb_LightTelemetrySpeed">
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:ModuleSettings</string>
+                  <string>fieldname:LightTelemetrySpeed</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="QLabel" name="lbMavLink">
+                <property name="text">
+                 <string>MavLink:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="1">
+               <widget class="QComboBox" name="cb_MavlinkSpeed">
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:ModuleSettings</string>
+                  <string>fieldname:MavlinkSpeed</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="lbMsp">
+                <property name="text">
+                 <string>MSP:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QComboBox" name="cb_MspSpeed">
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:ModuleSettings</string>
+                  <string>fieldname:MSPSpeed</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_3">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>651</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
         </widget>
-       </item>
-       <item>
-        <spacer name="verticalSpacer_3">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
        </item>
       </layout>
      </widget>
