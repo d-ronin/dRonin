@@ -647,7 +647,6 @@ static void updateTelemetryStats(telem_t telem)
 
 	// Get stats
 	UAVTalkGetStats(telem->uavTalkCon, &utalkStats);
-	UAVTalkResetStats(telem->uavTalkCon);
 
 	// Get object data
 	FlightTelemetryStatsGet(&flightStats);

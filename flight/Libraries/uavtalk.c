@@ -46,6 +46,7 @@ static int32_t sendObject(UAVTalkConnectionData *connection, UAVObjHandle obj, u
 static int32_t sendSingleObject(UAVTalkConnectionData *connection, UAVObjHandle obj, uint16_t instId, uint8_t type);
 static int32_t sendNack(UAVTalkConnectionData *connection, uint32_t objId);
 static int32_t receiveObject(UAVTalkConnectionData *connection, uint8_t type, uint32_t objId, uint16_t instId, uint8_t* data, int32_t length);
+static int32_t sendBuf(UAVTalkConnection connectionHandle, uint8_t *buf, uint16_t len);
 
 /**
  * Initialize the UAVTalk library
@@ -60,13 +61,14 @@ UAVTalkConnection UAVTalkInitialize(void *ctx, UAVTalkOutputCb outputStream,
 	// allocate object
 	UAVTalkConnectionData * connection = PIOS_malloc_no_dma(sizeof(UAVTalkConnectionData));
 	if (!connection) return 0;
-	connection->canari = UAVTALK_CANARI;
-	connection->iproc.rxPacketLength = 0;
-	connection->iproc.state = UAVTALK_STATE_SYNC;
 
-	connection->cbCtx = ctx;
-	connection->outCb = outputStream;
-	connection->ackCb = ackCallback;
+	*connection = (UAVTalkConnectionData) {
+		.canari = UAVTALK_CANARI,
+		.iproc = { .state = UAVTALK_STATE_SYNC, },
+		.cbCtx = ctx,
+		.outCb = outputStream,
+		.ackCb = ackCallback
+	};
 
 	connection->lock = PIOS_Recursive_Mutex_Create();
 	PIOS_Assert(connection->lock != NULL);
@@ -75,18 +77,17 @@ UAVTalkConnection UAVTalkInitialize(void *ctx, UAVTalkOutputCb outputStream,
 	if (!connection->rxBuffer) return 0;
 	connection->txBuffer = PIOS_malloc(UAVTALK_MAX_PACKET_LENGTH);
 	if (!connection->txBuffer) return 0;
-	UAVTalkResetStats( (UAVTalkConnection) connection );
+
 	return (UAVTalkConnection) connection;
 }
 
 /**
- * Get communication statistics counters
+ * Get communication statistics counters since last call (reset afterwards)
  * \param[in] connection UAVTalkConnection to be used
  * @param[out] statsOut Statistics counters
  */
 void UAVTalkGetStats(UAVTalkConnection connectionHandle, UAVTalkStats* statsOut)
 {
-	// XXX Get/reset need to be atomic for telemetry's use to make sense
 	UAVTalkConnectionData *connection;
 	CHECKCONHANDLE(connectionHandle,connection,return );
 
@@ -96,23 +97,7 @@ void UAVTalkGetStats(UAVTalkConnection connectionHandle, UAVTalkStats* statsOut)
 	// Copy stats
 	memcpy(statsOut, &connection->stats, sizeof(UAVTalkStats));
 
-	// Release lock
-	PIOS_Recursive_Mutex_Unlock(connection->lock);
-}
-
-/**
- * Reset the statistics counters.
- * \param[in] connection UAVTalkConnection to be used
- */
-void UAVTalkResetStats(UAVTalkConnection connectionHandle)
-{
-	UAVTalkConnectionData *connection;
-	CHECKCONHANDLE(connectionHandle,connection,return );
-
-	// Lock
-	PIOS_Recursive_Mutex_Lock(connection->lock, PIOS_MUTEX_TIMEOUT_MAX);
-
-	// Clear stats
+	// And reset.
 	memset(&connection->stats, 0, sizeof(UAVTalkStats));
 
 	// Release lock
@@ -172,18 +157,10 @@ int32_t UAVTalkSendObjectTimestamped(UAVTalkConnection connectionHandle, UAVObjH
  */
 static int32_t objectTransaction(UAVTalkConnectionData *connection, UAVObjHandle obj, uint16_t instId, uint8_t type)
 {
-	// Send object depending on if a response is needed
-	if (type == UAVTALK_TYPE_OBJ_ACK) {
-		// Send object
-		PIOS_Recursive_Mutex_Lock(connection->lock, PIOS_MUTEX_TIMEOUT_MAX);
+	if (type == UAVTALK_TYPE_OBJ || type == UAVTALK_TYPE_OBJ_TS ||
+			type == UAVTALK_TYPE_OBJ_ACK) {
 		sendObject(connection, obj, instId, type);
-		PIOS_Recursive_Mutex_Unlock(connection->lock);
 
-		return 0;
-	} else if (type == UAVTALK_TYPE_OBJ || type == UAVTALK_TYPE_OBJ_TS) {
-		PIOS_Recursive_Mutex_Lock(connection->lock, PIOS_MUTEX_TIMEOUT_MAX);
-		sendObject(connection, obj, instId, type);
-		PIOS_Recursive_Mutex_Unlock(connection->lock);
 		return 0;
 	} else {
 		return -1;
@@ -609,7 +586,7 @@ UAVTalkRxState UAVTalkRelayInputStream(UAVTalkConnection connectionHandle, uint8
 		connection->txBuffer[dataOffset + iproc->length] = iproc->cs;
 
 		// Send the buffer.
-		if (UAVTalkSendBuf(connectionHandle, connection->txBuffer, iproc->rxPacketLength) < 0)
+		if (sendBuf(connectionHandle, connection->txBuffer, iproc->rxPacketLength) < 0)
 			return UAVTALK_STATE_ERROR;
 	}
 
@@ -628,36 +605,7 @@ int32_t UAVTalkSendAck(UAVTalkConnection connectionHandle, UAVObjHandle obj, uin
 	UAVTalkConnectionData *connection;
 	CHECKCONHANDLE(connectionHandle,connection,return -1);
 
-	// Lock
-	PIOS_Recursive_Mutex_Lock(connection->lock, PIOS_MUTEX_TIMEOUT_MAX);
-
 	int32_t ret = sendObject(connection, obj, instId, UAVTALK_TYPE_ACK);
-
-	// Release lock
-	PIOS_Recursive_Mutex_Unlock(connection->lock);
-
-	return ret;
-}
-
-/**
- * Send a NACK through the telemetry link.
- * \param[in] connectionHandle UAVTalkConnection to be used
- * \param[in] objId Object ID to send a NACK for
- * \return 0 Success
- * \return -1 Failure
- */
-int32_t UAVTalkSendNack(UAVTalkConnection connectionHandle, uint32_t objId)
-{
-	UAVTalkConnectionData *connection;
-	CHECKCONHANDLE(connectionHandle,connection,return -1);
-
-	// Lock
-	PIOS_Recursive_Mutex_Lock(connection->lock, PIOS_MUTEX_TIMEOUT_MAX);
-
-	int32_t ret = sendNack(connection, objId);
-
-	// Release lock
-	PIOS_Recursive_Mutex_Unlock(connection->lock);
 
 	return ret;
 }
@@ -671,7 +619,7 @@ int32_t UAVTalkSendNack(UAVTalkConnection connectionHandle, uint32_t objId)
  * \return 0 Success
  * \return -1 Failure
  */
-int32_t UAVTalkSendBuf(UAVTalkConnection connectionHandle, uint8_t *buf, uint16_t len)
+static int32_t sendBuf(UAVTalkConnection connectionHandle, uint8_t *buf, uint16_t len)
 {
 	UAVTalkConnectionData *connection;
 	CHECKCONHANDLE(connectionHandle,connection, return -1);
@@ -839,8 +787,23 @@ static int32_t sendSingleObject(UAVTalkConnectionData *connection, UAVObjHandle 
 
 	if (!connection->outCb) return -1;
 
+	// Determine data length
+	if (type == UAVTALK_TYPE_OBJ_REQ || type == UAVTALK_TYPE_ACK) {
+		length = 0;
+	} else {
+		length = UAVObjGetNumBytes(obj);
+	}
+
+	// Check length
+	if (length >= UAVTALK_MAX_PAYLOAD_LENGTH) {
+		return -1;
+	}
+
 	// Setup type and object id fields
 	objId = UAVObjGetID(obj);
+
+	PIOS_Recursive_Mutex_Lock(connection->lock, PIOS_MUTEX_TIMEOUT_MAX);
+
 	connection->txBuffer[0] = UAVTALK_SYNC_VAL;  // sync byte
 	connection->txBuffer[1] = type;
 	// data length inserted here below
@@ -866,21 +829,10 @@ static int32_t sendSingleObject(UAVTalkConnectionData *connection, UAVObjHandle 
 		dataOffset += 2;
 	}
 
-	// Determine data length
-	if (type == UAVTALK_TYPE_OBJ_REQ || type == UAVTALK_TYPE_ACK) {
-		length = 0;
-	} else {
-		length = UAVObjGetNumBytes(obj);
-	}
-
-	// Check length
-	if (length >= UAVTALK_MAX_PAYLOAD_LENGTH) {
-		return -1;
-	}
-
 	// Copy data (if any)
 	if (length > 0) {
 		if (UAVObjPack(obj, instId, &connection->txBuffer[dataOffset]) < 0) {
+			PIOS_Recursive_Mutex_Unlock(connection->lock);
 			return -1;
 		}
 	}
@@ -904,6 +856,7 @@ static int32_t sendSingleObject(UAVTalkConnectionData *connection, UAVObjHandle 
 	}
 
 	// Done
+	PIOS_Recursive_Mutex_Unlock(connection->lock);
 	return 0;
 }
 
@@ -920,6 +873,7 @@ static int32_t sendNack(UAVTalkConnectionData *connection, uint32_t objId)
 
 	if (!connection->outCb) return -1;
 
+	PIOS_Recursive_Mutex_Lock(connection->lock, PIOS_MUTEX_TIMEOUT_MAX);
 	connection->txBuffer[0] = UAVTALK_SYNC_VAL;  // sync byte
 	connection->txBuffer[1] = UAVTALK_TYPE_NACK;
 	// data length inserted here below
@@ -945,6 +899,8 @@ static int32_t sendNack(UAVTalkConnectionData *connection, uint32_t objId)
 		// Update stats
 		connection->stats.txBytes += tx_msg_len;
 	}
+
+	PIOS_Recursive_Mutex_Unlock(connection->lock);
 
 	// Done
 	return 0;
