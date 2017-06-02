@@ -45,7 +45,7 @@ static int32_t objectTransaction(UAVTalkConnectionData *connection, UAVObjHandle
 static int32_t sendObject(UAVTalkConnectionData *connection, UAVObjHandle obj, uint16_t instId, uint8_t type);
 static int32_t sendSingleObject(UAVTalkConnectionData *connection, UAVObjHandle obj, uint16_t instId, uint8_t type);
 static int32_t sendNack(UAVTalkConnectionData *connection, uint32_t objId);
-static int32_t receiveObject(UAVTalkConnectionData *connection, uint8_t type, uint32_t objId, uint16_t instId, uint8_t* data, int32_t length);
+static int32_t receiveObject(UAVTalkConnectionData *connection);
 static int32_t sendBuf(UAVTalkConnection connectionHandle, uint8_t *buf, uint16_t len);
 
 /**
@@ -381,22 +381,13 @@ void UAVTalkProcessInputStream(UAVTalkConnection connectionHandle, uint8_t *rxby
 
 	CHECKCONHANDLE(connectionHandle,connection,return);
 
-	UAVTalkInputProcessor *iproc = &connection->iproc;
-
 	for (int i = 0; i < numbytes; i++) {
 		UAVTalkRxState state =
 			UAVTalkProcessInputStreamQuiet(connectionHandle,
 					rxbytes[i]);
 
 		if (state == UAVTALK_STATE_COMPLETE) {
-			PIOS_Recursive_Mutex_Lock(connection->lock,
-					PIOS_MUTEX_TIMEOUT_MAX);
-
-			receiveObject(connection, iproc->type, iproc->objId,
-					iproc->instId, connection->rxBuffer,
-					iproc->length);
-
-			PIOS_Recursive_Mutex_Unlock(connection->lock);
+			receiveObject(connection);
 		}
 	}
 }
@@ -506,7 +497,7 @@ int32_t UAVTalkReceiveObject(UAVTalkConnection connectionHandle)
 		return -1;
 	}
 
-	return receiveObject(connection, iproc->type, iproc->objId, iproc->instId, connection->rxBuffer, iproc->length);
+	return receiveObject(connection);
 }
 
 /**
@@ -594,23 +585,6 @@ UAVTalkRxState UAVTalkRelayInputStream(UAVTalkConnection connectionHandle, uint8
 }
 
 /**
- * Send a ACK through the telemetry link.
- * \param[in] connectionHandle UAVTalkConnection to be used
- * \param[in] objId Object ID to send a NACK for
- * \return 0 Success
- * \return -1 Failure
- */
-int32_t UAVTalkSendAck(UAVTalkConnection connectionHandle, UAVObjHandle obj, uint16_t instId)
-{
-	UAVTalkConnectionData *connection;
-	CHECKCONHANDLE(connectionHandle,connection,return -1);
-
-	int32_t ret = sendObject(connection, obj, instId, UAVTALK_TYPE_ACK);
-
-	return ret;
-}
-
-/**
  * Send a buffer containing a UAVTalk message through the telemetry link.
  * This function locks the connection prior to sending.
  * \param[in] connection UAVTalkConnection to be used
@@ -653,10 +627,17 @@ static int32_t sendBuf(UAVTalkConnection connectionHandle, uint8_t *buf, uint16_
  * \return 0 Success
  * \return -1 Failure
  */
-static int32_t receiveObject(UAVTalkConnectionData *connection, uint8_t type, uint32_t objId, uint16_t instId, uint8_t* data, int32_t length)
+static int32_t receiveObject(UAVTalkConnectionData *connection)
 {
-	UAVObjHandle obj;
 	int32_t ret = 0;
+
+	UAVTalkInputProcessor *iproc = &connection->iproc;
+
+	uint8_t type = iproc->type;
+	uint32_t objId = iproc->objId;
+	uint16_t instId = iproc->instId;
+
+	UAVObjHandle obj = iproc->obj;
 
 	/* Handle ACK/NACK first --- don't bother to look up IDs etc for these
 	 * because we don't need it.
@@ -675,9 +656,7 @@ static int32_t receiveObject(UAVTalkConnectionData *connection, uint8_t type, ui
 		return 0;
 	}
 
-	// Get the handle to the Object. Will be zero
-	// if object does not exist.
-	obj = UAVObjGetByID(objId);
+	PIOS_Recursive_Mutex_Lock(connection->lock, PIOS_MUTEX_TIMEOUT_MAX);
 
 	// Process message type
 	switch (type) {
@@ -685,7 +664,7 @@ static int32_t receiveObject(UAVTalkConnectionData *connection, uint8_t type, ui
 		// All instances, not allowed for OBJ messages
 		if (obj && (instId != UAVOBJ_ALL_INSTANCES)) {
 			// Unpack object, if the instance does not exist it will be created!
-			UAVObjUnpack(obj, instId, data);
+			UAVObjUnpack(obj, instId, connection->rxBuffer);
 		} else {
 			ret = -1;
 		}
@@ -694,14 +673,13 @@ static int32_t receiveObject(UAVTalkConnectionData *connection, uint8_t type, ui
 		// All instances, not allowed for OBJ_ACK messages
 		if (obj && (instId != UAVOBJ_ALL_INSTANCES)) {
 			// Unpack object, if the instance does not exist it will be created!
-			if (UAVObjUnpack(obj, instId, data) == 0) {
+			if (UAVObjUnpack(obj, instId, connection->rxBuffer) == 0) {
 				// Transmit ACK
 				sendObject(connection, obj, instId, UAVTALK_TYPE_ACK);
 			} else {
 				ret = -1;
 			}
 		} else {
-
 			// We don't know this object, and we complain about it
 			sendNack(connection, objId);
 			ret = -1;
@@ -717,6 +695,9 @@ static int32_t receiveObject(UAVTalkConnectionData *connection, uint8_t type, ui
 	default:
 		ret = -1;
 	}
+
+	PIOS_Recursive_Mutex_Unlock(connection->lock);
+
 	// Done
 	return ret;
 }
