@@ -313,10 +313,19 @@ static void ackResendOrTimeout(telem_t telem, int idx)
 
 		int32_t success;
 
+		telem->acks[idx].timeout = PIOS_Thread_Systime() +
+			ACK_TIMEOUT_MS;
+
+		/* Must not hold lock while sending an object, because
+		 * of lock ordering issues (though the lock should be
+		 * severely squashed in uavtalk.c
+		 */
+		PIOS_Mutex_Unlock(telem->ack_mutex);
 		success = UAVTalkSendObject(telem->uavTalkCon,
 				telem->acks[idx].obj,
 				telem->acks[idx].inst_id,
 				true);
+		PIOS_Mutex_Lock(telem->ack_mutex, PIOS_MUTEX_TIMEOUT_MAX);
 
 		telem->tx_retries++;
 
