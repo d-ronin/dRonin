@@ -80,8 +80,6 @@ typedef struct {
 typedef struct {
 	uint8_t canari;
 	struct pios_recursive_mutex *lock;
-	UAVObjHandle respObj;
-	uint16_t respInstId;
 	UAVTalkStats stats;
 	UAVTalkInputProcessor iproc;
 	uint8_t *rxBuffer;

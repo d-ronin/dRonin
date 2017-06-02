@@ -176,8 +176,6 @@ static int32_t objectTransaction(UAVTalkConnectionData *connection, UAVObjHandle
 	if (type == UAVTALK_TYPE_OBJ_ACK) {
 		// Send object
 		PIOS_Recursive_Mutex_Lock(connection->lock, PIOS_MUTEX_TIMEOUT_MAX);
-		connection->respObj = obj;
-		connection->respInstId = instId;
 		sendObject(connection, obj, instId, type);
 		PIOS_Recursive_Mutex_Unlock(connection->lock);
 
