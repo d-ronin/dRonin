@@ -46,9 +46,21 @@
 
 #include <uavtalk.h>
 
+#ifndef TELEM_QUEUE_SIZE
+/* 115200 = 11520 bytes/sec; if each transaction is 32 bytes,
+ * this is 160ms of stuff.  Conversely, this is about 380 bytes
+ * of memory if each obj event is 7 bytes-ish.
+ */
+#define TELEM_QUEUE_SIZE 60
+#endif
+
+#ifndef TELEM_STACK_SIZE
+#define TELEM_STACK_SIZE 624
+#endif
+
 // Private constants
 #define MAX_QUEUE_SIZE   TELEM_QUEUE_SIZE
-#define STACK_SIZE_BYTES PIOS_TELEM_STACK_SIZE
+#define STACK_SIZE_BYTES TELEM_STACK_SIZE
 #define TASK_PRIORITY_RX PIOS_THREAD_PRIO_NORMAL
 #define TASK_PRIORITY_TX PIOS_THREAD_PRIO_NORMAL
 #define MAX_RETRIES 2
