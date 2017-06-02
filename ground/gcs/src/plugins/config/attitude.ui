@@ -1185,7 +1185,7 @@ new home location unless it is in indoor mode.</string>
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>60</height>
+               <height>100</height>
               </size>
              </property>
             </widget>
@@ -1201,7 +1201,7 @@ new home location unless it is in indoor mode.</string>
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>60</height>
+               <height>100</height>
               </size>
              </property>
             </widget>
@@ -1217,7 +1217,7 @@ new home location unless it is in indoor mode.</string>
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>60</height>
+               <height>100</height>
               </size>
              </property>
             </widget>
