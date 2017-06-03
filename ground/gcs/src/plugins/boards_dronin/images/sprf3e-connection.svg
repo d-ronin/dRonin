@@ -14,7 +14,7 @@
    height="462.51437"
    width="661.05841"
    version="1.1"
-   inkscape:version="0.92.1 r15371"
+   inkscape:version="0.91 r13725"
    sodipodi:docname="sprf3e-connection.svg">
   <sodipodi:namedview
      pagecolor="#ffffff"
@@ -25,17 +25,17 @@
      guidetolerance="10"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:window-width="1680"
-     inkscape:window-height="987"
+     inkscape:window-width="2495"
+     inkscape:window-height="1416"
      id="namedview4616"
      showgrid="false"
      inkscape:zoom="1.9999999"
-     inkscape:cx="252.27657"
-     inkscape:cy="256.75749"
-     inkscape:window-x="-8"
-     inkscape:window-y="-8"
+     inkscape:cx="263.02657"
+     inkscape:cy="251.75749"
+     inkscape:window-x="65"
+     inkscape:window-y="24"
      inkscape:window-maximized="1"
-     inkscape:current-layer="layer1"
+     inkscape:current-layer="layer13"
      fit-margin-top="15"
      fit-margin-left="15"
      fit-margin-right="15"
@@ -2152,12 +2152,17 @@
     </rdf:RDF>
   </metadata>
   <g
-     id="background"
-     transform="translate(4.4581604,-42.485618)" />
-  <g
      inkscape:groupmode="layer"
      id="layer13"
      inkscape:label="Board">
+    <rect
+       style="display:inline;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1.7840302;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:16.5;stroke-opacity:1"
+       id="background"
+       width="687.48767"
+       height="432.48767"
+       x="-3.4938121"
+       y="-30.979464"
+       inkscape:label="#background" />
     <image
        y="38.467213"
        x="-248.14215"
