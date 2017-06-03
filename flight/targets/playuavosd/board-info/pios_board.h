@@ -115,12 +115,6 @@ extern uintptr_t pios_com_openlog_logging_id;
 #define DEBUG_LEVEL 0
 #define DEBUG_PRINTF(level, ...) {if(level <= DEBUG_LEVEL && pios_com_debug_id > 0) { PIOS_COM_SendFormattedStringNonBlocking(pios_com_debug_id, __VA_ARGS__); }}
 
-//------------------------
-// TELEMETRY
-//------------------------
-#define TELEM_QUEUE_SIZE         80
-#define PIOS_TELEM_STACK_SIZE    624
-
 #define PIOS_SYSCLK										168000000
 //	Peripherals that belongs to APB1 are:
 //	DAC			|PWR				|CAN1,2

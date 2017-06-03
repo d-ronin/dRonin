@@ -71,7 +71,11 @@ extern uintptr_t pios_com_msp_id;
 
 #define PIOS_GCSRCVR_TIMEOUT_MS 200
 
-#define DEBUG_PRINTF(level, ...) do { (void) (level); fprintf(stderr, __VA_ARGS__); } while (0)
+#ifndef DEBUG_LEVEL
+#define DEBUG_LEVEL 2
+#endif
+
+#define DEBUG_PRINTF(level, ...) do { if ((level) <= DEBUG_LEVEL) { fprintf(stderr, __VA_ARGS__); } } while (0)
 
 #endif /* PIOS_BOARD_H */
 

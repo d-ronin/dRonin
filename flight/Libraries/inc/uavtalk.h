@@ -31,7 +31,8 @@
 #define UAVTALK_H
 
 // Public types
-typedef int32_t (*UAVTalkOutputStream)(uint8_t* data, int32_t length);
+typedef int32_t (*UAVTalkOutputCb)(void *ctx, uint8_t* data, int32_t length);
+typedef void (*UAVTalkAckCb)(void *ctx, uint32_t obj_id, uint16_t inst_id);
 
 //! Tracking statistics for a UAVTalk connection
 typedef struct {
@@ -51,20 +52,16 @@ typedef enum {UAVTALK_STATE_ERROR = 0, UAVTALK_STATE_SYNC, UAVTALK_STATE_TYPE, U
 	      UAVTALK_STATE_DATA, UAVTALK_STATE_CS, UAVTALK_STATE_COMPLETE} UAVTalkRxState;
 
 // Public functions
-UAVTalkConnection UAVTalkInitialize(UAVTalkOutputStream outputStream);
-int32_t UAVTalkSendObject(UAVTalkConnection connection, UAVObjHandle obj, uint16_t instId, uint8_t acked, int32_t timeoutMs);
+UAVTalkConnection UAVTalkInitialize(void *ctx, UAVTalkOutputCb outputStream, UAVTalkAckCb ackCallback);
+int32_t UAVTalkSendObject(UAVTalkConnection connection, UAVObjHandle obj, uint16_t instId, uint8_t acked);
 int32_t UAVTalkSendObjectTimestamped(UAVTalkConnection connectionHandle, UAVObjHandle obj, uint16_t instId);
-int32_t UAVTalkSendObjectRequest(UAVTalkConnection connection, UAVObjHandle obj, uint16_t instId, int32_t timeoutMs);
-int32_t UAVTalkSendAck(UAVTalkConnection connectionHandle, UAVObjHandle obj, uint16_t instId);
-int32_t UAVTalkSendNack(UAVTalkConnection connectionHandle, uint32_t objId);
-int32_t UAVTalkSendBuf(UAVTalkConnection connectionHandle, uint8_t *buf, uint16_t len);
-UAVTalkRxState UAVTalkProcessInputStream(UAVTalkConnection connection, uint8_t rxbyte);
+void UAVTalkProcessInputStream(UAVTalkConnection connectionHandle, uint8_t *rxbytes,
+		int numbytes);
 UAVTalkRxState UAVTalkProcessInputStreamQuiet(UAVTalkConnection connection, uint8_t rxbyte);
 UAVTalkRxState UAVTalkRelayInputStream(UAVTalkConnection connectionHandle, uint8_t rxbyte);
 int32_t UAVTalkRelayPacket(UAVTalkConnection inConnectionHandle, UAVTalkConnection outConnectionHandle);
 int32_t UAVTalkReceiveObject(UAVTalkConnection connectionHandle);
 void UAVTalkGetStats(UAVTalkConnection connection, UAVTalkStats *stats);
-void UAVTalkResetStats(UAVTalkConnection connection);
 uint32_t UAVTalkGetPacketObjId(UAVTalkConnection connection);
 uint32_t UAVTalkGetPacketInstId(UAVTalkConnection connection);
 

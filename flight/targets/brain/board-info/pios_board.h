@@ -148,13 +148,6 @@ extern uintptr_t pios_com_debug_id;
 #endif	/* PIOS_INCLUDE_DEBUG_CONSOLE */
 
 
-//------------------------
-// TELEMETRY
-//------------------------
-#define TELEM_QUEUE_SIZE				80
-#define PIOS_TELEM_STACK_SIZE			624
-	
-
 #define PIOS_SYSCLK						168000000
 //	Peripherals that belongs to APB1 are:
 //	DAC			|PWR				|CAN1,2

@@ -39,52 +39,96 @@
 #include "modulesettings.h"
 #include "sessionmanaging.h"
 #include "pios_thread.h"
+#include "pios_mutex.h"
 #include "pios_queue.h"
 
 #include "pios_hal.h"
 
 #include <uavtalk.h>
 
+#ifndef TELEM_QUEUE_SIZE
+/* 115200 = 11520 bytes/sec; if each transaction is 32 bytes,
+ * this is 160ms of stuff.  Conversely, this is about 380 bytes
+ * of memory if each obj event is 7 bytes-ish.
+ */
+#define TELEM_QUEUE_SIZE 60
+#endif
+
+#ifndef TELEM_STACK_SIZE
+#define TELEM_STACK_SIZE 624
+#endif
+
 // Private constants
 #define MAX_QUEUE_SIZE   TELEM_QUEUE_SIZE
-#define STACK_SIZE_BYTES PIOS_TELEM_STACK_SIZE
+#define STACK_SIZE_BYTES TELEM_STACK_SIZE
 #define TASK_PRIORITY_RX PIOS_THREAD_PRIO_NORMAL
 #define TASK_PRIORITY_TX PIOS_THREAD_PRIO_NORMAL
-#define REQ_TIMEOUT_MS 250
 #define MAX_RETRIES 2
-#define STATS_UPDATE_PERIOD_MS 4000
+
+#define STATS_UPDATE_PERIOD_MS 1753
 #define CONNECTION_TIMEOUT_MS 8000
 #define USB_ACTIVITY_TIMEOUT_MS 6000
+
+#define MAX_ACKS_PENDING 3
+#define ACK_TIMEOUT_MS 250
 
 // Private types
 
 // Private variables
-static struct pios_queue *queue;
 
-static uint32_t txErrors;
-static uint32_t txRetries;
-static uint32_t timeOfLastObjectUpdate;
-static UAVTalkConnection uavTalkCon;
+struct pending_ack {
+	UAVObjHandle obj;
+	uint32_t timeout;
+
+	uint16_t inst_id;
+	uint8_t retry_count;
+};
+
+struct telemetry_state {
+	struct pios_queue *queue;
+
+	uint32_t tx_errors;
+	uint32_t tx_retries;
+	uint32_t time_of_last_update;
+
+	struct pending_ack acks[MAX_ACKS_PENDING];
+
+	struct pios_mutex *ack_mutex;
+
+	UAVTalkConnection uavTalkCon;
+};
+
+static struct telemetry_state telem_state = { };
 
 #if defined(PIOS_INCLUDE_USB)
 static volatile uint32_t usb_timeout_time;
 #endif
 
+typedef struct telemetry_state *telem_t;
+
 // Private functions
 static void telemetryTxTask(void *parameters);
 static void telemetryRxTask(void *parameters);
-static int32_t transmitData(uint8_t * data, int32_t length);
-static void registerObject(UAVObjHandle obj);
-static void updateObject(UAVObjHandle obj, int32_t eventType);
-static int32_t setUpdatePeriod(UAVObjHandle obj, int32_t updatePeriodMs);
-static void processObjEvent(UAVObjEvent * ev);
-static void updateTelemetryStats();
+
+static int32_t transmitData(void *ctx, uint8_t *data, int32_t length);
+static void addAckPending(telem_t telem, UAVObjHandle obj, uint16_t inst_id);
+static void ackCallback(void *ctx, uint32_t obj_id, uint16_t inst_id);
+
+static void registerObject(telem_t telem, UAVObjHandle obj);
+static void updateObject(telem_t telem, UAVObjHandle obj, int32_t eventType);
+static int32_t setUpdatePeriod(telem_t telem, UAVObjHandle obj, int32_t updatePeriodMs);
+static void processObjEvent(telem_t telem, UAVObjEvent * ev);
+static void updateTelemetryStats(telem_t telem);
 static void gcsTelemetryStatsUpdated();
 static void updateSettings();
 static uintptr_t getComPort();
 static void session_managing_updated(UAVObjEvent * ev, void *ctx, void *obj,
 		int len);
 static void update_object_instances(uint32_t obj_id, uint32_t inst_id);
+
+static void registerObjectShim(UAVObjHandle obj) {
+	registerObject(&telem_state, obj);
+}
 
 /**
  * Initialise the telemetry module
@@ -94,21 +138,26 @@ static void update_object_instances(uint32_t obj_id, uint32_t inst_id);
 int32_t TelemetryStart(void)
 {
 	// Process all registered objects and connect queue for updates
-	UAVObjIterate(&registerObject);
+	UAVObjIterate(&registerObjectShim);
 
 	// Create periodic event that will be used to update the telemetry stats
 	UAVObjEvent ev;
 	memset(&ev, 0, sizeof(UAVObjEvent));
 
+	EventPeriodicQueueCreate(&ev, telem_state.queue, STATS_UPDATE_PERIOD_MS);
+
 	// Listen to objects of interest
-	GCSTelemetryStatsConnectQueue(queue);
+	GCSTelemetryStatsConnectQueue(telem_state.queue);
     
 	struct pios_thread *telemetryTxTaskHandle;
 	struct pios_thread *telemetryRxTaskHandle;
 
 	// Start telemetry tasks
-	telemetryTxTaskHandle = PIOS_Thread_Create(telemetryTxTask, "TelTx", STACK_SIZE_BYTES, NULL, TASK_PRIORITY_TX);
-	telemetryRxTaskHandle = PIOS_Thread_Create(telemetryRxTask, "TelRx", STACK_SIZE_BYTES, NULL, TASK_PRIORITY_RX);
+	telemetryTxTaskHandle = PIOS_Thread_Create(telemetryTxTask, "TelTx",
+			STACK_SIZE_BYTES, &telem_state, TASK_PRIORITY_TX);
+	telemetryRxTaskHandle = PIOS_Thread_Create(telemetryRxTask, "TelRx",
+			STACK_SIZE_BYTES, &telem_state, TASK_PRIORITY_RX);
+
 	TaskMonitorAdd(TASKINFO_RUNNING_TELEMETRYTX, telemetryTxTaskHandle);
 	TaskMonitorAdd(TASKINFO_RUNNING_TELEMETRYRX, telemetryRxTaskHandle);
 
@@ -122,23 +171,27 @@ int32_t TelemetryStart(void)
  */
 int32_t TelemetryInitialize(void)
 {
-	if (FlightTelemetryStatsInitialize() == -1 || GCSTelemetryStatsInitialize() == -1) {
+	if (FlightTelemetryStatsInitialize() == -1 ||
+			GCSTelemetryStatsInitialize() == -1 ||
+			SessionManagingInitialize() == -1) {
+		return -1;
+	}
+
+	telem_state.ack_mutex = PIOS_Mutex_Create();
+
+	if (!telem_state.ack_mutex) {
 		return -1;
 	}
 
 	// Initialize vars
-	timeOfLastObjectUpdate = 0;
+	telem_state.time_of_last_update = 0;
 
 	// Create object queues
-	queue = PIOS_Queue_Create(MAX_QUEUE_SIZE, sizeof(UAVObjEvent));
+	telem_state.queue = PIOS_Queue_Create(MAX_QUEUE_SIZE, sizeof(UAVObjEvent));
 
 	// Initialise UAVTalk
-	uavTalkCon = UAVTalkInitialize(&transmitData);
+	telem_state.uavTalkCon = UAVTalkInitialize(&telem_state, &transmitData, &ackCallback);
 
-	if (SessionManagingInitialize() == -1) {
-		return -1;
-	}
-	
 	SessionManagingConnectCallback(session_managing_updated);
 
 	//register the new uavo instance callback function in the uavobjectmanager
@@ -154,11 +207,11 @@ MODULE_HIPRI_INITCALL(TelemetryInitialize, TelemetryStart)
  * telemetry settings.
  * \param[in] obj Object to connect
  */
-static void registerObject(UAVObjHandle obj)
+static void registerObject(telem_t telem, UAVObjHandle obj)
 {
 	if (UAVObjIsMetaobject(obj)) {
 		/* Only connect change notifications for meta objects.  No periodic updates */
-		UAVObjConnectQueue(obj, queue, EV_MASK_ALL_UPDATES);
+		UAVObjConnectQueue(obj, telem->queue, EV_MASK_ALL_UPDATES);
 		return;
 	} else {
 		UAVObjMetadata metadata;
@@ -175,11 +228,11 @@ static void registerObject(UAVObjHandle obj)
 
 		/* Only create a periodic event for objects that are periodic */
 		if (updateMode == UPDATEMODE_PERIODIC) {
-			EventPeriodicQueueCreate(&ev, queue, 0);
+			EventPeriodicQueueCreate(&ev, telem->queue, 0);
 		}
 
 		// Setup object for telemetry updates
-		updateObject(obj, EV_NONE);
+		updateObject(telem, obj, EV_NONE);
 	}
 }
 
@@ -187,7 +240,7 @@ static void registerObject(UAVObjHandle obj)
  * Update object's queue connections and timer, depending on object's settings
  * \param[in] obj Object to updates
  */
-static void updateObject(UAVObjHandle obj, int32_t eventType)
+static void updateObject(telem_t telem, UAVObjHandle obj, int32_t eventType)
 {
 	UAVObjMetadata metadata;
 	UAVObjUpdateMode updateMode;
@@ -209,78 +262,213 @@ static void updateObject(UAVObjHandle obj, int32_t eventType)
 	switch (updateMode) {
 	case UPDATEMODE_PERIODIC:
 		// Set update period
-		setUpdatePeriod(obj, metadata.telemetryUpdatePeriod);
+		setUpdatePeriod(telem, obj, metadata.telemetryUpdatePeriod);
 
 		// Connect queue
 		eventMask = EV_UPDATED_PERIODIC | EV_UPDATED_MANUAL;
-		UAVObjConnectQueueThrottled(obj, queue, eventMask, 0);
+		UAVObjConnectQueueThrottled(obj, telem->queue, eventMask, 0);
 		break;
 	case UPDATEMODE_ONCHANGE:
 		// Set update period
-		setUpdatePeriod(obj, 0);
+		setUpdatePeriod(telem, obj, 0);
 
 		// Connect queue
 		eventMask = EV_UPDATED | EV_UPDATED_MANUAL;
-		UAVObjConnectQueueThrottled(obj, queue, eventMask, 0);
+		UAVObjConnectQueueThrottled(obj, telem->queue, eventMask, 0);
 		break;
 	case UPDATEMODE_THROTTLED:
-		setUpdatePeriod(obj, 0);
+		setUpdatePeriod(telem, obj, 0);
 
 		eventMask = EV_UPDATED | EV_UPDATED_MANUAL;
-		UAVObjConnectQueueThrottled(obj, queue, eventMask,
+		UAVObjConnectQueueThrottled(obj, telem->queue, eventMask,
 				metadata.telemetryUpdatePeriod);
 		break;
 	case UPDATEMODE_MANUAL:
 		// Set update period
-		setUpdatePeriod(obj, 0);
+		setUpdatePeriod(telem, obj, 0);
 
 		// Connect queue
 		eventMask = EV_UPDATED_MANUAL;
-		UAVObjConnectQueueThrottled(obj, queue, eventMask, 0);
+		UAVObjConnectQueueThrottled(obj, telem->queue, eventMask, 0);
 		break;
 	}
+}
+
+static void ackResendOrTimeout(telem_t telem, int idx)
+{
+	if (telem->acks[idx].retry_count++ > MAX_RETRIES) {
+		DEBUG_PRINTF(3, "telem: abandoning ack wait for %d/%d\n",
+				UAVObjGetID(telem->acks[idx].obj),
+				telem->acks[idx].inst_id);
+
+		/* Two different kinds of things in tx_errors-- objects that
+		 * failed to transfer, and send errors (shouldn't happen) */
+		telem->tx_errors++;
+
+		telem->acks[idx].obj = NULL;
+	} else {
+		DEBUG_PRINTF(3, "telem: abandoning ack wait for %d/%d\n",
+				UAVObjGetID(telem->acks[idx].obj),
+				telem->acks[idx].inst_id);
+
+		int32_t success;
+
+		telem->acks[idx].timeout = PIOS_Thread_Systime() +
+			ACK_TIMEOUT_MS;
+
+		/* Must not hold lock while sending an object, because
+		 * of lock ordering issues (though the lock should be
+		 * severely squashed in uavtalk.c
+		 */
+		PIOS_Mutex_Unlock(telem->ack_mutex);
+		success = UAVTalkSendObject(telem->uavTalkCon,
+				telem->acks[idx].obj,
+				telem->acks[idx].inst_id,
+				true);
+		PIOS_Mutex_Lock(telem->ack_mutex, PIOS_MUTEX_TIMEOUT_MAX);
+
+		telem->tx_retries++;
+
+		if (success == -1) {
+			telem->tx_errors++;
+		}
+	}
+}
+
+static void ackHousekeeping(telem_t telem)
+{
+	uint32_t tm = PIOS_Thread_Systime();
+
+	for (int i = 0; i < MAX_ACKS_PENDING; i++) {
+		if (telem->acks[i].obj) {
+			if (tm > telem->acks[i].timeout) {
+				ackResendOrTimeout(telem, i);
+			}
+		}
+	}
+
+}
+
+static void addAckPending(telem_t telem, UAVObjHandle obj, uint16_t inst_id)
+{
+	DEBUG_PRINTF(3, "telem: want ack for %d/%d\n", UAVObjGetID(obj),
+			inst_id);
+
+	while (true) {
+		PIOS_Mutex_Lock(telem->ack_mutex, PIOS_MUTEX_TIMEOUT_MAX);
+		ackHousekeeping(telem);
+
+		/* There's a slight race here, if we're --already-- waiting
+		 * for an ack on an object, we can end up putting it in here
+		 * to wait again.  In a perfect storm-- past retries cause two
+		 * acks, and then the new object is lost-- we can be fooled.
+		 * It seems like a lesser evil than most of the alternatives
+		 * that keep good pipelining, though
+		 */
+		for (int i = 0; i < MAX_ACKS_PENDING; i++) {
+			if (!telem->acks[i].obj) {
+				telem->acks[i].obj = obj;
+				telem->acks[i].inst_id = inst_id;
+				telem->acks[i].timeout =
+					PIOS_Thread_Systime() +
+					ACK_TIMEOUT_MS;
+
+				telem->acks[i].retry_count = 0;
+
+				PIOS_Mutex_Unlock(telem->ack_mutex);
+				return;
+			}
+		}
+
+		DEBUG_PRINTF(3, "telem: blocking because acks are full\n");
+
+		/* Oh no.  This is the bad case--- maximum number of things
+		 * needing ack in flight.
+		 */
+
+		PIOS_Mutex_Unlock(telem->ack_mutex);
+
+		/* TODO: Consider nicer wakeup mechanism here. */
+		PIOS_Thread_Sleep(3);
+	}
+}
+
+static void ackCallback(void *ctx, uint32_t obj_id, uint16_t inst_id)
+{
+	telem_t telem = ctx;
+
+	PIOS_Mutex_Lock(telem->ack_mutex, PIOS_MUTEX_TIMEOUT_MAX);
+
+	for (int i = 0; i < MAX_ACKS_PENDING; i++) {
+		if (!telem->acks[i].obj) {
+			continue;
+		}
+
+		if (inst_id != telem->acks[i].inst_id) {
+			continue;
+		}
+
+		uint32_t other_obj_id = UAVObjGetID(telem->acks[i].obj);
+
+		if (obj_id != other_obj_id) {
+			continue;
+		}
+
+		telem->acks[i].obj = NULL;
+
+		DEBUG_PRINTF(3, "telem: Got ack for %d/%d\n", obj_id, inst_id);
+		PIOS_Mutex_Unlock(telem->ack_mutex);
+		return;
+	}
+
+	PIOS_Mutex_Unlock(telem->ack_mutex);
+
+	DEBUG_PRINTF(3, "telem: Got UNEXPECTED ack for %d/%d\n", obj_id, inst_id);
 }
 
 /**
  * Processes queue events
  */
-static void processObjEvent(UAVObjEvent * ev)
+static void processObjEvent(telem_t telem, UAVObjEvent * ev)
 {
-	UAVObjMetadata metadata;
-	FlightTelemetryStatsData flightStats;
-	int32_t retries;
-	int32_t success;
-
 	if (ev->obj == 0) {
-		updateTelemetryStats();
+		updateTelemetryStats(telem);
 	} else if (ev->obj == GCSTelemetryStatsHandle()) {
-		gcsTelemetryStatsUpdated();
+		gcsTelemetryStatsUpdated(telem);
 	} else {
-		FlightTelemetryStatsGet(&flightStats);
-		// Get object metadata
-		UAVObjGetMetadata(ev->obj, &metadata);
-
 		// Act on event
-		retries = 0;
-		success = -1;
 		if (ev->event == EV_UPDATED || ev->event == EV_UPDATED_MANUAL ||
 				ev->event == EV_UPDATED_PERIODIC) {
-			// Send update to GCS (with retries)
-			while (retries < MAX_RETRIES && success == -1) {
-				success = UAVTalkSendObject(uavTalkCon, ev->obj, ev->instId, UAVObjGetTelemetryAcked(&metadata), REQ_TIMEOUT_MS);	// call blocks until ack is received or timeout
+			int32_t success = -1;
 
-				++retries;
+			UAVObjMetadata metadata;
+
+			bool acked = false;
+
+			// Get object metadata
+			UAVObjGetMetadata(ev->obj, &metadata);
+
+			if (UAVObjGetTelemetryAcked(&metadata)) {
+				acked = true;
+
+				addAckPending(telem, ev->obj, ev->instId);
 			}
-			// Update stats
-			txRetries += (retries - 1);
+
+			success = UAVTalkSendObject(telem->uavTalkCon,
+					ev->obj, ev->instId,
+					acked);
+
 			if (success == -1) {
-				++txErrors;
+				telem->tx_errors++;
 			}
 		} 
 
 		// If this is a metaobject then make necessary telemetry updates
 		if (UAVObjIsMetaobject(ev->obj)) {
-			updateObject(UAVObjGetLinkedObj(ev->obj), EV_NONE);     // linked object will be the actual object the metadata are for
+			// linked object will be the actual object the
+			// metadata are for
+			updateObject(telem, UAVObjGetLinkedObj(ev->obj),
+					EV_NONE);
 		}
 	}
 }
@@ -290,17 +478,24 @@ static void processObjEvent(UAVObjEvent * ev)
  */
 static void telemetryTxTask(void *parameters)
 {
+	telem_t telem = parameters;
+
 	// Update telemetry settings
 	updateSettings();
 
-	UAVObjEvent ev;
-
 	// Loop forever
 	while (1) {
+		UAVObjEvent ev;
+
 		// Wait for queue message
-		if (PIOS_Queue_Receive(queue, &ev, PIOS_QUEUE_TIMEOUT_MAX) == true) {
+		if (PIOS_Queue_Receive(telem->queue,&ev,
+					PIOS_QUEUE_TIMEOUT_MAX) == true) {
 			// Process event
-			processObjEvent(&ev);
+			processObjEvent(telem, &ev);
+
+			PIOS_Mutex_Lock(telem->ack_mutex, PIOS_MUTEX_TIMEOUT_MAX);
+			ackHousekeeping(telem);
+			PIOS_Mutex_Unlock(telem->ack_mutex);
 		}
 	}
 }
@@ -356,6 +551,8 @@ static bool processUsbActivity(bool seen_active)
  */
 static void telemetryRxTask(void *parameters)
 {
+	telem_t telem = parameters;
+
 	// Task loop
 	while (1) {
 		uintptr_t inputPort = getComPort();
@@ -366,10 +563,9 @@ static void telemetryRxTask(void *parameters)
 			uint16_t bytes_to_process;
 
 			bytes_to_process = PIOS_COM_ReceiveBuffer(inputPort, serial_data, sizeof(serial_data), 500);
+
 			if (bytes_to_process > 0) {
-				for (uint8_t i = 0; i < bytes_to_process; i++) {
-					UAVTalkProcessInputStream(uavTalkCon,serial_data[i]);
-				}
+				UAVTalkProcessInputStream(telem->uavTalkCon, serial_data, bytes_to_process);
 
 #if defined(PIOS_INCLUDE_USB)
 				if (inputPort == PIOS_COM_TELEM_USB) {
@@ -390,8 +586,10 @@ static void telemetryRxTask(void *parameters)
  * \return -1 on failure
  * \return number of bytes transmitted on success
  */
-static int32_t transmitData(uint8_t * data, int32_t length)
+static int32_t transmitData(void *ctx, uint8_t * data, int32_t length)
 {
+	(void) ctx;
+
 	uintptr_t outputPort = getComPort();
 
 	if (outputPort)
@@ -407,7 +605,8 @@ static int32_t transmitData(uint8_t * data, int32_t length)
  * \return 0 Success
  * \return -1 Failure
  */
-static int32_t setUpdatePeriod(UAVObjHandle obj, int32_t updatePeriodMs)
+static int32_t setUpdatePeriod(telem_t telem, UAVObjHandle obj,
+		int32_t updatePeriodMs)
 {
 	UAVObjEvent ev;
 
@@ -415,7 +614,7 @@ static int32_t setUpdatePeriod(UAVObjHandle obj, int32_t updatePeriodMs)
 	ev.obj = obj;
 	ev.instId = UAVOBJ_ALL_INSTANCES;
 	ev.event = EV_UPDATED_PERIODIC;
-	return EventPeriodicQueueUpdate(&ev, queue, updatePeriodMs);
+	return EventPeriodicQueueUpdate(&ev, telem->queue, updatePeriodMs);
 }
 
 /**
@@ -423,21 +622,21 @@ static int32_t setUpdatePeriod(UAVObjHandle obj, int32_t updatePeriodMs)
  * Trigger a flight telemetry stats update if a connection is not
  * yet established.
  */
-static void gcsTelemetryStatsUpdated()
+static void gcsTelemetryStatsUpdated(telem_t telem)
 {
 	FlightTelemetryStatsData flightStats;
 	GCSTelemetryStatsData gcsStats;
 	FlightTelemetryStatsGet(&flightStats);
 	GCSTelemetryStatsGet(&gcsStats);
 	if (flightStats.Status != FLIGHTTELEMETRYSTATS_STATUS_CONNECTED || gcsStats.Status != GCSTELEMETRYSTATS_STATUS_CONNECTED) {
-		updateTelemetryStats();
+		updateTelemetryStats(telem);
 	}
 }
 
 /**
  * Update telemetry statistics and handle connection handshake
  */
-static void updateTelemetryStats()
+static void updateTelemetryStats(telem_t telem)
 {
 	UAVTalkStats utalkStats;
 	FlightTelemetryStatsData flightStats;
@@ -447,8 +646,7 @@ static void updateTelemetryStats()
 	uint32_t timeNow;
 
 	// Get stats
-	UAVTalkGetStats(uavTalkCon, &utalkStats);
-	UAVTalkResetStats(uavTalkCon);
+	UAVTalkGetStats(telem->uavTalkCon, &utalkStats);
 
 	// Get object data
 	FlightTelemetryStatsGet(&flightStats);
@@ -456,29 +654,32 @@ static void updateTelemetryStats()
 
 	// Update stats object
 	if (flightStats.Status == FLIGHTTELEMETRYSTATS_STATUS_CONNECTED) {
+		/* This is bogus because updates to GCSTelemetryStats trigger
+		 * this call, in addition to just the periodic stuff.
+		 */
 		flightStats.RxDataRate = (float)utalkStats.rxBytes / ((float)STATS_UPDATE_PERIOD_MS / 1000.0f);
 		flightStats.TxDataRate = (float)utalkStats.txBytes / ((float)STATS_UPDATE_PERIOD_MS / 1000.0f);
 		flightStats.RxFailures += utalkStats.rxErrors;
-		flightStats.TxFailures += txErrors;
-		flightStats.TxRetries += txRetries;
-		txErrors = 0;
-		txRetries = 0;
+		flightStats.TxFailures += telem->tx_errors;
+		flightStats.TxRetries += telem->tx_retries;
+		telem->tx_errors = 0;
+		telem->tx_retries = 0;
 	} else {
 		flightStats.RxDataRate = 0;
 		flightStats.TxDataRate = 0;
 		flightStats.RxFailures = 0;
 		flightStats.TxFailures = 0;
 		flightStats.TxRetries = 0;
-		txErrors = 0;
-		txRetries = 0;
+		telem->tx_errors = 0;
+		telem->tx_retries = 0;
 	}
 
 	// Check for connection timeout
 	timeNow = PIOS_Thread_Systime();
 	if (utalkStats.rxObjects > 0) {
-		timeOfLastObjectUpdate = timeNow;
+		telem->time_of_last_update = timeNow;
 	}
-	if ((timeNow - timeOfLastObjectUpdate) > CONNECTION_TIMEOUT_MS) {
+	if ((timeNow - telem->time_of_last_update) > CONNECTION_TIMEOUT_MS) {
 		connectionTimeout = 1;
 	} else {
 		connectionTimeout = 0;

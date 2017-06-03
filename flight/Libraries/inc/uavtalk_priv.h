@@ -79,17 +79,16 @@ typedef struct {
 //! Information for the physical link
 typedef struct {
 	uint8_t canari;
-	UAVTalkOutputStream outStream;
 	struct pios_recursive_mutex *lock;
-	struct pios_recursive_mutex *transLock;
-	struct pios_semaphore *respSema;
-	UAVObjHandle respObj;
-	uint16_t respInstId;
 	UAVTalkStats stats;
 	UAVTalkInputProcessor iproc;
 	uint8_t *rxBuffer;
 	uint32_t txSize;
 	uint8_t *txBuffer;
+
+	UAVTalkOutputCb outCb;
+	UAVTalkAckCb ackCb;
+	void *cbCtx;
 } UAVTalkConnectionData;
 
 #define UAVTALK_CANARI         0xCA
@@ -104,6 +103,8 @@ typedef struct {
 #define UAVTALK_TYPE_OBJ_ACK   (UAVTALK_TYPE_VER | 0x02)
 #define UAVTALK_TYPE_ACK       (UAVTALK_TYPE_VER | 0x03)
 #define UAVTALK_TYPE_NACK      (UAVTALK_TYPE_VER | 0x04)
+#define UAVTALK_TYPE_FILEREQ   (UAVTALK_TYPE_VER | 0x10)
+#define UAVTALK_TYPE_FILEDATA  (UAVTALK_TYPE_VER | 0x11)
 #define UAVTALK_TYPE_OBJ_TS       (UAVTALK_TIMESTAMPED | UAVTALK_TYPE_OBJ)
 
 //macros

@@ -162,12 +162,6 @@ extern uint32_t pios_spi_telem_flash_id;
 extern uint32_t pios_packet_handler;
 #define PIOS_PACKET_HANDLER (pios_packet_handler)
 
-//------------------------
-// TELEMETRY
-//------------------------
-#define TELEM_QUEUE_SIZE				80
-#define PIOS_TELEM_STACK_SIZE			624
-	
 
 #define PIOS_SYSCLK						SYSCLK_FREQ
 //	Peripherals that belongs to APB1 are:
