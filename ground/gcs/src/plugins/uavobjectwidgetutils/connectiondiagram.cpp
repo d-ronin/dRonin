@@ -93,7 +93,7 @@ void ConnectionDiagram::setupGraphicsScene()
         return;
 
     QString diagram = board->getConnectionDiagram();
-    m_renderer = new QSvgRenderer();
+    m_renderer = new QSvgRenderer(this);
     if (QFile::exists(diagram) && m_renderer->load(diagram) && m_renderer->isValid()) {
 
         m_scene = new QGraphicsScene(this);
