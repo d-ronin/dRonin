@@ -30,7 +30,8 @@ SOURCES += \
     homelocationutil.cpp \
     mytabbedstackwidget.cpp \
     mytabwidget.cpp \
-    svgimageprovider.cpp
+    svgimageprovider.cpp \
+    scaledpixmaplabel.cpp
 
 SOURCES += xmlconfig.cpp
 
@@ -55,7 +56,8 @@ HEADERS += utils_global.h \
     homelocationutil.h \
     mytabbedstackwidget.h \
     mytabwidget.h \
-    svgimageprovider.h
+    svgimageprovider.h \
+    scaledpixmaplabel.h
 
 
 HEADERS += xmlconfig.h
