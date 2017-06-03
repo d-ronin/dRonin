@@ -365,137 +365,68 @@ void PIOS_Board_Init(void)
 	PIOS_DELAY_WaitmS(200);
 	PIOS_WDG_Clear();
 
-#if defined(PIOS_INCLUDE_MPU9150)
-#if defined(PIOS_INCLUDE_MPU6050)
-	// Enable autoprobing when both 6050 and 9050 compiled in
-	bool mpu9150_found = false;
-	if (PIOS_MPU9150_Probe(pios_i2c_internal_id, PIOS_MPU9150_I2C_ADD_A0_LOW) == 0) {
-		mpu9150_found = true;
-#else
-	{
-#endif /* PIOS_INCLUDE_MPU6050 */
+	uint8_t hw_magnetometer;
+	HwSparkyMagnetometerGet(&hw_magnetometer);
 
-		uint8_t magnetometer;
-		HwSparkyMagnetometerGet(&magnetometer);
+#if defined(PIOS_INCLUDE_MPU)
+	if (hw_magnetometer != HWSPARKY_MAGNETOMETER_INTERNAL)
+                pios_mpu_cfg.use_internal_mag = false;
 
-		if (magnetometer == HWSPARKY_MAGNETOMETER_INTERNAL)
-			use_mpu_mag = true;
-		else
-			use_mpu_mag = false;
+	pios_mpu_dev_t mpu_dev = NULL;
 
+	if (PIOS_MPU_I2C_Init(&mpu_dev, pios_i2c_internal_id, &pios_mpu_cfg) != 0)
+		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 
-		int retval;
-		retval = PIOS_MPU9150_Init(pios_i2c_internal_id, PIOS_MPU9150_I2C_ADD_A0_LOW, &pios_mpu9150_cfg, use_mpu_mag);
-		if (retval == -10)
-			PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
-		if (retval != 0)
-			PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
-
-		// To be safe map from UAVO enum to driver enum
-		uint8_t hw_gyro_range;
-		HwSparkyGyroRangeGet(&hw_gyro_range);
-		switch (hw_gyro_range) {
+	HwSparkyGyroRangeOptions hw_gyro_range;
+	HwSparkyGyroRangeGet(&hw_gyro_range);
+	switch(hw_gyro_range) {
 		case HWSPARKY_GYRORANGE_250:
-			PIOS_MPU9150_SetGyroRange(PIOS_MPU60X0_SCALE_250_DEG);
+			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_250_DEG);
 			break;
 		case HWSPARKY_GYRORANGE_500:
-			PIOS_MPU9150_SetGyroRange(PIOS_MPU60X0_SCALE_500_DEG);
+			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_500_DEG);
 			break;
 		case HWSPARKY_GYRORANGE_1000:
-			PIOS_MPU9150_SetGyroRange(PIOS_MPU60X0_SCALE_1000_DEG);
+			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_1000_DEG);
 			break;
 		case HWSPARKY_GYRORANGE_2000:
-			PIOS_MPU9150_SetGyroRange(PIOS_MPU60X0_SCALE_2000_DEG);
+			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_2000_DEG);
 			break;
-		}
-
-		uint8_t hw_accel_range;
-		HwSparkyAccelRangeGet(&hw_accel_range);
-		switch (hw_accel_range) {
-		case HWSPARKY_ACCELRANGE_2G:
-			PIOS_MPU9150_SetAccelRange(PIOS_MPU60X0_ACCEL_2G);
-			break;
-		case HWSPARKY_ACCELRANGE_4G:
-			PIOS_MPU9150_SetAccelRange(PIOS_MPU60X0_ACCEL_4G);
-			break;
-		case HWSPARKY_ACCELRANGE_8G:
-			PIOS_MPU9150_SetAccelRange(PIOS_MPU60X0_ACCEL_8G);
-			break;
-		case HWSPARKY_ACCELRANGE_16G:
-			PIOS_MPU9150_SetAccelRange(PIOS_MPU60X0_ACCEL_16G);
-			break;
-		}
-
-		uint8_t hw_mpu9150_dlpf;
-		HwSparkyMPU9150DLPFGet(&hw_mpu9150_dlpf);
-		enum pios_mpu60x0_filter mpu9150_dlpf = \
-		                                        (hw_mpu9150_dlpf == HWSPARKY_MPU9150DLPF_188) ? PIOS_MPU60X0_LOWPASS_188_HZ : \
-		                                        (hw_mpu9150_dlpf == HWSPARKY_MPU9150DLPF_98) ? PIOS_MPU60X0_LOWPASS_98_HZ : \
-		                                        (hw_mpu9150_dlpf == HWSPARKY_MPU9150DLPF_42) ? PIOS_MPU60X0_LOWPASS_42_HZ : \
-		                                        (hw_mpu9150_dlpf == HWSPARKY_MPU9150DLPF_20) ? PIOS_MPU60X0_LOWPASS_20_HZ : \
-		                                        (hw_mpu9150_dlpf == HWSPARKY_MPU9150DLPF_10) ? PIOS_MPU60X0_LOWPASS_10_HZ : \
-		                                        (hw_mpu9150_dlpf == HWSPARKY_MPU9150DLPF_5) ? PIOS_MPU60X0_LOWPASS_5_HZ : \
-		                                        pios_mpu9150_cfg.default_filter;
-		PIOS_MPU9150_SetLPF(mpu9150_dlpf);
 	}
 
-#endif /* PIOS_INCLUDE_MPU9150 */
-
-#if defined(PIOS_INCLUDE_MPU6050)
-#if defined(PIOS_INCLUDE_MPU9150)
-	// MPU9150 looks like an MPU6050 _plus_ additional hardware.  So we cannot try and
-	// probe if MPU9150 is found or we will find a duplicate
-	if (mpu9150_found == false)
-#endif /* PIOS_INCLUDE_MPU9150 */
-	{
-		if (PIOS_MPU6050_Init(pios_i2c_internal_id, PIOS_MPU6050_I2C_ADD_A0_LOW, &pios_mpu6050_cfg) != 0)
-			PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
-		if (PIOS_MPU6050_Test() != 0)
-			PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
-
-		// To be safe map from UAVO enum to driver enum
-		uint8_t hw_gyro_range;
-		HwSparkyGyroRangeGet(&hw_gyro_range);
-		switch (hw_gyro_range) {
-		case HWSPARKY_GYRORANGE_250:
-			PIOS_MPU6050_SetGyroRange(PIOS_MPU60X0_SCALE_250_DEG);
-			break;
-		case HWSPARKY_GYRORANGE_500:
-			PIOS_MPU6050_SetGyroRange(PIOS_MPU60X0_SCALE_500_DEG);
-			break;
-		case HWSPARKY_GYRORANGE_1000:
-			PIOS_MPU6050_SetGyroRange(PIOS_MPU60X0_SCALE_1000_DEG);
-			break;
-		case HWSPARKY_GYRORANGE_2000:
-			PIOS_MPU6050_SetGyroRange(PIOS_MPU60X0_SCALE_2000_DEG);
-			break;
-		}
-
-		uint8_t hw_accel_range;
-		HwSparkyAccelRangeGet(&hw_accel_range);
-		switch (hw_accel_range) {
+	HwSparkyAccelRangeOptions hw_accel_range;
+	HwSparkyAccelRangeGet(&hw_accel_range);
+	switch(hw_accel_range) {
 		case HWSPARKY_ACCELRANGE_2G:
-			PIOS_MPU6050_SetAccelRange(PIOS_MPU60X0_ACCEL_2G);
+			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_2G);
 			break;
 		case HWSPARKY_ACCELRANGE_4G:
-			PIOS_MPU6050_SetAccelRange(PIOS_MPU60X0_ACCEL_4G);
+			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_4G);
 			break;
 		case HWSPARKY_ACCELRANGE_8G:
-			PIOS_MPU6050_SetAccelRange(PIOS_MPU60X0_ACCEL_8G);
+			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_8G);
 			break;
 		case HWSPARKY_ACCELRANGE_16G:
-			PIOS_MPU6050_SetAccelRange(PIOS_MPU60X0_ACCEL_16G);
+			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_16G);
 			break;
-		}
 	}
 
-#endif /* PIOS_INCLUDE_MPU6050 */
+	uint8_t hw_mpu_dlpf;
+	HwSparkyMPU9150DLPFGet(&hw_mpu_dlpf);
+
+	uint16_t bandwidth = \
+		(hw_mpu_dlpf == HWSPARKY_MPU9150DLPF_188) ? 188 : \
+		(hw_mpu_dlpf == HWSPARKY_MPU9150DLPF_98)  ? 98  : \
+		(hw_mpu_dlpf == HWSPARKY_MPU9150DLPF_42)  ? 42  : \
+		(hw_mpu_dlpf == HWSPARKY_MPU9150DLPF_20)  ? 20  : \
+		(hw_mpu_dlpf == HWSPARKY_MPU9150DLPF_10)  ? 10  : \
+		(hw_mpu_dlpf == HWSPARKY_MPU9150DLPF_5)   ? 5   : \
+		188;
+	PIOS_MPU_SetGyroBandwidth(bandwidth);
+#endif /* PIOS_INCLUDE_MPU */
 
 	/* I2C is slow, sensor init as well, reset watchdog to prevent reset here */
 	PIOS_WDG_Clear();
-
-	uint8_t hw_magnetometer;
-	HwSparkyMagnetometerGet(&hw_magnetometer);
 
 	switch (hw_magnetometer) {
 		case HWSPARKY_MAGNETOMETER_NONE:

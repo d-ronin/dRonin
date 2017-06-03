@@ -297,9 +297,10 @@ static int32_t PIOS_MPU_Mag_WriteReg(uint8_t reg, uint8_t data)
 	// we will use I2C SLV4 to manipulate with AK8963 control registers
 	if (PIOS_MPU_WriteReg(PIOS_MPU_SLV4_REG_REG, reg) != 0)
 		return -1;
+	PIOS_MPU_WriteReg(PIOS_MPU_SLV4_REG_REG, reg);
 	PIOS_MPU_WriteReg(PIOS_MPU_SLV4_ADDR_REG, PIOS_MPU_AK89XX_ADDR);
 	PIOS_MPU_WriteReg(PIOS_MPU_SLV4_DO_REG, data);
-	PIOS_MPU_WriteReg(PIOS_MPU_SLV4_CTRL_REG, PIOS_MPU_I2CSLV_EN);
+	PIOS_MPU_WriteReg(PIOS_MPU_SLV4_CTRL_REG, PIOS_MPU_I2CSLV_EN | 9);
 
 	// wait for I2C transaction done, use simple safety
 	// escape counter to prevent endless loop in case
@@ -329,7 +330,10 @@ static uint8_t PIOS_MPU_Mag_ReadReg(uint8_t reg)
 	// we will use I2C SLV4 to manipulate with AK8xxx control registers
 	PIOS_MPU_WriteReg(PIOS_MPU_SLV4_REG_REG, reg);
 	PIOS_MPU_WriteReg(PIOS_MPU_SLV4_ADDR_REG, PIOS_MPU_AK89XX_ADDR | 0x80);
-	PIOS_MPU_WriteReg(PIOS_MPU_SLV4_CTRL_REG, PIOS_MPU_I2CSLV_EN);
+
+	// The 9 here-- does "slow" transactions at a /10 rate ... or 50Hz when
+	// sampling rate is 500.  Only used for 9150 triggering.
+	PIOS_MPU_WriteReg(PIOS_MPU_SLV4_CTRL_REG, PIOS_MPU_I2CSLV_EN | 9);
 
 	// wait for I2C transaction done, use simple safety
 	// escape counter to prevent endless loop in case
@@ -344,6 +348,20 @@ static uint8_t PIOS_MPU_Mag_ReadReg(uint8_t reg)
 	} while ((status & PIOS_MPU_I2C_MST_SLV4_DONE) == 0);
 
 	return PIOS_MPU_ReadReg(PIOS_MPU_SLV4_DI_REG);
+}
+
+static void PIOS_MPU_Mag_Trigger(void)
+{
+	// set magnetometer sampling rate to 100Hz and 16-bit resolution
+	if (mpu_dev->mpu_type == PIOS_MPU9250) {
+		PIOS_MPU_Mag_WriteReg(PIOS_MPU_AK89XX_CNTL1_REG, PIOS_MPU_AK8963_MODE_CONTINUOUS_FAST_16B);
+	} else if (mpu_dev->mpu_type == PIOS_MPU9150) {
+		PIOS_MPU_WriteReg(PIOS_MPU_SLV1_REG_REG, PIOS_MPU_AK89XX_CNTL1_REG);
+		PIOS_MPU_WriteReg(PIOS_MPU_SLV1_ADDR_REG, PIOS_MPU_AK89XX_ADDR);
+		PIOS_MPU_WriteReg(PIOS_MPU_SLV1_DO_REG,
+				PIOS_MPU_AK8975_MODE_SINGLE_12B);
+		PIOS_MPU_WriteReg(PIOS_MPU_SLV1_CTRL_REG, PIOS_MPU_I2CSLV_EN | 1);
+	}
 }
 
 /**
@@ -364,13 +382,15 @@ static int32_t PIOS_MPU_Mag_Config(void)
 	// give chip some time to initialize
 	PIOS_DELAY_WaitmS(2);
 
-	// set magnetometer sampling rate to 100Hz and 16-bit resolution
-	if (mpu_dev->mpu_type == PIOS_MPU9250)
-		PIOS_MPU_Mag_WriteReg(PIOS_MPU_AK89XX_CNTL1_REG, PIOS_MPU_AK8963_MODE_CONTINUOUS_FAST_16B);
-	else
-		PIOS_MPU_Mag_WriteReg(PIOS_MPU_AK89XX_CNTL1_REG, PIOS_MPU_AK8975_MODE_SINGLE_12B);
+	// Set Slave 1 slow, just in case we're going to use it. and set
+	// I2C regs shadowed.
+	PIOS_MPU_WriteReg(PIOS_MPU_I2C_MST_DELAY_CTRL,
+			PIOS_MPU_I2CMSTDELAY_ESSHADOW |
+			PIOS_MPU_I2CMSTDELAY_SLV1EN);
 
-	// configure mpu to read ak8963 data range from STATUS1 to STATUS2 at ODR
+	PIOS_MPU_Mag_Trigger();
+
+	// configure mpu to read ak89xx data range from STATUS1 to CTRL at ODR
 	PIOS_MPU_WriteReg(PIOS_MPU_SLV0_REG_REG, PIOS_MPU_AK89XX_ST1_REG);
 	PIOS_MPU_WriteReg(PIOS_MPU_SLV0_ADDR_REG, PIOS_MPU_AK89XX_ADDR | 0x80);
 	PIOS_MPU_WriteReg(PIOS_MPU_SLV0_CTRL_REG, PIOS_MPU_I2CSLV_EN | 8);
@@ -410,10 +430,10 @@ static int32_t PIOS_MPU_Common_Init(void)
 	/* Probe for mag */
 	if (mpu_dev->cfg->use_internal_mag && PIOS_MPU_Mag_Probe() == 0) {
 		PIOS_MPU_Mag_Alloc(mpu_dev);
-		if (PIOS_MPU_Mag_Config() != 0)
-			return -PIOS_MPU_ERROR_MAGFAILED;
 		if (mpu_dev->mpu_type == PIOS_MPU60X0)
 			mpu_dev->mpu_type = PIOS_MPU9150;
+		if (PIOS_MPU_Mag_Config() != 0)
+			return -PIOS_MPU_ERROR_MAGFAILED;
 	} else {
 		mpu_dev->use_mag = false;
 		if (mpu_dev->mpu_type == PIOS_MPU9250)
@@ -557,7 +577,8 @@ void PIOS_MPU_SetGyroBandwidth(uint16_t bandwidth)
 			filter = PIOS_MPU6500_GYRO_LOWPASS_92_HZ;
 		else
 			filter = PIOS_MPU6500_GYRO_LOWPASS_184_HZ;
-	} else if (mpu_dev->mpu_type == PIOS_MPU60X0) {
+	} else if ((mpu_dev->mpu_type == PIOS_MPU60X0) ||
+			(mpu_dev->mpu_type == PIOS_MPU9150)) {
 		if (bandwidth <= 5)
 			filter = PIOS_MPU60X0_GYRO_LOWPASS_5_HZ;
 		else if (bandwidth <= 10)
@@ -660,8 +681,12 @@ int32_t PIOS_MPU_SetSampleRate(uint16_t samplerate_hz)
 		PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_GYRO, samplerate_hz);
 #ifdef PIOS_INCLUDE_MPU_MAG
 		if (mpu_dev->use_mag) {
-			uint16_t mag_rate = (mpu_dev->mpu_type == PIOS_MPU9250) ? 100 : samplerate_hz;
-			PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_MAG, mag_rate);
+			if (mpu_dev->mpu_type == PIOS_MPU9150) {
+				PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_MAG,
+						samplerate_hz / 10);
+			} else {
+				PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_MAG, 100);
+			}
 		}
 #endif // PIOS_INCLUDE_MPU_MAG
 	}
@@ -855,7 +880,7 @@ static int32_t PIOS_MPU_WriteReg(uint8_t reg, uint8_t data)
 	if (mpu_dev->com_driver_type == PIOS_MPU_COM_SPI)
 		return PIOS_MPU_SPI_Write(reg, data);
 #endif // defined(PIOS_INCLUDE_SPI)
-	
+
 	return -1;
 }
 
@@ -929,27 +954,43 @@ static void PIOS_MPU_Task(void *parameters)
 	uint8_t mpu_rec_buf[BUFFER_SIZE];
 
 #ifdef PIOS_INCLUDE_MPU_MAG
-	uint8_t transfer_size = (mpu_dev->use_mag) ? BUFFER_SIZE : BUFFER_SIZE - 8;
-#ifdef PIOS_INCLUDE_SPI
-	uint8_t mpu_tx_buf[BUFFER_SIZE] = {PIOS_MPU_ACCEL_X_OUT_MSB | 0x80, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-#endif // PIOS_INCLUDE_SPI
-#else
-	uint8_t transfer_size = BUFFER_SIZE;
-#ifdef PIOS_INCLUDE_SPI
-	uint8_t mpu_tx_buf[BUFFER_SIZE] = {PIOS_MPU_ACCEL_X_OUT_MSB | 0x80, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0};
-#endif // PIOS_INCLUDE_SPI
-#endif // PIOS_INCLUDE_MPU_MAG
+	bool do_full_mag = false;
+	int mag_age = 0;
+#endif
 
-	if (mpu_dev->com_driver_type == PIOS_MPU_COM_I2C)
-		transfer_size -= 1;
+#ifdef PIOS_INCLUDE_SPI
+	uint8_t mpu_tx_buf[BUFFER_SIZE] = {PIOS_MPU_ACCEL_X_OUT_MSB | 0x80, };
+#endif // PIOS_INCLUDE_SPI
 
 	while (true) {
+#ifdef PIOS_INCLUDE_MPU_MAG
+		mag_age++;
+
+		uint8_t transfer_size;
+		/* By default we only transfer the magnetometer status
+		 * information, and leave the actual mag data invalid.  If the
+		 * status info says DRDY, then next time around we transfer it
+		 * all.
+		 */
+		if (mpu_dev->use_mag) {
+			if (do_full_mag) {
+				transfer_size = BUFFER_SIZE;
+			} else {
+				/* If mag_age is low, could consider not
+				 * even polling */
+				transfer_size = IDX_MAG_ST1 + 1;
+			}
+		} else {
+			transfer_size = IDX_GYRO_ZOUT_L + 1;
+		}
+#else
+		uint8_t transfer_size = BUFFER_SIZE;
+#endif // PIOS_INCLUDE_MPU_MAG
+
 		//Wait for data ready interrupt
 		if (PIOS_Semaphore_Take(mpu_dev->data_ready_sema, PIOS_SEMAPHORE_TIMEOUT_MAX) != true)
 			continue;
-		
+
 #if defined(PIOS_INCLUDE_SPI)
 		if (mpu_dev->com_driver_type == PIOS_MPU_COM_SPI) {
 			// claim bus in high speed mode
@@ -968,7 +1009,7 @@ static void PIOS_MPU_Task(void *parameters)
 #if defined(PIOS_INCLUDE_I2C)
 		if (mpu_dev->com_driver_type == PIOS_MPU_COM_I2C) {
 			// we skip the SPI dummy byte at the beginning of the buffer here
-			if (PIOS_MPU_I2C_Read(PIOS_MPU_ACCEL_X_OUT_MSB, &mpu_rec_buf[IDX_ACCEL_XOUT_H], transfer_size) < 0)
+			if (PIOS_MPU_I2C_Read(PIOS_MPU_ACCEL_X_OUT_MSB, &mpu_rec_buf[IDX_ACCEL_XOUT_H], transfer_size - 1) < 0)
 				continue;
 		}
 #endif // defined(PIOS_INCLUDE_I2C)
@@ -1133,28 +1174,38 @@ static void PIOS_MPU_Task(void *parameters)
 
 #ifdef PIOS_INCLUDE_MPU_MAG
 		if (mpu_dev->use_mag) {
-			// check data ready
-			bool mag_ok = mpu_rec_buf[IDX_MAG_ST1] & PIOS_MPU_AK89XX_ST1_DRDY;
-			// check for overflow
-			mag_ok &= !(mpu_rec_buf[IDX_MAG_ST2] & PIOS_MPU_AK89XX_ST2_HOFL);
-			// check for data error on mpu-9150
-			mag_ok &= (mpu_dev->mpu_type != PIOS_MPU9150 || !(mpu_rec_buf[IDX_MAG_ST2] & PIOS_MPU_AK8975_ST2_DERR));
-			if (mag_ok) {
-				float mag_scale;
-				if (mpu_dev->mpu_type == PIOS_MPU9150)
-					mag_scale = 3.0f; // 12-bit sampling
-				else if (mpu_rec_buf[IDX_MAG_ST2] & PIOS_MPU_AK8963_ST2_BITM)
-					mag_scale = 1.5f; // 16-bit sampling
-				else
-					mag_scale = 6.0f; // 14-bit sampling
-				mag_data.x *= mag_scale;
-				mag_data.y *= mag_scale;
-				mag_data.z *= mag_scale;
-				PIOS_Queue_Send(mpu_dev->mag_queue, &mag_data, 0);
+			if (do_full_mag) {
+				mag_age = 0;
 
-				// trigger another sample
-				if (mpu_dev->mpu_type == PIOS_MPU9150)
-					PIOS_MPU_Mag_WriteReg(PIOS_MPU_AK89XX_CNTL1_REG, PIOS_MPU_AK8975_MODE_SINGLE_12B);
+				// DRDY will have gotten cleared by the previous
+				// read cycle, so don't look.
+
+				// check for overflow
+				bool mag_ok = !(mpu_rec_buf[IDX_MAG_ST2] & PIOS_MPU_AK89XX_ST2_HOFL);
+
+				mag_ok &= (mpu_dev->mpu_type != PIOS_MPU9150) ||
+					(!(mpu_rec_buf[IDX_MAG_ST2] & PIOS_MPU_AK8975_ST2_DERR));
+				if (mag_ok) {
+					float mag_scale;
+					if (mpu_dev->mpu_type == PIOS_MPU9150)
+						mag_scale = 3.0f; // 12-bit sampling
+					else if (mpu_rec_buf[IDX_MAG_ST2] & PIOS_MPU_AK8963_ST2_BITM)
+						mag_scale = 1.5f; // 16-bit sampling
+					else
+						mag_scale = 6.0f; // 14-bit sampling
+					mag_data.x *= mag_scale;
+					mag_data.y *= mag_scale;
+					mag_data.z *= mag_scale;
+					PIOS_Queue_Send(mpu_dev->mag_queue, &mag_data, 0);
+				}
+
+				do_full_mag = false;
+			} else {
+				if (mpu_rec_buf[IDX_MAG_ST1] & PIOS_MPU_AK89XX_ST1_DRDY) {
+					if (mag_age > 3) {
+						do_full_mag = true;
+					}
+				}
 			}
 		}
 #endif // PIOS_INCLUDE_MPU_MAG

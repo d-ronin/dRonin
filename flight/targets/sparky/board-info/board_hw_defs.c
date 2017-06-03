@@ -668,118 +668,6 @@ static const struct pios_tim_clock_cfg tim_17_cfg = {
 	},
 };
 
-/**
- * Pios servo configuration structures
- */
-/*
- * 	OUTPUTS
-	1:  TIM15_CH2 (PB15)
-	2:  TIM2_CH4 (PB11)
-	3:  TIM3_CH4 (PB1)
-	4:  TIM17_CH1 (PA7)
-	5:  TIM3_CH2 (PA4)
-	6:  TIM2_CH2 (PA1)
- */
-
-static const struct pios_tim_channel pios_tim_servoport_v01_pins[] = {
-	{ // Ch1 -- Crap, conflicts with PPM input TIM15_CH2
-		.timer = TIM15,
-		.timer_chan = TIM_Channel_2,
-		.remap = GPIO_AF_1,
-		.pin = {
-			.gpio = GPIOB,
-			.init = {
-				.GPIO_Pin = GPIO_Pin_15,
-				.GPIO_Speed = GPIO_Speed_2MHz,
-				.GPIO_Mode  = GPIO_Mode_AF,
-				.GPIO_OType = GPIO_OType_PP,
-				.GPIO_PuPd  = GPIO_PuPd_UP
-			},
-			.pin_source = GPIO_PinSource15,
-		},
-	},
-	{ // Ch2
-		.timer = TIM2,
-		.timer_chan = TIM_Channel_4,
-		.remap = GPIO_AF_1,
-		.pin = {
-			.gpio = GPIOB,
-			.init = {
-				.GPIO_Pin = GPIO_Pin_11,
-				.GPIO_Speed = GPIO_Speed_2MHz,
-				.GPIO_Mode  = GPIO_Mode_AF,
-				.GPIO_OType = GPIO_OType_PP,
-				.GPIO_PuPd  = GPIO_PuPd_UP
-			},
-			.pin_source = GPIO_PinSource11,
-		},
-	},
-	{ // Ch3
-		.timer = TIM3,
-		.timer_chan = TIM_Channel_4,
-		.remap = GPIO_AF_2,
-		.pin = {
-			.gpio = GPIOB,
-			.init = {
-				.GPIO_Pin = GPIO_Pin_1,
-				.GPIO_Speed = GPIO_Speed_2MHz,
-				.GPIO_Mode  = GPIO_Mode_AF,
-				.GPIO_OType = GPIO_OType_PP,
-				.GPIO_PuPd  = GPIO_PuPd_UP
-			},
-			.pin_source = GPIO_PinSource1,
-		},
-	},
-	{ // Ch4
-		.timer = TIM17,
-		.timer_chan = TIM_Channel_1,
-		.remap = GPIO_AF_1,
-		.pin = {
-			.gpio = GPIOA,
-			.init = {
-				.GPIO_Pin = GPIO_Pin_7,
-				.GPIO_Speed = GPIO_Speed_2MHz,
-				.GPIO_Mode  = GPIO_Mode_AF,
-				.GPIO_OType = GPIO_OType_PP,
-				.GPIO_PuPd  = GPIO_PuPd_UP
-			},
-			.pin_source = GPIO_PinSource7,
-		},
-	},
-	{ // Ch5
-		.timer = TIM3,
-		.timer_chan = TIM_Channel_2,
-		.remap = GPIO_AF_2,
-		.pin = {
-			.gpio = GPIOA,
-			.init = {
-				.GPIO_Pin = GPIO_Pin_4,
-				.GPIO_Speed = GPIO_Speed_2MHz,
-				.GPIO_Mode  = GPIO_Mode_AF,
-				.GPIO_OType = GPIO_OType_PP,
-				.GPIO_PuPd  = GPIO_PuPd_UP
-			},
-			.pin_source = GPIO_PinSource4,
-		},
-	},
-	{ // Ch6
-		.timer = TIM2,
-		.timer_chan = TIM_Channel_2,
-		.remap = GPIO_AF_1,
-		.pin = {
-			.gpio = GPIOA,
-			.init = {
-				.GPIO_Pin = GPIO_Pin_1,
-				.GPIO_Speed = GPIO_Speed_2MHz,
-				.GPIO_Mode  = GPIO_Mode_AF,
-				.GPIO_OType = GPIO_OType_PP,
-				.GPIO_PuPd  = GPIO_PuPd_UP
-			},
-			.pin_source = GPIO_PinSource1,
-		},
-	},
-};
-
  /* 	OUTPUTS
 	1:  TIM15_CH2 (PB15)
 	2:  TIM15_CH1 (PB14)
@@ -1229,12 +1117,12 @@ static const struct pios_ms5611_cfg pios_ms5611_cfg = {
 #endif /* PIOS_INCLUDE_MS5611 */
 
 /**
- * Configuration for the MPU6050 chip
+ * Configuration for the motion sensor chip
  */
-#if defined(PIOS_INCLUDE_MPU6050)
-#include "pios_mpu6050.h"
-static const struct pios_exti_cfg pios_exti_mpu6050_cfg __exti_config = {
-	.vector = PIOS_MPU6050_IRQHandler,
+#if defined(PIOS_INCLUDE_MPU)
+#include "pios_mpu.h"
+static const struct pios_exti_cfg pios_exti_mpu_cfg __exti_config = {
+	.vector = PIOS_MPU_IRQHandler,
 	.line = EXTI_Line15,
 	.pin = {
 		.gpio = GPIOA,
@@ -1264,65 +1152,13 @@ static const struct pios_exti_cfg pios_exti_mpu6050_cfg __exti_config = {
 	},
 };
 
-static const struct pios_mpu60x0_cfg pios_mpu6050_cfg = {
-	.exti_cfg = &pios_exti_mpu6050_cfg,
+static struct pios_mpu_cfg pios_mpu_cfg = {
+	.exti_cfg = &pios_exti_mpu_cfg,
 	.default_samplerate = 500,
-	.interrupt_cfg = PIOS_MPU60X0_INT_CLR_ANYRD,
-	.interrupt_en = PIOS_MPU60X0_INTEN_DATA_RDY,
-	.User_ctl = 0,
-	.Pwr_mgmt_clk = PIOS_MPU60X0_PWRMGMT_PLL_Z_CLK,
-	.default_filter = PIOS_MPU60X0_LOWPASS_188_HZ,
-	.orientation = PIOS_MPU60X0_TOP_180DEG
+	.orientation = PIOS_MPU_TOP_180DEG,
+	.use_internal_mag = true,
 };
-#endif /* PIOS_INCLUDE_MPU6050 */
-
-/**
- * Configuration for the MPU9150 chip
- */
-#if defined(PIOS_INCLUDE_MPU9150)
-#include "pios_mpu9150.h"
-static const struct pios_exti_cfg pios_exti_mpu9150_cfg __exti_config = {
-	.vector = PIOS_MPU9150_IRQHandler,
-	.line = EXTI_Line15,
-	.pin = {
-		.gpio = GPIOA,
-		.init = {
-			.GPIO_Pin = GPIO_Pin_15,
-			.GPIO_Speed = GPIO_Speed_50MHz,
-			.GPIO_Mode = GPIO_Mode_IN,
-			.GPIO_OType = GPIO_OType_OD,
-			.GPIO_PuPd = GPIO_PuPd_NOPULL,
-		},
-	},
-	.irq = {
-		.init = {
-			.NVIC_IRQChannel = EXTI15_10_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
-			.NVIC_IRQChannelSubPriority = 0,
-			.NVIC_IRQChannelCmd = ENABLE,
-		},
-	},
-	.exti = {
-		.init = {
-			.EXTI_Line = EXTI_Line15, // matches above GPIO pin
-			.EXTI_Mode = EXTI_Mode_Interrupt,
-			.EXTI_Trigger = EXTI_Trigger_Rising,
-			.EXTI_LineCmd = ENABLE,
-		},
-	},
-};
-
-static const struct pios_mpu60x0_cfg pios_mpu9150_cfg = {
-	.exti_cfg = &pios_exti_mpu9150_cfg,
-	.default_samplerate = 500,
-	.interrupt_cfg = PIOS_MPU60X0_INT_CLR_ANYRD,
-	.interrupt_en = PIOS_MPU60X0_INTEN_DATA_RDY,
-	.User_ctl = 0,
-	.Pwr_mgmt_clk = PIOS_MPU60X0_PWRMGMT_PLL_Z_CLK,
-	.default_filter = PIOS_MPU60X0_LOWPASS_188_HZ,
-	.orientation = PIOS_MPU60X0_TOP_180DEG,
-};
-#endif /* PIOS_INCLUDE_MPU9150 */
+#endif /* PIOS_INCLUDE_MPU */
 
 /**
  * @}

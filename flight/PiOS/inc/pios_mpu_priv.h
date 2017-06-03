@@ -42,6 +42,10 @@
 #define PIOS_MPU_SLV0_ADDR_REG        0x25
 #define PIOS_MPU_SLV0_REG_REG         0x26
 #define PIOS_MPU_SLV0_CTRL_REG        0x27
+#define PIOS_MPU_SLV1_ADDR_REG        0x28
+#define PIOS_MPU_SLV1_REG_REG         0x29
+#define PIOS_MPU_SLV1_DO_REG          0x64
+#define PIOS_MPU_SLV1_CTRL_REG        0x2A
 #define PIOS_MPU_SLV4_ADDR_REG        0x31
 #define PIOS_MPU_SLV4_REG_REG         0x32
 #define PIOS_MPU_SLV4_DO_REG          0x33
@@ -65,6 +69,7 @@
 #define PIOS_MPU_GYRO_Y_OUT_LSB       0x46
 #define PIOS_MPU_GYRO_Z_OUT_MSB       0x47
 #define PIOS_MPU_GYRO_Z_OUT_LSB       0x48
+#define PIOS_MPU_I2C_MST_DELAY_CTRL   0x67
 #define PIOS_MPU_SIGNAL_PATH_RESET    0x68
 #define PIOS_MPU_USER_CTRL_REG        0x6A
 #define PIOS_MPU_PWR_MGMT_REG         0x6B
@@ -122,6 +127,10 @@
 #define PIOS_MPU_I2CSLV_REG_DIS       0x20
 #define PIOS_MPU_I2CSLV_GRP           0x10
 
+/* I2C MST Delay Control register btis */
+#define PIOS_MPU_I2CMSTDELAY_SLV0EN   0x01
+#define PIOS_MPU_I2CMSTDELAY_SLV1EN   0x02
+#define PIOS_MPU_I2CMSTDELAY_ESSHADOW 0x80
 
 /* AK89XX Registers */
 #define PIOS_MPU_AK89XX_ADDR                         0x0C
