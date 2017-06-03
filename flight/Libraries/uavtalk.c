@@ -515,9 +515,9 @@ uint32_t UAVTalkGetPacketObjId(UAVTalkConnection connectionHandle)
 }
 
 /**
- * Get the object ID of the current packet.
+ * Get the instance ID of the current packet.
  * \param[in] connectionHandle UAVTalkConnection to be used
- * \return The object ID, or 0 on error.
+ * \return The instance ID, or 0 on error.
  */
 uint32_t UAVTalkGetPacketInstId(UAVTalkConnection connectionHandle)
 {
@@ -526,6 +526,20 @@ uint32_t UAVTalkGetPacketInstId(UAVTalkConnection connectionHandle)
 	CHECKCONHANDLE(connectionHandle, connection, return 0);
 
 	return connection->iproc.instId;
+}
+
+/**
+ * Check if the current packet contains an object update
+ * \param[in] connectionHandle UAVTalkConnection to be used
+ * \return true if the packet contains on update (i.e. a payload)
+ */
+bool UAVTalkPacketIsObjectUpdate(UAVTalkConnection connectionHandle)
+{
+	UAVTalkConnectionData *connection;
+
+	CHECKCONHANDLE(connectionHandle, connection, return 0);
+
+	return connection->iproc.length > 0;
 }
 
 /**

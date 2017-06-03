@@ -64,6 +64,7 @@ int32_t UAVTalkReceiveObject(UAVTalkConnection connectionHandle);
 void UAVTalkGetStats(UAVTalkConnection connection, UAVTalkStats *stats);
 uint32_t UAVTalkGetPacketObjId(UAVTalkConnection connection);
 uint32_t UAVTalkGetPacketInstId(UAVTalkConnection connection);
+bool UAVTalkPacketIsObjectUpdate(UAVTalkConnection connection);
 
 #endif // UAVTALK_H
 /**

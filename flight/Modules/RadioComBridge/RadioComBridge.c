@@ -57,6 +57,7 @@
 #include "velocityactual.h"
 #include "baroaltitude.h"
 #include "modulesettings.h"
+#include "firmwareiapobj.h"
 
 #include "pios_thread.h"
 #include "pios_queue.h"
@@ -596,6 +597,16 @@ static void ProcessTelemetryStream(UAVTalkConnection inConnectionHandle,
 			}
 		}
 			break;
+
+		case FIRMWAREIAPOBJ_OBJID:
+			/* Do not pass FirmwareIAP commands through to the flight board.
+			 * It can't do anything useful with them over radio, and it would
+			 * be dangerous if they're in-flight. We can't block the object
+			 * entirely because GCS uses it to identify the board type */
+			if (!UAVTalkPacketIsObjectUpdate(inConnectionHandle))
+				UAVTalkRelayPacket(inConnectionHandle, outConnectionHandle);
+			break;
+
 		default:
 			// all other packets are transparently relayed to the remote modem
 			UAVTalkRelayPacket(inConnectionHandle, outConnectionHandle);
