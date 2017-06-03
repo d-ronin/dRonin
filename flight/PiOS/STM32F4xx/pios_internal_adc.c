@@ -344,8 +344,12 @@ static inline void accumulate(uint16_t *buffer, uint32_t count)
  */
 void PIOS_INTERNAL_ADC_DMA_Handler(void)
 {
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_PROLOGUE();
+#endif /* PIOS_INCLUDE_CHIBIOS */
+
 	if (!PIOS_INTERNAL_ADC_validate(pios_adc_dev))
-		return;
+		goto out;
 
 #if defined(PIOS_INCLUDE_ADC)
 	/* terminal count, buffer has flipped */
@@ -361,6 +365,11 @@ void PIOS_INTERNAL_ADC_DMA_Handler(void)
 		}
 	}
 #endif
+
+out:
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	CH_IRQ_EPILOGUE();
+#endif /* PIOS_INCLUDE_CHIBIOS */
 }
 
 /**
