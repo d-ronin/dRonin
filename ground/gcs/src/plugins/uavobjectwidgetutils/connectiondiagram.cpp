@@ -93,7 +93,7 @@ void ConnectionDiagram::setupGraphicsScene()
         return;
 
     QString diagram = board->getConnectionDiagram();
-    m_renderer = new QSvgRenderer();
+    m_renderer = new QSvgRenderer(this);
     if (QFile::exists(diagram) && m_renderer->load(diagram) && m_renderer->isValid()) {
 
         m_scene = new QGraphicsScene(this);
@@ -127,6 +127,8 @@ void ConnectionDiagram::setupGraphicsScene()
         ui->connectionDiagram->setSceneRect(m_background->boundingRect());
         ui->connectionDiagram->fitInView(m_background, Qt::KeepAspectRatio);
 
+        ui->saveButton->setEnabled(true);
+
         qDebug() << "Scene complete";
     }
 }
@@ -157,6 +159,9 @@ void ConnectionDiagram::setupGraphicsSceneItems(QStringList elementsToShow)
 
 void ConnectionDiagram::saveToFile()
 {
+    if (!m_background)
+        return;
+
     QImage image(m_background->boundingRect().size().toSize(), QImage::Format_ARGB32);
     image.fill(0);
 
