@@ -84,7 +84,7 @@ bool TauLink::queryCapabilities(BoardCapabilities capability)
 
 QPixmap TauLink::getBoardPicture()
 {
-    return QPixmap(":/images/taulink.png");
+    return QPixmap(":/taulabs/images/taulink.png");
 }
 
 QString TauLink::getHwUAVO()

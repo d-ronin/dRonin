@@ -246,8 +246,7 @@ void UploaderGadgetWidget::DeviceInformationUpdate(deviceInfo board)
     m_widget->maxCode_lbl->setText(board.max_code_size);
     m_widget->deviceInformationMainLayout->setVisible(true);
     m_widget->deviceInformationNoInfo->setVisible(false);
-    m_widget->boardPic->setPixmap(board.board->getBoardPicture().scaled(
-        200, 200, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    m_widget->boardPic->setPixmap(board.board->getBoardPicture());
     FirmwareLoadedUpdate(loadedFile);
 }
 
