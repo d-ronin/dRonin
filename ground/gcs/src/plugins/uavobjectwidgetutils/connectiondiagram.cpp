@@ -102,6 +102,10 @@ void ConnectionDiagram::setupGraphicsScene()
         m_background = new QGraphicsSvgItem();
         m_background->setSharedRenderer(m_renderer);
         m_background->setElementId("background");
+        if (!m_background->boundingRect().isValid()) {
+            qWarning() << "\"background\" element seems to be missing from connection diagram";
+            return;
+        }
         m_background->setOpacity(0);
         m_background->setZValue(-1);
         m_scene->addItem(m_background);
