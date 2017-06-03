@@ -68,7 +68,7 @@ typedef struct {
 	uint16_t packet_size;
 	uint32_t objId;
 	uint16_t instId;
-	uint32_t length;
+	uint32_t length; /**< The length of the object payload (valid after UAVTALK_STATE_OBJID) */
 	uint8_t instanceLength;
 	uint8_t cs;
 	int32_t rxCount;
