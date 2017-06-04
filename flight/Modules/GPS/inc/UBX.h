@@ -1,10 +1,10 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsModules Tau Labs Modules
+ * @addtogroup Modules Modules
  * @{
- * @addtogroup GSPModule GPS Module
+ * @addtogroup GPSModule GPS
+ * @{
  * @brief Process GPS information
- * @{
  *
  * @file       UBX.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
