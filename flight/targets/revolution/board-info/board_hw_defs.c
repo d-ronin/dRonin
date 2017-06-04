@@ -1407,6 +1407,60 @@ static const struct pios_tim_channel pios_tim_servoport_rcvrport_pins[] = {
 };
 
 #if defined(PIOS_INCLUDE_SERVO) && defined(PIOS_INCLUDE_TIM)
+
+#if defined(PIOS_INCLUDE_DMASHOT)
+
+#include <pios_dmashot.h>
+
+/*
+TIM3 C3,C4
+TIM9 C2
+TIM2 C3
+TIM5 C2,C1
+
+DShot is mostly just popular with miniquads, those being actual quads,
+at most hex. So six is enough. Rest is gonna use bitbanging, if user
+wants to use these pins.
+*/
+
+static const struct pios_dmashot_timer_cfg dmashot_tim_cfg[] = {
+	{
+		.timer = TIM3,
+		.stream = DMA1_Stream2,
+		.channel = DMA_Channel_5,
+		.tcif = DMA_FLAG_TCIF2,
+	},
+	{
+		.timer = TIM9,
+		.master_timer = TIM1,
+		.master_config = TIM_DMA_Update | TIM_DMABase_CCR2,
+
+		.stream = DMA2_Stream5,
+		.channel = DMA_Channel_6,
+		.tcif = DMA_FLAG_TCIF5,
+	},
+	{
+		.timer = TIM2,
+		.stream = DMA1_Stream1,
+		.channel = DMA_Channel_3,
+		.tcif = DMA_FLAG_TCIF1,
+	},
+	{
+		.timer = TIM5,
+		.stream = DMA1_Stream0,
+		.channel = DMA_Channel_6,
+		.tcif = DMA_FLAG_TCIF0,
+	}
+};
+
+static const struct pios_dmashot_cfg dmashot_config = {
+	.timer_cfg = &dmashot_tim_cfg[0],
+	.num_timers = NELEMENTS(dmashot_tim_cfg)
+};
+
+#endif /* defined(PIOS_INCLUDE_DMASHOT) */
+
+
 /*
  * Servo outputs
  */
