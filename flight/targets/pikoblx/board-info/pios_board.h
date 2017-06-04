@@ -1,11 +1,11 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsTargets Tau Labs Targets
+ * @addtogroup Targets Target Boards
  * @{
- * @addtogroup PikoBLX Tau Labs PikoBLX support files
+ * @addtogroup PikoBLX PikoBLX
  * @{
  *
- * @file       STM32F30x_PikoBLX.c 
+ * @file       pikoblx/board-info/pios_board.h 
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
  * @brief      Board header file for PikoBLX board.
  * @see        The GNU Public License (GPL) Version 3

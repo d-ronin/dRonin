@@ -1,11 +1,11 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsTargets Tau Labs Targets
+ * @addtogroup Targets Target Boards
  * @{
- * @addtogroup PikoBLX Tau Labs PikoBLX support files
+ * @addtogroup PikoBLX PikoBLX
  * @{
  *
- * @file       pios_board.c
+ * @file       pikoblx/fw/pios_board.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
  * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      The board specific initialization routines
@@ -372,5 +372,6 @@ void PIOS_Board_Init(void)
 }
 
 /**
+ * @}
  * @}
  */
