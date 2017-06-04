@@ -214,6 +214,20 @@ QWidget *Seppuku::getBoardConfiguration(QWidget *parent, bool connected)
     return new SeppukuConfiguration(parent);
 }
 
+bool Seppuku::hasAnnunciator(AnnunciatorType annunc)
+{
+    switch (annunc) {
+    case ANNUNCIATOR_HEARTBEAT: // auxio1, next to uart3 rx, marked "reserved for future use"
+    case ANNUNCIATOR_ALARM:
+        break;
+    case ANNUNCIATOR_BUZZER:
+    case ANNUNCIATOR_RGB:
+    case ANNUNCIATOR_DAC:
+        return true;
+    }
+    return false;
+}
+
 /**
  * @}
  * @}

@@ -293,3 +293,17 @@ QWidget *Dtfc::getBoardConfiguration(QWidget *parent, bool connected)
     Q_UNUSED(connected);
     return new DtfcConfiguration(parent);
 }
+
+bool Dtfc::hasAnnunciator(AnnunciatorType annunc)
+{
+    switch (annunc) {
+    case ANNUNCIATOR_HEARTBEAT:
+    case ANNUNCIATOR_ALARM:
+    case ANNUNCIATOR_BUZZER:
+        return true;
+    case ANNUNCIATOR_RGB:
+    case ANNUNCIATOR_DAC:
+        break;
+    }
+    return false;
+}

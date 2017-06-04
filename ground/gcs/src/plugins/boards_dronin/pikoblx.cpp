@@ -283,3 +283,17 @@ QStringList PikoBLX::getAdcNames()
     return QStringList() << "I"
                          << "V";
 }
+
+bool PikoBLX::hasAnnunciator(AnnunciatorType annunc)
+{
+    switch (annunc) {
+    case ANNUNCIATOR_HEARTBEAT:
+    case ANNUNCIATOR_ALARM:
+    case ANNUNCIATOR_BUZZER:
+        return true;
+    case ANNUNCIATOR_RGB:
+    case ANNUNCIATOR_DAC:
+        break;
+    }
+    return false;
+}

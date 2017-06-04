@@ -60,6 +60,7 @@ public:
     virtual int queryMaxGyroRate();
     virtual QWidget *getBoardConfiguration(QWidget *parent, bool connected);
     virtual QStringList getAdcNames();
+    virtual bool hasAnnunciator(AnnunciatorType annunc);
 };
 
 #endif // BRAIN_H

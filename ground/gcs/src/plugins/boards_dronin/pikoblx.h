@@ -49,8 +49,7 @@ public:
     virtual Core::IBoardType::InputType getInputType();
     virtual int queryMaxGyroRate();
     virtual QStringList getAdcNames();
-    // virtual QString getConnectionDiagram();
-    // virtual QWidget *getBoardConfiguration(QWidget *parent, bool connected);
+    virtual bool hasAnnunciator(AnnunciatorType annunc);
 
 private:
     UAVObjectManager *uavoManager;

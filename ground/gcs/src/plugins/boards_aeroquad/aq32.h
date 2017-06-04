@@ -60,6 +60,7 @@ public:
 
     virtual int queryMaxGyroRate();
     virtual QStringList getAdcNames();
+    virtual bool hasAnnunciator(AnnunciatorType annunc);
 };
 
 #endif // AQ32_H

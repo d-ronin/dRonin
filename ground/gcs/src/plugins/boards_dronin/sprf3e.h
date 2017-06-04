@@ -71,6 +71,8 @@ public:
      * @return Configuration widget handle or NULL on failure
      */
     virtual QWidget *getBoardConfiguration(QWidget *parent, bool connected);
+
+    virtual bool hasAnnunciator(AnnunciatorType annunc);
 };
 
 #endif // SPRF3E_H_

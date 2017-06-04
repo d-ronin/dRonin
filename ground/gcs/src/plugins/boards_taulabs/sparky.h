@@ -66,6 +66,7 @@ public:
 
     virtual int queryMaxGyroRate();
     virtual QStringList getAdcNames();
+    virtual bool hasAnnunciator(AnnunciatorType annunc);
 };
 
 #endif // SPARKY_H

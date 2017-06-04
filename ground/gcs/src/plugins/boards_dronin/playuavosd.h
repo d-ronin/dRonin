@@ -45,6 +45,7 @@ public:
     virtual bool queryCapabilities(BoardCapabilities capability);
     virtual QPixmap getBoardPicture();
     virtual QString getHwUAVO();
+    virtual bool hasAnnunciator(AnnunciatorType annunc);
 };
 
 #endif // PLAYUAVOSD_H_

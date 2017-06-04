@@ -303,3 +303,16 @@ QStringList AQ32::getAdcNames()
                          << "Disabled"
                          << "Disabled";
 }
+
+bool AQ32::hasAnnunciator(AnnunciatorType annunc)
+{
+    switch (annunc) {
+    case ANNUNCIATOR_HEARTBEAT:
+    case ANNUNCIATOR_ALARM:
+    case ANNUNCIATOR_BUZZER:
+    case ANNUNCIATOR_RGB:
+    case ANNUNCIATOR_DAC:
+        return true;
+    }
+    return false;
+}
