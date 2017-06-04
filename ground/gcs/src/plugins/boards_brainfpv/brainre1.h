@@ -76,6 +76,8 @@ public:
      *
      */
     virtual QVector<QVector<int>> getChannelBanks();
+
+    virtual bool hasAnnunciator(AnnunciatorType annunc);
 };
 
 #endif // BRAINRE1_H

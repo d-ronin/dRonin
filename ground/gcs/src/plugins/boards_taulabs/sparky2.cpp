@@ -412,3 +412,17 @@ QStringList Sparky2::getAdcNames()
                          << "Analog VOLT"
                          << "DAC";
 }
+
+bool Sparky2::hasAnnunciator(AnnunciatorType annunc)
+{
+    switch (annunc) {
+    case ANNUNCIATOR_HEARTBEAT:
+    case ANNUNCIATOR_ALARM:
+        return true;
+    case ANNUNCIATOR_BUZZER:
+    case ANNUNCIATOR_RGB:
+    case ANNUNCIATOR_DAC:
+        break;
+    }
+    return false;
+}

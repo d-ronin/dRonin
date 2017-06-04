@@ -171,6 +171,14 @@ public:
         INPUT_TYPE_ANY
     };
 
+    enum AnnunciatorType {
+        ANNUNCIATOR_HEARTBEAT = 1 << 0,
+        ANNUNCIATOR_ALARM     = 1 << 1,
+        ANNUNCIATOR_BUZZER    = 1 << 2,
+        ANNUNCIATOR_RGB       = 1 << 3,
+        ANNUNCIATOR_DAC       = 1 << 4,
+    };
+
     //! Returns the minimum bootloader version required
     virtual int minBootLoaderVersion() { return 0; }
 
@@ -253,6 +261,13 @@ public:
      * @return List of bootloader USB filters for this board
      */
     QList<USBInfo> bootloaderUSBInfo() { return m_bootloaderUSBInfo; }
+
+    /**
+     * @brief Check if the board has the given type of annunciator
+     * @param annunc Annunciator type of interest
+     * @return true if present
+     */
+    virtual bool hasAnnunciator(AnnunciatorType annunc) { Q_UNUSED(annunc) return false; }
 
 signals:
 

@@ -47,6 +47,7 @@ public:
     virtual QString getHwUAVO();
     virtual int queryMaxGyroRate();
     QWidget *getBoardConfiguration(QWidget *parent, bool connected);
+    virtual bool hasAnnunciator(AnnunciatorType annunc);
 };
 
 #endif // SIMULATION_H_

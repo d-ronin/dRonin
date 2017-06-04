@@ -267,3 +267,17 @@ QVector<QVector<int>> BrainRE1::getChannelBanks()
 
     return banks;
 }
+
+bool BrainRE1::hasAnnunciator(AnnunciatorType annunc)
+{
+    switch (annunc) {
+    case ANNUNCIATOR_HEARTBEAT:
+    case ANNUNCIATOR_ALARM:
+    case ANNUNCIATOR_BUZZER:
+    case ANNUNCIATOR_RGB:
+        return true;
+    case ANNUNCIATOR_DAC:
+        break;
+    }
+    return false;
+}

@@ -281,6 +281,20 @@ QWidget *Sprf3e::getBoardConfiguration(QWidget *parent, bool connected)
     return new Sprf3eConfiguration(parent);
 }
 
+bool Sprf3e::hasAnnunciator(AnnunciatorType annunc)
+{
+    switch (annunc) {
+    case ANNUNCIATOR_HEARTBEAT:
+    case ANNUNCIATOR_ALARM:
+    case ANNUNCIATOR_BUZZER:
+        return true;
+    case ANNUNCIATOR_RGB:
+    case ANNUNCIATOR_DAC:
+        break;
+    }
+    return false;
+}
+
 /**
  * @}
  * @}

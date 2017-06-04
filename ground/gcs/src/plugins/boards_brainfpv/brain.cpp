@@ -308,3 +308,17 @@ QStringList Brain::getAdcNames()
                          << "Sen ADC1"
                          << "Sen ADC2";
 }
+
+bool Brain::hasAnnunciator(AnnunciatorType annunc)
+{
+    switch (annunc) {
+    case ANNUNCIATOR_HEARTBEAT:
+    case ANNUNCIATOR_ALARM:
+    case ANNUNCIATOR_DAC:
+        return true;
+    case ANNUNCIATOR_BUZZER:
+    case ANNUNCIATOR_RGB:
+        break;
+    }
+    return false;
+}

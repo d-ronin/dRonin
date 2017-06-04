@@ -98,6 +98,20 @@ int Simulation::queryMaxGyroRate()
     return 2000;
 }
 
+bool Simulation::hasAnnunciator(AnnunciatorType annunc)
+{
+    switch (annunc) {
+    case ANNUNCIATOR_HEARTBEAT:
+    case ANNUNCIATOR_ALARM:
+        return true;
+    case ANNUNCIATOR_BUZZER:
+    case ANNUNCIATOR_RGB:
+    case ANNUNCIATOR_DAC:
+        break;
+    }
+    return false;
+}
+
 /**
  * @}
  * @}

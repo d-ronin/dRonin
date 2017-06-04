@@ -86,6 +86,7 @@ public:
                            Core::IBoardType::LinkMode linkMode, quint8 min, quint8 max);
 
     virtual QStringList getAdcNames();
+    virtual bool hasAnnunciator(AnnunciatorType annunc);
 
 private:
     UAVObjectUtilManager *uavoUtilManager;

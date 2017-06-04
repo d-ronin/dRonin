@@ -102,6 +102,10 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent)
 
     setupLedTab();
 
+    connect(this, &ConfigTaskWidget::autoPilotConnected,
+            this, &ConfigModuleWidget::updateAnnunciatorTab);
+    updateAnnunciatorTab();
+
     enableBatteryTab(false);
     enableAirspeedTab(false);
     enableHoTTTelemetryTab(false);
@@ -122,6 +126,7 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent)
     setNotMandatory(AirspeedSettings::NAME);
     setNotMandatory(HoTTSettings::NAME);
     setNotMandatory(LoggingSettings::NAME);
+    setNotMandatory(RGBLEDSettings::NAME);
 }
 
 ConfigModuleWidget::~ConfigModuleWidget()
@@ -509,6 +514,46 @@ void ConfigModuleWidget::tabEnable(QWidget *tab, bool enable)
         ui->moduleTab->setCurrentIndex(0);
     if (idx >= 0)
         ui->moduleTab->setTabEnabled(idx, enable);
+}
+
+/**
+ * @brief Go through and show/hide relevant annunciator widgets for the current board
+ */
+void ConfigModuleWidget::updateAnnunciatorTab()
+{
+    struct AnuncType {
+        Core::IBoardType::AnnunciatorType type;
+        QString widgetName;
+    };
+    static const std::vector<AnuncType> annuncTypes = {
+        { Core::IBoardType::ANNUNCIATOR_HEARTBEAT, "Heartbeat" },
+        { Core::IBoardType::ANNUNCIATOR_ALARM, "Alarm" },
+        { Core::IBoardType::ANNUNCIATOR_BUZZER, "Buzzer" },
+        { Core::IBoardType::ANNUNCIATOR_RGB, "Rgb" },
+        { Core::IBoardType::ANNUNCIATOR_DAC, "Dac" },
+    };
+    static const std::vector<QString> widgets = {
+        "lbl%0Anytime",
+        "cbx%0Anytime",
+        "lbl%0Armed",
+        "cbx%0Armed",
+    };
+
+    auto board = utilMngr->getBoardType();
+    if (!board)
+        return;
+
+    for (const auto &annunc : annuncTypes) {
+        bool have = board->hasAnnunciator(annunc.type);
+
+        for (const auto &name : widgets) {
+            const auto widget = ui->tabAnnunc->findChild<QWidget *>(name.arg(annunc.widgetName));
+            if (widget)
+                widget->setVisible(have);
+            else
+                qWarning() << "Failed to get widget:" << name.arg(annunc.widgetName);
+        }
+    }
 }
 
 /**

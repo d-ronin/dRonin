@@ -426,3 +426,21 @@ QStringList Revolution::getAdcNames()
     return QStringList() << "Pwr Sen Pin 3"
                          << "Pwr Sen Pin 4";
 }
+
+bool Revolution::hasAnnunciator(AnnunciatorType annunc)
+{
+    switch (annunc) {
+    case ANNUNCIATOR_HEARTBEAT:
+    case ANNUNCIATOR_RGB:
+        return true;
+    case ANNUNCIATOR_ALARM:
+        if (uavoUtilManager->getBoardRevision() == 3)
+            return true;
+        else
+            break;
+    case ANNUNCIATOR_BUZZER:
+    case ANNUNCIATOR_DAC:
+        break;
+    }
+    return false;
+}

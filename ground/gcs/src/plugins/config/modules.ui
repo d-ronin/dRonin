@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1101</width>
-    <height>1053</height>
+    <width>940</width>
+    <height>997</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -43,8 +43,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>1059</width>
-            <height>889</height>
+            <width>898</width>
+            <height>895</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_15">
@@ -482,8 +482,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>1059</width>
-            <height>889</height>
+            <width>898</width>
+            <height>895</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_14">
@@ -1190,8 +1190,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>1059</width>
-            <height>889</height>
+            <width>898</width>
+            <height>895</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_16">
@@ -1319,8 +1319,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>1059</width>
-            <height>889</height>
+            <width>898</width>
+            <height>895</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_17">
@@ -1420,6 +1420,394 @@
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="tabAnnunc">
+      <attribute name="title">
+       <string>Annunciator</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_13">
+       <item>
+        <widget class="QScrollArea" name="scrollArea_6">
+         <property name="widgetResizable">
+          <bool>true</bool>
+         </property>
+         <widget class="QWidget" name="scrollAreaWidgetContents_6">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>884</width>
+            <height>1572</height>
+           </rect>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_18">
+           <item>
+            <widget class="QGroupBox" name="grpAnytime">
+             <property name="title">
+              <string>Anytime</string>
+             </property>
+             <layout class="QFormLayout" name="formLayout_9">
+              <item row="1" column="0">
+               <widget class="QLabel" name="lblHeartbeatAnytime">
+                <property name="text">
+                 <string>Heartbeat LED:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QComboBox" name="cbxHeartbeatAnytime">
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:AnnunciatorSettings</string>
+                  <string>fieldname:AnnunciateAnytime</string>
+                  <string>element:LED_Heartbeat</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="lblAlarmAnytime">
+                <property name="text">
+                 <string>Alarm LED:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QComboBox" name="cbxAlarmAnytime">
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:AnnunciatorSettings</string>
+                  <string>fieldname:AnnunciateAnytime</string>
+                  <string>element:LED_Alarm</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="lblRgbAnytime">
+                <property name="text">
+                 <string>RGB LEDs (alarm group):</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="QLabel" name="lblBuzzerAnytime">
+                <property name="text">
+                 <string>Buzzer:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="0">
+               <widget class="QLabel" name="lblDacAnytime">
+                <property name="text">
+                 <string>Audio (DAC):</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QComboBox" name="cbxRgbAnytime">
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:AnnunciatorSettings</string>
+                  <string>fieldname:AnnunciateAnytime</string>
+                  <string>element:RGB_LEDs</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="1">
+               <widget class="QComboBox" name="cbxBuzzerAnytime">
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:AnnunciatorSettings</string>
+                  <string>fieldname:AnnunciateAnytime</string>
+                  <string>element:Buzzer</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="1">
+               <widget class="QComboBox" name="cbxDacAnytime">
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:AnnunciatorSettings</string>
+                  <string>fieldname:AnnunciateAnytime</string>
+                  <string>element:DAC</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0" colspan="2">
+               <widget class="QLabel" name="label_29">
+                <property name="text">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This group defines the types of alarms that will be indicated before arming. Once the vehicle has been armed at least once, they will be overriden by the &amp;quot;After Arming&amp;quot; group below.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="grpArmed">
+             <property name="title">
+              <string>After Arming</string>
+             </property>
+             <layout class="QFormLayout" name="layout_10">
+              <item row="1" column="0">
+               <widget class="QLabel" name="lblHeartbeatArmed">
+                <property name="text">
+                 <string>Heartbeat LED:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QComboBox" name="cbxHeartbeatArmed">
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:AnnunciatorSettings</string>
+                  <string>fieldname:AnnunciateAfterArming</string>
+                  <string>element:LED_Heartbeat</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="lblAlarmArmed">
+                <property name="text">
+                 <string>Alarm LED:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QComboBox" name="cbxAlarmArmed">
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:AnnunciatorSettings</string>
+                  <string>fieldname:AnnunciateAfterArming</string>
+                  <string>element:LED_Alarm</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="lblRgbArmed">
+                <property name="text">
+                 <string>RGB LEDs (alarm group):</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="QLabel" name="lblBuzzerArmed">
+                <property name="text">
+                 <string>Buzzer:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="0">
+               <widget class="QLabel" name="lblDacArmed">
+                <property name="text">
+                 <string>Audio (DAC):</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QComboBox" name="cbxRgbArmed">
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:AnnunciatorSettings</string>
+                  <string>fieldname:AnnunciateAfterArming</string>
+                  <string>element:RGB_LEDs</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="1">
+               <widget class="QComboBox" name="cbxBuzzerArmed">
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:AnnunciatorSettings</string>
+                  <string>fieldname:AnnunciateAfterArming</string>
+                  <string>element:Buzzer</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="1">
+               <widget class="QComboBox" name="cbxDacArmed">
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:AnnunciatorSettings</string>
+                  <string>fieldname:AnnunciateAfterArming</string>
+                  <string>element:DAC</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0" colspan="2">
+               <widget class="QLabel" name="label_30">
+                <property name="text">
+                 <string>This group defines the types of alarms that will be indicated after the vehicle has been armed at least once.</string>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_3">
+             <property name="title">
+              <string>Alarm Severities</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_22">
+              <item>
+               <widget class="QLabel" name="label_38">
+                <property name="text">
+                 <string>The alarm severities are listed here in order of priority, highest to lowest. When you select a severity, you will get all alarms of equal severity or higher, except for &quot;ManualControlOnly&quot;, which is a special case.</string>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="verticalSpacer_10">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Fixed</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>10</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_39">
+                <property name="text">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;HairOnFire &lt;/span&gt;effectively disables annunciation. There are no alarms of this priority.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_40">
+                <property name="text">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Critical&lt;/span&gt; is active when a major problem has been detected e.g. vehicle has not been configured correctly. Your vehicle will be unable to arm.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_41">
+                <property name="text">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Error&lt;/span&gt; is active when the controller detected an error or fault that prevents flight e.g. ran out of memory, or battery is completely exhausted.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_42">
+                <property name="text">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Warning&lt;/span&gt; indicates a general non-fatal (yet) condition e.g. battery will soon be exhausted (if battery module is enabled).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_43">
+                <property name="text">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;OK&lt;/span&gt; indicates that everything is healthy/green. This will be active all the time. More useful for heartbeat LEDs etc.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_34">
+                <property name="text">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Unitialised&lt;/span&gt; indicates that a particular subsytem hasn't been initialised (e.g. because it's disabled in the modules tab). This will be active all the time (even with all modules running, it is lower priority than &amp;quot;OK&amp;quot;).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_44">
+                <property name="text">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;ManualControlOnly&lt;/span&gt; is a special case. It is only active for alarms generated by the manual control module i.e. the radio control subsystem. Select this for buzzer if you want to beep only when out of radio range.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="verticalSpacer_11">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Fixed</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>10</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_45">
+                <property name="text">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When active, annunciators will flash or beep a morse code to indicate which subsystem they relate to: &amp;quot;b&amp;quot; for battery, &amp;quot;c&amp;quot; for configuration, &amp;quot;g&amp;quot; for GPS, &amp;quot;r&amp;quot; for manual/radio control, &amp;quot;a&amp;quot; for all others.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_7">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>0</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
      <widget class="QWidget" name="tabLED">
       <attribute name="title">
        <string>RGB LEDs</string>
@@ -1435,8 +1823,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>1059</width>
-            <height>889</height>
+            <width>898</width>
+            <height>895</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_19">
@@ -1783,8 +2171,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>1059</width>
-            <height>889</height>
+            <width>898</width>
+            <height>895</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_20">
@@ -2042,8 +2430,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>1059</width>
-            <height>855</height>
+            <width>898</width>
+            <height>864</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout">
@@ -4043,8 +4431,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>1059</width>
-            <height>889</height>
+            <width>898</width>
+            <height>895</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_21">

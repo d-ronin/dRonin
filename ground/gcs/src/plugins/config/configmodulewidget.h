@@ -60,6 +60,7 @@ private slots:
     void maxCellVoltageChanged(double value);
     void ledTabUpdate(UAVObject *obj);
     void ledTabSetColor();
+    void updateAnnunciatorTab();
 
 private:
     void setupLedTab();
