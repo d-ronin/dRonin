@@ -137,24 +137,6 @@
 #if defined(PIOS_INCLUDE_HMC5983)
 #include <pios_hmc5983.h>
 #endif
-#if defined(PIOS_INCLUDE_I2C_ESC)
-#include <pios_i2c_esc.h>
-#endif
-#if defined(PIOS_INCLUDE_IMU3000)
-#include <pios_imu3000.h>
-#endif
-#if defined(PIOS_INCLUDE_MPU6050)
-#include <pios_mpu6050.h>
-#endif
-#if defined(PIOS_INCLUDE_MPU9150)
-#include <pios_mpu9150.h>
-#endif
-#if defined(PIOS_INCLUDE_MPU9250_BRAIN)
-#include <pios_mpu9250_brain.h>
-#endif
-#if defined(PIOS_INCLUDE_MPU6000)
-#include <pios_mpu6000.h>
-#endif
 #if defined(PIOS_INCLUDE_MPU)
 #include <pios_mpu.h>
 #endif
