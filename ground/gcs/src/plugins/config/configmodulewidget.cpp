@@ -126,6 +126,7 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent)
     setNotMandatory(AirspeedSettings::NAME);
     setNotMandatory(HoTTSettings::NAME);
     setNotMandatory(LoggingSettings::NAME);
+    setNotMandatory(RGBLEDSettings::NAME);
 }
 
 ConfigModuleWidget::~ConfigModuleWidget()
