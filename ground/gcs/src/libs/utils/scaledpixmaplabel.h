@@ -34,9 +34,11 @@
 #include <QPixmap>
 #include <QLabel>
 
-class ScaledPixmapLabel : public QLabel
+#include "utils_global.h"
+
+class QTCREATOR_UTILS_EXPORT ScaledPixmapLabel : public QLabel
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
     /**
      * @brief ScaledPixmapLabel
