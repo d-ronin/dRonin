@@ -1,9 +1,9 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsModules Tau Labs Modules
- * @{ 
- * @addtogroup GSPModule GPS Module
- * @{ 
+ * @addtogroup Modules Modules
+ * @{
+ * @addtogroup GPSModule GPS
+ * @{
  *
  * @file       GPS.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.

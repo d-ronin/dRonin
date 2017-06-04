@@ -1,9 +1,9 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsModules Tau Labs Modules
- * @{ 
- * @addtogroup GPSModule GPS Module
- * @{ 
+ * @addtogroup Modules Modules
+ * @{
+ * @addtogroup GPSModule GPS
+ * @{
  *
  * @file       GPS.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
@@ -332,7 +332,7 @@ static void updateSettings()
 	}
 }
 
-/** 
+/**
   * @}
   * @}
   */

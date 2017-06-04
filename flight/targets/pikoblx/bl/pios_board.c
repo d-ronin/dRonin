@@ -1,11 +1,11 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsBootloader Tau Labs Bootloaders
+ * @addtogroup Bootloader Bootloaders
  * @{
- * @addtogroup PikoBLXBL Tau Labs PikoBLX bootloader
+ * @addtogroup PikoBLX PikoBLX
  * @{
  *
- * @file       pios_board.c
+ * @file       pikoblx/bl/pios_board.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
  * @brief      Board specific initialization for the bootloader

@@ -1,6 +1,10 @@
 /**
   ******************************************************************************
-  * @file    system_stm32f30x.c
+  * @file    pikoblx/board-info/cmsis_system.c
+  * @addtogroup Targets Target Boards
+  * @{
+  * @addtogroup PikoBLX PikoBLX
+  * @{
   * @author  MCD Application Team
   * @version V1.0.0
   * @date    04-September-2012
@@ -384,3 +388,7 @@ static void SetSysClock(void)
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
 
+/**
+ * @}
+ * @}
+ */

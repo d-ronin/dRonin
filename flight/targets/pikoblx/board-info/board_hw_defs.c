@@ -1,11 +1,11 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsTargets Tau Labs Targets
+ * @addtogroup Targets Target Boards
  * @{
- * @addtogroup PikoBLX Tau Labs PikoBLX support files
+ * @addtogroup PikoBLX PikoBLX
  * @{
  *
- * @file       board_hw_defs.c 
+ * @file       pikoblx/board-info/board_hw_defs.c 
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2011.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
  * @author     dRonin, http://dronin.org Copyright (C) 2015
@@ -988,6 +988,7 @@ static struct pios_mpu_cfg pios_mpu_cfg = {
     .orientation = PIOS_MPU_TOP_90DEG
 };
 #endif /* PIOS_INCLUDE_MPU */
+
 /**
  * @}
  * @}

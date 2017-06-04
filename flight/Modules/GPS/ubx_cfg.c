@@ -1,10 +1,10 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsModules Tau Labs Modules
+ * @addtogroup Modules Modules
  * @{
- * @addtogroup GSPModule GPS Module
+ * @addtogroup GPSModule GPS
+ * @{
  * @brief Process GPS information
- * @{
  *
  * @file       ubx_cfg.h
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2015
