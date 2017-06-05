@@ -126,7 +126,6 @@ SRC += pios_flashfs_logfs.c
 SRC += printf-stdarg.c
 SRC += pios_usb_desc_hid_cdc.c
 SRC += pios_usb_util.c
-SRC += pios_dma.c
 SRC += pios_adc.c
 SRC += pios_heap.c
 SRC += pios_semaphore.c
