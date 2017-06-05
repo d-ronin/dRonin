@@ -56,6 +56,7 @@
 #include "pios_com_priv.h"
 #include "pios_serial_priv.h"
 #include "pios_tcp_priv.h"
+#include "pios_flightgear.h"
 #include "pios_thread.h"
 
 #include "pios_hal.h"
@@ -98,11 +99,12 @@ uintptr_t external_i2c_adapter_id;
 
 static void Usage(char *cmdName) {
 	printf( "usage: %s [-f] [-r] [-m orientation] [-s spibase] [-d drvname:bus:id]\n"
-		"\t\t[-l logfile] [-I i2cdev] [-i drvname:bus]"
+		"\t\t[-l logfile] [-I i2cdev] [-i drvname:bus] [-g port]"
 		"\n"
 		"\t-f\tEnables floating point exception trapping mode\n"
 		"\t-r\tGoes realtime-class and pins all memory (requires root)\n"
 		"\t-l log\tWrites simulation data to a log\n"
+		"\t-g port\tStarts FlightGear driver on port\n"
 #ifdef PIOS_INCLUDE_SERIAL
 		"\t-S drvname:serialpath\tStarts a serial driver on serialpath\n"
 		"\t\t\tAvailable drivers: gps msp lighttelemetry telemetry omnip\n"
@@ -441,7 +443,7 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 
 	bool first_arg = true;
 
-	while ((opt = getopt(argc, argv, "frl:s:d:S:I:i:")) != -1) {
+	while ((opt = getopt(argc, argv, "frg:l:s:d:S:I:i:")) != -1) {
 		switch (opt) {
 			case 'f':
 				debug_fpe = true;
@@ -553,6 +555,20 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 				first_arg = false;
 				break;
 			}
+			case 'g':
+			{
+				uint16_t port = atoi(optarg);
+
+				flightgear_dev_t dontcare;
+
+				if (PIOS_FLIGHTGEAR_Init(&dontcare, port)) {
+					printf("Couldn't init FGear\n");
+					exit(1);
+				}
+
+				first_arg = false;
+				break;
+			}
 #endif
 
 			default:
@@ -583,7 +599,7 @@ static void sigint_handler(int signum, siginfo_t *siginfo, void *ucontext)
 
 static void sigfpe_handler(int signum, siginfo_t *siginfo, void *ucontext)
 {
-	printf("\nSIGFPE received.  OMG!  Math Bug!  Run again with gdb to find your mistake.\n");
+	printf("\nSIGFPE received.  OMG!\n");
 	exit(0);
 }
 #endif
