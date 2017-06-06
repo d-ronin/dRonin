@@ -31,6 +31,7 @@
  */
 
 /* Project Includes */
+#include "openpilot.h"
 #include "pios.h"
 #include "pios_thread.h"
 #include "pios_flightgear.h"
@@ -38,6 +39,9 @@
 #include <sys/types.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <fcntl.h>
+
+#include <actuatordesired.h>
 
 #include <sys/select.h>
 
@@ -49,6 +53,8 @@ struct flightgear_dev {
 	int socket;
 
 	struct pios_queue *accel_queue, *gyro_queue;
+
+	struct sockaddr_in send_addr;
 };
 
 /**
@@ -62,6 +68,8 @@ static void PIOS_FLIGHTGEAR_RxTask(void *param)
 
 	struct pios_sensor_accel_data accel_data = { };
 	struct pios_sensor_gyro_data gyro_data = { };
+
+	int num = 0;
 
 	while (true) {
 		char buf[320];
@@ -90,6 +98,25 @@ static void PIOS_FLIGHTGEAR_RxTask(void *param)
 		accels[0] *= .3048;
 		accels[1] *= .3048;
 		accels[2] *= .3048;
+
+		ActuatorDesiredData act_desired;
+
+		ActuatorDesiredGet(&act_desired);
+
+		char sendbuf[128];
+
+		snprintf(sendbuf, sizeof(sendbuf), "%f,%f,%f,%f,%d\n",
+				act_desired.Roll,
+				-act_desired.Pitch,
+				act_desired.Yaw,
+				act_desired.Thrust,
+				num++);
+
+		if (sendto(fg_dev->socket, sendbuf, strlen(sendbuf), 0,
+				(struct sockaddr *) &fg_dev->send_addr,
+				sizeof(fg_dev->send_addr)) < 0) {
+			perror("sendto");
+		}
 
 		while (true) {
 			accel_data.x = accel_data.x * 0.3 + accels[0] * 0.7;
@@ -134,13 +161,13 @@ int32_t PIOS_FLIGHTGEAR_Init(flightgear_dev_t *dev, uint16_t port)
 	memset(fg_dev, 0, sizeof(*fg_dev));
 
 	/* assign socket */
-	fg_dev->socket = socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+	fg_dev->socket = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
 #if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
 	char optval = 1;
 	char optoff = 0;
 
-	setsockopt(fg_dev->socket, IPPROTO_IPV6, IPV6_V6ONLY, &optoff, sizeof(optoff));
+	//setsockopt(fg_dev->socket, IPPROTO_IPV6, IPV6_V6ONLY, &optoff, sizeof(optoff));
 #else
 	int optval = 1;
 #endif
@@ -148,10 +175,18 @@ int32_t PIOS_FLIGHTGEAR_Init(flightgear_dev_t *dev, uint16_t port)
         /* Allow reuse of address if you restart. */
         setsockopt(fg_dev->socket, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
 
-	struct sockaddr_in6 saddr = {
-		.sin6_family = AF_INET6,
-		.sin6_addr = in6addr_any,
-		.sin6_port = htons(port)
+	printf("binding sockets on ports %d, %d\n", port, port+1);
+
+	struct sockaddr_in saddr = {
+		.sin_family = AF_INET,
+		.sin_addr = INADDR_ANY,
+		.sin_port = htons(port)
+	};
+
+	fg_dev->send_addr = (struct sockaddr_in) {
+		.sin_family = AF_INET,
+		.sin_addr = INADDR_ANY,
+		.sin_port = htons(port + 1)
 	};
 
 	int res = bind(fg_dev->socket, (struct sockaddr*)&saddr,
@@ -170,7 +205,7 @@ int32_t PIOS_FLIGHTGEAR_Init(flightgear_dev_t *dev, uint16_t port)
 	if (fg_dev->gyro_queue == NULL) {
 		exit(1);
 	}
-	
+
 	PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_ACCEL, 333);
 	PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_GYRO, 333);
 
@@ -185,11 +220,11 @@ int32_t PIOS_FLIGHTGEAR_Init(flightgear_dev_t *dev, uint16_t port)
 			PIOS_THREAD_PRIO_HIGHEST);
 
 	(void) fg_handle;
-	
+
 	printf("fg dev %p - socket %i opened\n", fg_dev, fg_dev->socket);
-	
+
 	*dev = fg_dev;
-	
+
 	return res;
 }
 

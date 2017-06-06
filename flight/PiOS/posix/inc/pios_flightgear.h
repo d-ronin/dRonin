@@ -1,7 +1,7 @@
 /**
  ******************************************************************************
  *
- * @file       pios_flightgear_priv.h
+ * @file       pios_flightgear.h
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2017
  * @brief      FlightGear driver header.
  * @see        The GNU Public License (GPL) Version 3

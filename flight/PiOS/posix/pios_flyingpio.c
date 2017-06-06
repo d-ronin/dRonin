@@ -121,7 +121,6 @@ const struct pios_servo_callbacks flyingpio_callbacks = {
 	.set = PIOS_FLYINGPIO_ActuatorSet
 };
 
-
 static struct pios_flyingpio_dev *PIOS_FLYINGPIO_Alloc()
 {
 	struct pios_flyingpio_dev *dev;
