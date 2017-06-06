@@ -52,6 +52,8 @@ static int32_t sendBuf(UAVTalkConnection connectionHandle, uint8_t *buf, uint16_
  * Initialize the UAVTalk library
  * \param[in] connection UAVTalkConnection to be used
  * \param[in] outputStream Function pointer that is called to send a data buffer
+ * \param[in] ackCallback A function to invoke when receiving an ack
+ * \parampin] fileCallback A function which provides file data upon demand
  * \return 0 Success
  * \return -1 Failure
  */
@@ -637,6 +639,10 @@ static int32_t sendBuf(UAVTalkConnection connectionHandle, uint8_t *buf, uint16_
 	return 0;
 }
 
+/**
+ * Handles a request for file data.
+ * \param[in] connection The connection on which a request was just received.
+ */
 static void handleFileReq(UAVTalkConnectionData *connection)
 {
 	UAVTalkInputProcessor *iproc = &connection->iproc;
@@ -688,13 +694,14 @@ static void handleFileReq(UAVTalkConnectionData *connection)
 			file_offset += cb_numbytes;
 
 			if (i == 5) {	/* 6 messages per chunk */
-				resp->flags = 2;
+				resp->flags = UAVTALK_FILEDATA_LAST;
 			} else {
 				resp->flags = 0;
 			}
 		} else {
 			/* End of file, last chunk in sequence */
-			resp->flags = 3;
+			resp->flags = UAVTALK_FILEDATA_LAST |
+				UAVTALK_FILEDATA_EOF;
 		}
 
 		// Store the packet length
@@ -713,7 +720,7 @@ static void handleFileReq(UAVTalkConnectionData *connection)
 			connection->stats.txBytes += total_len;
 		}
 
-		if (resp->flags & 2) {
+		if (resp->flags & UAVTALK_FILEDATA_LAST) {
 			break;
 		}
 	}
@@ -984,7 +991,7 @@ static int32_t sendNack(UAVTalkConnectionData *connection, uint32_t objId)
 	// Calculate checksum
 	connection->txBuffer[dataOffset] = PIOS_CRC_updateCRC(0, connection->txBuffer, dataOffset);
 
-	uint16_t tx_msg_len = dataOffset+UAVTALK_CHECKSUM_LENGTH;
+	uint16_t tx_msg_len = dataOffset + UAVTALK_CHECKSUM_LENGTH;
 	int32_t rc = (*connection->outCb)(connection->cbCtx, connection->txBuffer,
 			tx_msg_len);
 

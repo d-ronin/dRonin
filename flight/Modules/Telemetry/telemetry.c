@@ -298,6 +298,12 @@ static void updateObject(telem_t telem, UAVObjHandle obj, int32_t eventType)
 	}
 }
 
+/**
+ * Either expires or retransmits a message that expects ack.
+ *
+ * \param[in] telem Telemetry subsystem handle
+ * \param[in] idx The offset for "which ack" to do this for.
+ */
 static void ackResendOrTimeout(telem_t telem, int idx)
 {
 	if (telem->acks[idx].retry_count++ > MAX_RETRIES) {
@@ -339,6 +345,11 @@ static void ackResendOrTimeout(telem_t telem, int idx)
 	}
 }
 
+/**
+ * Checks for acks that need resend or expiration.
+ *
+ * \param[in] telem Telemetry subsystem handle
+ */
 static void ackHousekeeping(telem_t telem)
 {
 	uint32_t tm = PIOS_Thread_Systime();
@@ -353,6 +364,14 @@ static void ackHousekeeping(telem_t telem)
 
 }
 
+/**
+ * Adds a message for which we want an ack.  Can block if there are already
+ * too many ack-required things pending.
+ *
+ * \param[in] telem Telemetry subsystem handle
+ * \param[in] obj The object for which we want to wait for an ack.
+ * \param[in] inst_id The instance ID of said object.
+ */
 static void addAckPending(telem_t telem, UAVObjHandle obj, uint16_t inst_id)
 {
 	DEBUG_PRINTF(3, "telem: want ack for %d/%d\n", UAVObjGetID(obj),
@@ -397,6 +416,18 @@ static void addAckPending(telem_t telem, UAVObjHandle obj, uint16_t inst_id)
 	}
 }
 
+/**
+ * Callback for when we receive a request for data.  Converts a file
+ * id to the actual unit of information, and returns/copies it.
+ * Currently only operates on partitions.
+ *
+ * \param[in] ctx Callback context (telemetry subsystem handle)
+ * \param[in] file_id The requested file_id
+ * \param[in] offset The offset of information requested
+ * \param[in] len The maximum amount of information to return.  A short read
+ * is permissable, as long as some bytes are returned.
+ * \returns The number of bytes filled, 0 on EOF, negative on error.
+ */
 static int32_t fileReqCallback(void *ctx, uint8_t *buf,
                 uint32_t file_id, uint32_t offset, uint32_t len)
 {
@@ -439,6 +470,13 @@ static int32_t fileReqCallback(void *ctx, uint8_t *buf,
 	return -1;
 }
 
+/**
+ * Callback for when we receive an ack.
+ *
+ * \param[in] ctx Callback context (telemetry subsystem handle)
+ * \param[in] obj_id The object ID that we got an ack for.
+ * \param[in] inst_id The instance ID that we got an ack for.
+ */
 static void ackCallback(void *ctx, uint32_t obj_id, uint16_t inst_id)
 {
 	telem_t telem = ctx;
