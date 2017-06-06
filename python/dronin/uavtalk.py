@@ -171,7 +171,9 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
         # Search for object.
         uavo_key = '{0:08x}'.format(objId)
         if not uavo_key in uavo_defs:
-            #print "Unknown object 0x" + uavo_key + "type = ", pack_type
+            #print "Unknown object 0x" + uavo_key + " type = ", pack_type
+            obj_len = pack_len - MIN_HEADER_LENGTH
+
             obj = None
         else:
             obj = uavo_defs[uavo_key]
@@ -332,7 +334,7 @@ def request_object(obj, inst_id = 0):
 
     return packet
 
-def request_filedata(obj, file_id, offset = 0):
+def request_filedata(file_id, offset = 0):
     """Makes a request for a chunk of file data"""
 
     packet = header_fmt.pack(SYNC_VAL, TYPE_FILEREQ | TYPE_VER,
