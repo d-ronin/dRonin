@@ -665,26 +665,57 @@ static void handleFileReq(UAVTalkConnectionData *connection)
 
 	data_offs += sizeof(*resp);
 
-	resp->offset = req->offset;
-	resp->len = 0;
-	resp->flags = 0;
+	uint32_t file_offset = req->offset;
 
-	uint8_t total_len = data_offs;
+	for (int i = 0; i < 3; i++) {
+		resp->offset = file_offset;
+		resp->len = 0;
+		resp->flags = 0;
 
-	// Store the packet length
-	connection->txBuffer[2] = (uint8_t)((total_len) & 0xFF);
-	connection->txBuffer[3] = (uint8_t)(((total_len) >> 8) & 0xFF);
+		int32_t cb_numbytes = -1;
 
-	// Calculate checksum
-	connection->txBuffer[total_len] = PIOS_CRC_updateCRC(0,
-			connection->txBuffer, data_offs);
+		if (connection->fileCb) {
+			cb_numbytes = connection->fileCb(connection->cbCtx,
+				connection->txBuffer + data_offs,
+				file_id, file_offset, 80);
+		}
 
-	int32_t rc = (*connection->outCb)(connection->cbCtx, connection->txBuffer,
-			total_len + 1);
+		uint8_t total_len = data_offs;
 
-	if (rc == total_len) {
-		// Update stats
-		connection->stats.txBytes += total_len;
+		if (cb_numbytes > 0) {
+			total_len += cb_numbytes;
+
+			file_offset = 1;
+
+			if (i == 2) {
+				resp->flags = 2;
+			} else {
+				resp->flags = 0;
+			}
+		} else {
+			/* End of file, last chunk in sequence */
+			resp->flags = 3;
+		}
+
+		// Store the packet length
+		connection->txBuffer[2] = (uint8_t)((total_len) & 0xFF);
+		connection->txBuffer[3] = (uint8_t)(((total_len) >> 8) & 0xFF);
+
+		// Calculate checksum
+		connection->txBuffer[total_len] = PIOS_CRC_updateCRC(0,
+				connection->txBuffer, data_offs);
+
+		int32_t rc = (*connection->outCb)(connection->cbCtx,
+				connection->txBuffer, total_len + 1);
+
+		if (rc == total_len) {
+			// Update stats
+			connection->stats.txBytes += total_len;
+		}
+
+		if (resp->flags & 2) {
+			break;
+		}
 	}
 
 	PIOS_Recursive_Mutex_Unlock(connection->lock);

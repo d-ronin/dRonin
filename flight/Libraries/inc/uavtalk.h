@@ -31,9 +31,9 @@
 #define UAVTALK_H
 
 // Public types
-typedef int32_t (*UAVTalkOutputCb)(void *ctx, uint8_t* data, int32_t length);
+typedef int32_t (*UAVTalkOutputCb)(void *ctx, uint8_t *data, int32_t length);
 typedef void (*UAVTalkAckCb)(void *ctx, uint32_t obj_id, uint16_t inst_id);
-typedef int32_t (*UAVTalkFileCb)(void *ctx, char *buf,
+typedef int32_t (*UAVTalkFileCb)(void *ctx, uint8_t *buf,
 		uint32_t file_id, uint32_t offset, uint32_t len);
 
 //! Tracking statistics for a UAVTalk connection
