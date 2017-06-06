@@ -55,6 +55,17 @@ typedef struct {
 } uavtalk_max_header;
 #define UAVTALK_MAX_HEADER_LENGTH       sizeof(uavtalk_max_header)
 
+struct filereq_data {
+	uint32_t offset;
+	uint16_t flags;
+} __attribute__((packed));
+
+struct fileresp_data {
+	uint32_t offset;
+	uint8_t len;
+	uint8_t flags;
+} __attribute__((packed));
+
 typedef uint8_t uavtalk_checksum;
 #define UAVTALK_CHECKSUM_LENGTH         sizeof(uavtalk_checksum)
 #define UAVTALK_MAX_PAYLOAD_LENGTH      (UAVOBJECTS_LARGEST + 1)
@@ -88,6 +99,7 @@ typedef struct {
 
 	UAVTalkOutputCb outCb;
 	UAVTalkAckCb ackCb;
+	UAVTalkFileCb fileCb;
 	void *cbCtx;
 } UAVTalkConnectionData;
 
@@ -95,7 +107,7 @@ typedef struct {
 #define UAVTALK_WAITFOREVER     -1
 #define UAVTALK_NOWAIT          0
 #define UAVTALK_SYNC_VAL       0x3C
-#define UAVTALK_TYPE_MASK      0x78
+#define UAVTALK_TYPE_MASK      0x70
 #define UAVTALK_TYPE_VER       0x20
 #define UAVTALK_TIMESTAMPED    0x80
 #define UAVTALK_TYPE_OBJ       (UAVTALK_TYPE_VER | 0x00)
@@ -103,8 +115,8 @@ typedef struct {
 #define UAVTALK_TYPE_OBJ_ACK   (UAVTALK_TYPE_VER | 0x02)
 #define UAVTALK_TYPE_ACK       (UAVTALK_TYPE_VER | 0x03)
 #define UAVTALK_TYPE_NACK      (UAVTALK_TYPE_VER | 0x04)
-#define UAVTALK_TYPE_FILEREQ   (UAVTALK_TYPE_VER | 0x10)
-#define UAVTALK_TYPE_FILEDATA  (UAVTALK_TYPE_VER | 0x11)
+#define UAVTALK_TYPE_FILEREQ   (UAVTALK_TYPE_VER | 0x08)
+#define UAVTALK_TYPE_FILEDATA  (UAVTALK_TYPE_VER | 0x09)
 #define UAVTALK_TYPE_OBJ_TS       (UAVTALK_TIMESTAMPED | UAVTALK_TYPE_OBJ)
 
 //macros

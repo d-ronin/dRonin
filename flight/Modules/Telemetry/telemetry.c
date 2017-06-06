@@ -190,7 +190,7 @@ int32_t TelemetryInitialize(void)
 	telem_state.queue = PIOS_Queue_Create(MAX_QUEUE_SIZE, sizeof(UAVObjEvent));
 
 	// Initialise UAVTalk
-	telem_state.uavTalkCon = UAVTalkInitialize(&telem_state, &transmitData, &ackCallback);
+	telem_state.uavTalkCon = UAVTalkInitialize(&telem_state, &transmitData, &ackCallback, NULL);
 
 	SessionManagingConnectCallback(session_managing_updated);
 

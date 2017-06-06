@@ -33,6 +33,8 @@
 // Public types
 typedef int32_t (*UAVTalkOutputCb)(void *ctx, uint8_t* data, int32_t length);
 typedef void (*UAVTalkAckCb)(void *ctx, uint32_t obj_id, uint16_t inst_id);
+typedef int32_t (*UAVTalkFileCb)(void *ctx, char *buf,
+		uint32_t file_id, uint32_t offset, uint32_t len);
 
 //! Tracking statistics for a UAVTalk connection
 typedef struct {
@@ -52,7 +54,7 @@ typedef enum {UAVTALK_STATE_ERROR = 0, UAVTALK_STATE_SYNC, UAVTALK_STATE_TYPE, U
 	      UAVTALK_STATE_DATA, UAVTALK_STATE_CS, UAVTALK_STATE_COMPLETE} UAVTalkRxState;
 
 // Public functions
-UAVTalkConnection UAVTalkInitialize(void *ctx, UAVTalkOutputCb outputStream, UAVTalkAckCb ackCallback);
+UAVTalkConnection UAVTalkInitialize(void *ctx, UAVTalkOutputCb outputStream, UAVTalkAckCb ackCallback, UAVTalkFileCb fileCallback);
 int32_t UAVTalkSendObject(UAVTalkConnection connection, UAVObjHandle obj, uint16_t instId, uint8_t acked);
 int32_t UAVTalkSendObjectTimestamped(UAVTalkConnection connectionHandle, UAVObjHandle obj, uint16_t instId);
 void UAVTalkProcessInputStream(UAVTalkConnection connectionHandle, uint8_t *rxbytes,

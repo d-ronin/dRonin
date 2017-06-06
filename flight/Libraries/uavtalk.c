@@ -56,7 +56,7 @@ static int32_t sendBuf(UAVTalkConnection connectionHandle, uint8_t *buf, uint16_
  * \return -1 Failure
  */
 UAVTalkConnection UAVTalkInitialize(void *ctx, UAVTalkOutputCb outputStream,
-		UAVTalkAckCb ackCallback)
+		UAVTalkAckCb ackCallback, UAVTalkFileCb fileCallback)
 {
 	// allocate object
 	UAVTalkConnectionData * connection = PIOS_malloc_no_dma(sizeof(UAVTalkConnectionData));
@@ -67,7 +67,8 @@ UAVTalkConnection UAVTalkInitialize(void *ctx, UAVTalkOutputCb outputStream,
 		.iproc = { .state = UAVTALK_STATE_SYNC, },
 		.cbCtx = ctx,
 		.outCb = outputStream,
-		.ackCb = ackCallback
+		.ackCb = ackCallback,
+		.fileCb = fileCallback,
 	};
 
 	connection->lock = PIOS_Recursive_Mutex_Create();
@@ -181,8 +182,12 @@ UAVTalkRxState UAVTalkProcessInputStreamQuiet(UAVTalkConnection connectionHandle
 	UAVTalkInputProcessor *iproc = &connection->iproc;
 	++connection->stats.rxBytes;
 
-	if (iproc->state == UAVTALK_STATE_ERROR || iproc->state == UAVTALK_STATE_COMPLETE)
+	if (iproc->state == UAVTALK_STATE_ERROR) {
+		connection->stats.rxErrors++;
 		iproc->state = UAVTALK_STATE_SYNC;
+	} else if (iproc->state == UAVTALK_STATE_COMPLETE) {
+		iproc->state = UAVTALK_STATE_SYNC;
+	}
 
 	if (iproc->rxPacketLength < 0xffff)
 		iproc->rxPacketLength++;   // update packet byte count
@@ -254,6 +259,26 @@ UAVTalkRxState UAVTalkProcessInputStreamQuiet(UAVTalkConnection connectionHandle
 		if (iproc->rxCount < 4)
 			break;
 
+		if (iproc->type == UAVTALK_TYPE_FILEREQ) {
+			/* Slightly overloaded from "normal" case.  Consume
+			 * 4 bytes of offset and 2 bytes of flags.
+			 */
+
+			iproc->instanceLength = 0;
+			iproc->rxCount = 0;
+			iproc->length = 6;
+
+			if ((iproc->packet_size - iproc->rxPacketLength) !=
+					iproc->length) {
+				iproc->state = UAVTALK_STATE_ERROR;
+				break;
+			}
+
+			iproc->state = UAVTALK_STATE_DATA;
+
+			break;
+		}
+
 		// Search for object.
 		iproc->obj = UAVObjGetByID(iproc->objId);
 
@@ -274,14 +299,12 @@ UAVTalkRxState UAVTalkProcessInputStreamQuiet(UAVTalkConnection connectionHandle
 
 		// Check length and determine next state
 		if (iproc->length >= UAVTALK_MAX_PAYLOAD_LENGTH) {
-			connection->stats.rxErrors++;
 			iproc->state = UAVTALK_STATE_ERROR;
 			break;
 		}
 
 		// Check the lengths match
 		if ((iproc->rxPacketLength + iproc->instanceLength + iproc->length) != iproc->packet_size) { // packet error - mismatched packet size
-			connection->stats.rxErrors++;
 			iproc->state = UAVTALK_STATE_ERROR;
 			break;
 		}
@@ -342,13 +365,11 @@ UAVTalkRxState UAVTalkProcessInputStreamQuiet(UAVTalkConnection connectionHandle
 
 		// the CRC byte
 		if (rxbyte != iproc->cs) { // packet error - faulty CRC
-			connection->stats.rxErrors++;
 			iproc->state = UAVTALK_STATE_ERROR;
 			break;
 		}
 
 		if (iproc->rxPacketLength != (iproc->packet_size + 1)) { // packet error - mismatched packet size
-			connection->stats.rxErrors++;
 			iproc->state = UAVTALK_STATE_ERROR;
 			break;
 		}
@@ -616,6 +637,59 @@ static int32_t sendBuf(UAVTalkConnection connectionHandle, uint8_t *buf, uint16_
 	return 0;
 }
 
+static void handleFileReq(UAVTalkConnectionData *connection)
+{
+	UAVTalkInputProcessor *iproc = &connection->iproc;
+	uint32_t file_id = iproc->objId;
+
+	struct filereq_data *req = (struct filereq_data *) connection->rxBuffer;
+
+	printf("Got filereq for file_id=%08x offs=%d\n", file_id, req->offset);
+	/* Need txbuffer, and need to make sure file response data is
+	 * contiguous.
+	 */
+	PIOS_Recursive_Mutex_Lock(connection->lock, PIOS_MUTEX_TIMEOUT_MAX);
+
+	connection->txBuffer[0] = UAVTALK_SYNC_VAL;  // sync byte
+	connection->txBuffer[1] = UAVTALK_TYPE_FILEDATA;
+	// data length inserted here below
+	connection->txBuffer[4] = (uint8_t)(file_id & 0xFF);
+	connection->txBuffer[5] = (uint8_t)((file_id >> 8) & 0xFF);
+	connection->txBuffer[6] = (uint8_t)((file_id >> 16) & 0xFF);
+	connection->txBuffer[7] = (uint8_t)((file_id >> 24) & 0xFF);
+
+	uint8_t data_offs = 8;
+
+	struct fileresp_data *resp =
+		(struct fileresp_data *) connection->txBuffer + data_offs;
+
+	data_offs += sizeof(*resp);
+
+	resp->offset = req->offset;
+	resp->len = 0;
+	resp->flags = 0;
+
+	uint8_t total_len = data_offs;
+
+	// Store the packet length
+	connection->txBuffer[2] = (uint8_t)((total_len) & 0xFF);
+	connection->txBuffer[3] = (uint8_t)(((total_len) >> 8) & 0xFF);
+
+	// Calculate checksum
+	connection->txBuffer[total_len] = PIOS_CRC_updateCRC(0,
+			connection->txBuffer, data_offs);
+
+	int32_t rc = (*connection->outCb)(connection->cbCtx, connection->txBuffer,
+			total_len + 1);
+
+	if (rc == total_len) {
+		// Update stats
+		connection->stats.txBytes += total_len;
+	}
+
+	PIOS_Recursive_Mutex_Unlock(connection->lock);
+}
+
 /**
  * Receive an object. This function process objects received through the telemetry stream.
  * \param[in] connection UAVTalkConnection to be used
@@ -639,7 +713,7 @@ static int32_t receiveObject(UAVTalkConnectionData *connection)
 
 	UAVObjHandle obj = iproc->obj;
 
-	/* Handle ACK/NACK first --- don't bother to look up IDs etc for these
+	/* Handle ACK/NACK --- don't bother to look up IDs etc for these
 	 * because we don't need it.
 	 *
 	 * Treat NACKs and ACKs identically -- ground has done all it wants
@@ -652,6 +726,13 @@ static int32_t receiveObject(UAVTalkConnectionData *connection)
 		if (connection->ackCb) {
 			connection->ackCb(connection->cbCtx, objId, instId);
 		}
+
+		return 0;
+	}
+
+	/* File request data is a special case. */
+	if (type == UAVTALK_TYPE_FILEREQ) {
+		handleFileReq(connection);
 
 		return 0;
 	}

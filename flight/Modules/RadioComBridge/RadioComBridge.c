@@ -219,8 +219,10 @@ static int32_t RadioComBridgeInitialize(void)
 	}
 
 	// Initialise UAVTalk
-	data->telemUAVTalkCon = UAVTalkInitialize(NULL, &UAVTalkSendHandler, NULL);
-	data->radioUAVTalkCon = UAVTalkInitialize(NULL, &RadioSendHandler, NULL);
+	data->telemUAVTalkCon = UAVTalkInitialize(NULL, &UAVTalkSendHandler,
+			NULL, NULL);
+	data->radioUAVTalkCon = UAVTalkInitialize(NULL, &RadioSendHandler,
+			NULL, NULL);
 	if (data->telemUAVTalkCon == 0 || data->radioUAVTalkCon == 0) {
 		return -1;
 	}
