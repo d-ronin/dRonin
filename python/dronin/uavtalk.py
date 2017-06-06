@@ -24,9 +24,9 @@ from six import int2byte, indexbytes, byte2int, iterbytes
 # Constants used for UAVTalk parsing
 (MIN_HEADER_LENGTH, MAX_HEADER_LENGTH, MAX_PAYLOAD_LENGTH) = (8, 12, (256-12))
 (SYNC_VAL) = (0x3C)
-(TYPE_MASK, TYPE_VER) = (0x78, 0x20)
+(TYPE_MASK, TYPE_VER) = (0x70, 0x20)
 (TIMESTAMPED) = (0x80)
-(TYPE_OBJ, TYPE_OBJ_REQ, TYPE_OBJ_ACK, TYPE_ACK, TYPE_NACK, TYPE_OBJ_TS, TYPE_OBJ_ACK_TS) = (0x00, 0x01, 0x02, 0x03, 0x04, 0x80, 0x82)
+(TYPE_OBJ, TYPE_OBJ_REQ, TYPE_OBJ_ACK, TYPE_ACK, TYPE_NACK, TYPE_FILEREQ, TYPE_FILEDATA, TYPE_OBJ_TS, TYPE_OBJ_ACK_TS, ) = (0x00, 0x01, 0x02, 0x03, 0x04, 0x08, 0x09, 0x80, 0x82)
 
 # Serialization of header elements
 
@@ -35,6 +35,7 @@ header_fmt = Struct("<BBHL")
 logheader_fmt = Struct("<IQ")
 timestamp_fmt = Struct("<H")
 instance_fmt = Struct("<H")
+filereq_fmt = Struct("<LH")
 
 # CRC lookup table
 crc_table = [
@@ -170,7 +171,7 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
         # Search for object.
         uavo_key = '{0:08x}'.format(objId)
         if not uavo_key in uavo_defs:
-            #print "Unknown object 0x" + uavo_key
+            #print "Unknown object 0x" + uavo_key + "type = ", pack_type
             obj = None
         else:
             obj = uavo_defs[uavo_key]
@@ -313,10 +314,32 @@ def send_object(obj, req_ack=False):
 
     return packet
 
-def request_object(obj):
+def request_object(obj, inst_id = 0):
     """Makes a request for this object"""
+
+    if obj._single:
+        inst_len = 0
+    else:
+        inst_len = 2
+
     packet = header_fmt.pack(SYNC_VAL, TYPE_OBJ_REQ | TYPE_VER,
-        header_fmt.size, obj._id)
+        header_fmt.size + inst_len, obj._id)
+
+    if not obj._single:
+        packet += instance_fmt.pack(inst_id)
+
+    packet += int2byte(calcCRC(packet))
+
+    return packet
+
+def request_filedata(obj, file_id, offset = 0):
+    """Makes a request for a chunk of file data"""
+
+    packet = header_fmt.pack(SYNC_VAL, TYPE_FILEREQ | TYPE_VER,
+        header_fmt.size + filereq_fmt.size, file_id)
+
+    # 0 = flags, not used for now.
+    packet += filereq_fmt.pack(offset, 0)
 
     packet += int2byte(calcCRC(packet))
 
@@ -324,6 +347,8 @@ def request_object(obj):
 
 def acknowledge_object(obj):
     """Makes a request for this object"""
+
+    # XXX ack multi-instance
     packet = header_fmt.pack(SYNC_VAL, TYPE_OBJ_ACK | TYPE_VER,
         header_fmt.size, obj._id)
 

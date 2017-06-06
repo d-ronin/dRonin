@@ -205,11 +205,17 @@ class TelemetryBase(with_metaclass(ABCMeta)):
 
             self.send_object(send_obj)
 
-    def request_object(self, obj):
+    def request_object(self, obj, inst_id = 0):
         if not self.do_handshaking:
             raise ValueError("Can only request on handshaking/bidir sessions")
 
-        self._send(uavtalk.request_object(obj))
+        self._send(uavtalk.request_object(obj, inst_id))
+
+    def request_filedata(self, file_id, offset):
+        if not self.do_handshaking:
+            raise ValueError("Can only request on handshaking/bidir sessions")
+
+        self._send(uavtalk.request_filedata(file_id, offset))
 
     def __wait_ack(self, obj, timeout):
         expiry = time.time() + timeout
@@ -472,7 +478,7 @@ class FDTelemetry(BidirTelemetry):
                 did_stuff = True
 
         return did_stuff
-    
+
 class NetworkTelemetry(FDTelemetry):
     """ TCP telemetry interface. """
     def __init__(self, host="127.0.0.1", port=9000, *args, **kwargs):
