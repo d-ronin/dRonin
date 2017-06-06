@@ -62,7 +62,6 @@ struct filereq_data {
 
 struct fileresp_data {
 	uint32_t offset;
-	uint8_t len;
 	uint8_t flags;
 } __attribute__((packed));
 

@@ -670,7 +670,6 @@ static void handleFileReq(UAVTalkConnectionData *connection)
 
 	for (int i = 0; ; i++) {
 		resp->offset = file_offset;
-		resp->len = 0;
 		resp->flags = 0;
 
 		int32_t cb_numbytes = -1;
@@ -678,7 +677,7 @@ static void handleFileReq(UAVTalkConnectionData *connection)
 		if (connection->fileCb) {
 			cb_numbytes = connection->fileCb(connection->cbCtx,
 				connection->txBuffer + data_offs,
-				file_id, file_offset, 80);
+				file_id, file_offset, 100);
 		}
 
 		uint8_t total_len = data_offs;
@@ -688,7 +687,7 @@ static void handleFileReq(UAVTalkConnectionData *connection)
 
 			file_offset += cb_numbytes;
 
-			if (i == 3) {	/* 4 messages per chunk */
+			if (i == 5) {	/* 6 messages per chunk */
 				resp->flags = 2;
 			} else {
 				resp->flags = 0;
