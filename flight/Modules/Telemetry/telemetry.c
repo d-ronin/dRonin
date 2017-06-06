@@ -126,6 +126,9 @@ static void session_managing_updated(UAVObjEvent * ev, void *ctx, void *obj,
 		int len);
 static void update_object_instances(uint32_t obj_id, uint32_t inst_id);
 
+static int32_t fileReqCallback(void *ctx, uint8_t *buf,
+                uint32_t file_id, uint32_t offset, uint32_t len);
+
 static void registerObjectShim(UAVObjHandle obj) {
 	registerObject(&telem_state, obj);
 }
@@ -190,7 +193,8 @@ int32_t TelemetryInitialize(void)
 	telem_state.queue = PIOS_Queue_Create(MAX_QUEUE_SIZE, sizeof(UAVObjEvent));
 
 	// Initialise UAVTalk
-	telem_state.uavTalkCon = UAVTalkInitialize(&telem_state, &transmitData, &ackCallback, NULL);
+	telem_state.uavTalkCon = UAVTalkInitialize(&telem_state, &transmitData,
+			&ackCallback, fileReqCallback);
 
 	SessionManagingConnectCallback(session_managing_updated);
 
@@ -391,6 +395,48 @@ static void addAckPending(telem_t telem, UAVObjHandle obj, uint16_t inst_id)
 		/* TODO: Consider nicer wakeup mechanism here. */
 		PIOS_Thread_Sleep(3);
 	}
+}
+
+static int32_t fileReqCallback(void *ctx, uint8_t *buf,
+                uint32_t file_id, uint32_t offset, uint32_t len)
+{
+	if (file_id < FLASH_PARTITION_NUM_LABELS) {
+		uintptr_t part_id;
+
+		if (PIOS_FLASH_find_partition_id(file_id, &part_id)) {
+			return -1;
+		}
+
+		uint32_t size;
+
+		if (PIOS_FLASH_get_partition_size(part_id, &size)) {
+			return -2;
+		}
+
+		if (offset >= size) {
+			return 0;
+		}
+
+		uint32_t remaining = size - offset;
+
+		if (len > remaining) {
+			len = remaining;
+		}
+
+		if (PIOS_FLASH_start_transaction(part_id)) {
+			return -3;
+		}
+
+		if (PIOS_FLASH_read_data(part_id, offset, buf, len)) {
+			len = -4;
+		}
+
+		PIOS_FLASH_end_transaction(part_id);
+
+		return len;
+	}
+
+	return -1;
 }
 
 static void ackCallback(void *ctx, uint32_t obj_id, uint16_t inst_id)

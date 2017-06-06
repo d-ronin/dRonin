@@ -644,9 +644,10 @@ static void handleFileReq(UAVTalkConnectionData *connection)
 
 	struct filereq_data *req = (struct filereq_data *) connection->rxBuffer;
 
-	printf("Got filereq for file_id=%08x offs=%d\n", file_id, req->offset);
-	/* Need txbuffer, and need to make sure file response data is
-	 * contiguous.
+	/* printf("Got filereq for file_id=%08x offs=%d\n", file_id, req->offset); */
+
+	/* Need txbuffer, and need to make sure file response msgs
+	 * are contiguous on link.
 	 */
 	PIOS_Recursive_Mutex_Lock(connection->lock, PIOS_MUTEX_TIMEOUT_MAX);
 
@@ -661,13 +662,13 @@ static void handleFileReq(UAVTalkConnectionData *connection)
 	uint8_t data_offs = 8;
 
 	struct fileresp_data *resp =
-		(struct fileresp_data *) connection->txBuffer + data_offs;
+		(struct fileresp_data *) (connection->txBuffer + data_offs);
 
 	data_offs += sizeof(*resp);
 
 	uint32_t file_offset = req->offset;
 
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; ; i++) {
 		resp->offset = file_offset;
 		resp->len = 0;
 		resp->flags = 0;
@@ -685,9 +686,9 @@ static void handleFileReq(UAVTalkConnectionData *connection)
 		if (cb_numbytes > 0) {
 			total_len += cb_numbytes;
 
-			file_offset = 1;
+			file_offset += cb_numbytes;
 
-			if (i == 2) {
+			if (i == 3) {	/* 4 messages per chunk */
 				resp->flags = 2;
 			} else {
 				resp->flags = 0;
@@ -703,7 +704,7 @@ static void handleFileReq(UAVTalkConnectionData *connection)
 
 		// Calculate checksum
 		connection->txBuffer[total_len] = PIOS_CRC_updateCRC(0,
-				connection->txBuffer, data_offs);
+				connection->txBuffer, total_len);
 
 		int32_t rc = (*connection->outCb)(connection->cbCtx,
 				connection->txBuffer, total_len + 1);
