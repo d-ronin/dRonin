@@ -529,6 +529,20 @@ uint32_t UAVTalkGetPacketInstId(UAVTalkConnection connectionHandle)
 }
 
 /**
+ * Check if the current packet contains an object update
+ * \param[in] connectionHandle UAVTalkConnection to be used
+ * \return true if the packet contains on update (i.e. a payload)
+ */
+bool UAVTalkPacketIsObjectUpdate(UAVTalkConnection connectionHandle)
+{
+	UAVTalkConnectionData *connection;
+
+	CHECKCONHANDLE(connectionHandle, connection, return 0);
+
+	return connection->iproc.length > 0;
+}
+
+/**
  * Process an byte from the telemetry stream, sending the packet out the output stream when it's complete
  * This allows the interlieving of packets on an output UAVTalk stream, and is used by the OPLink device to
  * relay packets from an input com port to a different output com port without sending one packet in the middle
