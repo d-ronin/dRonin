@@ -92,6 +92,8 @@ class TelemetryBase(with_metaclass(ABCMeta)):
 
         self.eof = False
 
+        self.file_id = None
+
         self.first_handshake_needed = self.do_handshaking
 
         if do_handshaking:
@@ -237,14 +239,17 @@ class TelemetryBase(with_metaclass(ABCMeta)):
         self._send(uavtalk.request_filedata(file_id, offset))
 
     def transfer_file(self, file_id):
-        self.file_data = b''
-        self.file_id = file_id
-        self.file_eof = False
+        with self.ack_cond:
+            self.file_data = b''
+            self.file_eof = False
 
-        self.file_offset = 0
+            self.file_offset = 0
+            self.file_id = file_id
 
         while not self.file_eof:
-            self.file_chunkdone = False
+            with self.ack_cond:
+                self.file_id = file_id
+                self.file_chunkdone = False
 
             self.request_filedata(file_id, self.file_offset)
 
@@ -252,6 +257,8 @@ class TelemetryBase(with_metaclass(ABCMeta)):
                 while not self.file_chunkdone:
                     self.ack_cond.wait(1.0)
                     # XXX timeout
+
+                self.file_id = None
 
         return self.file_data
 
