@@ -573,7 +573,7 @@ void UploaderGadgetWidget::haltOrReset(bool halting)
     Core::IConnection *conn = conMngr->getCurrentDevice().connection;
     if (conn && conn->shortName() == "USB") {
         conMngr->disconnectDevice();
-        timeout.start(200);
+        timeout.start(750);
         loop.exec();
         timeout.stop();
         conMngr->suspendPolling();

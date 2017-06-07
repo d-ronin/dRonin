@@ -135,8 +135,9 @@ void USBMonitor::periodic()
         qDebug() << "usbmonitor detection cycle complete.";
     }
 
-    /* Ensure our signals are spaced out.  Also limit our CPU consumption */
-    periodicTimer.start(150);
+    /* Ensure our signals are spaced out by using singleshot mode
+     * and limit our CPU consumption */
+    periodicTimer.start(80);
 }
 
 QList<USBPortInfo> USBMonitor::availableDevices()
