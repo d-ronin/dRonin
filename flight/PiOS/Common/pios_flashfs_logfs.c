@@ -28,6 +28,7 @@
 
 #include "pios_flash.h"		     /* PIOS_FLASH_* */
 #include "pios_flashfs_logfs_priv.h" /* Internal API */
+#include "pios_crc.h"
 
 #include <stdbool.h>
 #include <stddef.h>		/* NULL */
@@ -39,7 +40,7 @@
  */
 
 enum pios_flashfs_logfs_dev_magic {
-	PIOS_FLASHFS_LOGFS_DEV_MAGIC = 0x94938201,
+	PIOS_FLASHFS_LOGFS_DEV_MAGIC = 0x94938202,
 };
 
 struct logfs_state {
@@ -332,6 +333,7 @@ struct slot_header {
 	uint32_t obj_id;
 	uint16_t obj_inst_id;
 	uint16_t obj_size;
+	uint16_t crc;
 } __attribute__((packed));
 
 /* NOTE: Must be called while holding the flash transaction lock */
@@ -819,6 +821,9 @@ static int8_t logfs_append_to_log (struct logfs_state *logfs, uint32_t obj_id, u
 		}
 	}
 
+	/* Calculate CRC */
+	slot_hdr.crc = PIOS_CRC16_updateCRC(0, obj_data, obj_size);
+
 	/* Mark this slot active in one atomic step */
 	slot_hdr.state = SLOT_STATE_ACTIVE;
 	if (PIOS_FLASH_write_data(logfs->partition_id,
@@ -989,6 +994,12 @@ int32_t PIOS_FLASHFS_ObjLoad(uintptr_t fs_id, uint32_t obj_id, uint16_t obj_inst
 			rc = -5;
 			goto out_end_trans;
 		}
+	}
+
+	/* Check CRC */
+	uint16_t crc = PIOS_CRC16_updateCRC(0, obj_data, obj_size);
+	if (crc != slot_hdr.crc) {
+		return -6;
 	}
 
 	/* Object successfully loaded */
