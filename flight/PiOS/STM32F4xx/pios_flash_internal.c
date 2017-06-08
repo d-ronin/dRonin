@@ -113,6 +113,10 @@ static int32_t PIOS_Flash_Internal_StartTransaction(uintptr_t chip_id)
 
 	/* Unlock the internal flash so we can write to it */
 	FLASH_Unlock();
+
+	/* Clear error flags before starting write ops */
+	FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR | FLASH_FLAG_PGSERR);
+
 	return 0;
 }
 
