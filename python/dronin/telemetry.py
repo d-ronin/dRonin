@@ -9,6 +9,7 @@ Licensed under the GNU LGPL version 2.1 or any later version (see COPYING.LESSER
 import socket
 import time
 import errno
+import sys
 from threading import Condition
 
 from . import uavtalk, uavo_collection, uavo
@@ -65,7 +66,8 @@ class TelemetryBase(with_metaclass(ABCMeta)):
             progress_callback=progress_callback,
             ack_callback=self.gotack_callback,
             nack_callback=self.gotnack_callback,
-            reqack_callback=self.reqack_callback)
+            reqack_callback=self.reqack_callback,
+            filedata_callback=self.filedata_callback)
 
         self.uavtalk_generator.send(None)
 
@@ -89,6 +91,8 @@ class TelemetryBase(with_metaclass(ABCMeta)):
         self.nacks = set()
 
         self.eof = False
+
+        self.file_id = None
 
         self.first_handshake_needed = self.do_handshaking
 
@@ -193,23 +197,70 @@ class TelemetryBase(with_metaclass(ABCMeta)):
 
             if obj.Status == obj.ENUM_Status['Disconnected']:
                 # Request handshake
-                print("Disconnected")
+                #print("Disconnected")
                 send_obj = self.__make_handshake('HandshakeReq')
             elif obj.Status == obj.ENUM_Status['HandshakeAck']:
                 # Say connected
-                print("Handshake ackd")
+                #print("Handshake ackd")
                 send_obj = self.__make_handshake('Connected')
             elif obj.Status == obj.ENUM_Status['Connected']:
-                print("Connected")
+                #print("Connected")
                 send_obj = self.__make_handshake('Connected')
 
             self.send_object(send_obj)
 
-    def request_object(self, obj):
+    def request_object(self, obj, inst_id = 0):
         if not self.do_handshaking:
             raise ValueError("Can only request on handshaking/bidir sessions")
 
-        self._send(uavtalk.request_object(obj))
+        self._send(uavtalk.request_object(obj, inst_id))
+
+    def filedata_callback(self, file_id, offset, eof, last_chunk, data):
+        #print "Offs %d fd=[%s]" % (offset, data.encode("hex"))
+        with self.ack_cond:
+            if self.file_id != file_id:
+                return
+
+            if offset != self.file_offset:
+                self.file_chunkdone = True
+                self.ack_cond.notifyAll()
+
+            self.file_eof = eof
+            self.file_chunkdone = last_chunk
+            self.file_data += data
+            self.file_offset += len(data)
+
+            self.ack_cond.notifyAll()
+
+    def request_filedata(self, file_id, offset):
+        if not self.do_handshaking:
+            raise ValueError("Can only request on handshaking/bidir sessions")
+
+        self._send(uavtalk.request_filedata(file_id, offset))
+
+    def transfer_file(self, file_id):
+        with self.ack_cond:
+            self.file_data = b''
+            self.file_eof = False
+
+            self.file_offset = 0
+            self.file_id = file_id
+
+        while not self.file_eof:
+            with self.ack_cond:
+                self.file_id = file_id
+                self.file_chunkdone = False
+
+            self.request_filedata(file_id, self.file_offset)
+
+            with self.ack_cond:
+                while not self.file_chunkdone:
+                    self.ack_cond.wait(1.0)
+                    # XXX timeout
+
+                self.file_id = None
+
+        return self.file_data
 
     def __wait_ack(self, obj, timeout):
         expiry = time.time() + timeout
@@ -472,7 +523,7 @@ class FDTelemetry(BidirTelemetry):
                 did_stuff = True
 
         return did_stuff
-    
+
 class NetworkTelemetry(FDTelemetry):
     """ TCP telemetry interface. """
     def __init__(self, host="127.0.0.1", port=9000, *args, **kwargs):
