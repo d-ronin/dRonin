@@ -172,6 +172,7 @@ SRC += pios_bmx055.c
 SRC += pios_debug.c
 SRC += pios_delay.c
 SRC += pios_fileout.c
+SRC += pios_flightgear.c
 SRC += pios_flyingpio.c
 SRC += pios_gcsrcvr.c
 SRC += pios_hal.c
