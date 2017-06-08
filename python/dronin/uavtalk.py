@@ -174,8 +174,6 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
         uavo_key = '{0:08x}'.format(objId)
         if not uavo_key in uavo_defs:
             #print "Unknown object 0x" + uavo_key + " type = ", pack_type
-            obj_len = pack_len - MIN_HEADER_LENGTH
-
             obj = None
         else:
             # XXX check length vs pack_len
