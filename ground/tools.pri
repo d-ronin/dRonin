@@ -11,9 +11,11 @@ isEmpty(PYTHON_LOCAL) {
 }
 
 # use ccache with gcc and clang in debug config
-CONFIG(debug, debug|release):*-g++*|*-clang* {
-    QMAKE_CC=$$(CCACHE_BIN) $$QMAKE_CC
-    QMAKE_CXX=$$(CCACHE_BIN) $$QMAKE_CXX
+CONFIG(debug, debug|release) {
+    *-g++*|*-clang* {
+        QMAKE_CC=$$(CCACHE_BIN) $$QMAKE_CC
+        QMAKE_CXX=$$(CCACHE_BIN) $$QMAKE_CXX
+    }
 }
 
 DR_QT_MAJOR_VERSION=5
