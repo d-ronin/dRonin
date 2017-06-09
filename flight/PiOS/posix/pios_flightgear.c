@@ -43,7 +43,11 @@
 
 #include <actuatordesired.h>
 
-#include <sys/select.h>
+#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
+#   include <Winsock2.h>
+#else
+#   include <sys/select.h>
+#endif
 
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET (-1)
@@ -165,9 +169,9 @@ int32_t PIOS_FLIGHTGEAR_Init(flightgear_dev_t *dev, uint16_t port)
 
 #if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
 	char optval = 1;
-	char optoff = 0;
+	/* char optoff = 0;
 
-	//setsockopt(fg_dev->socket, IPPROTO_IPV6, IPV6_V6ONLY, &optoff, sizeof(optoff));
+	setsockopt(fg_dev->socket, IPPROTO_IPV6, IPV6_V6ONLY, &optoff, sizeof(optoff));*/
 #else
 	int optval = 1;
 #endif
@@ -177,15 +181,19 @@ int32_t PIOS_FLIGHTGEAR_Init(flightgear_dev_t *dev, uint16_t port)
 
 	printf("binding sockets on ports %d, %d\n", port, port+1);
 
+	const struct in_addr any_addr = {
+		.s_addr = (INADDR_ANY) /* parentheses to silence clang warning */
+	};
+
 	struct sockaddr_in saddr = {
 		.sin_family = AF_INET,
-		.sin_addr = INADDR_ANY,
+		.sin_addr = any_addr,
 		.sin_port = htons(port)
 	};
 
 	fg_dev->send_addr = (struct sockaddr_in) {
 		.sin_family = AF_INET,
-		.sin_addr = INADDR_ANY,
+		.sin_addr = any_addr,
 		.sin_port = htons(port + 1)
 	};
 
