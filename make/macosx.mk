@@ -36,5 +36,6 @@ export PYTHON
 
 
 QT_SPEC ?= macx-g++
+QT_CLANG_SPEC ?= macx-clang
 
 UAVOBJGENERATOR="$(BUILD_DIR)/ground/uavobjgenerator/uavobjgenerator"
