@@ -67,7 +67,7 @@ public:
     ComStats getStats();
     void resetStats();
 
-    bool processInputByte(quint8 rxbyte);
+    bool processInput();
 
 signals:
     // The only signals we send to the upper level are when we
@@ -77,17 +77,18 @@ signals:
 
 private slots:
     void processInputStream(void);
-    void dummyUDPRead();
 
 protected:
     // Constants
-    static const int TYPE_MASK = 0xF8;
+    static const int VER_MASK = 0x70;
+    static const int TYPE_MASK = 0x0f;
+
     static const int TYPE_VER = 0x20;
-    static const int TYPE_OBJ = (TYPE_VER | 0x00);
-    static const int TYPE_OBJ_REQ = (TYPE_VER | 0x01);
-    static const int TYPE_OBJ_ACK = (TYPE_VER | 0x02);
-    static const int TYPE_ACK = (TYPE_VER | 0x03);
-    static const int TYPE_NACK = (TYPE_VER | 0x04);
+    static const int TYPE_OBJ = 0x00;
+    static const int TYPE_OBJ_REQ = 0x01;
+    static const int TYPE_OBJ_ACK = 0x02;
+    static const int TYPE_ACK = 0x03;
+    static const int TYPE_NACK = 0x04;
 
     static const int MIN_HEADER_LENGTH = 8; // sync(1), type (1), size(2), object ID(4)
     static const int MAX_HEADER_LENGTH =
@@ -102,53 +103,44 @@ protected:
     static const quint16 ALL_INSTANCES = 0xFFFF;
     static const quint16 OBJID_NOTFOUND = 0x0000;
 
-    static const int TX_BUFFER_SIZE = 2 * 1024;
+    static const int TX_BACKLOG_SIZE = 2 * 1024;
     static const quint8 crc_table[256];
 
-    // Types
-    typedef enum {
-        STATE_SYNC,
-        STATE_TYPE,
-        STATE_SIZE,
-        STATE_OBJID,
-        STATE_INSTID,
-        STATE_DATA,
-        STATE_CS
-    } RxStateType;
+#pragma pack(push)
+#pragma pack(1)
+    typedef struct {
+        quint8 sync;
+        quint8 type;
+        quint8 size;
+        quint8 resv;
+        quint32 objId;
+    } UAVTalkHeader;
+#pragma pack(pop)
 
     // Variables
     QPointer<QIODevice> io;
     UAVObjectManager *objMngr;
-    quint8 rxBuffer[MAX_PACKET_LENGTH];
+
+    // This is a tradeoff between the frequency of the need to
+    // compact/copy left and buffer size.
+    quint8 rxBuffer[MAX_PACKET_LENGTH * 12];
     quint8 txBuffer[MAX_PACKET_LENGTH];
+
     // Variables used by the receive state machine
-    quint8 rxTmpBuffer[4];
-    quint8 rxType;
-    quint32 rxObjId;
-    quint16 rxInstId;
-    quint16 rxLength;
-    quint16 rxPacketLength;
 
-    quint8 rxCSPacket, rxCS;
-    qint32 rxCount;
-    qint32 packetSize;
-    RxStateType rxState;
+    quint32 startOffset;
+    quint32 filledBytes;
+
     ComStats stats;
-
-    bool useUDPMirror;
-    QUdpSocket *udpSocketTx;
-    QUdpSocket *udpSocketRx;
-    QByteArray rxDataArray;
 
     // Methods
     bool objectTransaction(UAVObject *obj, quint8 type, bool allInstances);
-    virtual bool receiveObject(quint8 type, quint32 objId, quint16 instId, quint8 *data,
-                               qint32 length);
+    virtual bool receiveObject(quint8 type, quint32 objId, quint16 instId,
+            quint8 *data, qint32 length);
     UAVObject *updateObject(quint32 objId, quint16 instId, quint8 *data);
     bool transmitNack(quint32 objId);
     bool transmitObject(UAVObject *obj, quint8 type, bool allInstances);
     bool transmitSingleObject(UAVObject *obj, quint8 type, bool allInstances);
-    quint8 updateCRC(quint8 crc, const quint8 data);
     quint8 updateCRC(quint8 crc, const quint8 *data, qint32 length);
 };
 

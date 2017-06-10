@@ -41,7 +41,7 @@
  * The flash slot size is 256 bytes which is comprised of the FlashFS header (12 bytes)
  * and the UAVO. This leaves a maximum of 244 bytes for the UAVO.
  */
-#define UAVO_MAX_SIZE 244
+#define UAVO_MAX_SIZE 243
 
 // Types
 typedef enum {
