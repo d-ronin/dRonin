@@ -7,6 +7,7 @@
 #   respective default installation locations,  or made available on the system path.
 
 QT_SPEC ?= linux-g++
+QT_CLANG_SPEC ?= linux-clang
 
 # Check for and find Python 2
 

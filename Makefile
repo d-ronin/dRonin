@@ -201,6 +201,9 @@ endif
 	@echo "           \"CONFIG+=OSG\"              - Enable OpenSceneGraph support"
 	@echo "           \"CONFIG+=KML\"              - Enable KML file support"
 	@echo "     gcs_clean            - Remove the Ground Control System (GCS) application"
+	@echo "     gcs_clazy            - Perform checks on GCS code using KDE's clazy"
+	@echo "        CLAZY_CHECKS=       - Specify which checks to perform (see clazy docs), default is level0"
+	@echo "     gcs_ts               - Generate GCS translation files"
 	@echo
 	@echo "   [AndroidGCS]"
 	@echo "     androidgcs           - Build the Ground Control System (GCS) application"
@@ -296,6 +299,22 @@ gcs_ts: tools_required_qt
 	  PYTHON=$(PYTHON) $(QMAKE) $(ROOT_DIR)/ground/gcs/share/translations/translations.pro -spec $(QT_SPEC) -r CONFIG+="$(GCS_BUILD_CONF) $(GCS_SILENT)" $(GCS_QMAKE_OPTS) && \
 	  $(MAKE) --no-print-directory -w ts ; \
 	)
+
+# requires KDE's clazy
+# need to disable ccache, gence build config = release
+.PHONY: gcs_clazy
+gcs_clazy: CLAZY_CHECKS ?= level0
+gcs_clazy: | tools_required_qt uavobjects
+	echo $(CLAZY)
+ifeq ($(shell which clazy),)
+	$(error Please install clazy and ensure it is on PATH first. https://github.com/KDE/clazy#build-instructions)
+endif
+	$(V1) mkdir -p $(BUILD_DIR)/ground/$@
+	$(V1) ( cd $(BUILD_DIR)/ground/$@ && \
+	  CLAZY_CHECKS=$(CLAZY_CHECKS) PYTHON=$(PYTHON) $(QMAKE) $(ROOT_DIR)/ground/gcs/gcs.pro -spec $(QT_CLANG_SPEC) QMAKE_CXX="clazy" -r CONFIG+="release $(GCS_SILENT)" $(GCS_QMAKE_OPTS) && \
+	  $(MAKE) --no-print-directory -w ; \
+	)
+
 
 ifndef WINDOWS
 # unfortunately the silent linking command is broken on windows
