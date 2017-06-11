@@ -782,7 +782,10 @@ static void stabilizationTask(void* parameters)
 							// number of ident cycles.
 							measure_remaining &= ~ident_mask;
 						}
+					}
 
+					if(flightStatus.Armed != FLIGHTSTATUS_ARMED_ARMED) {
+						measuring = false;
 					}
 
 					if (axis_mode[i] == STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT) {
