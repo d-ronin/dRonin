@@ -654,30 +654,13 @@ void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened, AutotunedValues *
 
     wizard.setPixmap(QWizard::BackgroundPixmap, QPixmap(":/configgadget/images/autotunebg.png"));
 
-    SystemIdent *systemIdent = SystemIdent::GetInstance(getObjectManager());
-    SystemIdent::DataFields systemIdentData = systemIdent->getData();
-
     // Used to track state across the entire wizard path.
     AutotunedValues av;
 
     if (precalc_vals) {
         av = *precalc_vals;
     } else {
-        av.tau[0] = exp(systemIdentData.Tau);
-        av.tau[1] = exp(systemIdentData.Tau);
-        av.tau[2] = exp(systemIdentData.Tau);
-
-        av.beta[0] = systemIdentData.Beta[SystemIdent::BETA_ROLL];
-        av.beta[1] = systemIdentData.Beta[SystemIdent::BETA_PITCH];
-        av.beta[2] = systemIdentData.Beta[SystemIdent::BETA_YAW];
-
-        av.bias[0] = systemIdentData.Bias[SystemIdent::BIAS_ROLL];
-        av.bias[1] = systemIdentData.Bias[SystemIdent::BIAS_PITCH];
-        av.bias[2] = systemIdentData.Bias[SystemIdent::BIAS_YAW];
-
-        av.noise[0] = systemIdentData.Noise[SystemIdent::NOISE_ROLL];
-        av.noise[1] = systemIdentData.Noise[SystemIdent::NOISE_PITCH];
-        av.noise[2] = systemIdentData.Noise[SystemIdent::NOISE_YAW];
+        av.valid = false;
     }
 
     av.converged = false;

@@ -47,6 +47,8 @@
 
 struct AutotunedValues
 {
+    bool valid;
+
     // Parameters
     float tau[3];
     float beta[3];
