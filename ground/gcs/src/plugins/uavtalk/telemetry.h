@@ -84,7 +84,6 @@ public:
     Telemetry(UAVTalk *utalk, UAVObjectManager *objMngr);
     ~Telemetry();
     TelemetryStats getStats();
-    void resetStats();
     void transactionTimeout(ObjectTransactionInfo *info);
 
 signals:

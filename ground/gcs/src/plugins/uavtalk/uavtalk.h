@@ -65,7 +65,6 @@ public:
     bool sendObject(UAVObject *obj, bool acked, bool allInstances);
     bool sendObjectRequest(UAVObject *obj, bool allInstances);
     ComStats getStats();
-    void resetStats();
 
     bool processInput();
 

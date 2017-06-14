@@ -625,15 +625,11 @@ Telemetry::TelemetryStats Telemetry::getStats()
     stats.rxErrors = utalkStats.rxErrors;
     stats.txRetries = txRetries;
 
-    // Done
-    return stats;
-}
-
-void Telemetry::resetStats()
-{
-    utalk->resetStats();
     txErrors = 0;
     txRetries = 0;
+
+    // Done
+    return stats;
 }
 
 void Telemetry::objectUpdatedAuto(UAVObject *obj)

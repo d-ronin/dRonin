@@ -612,7 +612,6 @@ void TelemetryMonitor::processStatsUpdates()
     GCSTelemetryStats::DataFields gcsStats = gcsStatsObj->getData();
     FlightTelemetryStats::DataFields flightStats = flightStatsObj->getData();
     Telemetry::TelemetryStats telStats = tel->getStats();
-    tel->resetStats();
 
     // Update stats object
     gcsStats.RxDataRate = (float)telStats.rxBytes / ((float)statsTimer->interval() / 1000.0);

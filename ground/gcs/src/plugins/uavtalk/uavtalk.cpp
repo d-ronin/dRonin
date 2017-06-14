@@ -91,19 +91,15 @@ UAVTalk::~UAVTalk()
 }
 
 /**
- * Reset the statistics counters
- */
-void UAVTalk::resetStats()
-{
-    memset(&stats, 0, sizeof(ComStats));
-}
-
-/**
  * Get the statistics counters
  */
 UAVTalk::ComStats UAVTalk::getStats()
 {
-    return stats;
+    UAVTalk::ComStats ret = stats;
+
+    memset(&stats, 0, sizeof(ComStats));
+
+    return ret;
 }
 
 /**
