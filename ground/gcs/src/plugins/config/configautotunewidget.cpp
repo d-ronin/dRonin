@@ -526,32 +526,18 @@ float get_sample_delay(int pts, const QVector<float> &delayed, const QVector<flo
     return max_idx;
 }
 
-void ConfigAutotuneWidget::openAutotuneFile()
+AutotunedValues ConfigAutotuneWidget::processAutotuneData(QByteArray *loadedFile)
 {
-    QString fileName =
-        QFileDialog::getOpenFileName(this, tr("Open autotune partition"), "",
-                                     tr("Partition image Files (*.bin) ;; All files (*.*)"));
+    const at_flash *flash_data = reinterpret_cast<const at_flash *>((const void *)*loadedFile);
 
-    if (fileName.isEmpty()) {
-        return;
-    }
+    unsigned int size = loadedFile->size();
 
-    QFile file(fileName);
-    if (!file.open(QIODevice::ReadOnly)) {
-        /* XXX error dialog */
-        return;
-    }
-
-    QByteArray loadedFile = file.readAll();
-
-    const at_flash *flash_data = reinterpret_cast<const at_flash *>((const void *)loadedFile);
-
-    unsigned int size = loadedFile.size();
+    AutotunedValues vals = {};
 
     /* Determine whether we have a sane amount of data, etc. */
     if ((size < sizeof(at_flash)) || (flash_data->hdr.magic != ATFLASH_MAGIC)) {
         /* XXX error dialog */
-        return;
+        return vals;
     }
 
     unsigned int size_expected = sizeof(at_flash)
@@ -559,17 +545,15 @@ void ConfigAutotuneWidget::openAutotuneFile()
 
     if (size < size_expected) {
         /* XXX error dialog */
-        return;
+        return vals;
     }
 
     float duration = (float)flash_data->hdr.wiggle_points / flash_data->hdr.sample_rate;
 
     if ((duration < 0.25f) || (duration > 5.0f)) {
         /* XXX error dialog */
-        return;
+        return vals;
     }
-
-    AutotunedValues vals = {};
 
     int pts = flash_data->hdr.wiggle_points;
 
@@ -639,7 +623,34 @@ void ConfigAutotuneWidget::openAutotuneFile()
         vals.noise[axis] = noise;
     }
 
-    openAutotuneDialog(false, &vals);
+    vals.valid = true;
+
+    return vals;
+}
+
+void ConfigAutotuneWidget::openAutotuneFile()
+{
+    QString fileName =
+        QFileDialog::getOpenFileName(this, tr("Open autotune partition"), "",
+                                     tr("Partition image Files (*.bin) ;; All files (*.*)"));
+
+    if (fileName.isEmpty()) {
+        return;
+    }
+
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly)) {
+        /* XXX error dialog */
+        return;
+    }
+
+    QByteArray loadedFile = file.readAll();
+
+    AutotunedValues vals = processAutotuneData(&loadedFile);
+
+    if (vals.valid) {
+        openAutotuneDialog(false, &vals);
+    }
 }
 
 void ConfigAutotuneWidget::openAutotuneDialog()
@@ -647,7 +658,8 @@ void ConfigAutotuneWidget::openAutotuneDialog()
     openAutotuneDialog(false);
 }
 
-void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened, AutotunedValues *precalc_vals)
+void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened,
+        AutotunedValues *precalc_vals)
 {
     QWizard wizard(NULL, Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint
                        | Qt::WindowCloseButtonHint);
@@ -661,6 +673,25 @@ void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened, AutotunedValues *
         av = *precalc_vals;
     } else {
         av.valid = false;
+    }
+
+    if (!av.valid) {
+        // XXX needs factoring to a step
+        ExtensionSystem::PluginManager *pm =
+            ExtensionSystem::PluginManager::instance();
+
+        TelemetryManager *telMngr = pm->getObject<TelemetryManager>();
+
+        QByteArray *data = telMngr->downloadFile(4, 32768);
+
+        if (data) {
+            av = processAutotuneData(data);
+        }
+    }
+
+    if (!av.valid) {
+        // XXX do something smart
+        return;
     }
 
     av.converged = false;

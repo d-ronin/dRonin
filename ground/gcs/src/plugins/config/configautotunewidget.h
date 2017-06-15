@@ -142,6 +142,7 @@ private slots:
     void openAutotuneDialog(bool autoOpened, AutotunedValues *precalc_vals = 0);
 
     void openAutotuneFile();
+    AutotunedValues processAutotuneData(QByteArray *loadedFile);
 
     void atConnected();
     void atDisconnected();
