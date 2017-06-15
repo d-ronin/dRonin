@@ -38,4 +38,12 @@ extern int32_t PIOS_IRQ_Disable(void);
 extern int32_t PIOS_IRQ_Enable(void);
 extern bool PIOS_IRQ_InISR(void);
 
+#if defined(PIOS_INCLUDE_CHIBIOS)
+#	define PIOS_IRQ_Prologue() CH_IRQ_PROLOGUE()
+#	define PIOS_IRQ_Epilogue() CH_IRQ_EPILOGUE()
+#else
+#	define PIOS_IRQ_Prologue()
+#	define PIOS_IRQ_Epilogue()
+#endif
+
 #endif /* PIOS_IRQ_H */

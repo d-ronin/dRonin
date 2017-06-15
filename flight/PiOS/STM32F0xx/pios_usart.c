@@ -103,15 +103,9 @@ static uintptr_t PIOS_USART_1_id;
 void USART1_IRQHandler(void) __attribute__ ((alias ("PIOS_USART_1_irq_handler")));
 static void PIOS_USART_1_irq_handler (void)
 {
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_PROLOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
-
+	PIOS_IRQ_Prologue();
 	PIOS_USART_generic_irq_handler (PIOS_USART_1_id);
-
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_EPILOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Epilogue();
 }
 
 /**

@@ -362,9 +362,7 @@ int32_t PIOS_SPI_TransferBlock(uint32_t spi_id, const uint8_t *send_buffer, uint
 
 void PIOS_SPI_IRQ_Handler(uint32_t spi_id)
 {
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_PROLOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Prologue();
 
 	struct pios_spi_dev *spi_dev = (struct pios_spi_dev *)spi_id;
 
@@ -375,9 +373,7 @@ void PIOS_SPI_IRQ_Handler(uint32_t spi_id)
 		/* XXX handle appropriate slave callback stuff */
 	}
 
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_EPILOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Epilogue();
 }
 
 #endif

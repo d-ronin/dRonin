@@ -307,24 +307,16 @@ static void PIOS_TIM_generic_irq_handler(TIM_TypeDef * timer)
 void TIM1_CC_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_1_CC_irq_handler")));
 static void PIOS_TIM_1_CC_irq_handler (void)
 {
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_PROLOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
-
+	PIOS_IRQ_Prologue();
 	PIOS_TIM_generic_irq_handler (TIM1);
-
-	#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_EPILOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Epilogue();
 }
 
 // The rest of TIM1 interrupts are overlapped
 void TIM1_BRK_TIM9_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_1_BRK_TIM_9_irq_handler")));
 static void PIOS_TIM_1_BRK_TIM_9_irq_handler (void)
 {
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_PROLOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Prologue();
 
 	if (TIM_GetITStatus(TIM1, TIM_IT_Break)) {
 		PIOS_TIM_generic_irq_handler(TIM1);
@@ -332,17 +324,13 @@ static void PIOS_TIM_1_BRK_TIM_9_irq_handler (void)
 		PIOS_TIM_generic_irq_handler (TIM9);
 	}
 
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_EPILOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Epilogue();
 }
 
 void TIM1_UP_TIM10_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_1_UP_TIM_10_irq_handler")));
 static void PIOS_TIM_1_UP_TIM_10_irq_handler (void)
 {
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_PROLOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Prologue();
 
 	if (TIM_GetITStatus(TIM1, TIM_IT_Update)) {
 		PIOS_TIM_generic_irq_handler(TIM1);
@@ -350,16 +338,12 @@ static void PIOS_TIM_1_UP_TIM_10_irq_handler (void)
 		PIOS_TIM_generic_irq_handler (TIM10);
 	}
 
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_EPILOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Epilogue();
 }
 void TIM1_TRG_COM_TIM11_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_1_TRG_COM_TIM_11_irq_handler")));
 static void PIOS_TIM_1_TRG_COM_TIM_11_irq_handler (void)
 {
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_PROLOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Prologue();
 
 	if (TIM_GetITStatus(TIM1, TIM_IT_Trigger | TIM_IT_COM)) {
 		PIOS_TIM_generic_irq_handler(TIM1);
@@ -367,121 +351,75 @@ static void PIOS_TIM_1_TRG_COM_TIM_11_irq_handler (void)
 		PIOS_TIM_generic_irq_handler (TIM11);
 	}
 
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_EPILOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Epilogue();
 }
 
 #ifndef PIOS_OMIT_TIM2IRQ
 void TIM2_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_2_irq_handler")));
 static void PIOS_TIM_2_irq_handler (void)
 {
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_PROLOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
-
+	PIOS_IRQ_Prologue();
 	PIOS_TIM_generic_irq_handler (TIM2);
-
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_EPILOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Epilogue();
 }
 #endif
 
 void TIM3_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_3_irq_handler")));
 static void PIOS_TIM_3_irq_handler (void)
 {
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_PROLOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
-
+	PIOS_IRQ_Prologue();
 	PIOS_TIM_generic_irq_handler (TIM3);
-
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_EPILOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Epilogue();
 }
 
 #if !defined(PIOS_VIDEO_TIM4_COUNTER)
 void TIM4_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_4_irq_handler")));
 static void PIOS_TIM_4_irq_handler (void)
 {
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_PROLOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
-
+	PIOS_IRQ_Prologue();
 	PIOS_TIM_generic_irq_handler (TIM4);
-
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_EPILOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Epilogue();
 }
 #endif /* !defined(PIOS_VIDEO_TIM4_COUNTER) */
 
 void TIM5_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_5_irq_handler")));
 static void PIOS_TIM_5_irq_handler (void)
 {
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_PROLOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
-
+	PIOS_IRQ_Prologue();
 	PIOS_TIM_generic_irq_handler (TIM5);
-
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_EPILOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Epilogue();
 }
 
 void TIM6_DAC_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_6_DAC_irq_handler")));
 static void PIOS_TIM_6_DAC_irq_handler (void)
 {
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_PROLOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
-
+	PIOS_IRQ_Prologue();
 	// TODO: Check for DAC
 	PIOS_TIM_generic_irq_handler (TIM6);
-
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_EPILOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Epilogue();
 }
 
 void TIM7_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_7_irq_handler")));
 static void PIOS_TIM_7_irq_handler (void)
 {
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_PROLOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
-
+	PIOS_IRQ_Prologue();
 	PIOS_TIM_generic_irq_handler (TIM7);
-
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_EPILOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Epilogue();
 }
 
 void TIM8_CC_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_8_CC_irq_handler")));
 static void PIOS_TIM_8_CC_irq_handler (void)
 {
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_PROLOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
-
+	PIOS_IRQ_Prologue();
 	PIOS_TIM_generic_irq_handler (TIM8);
-
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_EPILOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Epilogue();
 }
 
 // The rest of TIM8 interrupts are overlapped
 void TIM8_BRK_TIM12_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_8_BRK_TIM_12_irq_handler")));
 static void PIOS_TIM_8_BRK_TIM_12_irq_handler (void)
 {
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_PROLOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Prologue();
 
 	if (TIM_GetITStatus(TIM8, TIM_IT_Break)) {
 		PIOS_TIM_generic_irq_handler(TIM8);
@@ -489,17 +427,13 @@ static void PIOS_TIM_8_BRK_TIM_12_irq_handler (void)
 		PIOS_TIM_generic_irq_handler (TIM12);
 	}
 
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_EPILOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Epilogue();
 }
 
 void TIM8_UP_TIM13_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_8_UP_TIM_13_irq_handler")));
 static void PIOS_TIM_8_UP_TIM_13_irq_handler (void)
 {
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_PROLOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Prologue();
 
 	if (TIM_GetITStatus(TIM8, TIM_IT_Update)) {
 		PIOS_TIM_generic_irq_handler(TIM8);
@@ -507,17 +441,13 @@ static void PIOS_TIM_8_UP_TIM_13_irq_handler (void)
 		PIOS_TIM_generic_irq_handler (TIM13);
 	}
 
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_EPILOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Epilogue();
 }
 
 void TIM8_TRG_COM_TIM14_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_8_TRG_COM_TIM_14_irq_handler")));
 static void PIOS_TIM_8_TRG_COM_TIM_14_irq_handler (void)
 {
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_PROLOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Prologue();
 
 	if (TIM_GetITStatus(TIM8, TIM_IT_Trigger | TIM_IT_COM)) {
 		PIOS_TIM_generic_irq_handler(TIM8);
@@ -525,9 +455,7 @@ static void PIOS_TIM_8_TRG_COM_TIM_14_irq_handler (void)
 		PIOS_TIM_generic_irq_handler (TIM14);
 	}
 
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_EPILOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Epilogue();
 }
 
 /**

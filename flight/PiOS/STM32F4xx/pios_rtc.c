@@ -112,9 +112,7 @@ bool PIOS_RTC_RegisterTickCallback(void (*fn)(uintptr_t id), uintptr_t data)
 
 void PIOS_RTC_irq_handler (void)
 {
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_PROLOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Prologue();
 
 	if (RTC_GetITStatus(RTC_IT_WUT))
 	{
@@ -133,9 +131,7 @@ void PIOS_RTC_irq_handler (void)
 	if (EXTI_GetITStatus(EXTI_Line22) != RESET)
 		EXTI_ClearITPendingBit(EXTI_Line22);
 
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_EPILOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Epilogue();
 }
 #endif
 
