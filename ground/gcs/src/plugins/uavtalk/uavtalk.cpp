@@ -608,6 +608,8 @@ bool UAVTalk::requestFile(quint32 fileId, quint32 offset)
     txBuffer[12] = 0;
     txBuffer[13] = 0;
 
+    // qDebug() << "Sent file req offs=" << offset;
+
     return transmitFrame(14);
 }
 

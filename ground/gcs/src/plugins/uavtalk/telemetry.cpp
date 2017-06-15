@@ -461,6 +461,7 @@ QByteArray *Telemetry::downloadFile(quint32 fileId, quint32 maxSize)
     while (curOffset < maxSize && (!completed)) {
         utalk->requestFile(fileId, curOffset);
 
+        newReqNeeded = false;
         inactivityCount = 0;
 
         do {
