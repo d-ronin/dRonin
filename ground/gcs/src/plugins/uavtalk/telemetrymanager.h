@@ -49,6 +49,7 @@ public:
     void start(QIODevice *dev);
     void stop();
     bool isConnected();
+    QByteArray *downloadFile(quint32 fileId, quint32 maxSize = 1048576);
 
 signals:
     void connected();

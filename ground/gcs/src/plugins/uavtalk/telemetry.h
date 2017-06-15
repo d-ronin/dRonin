@@ -84,6 +84,7 @@ public:
     Telemetry(UAVTalk *utalk, UAVObjectManager *objMngr);
     ~Telemetry();
     TelemetryStats getStats();
+    QByteArray *downloadFile(quint32 fileId, quint32 maxSize);
     void transactionTimeout(ObjectTransactionInfo *info);
 
 signals:

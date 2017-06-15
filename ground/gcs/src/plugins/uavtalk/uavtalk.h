@@ -64,6 +64,8 @@ public:
     ~UAVTalk();
     bool sendObject(UAVObject *obj, bool acked, bool allInstances);
     bool sendObjectRequest(UAVObject *obj, bool allInstances);
+    bool requestFile(quint32 fileId, quint32 offset);
+
     ComStats getStats();
 
     bool processInput();
@@ -73,6 +75,10 @@ signals:
     // either receive an ACK or a NACK for a request.
     void ackReceived(UAVObject *obj);
     void nackReceived(UAVObject *obj);
+
+    // Or when we get some file data
+    void fileDataReceived(quint32 fileId, quint32 offset, quint8 *data,
+            quint32 dataLen, bool eof, bool lastInSeq);
 
 private slots:
     void processInputStream(void);
@@ -88,16 +94,17 @@ protected:
     static const int TYPE_OBJ_ACK = 0x02;
     static const int TYPE_ACK = 0x03;
     static const int TYPE_NACK = 0x04;
+    static const int TYPE_FILEREQ = 0x08;
+    static const int TYPE_FILEDATA = 0x09;
 
     static const int MIN_HEADER_LENGTH = 8; // sync(1), type (1), size(2), object ID(4)
-    static const int MAX_HEADER_LENGTH =
-        10; // sync(1), type (1), size(2), object ID (4), instance ID(2, not used in single objects)
+    static const int MAX_HEADER_LENGTH = MIN_HEADER_LENGTH + 2; // instance ID(2, not used in single objs)
 
     static const int CHECKSUM_LENGTH = 1;
 
-    static const int MAX_PAYLOAD_LENGTH = 256;
+    static const int MAX_PACKET_LENGTH = 256;
 
-    static const int MAX_PACKET_LENGTH = (MAX_HEADER_LENGTH + MAX_PAYLOAD_LENGTH + CHECKSUM_LENGTH);
+    static const int MAX_PAYLOAD_LENGTH = (MAX_PACKET_LENGTH - CHECKSUM_LENGTH - MAX_HEADER_LENGTH);
 
     static const quint16 ALL_INSTANCES = 0xFFFF;
     static const quint16 OBJID_NOTFOUND = 0x0000;
@@ -114,6 +121,14 @@ protected:
         quint8 resv;
         quint32 objId;
     } UAVTalkHeader;
+
+    typedef struct {
+        quint32 offset;
+        quint8 flags;
+    } UAVTalkFileData;
+
+    static const quint8 FILEDATA_FLAG_EOF = 0x01;
+    static const quint8 FILEDATA_FLAG_LAST = 0x02;
 #pragma pack(pop)
 
     // Variables
@@ -134,13 +149,15 @@ protected:
 
     // Methods
     bool objectTransaction(UAVObject *obj, quint8 type, bool allInstances);
-    virtual bool receiveObject(quint8 type, quint32 objId, quint16 instId,
-            quint8 *data, qint32 length);
+    bool receiveObject(quint8 type, quint32 objId, quint16 instId,
+            quint8 *data, quint32 length);
+    bool receiveFileChunk(quint32 fileId, quint8 *data, quint32 length);
     UAVObject *updateObject(quint32 objId, quint16 instId, quint8 *data);
     bool transmitNack(quint32 objId);
     bool transmitObject(UAVObject *obj, quint8 type, bool allInstances);
     bool transmitSingleObject(UAVObject *obj, quint8 type, bool allInstances);
     quint8 updateCRC(quint8 crc, const quint8 *data, qint32 length);
+    bool transmitFrame(quint32 length, bool incrTxObj = true);
 };
 
 #endif // UAVTALK_H

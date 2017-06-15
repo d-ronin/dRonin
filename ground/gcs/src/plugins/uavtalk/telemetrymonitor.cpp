@@ -505,6 +505,7 @@ void TelemetryMonitor::newInstanceSlot(UAVObject *obj)
     if (!isManaged)
         dobj->setIsPresentOnHardware(true);
 }
+
 void TelemetryMonitor::startSessionRetrieving(UAVObject *session)
 {
     static int currentIndex = 0;
