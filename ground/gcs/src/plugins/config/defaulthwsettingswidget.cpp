@@ -29,6 +29,7 @@
  * of this source file; otherwise redistribution is prohibited.
  */
 #include "defaulthwsettingswidget.h"
+#include <utils/longlongspinbox.h>
 #include <QErrorMessage>
 #include <QDebug>
 #include <QLineEdit>
@@ -65,9 +66,15 @@ DefaultHwSettingsWidget::DefaultHwSettingsWidget(UAVObject *settingsObj, QWidget
         case UAVObjectField::INT16:
         case UAVObjectField::INT32:
         case UAVObjectField::UINT8:
-        case UAVObjectField::UINT16:
-        case UAVObjectField::UINT32: {
+        case UAVObjectField::UINT16: {
             QSpinBox *sbx = new QSpinBox(this);
+            if (fields[i]->getUnits().length())
+                sbx->setSuffix(QString(" %1").arg(fields[i]->getUnits()));
+            wdg = sbx;
+            break;
+        }
+        case UAVObjectField::UINT32: {
+            LongLongSpinBox *sbx = new LongLongSpinBox(this);
             if (fields[i]->getUnits().length())
                 sbx->setSuffix(QString(" %1").arg(fields[i]->getUnits()));
             wdg = sbx;

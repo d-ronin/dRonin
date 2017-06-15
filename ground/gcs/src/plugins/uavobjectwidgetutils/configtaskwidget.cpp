@@ -37,6 +37,7 @@
 #include "uavsettingsimportexport/uavsettingsimportexportmanager.h"
 #include <coreplugin/connectionmanager.h>
 #include <coreplugin/icore.h>
+#include <utils/longlongspinbox.h>
 
 /**
  * Constructor
@@ -1127,6 +1128,8 @@ void ConfigTaskWidget::connectWidgetUpdatesToSlot(QWidget *widget, const char *f
         connect(cb, SIGNAL(cellChanged(int, int)), this, function);
     } else if (QSpinBox *cb = qobject_cast<QSpinBox *>(widget)) {
         connect(cb, SIGNAL(valueChanged(int)), this, function);
+    } else if (LongLongSpinBox *cb = qobject_cast<LongLongSpinBox *>(widget)) {
+        connect(cb, SIGNAL(valueChanged(qint64)), this, function);
     } else if (QDoubleSpinBox *cb = qobject_cast<QDoubleSpinBox *>(widget)) {
         connect(cb, SIGNAL(valueChanged(double)), this, function);
     } else if (QGroupBox *cb = qobject_cast<QGroupBox *>(widget)) {
@@ -1158,6 +1161,8 @@ void ConfigTaskWidget::disconnectWidgetUpdatesToSlot(QWidget *widget, const char
         disconnect(cb, SIGNAL(cellChanged(int, int)), this, function);
     } else if (QSpinBox *cb = qobject_cast<QSpinBox *>(widget)) {
         disconnect(cb, SIGNAL(valueChanged(int)), this, function);
+    } else if (LongLongSpinBox *cb = qobject_cast<LongLongSpinBox *>(widget)) {
+        disconnect(cb, SIGNAL(valueChanged(qint64)), this, function);
     } else if (QDoubleSpinBox *cb = qobject_cast<QDoubleSpinBox *>(widget)) {
         disconnect(cb, SIGNAL(valueChanged(double)), this, function);
     } else if (QGroupBox *cb = qobject_cast<QGroupBox *>(widget)) {
@@ -1213,6 +1218,8 @@ QVariant ConfigTaskWidget::getVariantFromWidget(QWidget *widget, double scale, b
         return (double)(dblSpinBox->value() * scale);
     } else if (QSpinBox *spinBox = qobject_cast<QSpinBox *>(widget)) {
         return (double)(spinBox->value() * scale);
+    } else if (LongLongSpinBox *spinBox = qobject_cast<LongLongSpinBox *>(widget)) {
+        return QVariant(spinBox->value() * scale);
     } else if (QSlider *slider = qobject_cast<QSlider *>(widget)) {
         return (double)(slider->value() * scale);
     } else if (QGroupBox *groupBox = qobject_cast<QGroupBox *>(widget)) {
@@ -1265,6 +1272,11 @@ bool ConfigTaskWidget::setWidgetFromVariant(QWidget *widget, QVariant value, dou
         return true;
     } else if (QSpinBox *spinBox = qobject_cast<QSpinBox *>(widget)) {
         spinBox->setValue(qRound(value.toDouble() / scale));
+        if (!units.isEmpty())
+            spinBox->setSuffix(units);
+        return true;
+    } else if (LongLongSpinBox *spinBox = qobject_cast<LongLongSpinBox *>(widget)) {
+        spinBox->setValue(qRound64(value.toDouble() / scale));
         if (!units.isEmpty())
             spinBox->setSuffix(units);
         return true;
@@ -1359,6 +1371,12 @@ void ConfigTaskWidget::checkWidgetsLimits(QWidget *widget, UAVObjectField *field
             } else if ((int)qRound(value.toDouble() / scale) < cb->minimum()) {
                 cb->setMinimum((int)qRound(value.toDouble() / scale));
             }
+        } else if (LongLongSpinBox *cb = qobject_cast<LongLongSpinBox *>(widget)) {
+            if (qRound64(value.toDouble() / scale) > cb->maximum()) {
+                cb->setMaximum(qRound64(value.toDouble() / scale));
+            } else if (qRound64(value.toDouble() / scale) < cb->minimum()) {
+                cb->setMinimum(qRound64(value.toDouble() / scale));
+            }
         } else if (QSlider *cb = qobject_cast<QSlider *>(widget)) {
             if ((int)qRound(value.toDouble() / scale) > cb->maximum()) {
                 cb->setMaximum((int)qRound(value.toDouble() / scale));
@@ -1418,6 +1436,13 @@ void ConfigTaskWidget::loadWidgetLimits(QWidget *widget, UAVObjectField *field, 
         if (field->getMinLimit(index, currentBoard).isValid()) {
             cb->setMinimum((int)qRound(field->getMinLimit(index, currentBoard).toDouble() / scale));
         }
+    } else if (LongLongSpinBox *cb = qobject_cast<LongLongSpinBox *>(widget)) {
+        if (field->getMaxLimit(index, currentBoard).isValid()) {
+            cb->setMaximum(qRound64(field->getMaxLimit(index, currentBoard).toDouble() / scale));
+        }
+        if (field->getMinLimit(index, currentBoard).isValid()) {
+            cb->setMinimum(qRound(field->getMinLimit(index, currentBoard).toDouble() / scale));
+        }
     } else if (QSlider *cb = qobject_cast<QSlider *>(widget)) {
         if (field->getMaxLimit(index, currentBoard).isValid()) {
             cb->setMaximum((int)qRound(field->getMaxLimit(index, currentBoard).toDouble() / scale));
@@ -1432,6 +1457,9 @@ void ConfigTaskWidget::disableMouseWheelEvents()
 {
     // Disable mouse wheel events
     foreach (QSpinBox *sp, findChildren<QSpinBox *>()) {
+        sp->installEventFilter(this);
+    }
+    foreach (LongLongSpinBox *sp, findChildren<LongLongSpinBox *>()) {
         sp->installEventFilter(this);
     }
     foreach (QDoubleSpinBox *sp, findChildren<QDoubleSpinBox *>()) {
