@@ -9,7 +9,7 @@
 		<field name="Radio" units="" type="enum" elements="1" options="Disabled,Telem,Telem+PPM,PPM" parent="HwShared.RadioPort" defaultvalue="Disabled">
 			<description>Function for the radio port</description>
 		</field>
-		<field name="CoordID" units="hex" type="uint32" elements="1" defaultvalue="0">
+		<field name="CoordID" units="" type="uint32" elements="1" defaultvalue="0">
 			<description>ID of the coordinator to allow binding to. 0 indicates allow all connections</description>
 		</field>
 		<!-- Function of the main serial port -->
