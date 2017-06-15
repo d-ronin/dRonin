@@ -843,7 +843,7 @@ AutotuneSlidersPage::AutotuneSlidersPage(QWidget *parent, AutotunedValues *autoV
 
 void AutotuneSlidersPage::resetSliders()
 {
-    rateDamp->setValue(110);
+    rateDamp->setValue(105);
     rateNoise->setValue(10);
 
     compute();
