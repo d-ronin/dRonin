@@ -31,7 +31,8 @@ SOURCES += \
     mytabbedstackwidget.cpp \
     mytabwidget.cpp \
     svgimageprovider.cpp \
-    scaledpixmaplabel.cpp
+    scaledpixmaplabel.cpp \
+    longlongspinbox.cpp
 
 SOURCES += xmlconfig.cpp
 
@@ -57,7 +58,8 @@ HEADERS += utils_global.h \
     mytabbedstackwidget.h \
     mytabwidget.h \
     svgimageprovider.h \
-    scaledpixmaplabel.h
+    scaledpixmaplabel.h \
+    longlongspinbox.h
 
 
 HEADERS += xmlconfig.h

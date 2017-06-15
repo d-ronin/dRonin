@@ -35,6 +35,7 @@
 #include <qscispinbox/QScienceSpinBox.h>
 #include <QComboBox>
 #include <limits>
+#include <utils/longlongspinbox.h>
 
 #define QINT8MIN std::numeric_limits<qint8>::min()
 #define QINT8MAX std::numeric_limits<qint8>::max()
@@ -206,32 +207,58 @@ public:
 
     QWidget *createEditor(QWidget *parent)
     {
-        QSpinBox *editor = new QSpinBox(parent);
-        editor->setMinimum(m_minValue);
-        editor->setMaximum(m_maxValue);
-        return editor;
+        switch (m_field->getType()) {
+        case UAVObjectField::UINT32:
+        {
+            LongLongSpinBox *editor = new LongLongSpinBox(parent);
+            editor->setRange(m_minValue, m_maxValue);
+            return editor;
+        }
+        default:
+        {
+            QSpinBox *editor = new QSpinBox(parent);
+            editor->setRange(m_minValue, m_maxValue);
+            return editor;
+        }
+        }
     }
 
     QVariant getEditorValue(QWidget *editor)
     {
-        QSpinBox *spinBox = static_cast<QSpinBox *>(editor);
-        spinBox->interpretText();
-        return spinBox->value();
+        if (QSpinBox *spinBox = qobject_cast<QSpinBox *>(editor)) {
+            spinBox->interpretText();
+            return QVariant(spinBox->value());
+        } else if (LongLongSpinBox *spinBox = qobject_cast<LongLongSpinBox *>(editor)) {
+            spinBox->interpretText();
+            return QVariant(spinBox->value());
+        } else {
+            Q_ASSERT(false);
+            return QVariant();
+        }
     }
 
     void setEditorValue(QWidget *editor, QVariant value)
     {
-        QSpinBox *spinBox = static_cast<QSpinBox *>(editor);
         switch (m_field->getType()) {
         case UAVObjectField::INT8:
         case UAVObjectField::INT16:
         case UAVObjectField::INT32:
+        {
+            QSpinBox *spinBox = static_cast<QSpinBox *>(editor);
             spinBox->setValue(value.toInt());
             break;
+        }
         case UAVObjectField::UINT8:
         case UAVObjectField::UINT16:
-        case UAVObjectField::UINT32:
+        {
+            QSpinBox *spinBox = static_cast<QSpinBox *>(editor);
             spinBox->setValue(value.toUInt());
+        }
+        case UAVObjectField::UINT32:
+        {
+            LongLongSpinBox *spinBox = static_cast<LongLongSpinBox *>(editor);
+            spinBox->setValue(value.toUInt());
+        }
             break;
         default:
             Q_ASSERT(false);
