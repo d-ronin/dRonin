@@ -358,7 +358,7 @@ void PIOS_WS2811_dma_interrupt_handler(ws2811_dev_t dev)
 			// Ensure the thing rests low during this time
 			GPIO_ResetBits(dev->cfg->led_gpio, dev->cfg->gpio_pin);
 
-			return;
+			goto epilogue;
 		}
 
 		/* Otherwise, disable DMA */
@@ -368,7 +368,7 @@ void PIOS_WS2811_dma_interrupt_handler(ws2811_dev_t dev)
 		// Will generate one more transmit complete interrupt.
 		DMA_Cmd(dev->cfg->bit_clear_dma_stream, DISABLE);
 
-		return;
+		goto epilogue;
 	}
 
 	if (dev->eof) {
@@ -376,7 +376,7 @@ void PIOS_WS2811_dma_interrupt_handler(ws2811_dev_t dev)
 		/* OK, we have nothing else to fill in, but the last buffer
 		 * needs to get clocked out */
 
-		return;
+		goto epilogue;
 	}
 
 	dev->cur_buf = !dev->cur_buf;
@@ -390,6 +390,8 @@ void PIOS_WS2811_dma_interrupt_handler(ws2811_dev_t dev)
 	dev->eof = fill_dma_buf(buf, &dev->pixel_data_pos,
 			dev->pixel_data_end, dev->gpio_bit);
 
+epilogue:
+	(void)0; /* Fix non-ChibiOS builds. */
 #if defined(PIOS_INCLUDE_CHIBIOS)
 	CH_IRQ_EPILOGUE();
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
