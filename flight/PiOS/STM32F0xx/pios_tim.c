@@ -308,114 +308,66 @@ void TIM1_CC_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_1_irq_handler")))
 void TIM1_BRK_UP_TRG_COM_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_1_irq_handler")));
 static void PIOS_TIM_1_irq_handler (void)
 {
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_PROLOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
-
+	PIOS_IRQ_Prologue();
 	PIOS_TIM_generic_irq_handler (TIM1);
-
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_EPILOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Epilogue();
 }
 
 
 void TIM2_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_2_irq_handler")));
 static void PIOS_TIM_2_irq_handler (void)
 {
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_PROLOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
-
+	PIOS_IRQ_Prologue();
 	PIOS_TIM_generic_irq_handler (TIM2);
-
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_EPILOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Epilogue();
 }
 
 void TIM3_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_3_irq_handler")));
 static void PIOS_TIM_3_irq_handler (void)
 {
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_PROLOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
-
+	PIOS_IRQ_Prologue();
 	PIOS_TIM_generic_irq_handler (TIM3);
-
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_EPILOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Epilogue();
 }
 
 void TIM6_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_6_irq_handler")));
 static void PIOS_TIM_6_irq_handler (void)
 {
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_PROLOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
-
+	PIOS_IRQ_Prologue();
 	PIOS_TIM_generic_irq_handler (TIM6);
-
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_EPILOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Epilogue();
 }
 
 void TIM14_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_14_irq_handler")));
 static void PIOS_TIM_14_irq_handler (void)
 {
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_PROLOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
-
+	PIOS_IRQ_Prologue();
 	PIOS_TIM_generic_irq_handler (TIM14);
-
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_EPILOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Epilogue();
 }
 
 void TIM15_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_15_irq_handler")));
 static void PIOS_TIM_15_irq_handler (void)
 {
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_PROLOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
-
+	PIOS_IRQ_Prologue();
 	PIOS_TIM_generic_irq_handler (TIM15);
-
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_EPILOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Epilogue();
 }
 
 void TIM16_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_16_irq_handler")));
 static void PIOS_TIM_16_irq_handler (void)
 {
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_PROLOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
-
+	PIOS_IRQ_Prologue();
 	PIOS_TIM_generic_irq_handler (TIM16);
-
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_EPILOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Epilogue();
 }
 
 void TIM17_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_17_irq_handler")));
 static void PIOS_TIM_17_irq_handler (void)
 {
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_PROLOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
-
+	PIOS_IRQ_Prologue();
 	PIOS_TIM_generic_irq_handler (TIM17);
-
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_EPILOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Epilogue();
 }
 /**
  * @}

@@ -578,9 +578,7 @@ int32_t PIOS_I2C_Transfer(uint32_t i2c_id, const struct pios_i2c_txn txn_list[],
 
 void PIOS_I2C_EV_IRQ_Handler(uint32_t i2c_id)
 {
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_PROLOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Prologue();
 
 	struct pios_i2c_adapter *i2c_adapter = (struct pios_i2c_adapter *)i2c_id;
 
@@ -635,17 +633,13 @@ void PIOS_I2C_EV_IRQ_Handler(uint32_t i2c_id)
 		i2c_adapter_inject_event(i2c_adapter, I2C_EVENT_STOP, &woken);
 	}
 
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_EPILOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Epilogue();
 }
 
 
 void PIOS_I2C_ER_IRQ_Handler(uint32_t i2c_id)
 {
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_PROLOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Prologue();
 
 	struct pios_i2c_adapter *i2c_adapter = (struct pios_i2c_adapter *)i2c_id;
 
@@ -710,9 +704,7 @@ void PIOS_I2C_ER_IRQ_Handler(uint32_t i2c_id)
 	bool woken = false;
 	i2c_adapter_inject_event(i2c_adapter, I2C_EVENT_BUS_ERROR, &woken);
 
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_EPILOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Epilogue();
 }
 
 #endif

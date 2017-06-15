@@ -282,28 +282,16 @@ static void PIOS_CAN_TxGeneric(void);
 
 void CAN1_RX1_IRQHandler(void)
 {
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_PROLOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
-
+	PIOS_IRQ_Prologue();
 	PIOS_CAN_RxGeneric();
-
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_EPILOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Epilogue();
 }
 
 void USB_HP_CAN1_TX_IRQHandler(void)
 {
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_PROLOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
-
+	PIOS_IRQ_Prologue();
 	PIOS_CAN_TxGeneric();
-
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	CH_IRQ_EPILOGUE();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
+	PIOS_IRQ_Epilogue();
 }
 
 /**
