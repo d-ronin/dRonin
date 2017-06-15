@@ -434,6 +434,9 @@ static void process_packet_rx(struct bl_fsm_context * context, const struct bl_m
 
 int main(void)
 {
+	/* Interrupts are OK immediately for the loader */
+	__enable_irq();
+
 	/* Configure and enable system clocks */
 	PIOS_SYS_Init();
 
