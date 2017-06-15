@@ -65,18 +65,22 @@ DefaultHwSettingsWidget::DefaultHwSettingsWidget(UAVObject *settingsObj, QWidget
         case UAVObjectField::INT16:
         case UAVObjectField::INT32:
         case UAVObjectField::UINT8:
-        case UAVObjectField::UINT16:
-        case UAVObjectField::UINT32: {
+        case UAVObjectField::UINT16: {
             QSpinBox *sbx = new QSpinBox(this);
             if (fields[i]->getUnits().length())
                 sbx->setSuffix(QString(" %1").arg(fields[i]->getUnits()));
             wdg = sbx;
             break;
         }
+        case UAVObjectField::UINT32:
         case UAVObjectField::FLOAT32: {
             QDoubleSpinBox *sbx = new QDoubleSpinBox(this);
             if (fields[i]->getUnits().length())
                 sbx->setSuffix(QString(" %1").arg(fields[i]->getUnits()));
+
+            if (fields[i]->getType() == UAVObjectField::UINT32)
+                sbx->setDecimals(0);
+
             wdg = sbx;
             break;
         }
