@@ -377,7 +377,7 @@ void Telemetry::transactionTimeout(ObjectTransactionInfo *transInfo)
     transInfo->timer->stop();
     // Check if more retries are pending
     if (transInfo->retriesRemaining > 0) {
-        qDebug() << QString("[telemetry.cpp] Transaction timeout:%0 Instance:%1 Retrying")
+        qInfo() << QString("[telemetry.cpp] Transaction timeout:%0 Instance:%1 Retrying")
                 .arg(transInfo->obj->getName()
                      + QString(QString(" 0x")
                                + QString::number(transInfo->obj->getObjID(), 16).toUpper()))
@@ -386,7 +386,7 @@ void Telemetry::transactionTimeout(ObjectTransactionInfo *transInfo)
         processObjectTransaction(transInfo);
         ++txRetries;
     } else {
-        qDebug() << QString("[telemetry.cpp] Transaction timeout:%0 Instance:%1 no more retries. FAILED "
+        qInfo() << QString("[telemetry.cpp] Transaction timeout:%0 Instance:%1 no more retries. FAILED "
                     "TRANSACT")
                 .arg(transInfo->obj->getName()
                      + QString(QString(" 0x")
@@ -439,7 +439,7 @@ void Telemetry::processObjectUpdates(UAVObject *obj, EventMask event, bool allIn
             ++txErrors;
             obj->emitTransactionCompleted(false);
             obj->emitTransactionCompleted(false, false);
-            qDebug() << QString(tr("Telemetry: priority event queue is full, event lost (%1)")
+            qWarning() << QString(tr("Telemetry: priority event queue is full, event lost (%1)")
                             .arg(obj->getName()));
         }
     } else {
@@ -449,7 +449,7 @@ void Telemetry::processObjectUpdates(UAVObject *obj, EventMask event, bool allIn
             ++txErrors;
             obj->emitTransactionCompleted(false, false);
             obj->emitTransactionCompleted(false);
-            qDebug() << QString(tr("Telemetry: event queue is full, event lost (%1)")
+            qWarning() << QString(tr("Telemetry: event queue is full, event lost (%1)")
                             .arg(obj->getName()));
         }
     }

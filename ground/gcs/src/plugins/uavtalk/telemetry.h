@@ -91,9 +91,10 @@ signals:
 
 private:
     // Constants
+
+    // TODO: Would be nice to dynamically scale the request timeout... 
+    // This 1500 value is about what's necessary for 9600bps uavtalk links.
     static const int REQ_TIMEOUT_MS = 1500;
-    // Would be nice to dynamically scale the request timeout... this 1500 value
-    // is about what's necessary for 9600bps uavtalk links.
     static const int MAX_RETRIES = 4;
     static const int MAX_UPDATE_PERIOD_MS = 1000;
     static const int MIN_UPDATE_PERIOD_MS = 1;

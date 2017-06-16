@@ -125,7 +125,9 @@ void UAVTalk::processInputStream()
         int bytes = io->read((char *) (rxBuffer + filledBytes),
                 sizeof(rxBuffer) - filledBytes);
 
-        if (bytes <= 0) return;
+        if (bytes <= 0) {
+            return;
+        }
 
         filledBytes += bytes;
         stats.rxBytes += bytes;
@@ -260,7 +262,7 @@ bool UAVTalk::processInput()
 
     UAVObject *rxObj = objMngr->getObject(rxObjId);
 
-    if (rxObj == NULL) {
+    if (rxObj == Q_NULLPTR) {
         stats.rxErrors++;
         UAVTALK_QXTLOG_DEBUG("UAVTalk: unknown object");
 
@@ -321,7 +323,7 @@ bool UAVTalk::processInput()
 bool UAVTalk::receiveObject(quint8 type, quint32 objId, quint16 instId, quint8 *data, qint32 length)
 {
     Q_UNUSED(length);
-    UAVObject *obj = NULL;
+    UAVObject *obj = Q_NULLPTR;
     bool error = false;
     bool allInstances = (instId == ALL_INSTANCES);
 
@@ -332,7 +334,7 @@ bool UAVTalk::receiveObject(quint8 type, quint32 objId, quint16 instId, quint8 *
         if (!allInstances) {
             // Get object and update its data
             obj = updateObject(objId, instId, data);
-            if (obj == NULL) {
+            if (obj == Q_NULLPTR) {
                 UAVTALK_QXTLOG_DEBUG(
                     QString("[uavtalk.cpp  ] Received a UAVObject update for a UAVObject we don't "
                             "know about OBJID:%0 INSTID:%1")
@@ -350,7 +352,7 @@ bool UAVTalk::receiveObject(quint8 type, quint32 objId, quint16 instId, quint8 *
             // Get object and update its data
             obj = updateObject(objId, instId, data);
             // Transmit ACK
-            if (obj != NULL) {
+            if (obj != Q_NULLPTR) {
                 transmitObject(obj, TYPE_ACK, false);
             } else {
                 UAVTALK_QXTLOG_DEBUG(QString("[uavtalk.cpp  ] Received an acknowledged UAVObject "
@@ -373,7 +375,7 @@ bool UAVTalk::receiveObject(quint8 type, quint32 objId, quint16 instId, quint8 *
             obj = objMngr->getObject(objId, instId);
         }
         // If object was found transmit it
-        if (obj != NULL) {
+        if (obj != Q_NULLPTR) {
             transmitObject(obj, TYPE_OBJ, allInstances);
         } else {
             // Object was not found, transmit a NACK with the
@@ -389,7 +391,7 @@ bool UAVTalk::receiveObject(quint8 type, quint32 objId, quint16 instId, quint8 *
             // Get object
             obj = objMngr->getObject(objId, instId);
             // Check if object exists:
-            if (obj != NULL) {
+            if (obj != Q_NULLPTR) {
                 UAVTALK_QXTLOG_DEBUG(
                     QString("[uavtalk.cpp  ] The %0 UAVObject does not exist on the remote end, "
                             "got a Nack")
@@ -417,7 +419,7 @@ bool UAVTalk::receiveObject(quint8 type, quint32 objId, quint16 instId, quint8 *
                     .arg(QString(QString("0x") + QString::number(objId, 16).toUpper())));
             // Check if we actually know this object (tiny chance the ObjID
             // could be unknown and got through CRC check...)
-            if (obj != NULL) {
+            if (obj != Q_NULLPTR) {
                 UAVTALK_QXTLOG_DEBUG(
                     QString("[uavtalk.cpp  ] UAVObject name:%0").arg(obj->getName()));
                 emit ackReceived(obj);
@@ -443,21 +445,21 @@ UAVObject *UAVTalk::updateObject(quint32 objId, quint16 instId, quint8 *data)
     // Get object
     UAVObject *obj = objMngr->getObject(objId, instId);
     // If the instance does not exist create it
-    if (obj == NULL) {
+    if (obj == Q_NULLPTR) {
         // Get the object type
         UAVObject *tobj = objMngr->getObject(objId);
-        if (tobj == NULL) {
-            return NULL;
+        if (tobj == Q_NULLPTR) {
+            return Q_NULLPTR;
         }
         // Make sure this is a data object
         UAVDataObject *dobj = dynamic_cast<UAVDataObject *>(tobj);
-        if (dobj == NULL) {
-            return NULL;
+        if (dobj == Q_NULLPTR) {
+            return Q_NULLPTR;
         }
         // Create a new instance, unpack and register
         UAVDataObject *instobj = dobj->clone(instId);
         if (!objMngr->registerObject(instobj)) {
-            return NULL;
+            return Q_NULLPTR;
         }
         instobj->unpack(data);
         return instobj;
