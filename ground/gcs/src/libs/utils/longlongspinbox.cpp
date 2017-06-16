@@ -34,6 +34,8 @@
 #include <QEvent>
 #include <QStyle>
 
+#include <limits>
+
 LongLongSpinBox::LongLongSpinBox(QWidget *parent)
     : QAbstractSpinBox(parent), m_value(0), m_singleStep(1), m_min(0), m_max(100),
       m_displayBase(10)
@@ -151,7 +153,8 @@ QString LongLongSpinBox::textFromValue(qint64 val) const
     QString str;
     if (m_displayBase == 10) {
         str = locale().toString(val);
-        if (!m_showGroupSeparator && (qAbs(val) >= 1000 || val == LONG_LONG_MIN))
+        if (!m_showGroupSeparator
+                && (qAbs(val) >= 1000 || val == std::numeric_limits<qint64>::min()))
             str.remove(locale().groupSeparator());
     } else {
         QLatin1String prefix = val < 0 ? QLatin1String("-") : QLatin1String();
