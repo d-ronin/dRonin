@@ -174,8 +174,15 @@ public:
         return 0;
     }
 
-    bool isDefaultValue();
-    void setIsDefaultValue(bool isDefault);
+    virtual bool isDefaultValue() const { return true; }
+
+protected:
+    bool childrenAreDefaultValue() const {
+        bool ret = true;
+        for (const auto item : treeChildren())
+            ret &= item->isDefaultValue();
+        return ret;
+    }
 
 private slots:
 
@@ -188,7 +195,6 @@ private:
     bool m_highlight;
     bool m_changed;
     bool m_updated;
-    bool m_defaultValue;
     HighLightManager *m_highlightManager;
     static int m_highlightTimeMs;
 
@@ -342,6 +348,10 @@ public:
         }
         isPresentOnHardware = value;
     }
+
+    virtual bool isDefaultValue() const override { return childrenAreDefaultValue(); }
+
+
 protected slots:
     virtual void doRefreshHiddenObjects(UAVDataObject *dobj)
     {
@@ -403,6 +413,8 @@ public:
         : TreeItem(data, parent)
     {
     }
+
+    virtual bool isDefaultValue() const override { return childrenAreDefaultValue(); }
 };
 
 class CategoryTreeItem : public TreeItem
