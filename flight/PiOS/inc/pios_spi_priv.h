@@ -35,10 +35,30 @@
 #include <pios_stm32.h>
 #include "pios_semaphore.h"
 
+#if defined(STM32F4XX)
+#include "stm32f4xx_dma.h"
+#include "pios_quickdma.h"
+#endif
+
 struct pios_spi_dev {
 	const struct pios_spi_cfg *cfg;
 	struct pios_semaphore *busy;
+#if defined(STM32F4XX)
+	quickdma_transfer_t dma_send;
+	quickdma_transfer_t dma_recv;
+
+	uint8_t dummy_send;
+	uint8_t dummy_recv;
+#endif
 };
+
+#if defined(STM32F4XX)
+
+struct pios_spi_dma {
+	struct quickdma_config send;
+	struct quickdma_config recv;
+};
+#endif
 
 struct pios_spi_cfg {
 	SPI_TypeDef *regs;
@@ -48,6 +68,9 @@ struct pios_spi_cfg {
 	struct stm32_gpio miso;
 	struct stm32_gpio mosi;
 	uint32_t slave_count;
+#if defined(STM32F4XX)
+	struct pios_spi_dma spi_dma;
+#endif
 #ifdef PIOS_INCLUDE_VIDEO
 	// XXX Hack: pios_video uses pios_spi's config structure and expects the
 	// DMA information to be filled in properly

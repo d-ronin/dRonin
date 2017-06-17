@@ -55,6 +55,74 @@ typedef enum {
 	PIOS_SPI_PRESCALER_256 = 7
 } SPIPrescalerTypeDef;
 
+#if defined(STM32F4XX)
+
+#include "pios_quickdma.h"
+
+void PIOS_SPI_InitializeDMA(struct pios_spi_dev *dev)
+{
+	const struct pios_spi_dma *dma = &dev->cfg->spi_dma;
+	PIOS_Assert(dma);
+
+	if(!dev->dma_send) {
+		dev->dma_send = quickdma_initialize(&dma->send);
+		dev->dma_recv = quickdma_initialize(&dma->recv);
+
+		/* If an IRQ channel was defined on the receive channel, it'll go yield.
+		   Remember to implement an IRQ handler to run quickdma_irq_trigger. */
+		quickdma_enable_yielding(dev->dma_recv);
+	}
+}
+
+bool PIOS_SPI_StartDMA(struct pios_spi_dev *dev, const uint8_t *send, uint8_t *recv, uint16_t len)
+{
+	const struct pios_spi_dma *dma = &dev->cfg->spi_dma;
+	PIOS_Assert(dma);
+
+	quickdma_stop_transfer(dev->dma_send);
+	quickdma_stop_transfer(dev->dma_recv);
+
+	SPI_I2S_DMACmd(dev->cfg->regs, SPI_I2S_DMAReq_Rx, DISABLE);
+	SPI_I2S_DMACmd(dev->cfg->regs, SPI_I2S_DMAReq_Tx, DISABLE);
+
+	SPI_Cmd(dev->cfg->regs, DISABLE);
+
+	/* Not gonna do the whole InitTypeDef stuff every time. */
+	if (send) {
+		quickdma_mem_to_peripheral(dev->dma_send, (uint32_t)send, (uint32_t)&dev->cfg->regs->DR, len, QUICKDMA_SIZE_BYTE);
+	} else {
+		dev->dummy_send = 0xff;
+		quickdma_mem_to_peripheral(dev->dma_send, (uint32_t)&dev->dummy_send, (uint32_t)&dev->cfg->regs->DR, len, QUICKDMA_SIZE_BYTE);
+		quickdma_set_meminc(dev->dma_send, false);
+	}
+	if (recv) {
+		quickdma_peripheral_to_mem(dev->dma_recv, (uint32_t)&dev->cfg->regs->DR, (uint32_t)recv, len, QUICKDMA_SIZE_BYTE);
+	} else {
+		quickdma_peripheral_to_mem(dev->dma_recv, (uint32_t)&dev->cfg->regs->DR, (uint32_t)&dev->dummy_recv, len, QUICKDMA_SIZE_BYTE);
+		quickdma_set_meminc(dev->dma_recv, false);
+	}
+
+	if(!quickdma_start_transfer(dev->dma_send)) return false;
+	if(!quickdma_start_transfer(dev->dma_recv)) return false;
+
+	SPI_I2S_DMACmd(dev->cfg->regs, SPI_I2S_DMAReq_Rx, ENABLE);
+	SPI_I2S_DMACmd(dev->cfg->regs, SPI_I2S_DMAReq_Tx, ENABLE);
+
+	SPI_Cmd(dev->cfg->regs, ENABLE);
+
+	return true;
+}
+
+void PIOS_SPI_WaitForDMA(struct pios_spi_dev *dev)
+{
+	const struct pios_spi_dma *dma = &dev->cfg->spi_dma;
+	PIOS_Assert(dma);
+
+	/* Only need to wait for receive, since that's the last thing that'll happen on SPI readout. */
+	quickdma_wait_for_transfer(dev->dma_recv);
+}
+
+#endif // STM32F4XX
 
 static bool PIOS_SPI_validate(struct pios_spi_dev *com_dev)
 {
@@ -64,7 +132,9 @@ static bool PIOS_SPI_validate(struct pios_spi_dev *com_dev)
 
 static struct pios_spi_dev *PIOS_SPI_alloc(void)
 {
-	return (PIOS_malloc(sizeof(struct pios_spi_dev)));
+	struct pios_spi_dev *dev = PIOS_malloc(sizeof(struct pios_spi_dev));
+	if (dev) memset(dev, 0, sizeof(*dev));
+	return dev;
 }
 
 /**
@@ -152,6 +222,12 @@ int32_t PIOS_SPI_Init(uint32_t *spi_id, const struct pios_spi_cfg *cfg)
 #if defined(STM32F30X)
 	/* Configure the RX FIFO Threshold -- 8 bits */
 	SPI_RxFIFOThresholdConfig(spi_dev->cfg->regs, SPI_RxFIFOThreshold_QF);
+#endif
+
+#if defined(STM32F4XX)
+	if ((spi_dev->cfg->spi_dma.send.stream != NULL) && (spi_dev->cfg->spi_dma.recv.stream != NULL)) {
+		PIOS_SPI_InitializeDMA(spi_dev);
+	}
 #endif
 
 	/* Enable SPI */
@@ -327,6 +403,14 @@ static int32_t SPI_PIO_TransferBlock(uint32_t spi_id, const uint8_t *send_buffer
 
 	bool valid = PIOS_SPI_validate(spi_dev);
 	PIOS_Assert(valid)
+
+#if defined(STM32F4XX)
+	if ((spi_dev->cfg->spi_dma.send.stream != NULL) && (spi_dev->cfg->spi_dma.recv.stream != NULL)) {
+		if(!PIOS_SPI_StartDMA(spi_dev, send_buffer, receive_buffer, len)) return -1;
+		PIOS_SPI_WaitForDMA(spi_dev);
+		return 0;
+	}
+#endif
 
 	while (len--) {
 		/* get the byte to send */

@@ -174,6 +174,16 @@ static const struct pios_spi_cfg pios_spi_gyro_accel_cfg = {
 			},
 		},
 	},
+	.spi_dma = {
+		.send = {
+			.stream = DMA1_Stream7,
+			.channel = DMA_Channel_0
+		},
+		.recv = {
+			.stream = DMA1_Stream0,
+			.channel = DMA_Channel_0
+		}
+	}
 };
 
 uint32_t pios_spi_gyro_accel_id;
@@ -994,12 +1004,6 @@ static const struct pios_dmashot_timer_cfg dmashot_tim_cfg[] = {
 		.channel = DMA_Channel_5,
 		.tcif = DMA_FLAG_TCIF2,
 	},
-	{
-		.timer = TIM5,
-		.stream = DMA1_Stream0,
-		.channel = DMA_Channel_6,
-		.tcif = DMA_FLAG_TCIF0,
-	}
 };
 
 static const struct pios_dmashot_cfg dmashot_config = {
