@@ -377,23 +377,21 @@ void Telemetry::transactionTimeout(ObjectTransactionInfo *transInfo)
     transInfo->timer->stop();
     // Check if more retries are pending
     if (transInfo->retriesRemaining > 0) {
-        TELEMETRY_QXTLOG_DEBUG(
-            QString("[telemetry.cpp] Transaction timeout:%0 Instance:%1 Retrying")
+        qInfo() << QString("[telemetry.cpp] Transaction timeout:%0 Instance:%1 Retrying")
                 .arg(transInfo->obj->getName()
                      + QString(QString(" 0x")
                                + QString::number(transInfo->obj->getObjID(), 16).toUpper()))
-                .arg(transInfo->obj->getInstID()));
+                .arg(transInfo->obj->getInstID());
         --transInfo->retriesRemaining;
         processObjectTransaction(transInfo);
         ++txRetries;
     } else {
-        TELEMETRY_QXTLOG_DEBUG(
-            QString("[telemetry.cpp] Transaction timeout:%0 Instance:%1 no more retries. FAILED "
+        qInfo() << QString("[telemetry.cpp] Transaction timeout:%0 Instance:%1 no more retries. FAILED "
                     "TRANSACT")
                 .arg(transInfo->obj->getName()
                      + QString(QString(" 0x")
                                + QString::number(transInfo->obj->getObjID(), 16).toUpper()))
-                .arg(transInfo->obj->getInstID()));
+                .arg(transInfo->obj->getInstID());
         transInfo->timer->stop();
         transactionFailure(transInfo->obj);
         ++txErrors;
@@ -441,9 +439,8 @@ void Telemetry::processObjectUpdates(UAVObject *obj, EventMask event, bool allIn
             ++txErrors;
             obj->emitTransactionCompleted(false);
             obj->emitTransactionCompleted(false, false);
-            TELEMETRY_QXTLOG_DEBUG(
-                QString(tr("Telemetry: priority event queue is full, event lost (%1)")
-                            .arg(obj->getName())));
+            qWarning() << QString(tr("Telemetry: priority event queue is full, event lost (%1)")
+                            .arg(obj->getName()));
         }
     } else {
         if (objQueue.length() < MAX_QUEUE_SIZE) {
@@ -452,6 +449,8 @@ void Telemetry::processObjectUpdates(UAVObject *obj, EventMask event, bool allIn
             ++txErrors;
             obj->emitTransactionCompleted(false, false);
             obj->emitTransactionCompleted(false);
+            qWarning() << QString(tr("Telemetry: event queue is full, event lost (%1)")
+                            .arg(obj->getName()));
         }
     }
     // Process the transaction queue

@@ -94,6 +94,7 @@ private:
     static const int STATS_UPDATE_PERIOD_MS = 1600;
     static const int STATS_CONNECT_PERIOD_MS = 350;
     static const int CONNECTION_TIMEOUT_MS = 8000;
+    static const int MAX_REQUESTS_IN_FLIGHT = 3;
     connectionStatusEnum connectionStatus;
     UAVObjectManager *objMngr;
     Telemetry *tel;
@@ -111,6 +112,8 @@ private:
     QTimer *sessionRetrieveTimeout;
     QTimer *sessionInitialRetrieveTimeout;
     int retries;
+    int requestsInFlight;
+
     void changeObjectInstances(quint32 objID, quint32 instID, bool delayed);
     void startSessionRetrieving(UAVObject *session);
     void sessionFallback();

@@ -66,6 +66,7 @@ TelemetryMonitor::TelemetryMonitor(UAVObjectManager *objMngr, Telemetry *tel,
     , tel(tel)
     , numberOfObjects(0)
     , retries(0)
+    , requestsInFlight(0)
     , isManaged(true)
     , sessions(sessions)
 {
@@ -244,7 +245,7 @@ void TelemetryMonitor::changeObjectInstances(quint32 objID, quint32 instID, bool
 void TelemetryMonitor::retrieveNextObject()
 {
     // If queue is empty return
-    if (queue.isEmpty()) {
+    if (queue.isEmpty() && requestsInFlight == 0) {
         TELEMETRYMONITOR_QXTLOG_DEBUG(QString("%0 Object retrieval completed").arg(Q_FUNC_INFO));
         if (isManaged) {
             TELEMETRYMONITOR_QXTLOG_DEBUG(
@@ -269,17 +270,27 @@ void TelemetryMonitor::retrieveNextObject()
         objectRetrieveTimeout->stop();
         return;
     }
-    // Get next object from the queue
-    UAVObject *obj = queue.dequeue();
-    // Connect to object
-    TELEMETRYMONITOR_QXTLOG_DEBUG(QString("%0 requestiong %1 from board INSTID:%2")
-                                      .arg(Q_FUNC_INFO)
-                                      .arg(obj->getName())
-                                      .arg(obj->getInstID()));
-    connect(obj, QOverload<UAVObject *, bool>::of(&UAVObject::transactionCompleted), this,
-            &TelemetryMonitor::transactionCompleted);
-    // Request update
-    obj->requestUpdateAllInstances();
+
+    while (requestsInFlight < MAX_REQUESTS_IN_FLIGHT) {
+        if (queue.isEmpty()) {
+            return;
+        }
+
+        // Get next object from the queue
+        UAVObject *obj = queue.dequeue();
+        // Connect to object
+        TELEMETRYMONITOR_QXTLOG_DEBUG(QString("%0 requestiong %1 from board INSTID:%2")
+                                          .arg(Q_FUNC_INFO)
+                                          .arg(obj->getName())
+                                          .arg(obj->getInstID()));
+
+        requestsInFlight++;
+
+        connect(obj, QOverload<UAVObject *, bool>::of(&UAVObject::transactionCompleted), this,
+                &TelemetryMonitor::transactionCompleted);
+        // Request update
+        obj->requestUpdateAllInstances();
+    }
 }
 
 /**
@@ -297,14 +308,20 @@ void TelemetryMonitor::transactionCompleted(UAVObject *obj, bool success)
         if (!success && (retries < IAP_OBJECT_RETRIES)) {
             ++retries;
             obj->requestUpdate();
+
+            return;
         }
     }
+
     // Disconnect from sending object
+    requestsInFlight--;
     obj->disconnect(this);
+
     // Process next object if telemetry is still available
     GCSTelemetryStats::DataFields gcsStats = gcsStatsObj->getData();
     if (gcsStats.Status == GCSTelemetryStats::STATUS_CONNECTED) {
         connectionStatus = CON_RETRIEVING_OBJECTS;
+
         retrieveNextObject();
     } else {
         TELEMETRYMONITOR_QXTLOG_DEBUG(
