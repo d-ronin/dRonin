@@ -104,7 +104,6 @@ TreeItem::TreeItem(const QList<QVariant> &data, TreeItem *parent)
     , m_highlight(false)
     , m_changed(false)
     , m_updated(false)
-    , m_defaultValue(true)
 {
 }
 
@@ -115,7 +114,6 @@ TreeItem::TreeItem(const QVariant &data, TreeItem *parent)
     , m_highlight(false)
     , m_changed(false)
     , m_updated(false)
-    , m_defaultValue(true)
 {
     m_data << data << ""
            << "";
@@ -238,16 +236,6 @@ void TreeItem::removeHighlight()
 void TreeItem::setHighlightManager(HighLightManager *mgr)
 {
     m_highlightManager = mgr;
-}
-
-void TreeItem::setIsDefaultValue(bool isDefault)
-{
-    m_defaultValue = isDefault;
-}
-
-bool TreeItem::isDefaultValue()
-{
-    return m_defaultValue;
 }
 
 QList<MetaObjectTreeItem *> TopTreeItem::getMetaObjectItems()

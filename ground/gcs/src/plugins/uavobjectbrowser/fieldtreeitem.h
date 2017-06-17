@@ -55,20 +55,25 @@ public:
     FieldTreeItem(int index, const QList<QVariant> &data, TreeItem *parent = 0)
         : TreeItem(data, parent)
         , m_index(index)
+        , m_defaultValue(true)
     {
     }
     FieldTreeItem(int index, const QVariant &data, TreeItem *parent = 0)
         : TreeItem(data, parent)
         , m_index(index)
+        , m_defaultValue(true)
     {
     }
     bool isEditable() { return true; }
+    void setIsDefaultValue(bool isDefault) { m_defaultValue = isDefault; }
+    virtual bool isDefaultValue() const override { return m_defaultValue; }
     virtual QWidget *createEditor(QWidget *parent) = 0;
     virtual QVariant getEditorValue(QWidget *editor) = 0;
     virtual void setEditorValue(QWidget *editor, QVariant value) = 0;
     virtual void apply() {}
 protected:
     int m_index;
+    bool m_defaultValue;
 };
 
 class EnumFieldTreeItem : public FieldTreeItem
