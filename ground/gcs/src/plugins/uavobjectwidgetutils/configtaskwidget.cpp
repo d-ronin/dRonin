@@ -216,12 +216,12 @@ void ConfigTaskWidget::addUAVObjectToWidgetRelation(QString object, QString fiel
     ow->isLimited = isLimited;
     ow->useUnits = useUnits;
     objOfInterest.append(ow);
-    if (obj) {
-        if (smartsave) {
-            smartsave->addObject((UAVDataObject *)obj);
-        }
-    }
-    if (widget == NULL) {
+
+    // QLabel is a one-way binding, don't try to save it
+    if (smartsave && obj && !qobject_cast<QLabel *>(widget))
+        smartsave->addObject(static_cast<UAVDataObject *>(obj));
+
+    if (!widget) {
         if (defaultReloadGroups && obj) {
             foreach (int i, *defaultReloadGroups) {
                 if (this->defaultReloadGroups.contains(i)) {
