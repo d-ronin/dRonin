@@ -46,7 +46,7 @@
 #define QUINT16MAX std::numeric_limits<quint16>::max()
 #define QINT32MIN std::numeric_limits<qint32>::min()
 #define QINT32MAX std::numeric_limits<qint32>::max()
-#define QUINT32MAX std::numeric_limits<qint32>::max()
+#define QUINT32MAX std::numeric_limits<quint32>::max()
 
 class FieldTreeItem : public TreeItem
 {
@@ -343,8 +343,8 @@ public:
 
 private:
     UAVObjectField *m_field;
-    int m_minValue;
-    int m_maxValue;
+    qint64 m_minValue;
+    qint64 m_maxValue;
 };
 
 class FloatFieldTreeItem : public FieldTreeItem
