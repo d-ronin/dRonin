@@ -60,7 +60,7 @@
 #include <QCommandLineParser>
 #include <QCommandLineOption>
 #include <QLoggingCategory>
-#include <singleapplication.h>
+
 #include "libcrashreporter-qt/libcrashreporter-handler/Handler.h"
 
 #include GCS_VERSION_INFO_FILE
@@ -229,7 +229,7 @@ int main(int argc, char **argv)
 // This should have faster performance on linux
 #endif
 
-    SingleApplication app(argc, argv);
+    QApplication app(argc, argv);
 
 #ifdef USE_CRASHREPORTING
     QString dirName(GCS_REVISION_PRETTY);
@@ -423,8 +423,7 @@ int main(int argc, char **argv)
                 0, QCoreApplication::translate("Application", "Plugin loader messages"),
                 errors.join(QString::fromLatin1("\n\n")));
     }
-    QObject::connect(&app, SIGNAL(instanceStarted(void)), coreplugin->plugin(),
-                     SLOT(remoteArgument()));
+
     QTimer::singleShot(100, &pluginManager, SLOT(startTests()));
     splash.close();
     return app.exec();
