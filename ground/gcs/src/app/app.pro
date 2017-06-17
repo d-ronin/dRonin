@@ -6,15 +6,19 @@ TARGET = $$GCS_APP_TARGET
 DESTDIR = $$GCS_APP_PATH
 QT += xml
 QT += widgets
-SOURCES += main.cpp \
-    customsplash.cpp
+SOURCES += \
+    main.cpp \
+    customsplash.cpp \
+    runguard.cpp
 
 
 include(../rpath.pri)
 include(../libs/utils/utils.pri)
 include(../libs/libcrashreporter-qt/libcrashreporter-qt.pri)
 
-HEADERS += customsplash.h
+HEADERS += \
+    customsplash.h \
+    runguard.h
 
 LIBS *= -l$$qtLibraryName(ExtensionSystem) -l$$qtLibraryName(Aggregation)
 

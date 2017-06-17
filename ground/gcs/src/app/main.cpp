@@ -40,6 +40,9 @@
 #include <extensionsystem/pluginspec.h>
 #include <extensionsystem/iplugin.h>
 
+#include "libcrashreporter-qt/libcrashreporter-handler/Handler.h"
+#include "runguard.h"
+
 #include <QtCore/QDir>
 #include <QtCore/QTextStream>
 #include <QtCore/QFileInfo>
@@ -61,7 +64,7 @@
 #include <QCommandLineOption>
 #include <QLoggingCategory>
 
-#include "libcrashreporter-qt/libcrashreporter-handler/Handler.h"
+#include <iostream>
 
 #include GCS_VERSION_INFO_FILE
 
@@ -225,8 +228,8 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef Q_OS_LINUX
+    // This should have faster performance on linux
     QApplication::setAttribute(Qt::AA_X11InitThreads, true);
-// This should have faster performance on linux
 #endif
 
     QApplication app(argc, argv);
@@ -241,6 +244,12 @@ int main(int argc, char **argv)
     QDir().mkdir(dirName);
     new CrashReporter::Handler(dirName, true, "crashreporterapp");
 #endif
+
+    RunGuard guard(QStringLiteral(GCS_PROJECT_BRANDING) + QStringLiteral("_gcs_run_guard"));
+    if (!guard.tryToRun()) {
+        std::cerr << "GCS already running!" << std::endl;
+        return 1;
+    }
 
     // suppress SSL warnings generated during startup (handy if you want to use QT_FATAL_WARNINGS)
     QLoggingCategory::setFilterRules("qt.network.ssl.warning=false");
