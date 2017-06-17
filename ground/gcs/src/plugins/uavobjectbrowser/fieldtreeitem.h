@@ -46,7 +46,7 @@
 #define QUINT16MAX std::numeric_limits<quint16>::max()
 #define QINT32MIN std::numeric_limits<qint32>::min()
 #define QINT32MAX std::numeric_limits<qint32>::max()
-#define QUINT32MAX std::numeric_limits<qint32>::max()
+#define QUINT32MAX std::numeric_limits<quint32>::max()
 
 class FieldTreeItem : public TreeItem
 {
@@ -217,12 +217,16 @@ public:
         {
             LongLongSpinBox *editor = new LongLongSpinBox(parent);
             editor->setRange(m_minValue, m_maxValue);
+            editor->setDisplayIntegerBase(m_field->getDisplayIntegerBase());
+            editor->setPrefix(m_field->getDisplayPrefix());
             return editor;
         }
         default:
         {
             QSpinBox *editor = new QSpinBox(parent);
             editor->setRange(m_minValue, m_maxValue);
+            editor->setDisplayIntegerBase(m_field->getDisplayIntegerBase());
+            editor->setPrefix(m_field->getDisplayPrefix());
             return editor;
         }
         }
@@ -321,11 +325,31 @@ public:
         if (obj && obj->isSettings())
             setIsDefaultValue(m_field->isDefaultValue(m_index));
     }
+    QString formattedData()
+    {
+        QString formatted = m_field->getDisplayPrefix();
+        switch (m_field->getType()) {
+        case UAVObjectField::INT8:
+        case UAVObjectField::INT16:
+        case UAVObjectField::INT32:
+            formatted += QString::number(TreeItem::data().toInt(), m_field->getDisplayIntegerBase());
+            break;
+        case UAVObjectField::UINT8:
+        case UAVObjectField::UINT16:
+        case UAVObjectField::UINT32:
+            formatted += QString::number(TreeItem::data().toUInt(), m_field->getDisplayIntegerBase());
+            break;
+        default:
+            Q_ASSERT(false);
+            break;
+        }
+        return formatted;
+    }
 
 private:
     UAVObjectField *m_field;
-    int m_minValue;
-    int m_maxValue;
+    qint64 m_minValue;
+    qint64 m_maxValue;
 };
 
 class FloatFieldTreeItem : public FieldTreeItem

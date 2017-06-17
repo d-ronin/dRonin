@@ -70,6 +70,8 @@ DefaultHwSettingsWidget::DefaultHwSettingsWidget(UAVObject *settingsObj, QWidget
             QSpinBox *sbx = new QSpinBox(this);
             if (fields[i]->getUnits().length())
                 sbx->setSuffix(QString(" %1").arg(fields[i]->getUnits()));
+            sbx->setDisplayIntegerBase(fields[i]->getDisplayIntegerBase());
+            sbx->setPrefix(fields[i]->getDisplayPrefix());
             wdg = sbx;
             break;
         }
@@ -77,6 +79,8 @@ DefaultHwSettingsWidget::DefaultHwSettingsWidget(UAVObject *settingsObj, QWidget
             LongLongSpinBox *sbx = new LongLongSpinBox(this);
             if (fields[i]->getUnits().length())
                 sbx->setSuffix(QString(" %1").arg(fields[i]->getUnits()));
+            sbx->setDisplayIntegerBase(fields[i]->getDisplayIntegerBase());
+            sbx->setPrefix(fields[i]->getDisplayPrefix());
             wdg = sbx;
             break;
         }

@@ -55,6 +55,8 @@ public:
         STRING
     } FieldType;
     typedef enum { EQUAL, NOT_EQUAL, BETWEEN, BIGGER, SMALLER } LimitType;
+    enum DisplayType { DEC, HEX, BIN, OCT };
+
     typedef struct
     {
         LimitType type;
@@ -65,12 +67,14 @@ public:
     UAVObjectField(const QString &name, const QString &units, FieldType type, quint32 numElements,
                    const QStringList &options, const QList<int> &indices,
                    const QString &limits = QString(), const QString &description = QString(),
-                   const QList<QVariant> defaultValues = QList<QVariant>());
+                   const QList<QVariant> defaultValues = QList<QVariant>(),
+                   const DisplayType display = DEC);
     UAVObjectField(const QString &name, const QString &units, FieldType type,
                    const QStringList &elementNames, const QStringList &options,
                    const QList<int> &indices, const QString &limits = QString(),
                    const QString &description = QString(),
-                   const QList<QVariant> defaultValues = QList<QVariant>());
+                   const QList<QVariant> defaultValues = QList<QVariant>(),
+                   const DisplayType display = DEC);
     void initialize(quint8 *data, quint32 dataOffset, UAVObject *obj);
     UAVObject *getObject();
     FieldType getType();
@@ -112,6 +116,16 @@ public:
      * @return true if set to default
      */
     bool isDefaultValue(quint32 index = 0);
+    /**
+     * @brief Get the preferred integer base for this field
+     * @return Preferred base
+     */
+    int getDisplayIntegerBase();
+    /**
+     * @brief Get the prefix for the preferred display format
+     * @return "0x" for hex, "0b" for binary etc.
+     */
+    QString getDisplayPrefix();
 
     bool isWithinLimits(QVariant var, quint32 index, int board = 0);
     QVariant getMaxLimit(quint32 index, int board = 0);
@@ -134,11 +148,14 @@ protected:
     QMap<quint32, QList<LimitStruct>> elementLimits;
     QString description;
     QList<QVariant> defaultValues;
+    DisplayType display;
+
     void clear();
     void constructorInitialize(const QString &name, const QString &units, FieldType type,
                                const QStringList &elementNames, const QStringList &options,
                                const QList<int> &indices, const QString &limits,
-                               const QString &description, const QList<QVariant> defaultValues);
+                               const QString &description, const QList<QVariant> defaultValues,
+                               const DisplayType display);
     void limitsInitialize(const QString &limits);
 };
 

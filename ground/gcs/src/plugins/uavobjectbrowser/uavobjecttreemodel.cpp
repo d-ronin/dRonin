@@ -480,6 +480,9 @@ QVariant UAVObjectTreeModel::data(const QModelIndex &index, int role) const
             int enumIndex = fieldItem->data(index.column()).toInt();
             return fieldItem->enumOptions(enumIndex);
         }
+        IntFieldTreeItem *intFieldItem = dynamic_cast<IntFieldTreeItem *>(item);
+        if (intFieldItem)
+            return intFieldItem->formattedData();
     }
 
     return item->data(index.column());
@@ -577,3 +580,8 @@ void UAVObjectTreeModel::presentOnHardwareChangedCB(UAVDataObject *obj)
     Q_UNUSED(obj);
     emit presentOnHardwareChanged();
 }
+
+/**
+ * @}
+ * @}
+ */
