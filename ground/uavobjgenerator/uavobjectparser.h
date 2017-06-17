@@ -55,6 +55,13 @@ typedef enum {
     FIELDTYPE_ENUM
 } FieldType;
 
+typedef enum {
+    DISPLAYTYPE_DEC,
+    DISPLAYTYPE_HEX,
+    DISPLAYTYPE_BIN,
+    DISPLAYTYPE_OCT,
+} DisplayType;
+
 typedef struct FieldInfo_s FieldInfo;
 typedef struct ObjectInfo_s ObjectInfo;
 
@@ -71,6 +78,7 @@ struct FieldInfo_s {
     QStringList defaultValues;
     QString limitValues;
     QString description;
+    DisplayType display;
 
     FieldInfo *parent;
     ObjectInfo *parentObj;
@@ -150,6 +158,7 @@ private:
     QStringList accessModeStr;
     QStringList accessModeStrXML;
     quint64 uavoHash;
+    QStringList displayTypeStrXML;
 
     QString genErrorMsg(QString& fileName, QString errMsg, int errorLine, int errorCol);
 

@@ -41,6 +41,8 @@ bool UAVObjectGeneratorGCS::generate(UAVObjectParser* parser,QString templatepat
     fieldTypeStrCPPClass << "INT8" << "INT16" << "INT32"
         << "UINT8" << "UINT16" << "UINT32" << "FLOAT32" << "ENUM";
 
+    displayTypeStrCPPClass << "DEC" << "HEX" << "BIN" << "OCT";
+
     gcsCodePath = QDir( templatepath + QString(GCS_CODE_DIR));
     gcsOutputPath = QDir( outputpath + QString("gcs") );
     gcsOutputPath.mkpath(gcsOutputPath.absolutePath());
@@ -353,13 +355,14 @@ bool UAVObjectGeneratorGCS::process_object(ObjectInfo* info)
         else {
             const QString defaultValuesInit = info->fields[n]->defaultValues.join(',');
 
-            finit.append( QString("    fields.append( new UAVObjectField(QString(\"%1\"), QString(\"%2\"), UAVObjectField::%3, %4, QStringList(), QList<int>(), QString(\"%5\"), FIELD_DESCRIPTIONS[\"%1\"], QList<QVariant>({%7})));\n")
+            finit.append( QString("    fields.append( new UAVObjectField(QString(\"%1\"), QString(\"%2\"), UAVObjectField::%3, %4, QStringList(), QList<int>(), QString(\"%5\"), FIELD_DESCRIPTIONS[\"%1\"], QList<QVariant>({%7}), UAVObjectField::%8));\n")
                           .arg(info->fields[n]->name)
                           .arg(info->fields[n]->units)
                           .arg(fieldTypeStrCPPClass[info->fields[n]->type])
                           .arg(varElemName)
                           .arg(info->fields[n]->limitValues)
-                          .arg(defaultValuesInit));
+                          .arg(defaultValuesInit)
+                          .arg(displayTypeStrCPPClass[info->fields[n]->display]));
         }
     }
     outCode.replace(QString("$(FIELDSINIT)"), finit);

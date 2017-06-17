@@ -48,6 +48,7 @@ UAVObjectParser::UAVObjectParser()
 
     accessModeStrXML << "readwrite" << "readonly";
 
+    displayTypeStrXML << "dec" << "hex" << "bin" << "oct";
 }
 
 /**
@@ -826,6 +827,15 @@ QString UAVObjectParser::processObjectFields(QDomNode& childNode, ObjectInfo* in
             field->description = description.nodeValue().trimmed();
         }
     }
+
+    // Display type for human interface
+    elemAttr = elemAttributes.namedItem("display");
+    QString display = elemAttr.isNull() ? "dec" : elemAttr.nodeValue();
+    index = displayTypeStrXML.indexOf(display);
+    if (index >= 0)
+        field->display = (DisplayType)index;
+    else
+        return QString("Object:field:display attribute value is invalid, allowed values are: ") + displayTypeStrXML.join(", ");
 
     // Add field to object
     info->fields.append(field);
