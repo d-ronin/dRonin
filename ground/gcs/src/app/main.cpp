@@ -35,13 +35,13 @@
 
 #include "utils/xmlconfig.h"
 #include "utils/pathutils.h"
+#include <utils/runguard.h>
 
 #include <extensionsystem/pluginmanager.h>
 #include <extensionsystem/pluginspec.h>
 #include <extensionsystem/iplugin.h>
 
 #include "libcrashreporter-qt/libcrashreporter-handler/Handler.h"
-#include "runguard.h"
 
 #include <QtCore/QDir>
 #include <QtCore/QTextStream>
@@ -245,7 +245,8 @@ int main(int argc, char **argv)
     new CrashReporter::Handler(dirName, true, "crashreporterapp");
 #endif
 
-    RunGuard guard(QStringLiteral(GCS_PROJECT_BRANDING) + QStringLiteral("_gcs_run_guard"));
+    RunGuard &guard = RunGuard::instance(QStringLiteral(GCS_PROJECT_BRANDING)
+                                         + QStringLiteral("_gcs_run_guard"));
     if (!guard.tryToRun()) {
         std::cerr << "GCS already running!" << std::endl;
         return 1;

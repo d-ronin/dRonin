@@ -3,7 +3,9 @@
  * @file       runguard.cpp
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2017
  * @author     Dmitry Sazonov, Copyright (C) 2015
- * @addtogroup app GCS main application group
+ * @addtogroup libs GCS Libraries
+ * @{
+ * @addtogroup utils Utilities
  * @{
  * @brief Provides a mechanism to ensure only one instance runs
  * Based on https://stackoverflow.com/a/28172162
@@ -65,6 +67,12 @@ RunGuard::~RunGuard()
     release();
 }
 
+RunGuard &RunGuard::instance(const QString &key)
+{
+    static RunGuard instance(key);
+    return instance;
+}
+
 bool RunGuard::isAnotherRunning()
 {
     if (sharedMem.isAttached())
@@ -72,8 +80,10 @@ bool RunGuard::isAnotherRunning()
 
     memLock.acquire();
     const bool isRunning = sharedMem.attach();
-    if (isRunning)
+    if (isRunning) {
+        *static_cast<quint64 *>(sharedMem.data()) += 1;
         sharedMem.detach();
+    }
     memLock.release();
 
     return isRunning;
@@ -86,6 +96,8 @@ bool RunGuard::tryToRun()
 
     memLock.acquire();
     const bool result = sharedMem.create(sizeof(quint64));
+    if (result)
+        *static_cast<quint64 *>(sharedMem.data()) = 0;
     memLock.release();
     if (!result) {
         release();
@@ -93,6 +105,20 @@ bool RunGuard::tryToRun()
     }
 
     return true;
+}
+
+quint64 RunGuard::secondaryAttempts()
+{
+    quint64 ret = 0;
+    memLock.acquire();
+    if (!sharedMem.isAttached() && sharedMem.attach(QSharedMemory::ReadOnly)) {
+        ret = *static_cast<quint64 *>(sharedMem.data());
+        sharedMem.detach();
+    } else {
+        ret = *static_cast<quint64 *>(sharedMem.data());
+    }
+    memLock.release();
+    return ret;
 }
 
 void RunGuard::release()
@@ -104,5 +130,6 @@ void RunGuard::release()
 }
 
 /**
+ * @}
  * @}
  */

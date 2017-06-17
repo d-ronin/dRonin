@@ -8,8 +8,7 @@ QT += xml
 QT += widgets
 SOURCES += \
     main.cpp \
-    customsplash.cpp \
-    runguard.cpp
+    customsplash.cpp
 
 
 include(../rpath.pri)
@@ -17,8 +16,7 @@ include(../libs/utils/utils.pri)
 include(../libs/libcrashreporter-qt/libcrashreporter-qt.pri)
 
 HEADERS += \
-    customsplash.h \
-    runguard.h
+    customsplash.h
 
 LIBS *= -l$$qtLibraryName(ExtensionSystem) -l$$qtLibraryName(Aggregation)
 

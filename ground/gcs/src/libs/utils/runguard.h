@@ -3,7 +3,9 @@
  * @file       runguard.h
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2017
  * @author     Dmitry Sazonov, Copyright (C) 2015
- * @addtogroup app GCS main application group
+ * @addtogroup libs GCS Libraries
+ * @{
+ * @addtogroup utils Utilities
  * @{
  * @brief Provides a mechanism to ensure only one instance runs
  * Based on https://stackoverflow.com/a/28172162
@@ -30,26 +32,34 @@
 #ifndef RUNGUARD_H
 #define RUNGUARD_H
 
+#include "utils_global.h"
+
 #include <QObject>
 #include <QSharedMemory>
 #include <QSystemSemaphore>
 
-class RunGuard
+
+class QTCREATOR_UTILS_EXPORT RunGuard
 {
 
 public:
     /**
-     * @brief Constructor
+     * @brief Get instance of this singleton
      * @param key A key that is unique to your application
+     * @return The single instance
      */
-    RunGuard(const QString &key);
-    ~RunGuard();
+    static RunGuard &instance(const QString &key);
 
     /**
      * @brief Attempt to run and fail if another instance is running
      * @return false on failure
      */
     bool tryToRun();
+    /**
+     * @brief Number of secondary instances attempted to start
+     * @return number of attempts
+     */
+    quint64 secondaryAttempts();
 
 private:
     const QString key;
@@ -58,6 +68,9 @@ private:
 
     QSharedMemory sharedMem;
     QSystemSemaphore memLock;
+
+    RunGuard(const QString &key = QString());
+    ~RunGuard();
 
     bool isAnotherRunning();
     void release();
@@ -68,5 +81,6 @@ private:
 #endif // RUNGUARD_H
 
 /**
+ * @}
  * @}
  */
