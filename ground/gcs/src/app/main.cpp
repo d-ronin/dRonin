@@ -227,11 +227,6 @@ int main(int argc, char **argv)
     }
 #endif
 
-#ifdef Q_OS_LINUX
-    // This should have faster performance on linux
-    QApplication::setAttribute(Qt::AA_X11InitThreads, true);
-#endif
-
     QApplication app(argc, argv);
 
 #ifdef USE_CRASHREPORTING
