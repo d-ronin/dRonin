@@ -100,3 +100,12 @@ void TelemetryManager::onGeneralSettingsChanged()
         }
     }
 }
+
+QByteArray *TelemetryManager::downloadFile(quint32 fileId, quint32 maxSize)
+{
+    if (!telemetry) {
+        return NULL;
+    }
+
+    return telemetry->downloadFile(fileId, maxSize);
+}

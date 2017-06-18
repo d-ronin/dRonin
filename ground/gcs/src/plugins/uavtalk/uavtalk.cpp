@@ -91,19 +91,15 @@ UAVTalk::~UAVTalk()
 }
 
 /**
- * Reset the statistics counters
- */
-void UAVTalk::resetStats()
-{
-    memset(&stats, 0, sizeof(ComStats));
-}
-
-/**
  * Get the statistics counters
  */
 UAVTalk::ComStats UAVTalk::getStats()
 {
-    return stats;
+    UAVTalk::ComStats ret = stats;
+
+    memset(&stats, 0, sizeof(ComStats));
+
+    return ret;
 }
 
 /**
@@ -184,6 +180,33 @@ bool UAVTalk::objectTransaction(UAVObject *obj, quint8 type, bool allInstances)
 }
 
 /**
+ * Processes a frame containing file data.
+ * \param fielId the received file id
+ * \param data Buffer to the file data header
+ * \param length Number of bytes of file data header + file data.
+ */
+bool UAVTalk::receiveFileChunk(quint32 fileId, quint8 *data, quint32 length)
+{
+    UAVTalkFileData *hdr = (UAVTalkFileData *) data;
+
+    if (length < sizeof(*hdr)) {
+        return false;
+    }
+
+    data += sizeof(*hdr);
+    length -= sizeof(*hdr);
+
+    //qDebug() << "Received file chunk, file=" << fileId << ", offset = " <<
+    //    hdr->offset << ", len=" << length << ", flags=" << hdr->flags;
+
+    emit fileDataReceived(fileId, hdr->offset, data, length,
+            !!(hdr->flags & FILEDATA_FLAG_EOF),
+            !!(hdr->flags & FILEDATA_FLAG_LAST));
+
+    return true;
+}
+
+/**
  * Process a frame from input, if available.
  * \return False if there was insufficient data for a frame, true if trying
  * again is worthwhile.
@@ -255,10 +278,13 @@ bool UAVTalk::processInput()
     /* OK, we have a complete frame as encoded on the wire.  Time to do things
      * with it.
      */
-
     quint8 rxType = hdr->type & TYPE_MASK;
 
     quint32 rxObjId = qFromLittleEndian(hdr->objId);
+
+    if (rxType == TYPE_FILEDATA) {
+        return receiveFileChunk(rxObjId, payload, payloadBytes);
+    }
 
     UAVObject *rxObj = objMngr->getObject(rxObjId);
 
@@ -320,7 +346,8 @@ bool UAVTalk::processInput()
  * \param[in] length Buffer length
  * \return Success (true), Failure (false)
  */
-bool UAVTalk::receiveObject(quint8 type, quint32 objId, quint16 instId, quint8 *data, qint32 length)
+bool UAVTalk::receiveObject(quint8 type, quint32 objId, quint16 instId,
+        quint8 *data, quint32 length)
 {
     Q_UNUSED(length);
     UAVObject *obj = Q_NULLPTR;
@@ -519,31 +546,71 @@ bool UAVTalk::transmitObject(UAVObject *obj, quint8 type, bool allInstances)
  */
 bool UAVTalk::transmitNack(quint32 objId)
 {
-    int dataOffset = 8;
-
     txBuffer[0] = SYNC_VAL;
     txBuffer[1] = TYPE_VER | TYPE_NACK;
 
-    qToLittleEndian<quint16>(dataOffset, &txBuffer[2]);
-
     qToLittleEndian<quint32>(objId, &txBuffer[4]);
 
-    // Calculate checksum
-    txBuffer[dataOffset] = updateCRC(0, txBuffer, dataOffset);
+    return transmitFrame(8, false);
+}
 
-    // Send buffer, check that the transmit backlog does not grow above limit
-    if (io && io->isWritable() && io->bytesToWrite() < TX_BACKLOG_SIZE) {
-        io->write((const char *)txBuffer, dataOffset + CHECKSUM_LENGTH);
+/**
+ * Perform the final work of transmitting a frame from the txBuffer.
+ * \param[in] length Frame length, not including checksum.
+ * \param[in] incrTxObj Boolean, default true, wheter to update tx object
+ * counters.
+ */
+bool UAVTalk::transmitFrame(quint32 length, bool incrTxObj)
+{
+    if (length >= 256) {
+        Q_ASSERT(0);
+        return false;
+    }
+
+    txBuffer[2] = length;
+    txBuffer[3] = 0;
+
+    txBuffer[length] = updateCRC(0, txBuffer, length);
+
+    if (!io.isNull() && io->isWritable() && io->bytesToWrite() < TX_BACKLOG_SIZE) {
+        io->write((const char *)txBuffer, length + CHECKSUM_LENGTH);
     } else {
+        UAVTALK_QXTLOG_DEBUG("UAVTalk: TX refused");
         ++stats.txErrors;
         return false;
     }
 
     // Update stats
-    stats.txBytes += 8 + CHECKSUM_LENGTH;
+    if (incrTxObj) {
+        ++stats.txObjects;
+        /* This can end up counting instance IDs as object length, but big
+         * woop / I think this is arguably correct.
+         */
+        stats.txObjectBytes += length - MIN_HEADER_LENGTH;
+    }
 
-    // Done
+    stats.txBytes += length + CHECKSUM_LENGTH;
+
     return true;
+}
+
+/**
+ * Send a request for file data.
+ * \param[in] fileId The file id to request.
+ * \param[in] offset The first requested chunk of the file.
+ */
+bool UAVTalk::requestFile(quint32 fileId, quint32 offset)
+{
+    txBuffer[0] = SYNC_VAL;
+    txBuffer[1] = TYPE_VER | TYPE_FILEREQ;
+    qToLittleEndian<quint32>(fileId, &txBuffer[4]);
+    qToLittleEndian<quint32>(offset, &txBuffer[8]);
+    txBuffer[12] = 0;
+    txBuffer[13] = 0;
+
+    // qDebug() << "Sent file req offs=" << offset;
+
+    return transmitFrame(14);
 }
 
 /**
@@ -599,27 +666,7 @@ bool UAVTalk::transmitSingleObject(UAVObject *obj, quint8 type, bool allInstance
         }
     }
 
-    qToLittleEndian<quint16>(dataOffset + length, &txBuffer[2]);
-
-    // Calculate checksum
-    txBuffer[dataOffset + length] = updateCRC(0, txBuffer, dataOffset + length);
-
-    // Send buffer, check that the transmit backlog does not grow above limit
-    if (!io.isNull() && io->isWritable() && io->bytesToWrite() < TX_BACKLOG_SIZE) {
-        io->write((const char *)txBuffer, dataOffset + length + CHECKSUM_LENGTH);
-    } else {
-        UAVTALK_QXTLOG_DEBUG("UAVTalk: TX refused");
-        ++stats.txErrors;
-        return false;
-    }
-
-    // Update stats
-    ++stats.txObjects;
-    stats.txBytes += dataOffset + length + CHECKSUM_LENGTH;
-    stats.txObjectBytes += length;
-
-    // Done
-    return true;
+    return transmitFrame(dataOffset + length);
 }
 
 /**

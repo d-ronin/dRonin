@@ -398,6 +398,93 @@ void Telemetry::transactionTimeout(ObjectTransactionInfo *transInfo)
     }
 }
 
+QByteArray *Telemetry::downloadFile(quint32 fileId, quint32 maxSize)
+{
+    quint32 curOffset = 0;
+
+    QByteArray *result = new QByteArray();
+
+    quint32 sizeGuess = 32 * 1024;
+
+    if (maxSize < sizeGuess) {
+        sizeGuess = maxSize;
+    }
+
+    result->reserve(maxSize);
+
+    bool newReqNeeded = false;
+    bool completed = false;
+    int inactivityCount = 0;
+    int failCount = 0;
+
+    QEventLoop loop;
+    QTimer timeStep;
+
+    timeStep.setSingleShot(false);
+    timeStep.start(150);
+
+    connect(&timeStep, &QTimer::timeout, &loop, &QEventLoop::quit);
+
+    connect(utalk, &UAVTalk::fileDataReceived, &loop,
+            [&](quint32 recvFileId, quint32 offset, quint8 *data, quint32 dataLen,
+                bool eof, bool lastInSeq) {
+                    if (recvFileId != fileId) {
+                        return;
+                    }
+
+                    if (offset != curOffset) {
+                        if (lastInSeq) {
+                            newReqNeeded = true;
+                            loop.exit();
+                        }
+
+                        return;
+                    }
+
+                    result->append((const char *) data, dataLen);
+
+                    curOffset += dataLen;
+
+                    if (eof) {
+                        completed = true;
+                        loop.exit();
+                    } else if (lastInSeq) {
+                        newReqNeeded = true;
+                        loop.exit();
+                    }
+
+                    inactivityCount = 0;
+                    failCount = 0;
+                }
+            );
+
+    while (curOffset < maxSize && (!completed)) {
+        utalk->requestFile(fileId, curOffset);
+
+        newReqNeeded = false;
+        inactivityCount = 0;
+
+        do {
+            if ((inactivityCount++) > 10) {
+                qDebug() << "Retrying file transfer because of inactivity";
+                failCount++;
+                break;
+            }
+
+            loop.exec();
+
+        } while (curOffset < maxSize && (!completed) && (!newReqNeeded));
+
+        if (failCount > 5) {
+            qDebug() << "Aborting file transfer";
+            delete result;
+            return NULL;
+        }
+    }
+
+    return result;
+}
+
 /**
  * Start an object transaction with UAVTalk, all information is stored in transInfo.
  */
@@ -625,15 +712,11 @@ Telemetry::TelemetryStats Telemetry::getStats()
     stats.rxErrors = utalkStats.rxErrors;
     stats.txRetries = txRetries;
 
-    // Done
-    return stats;
-}
-
-void Telemetry::resetStats()
-{
-    utalk->resetStats();
     txErrors = 0;
     txRetries = 0;
+
+    // Done
+    return stats;
 }
 
 void Telemetry::objectUpdatedAuto(UAVObject *obj)

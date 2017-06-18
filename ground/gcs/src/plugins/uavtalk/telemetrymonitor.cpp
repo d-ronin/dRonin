@@ -505,6 +505,7 @@ void TelemetryMonitor::newInstanceSlot(UAVObject *obj)
     if (!isManaged)
         dobj->setIsPresentOnHardware(true);
 }
+
 void TelemetryMonitor::startSessionRetrieving(UAVObject *session)
 {
     static int currentIndex = 0;
@@ -612,7 +613,6 @@ void TelemetryMonitor::processStatsUpdates()
     GCSTelemetryStats::DataFields gcsStats = gcsStatsObj->getData();
     FlightTelemetryStats::DataFields flightStats = flightStatsObj->getData();
     Telemetry::TelemetryStats telStats = tel->getStats();
-    tel->resetStats();
 
     // Update stats object
     gcsStats.RxDataRate = (float)telStats.rxBytes / ((float)statsTimer->interval() / 1000.0);

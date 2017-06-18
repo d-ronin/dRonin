@@ -63,6 +63,7 @@ public:
                      QHash<quint16, QList<objStruc>> sessions);
     ~TelemetryMonitor();
     QHash<quint16, QList<objStruc>> savedSessions() { return sessions; }
+
 signals:
     void connected();
     void disconnected();
