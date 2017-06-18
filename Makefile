@@ -271,20 +271,25 @@ GCS_SILENT := silent
 endif
 endif
 
+
+GCS_QMAKE_DEPS := $(shell find $(ROOT_DIR)/ground -name '*.pr?') $(shell find $(BUILD_DIR)/uavobject-synthetics -name '*.h')
+GCS_QMAKE_MARKER := $(BUILD_DIR)/ground/gcs/.make_marker
+$(GCS_QMAKE_DEPS): ;
+
+$(GCS_QMAKE_MARKER): $(GCS_QMAKE_DEPS)
+	$(V1) mkdir -p $(BUILD_DIR)/ground/gcs
+	$(V1) ( cd $(BUILD_DIR)/ground/gcs && \
+	  PYTHON=$(PYTHON) $(QMAKE) $(ROOT_DIR)/ground/gcs/gcs.pro -spec $(QT_SPEC) -r CONFIG+="$(GCS_BUILD_CONF) $(GCS_SILENT)" $(GCS_QMAKE_OPTS) ; \
+	)
+	$(V1) touch $(GCS_QMAKE_MARKER)
+
+
 .PHONY: gcs
-gcs: tools_required_qt tools_required_breakpad uavobjects
+gcs: $(GCS_QMAKE_MARKER) | tools_required_qt tools_required_breakpad uavobjects
 ifeq ($(USE_MSVC), NO)
-	$(V1) mkdir -p $(BUILD_DIR)/ground/$@
-	$(V1) ( cd $(BUILD_DIR)/ground/$@ && \
-	  PYTHON=$(PYTHON) $(QMAKE) $(ROOT_DIR)/ground/gcs/gcs.pro -spec $(QT_SPEC) -r CONFIG+="$(GCS_BUILD_CONF) $(GCS_SILENT)" $(GCS_QMAKE_OPTS) && \
-	  $(MAKE) --no-print-directory -w ; \
-	)
+	cd $(BUILD_DIR)/ground/gcs && $(MAKE) --no-print-directory -w
 else
-	$(V1) mkdir -p $(BUILD_DIR)/ground/$@
-	$(V1) ( cd $(BUILD_DIR)/ground/$@ && \
-	  PYTHON=$(PYTHON) $(QMAKE) $(ROOT_DIR)/ground/gcs/gcs.pro -spec $(QT_SPEC) -r CONFIG+="$(GCS_BUILD_CONF) $(GCS_SILENT)" $(GCS_QMAKE_OPTS) && \
-	  MAKEFLAGS= jom $(JOM_OPTIONS); \
-	)
+	cd $(BUILD_DIR)/ground/gcs && MAKEFLAGS= jom $(JOM_OPTIONS)
 endif
 
 .PHONY: gcs_clean
