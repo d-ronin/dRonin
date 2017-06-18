@@ -29,14 +29,18 @@
 #include "coreplugin.h"
 #include "coreimpl.h"
 #include "mainwindow.h"
+#include <runguard/runguard.h>
 #include <QtPlugin>
 #include <extensionsystem/pluginmanager.h>
 #include <QtCore/QtPlugin>
+#include <QTimer>
 
 using namespace Core::Internal;
 
 CorePlugin::CorePlugin()
     : m_mainWindow(new MainWindow)
+    , m_secondaryAttempts(0)
+    , m_secondaryTimer(new QTimer)
 {
     connect(m_mainWindow, SIGNAL(splashMessages(QString)), this, SIGNAL(splashMessages(QString)));
     connect(m_mainWindow, SIGNAL(hideSplash()), this, SIGNAL(hideSplash()));
@@ -45,6 +49,8 @@ CorePlugin::CorePlugin()
 
 CorePlugin::~CorePlugin()
 {
+    m_secondaryTimer->stop();
+    delete m_secondaryTimer;
     delete m_mainWindow;
 }
 
@@ -66,6 +72,19 @@ bool CorePlugin::initialize(const QStringList &arguments, QString *errorMessage)
 void CorePlugin::extensionsInitialized()
 {
     m_mainWindow->extensionsInitialized();
+
+    // check if another app instance has attempted to start periodically
+    // and show our instance if so
+    m_secondaryTimer->setInterval(1000);
+    connect(m_secondaryTimer, &QTimer::timeout, this, [this]() {
+        // relying on main() to have already created the instance
+        // (with appropriate key)
+        quint64 attempts = RunGuard::instance("").secondaryAttempts();
+        if (attempts != m_secondaryAttempts && m_mainWindow)
+            m_mainWindow->activateWindow();
+        m_secondaryAttempts = attempts;
+    });
+    m_secondaryTimer->start();
 }
 
 void CorePlugin::remoteArgument(const QString &arg)

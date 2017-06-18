@@ -35,10 +35,13 @@
 
 #include "utils/xmlconfig.h"
 #include "utils/pathutils.h"
+#include <runguard/runguard.h>
 
 #include <extensionsystem/pluginmanager.h>
 #include <extensionsystem/pluginspec.h>
 #include <extensionsystem/iplugin.h>
+
+#include "libcrashreporter-qt/libcrashreporter-handler/Handler.h"
 
 #include <QtCore/QDir>
 #include <QtCore/QTextStream>
@@ -60,8 +63,8 @@
 #include <QCommandLineParser>
 #include <QCommandLineOption>
 #include <QLoggingCategory>
-#include <singleapplication.h>
-#include "libcrashreporter-qt/libcrashreporter-handler/Handler.h"
+
+#include <iostream>
 
 #include GCS_VERSION_INFO_FILE
 
@@ -225,11 +228,11 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef Q_OS_LINUX
+    // This should have faster performance on linux
     QApplication::setAttribute(Qt::AA_X11InitThreads, true);
-// This should have faster performance on linux
 #endif
 
-    SingleApplication app(argc, argv);
+    QApplication app(argc, argv);
 
 #ifdef USE_CRASHREPORTING
     QString dirName(GCS_REVISION_PRETTY);
@@ -241,6 +244,13 @@ int main(int argc, char **argv)
     QDir().mkdir(dirName);
     new CrashReporter::Handler(dirName, true, "crashreporterapp");
 #endif
+
+    RunGuard &guard = RunGuard::instance(QStringLiteral(GCS_PROJECT_BRANDING)
+                                         + QStringLiteral("_gcs_run_guard"));
+    if (!guard.tryToRun()) {
+        std::cerr << "GCS already running!" << std::endl;
+        return 1;
+    }
 
     // suppress SSL warnings generated during startup (handy if you want to use QT_FATAL_WARNINGS)
     QLoggingCategory::setFilterRules("qt.network.ssl.warning=false");
@@ -423,8 +433,7 @@ int main(int argc, char **argv)
                 0, QCoreApplication::translate("Application", "Plugin loader messages"),
                 errors.join(QString::fromLatin1("\n\n")));
     }
-    QObject::connect(&app, SIGNAL(instanceStarted(void)), coreplugin->plugin(),
-                     SLOT(remoteArgument()));
+
     QTimer::singleShot(100, &pluginManager, SLOT(startTests()));
     splash.close();
     return app.exec();

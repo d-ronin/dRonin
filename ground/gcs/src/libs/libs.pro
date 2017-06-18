@@ -8,7 +8,9 @@ SUBDIRS   = \
     utils \
     tlmapcontrol \
     qwt \
-    libcrashreporter-qt
+    libcrashreporter-qt \
+    runguard
+
 win32 {
 SUBDIRS   += \
     zlib

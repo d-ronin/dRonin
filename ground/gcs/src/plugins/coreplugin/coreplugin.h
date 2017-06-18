@@ -31,6 +31,8 @@
 
 #include <extensionsystem/iplugin.h>
 
+class QTimer;
+
 namespace Core {
 namespace Internal {
 
@@ -58,6 +60,8 @@ namespace Internal {
 
     private:
         MainWindow *m_mainWindow;
+        quint64 m_secondaryAttempts;
+        QTimer *m_secondaryTimer;
     };
 
 } // namespace Internal
