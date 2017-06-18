@@ -10,7 +10,6 @@ include(../../gcsplugin.pri)
 include(config_dependencies.pri)
 LIBS *= -l$$qtLibraryName(Qwt)
 
-INCLUDEPATH += ../../libs
 INCLUDEPATH *= ../../libs/eigen
 
 OTHER_FILES += Config.pluginspec \
