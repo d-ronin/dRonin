@@ -48,7 +48,7 @@ class UAVTALK_EXPORT UAVTalk : public QObject
     Q_OBJECT
 
 public:
-    typedef struct
+    struct ComStats
     {
         quint32 txBytes;
         quint32 rxBytes;
@@ -58,7 +58,7 @@ public:
         quint32 txObjects;
         quint32 txErrors;
         quint32 rxErrors;
-    } ComStats;
+    };
 
     UAVTalk(QIODevice *iodev, UAVObjectManager *objMngr);
     ~UAVTalk();
@@ -114,18 +114,18 @@ protected:
 
 #pragma pack(push)
 #pragma pack(1)
-    typedef struct {
+    struct UAVTalkHeader {
         quint8 sync;
         quint8 type;
         quint8 size;
         quint8 resv;
         quint32 objId;
-    } UAVTalkHeader;
+    };
 
-    typedef struct {
+    struct UAVTalkFileData {
         quint32 offset;
         quint8 flags;
-    } UAVTalkFileData;
+    };
 
     static const quint8 FILEDATA_FLAG_EOF = 0x01;
     static const quint8 FILEDATA_FLAG_LAST = 0x02;
