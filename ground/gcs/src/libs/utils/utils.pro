@@ -32,8 +32,7 @@ SOURCES += \
     mytabwidget.cpp \
     svgimageprovider.cpp \
     scaledpixmaplabel.cpp \
-    longlongspinbox.cpp \
-    runguard.cpp
+    longlongspinbox.cpp
 
 SOURCES += xmlconfig.cpp
 
@@ -60,8 +59,7 @@ HEADERS += utils_global.h \
     mytabwidget.h \
     svgimageprovider.h \
     scaledpixmaplabel.h \
-    longlongspinbox.h \
-    runguard.h
+    longlongspinbox.h
 
 
 HEADERS += xmlconfig.h

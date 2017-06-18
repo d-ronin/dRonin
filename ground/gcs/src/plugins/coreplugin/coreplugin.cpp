@@ -29,7 +29,7 @@
 #include "coreplugin.h"
 #include "coreimpl.h"
 #include "mainwindow.h"
-#include <utils/runguard.h>
+#include <runguard/runguard.h>
 #include <QtPlugin>
 #include <extensionsystem/pluginmanager.h>
 #include <QtCore/QtPlugin>

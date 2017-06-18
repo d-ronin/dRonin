@@ -7,9 +7,12 @@ QT += xml \
     network \
     svg \
     sql
+
 include(../../gcsplugin.pri)
 include(../../libs/utils/utils.pri)
+include(../../libs/runguard/runguard.pri)
 include(coreplugin_dependencies.pri)
+
 INCLUDEPATH *= dialogs \
     uavgadgetmanager \
     actionmanager

@@ -35,7 +35,7 @@
 
 #include "utils/xmlconfig.h"
 #include "utils/pathutils.h"
-#include <utils/runguard.h>
+#include <runguard/runguard.h>
 
 #include <extensionsystem/pluginmanager.h>
 #include <extensionsystem/pluginspec.h>

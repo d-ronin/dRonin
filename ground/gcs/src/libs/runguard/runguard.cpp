@@ -5,7 +5,7 @@
  * @author     Dmitry Sazonov, Copyright (C) 2015
  * @addtogroup libs GCS Libraries
  * @{
- * @addtogroup utils Utilities
+ * @addtogroup runguard RunGuard
  * @{
  * @brief Provides a mechanism to ensure only one instance runs
  * Based on https://stackoverflow.com/a/28172162

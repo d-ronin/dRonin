@@ -5,7 +5,7 @@
  * @author     Dmitry Sazonov, Copyright (C) 2015
  * @addtogroup libs GCS Libraries
  * @{
- * @addtogroup utils Utilities
+ * @addtogroup runguard RunGuard
  * @{
  * @brief Provides a mechanism to ensure only one instance runs
  * Based on https://stackoverflow.com/a/28172162
@@ -32,14 +32,14 @@
 #ifndef RUNGUARD_H
 #define RUNGUARD_H
 
-#include "utils_global.h"
+#include "runguard_global.h"
 
 #include <QObject>
 #include <QSharedMemory>
 #include <QSystemSemaphore>
 
 
-class QTCREATOR_UTILS_EXPORT RunGuard
+class RUNGUARD_EXPORT RunGuard
 {
 
 public:
