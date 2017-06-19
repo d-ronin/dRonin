@@ -72,6 +72,14 @@ GCS_BUILD_CONF ?= debug
 # And the flight build configuration (debug | default | release)
 export FLIGHT_BUILD_CONF ?= default
 
+# Paths
+UAVOBJ_XML_DIR := $(ROOT_DIR)/shared/uavobjectdefinition
+UAVOBJ_OUT_DIR := $(BUILD_DIR)/uavobject-synthetics
+
+# Markers used in sequencing build steps
+UAVOBJECT_MARKER := $(UAVOBJ_OUT_DIR)/.uav-marker
+GCS_QMAKE_MARKER := $(BUILD_DIR)/ground/gcs/.make_marker
+
 ##############################
 #
 # Check that environmental variables are sane
@@ -271,20 +279,24 @@ GCS_SILENT := silent
 endif
 endif
 
+
+GCS_QMAKE_DEPS := $(shell find $(ROOT_DIR)/ground -name '*.pr?')
+$(GCS_QMAKE_DEPS): ;
+
+$(GCS_QMAKE_MARKER): $(UAVOBJECT_MARKER) $(GCS_QMAKE_DEPS)
+	$(V1) mkdir -p $(BUILD_DIR)/ground/gcs
+	$(V1) ( cd $(BUILD_DIR)/ground/gcs && \
+	  PYTHON=$(PYTHON) $(QMAKE) $(ROOT_DIR)/ground/gcs/gcs.pro -spec $(QT_SPEC) -r CONFIG+="$(GCS_BUILD_CONF) $(GCS_SILENT)" $(GCS_QMAKE_OPTS) ; \
+	)
+	$(V1) touch $(GCS_QMAKE_MARKER)
+
+
 .PHONY: gcs
-gcs: tools_required_qt tools_required_breakpad uavobjects
+gcs: $(GCS_QMAKE_MARKER) | tools_required_qt tools_required_breakpad
 ifeq ($(USE_MSVC), NO)
-	$(V1) mkdir -p $(BUILD_DIR)/ground/$@
-	$(V1) ( cd $(BUILD_DIR)/ground/$@ && \
-	  PYTHON=$(PYTHON) $(QMAKE) $(ROOT_DIR)/ground/gcs/gcs.pro -spec $(QT_SPEC) -r CONFIG+="$(GCS_BUILD_CONF) $(GCS_SILENT)" $(GCS_QMAKE_OPTS) && \
-	  $(MAKE) --no-print-directory -w ; \
-	)
+	cd $(BUILD_DIR)/ground/gcs && $(MAKE) --no-print-directory -w
 else
-	$(V1) mkdir -p $(BUILD_DIR)/ground/$@
-	$(V1) ( cd $(BUILD_DIR)/ground/$@ && \
-	  PYTHON=$(PYTHON) $(QMAKE) $(ROOT_DIR)/ground/gcs/gcs.pro -spec $(QT_SPEC) -r CONFIG+="$(GCS_BUILD_CONF) $(GCS_SILENT)" $(GCS_QMAKE_OPTS) && \
-	  MAKEFLAGS= jom $(JOM_OPTIONS); \
-	)
+	cd $(BUILD_DIR)/ground/gcs && MAKEFLAGS= jom $(JOM_OPTIONS)
 endif
 
 .PHONY: gcs_clean
@@ -304,7 +316,7 @@ gcs_ts: tools_required_qt
 # need to disable ccache, gence build config = release
 .PHONY: gcs_clazy
 gcs_clazy: CLAZY_CHECKS ?= level0
-gcs_clazy: | tools_required_qt uavobjects
+gcs_clazy: $(UAVOBJECT_MARKER) | tools_required_qt
 	echo $(CLAZY)
 ifeq ($(shell which clazy),)
 	$(error Please install clazy and ensure it is on PATH first. https://github.com/KDE/clazy#build-instructions)
@@ -339,14 +351,17 @@ else
 	)
 endif
 
-UAVOBJ_XML_DIR := $(ROOT_DIR)/shared/uavobjectdefinition
-UAVOBJ_OUT_DIR := $(BUILD_DIR)/uavobject-synthetics
+UAVOBJECT_DEPS := $(shell find $(UAVOBJ_XML_DIR))
+$(UAVOBJECT_DEPS): ;
 
-uavobjects: uavobjgenerator
+$(UAVOBJECT_MARKER): $(UAVOBJECT_DEPS) | uavobjgenerator
 	$(V1) mkdir -p $(UAVOBJ_OUT_DIR)
 	$(V1) ( cd $(UAVOBJ_OUT_DIR) && \
 	  $(UAVOBJGENERATOR) $(UAVOBJ_XML_DIR) $(ROOT_DIR) ; \
 	)
+	$(V1) touch $(UAVOBJECT_MARKER)
+
+uavobjects: $(UAVOBJECT_MARKER)
 
 uavobjects_test: uavobjgenerator
 	$(V1) $(UAVOBJGENERATOR) -v -none $(UAVOBJ_XML_DIR) $(ROOT_DIR)
@@ -366,7 +381,7 @@ $(MATLAB_OUT_DIR):
 	$(V1) mkdir -p $@
 
 FORCE:
-$(MATLAB_OUT_DIR)/LogConvert.m: $(MATLAB_OUT_DIR) uavobjects FORCE
+$(MATLAB_OUT_DIR)/LogConvert.m: $(MATLAB_OUT_DIR) $(UAVOBJECT_MARKER) FORCE
 	$(V1) $(PYTHON) $(ROOT_DIR)/make/scripts/version-info.py \
 		--path=$(ROOT_DIR) \
 		--template=$(BUILD_DIR)/uavobject-synthetics/matlab/LogConvert.m.pass1 \
@@ -374,7 +389,7 @@ $(MATLAB_OUT_DIR)/LogConvert.m: $(MATLAB_OUT_DIR) uavobjects FORCE
 		--uavodir=$(ROOT_DIR)/shared/uavobjectdefinition
 
 .PHONY: matlab
-matlab: uavobjects $(MATLAB_OUT_DIR)/LogConvert.m
+matlab: $(UAVOBJECT_MARKER) $(MATLAB_OUT_DIR)/LogConvert.m
 
 ################################
 #
@@ -618,7 +633,7 @@ define SIM_TEMPLATE
 sim: TARGET=sim
 sim: OUTDIR=$(BUILD_DIR)/$$(TARGET)
 sim: BOARD_ROOT_DIR=$(ROOT_DIR)/flight/targets/$(1)
-sim: uavobjects
+sim: $(UAVOBJECT_MARKER)
 	$(V1) mkdir -p $$(OUTDIR)/dep
 	$(V1) cd $$(BOARD_ROOT_DIR)/fw && \
 		$$(MAKE) --no-print-directory \
@@ -874,7 +889,7 @@ uavobjects_armhardfp_clean:
 	$(V0) @echo " CLEAN      $@"
 	$(V1) [ ! -d "$(UAVOLIB_HARD_OUT_DIR)" ] || $(RM) -rf "$(UAVOLIB_HARD_OUT_DIR)"
 
-flightlib_%: uavobjects
+flightlib_%: $(UAVOBJECT_MARKER)
 	$(V1) mkdir -p $(OUTDIR)/dep
 	$(V1) cd $(ROOT_DIR)/flight/flightlib && \
 		$(MAKE) -r --no-print-directory \
