@@ -139,7 +139,7 @@ void ConfigAutotuneWidget::checkNewAutotune()
     }
 }
 
-QString ConfigAutotuneWidget::tuneValid(AutotunedValues &data, bool *okToContinue)
+QString ConfigAutotuneWidget::tuneValid(AutotunedValues &data, bool *okToContinue) const
 {
     if (data.tau[0] == 0) {
         // Invalid / no tune.
@@ -464,7 +464,6 @@ float get_sample_delay(int pts, const QVector<float> &delayed, const QVector<flo
 {
     ffft::FFTReal<float> fft(pts);
 
-    /* XXX avoid all these VLAs on stack */
     /* Convert to frequency domain */
     QVector<float> delayed_fft(pts);
     fft.do_fft(delayed_fft.data(), delayed.data());
@@ -581,8 +580,8 @@ AutotunedValues ConfigAutotuneWidget::processAutotuneData(QByteArray *loadedFile
         QVector<float> gyro_sorted = gyro_deriv;
         QVector<float> actu_sorted = actu_desired;
 
-        qSort(gyro_sorted.begin(), gyro_sorted.end());
-        qSort(actu_sorted.begin(), actu_sorted.end());
+        std::sort(gyro_sorted.begin(), gyro_sorted.end());
+        std::sort(actu_sorted.begin(), actu_sorted.end());
 
         int low_idx = pts * 0.05 + 0.5;
         int high_idx = pts - 1 - low_idx;
@@ -677,8 +676,7 @@ void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened,
 
     if (!av.valid) {
         // XXX needs factoring to a step
-        ExtensionSystem::PluginManager *pm =
-            ExtensionSystem::PluginManager::instance();
+        ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
 
         TelemetryManager *telMngr = pm->getObject<TelemetryManager>();
 

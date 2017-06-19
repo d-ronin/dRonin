@@ -129,7 +129,7 @@ private:
     ConfigGadgetWidget *parentConfigWidget;
     static const QString databaseUrl;
 
-    QString tuneValid(AutotunedValues &data, bool *okToContinue);
+    QString tuneValid(AutotunedValues &data, bool *okToContinue) const;
 
     QJsonDocument getResultsJson(AutotuneFinalPage *autotuneShareForm, AutotunedValues *av);
 
@@ -139,7 +139,7 @@ private:
 
 private slots:
     void openAutotuneDialog();
-    void openAutotuneDialog(bool autoOpened, AutotunedValues *precalc_vals = 0);
+    void openAutotuneDialog(bool autoOpened, AutotunedValues *precalc_vals = nullptr);
 
     void openAutotuneFile();
     AutotunedValues processAutotuneData(QByteArray *loadedFile);

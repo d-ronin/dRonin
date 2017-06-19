@@ -203,7 +203,7 @@ static void UpdateSystemIdent(uint32_t predicts, float hover_throttle,
 		bool new_tune) {
 	SystemIdentData system_ident;
 
-	system_ident.NewTune  = new_tune;
+	system_ident.NewTune = new_tune;
 	system_ident.NumAfPredicts = predicts;
 
 	system_ident.HoverThrottle = hover_throttle;
@@ -300,7 +300,7 @@ static void AutotuneTask(void *parameters)
 					continue;
 				}
 
-				float hover_throttle = ((float)(throttle_accumulator / update_counter))/10000.0f;
+				float hover_throttle = ((float) (throttle_accumulator / update_counter)) / 10000.0f;
 
 				UpdateSystemIdent(update_counter, hover_throttle,
 						true);
@@ -329,7 +329,7 @@ static void AutotuneTask(void *parameters)
 			case AT_RUN:
 				(void) 0;
 
-				float hover_throttle = ((float)(throttle_accumulator / update_counter))/10000.0f;
+				float hover_throttle = ((float) (throttle_accumulator / update_counter)) / 10000.0f;
 
 				UpdateSystemIdent(update_counter, hover_throttle,
 						false);

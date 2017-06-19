@@ -784,7 +784,7 @@ static void stabilizationTask(void* parameters)
 						}
 					}
 
-					if(flightStatus.Armed != FLIGHTSTATUS_ARMED_ARMED) {
+					if (flightStatus.Armed != FLIGHTSTATUS_ARMED_ARMED) {
 						measuring = false;
 					}
 
