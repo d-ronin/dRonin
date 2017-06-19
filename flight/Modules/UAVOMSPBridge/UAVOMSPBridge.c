@@ -648,7 +648,7 @@ static void msp_set_pid(struct msp_bridge *m)
 	uint8_t armed;
 	FlightStatusArmedGet(&armed);
 
-	if (sizeof(*data) > m->cmd_i || armed)
+	if (sizeof(*data) > m->cmd_i || armed != FLIGHTSTATUS_ARMED_DISARMED)
 		msp_send_error(m, MSP_SET_PID);
 
 	StabilizationSettingsData stab;
