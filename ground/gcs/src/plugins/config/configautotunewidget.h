@@ -49,6 +49,8 @@ struct AutotunedValues
 {
     bool valid;
 
+    QByteArray *data;
+
     // Parameters
     float tau[3];
     float beta[3];
@@ -94,6 +96,38 @@ private:
     AutotunedValues *av;
     bool autoOpened;
     bool dataValid;
+
+    /* Need a better place for all of these implementation things.  But
+     * for now this is at least encapsulated and won't get tainted
+     * elsewhere
+     */
+    const uint64_t ATFLASH_MAGIC = 0x656e755480008041;
+
+    struct at_flash_header
+    {
+        uint64_t magic;
+        uint16_t wiggle_points;
+        uint16_t aux_data_len;
+        uint16_t sample_rate;
+
+        // Consider total number of averages here
+        uint16_t resv;
+    };
+
+    struct at_measurement
+    {
+        float y[3]; /* Gyro measurements */
+        float u[3]; /* Actuator desired */
+    };
+
+    struct at_flash
+    {
+        struct at_flash_header hdr;
+
+        struct at_measurement data[];
+    };
+
+    bool processAutotuneData();
 };
 
 class AutotuneMeasuredPropertiesPage : public QWizardPage, private Ui::AutotuneProperties
@@ -162,7 +196,6 @@ private slots:
     void openAutotuneDialog(bool autoOpened, AutotunedValues *precalc_vals = nullptr);
 
     void openAutotuneFile();
-    AutotunedValues processAutotuneData(QByteArray *loadedFile);
 
     void atConnected();
     void atDisconnected();
