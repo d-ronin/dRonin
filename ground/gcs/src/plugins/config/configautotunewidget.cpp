@@ -139,69 +139,6 @@ void ConfigAutotuneWidget::checkNewAutotune()
     }
 }
 
-QString ConfigAutotuneWidget::tuneValid(AutotunedValues &data, bool *okToContinue) const
-{
-    if (data.tau[0] == 0) {
-        // Invalid / no tune.
-
-        *okToContinue = false;
-        return tr("<span style=\"color: red\">It doesn't appear an autotune was successfully "
-                  "completed and saved; we are unable to continue.</span>");
-    }
-
-    QString retVal;
-
-    *okToContinue = true;
-
-    if (data.tau[0] < 0.005) {
-        // Too low of tau to be plausible. (5ms)
-        retVal.append(tr("Error: Autotune did not measure valid values for this craft (low tau).  "
-                         "Consider slightly lowering the starting roll/pitch rate P values or "
-                         "slightly decreasing Motor Input/Output Curve Fit on the output pane."));
-        retVal.append("<br/>");
-        *okToContinue = false;
-    } else if (data.tau[0] < 0.0074) {
-        // Probably too low to be real-- 7.4ms-- warn!
-        retVal.append(tr("Warning: The tau value measured for this craft is very low."));
-        retVal.append("<br/>");
-    } else if (data.tau[0] > .240) {
-        // Too high of a tau to be plausible / accurate (240ms)-- warn!
-        retVal.append(tr("Warning: The tau value measured for this craft is very high."));
-        retVal.append("<br/>");
-    }
-
-    // Lowest valid gains seen have been 7.9, with most values in the range 9..11
-    if (data.beta[0] < 7.25) {
-        retVal.append(
-            tr("Error: Autotune did not measure valid values for this craft (low roll gain)."));
-        retVal.append("<br/>");
-        *okToContinue = false;
-    }
-
-    if (data.beta[0] < 7.25) {
-        retVal.append(
-            tr("Error: Autotune did not measure valid values for this craft (low pitch gain)."));
-        retVal.append("<br/>");
-        *okToContinue = false;
-    }
-
-    retVal.replace(QRegExp("(\\w+:)"), "<span style=\"color: red\"><b>\\1</b></span>");
-
-    if (*okToContinue) {
-        if (retVal.isEmpty()) {
-            retVal.append(tr("Everything checks out, and we're ready to proceed!"));
-        } else {
-            retVal.append(
-                tr("<br/>These warnings may result in an invalid tune.  Proceed with caution."));
-        }
-    } else {
-        retVal.append(
-            tr("<br/>Unable to complete the autotune process because of the above error(s)."));
-    }
-
-    return retVal;
-}
-
 /**
  * @brief ConfigAutotuneWidget::generateResultsJson
  * @return QJsonDocument containing autotune result data
@@ -674,7 +611,7 @@ void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened,
         av.valid = false;
     }
 
-    if (!av.valid) {
+    if ((autoOpened) && (!av.valid)) {
         // XXX needs factoring to a step
         ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
 
@@ -694,29 +631,8 @@ void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened,
 
     av.converged = false;
 
-    bool dataValid;
-    QString initialWarnings = tuneValid(av, &dataValid);
-
     // The first page is simple; construct it from scratch.
-    QWizardPage *beginning = new QWizardPage;
-    beginning->setTitle(tr("Examining autotune..."));
-
-    if (autoOpened) {
-        beginning->setSubTitle(
-            tr("It looks like you have run a new autotune since you last connected to the flight "
-               "controller.  This wizard will assist you in applying a set of autotune "
-               "measurements to your aircraft."));
-    } else {
-        beginning->setSubTitle(tr("This wizard will assist you in applying a set of autotune "
-                                  "measurements to your aircraft."));
-    }
-
-    QLabel *status = new QLabel(initialWarnings);
-    status->setWordWrap(true);
-
-    QVBoxLayout *layout = new QVBoxLayout;
-    layout->addWidget(status);
-    beginning->setLayout(layout);
+    QWizardPage *beginning = new AutotuneBeginningPage(NULL, autoOpened, &av);
 
     // Keep a cancel button, even on OS X.
     wizard.setOption(QWizard::NoCancelButton, false);
@@ -727,19 +643,17 @@ void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened,
 
     AutotuneFinalPage *pg = new AutotuneFinalPage(NULL);
 
-    if (dataValid) {
-        wizard.addPage(new AutotuneMeasuredPropertiesPage(NULL, &av));
-        wizard.addPage(new AutotuneSlidersPage(NULL, &av));
+    wizard.addPage(new AutotuneMeasuredPropertiesPage(NULL, &av));
+    wizard.addPage(new AutotuneSlidersPage(NULL, &av));
 
-        stuffShareForm(pg);
+    stuffShareForm(pg);
 
-        wizard.addPage(pg);
-    }
+    wizard.addPage(pg);
 
     wizard.setWindowTitle("Autotune Wizard");
     wizard.exec();
 
-    if (dataValid && (wizard.result() == QDialog::Accepted) && av.converged) {
+    if (av.valid && (wizard.result() == QDialog::Accepted) && av.converged) {
         // Apply and save data to board.
         StabilizationSettings *stabilizationSettings =
             StabilizationSettings::GetInstance(getObjectManager());
@@ -1035,4 +949,105 @@ AutotuneFinalPage::AutotuneFinalPage(QWidget *parent)
 #ifdef Q_OS_MAC
     lblCongrats->setText(lblCongrats->text().replace(tr("\"Finish\""), tr("\"Done\"")));
 #endif
+}
+
+AutotuneBeginningPage::AutotuneBeginningPage(QWidget *parent,
+        bool autoOpened, AutotunedValues *autoValues)
+    : QWizardPage(parent)
+{
+    av = autoValues;
+    this->autoOpened = autoOpened;
+    dataValid = false;
+}
+
+QString AutotuneBeginningPage::tuneValid(bool *okToContinue) const
+{
+    if (av->tau[0] == 0) {
+        // Invalid / no tune.
+
+        *okToContinue = false;
+        return tr("<span style=\"color: red\">It doesn't appear an autotune was successfully "
+                  "completed and saved; we are unable to continue.</span>");
+    }
+
+    QString retVal;
+
+    *okToContinue = true;
+
+    if (av->tau[0] < 0.005) {
+        // Too low of tau to be plausible. (5ms)
+        retVal.append(tr("Error: Autotune did not measure valid values for this craft (low tau).  "
+                         "Consider slightly lowering the starting roll/pitch rate P values or "
+                         "slightly decreasing Motor Input/Output Curve Fit on the output pane."));
+        retVal.append("<br/>");
+        *okToContinue = false;
+    } else if (av->tau[0] < 0.0074) {
+        // Probably too low to be real-- 7.4ms-- warn!
+        retVal.append(tr("Warning: The tau value measured for this craft is very low."));
+        retVal.append("<br/>");
+    } else if (av->tau[0] > .240) {
+        // Too high of a tau to be plausible / accurate (240ms)-- warn!
+        retVal.append(tr("Warning: The tau value measured for this craft is very high."));
+        retVal.append("<br/>");
+    }
+
+    // Lowest valid gains seen have been 7.9, with most values in the range 9..11
+    if (av->beta[0] < 7.25) {
+        retVal.append(
+            tr("Error: Autotune did not measure valid values for this craft (low roll gain)."));
+        retVal.append("<br/>");
+        *okToContinue = false;
+    }
+
+    if (av->beta[0] < 7.25) {
+        retVal.append(
+            tr("Error: Autotune did not measure valid values for this craft (low pitch gain)."));
+        retVal.append("<br/>");
+        *okToContinue = false;
+    }
+
+    retVal.replace(QRegExp("(\\w+:)"), "<span style=\"color: red\"><b>\\1</b></span>");
+
+    if (*okToContinue) {
+        if (retVal.isEmpty()) {
+            retVal.append(tr("Everything checks out, and we're ready to proceed!"));
+        } else {
+            retVal.append(
+                tr("<br/>These warnings may result in an invalid tune.  Proceed with caution."));
+        }
+    } else {
+        retVal.append(
+            tr("<br/>Unable to complete the autotune process because of the above error(s)."));
+    }
+
+    return retVal;
+}
+
+void AutotuneBeginningPage::initializePage()
+{
+    setTitle(tr("Preparing autotune..."));
+
+    if (autoOpened) {
+        setSubTitle(
+            tr("It looks like you have run a new autotune since you last connected to the flight "
+               "controller.  This wizard will assist you in applying a set of autotune "
+               "measurements to your aircraft."));
+    } else {
+        setSubTitle(tr("This wizard will assist you in applying a set of autotune "
+                                  "measurements to your aircraft."));
+    }
+
+    QString initialWarnings = tuneValid(&dataValid);
+
+    QLabel *status = new QLabel(initialWarnings);
+    status->setWordWrap(true);
+
+    QVBoxLayout *layout = new QVBoxLayout;
+    layout->addWidget(status);
+    setLayout(layout);
+}
+
+bool AutotuneBeginningPage::isComplete() const
+{
+    return av->valid && dataValid;
 }

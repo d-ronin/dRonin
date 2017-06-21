@@ -76,6 +76,26 @@ struct AutotunedValues
     float outerKi;
 };
 
+class AutotuneBeginningPage : public QWizardPage
+{
+    Q_OBJECT
+
+public:
+    explicit AutotuneBeginningPage(QWidget *parent, bool autoOpened,
+                                            AutotunedValues *autoValues);
+
+    void initializePage();
+
+    bool isComplete() const;
+
+private:
+    QString tuneValid(bool *okToContinue) const;
+
+    AutotunedValues *av;
+    bool autoOpened;
+    bool dataValid;
+};
+
 class AutotuneMeasuredPropertiesPage : public QWizardPage, private Ui::AutotuneProperties
 {
     Q_OBJECT
