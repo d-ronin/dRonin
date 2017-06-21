@@ -1179,7 +1179,7 @@ QString UAVObjectField::getDisplayPrefix()
     case BIN:
         return QStringLiteral("0b");
     case OCT:
-        return QStringLiteral("0o");
+        return QStringLiteral("0");
     default:
         return QString();
     }
