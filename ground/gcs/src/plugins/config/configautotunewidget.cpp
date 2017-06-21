@@ -818,7 +818,8 @@ bool AutotuneBeginningPage::isComplete() const
  * to "prime" the filter, then actually filter in place.  This is derived from
  * @glowtape's excellent flight implementation
  */
-void biquad_filter_in_place(float cutoff, int pts, float *data)
+void AutotuneBeginningPage::biquadFilter(float cutoff, int pts,
+        QVector<float> &data)
 {
     float f = 1.0f / tan(M_PI * cutoff);
     float q = 1.4142f;
@@ -853,7 +854,8 @@ void biquad_filter_in_place(float cutoff, int pts, float *data)
 }
 
 /* Returns number of samples of delay between series */
-float get_sample_delay(int pts, const QVector<float> &delayed, const QVector<float> &orig)
+float AutotuneBeginningPage::getSampleDelay(int pts,
+        const QVector<float> &delayed, const QVector<float> &orig)
 {
     ffft::FFTReal<float> fft(pts);
 
@@ -963,11 +965,11 @@ bool AutotuneBeginningPage::processAutotuneData()
 
         gyro_deriv[0] = flash_data->data[0].y[axis] - flash_data->data[pts - 1].y[axis];
 
-        float sample_tau = get_sample_delay(pts, gyro_deriv, actu_desired);
+        float sample_tau = getSampleDelay(pts, gyro_deriv, actu_desired);
 
         float tau = sample_tau / flash_data->hdr.sample_rate;
 
-        biquad_filter_in_place(1 / (sample_tau * M_PI * 1.414), pts, actu_desired.data());
+        biquadFilter(1 / (sample_tau * M_PI * 1.414), pts, actu_desired);
 
         QVector<float> gyro_sorted = gyro_deriv;
         QVector<float> actu_sorted = actu_desired;
