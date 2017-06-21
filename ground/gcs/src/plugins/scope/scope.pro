@@ -6,6 +6,7 @@ DEFINES += QWT_DLL
 
 include(../../gcsplugin.pri)
 include (scope_dependencies.pri)
+
 HEADERS += scopeplugin.h \
     scopes2d/histogramplotdata.h \
     scopes2d/histogramscopeconfig.h \
