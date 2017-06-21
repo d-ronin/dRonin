@@ -262,13 +262,14 @@ public:
         {
             QSpinBox *spinBox = static_cast<QSpinBox *>(editor);
             spinBox->setValue(value.toUInt());
+            break;
         }
         case UAVObjectField::UINT32:
         {
             LongLongSpinBox *spinBox = static_cast<LongLongSpinBox *>(editor);
             spinBox->setValue(value.toUInt());
-        }
             break;
+        }
         default:
             Q_ASSERT(false);
             break;

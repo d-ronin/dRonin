@@ -38,7 +38,7 @@
 
 LongLongSpinBox::LongLongSpinBox(QWidget *parent)
     : QAbstractSpinBox(parent), m_value(0), m_singleStep(1), m_min(0), m_max(100),
-      m_displayBase(10)
+      m_displayBase(10), m_showGroupSeparator(false)
 
 {
     setInputMethodHints(Qt::ImhFormattedNumbersOnly);
