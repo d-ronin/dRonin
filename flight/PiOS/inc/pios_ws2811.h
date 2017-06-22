@@ -3,9 +3,10 @@
  * @addtogroup PIOS PIOS Core hardware abstraction layer
  * @{
  * @addtogroup PIOS_WS2811 WS2811 Functions
+ * @{
  *
  * @file       pios_ws2811.h
- * @author     dRonin, http://dronin.org Copyright (C) 2016
+ * @author     dRonin, http://dronin.org Copyright (C) 2016-2017
  * @see        The GNU Public License (GPL) Version 3
  *
  *****************************************************************************/
@@ -31,30 +32,9 @@
 #ifndef _PIOS_WS2811_H
 #define _PIOS_WS2811_H
 
-#include <stdint.h>
-#include <stdio.h>
+#include <pios_ws2811_target.h>
 
 typedef struct ws2811_dev_s *ws2811_dev_t;
-
-struct pios_ws2811_cfg {
-	TIM_TypeDef *timer;
-	TIM_TimeBaseInitTypeDef clock_cfg;
-
-	uint8_t fall_time_l, fall_time_h;
-
-	NVIC_InitTypeDef interrupt;
-
-	GPIO_TypeDef *led_gpio;
-
-	uint16_t gpio_pin;
-
-	DMA_Stream_TypeDef *bit_set_dma_stream;
-	uint32_t bit_set_dma_channel;
-
-	DMA_Stream_TypeDef *bit_clear_dma_stream;
-	uint32_t bit_clear_dma_channel;
-	uint32_t bit_clear_dma_tcif;
-};
 
 /**
  * @brief Allocate and initialise WS2811 device
@@ -106,4 +86,9 @@ void PIOS_WS2811_dma_interrupt_handler(ws2811_dev_t dev);
  */
 int PIOS_WS2811_get_num_leds(ws2811_dev_t dev);
 
-#endif /* LIB_MAX7456_MAX7456_H_ */
+/**
+ * @}
+ * @}
+ */
+
+#endif /*_PIOS_WS2811_H */
