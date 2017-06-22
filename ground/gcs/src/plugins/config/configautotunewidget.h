@@ -161,6 +161,8 @@ public:
 
     bool isComplete() const;
 
+    void initializePage();
+
 private:
     AutotunedValues *av;
 

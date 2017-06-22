@@ -497,8 +497,12 @@ AutotuneSlidersPage::AutotuneSlidersPage(QWidget *parent, AutotunedValues *autoV
     connect(cbUseOuterKi, &QAbstractButton::toggled, this, &AutotuneSlidersPage::compute);
 
     connect(btnResetSliders, &QAbstractButton::pressed, this, &AutotuneSlidersPage::resetSliders);
+}
 
-    compute();
+
+void AutotuneSlidersPage::initializePage()
+{
+    resetSliders();
 }
 
 void AutotuneSlidersPage::resetSliders()
@@ -803,6 +807,8 @@ void AutotuneBeginningPage::doDownloadAndProcess()
     QString initialWarnings = tuneValid(&dataValid);
 
     status->setText(initialWarnings);
+
+    emit completeChanged();
 }
 
 void AutotuneBeginningPage::initializePage()
