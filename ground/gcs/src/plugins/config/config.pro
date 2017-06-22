@@ -5,6 +5,7 @@ DEFINES += QWT_DLL
 
 QT += svg
 QT += network
+QT += charts
 
 include(../../gcsplugin.pri)
 

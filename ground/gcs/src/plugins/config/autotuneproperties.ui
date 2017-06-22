@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>590</width>
-    <height>319</height>
+    <width>639</width>
+    <height>477</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -49,306 +49,434 @@
     </widget>
    </item>
    <item>
-    <widget class="QFrame" name="frame_3">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-       <horstretch>0</horstretch>
-       <verstretch>1</verstretch>
-      </sizepolicy>
+    <widget class="QTabWidget" name="tabWidg">
+     <property name="tabShape">
+      <enum>QTabWidget::Rounded</enum>
      </property>
-     <property name="frameShape">
-      <enum>QFrame::WinPanel</enum>
+     <property name="currentIndex">
+      <number>0</number>
      </property>
-     <property name="frameShadow">
-      <enum>QFrame::Sunken</enum>
+     <property name="tabsClosable">
+      <bool>false</bool>
      </property>
-     <property name="lineWidth">
-      <number>1</number>
+     <property name="movable">
+      <bool>false</bool>
      </property>
-     <property name="midLineWidth">
-      <number>1</number>
+     <property name="tabBarAutoHide">
+      <bool>false</bool>
      </property>
-     <layout class="QGridLayout" name="gridLayout">
-      <property name="leftMargin">
-       <number>12</number>
-      </property>
-      <property name="topMargin">
-       <number>6</number>
-      </property>
-      <property name="rightMargin">
-       <number>12</number>
-      </property>
-      <property name="bottomMargin">
-       <number>6</number>
-      </property>
-      <item row="0" column="3">
-       <widget class="QLabel" name="label_14">
-        <property name="text">
-         <string>Tau (s)</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QLabel" name="label_6">
-        <property name="text">
-         <string>Gain</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="4">
-       <widget class="QLabel" name="label_16">
-        <property name="text">
-         <string>Noise</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_8">
-        <property name="text">
-         <string>Pitch</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="label_17">
-        <property name="text">
-         <string>Yaw</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_3">
-        <property name="text">
-         <string>Roll</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="4">
-       <widget class="QLabel" name="measuredRollNoise">
-        <property name="text">
-         <string>0</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-        </property>
-        <property name="objrelation" stdset="0">
-         <stringlist>
-          <string>objname:SystemIdent</string>
-          <string>fieldname:Noise</string>
-          <string>element:Roll</string>
-         </stringlist>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="4">
-       <widget class="QLabel" name="measuredYawNoise">
-        <property name="text">
-         <string>0</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-        </property>
-        <property name="objrelation" stdset="0">
-         <stringlist>
-          <string>objname:SystemIdent</string>
-          <string>fieldname:Noise</string>
-          <string>element:Yaw</string>
-         </stringlist>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="2">
-       <widget class="QLabel" name="measuredYawBias">
-        <property name="text">
-         <string>0</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-        </property>
-        <property name="objrelation" stdset="0">
-         <stringlist>
-          <string>objname:SystemIdent</string>
-          <string>fieldname:Bias</string>
-          <string>element:Yaw</string>
-         </stringlist>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="QLabel" name="measuredYawGain">
-        <property name="text">
-         <string>0</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-        </property>
-        <property name="objrelation" stdset="0">
-         <stringlist>
-          <string>objname:SystemIdent</string>
-          <string>fieldname:Beta</string>
-          <string>element:Yaw</string>
-         </stringlist>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QLabel" name="measuredRollGain">
-        <property name="text">
-         <string>0</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-        </property>
-        <property name="objrelation" stdset="0">
-         <stringlist>
-          <string>objname:SystemIdent</string>
-          <string>fieldname:Beta</string>
-          <string>element:Roll</string>
-         </stringlist>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="4">
-       <widget class="QLabel" name="measuredPitchNoise">
-        <property name="text">
-         <string>0</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-        </property>
-        <property name="objrelation" stdset="0">
-         <stringlist>
-          <string>objname:SystemIdent</string>
-          <string>fieldname:Noise</string>
-          <string>element:Pitch</string>
-         </stringlist>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2">
-       <widget class="QLabel" name="measuredRollBias">
-        <property name="text">
-         <string>0</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-        </property>
-        <property name="objrelation" stdset="0">
-         <stringlist>
-          <string>objname:SystemIdent</string>
-          <string>fieldname:Bias</string>
-          <string>element:Roll</string>
-         </stringlist>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="3">
-       <widget class="QLabel" name="rollTau">
-        <property name="text">
-         <string>0</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="2">
-       <widget class="QLabel" name="measuredPitchBias">
-        <property name="text">
-         <string>0</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-        </property>
-        <property name="objrelation" stdset="0">
-         <stringlist>
-          <string>objname:SystemIdent</string>
-          <string>fieldname:Bias</string>
-          <string>element:Pitch</string>
-         </stringlist>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="QLabel" name="measuredPitchGain">
-        <property name="text">
-         <string>0</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-        </property>
-        <property name="objrelation" stdset="0">
-         <stringlist>
-          <string>objname:SystemIdent</string>
-          <string>fieldname:Beta</string>
-          <string>element:Pitch</string>
-         </stringlist>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="3">
-       <widget class="QLabel" name="pitchTau">
-        <property name="text">
-         <string>0</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2">
-       <widget class="QLabel" name="label_7">
-        <property name="text">
-         <string>Bias</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-     <zorder>label_3</zorder>
-     <zorder>measuredRollGain</zorder>
-     <zorder>measuredRollBias</zorder>
-     <zorder>label_6</zorder>
-     <zorder>label_8</zorder>
-     <zorder>measuredPitchGain</zorder>
-     <zorder>measuredPitchBias</zorder>
-     <zorder>rollTau</zorder>
-     <zorder>label_7</zorder>
-     <zorder>pitchTau</zorder>
-     <zorder>label_14</zorder>
-     <zorder>label_16</zorder>
-     <zorder>measuredPitchNoise</zorder>
-     <zorder>measuredRollNoise</zorder>
-     <zorder>label_17</zorder>
-     <zorder>measuredYawGain</zorder>
-     <zorder>measuredYawBias</zorder>
-     <zorder>measuredYawNoise</zorder>
-    </widget>
-   </item>
-   <item>
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>400</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item>
-    <widget class="QLabel" name="label">
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Perhaps the most significant is tau. Tau is a measurement of how long the flight controller's attempts at movement take to show up in sensors. Very aggressive racing quads achieve values of approximately 0.010 seconds, while value of 0.125s or less are generally flyable.&lt;/p&gt;&lt;p&gt;Tau can be improved by using OneShot and good ESC configuration (complementary PWM or &amp;quot;Damped Light&amp;quot; and appropriate motor timing). Propeller selection also matters.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
+     <widget class="QWidget" name="tab_3">
+      <attribute name="title">
+       <string>Overview</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <item>
+        <widget class="QFrame" name="frame_3">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="layoutDirection">
+          <enum>Qt::LeftToRight</enum>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::WinPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Sunken</enum>
+         </property>
+         <property name="lineWidth">
+          <number>1</number>
+         </property>
+         <property name="midLineWidth">
+          <number>1</number>
+         </property>
+         <layout class="QGridLayout" name="gridLayout">
+          <property name="leftMargin">
+           <number>12</number>
+          </property>
+          <property name="topMargin">
+           <number>6</number>
+          </property>
+          <property name="rightMargin">
+           <number>12</number>
+          </property>
+          <property name="bottomMargin">
+           <number>6</number>
+          </property>
+          <item row="0" column="3">
+           <widget class="QLabel" name="label_14">
+            <property name="text">
+             <string>Tau (s)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLabel" name="label_6">
+            <property name="text">
+             <string>Gain</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="4">
+           <widget class="QLabel" name="label_16">
+            <property name="text">
+             <string>Noise</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_8">
+            <property name="text">
+             <string>Pitch</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_17">
+            <property name="text">
+             <string>Yaw</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>Roll</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="4">
+           <widget class="QLabel" name="measuredRollNoise">
+            <property name="text">
+             <string>0</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+            <property name="objrelation" stdset="0">
+             <stringlist>
+              <string>objname:SystemIdent</string>
+              <string>fieldname:Noise</string>
+              <string>element:Roll</string>
+             </stringlist>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="4">
+           <widget class="QLabel" name="measuredYawNoise">
+            <property name="text">
+             <string>0</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+            <property name="objrelation" stdset="0">
+             <stringlist>
+              <string>objname:SystemIdent</string>
+              <string>fieldname:Noise</string>
+              <string>element:Yaw</string>
+             </stringlist>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="2">
+           <widget class="QLabel" name="measuredYawBias">
+            <property name="text">
+             <string>0</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+            <property name="objrelation" stdset="0">
+             <stringlist>
+              <string>objname:SystemIdent</string>
+              <string>fieldname:Bias</string>
+              <string>element:Yaw</string>
+             </stringlist>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLabel" name="measuredYawGain">
+            <property name="text">
+             <string>0</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+            <property name="objrelation" stdset="0">
+             <stringlist>
+              <string>objname:SystemIdent</string>
+              <string>fieldname:Beta</string>
+              <string>element:Yaw</string>
+             </stringlist>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLabel" name="measuredRollGain">
+            <property name="text">
+             <string>0</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+            <property name="objrelation" stdset="0">
+             <stringlist>
+              <string>objname:SystemIdent</string>
+              <string>fieldname:Beta</string>
+              <string>element:Roll</string>
+             </stringlist>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="4">
+           <widget class="QLabel" name="measuredPitchNoise">
+            <property name="text">
+             <string>0</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+            <property name="objrelation" stdset="0">
+             <stringlist>
+              <string>objname:SystemIdent</string>
+              <string>fieldname:Noise</string>
+              <string>element:Pitch</string>
+             </stringlist>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="QLabel" name="measuredRollBias">
+            <property name="text">
+             <string>0</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+            <property name="objrelation" stdset="0">
+             <stringlist>
+              <string>objname:SystemIdent</string>
+              <string>fieldname:Bias</string>
+              <string>element:Roll</string>
+             </stringlist>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="3">
+           <widget class="QLabel" name="rollTau">
+            <property name="text">
+             <string>0</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="2">
+           <widget class="QLabel" name="measuredPitchBias">
+            <property name="text">
+             <string>0</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+            <property name="objrelation" stdset="0">
+             <stringlist>
+              <string>objname:SystemIdent</string>
+              <string>fieldname:Bias</string>
+              <string>element:Pitch</string>
+             </stringlist>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLabel" name="measuredPitchGain">
+            <property name="text">
+             <string>0</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+            <property name="objrelation" stdset="0">
+             <stringlist>
+              <string>objname:SystemIdent</string>
+              <string>fieldname:Beta</string>
+              <string>element:Pitch</string>
+             </stringlist>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="3">
+           <widget class="QLabel" name="pitchTau">
+            <property name="text">
+             <string>0</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="QLabel" name="label_7">
+            <property name="text">
+             <string>Bias</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+         <zorder>label_3</zorder>
+         <zorder>measuredRollGain</zorder>
+         <zorder>measuredRollBias</zorder>
+         <zorder>label_6</zorder>
+         <zorder>label_8</zorder>
+         <zorder>measuredPitchGain</zorder>
+         <zorder>measuredPitchBias</zorder>
+         <zorder>rollTau</zorder>
+         <zorder>label_7</zorder>
+         <zorder>pitchTau</zorder>
+         <zorder>label_14</zorder>
+         <zorder>label_16</zorder>
+         <zorder>measuredPitchNoise</zorder>
+         <zorder>measuredRollNoise</zorder>
+         <zorder>label_17</zorder>
+         <zorder>measuredYawGain</zorder>
+         <zorder>measuredYawBias</zorder>
+         <zorder>measuredYawNoise</zorder>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Perhaps the most significant is tau. Tau is a measurement of how long the flight controller's attempts at movement take to show up in sensors. Very aggressive racing quads achieve values of approximately 0.010 seconds, while value of 0.125s or less are generally flyable.&lt;/p&gt;&lt;p&gt;Tau can be improved by using OneShot and good ESC configuration (complementary PWM or &amp;quot;Damped Light&amp;quot; and appropriate motor timing). Propeller selection also matters.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="rollTab">
+      <attribute name="title">
+       <string>Roll</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QChartView" name="rollChartView">
+         <property name="layoutDirection">
+          <enum>Qt::LeftToRight</enum>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::NoFrame</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Plain</enum>
+         </property>
+         <property name="lineWidth">
+          <number>0</number>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_5">
+      <attribute name="title">
+       <string>Pitch</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_5">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QChartView" name="pitchChartView"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_6">
+      <attribute name="title">
+       <string>Yaw</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_6">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QChartView" name="yawChartView"/>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QChartView</class>
+   <extends>QGraphicsView</extends>
+   <header>qchartview.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="configgadget.qrc"/>
  </resources>

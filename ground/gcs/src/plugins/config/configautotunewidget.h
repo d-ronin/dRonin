@@ -27,11 +27,6 @@
 #ifndef CONFIGAUTOTUNE_H
 #define CONFIGAUTOTUNE_H
 
-#include "ui_autotune.h"
-#include "ui_autotunebeginning.h"
-#include "ui_autotuneproperties.h"
-#include "ui_autotunesliders.h"
-#include "ui_autotunefinalpage.h"
 #include "../uavobjectwidgetutils/configtaskwidget.h"
 #include "extensionsystem/pluginmanager.h"
 #include "uavobjects/uavobjectmanager.h"
@@ -39,11 +34,21 @@
 #include "actuatorsettings.h"
 #include "stabilizationsettings.h"
 #include "systemident.h"
-#include <QWidget>
+
+#include <QChart>
+#include <QLineSeries>
 #include <QTimer>
+#include <QWidget>
 #include <QWizardPage>
 #include <QtNetwork/QNetworkReply>
 
+QT_CHARTS_USE_NAMESPACE
+
+#include "ui_autotune.h"
+#include "ui_autotunebeginning.h"
+#include "ui_autotuneproperties.h"
+#include "ui_autotunesliders.h"
+#include "ui_autotunefinalpage.h"
 #include "configgadgetwidget.h"
 
 struct AutotunedValues
@@ -77,6 +82,9 @@ struct AutotunedValues
 
     float outerKp;
     float outerKi;
+
+    QLineSeries *model[3];
+    QLineSeries *actual[3];
 };
 
 class AutotuneBeginningPage : public QWizardPage, private Ui::AutotuneBeginning
@@ -149,6 +157,7 @@ public:
 
 private:
     AutotunedValues *av;
+    QChart *makeChart(int axis);
 };
 
 class AutotuneSlidersPage : public QWizardPage, private Ui::AutotuneSliders

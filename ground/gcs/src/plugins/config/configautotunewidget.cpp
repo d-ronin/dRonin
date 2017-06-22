@@ -36,21 +36,22 @@
 #include "configautotunewidget.h"
 
 #include <QtAlgorithms>
+#include <QChartView>
+#include <QClipboard>
 #include <QCryptographicHash>
 #include <QDebug>
-#include <QFileDialog>
-#include <QStringList>
-#include <QWidget>
-#include <QTextEdit>
-#include <QVBoxLayout>
-#include <QMessageBox>
-#include <QPushButton>
 #include <QDesktopServices>
-#include <QUrl>
+#include <QFileDialog>
 #include <QList>
 #include <QMessageBox>
-#include <QClipboard>
+#include <QPushButton>
+#include <QStringList>
+#include <QTextEdit>
+#include <QUrl>
+#include <QValueAxis>
+#include <QVBoxLayout>
 #include <QVector>
+#include <QWidget>
 #include <QWizard>
 #include <QtNetwork/QNetworkAccessManager>
 #include <QtNetwork/QNetworkRequest>
@@ -463,6 +464,26 @@ AutotuneMeasuredPropertiesPage::AutotuneMeasuredPropertiesPage(QWidget *parent,
     this->av = autoValues;
 }
 
+QChart *AutotuneMeasuredPropertiesPage::makeChart(int axis) {
+    QChart *chart;
+
+    chart = new QChart();
+
+    av->actual[axis]->setName(tr("Actual"));
+    chart->addSeries(av->actual[axis]);
+    av->model[axis]->setName(tr("Predicted"));
+    chart->addSeries(av->model[axis]);
+
+    chart->createDefaultAxes();
+
+    chart->axisX()->setTitleText(tr("Time"));
+    dynamic_cast<QValueAxis *>(chart->axisX())->setLabelFormat("%.0f ms");
+    chart->axisY()->setTitleText(tr("Angular acceleration"));
+    chart->axisY()->setLabelsVisible(false);
+
+    return chart;
+}
+
 void AutotuneMeasuredPropertiesPage::initializePage()
 {
     measuredRollGain->setText(QString::number(av->beta[0], 'f', 2));
@@ -481,6 +502,15 @@ void AutotuneMeasuredPropertiesPage::initializePage()
     measuredRollNoise->setText(QString::number(av->noise[0], 'f', 2));
     measuredPitchNoise->setText(QString::number(av->noise[1], 'f', 2));
     measuredYawNoise->setText(QString::number(av->noise[2], 'f', 2));
+
+    rollChartView->setRenderHint(QPainter::Antialiasing);
+    rollChartView->setChart(makeChart(0));
+
+    pitchChartView->setRenderHint(QPainter::Antialiasing);
+    pitchChartView->setChart(makeChart(1));
+
+    yawChartView->setRenderHint(QPainter::Antialiasing);
+    yawChartView->setChart(makeChart(2));
 }
 
 AutotuneSlidersPage::AutotuneSlidersPage(QWidget *parent, AutotunedValues *autoValues)
@@ -1017,6 +1047,16 @@ bool AutotuneBeginningPage::processAutotuneData()
 
         for (int i = 0; i < pts; i++) {
             actu_desired[i] = (actu_desired[i] - avg_act) * (gain / flash_data->hdr.sample_rate);
+        }
+
+        vals.model[axis] = new QLineSeries(this);
+        vals.actual[axis] = new QLineSeries(this);
+
+        for (int i = 0; i < pts; i++) {
+            int tm = (i * 1000) / flash_data->hdr.sample_rate;
+
+            vals.model[axis]->append(tm, actu_desired[i]);
+            vals.actual[axis]->append(tm, gyro_deriv[i]);
         }
 
         float bias = avg - avg_act * (gain / flash_data->hdr.sample_rate);
