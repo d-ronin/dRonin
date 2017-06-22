@@ -1,13 +1,13 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsModules TauLabs Modules
+ * @addtogroup Modules Modules
  * @{
  * @addtogroup UAVOMSPBridge UAVO to MSP Bridge Module
  * @{
  *
  * @file       uavomspbridge.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2015
- * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2017
  * @brief      Bridges selected UAVObjects to MSP for MWOSD and the like.
  *
  * @see        The GNU Public License (GPL) Version 3
@@ -33,33 +33,31 @@
  */
 
 #include "openpilot.h"
+#include "misc_math.h"
 #include "physical_constants.h"
-#include "modulesettings.h"
-#include "flightbatterysettings.h"
-#include "flightbatterystate.h"
-#include "gpsposition.h"
-#include "manualcontrolcommand.h"
-#include "attitudeactual.h"
-#include "airspeedactual.h"
-#include "actuatorsettings.h"
-#include "actuatordesired.h"
-#include "flightstatus.h"
-#include "systemstats.h"
-#include "systemalarms.h"
-#include "homelocation.h"
-#include "baroaltitude.h"
 #include "pios_thread.h"
 #include "pios_sensors.h"
 #include "pios_modules.h"
-#include "positionactual.h"
+#include <pios_hal.h>
 
+#include "actuatorsettings.h"
+#include "actuatordesired.h"
+#include "airspeedactual.h"
+#include "attitudeactual.h"
 #include "baroaltitude.h"
 #include "flightbatterysettings.h"
 #include "flightbatterystate.h"
+#include "flightstatus.h"
 #include "gpsposition.h"
+#include "homelocation.h"
+#include "manualcontrolcommand.h"
 #include "modulesettings.h"
+#include "positionactual.h"
+#include "stabilizationsettings.h"
+#include "systemalarms.h"
+#include "systemsettings.h"
+#include "systemstats.h"
 
-#include <pios_hal.h>
 
 #if defined(PIOS_INCLUDE_MSP_BRIDGE)
 
@@ -72,9 +70,11 @@
 #define  MSP_FC_VARIANT  2
 #define  MSP_FC_VERSION  3
 #define  MSP_BOARD_INFO  4
-#define  MSP_BUILD_INFO  5
+#define  MSP_BUILD_INFO2 5   // clean/betaflight extension :( (MSP_BUILD_INFO had room for a 28-bit hash + up to 36-bit time already!)
 #define  MSP_NAME        10
 #define  MSP_FEATURE     36
+#define  MSP_CONFIG      66  // baseflight
+#define  MSP_BUILD_INFO  69  // baseflight
 #define  MSP_IDENT       100 // multitype + multiwii version + protocol version + capability variable
 #define  MSP_STATUS      101 // cycletime & errors_count & sensor present & box activation & current setting number
 #define  MSP_RAW_IMU     102 // 9 DOF
@@ -97,6 +97,7 @@
 #define  MSP_NAV_STATUS  121 // Returns navigation status
 #define  MSP_CELLS       130 // FrSky SPort Telemtry
 #define  MSP_UID         160 // Hardware serial number
+#define  MSP_SET_PID     202
 #define  MSP_ALARMS      242 // Alarm request
 #define  MSP_SET_4WAY_IF 245 // Sets ESC serial interface
 
@@ -108,6 +109,33 @@ enum msp_handler {
 	MSP_HANDLER_MSP = 0,
 	MSP_HANDLER_IDLE,
 	MSP_HANDLER_4WIF
+};
+
+enum msp_vehicle_type {
+	MSP_MULTITYPE_TRI = 1,
+	MSP_MULTITYPE_QUADP = 2,
+	MSP_MULTITYPE_QUADX = 3,
+	MSP_MULTITYPE_BI = 4,
+	MSP_MULTITYPE_GIMBAL = 5,
+	MSP_MULTITYPE_Y6 = 6,
+	MSP_MULTITYPE_HEX6 = 7,
+	MSP_MULTITYPE_FLYING_WING = 8,
+	MSP_MULTITYPE_Y4 = 9,
+	MSP_MULTITYPE_HEX6X = 10,
+	MSP_MULTITYPE_OCTOX8 = 11,
+	MSP_MULTITYPE_OCTOFLATP = 12,
+	MSP_MULTITYPE_OCTOFLATX = 13,
+	MSP_MULTITYPE_AIRPLANE = 14,
+	MSP_MULTITYPE_HELI_120_CCPM = 15,
+	MSP_MULTITYPE_HELI_90_DEG = 16,
+	MSP_MULTITYPE_VTAIL4 = 17,
+	MSP_MULTITYPE_HEX6H = 18,
+	MSP_MULTITYPE_PPM_TO_SERVO = 19,
+	MSP_MULTITYPE_DUALCOPTER = 20,
+	MSP_MULTITYPE_SINGLECOPTER = 21,
+	MSP_MULTITYPE_ATAIL4 = 22,
+	MSP_MULTITYPE_CUSTOM = 23,
+	MSP_MULTITYPE_CUSTOM_PLANE = 24,
 };
 
 typedef enum {
@@ -176,7 +204,7 @@ struct msp_bridge {
 	uint8_t cmd_i;
 	uint8_t checksum;
 	union {
-		uint8_t data[0];
+		uint8_t data[128];
 		// Specific packed data structures go here.
 		struct msp_cmddata_escserial escserial;
 	} cmd_data;
@@ -198,6 +226,8 @@ extern uintptr_t pios_com_msp_id;
 static struct msp_bridge *msp;
 static int32_t uavoMSPBridgeInitialize(void);
 static void uavoMSPBridgeTask(void *parameters);
+void esc4wayProcess(void *mspPort);
+
 
 static void msp_send_error(struct msp_bridge *m, uint8_t cmd)
 {
@@ -377,7 +407,53 @@ static void msp_send_board_info(struct msp_bridge *m)
 	msp_send(m, MSP_BOARD_INFO, data.buf, sizeof(data));
 }
 
+static void msp_send_config(struct msp_bridge *m)
+{
+	union {
+		uint8_t buf[0];
+		struct {
+			uint8_t mixer_config;
+			uint32_t features;
+			uint8_t serial_rx;
+			uint16_t align_roll;
+			uint16_t align_pitch;
+			uint16_t align_yaw;
+			uint16_t current_scale;
+			uint16_t current_offset;
+			uint16_t motor_pwm_rate;
+			uint8_t roll_pitch_rate[2];
+			uint8_t power_adc_channel;
+			uint8_t small_angle;
+			uint16_t looptime;
+			uint8_t locked_in;
+		} __attribute__((packed)) config;
+	} data;
+
+	memset(&data, 0, sizeof(data));
+
+	data.config.locked_in = 1;
+
+	msp_send(m, MSP_CONFIG, data.buf, sizeof(data));
+}
+
 static void msp_send_build_info(struct msp_bridge *m)
+{
+	union {
+		uint8_t buf[0];
+		struct __attribute__((packed)) {
+			char date[11];
+			uint32_t _future[2];
+		} build;
+	} data;
+
+	memset(&data, 0, sizeof(data));
+
+	// XXX: Not impl
+
+	msp_send(m, MSP_BUILD_INFO, data.buf, sizeof(data));
+}
+
+static void msp_send_build_info_cf(struct msp_bridge *m)
 {
 	union {
 		uint8_t buf[0];
@@ -392,7 +468,7 @@ static void msp_send_build_info(struct msp_bridge *m)
 
 	// XXX: Not impl
 
-	msp_send(m, MSP_BUILD_INFO, data.buf, sizeof(data));
+	msp_send(m, MSP_BUILD_INFO2, data.buf, sizeof(data));
 }
 
 DONT_BUILD_IF(PIOS_SYS_SERIAL_NUM_BINARY_LEN != 4*3, SerialNumberAssumption);
@@ -452,6 +528,190 @@ static void msp_send_attitude(struct msp_bridge *m)
 	msp_send(m, MSP_ATTITUDE, data.buf, sizeof(data));
 }
 
+static void msp_send_ident(struct msp_bridge *m)
+{
+	union {
+		uint8_t buf[0];
+		struct {
+			uint8_t multiwii_version;
+			uint8_t vehicle_type;
+			uint8_t msp_version;
+			uint32_t capabilities;
+		} __attribute__((packed)) ident;
+	} data;
+
+	data.ident.multiwii_version = 255;
+	data.ident.msp_version = 4;
+	data.ident.capabilities = 0x80000004; /* 32-bit | DYNBALANCE */
+
+	uint8_t type;
+	SystemSettingsAirframeTypeGet(&type);
+	switch (type) {
+	case SYSTEMSETTINGS_AIRFRAMETYPE_FIXEDWING:
+		data.ident.vehicle_type = MSP_MULTITYPE_AIRPLANE;
+		break;
+	case SYSTEMSETTINGS_AIRFRAMETYPE_FIXEDWINGELEVON:
+		data.ident.vehicle_type = MSP_MULTITYPE_FLYING_WING;
+		break;
+	case SYSTEMSETTINGS_AIRFRAMETYPE_FIXEDWINGVTAIL:
+		data.ident.vehicle_type = MSP_MULTITYPE_CUSTOM_PLANE;
+		break;
+	case SYSTEMSETTINGS_AIRFRAMETYPE_VTOL:
+		data.ident.vehicle_type = MSP_MULTITYPE_CUSTOM;
+		break;
+	case SYSTEMSETTINGS_AIRFRAMETYPE_HELICP:
+		data.ident.vehicle_type = MSP_MULTITYPE_HELI_120_CCPM; /* maybe */
+		break;
+	case SYSTEMSETTINGS_AIRFRAMETYPE_QUADX:
+		data.ident.vehicle_type = MSP_MULTITYPE_QUADX;
+		break;
+	case SYSTEMSETTINGS_AIRFRAMETYPE_QUADP:
+		data.ident.vehicle_type = MSP_MULTITYPE_QUADP;
+		break;
+	case SYSTEMSETTINGS_AIRFRAMETYPE_HEXA:
+		data.ident.vehicle_type = MSP_MULTITYPE_HEX6H;
+		break;
+	case SYSTEMSETTINGS_AIRFRAMETYPE_OCTO:
+		data.ident.vehicle_type = MSP_MULTITYPE_OCTOFLATX; /* ? */
+		break;
+	case SYSTEMSETTINGS_AIRFRAMETYPE_CUSTOM:
+		data.ident.vehicle_type = MSP_MULTITYPE_CUSTOM;
+		break;
+	case SYSTEMSETTINGS_AIRFRAMETYPE_HEXAX:
+		data.ident.vehicle_type = MSP_MULTITYPE_HEX6X;
+		break;
+	case SYSTEMSETTINGS_AIRFRAMETYPE_OCTOV:
+		data.ident.vehicle_type = MSP_MULTITYPE_CUSTOM;
+		break;
+	case SYSTEMSETTINGS_AIRFRAMETYPE_OCTOCOAXP:
+		data.ident.vehicle_type = MSP_MULTITYPE_CUSTOM;
+		break;
+	case SYSTEMSETTINGS_AIRFRAMETYPE_OCTOCOAXX:
+		data.ident.vehicle_type = MSP_MULTITYPE_OCTOX8; /* ? */
+		break;
+	case SYSTEMSETTINGS_AIRFRAMETYPE_HEXACOAX:
+		data.ident.vehicle_type = MSP_MULTITYPE_CUSTOM;
+		break;
+	case SYSTEMSETTINGS_AIRFRAMETYPE_TRI:
+		data.ident.vehicle_type = MSP_MULTITYPE_TRI;
+		break;
+	case SYSTEMSETTINGS_AIRFRAMETYPE_GROUNDVEHICLECAR:
+		data.ident.vehicle_type = MSP_MULTITYPE_CUSTOM;
+		break;
+	case SYSTEMSETTINGS_AIRFRAMETYPE_GROUNDVEHICLEDIFFERENTIAL:
+		data.ident.vehicle_type = MSP_MULTITYPE_CUSTOM;
+		break;
+	case SYSTEMSETTINGS_AIRFRAMETYPE_GROUNDVEHICLEMOTORCYCLE:
+		data.ident.vehicle_type = MSP_MULTITYPE_CUSTOM;
+		break;
+	}
+
+	msp_send(m, MSP_IDENT, data.buf, sizeof(data));
+}
+
+static void msp_send_rc_tuning(struct msp_bridge *m)
+{
+	union {
+		uint8_t buf[0];
+		struct {
+			uint8_t rc_rate;
+			uint8_t rx_expo;
+			uint8_t _roll_pitch_rate;
+			uint8_t yaw_rate;
+			uint8_t dyn_throttle_pid;
+			uint8_t throttle_mid;
+			uint8_t throttle_expo;
+		} __attribute__((packed)) tune;
+	} data;
+
+	memset(&data, 0, sizeof(data));
+
+	msp_send(m, MSP_RC_TUNING, data.buf, sizeof(data));
+}
+
+#define PID_SCALE_KP 10000.0f
+#define PID_SCALE_KI 1000.0f
+#define PID_SCALE_KD 1000000.0f
+
+static void msp_set_pid(struct msp_bridge *m)
+{
+	struct set_pid {
+		struct {
+			uint8_t P;
+			uint8_t I;
+			uint8_t D;
+		} __attribute__((packed)) axis[10];
+	} __attribute__((packed));
+
+	struct set_pid *data = (struct set_pid *)m->cmd_data.data;
+
+	uint8_t armed;
+	FlightStatusArmedGet(&armed);
+
+	if (sizeof(*data) > m->cmd_i || armed != FLIGHTSTATUS_ARMED_DISARMED)
+		msp_send_error(m, MSP_SET_PID);
+
+	StabilizationSettingsData stab;
+	StabilizationSettingsGet(&stab);
+
+	#define SCALE_PID_DR(axisnum, pid) ((float)data->axis[axisnum].pid / PID_SCALE_K##pid)
+
+	stab.RollRatePID[STABILIZATIONSETTINGS_ROLLRATEPID_KP] = SCALE_PID_DR(0, P);
+	stab.RollRatePID[STABILIZATIONSETTINGS_ROLLRATEPID_KI] = SCALE_PID_DR(0, I);
+	stab.RollRatePID[STABILIZATIONSETTINGS_ROLLRATEPID_KD] = SCALE_PID_DR(0, D);
+	stab.PitchRatePID[STABILIZATIONSETTINGS_PITCHRATEPID_KP] = SCALE_PID_DR(1, P);
+	stab.PitchRatePID[STABILIZATIONSETTINGS_PITCHRATEPID_KI] = SCALE_PID_DR(1, I);
+	stab.PitchRatePID[STABILIZATIONSETTINGS_PITCHRATEPID_KD] = SCALE_PID_DR(1, D);
+	stab.YawRatePID[STABILIZATIONSETTINGS_YAWRATEPID_KP] = SCALE_PID_DR(2, P);
+	stab.YawRatePID[STABILIZATIONSETTINGS_YAWRATEPID_KI] = SCALE_PID_DR(2, I);
+	stab.YawRatePID[STABILIZATIONSETTINGS_YAWRATEPID_KD] = SCALE_PID_DR(2, D);
+
+	StabilizationSettingsSet(&stab);
+
+	msp_send(m, MSP_SET_PID, NULL, 0);
+}
+
+static void msp_send_pid(struct msp_bridge *m)
+{
+	union {
+		uint8_t buf[0];
+		struct {
+			struct {
+				uint8_t p;
+				uint8_t i;
+				uint8_t d;
+			} __attribute__((packed)) axis[10];
+		} __attribute__((packed)) pid;
+	} data;
+
+	memset(&data, 0, sizeof(data));
+
+	StabilizationSettingsData stab;
+	StabilizationSettingsGet(&stab);
+
+	#define SCALE_PID_MW(axis, axisu, pid) bound_min_max( \
+		stab.axis##RatePID[STABILIZATIONSETTINGS_##axisu##RATEPID_K##pid] \
+		* PID_SCALE_K##pid, 0.0f, 255.0f)
+
+	data.pid.axis[0].p = SCALE_PID_MW(Roll, ROLL, P);
+	data.pid.axis[0].i = SCALE_PID_MW(Roll, ROLL, I);
+	data.pid.axis[0].d = SCALE_PID_MW(Roll, ROLL, D);
+	data.pid.axis[1].p = SCALE_PID_MW(Pitch, PITCH, P);
+	data.pid.axis[1].i = SCALE_PID_MW(Pitch, PITCH, I);
+	data.pid.axis[1].d = SCALE_PID_MW(Pitch, PITCH, D);
+	data.pid.axis[2].p = SCALE_PID_MW(Yaw, YAW, P);
+	data.pid.axis[2].i = SCALE_PID_MW(Yaw, YAW, I);
+	data.pid.axis[2].d = SCALE_PID_MW(Yaw, YAW, D);
+
+	msp_send(m, MSP_PID, data.buf, sizeof(data));
+}
+
+static void msp_send_pid_names(struct msp_bridge *m)
+{
+	const char names[] = "ROLL;PITCH;YAW;";
+	msp_send(m, MSP_PIDNAMES, (const uint8_t *)names, sizeof(names));
+}
+
 static void msp_send_status(struct msp_bridge *m)
 {
 	union {
@@ -464,20 +724,23 @@ static void msp_send_status(struct msp_bridge *m)
 			uint8_t setting;
 		} __attribute__((packed)) status;
 	} data;
-	// TODO: https://github.com/TauLabs/TauLabs/blob/next/shared/uavobjectdefinition/actuatordesired.xml#L8
-	data.status.cycleTime = 0;
+
+	float cycle_time;
+	ActuatorDesiredUpdateTimeGet(&cycle_time);
+	data.status.cycleTime = cycle_time * 1000;
+
 	data.status.i2cErrors = 0;
 	
 	GPSPositionData gpsData = {};
 	
 	if (GPSPositionHandle() != NULL)
 		GPSPositionGet(&gpsData);
-	
+
 	data.status.sensors = (PIOS_SENSORS_IsRegistered(PIOS_SENSOR_ACCEL) ? MSP_SENSOR_ACC  : 0) |
 		(PIOS_SENSORS_IsRegistered(PIOS_SENSOR_BARO) ? MSP_SENSOR_BARO : 0) |
 		(PIOS_SENSORS_IsRegistered(PIOS_SENSOR_MAG) ? MSP_SENSOR_MAG : 0) |
 		(gpsData.Status != GPSPOSITION_STATUS_NOGPS ? MSP_SENSOR_GPS : 0);
-	
+
 	data.status.flags = 0;
 	data.status.setting = 0;
 
@@ -819,14 +1082,23 @@ static msp_state msp_state_checksum(struct msp_bridge *m, uint8_t b)
 	case MSP_BOARD_INFO:
 		msp_send_board_info(m);
 		break;
-	case MSP_BUILD_INFO:
-		msp_send_build_info(m);
+	case MSP_BUILD_INFO2:
+		msp_send_build_info_cf(m);
 		break;
 	case MSP_NAME:
 		msp_send_name(m);
 		break;
 	case MSP_FEATURE:
 		msp_send_feature(m);
+		break;
+	case MSP_CONFIG:
+		msp_send_config(m);
+		break;
+	case MSP_BUILD_INFO:
+		msp_send_build_info(m);
+		break;
+	case MSP_IDENT:
+		msp_send_ident(m);
 		break;
 	case MSP_UID:
 		msp_send_uid(m);
@@ -855,11 +1127,23 @@ static msp_state msp_state_checksum(struct msp_bridge *m, uint8_t b)
 	case MSP_RC:
 		msp_send_channels(m);
 		break;
+	case MSP_RC_TUNING:
+		msp_send_rc_tuning(m);
+		break;
+	case MSP_PID:
+		msp_send_pid(m);
+		break;
 	case MSP_MISC:
 		msp_send_misc(m);
 		break;
 	case MSP_BOXIDS:
 		msp_send_boxids(m);
+		break;
+	case MSP_PIDNAMES:
+		msp_send_pid_names(m);
+		break;
+	case MSP_SET_PID:
+		msp_set_pid(m);
 		break;
 	case MSP_ALARMS:
 		msp_send_alarms(m);
