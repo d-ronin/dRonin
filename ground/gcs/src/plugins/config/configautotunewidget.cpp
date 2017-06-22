@@ -772,6 +772,39 @@ QString AutotuneBeginningPage::tuneValid(bool *okToContinue) const
     return retVal;
 }
 
+void AutotuneBeginningPage::doDownloadAndProcess()
+{
+    if (!av->valid) {
+        ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+
+        TelemetryManager *telMngr = pm->getObject<TelemetryManager>();
+
+        if (!av->data) {
+            av->data = telMngr->downloadFile(4, 32768, [&](quint32 progress) {
+                        int fraction = (100 * progress) / 32768.0;
+
+                        if (fraction > 80) {
+                            fraction = 80;
+                        }
+
+                        progressBar->setValue(fraction);
+                    });
+        }
+    }
+
+    progressBar->setValue(90);
+
+    if (av->data) {
+        processAutotuneData();
+    }
+
+    progressBar->setValue(100);
+
+    QString initialWarnings = tuneValid(&dataValid);
+
+    status->setText(initialWarnings);
+}
+
 void AutotuneBeginningPage::initializePage()
 {
     setTitle(tr("Preparing autotune..."));
@@ -785,30 +818,11 @@ void AutotuneBeginningPage::initializePage()
                                   "measurements to your aircraft."));
     }
 
-    if (!av->valid) {
-        ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    progressBar->setRange(0, 100);
+    progressBar->setValue(0);
 
-        TelemetryManager *telMngr = pm->getObject<TelemetryManager>();
+    QMetaObject::invokeMethod(this, "doDownloadAndProcess", Qt::QueuedConnection);
 
-        if (!av->data) {
-            av->data = telMngr->downloadFile(4, 32768, [&](quint32 progress) {
-                        float fraction = progress / 32768.0;
-
-                        if (fraction > 0.8f) {
-                            fraction = 0.8f;
-                        }
-                        qDebug() << "Progress " << fraction;
-                    });
-        }
-
-        if (av->data) {
-            processAutotuneData();
-        }
-    }
-
-    QString initialWarnings = tuneValid(&dataValid);
-
-    status->setText(initialWarnings);
 }
 
 bool AutotuneBeginningPage::isComplete() const
