@@ -227,6 +227,7 @@ plugin_uavsettingsimportexport.subdir = uavsettingsimportexport
 plugin_uavsettingsimportexport.depends = plugin_coreplugin
 plugin_uavsettingsimportexport.depends += plugin_uavobjects
 plugin_uavsettingsimportexport.depends += plugin_uavobjectutil
+plugin_uavsettingsimportexport.depends += plugin_uavtalk
 SUBDIRS += plugin_uavsettingsimportexport
 
 # UAV Object Widget Utility plugin
