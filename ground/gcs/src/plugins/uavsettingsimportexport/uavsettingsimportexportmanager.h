@@ -31,10 +31,10 @@
 #ifndef UAVSETTINGSIMPORTEXPORTFACTORY_H
 #define UAVSETTINGSIMPORTEXPORTFACTORY_H
 #include "uavsettingsimportexport_global.h"
-#include "uavobjectutil/uavobjectutilmanager.h"
-#include "../../../../../build/ground/gcs/gcsversioninfo.h"
+#include <QObject>
 
 class QDomNode;
+class UAVObject;
 
 class UAVSETTINGSIMPORTEXPORT_EXPORT UAVSettingsImportExportManager : public QObject
 {
