@@ -472,7 +472,7 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 
 			if (blink_string &&
 					!strcmp(blink_string, BLINK_STRING_RADIO)) {
-				// XXX do this in a more robust way */
+				/* XXX do this in a more robust way */
 				is_manual_control = true;
 			} else {
 				is_manual_control = false;
@@ -483,6 +483,18 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 
 		if (armed_status == FLIGHTSTATUS_ARMED_ARMED) {
 			ever_armed = true;
+		} else {
+			if ((counter & 15) == 0) {
+				/* Every 16 cycles through here, kick off
+				 * a config check next cycle when disarmed.
+				 * Works around #1776 where tasks race
+				 * through startup... but it also just
+				 * seems prudent to check this stuff
+				 * every half second or so while disarmed.
+				 * (for lost events, etc.)
+				 */
+				config_check_needed = true;
+			}
 		}
 
 		if ((blink_prio == 0) && (blink_state == 0)) {
