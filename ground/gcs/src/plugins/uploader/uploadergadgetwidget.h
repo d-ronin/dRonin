@@ -33,8 +33,6 @@
 #define UPLOADERGADGETWIDGET_H
 
 #include <QPointer>
-#include <QNetworkAccessManager>
-#include "ui_uploader.h"
 #include "tl_dfu.h"
 #include <coreplugin/iboardtype.h>
 #include "uploader_global.h"
@@ -44,6 +42,9 @@
 #include "coreplugin/connectionmanager.h"
 #include "uavsettingsimportexport/uavsettingsimportexportmanager.h"
 #include "upgradeassistantdialog.h"
+
+class QNetworkAccessManager;
+class Ui_UploaderWidget;
 
 using namespace tl_dfu;
 
@@ -58,7 +59,13 @@ class UPLOADER_EXPORT UploaderGadgetWidget : public QWidget
 public:
     UploaderGadgetWidget(QWidget *parent = 0);
     ~UploaderGadgetWidget();
-public slots:
+
+    /**
+     * @brief active
+     * @return true if the uploader is currently doing something (e.g. upgrader)
+     */
+    bool active() const;
+
 signals:
     void newBoardSeen(deviceInfo board, deviceDescriptorStruct device);
     void enteredLoader();
@@ -145,6 +152,7 @@ private:
     uploader::UploaderStatus uploaderStatus;
     QByteArray tempArray;
     QTimer rescueTimer;
+    bool upgraderActive = false;
 
     const QString exportUrl = QString("http://dronin-autotown.appspot.com/convert");
     const QString hasRevUrl = QString("http://dronin-autotown.appspot.com/uavos/%1");

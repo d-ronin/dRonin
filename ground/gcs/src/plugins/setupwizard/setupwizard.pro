@@ -12,6 +12,7 @@ include(../../plugins/uavobjects/uavobjects.pri)
 include(../../plugins/uavobjectutil/uavobjectutil.pri)
 include(../../plugins/uavobjectwidgetutils/uavobjectwidgetutils.pri)
 include(../../plugins/uavtalk/uavtalk.pri)
+include(../../plugins/uploader/uploader.pri)
 
 HEADERS += setupwizardplugin.h \ 
     setupwizard.h \

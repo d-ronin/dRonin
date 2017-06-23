@@ -39,6 +39,7 @@
 #include <QKeySequence>
 #include <coreplugin/modemanager.h>
 #include <extensionsystem/pluginmanager.h>
+#include <uploader/uploadergadgetwidget.h>
 
 SetupWizardPlugin::SetupWizardPlugin()
     : wizardRunning(false)
@@ -92,6 +93,15 @@ void SetupWizardPlugin::showSetupWizard(bool autoLaunched)
 
     if (autoLaunched) {
         ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+
+        // check if uploader is working with this board
+        auto uploaders = pm->getObjects<uploader::UploaderGadgetWidget>();
+        for (const auto uploader : uploaders) {
+            if (uploader->active())
+                return;
+        }
+
+        // check if it's been ignored already
         UAVObjectUtilManager *utilMngr = pm->getObject<UAVObjectUtilManager>();
         if (!utilMngr) {
             qWarning() << "Could not get UAVObjectUtilManager";

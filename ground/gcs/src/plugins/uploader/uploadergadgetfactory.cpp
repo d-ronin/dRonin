@@ -28,6 +28,7 @@
 #include "uploadergadget.h"
 #include <coreplugin/iuavgadget.h>
 #include "uploadergadgetwidget.h"
+#include <extensionsystem/pluginmanager.h>
 
 using namespace uploader;
 
@@ -44,6 +45,8 @@ UploaderGadgetFactory::~UploaderGadgetFactory()
 Core::IUAVGadget *UploaderGadgetFactory::createGadget(QWidget *parent)
 {
     UploaderGadgetWidget *gadgetWidget = new UploaderGadgetWidget(parent);
+    // TODO remove this when upgrader + backend factored out of widget
+    ExtensionSystem::PluginManager::instance()->addObject(gadgetWidget);
     connect(gadgetWidget, &UploaderGadgetWidget::newBoardSeen, this,
             &UploaderGadgetFactory::newBoardSeen);
     return new UploaderGadget(QString("Uploader"), gadgetWidget, parent);
