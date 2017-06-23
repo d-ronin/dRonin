@@ -30,11 +30,15 @@
 #ifndef _PIOS_WS2811_TARGET_H
 #define _PIOS_WS2811_TARGET_H
 
+#include <pios.h>
+
 struct pios_ws2811_cfg {
 	TIM_TypeDef *timer;
 	uint8_t timer_chan;
 
-	struct stm32_gpio pin;
+	GPIO_TypeDef *led_gpio;
+	uint16_t gpio_pin;
+
 	uint32_t remap;
 
 	uint16_t timer_dma_source;

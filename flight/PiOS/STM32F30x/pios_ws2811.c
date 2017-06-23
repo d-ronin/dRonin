@@ -30,6 +30,8 @@
 #include "pios.h"
 #include "pios_ws2811.h"
 
+#include "pios_dma.h"
+
 #define WS2811_BITS_PER_LED        24
 // for 50us delay
 #define WS2811_DELAY_BUFFER_LENGTH 42
@@ -46,6 +48,7 @@
 struct ws2811_dev_s {
 	uint32_t magic;
 	const struct pios_ws2811_cfg *config;
+
 	bool dma_active;
 
 	int max_leds;
@@ -54,7 +57,7 @@ struct ws2811_dev_s {
 	uint8_t dma_buffer[];
 };
 
-int PIOS_WS2811_Init(ws2811_dev_t *dev_out,
+int PIOS_WS2811_init(ws2811_dev_t *dev_out,
 		const struct pios_ws2811_cfg *ws2811_cfg, int max_leds)
 {
 	if (max_leds <= 0) {
@@ -70,7 +73,7 @@ int PIOS_WS2811_Init(ws2811_dev_t *dev_out,
 		return -3;
 	}
 
-	memset(ws2811_dev, 0, sizeof(*ws2811_dev));
+	memset(ws2811_dev, 0, sizeof(*ws2811_dev) + buffer_size);
 
 	ws2811_dev->magic = PIOS_WS2811_MAGIC;
 	ws2811_dev->config = ws2811_cfg;
@@ -81,12 +84,25 @@ int PIOS_WS2811_Init(ws2811_dev_t *dev_out,
 	TIM_OCInitTypeDef TIM_OCInitStructure;
 	DMA_InitTypeDef DMA_InitStructure;
 
-	GPIO_Init(ws2811_cfg->pin.gpio, (GPIO_InitTypeDef *)&ws2811_cfg->pin.init);
+	GPIO_InitTypeDef gpio_cfg = {
+		.GPIO_Pin = ws2811_cfg->gpio_pin,
+		.GPIO_Mode = GPIO_Mode_AF,
+		/* Drive hard-- the pin is loaded on F3E, and there could be
+		 * a big bus
+		 */
+		.GPIO_Speed = GPIO_Speed_50MHz,
+		.GPIO_OType = GPIO_OType_PP,
+		.GPIO_PuPd = GPIO_PuPd_NOPULL,
+	};
 
-	GPIO_PinAFConfig(ws2811_cfg->pin.gpio, ws2811_cfg->pin.pin_source, ws2811_cfg->remap);
+	GPIO_Init(ws2811_cfg->led_gpio, &gpio_cfg);
+
+	GPIO_PinAFConfig(ws2811_cfg->led_gpio,
+			__builtin_ctz(ws2811_cfg->gpio_pin), ws2811_cfg->remap);
 
 	/* Compute the prescaler value */
-	uint16_t prescalerValue = (uint16_t)(SystemCoreClock / WS2811_TIMER_HZ) - 1;
+	uint16_t prescalerValue = (PIOS_SYSCLK / WS2811_TIMER_HZ) - 1;
+
 	/* Time base configuration */
 	TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
 	TIM_TimeBaseStructure.TIM_Period        = WS2811_TIMER_PERIOD;// 800kHz
@@ -99,7 +115,7 @@ int PIOS_WS2811_Init(ws2811_dev_t *dev_out,
 	TIM_OCStructInit(&TIM_OCInitStructure);
 	TIM_OCInitStructure.TIM_OCMode      = TIM_OCMode_PWM1;
 	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-	TIM_OCInitStructure.TIM_Pulse       = 0;
+	TIM_OCInitStructure.TIM_Pulse       = 5;
 	TIM_OCInitStructure.TIM_OCPolarity  = TIM_OCPolarity_High;
 
 	switch (ws2811_cfg->timer_chan) {
@@ -123,16 +139,6 @@ int PIOS_WS2811_Init(ws2811_dev_t *dev_out,
 
 	TIM_CtrlPWMOutputs(ws2811_cfg->timer, ENABLE);
 
-	/* configure DMA */
-	// NVIC setup here
-	NVIC_InitTypeDef NVIC_InitStructure;
-
-	NVIC_InitStructure.NVIC_IRQChannel    = ws2811_cfg->dma_irqn;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_LOW;
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
-	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-	NVIC_Init(&NVIC_InitStructure);
-
 	DMA_DeInit(ws2811_cfg->dma_chan);
 
 	DMA_StructInit(&DMA_InitStructure);
@@ -152,33 +158,15 @@ int PIOS_WS2811_Init(ws2811_dev_t *dev_out,
 
 	TIM_DMACmd(ws2811_cfg->timer, ws2811_cfg->timer_dma_source, ENABLE);
 
-	DMA_ITConfig(ws2811_cfg->dma_chan, DMA_IT_TC, ENABLE);
+	TIM_Cmd(ws2811_cfg->timer, ENABLE);
+
+	PIOS_WS2811_set_all(ws2811_dev, 0, 0, 0);
 
 	*dev_out = ws2811_dev;
 
 	return 0;
 }
 
-void PIOS_WS2811_dma_interrupt_handler(ws2811_dev_t ws2811_dev)
-{
-	if (!ws2811_dev) {
-		return;
-	}
-
-	if (DMA_GetITStatus(ws2811_dev->config->dma_tcif)) {
-		ws2811_dev->dma_active = false;
-		DMA_Cmd(ws2811_dev->config->dma_chan, DISABLE);
-
-		DMA_ClearITPendingBit(ws2811_dev->config->dma_tcif);
-	}
-}
-
-/**
- * Set a led color
- * @param c color
- * @param led led number
- * @param update Perform an update after changing led color
- */
 void PIOS_WS2811_set(ws2811_dev_t dev, int led,
 		uint8_t r, uint8_t g, uint8_t b)
 {
@@ -190,7 +178,7 @@ void PIOS_WS2811_set(ws2811_dev_t dev, int led,
 		return;
 	}
 
-	int offset   = led * WS2811_BITS_PER_LED;
+	int offset = led * WS2811_BITS_PER_LED;
 
 	uint32_t grb = (g << 16) | (r << 8) | (b);
 
@@ -202,15 +190,37 @@ void PIOS_WS2811_set(ws2811_dev_t dev, int led,
 
 void PIOS_WS2811_trigger_update(ws2811_dev_t dev)
 {
-	if (!dev || (dev->dma_active)) {
+	if (!dev) {
 		return;
+	}
+
+	if (dev->dma_active) {
+		if (!DMA_GetFlagStatus(dev->config->dma_tcif)) {
+			return;
+		}
+
+		dev->dma_active = false;	/* LOL */
+		DMA_ClearFlag(dev->config->dma_tcif);
+		DMA_Cmd(dev->config->dma_chan, DISABLE);
 	}
 
 	dev->dma_active = true;
 
 	DMA_SetCurrDataCounter(dev->config->dma_chan, dev->buffer_size);
-	TIM_SetCounter(dev->config->timer, 0);
-	TIM_Cmd(dev->config->timer, ENABLE);
-
 	DMA_Cmd(dev->config->dma_chan, ENABLE);
 }
+
+void PIOS_WS2811_set_all(ws2811_dev_t dev, uint8_t r, uint8_t g,
+		uint8_t b)
+{
+	for (int i = 0; i < dev->max_leds; i++) {
+		PIOS_WS2811_set(dev, i, r, g, b);
+	}
+}
+
+int PIOS_WS2811_get_num_leds(ws2811_dev_t dev)
+{
+	return dev->max_leds;
+}
+
+
