@@ -51,4 +51,5 @@ void UAVSettingsImportExportPlugin::shutdown()
 }
 void UAVSettingsImportExportPlugin::extensionsInitialized()
 {
+    mf->extensionsInitialized();
 }
