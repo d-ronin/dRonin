@@ -41,6 +41,7 @@
 class UAVTALK_EXPORT TelemetryManager : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(bool connected READ isConnected NOTIFY connectedChanged)
 
 public:
     TelemetryManager();
@@ -48,12 +49,13 @@ public:
 
     void start(QIODevice *dev);
     void stop();
-    bool isConnected();
+    bool isConnected() const { return m_connected; }
     QByteArray *downloadFile(quint32 fileId, quint32 maxSize = 1048576);
 
 signals:
     void connected();
     void disconnected();
+    void connectedChanged(bool);
 
 private slots:
     void onConnect();
@@ -66,7 +68,7 @@ private:
     Telemetry *telemetry;
     TelemetryMonitor *telemetryMon;
 
-    bool autopilotConnected;
+    bool m_connected;
     QHash<quint16, QList<TelemetryMonitor::objStruc>> sessions;
     Core::Internal::GeneralSettings *settings;
 };
