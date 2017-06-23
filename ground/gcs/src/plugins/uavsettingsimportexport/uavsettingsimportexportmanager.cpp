@@ -47,6 +47,7 @@
 #include "uavobjects/uavdataobject.h"
 #include "uavobjects/uavobjectmanager.h"
 #include "extensionsystem/pluginmanager.h"
+#include "uavobjectutil/uavobjectutilmanager.h"
 
 // for XML object
 #include <QDomDocument>

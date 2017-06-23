@@ -26,19 +26,6 @@
 
 #include "uavsettingsimportexport.h"
 
-#include <QtPlugin>
-#include <QStringList>
-#include <QDebug>
-#include <QCheckBox>
-#include "importsummary.h"
-
-// for XML object
-#include <QDomDocument>
-
-// for file dialog and error messages
-#include <QFileDialog>
-#include <QMessageBox>
-
 UAVSettingsImportExportPlugin::UAVSettingsImportExportPlugin()
 {
     // Do nothing
