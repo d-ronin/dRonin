@@ -286,8 +286,19 @@ UAVTalkRxState UAVTalkProcessInputStreamQuiet(UAVTalkConnection connectionHandle
 
 		// Determine data length
 		if (iproc->type == UAVTALK_TYPE_OBJ_REQ || iproc->type == UAVTALK_TYPE_ACK || iproc->type == UAVTALK_TYPE_NACK) {
-			iproc->length = 0;
+			iproc->length = iproc->packet_size - iproc->rxPacketLength;
 			iproc->instanceLength = 0;
+
+			/* Length is always pretty much expected to be 0
+			 * here, but it can be 2 if it's a multiple inst
+			 * obj requested.  Don't peer into metadata to
+			 * figure this out-- use the packet length
+			 * [so we can properly NAK objects we don't know]
+			 */
+			if (iproc->length == 2) {
+				iproc->length = 0;
+				iproc->instanceLength = 2;
+			}
 		} else {
 			if (iproc->obj) {
 				iproc->length = UAVObjGetNumBytes(iproc->obj);
@@ -317,7 +328,7 @@ UAVTalkRxState UAVTalkProcessInputStreamQuiet(UAVTalkConnection connectionHandle
 			iproc->state = UAVTALK_STATE_CS;
 		}
 		// Check if this is a single instance object (i.e. if the instance ID field is coming next)
-		else if ((iproc->obj != 0) && !UAVObjIsSingleInstance(iproc->obj)) {
+		else if (iproc->instanceLength) {
 			iproc->state = UAVTALK_STATE_INSTID;
 		} else {
 			// If there is a payload get it, otherwise receive checksum
