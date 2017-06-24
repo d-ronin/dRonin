@@ -26,6 +26,29 @@
 
 #include "uavsettingsimportexport.h"
 
+#include <QtPlugin>
+#include <QStringList>
+#include <QDebug>
+#include <QCheckBox>
+#include "importsummary.h"
+// for menu item
+#include <coreplugin/coreconstants.h>
+#include <coreplugin/actionmanager/actionmanager.h>
+#include <coreplugin/icore.h>
+#include <QKeySequence>
+
+// for UAVObjects
+#include "uavdataobject.h"
+#include "uavobjectmanager.h"
+#include "extensionsystem/pluginmanager.h"
+
+// for XML object
+#include <QDomDocument>
+
+// for file dialog and error messages
+#include <QFileDialog>
+#include <QMessageBox>
+
 UAVSettingsImportExportPlugin::UAVSettingsImportExportPlugin()
 {
     // Do nothing
@@ -51,5 +74,4 @@ void UAVSettingsImportExportPlugin::shutdown()
 }
 void UAVSettingsImportExportPlugin::extensionsInitialized()
 {
-    mf->extensionsInitialized();
 }
