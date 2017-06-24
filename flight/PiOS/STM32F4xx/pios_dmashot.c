@@ -32,6 +32,9 @@
 
 #define MAX_TIMERS                              8
 
+/* To deal with the funny ways of F4 StdPeriph and ISR flags. */
+#define HIGH_ISR_MASK                           0x20000000
+
 // This is to do half-word writes where appropriate. TIM2 and TIM5 are 32-bit, the rest
 // are 16-bit. Can do full word writes to 16bit regardless, but it doubles DMA buffer size
 // unnecessarily.
@@ -533,7 +536,19 @@ void PIOS_DMAShot_TriggerUpdate()
 		}
 
 		DMA_Cmd(s_timer->dma->stream, ENABLE);
-		s_timer->dma_started = 1;
+
+		/* Direct mode stream error is always 3 bits to the right of TCIF. */
+		uint32_t dmeif = ((s_timer->dma->tcif & ~HIGH_ISR_MASK) >> 3) & (s_timer->dma->tcif & HIGH_ISR_MASK);
+		/* FIFO stream error is always 5 bits to the right of TCIF. */
+		uint32_t feif = ((s_timer->dma->tcif & ~HIGH_ISR_MASK) >> 5) & (s_timer->dma->tcif & HIGH_ISR_MASK);
+		if ((DMA_GetFlagStatus(s_timer->dma->stream, dmeif) == SET) || (DMA_GetFlagStatus(s_timer->dma->stream, feif) == SET)) {
+			/* Conflict with shared DMA resources. Something else was running. */
+			DMA_Cmd(s_timer->dma->stream, DISABLE);
+			DMA_ClearFlag(s_timer->dma->stream, feif);
+			DMA_ClearFlag(s_timer->dma->stream, dmeif);
+		} else {
+			s_timer->dma_started = 1;
+		}
 	}
 }
 
