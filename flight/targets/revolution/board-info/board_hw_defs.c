@@ -1432,12 +1432,12 @@ static const struct pios_dmashot_timer_cfg dmashot_tim_cfg[] = {
 	},
 	{
 		.timer = TIM9,
-		.master_timer = TIM1,
+		.master_timer = TIM4,
 		.master_config = TIM_DMA_Update | TIM_DMABase_CCR2,
 
-		.stream = DMA2_Stream5,
-		.channel = DMA_Channel_6,
-		.tcif = DMA_FLAG_TCIF5,
+		.stream = DMA1_Stream6,
+		.channel = DMA_Channel_2,
+		.tcif = DMA_FLAG_TCIF6,
 	},
 	{
 		.timer = TIM2,
