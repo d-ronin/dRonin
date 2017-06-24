@@ -2,14 +2,14 @@
   ******************************************************************************
   * @file    stm32f30x_rcc.h
   * @author  MCD Application Team
-  * @version V1.0.0
-  * @date    04-September-2012
+  * @version V1.2.3
+  * @date    10-July-2015
   * @brief   This file contains all the functions prototypes for the RCC 
   *          firmware library.
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT 2012 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT 2015 STMicroelectronics</center></h2>
   *
   * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
   * You may not use this file except in compliance with the License.
@@ -57,13 +57,21 @@ typedef struct
   uint32_t ADC34CLK_Frequency;
   uint32_t I2C1CLK_Frequency;
   uint32_t I2C2CLK_Frequency;
+  uint32_t I2C3CLK_Frequency;
   uint32_t TIM1CLK_Frequency;
+  uint32_t HRTIM1CLK_Frequency;
   uint32_t TIM8CLK_Frequency;
+  uint32_t TIM2CLK_Frequency;
+  uint32_t TIM3CLK_Frequency;
   uint32_t USART1CLK_Frequency;
   uint32_t USART2CLK_Frequency;
   uint32_t USART3CLK_Frequency;
   uint32_t UART4CLK_Frequency;
-  uint32_t UART5CLK_Frequency;  
+  uint32_t UART5CLK_Frequency;
+  uint32_t TIM15CLK_Frequency;
+  uint32_t TIM16CLK_Frequency;
+  uint32_t TIM17CLK_Frequency;  
+  uint32_t TIM20CLK_Frequency; 
 }RCC_ClocksTypeDef;
 
 /* Exported constants --------------------------------------------------------*/
@@ -89,12 +97,14 @@ typedef struct
 /** @defgroup RCC_PLL_Clock_Source 
   * @{
   */
-
+#define RCC_PLLSource_HSI                RCC_CFGR_PLLSRC_HSI_PREDIV     /*!< Only applicable for STM32F303xE devices */
 #define RCC_PLLSource_HSI_Div2           RCC_CFGR_PLLSRC_HSI_Div2
 #define RCC_PLLSource_PREDIV1            RCC_CFGR_PLLSRC_PREDIV1
  
 #define IS_RCC_PLL_SOURCE(SOURCE) (((SOURCE) == RCC_PLLSource_HSI_Div2) || \
-                                   ((SOURCE) == RCC_PLLSource_PREDIV1))
+                                   ((SOURCE) == RCC_PLLSource_PREDIV1)|| \
+								   ((SOURCE) == RCC_PLLSource_HSI))
+								   
 /**
   * @}
   */ 
@@ -270,19 +280,65 @@ typedef struct
   * @{
   */
 
-#define RCC_TIM1CLK_HCLK                  ((uint32_t)0x00000000)
+#define RCC_TIM1CLK_PCLK                  ((uint32_t)0x00000000)
 #define RCC_TIM1CLK_PLLCLK                RCC_CFGR3_TIM1SW
 
-#define RCC_TIM8CLK_HCLK                  ((uint32_t)0x10000000)
+#define RCC_TIM8CLK_PCLK                  ((uint32_t)0x10000000)
 #define RCC_TIM8CLK_PLLCLK                ((uint32_t)0x10000200)
 
-#define IS_RCC_TIMCLK(TIMCLK) (((TIMCLK) == RCC_TIM1CLK_HCLK) || ((TIMCLK) == RCC_TIM1CLK_PLLCLK) || \
-                               ((TIMCLK) == RCC_TIM8CLK_HCLK) || ((TIMCLK) == RCC_TIM8CLK_PLLCLK))
+#define RCC_TIM15CLK_PCLK                 ((uint32_t)0x20000000)
+#define RCC_TIM15CLK_PLLCLK               ((uint32_t)0x20000400)
 
+#define RCC_TIM16CLK_PCLK                 ((uint32_t)0x30000000)
+#define RCC_TIM16CLK_PLLCLK               ((uint32_t)0x30000800)
+
+#define RCC_TIM17CLK_PCLK                 ((uint32_t)0x40000000)
+#define RCC_TIM17CLK_PLLCLK               ((uint32_t)0x40002000)
+
+#define RCC_TIM20CLK_PCLK                 ((uint32_t)0x50000000)
+#define RCC_TIM20CLK_PLLCLK               ((uint32_t)0x50008000)
+
+#define RCC_TIM2CLK_PCLK                  ((uint32_t)0x60000000)
+#define RCC_TIM2CLK_PLLCLK                ((uint32_t)0x61000000)
+
+#define RCC_TIM3TIM4CLK_PCLK              ((uint32_t)0x70000000)
+#define RCC_TIM3TIM4CLK_PLLCLK            ((uint32_t)0x72000000)
+
+#define IS_RCC_TIMCLK(TIMCLK) (((TIMCLK) == RCC_TIM1CLK_PCLK) || ((TIMCLK) == RCC_TIM1CLK_PLLCLK) || \
+                               ((TIMCLK) == RCC_TIM8CLK_PCLK) || ((TIMCLK) == RCC_TIM8CLK_PLLCLK) || \
+                               ((TIMCLK) == RCC_TIM15CLK_PCLK) || ((TIMCLK) == RCC_TIM15CLK_PLLCLK) || \
+                               ((TIMCLK) == RCC_TIM16CLK_PCLK) || ((TIMCLK) == RCC_TIM16CLK_PLLCLK) || \
+                               ((TIMCLK) == RCC_TIM17CLK_PCLK) || ((TIMCLK) == RCC_TIM17CLK_PLLCLK)|| \
+                               ((TIMCLK) == RCC_TIM20CLK_PCLK) || ((TIMCLK) == RCC_TIM20CLK_PLLCLK)|| \
+                               ((TIMCLK) == RCC_TIM2CLK_PCLK) || ((TIMCLK) == RCC_TIM2CLK_PLLCLK)|| \
+                               ((TIMCLK) == RCC_TIM3TIM4CLK_PCLK) || ((TIMCLK) == RCC_TIM3TIM4CLK_PLLCLK))
+/* legacy RCC_TIM_clock_source*/							  
+#define RCC_TIM1CLK_HCLK   RCC_TIM1CLK_PCLK							  
+#define RCC_TIM8CLK_HCLK   RCC_TIM8CLK_PCLK
+#define RCC_TIM15CLK_HCLK  RCC_TIM15CLK_PCLK							   
+#define RCC_TIM16CLK_HCLK  RCC_TIM16CLK_PCLK
+#define RCC_TIM17CLK_HCLK  RCC_TIM17CLK_PCLK
+#define RCC_TIM20CLK_HCLK  RCC_TIM20CLK_PCLK
+#define RCC_TIM2CLK_HCLK   RCC_TIM2CLK_PCLK
+#define RCC_TIM3CLK_HCLK   RCC_TIM3TIM4CLK_PCLK
+#define RCC_TIM3CLK_PLLCLK RCC_TIM3TIM4CLK_PLLCLK
 /**
   * @}
   */
 
+/** @defgroup RCC_HRTIM_clock_source 
+  * @{
+  */
+
+#define RCC_HRTIM1CLK_HCLK                  ((uint32_t)0x00000000)
+#define RCC_HRTIM1CLK_PLLCLK                RCC_CFGR3_HRTIM1SW
+
+#define IS_RCC_HRTIMCLK(HRTIMCLK) (((HRTIMCLK) == RCC_HRTIM1CLK_HCLK) || ((HRTIMCLK) == RCC_HRTIM1CLK_PLLCLK))
+
+/**
+  * @}
+  */
+  
 /** @defgroup RCC_I2C_clock_source 
   * @{
   */
@@ -293,8 +349,12 @@ typedef struct
 #define RCC_I2C2CLK_HSI                   ((uint32_t)0x10000000)
 #define RCC_I2C2CLK_SYSCLK                ((uint32_t)0x10000020)
 
+#define RCC_I2C3CLK_HSI                   ((uint32_t)0x20000000)
+#define RCC_I2C3CLK_SYSCLK                ((uint32_t)0x20000040)
+
 #define IS_RCC_I2CCLK(I2CCLK) (((I2CCLK) == RCC_I2C1CLK_HSI) || ((I2CCLK) == RCC_I2C1CLK_SYSCLK) || \
-                               ((I2CCLK) == RCC_I2C2CLK_HSI) || ((I2CCLK) == RCC_I2C2CLK_SYSCLK))
+                               ((I2CCLK) == RCC_I2C2CLK_HSI) || ((I2CCLK) == RCC_I2C2CLK_SYSCLK) || \
+                               ((I2CCLK) == RCC_I2C3CLK_HSI) || ((I2CCLK) == RCC_I2C3CLK_SYSCLK))
 
 /**
   * @}
@@ -430,15 +490,18 @@ typedef struct
 #define RCC_AHBPeriph_GPIOD               RCC_AHBENR_GPIODEN
 #define RCC_AHBPeriph_GPIOE               RCC_AHBENR_GPIOEEN
 #define RCC_AHBPeriph_GPIOF               RCC_AHBENR_GPIOFEN
+#define RCC_AHBPeriph_GPIOG               RCC_AHBENR_GPIOGEN
+#define RCC_AHBPeriph_GPIOH               RCC_AHBENR_GPIOHEN
 #define RCC_AHBPeriph_TS                  RCC_AHBENR_TSEN
 #define RCC_AHBPeriph_CRC                 RCC_AHBENR_CRCEN
+#define RCC_AHBPeriph_FMC                 RCC_AHBENR_FMCEN
 #define RCC_AHBPeriph_FLITF               RCC_AHBENR_FLITFEN
 #define RCC_AHBPeriph_SRAM                RCC_AHBENR_SRAMEN
 #define RCC_AHBPeriph_DMA2                RCC_AHBENR_DMA2EN
 #define RCC_AHBPeriph_DMA1                RCC_AHBENR_DMA1EN
 
-#define IS_RCC_AHB_PERIPH(PERIPH) ((((PERIPH) & 0xCE81FFA8) == 0x00) && ((PERIPH) != 0x00))
-#define IS_RCC_AHB_RST_PERIPH(PERIPH) ((((PERIPH) & 0xCE81FFFF) == 0x00) && ((PERIPH) != 0x00))
+#define IS_RCC_AHB_PERIPH(PERIPH) ((((PERIPH) & 0xCE00FF88) == 0x00) && ((PERIPH) != 0x00))
+#define IS_RCC_AHB_RST_PERIPH(PERIPH) ((((PERIPH) & 0xCE00FFDF) == 0x00) && ((PERIPH) != 0x00))
 
 /**
   * @}
@@ -448,16 +511,19 @@ typedef struct
   * @{
   */
 
-#define RCC_APB2Periph_SYSCFG            ((uint32_t)0x00000001)
-#define RCC_APB2Periph_TIM1              ((uint32_t)0x00000800)
-#define RCC_APB2Periph_SPI1              ((uint32_t)0x00001000)
-#define RCC_APB2Periph_TIM8              ((uint32_t)0x00002000)
-#define RCC_APB2Periph_USART1            ((uint32_t)0x00004000)
-#define RCC_APB2Periph_TIM15             ((uint32_t)0x00010000)
-#define RCC_APB2Periph_TIM16             ((uint32_t)0x00020000)
-#define RCC_APB2Periph_TIM17             ((uint32_t)0x00040000)
+#define RCC_APB2Periph_SYSCFG            RCC_APB2ENR_SYSCFGEN
+#define RCC_APB2Periph_TIM1              RCC_APB2ENR_TIM1EN
+#define RCC_APB2Periph_SPI1              RCC_APB2ENR_SPI1EN
+#define RCC_APB2Periph_TIM8              RCC_APB2ENR_TIM8EN
+#define RCC_APB2Periph_USART1            RCC_APB2ENR_USART1EN
+#define RCC_APB2Periph_SPI4              RCC_APB2ENR_SPI4EN
+#define RCC_APB2Periph_TIM15             RCC_APB2ENR_TIM15EN
+#define RCC_APB2Periph_TIM16             RCC_APB2ENR_TIM16EN
+#define RCC_APB2Periph_TIM17             RCC_APB2ENR_TIM17EN
+#define RCC_APB2Periph_TIM20             RCC_APB2ENR_TIM20EN
+#define RCC_APB2Periph_HRTIM1            RCC_APB2ENR_HRTIM1
 
-#define IS_RCC_APB2_PERIPH(PERIPH) ((((PERIPH) & 0xFFF887FE) == 0x00) && ((PERIPH) != 0x00))
+#define IS_RCC_APB2_PERIPH(PERIPH) ((((PERIPH) & 0xDFE807FE) == 0x00) && ((PERIPH) != 0x00))
 
 /**
   * @}
@@ -466,26 +532,30 @@ typedef struct
 /** @defgroup RCC_APB1_Peripherals 
   * @{
   */
-#define RCC_APB1Periph_TIM2              ((uint32_t)0x00000001)
-#define RCC_APB1Periph_TIM3              ((uint32_t)0x00000002)
-#define RCC_APB1Periph_TIM4              ((uint32_t)0x00000004)
-#define RCC_APB1Periph_TIM6              ((uint32_t)0x00000010)
-#define RCC_APB1Periph_TIM7              ((uint32_t)0x00000020)
-#define RCC_APB1Periph_WWDG              ((uint32_t)0x00000800)
-#define RCC_APB1Periph_SPI2              ((uint32_t)0x00004000)
-#define RCC_APB1Periph_SPI3              ((uint32_t)0x00008000)
-#define RCC_APB1Periph_USART2            ((uint32_t)0x00020000)
-#define RCC_APB1Periph_USART3            ((uint32_t)0x00040000)
-#define RCC_APB1Periph_UART4             ((uint32_t)0x00080000)
-#define RCC_APB1Periph_UART5             ((uint32_t)0x00100000)
-#define RCC_APB1Periph_I2C1              ((uint32_t)0x00200000)
-#define RCC_APB1Periph_I2C2              ((uint32_t)0x00400000)
-#define RCC_APB1Periph_USB               ((uint32_t)0x00800000)
-#define RCC_APB1Periph_CAN1              ((uint32_t)0x02000000)
-#define RCC_APB1Periph_PWR               ((uint32_t)0x10000000)
-#define RCC_APB1Periph_DAC               ((uint32_t)0x20000000)
+#define RCC_APB1Periph_TIM2              RCC_APB1ENR_TIM2EN
+#define RCC_APB1Periph_TIM3              RCC_APB1ENR_TIM3EN
+#define RCC_APB1Periph_TIM4              RCC_APB1ENR_TIM4EN
+#define RCC_APB1Periph_TIM6              RCC_APB1ENR_TIM6EN
+#define RCC_APB1Periph_TIM7              RCC_APB1ENR_TIM7EN
+#define RCC_APB1Periph_WWDG              RCC_APB1ENR_WWDGEN
+#define RCC_APB1Periph_SPI2              RCC_APB1ENR_SPI2EN
+#define RCC_APB1Periph_SPI3              RCC_APB1ENR_SPI3EN
+#define RCC_APB1Periph_USART2            RCC_APB1ENR_USART2EN
+#define RCC_APB1Periph_USART3            RCC_APB1ENR_USART3EN
+#define RCC_APB1Periph_UART4             RCC_APB1ENR_UART4EN
+#define RCC_APB1Periph_UART5             RCC_APB1ENR_UART5EN
+#define RCC_APB1Periph_I2C1              RCC_APB1ENR_I2C1EN
+#define RCC_APB1Periph_I2C2              RCC_APB1ENR_I2C2EN
+#define RCC_APB1Periph_USB               RCC_APB1ENR_USBEN
+#define RCC_APB1Periph_CAN1              RCC_APB1ENR_CAN1EN
+#define RCC_APB1Periph_PWR               RCC_APB1ENR_PWREN
+#define RCC_APB1Periph_DAC1              RCC_APB1ENR_DAC1EN
+#define RCC_APB1Periph_I2C3              RCC_APB1ENR_I2C3EN
+#define RCC_APB1Periph_DAC2              RCC_APB1ENR_DAC2EN
+#define RCC_APB1Periph_DAC               RCC_APB1Periph_DAC1
 
-#define IS_RCC_APB1_PERIPH(PERIPH) ((((PERIPH) & 0xCD0137C8) == 0x00) && ((PERIPH) != 0x00))
+
+#define IS_RCC_APB1_PERIPH(PERIPH) ((((PERIPH) & 0x890137C8) == 0x00) && ((PERIPH) != 0x00))
 /**
   * @}
   */
@@ -501,11 +571,37 @@ typedef struct
 #define RCC_MCOSource_HSI                ((uint8_t)0x05)
 #define RCC_MCOSource_HSE                ((uint8_t)0x06)
 #define RCC_MCOSource_PLLCLK_Div2        ((uint8_t)0x07)
+#define RCC_MCOSource_PLLCLK             ((uint8_t)0x87)
 
 #define IS_RCC_MCO_SOURCE(SOURCE) (((SOURCE) == RCC_MCOSource_NoClock) ||((SOURCE) == RCC_MCOSource_SYSCLK) ||\
-                                    ((SOURCE) == RCC_MCOSource_HSI)  || ((SOURCE) == RCC_MCOSource_HSE) || \
-                                    ((SOURCE) == RCC_MCOSource_LSI)  || ((SOURCE) == RCC_MCOSource_LSE) || \
-                                    ((SOURCE) == RCC_MCOSource_PLLCLK_Div2))
+                                   ((SOURCE) == RCC_MCOSource_HSI)  || ((SOURCE) == RCC_MCOSource_HSE) || \
+                                   ((SOURCE) == RCC_MCOSource_LSI)  || ((SOURCE) == RCC_MCOSource_LSE) || \
+                                   ((SOURCE) == RCC_MCOSource_PLLCLK_Div2)|| ((SOURCE) == RCC_MCOSource_PLLCLK))
+/**
+  * @}
+  */ 
+
+/** @defgroup RCC_MCOPrescaler
+  * @{
+  */
+
+#define RCC_MCOPrescaler_1            RCC_CFGR_MCO_PRE_1
+#define RCC_MCOPrescaler_2            RCC_CFGR_MCO_PRE_2
+#define RCC_MCOPrescaler_4            RCC_CFGR_MCO_PRE_4
+#define RCC_MCOPrescaler_8            RCC_CFGR_MCO_PRE_8
+#define RCC_MCOPrescaler_16           RCC_CFGR_MCO_PRE_16
+#define RCC_MCOPrescaler_32           RCC_CFGR_MCO_PRE_32
+#define RCC_MCOPrescaler_64           RCC_CFGR_MCO_PRE_64
+#define RCC_MCOPrescaler_128          RCC_CFGR_MCO_PRE_128
+
+#define IS_RCC_MCO_PRESCALER(PRESCALER) (((PRESCALER) == RCC_MCOPrescaler_1)  || \
+                                         ((PRESCALER) == RCC_MCOPrescaler_2)  || \
+                                         ((PRESCALER) == RCC_MCOPrescaler_4)  || \
+                                         ((PRESCALER) == RCC_MCOPrescaler_8)  || \
+                                         ((PRESCALER) == RCC_MCOPrescaler_16) || \
+                                         ((PRESCALER) == RCC_MCOPrescaler_32) || \
+                                         ((PRESCALER) == RCC_MCOPrescaler_64) || \
+                                         ((PRESCALER) == RCC_MCOPrescaler_128))
 /**
   * @}
   */ 
@@ -514,10 +610,10 @@ typedef struct
   * @{
   */
 
- #define RCC_USBCLKSource_PLLCLK_1Div5   ((uint8_t)0x00)
- #define RCC_USBCLKSource_PLLCLK_Div1    ((uint8_t)0x01)
+#define RCC_USBCLKSource_PLLCLK_1Div5   ((uint8_t)0x00)
+#define RCC_USBCLKSource_PLLCLK_Div1    ((uint8_t)0x01)
 
- #define IS_RCC_USBCLK_SOURCE(SOURCE) (((SOURCE) == RCC_USBCLKSource_PLLCLK_1Div5) || \
+#define IS_RCC_USBCLK_SOURCE(SOURCE) (((SOURCE) == RCC_USBCLKSource_PLLCLK_1Div5) || \
                                       ((SOURCE) == RCC_USBCLKSource_PLLCLK_Div1))
 /**
   * @}
@@ -576,7 +672,11 @@ void RCC_PLLConfig(uint32_t RCC_PLLSource, uint32_t RCC_PLLMul);
 void RCC_PLLCmd(FunctionalState NewState);
 void RCC_PREDIV1Config(uint32_t RCC_PREDIV1_Div);
 void RCC_ClockSecuritySystemCmd(FunctionalState NewState);
-void RCC_MCOConfig(uint8_t RCC_MCOSource);
+#ifdef STM32F303xC
+ void RCC_MCOConfig(uint8_t RCC_MCOSource);
+#else
+ void RCC_MCOConfig(uint8_t RCC_MCOSource,uint32_t RCC_MCOPrescaler);
+#endif /* STM32F303xC */
 
 /* System, AHB and APB busses clocks configuration functions ******************/
 void RCC_SYSCLKConfig(uint32_t RCC_SYSCLKSource);
@@ -590,6 +690,7 @@ void RCC_GetClocksFreq(RCC_ClocksTypeDef* RCC_Clocks);
 void RCC_ADCCLKConfig(uint32_t RCC_PLLCLK);
 void RCC_I2CCLKConfig(uint32_t RCC_I2CCLK);
 void RCC_TIMCLKConfig(uint32_t RCC_TIMCLK);
+void RCC_HRTIM1CLKConfig(uint32_t RCC_HRTIMCLK);
 void RCC_I2SCLKConfig(uint32_t RCC_I2SCLKSource); 
 void RCC_USARTCLKConfig(uint32_t RCC_USARTCLK);
 void RCC_USBCLKConfig(uint32_t RCC_USBCLKSource);

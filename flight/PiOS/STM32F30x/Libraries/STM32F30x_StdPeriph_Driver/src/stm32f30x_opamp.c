@@ -1,9 +1,9 @@
 /**
   ******************************************************************************
-  * @file    stm32f30x_opamp.c
+  * @file    stm32f30x_opamp.c                         
   * @author  MCD Application Team
-  * @version V1.0.0
-  * @date    04-September-2012
+  * @version V1.2.3
+  * @date    10-July-2015
   * @brief   This file provides firmware functions to manage the following 
   *          functionalities of the operational amplifiers (OPAMP1,...OPAMP4) peripheral: 
   *           + OPAMP Configuration
@@ -75,7 +75,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT 2012 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT 2015 STMicroelectronics</center></h2>
   *
   * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
   * You may not use this file except in compliance with the License.
@@ -258,7 +258,7 @@ void OPAMP_VrefConfig(uint32_t OPAMP_Selection, uint32_t OPAMP_Vref)
 }
 
 /**
-  * @brief  Connnect the internal reference to the OPAMP's non inverting input.
+  * @brief  Connect the internal reference to the OPAMP's non inverting input.
   * @note   If the selected OPAMP is locked, Vref configuration can't be performed.
   *         To unlock the configuration, perform a system reset.  
   * @param  OPAMP_Selection: the selected OPAMP. 
@@ -276,12 +276,12 @@ void OPAMP_VrefConnectNonInvertingInput(uint32_t OPAMP_Selection, FunctionalStat
 
   if (NewState != DISABLE)
   {
-    /* Connnect the internal reference to the OPAMP's non inverting input */
+    /* Connect the internal reference to the OPAMP's non inverting input */
     *(__IO uint32_t *) (OPAMP_BASE + OPAMP_Selection) |= (uint32_t) (OPAMP_CSR_FORCEVP);
   }
   else
   {
-    /* Disconnnect the internal reference to the OPAMP's non inverting input */
+    /* Disconnect the internal reference to the OPAMP's non inverting input */
     *(__IO uint32_t *) (OPAMP_BASE + OPAMP_Selection) &= (uint32_t)(~OPAMP_CSR_FORCEVP);
   }
 }
@@ -325,7 +325,7 @@ void OPAMP_VrefConnectADCCmd(uint32_t OPAMP_Selection, FunctionalState NewState)
   *         the configuration information for the specified OPAMP peripheral.
   *           - OPAMP_InvertingInput specifies the inverting input of OPAMP
   *           - OPAMP_NonInvertingInput specifies the non inverting input of OPAMP
-  * @note   PGA and Vout can't be selected as seconadry inverting input.
+  * @note   PGA and Vout can't be selected as secondary inverting input.
   * @retval None
   */
 void OPAMP_TimerControlledMuxConfig(uint32_t OPAMP_Selection, OPAMP_InitTypeDef* OPAMP_InitStruct)
@@ -417,7 +417,7 @@ void OPAMP_Cmd(uint32_t OPAMP_Selection, FunctionalState NewState)
   *             voltage than the inverting input
   *           - OPAMP output is high when the non-inverting input is at a higher
   *             voltage than the inverting input
-  * @note OPAMP ouput level is provided only during calibration phase.
+  * @note OPAMP output level is provided only during calibration phase.
   * @retval Returns the selected OPAMP output level: low or high.
   *       
   */

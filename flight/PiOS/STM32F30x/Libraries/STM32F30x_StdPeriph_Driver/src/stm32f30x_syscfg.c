@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    stm32f30x_syscfg.c
   * @author  MCD Application Team
-  * @version V1.0.0
-  * @date    04-September-2012
+  * @version V1.2.3
+  * @date    10-July-2015
   * @brief   This file provides firmware functions to manage the following 
   *          functionalities of the SYSCFG peripheral:
   *           + Remapping the memory mapped at 0x00000000  
@@ -28,7 +28,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT 2012 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT 2015 STMicroelectronics</center></h2>
   *
   * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
   * You may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-/* Reset value od SYSCFG_CFGR1 register */
+/* Reset value of SYSCFG_CFGR1 register */
 #define CFGR1_CLEAR_MASK            ((uint32_t)0x7C000000)
 
 /* ------------ SYSCFG registers bit address in the alias region -------------*/
@@ -120,6 +120,10 @@ void SYSCFG_DeInit(void)
   SYSCFG->EXTICR[3] = 0;
   /* Set CFGR2 register to reset value */
   SYSCFG->CFGR2 = 0;
+  /* Set CFGR3 register to reset value */
+  SYSCFG->CFGR3 = 0;
+  /* Set CFGR4 register to reset value */
+  SYSCFG->CFGR4 = 0;
 }
 
 /**
@@ -129,6 +133,7 @@ void SYSCFG_DeInit(void)
   *     @arg SYSCFG_MemoryRemap_Flash: Main Flash memory mapped at 0x00000000  
   *     @arg SYSCFG_MemoryRemap_SystemMemory: System Flash memory mapped at 0x00000000
   *     @arg SYSCFG_MemoryRemap_SRAM: Embedded SRAM mapped at 0x00000000
+  *     @arg SYSCFG_MemoryRemap_FMC: External memory through FMC   
   * @retval None
   */
 void SYSCFG_MemoryRemapConfig(uint32_t SYSCFG_MemoryRemap)
@@ -157,9 +162,24 @@ void SYSCFG_MemoryRemapConfig(uint32_t SYSCFG_MemoryRemap)
   *   This parameter can be one of the following values:
   *     @arg SYSCFG_DMARemap_TIM17: Remap TIM17 DMA requests from DMA1 channel1 to channel2
   *     @arg SYSCFG_DMARemap_TIM16: Remap TIM16 DMA requests from DMA1 channel3 to channel4
-  *     @arg SYSCFG_DMARemap_TIM6DAC1: Remap TIM6/DAC1 DMA requests from DMA2 channel 3 to DMA1 channel 3
-  *     @arg SYSCFG_DMARemap_TIM7DAC2: Remap TIM7/DAC2 DMA requests from DMA2 channel 4 to DMA1 channel 4
+  *     @arg SYSCFG_DMARemap_TIM6DAC1Ch1: Remap TIM6/DAC1 DMA requests from DMA2 channel 3 to DMA1 channel 3
+  *     @arg SYSCFG_DMARemap_TIM7DAC1Ch2: Remap TIM7/DAC2 DMA requests from DMA2 channel 4 to DMA1 channel 4
   *     @arg SYSCFG_DMARemap_ADC2ADC4: Remap ADC2 and ADC4 DMA requests from DMA2 channel1/channel3 to channel3/channel4
+  *     @arg SYSCFG_DMARemap_DAC2Ch1: Remap DAC2 DMA requests to DMA1 channel5
+  *     @arg SYSCFG_DMARemapCh2_SPI1_RX: Remap SPI1 RX DMA1 CH2 requests
+  *     @arg SYSCFG_DMARemapCh4_SPI1_RX: Remap SPI1 RX DMA CH4 requests        
+  *     @arg SYSCFG_DMARemapCh6_SPI1_RX: Remap SPI1 RX DMA CH6 requests       
+  *     @arg SYSCFG_DMARemapCh3_SPI1_TX: Remap SPI1 TX DMA CH2 requests      
+  *     @arg SYSCFG_DMARemapCh5_SPI1_TX: Remap SPI1 TX DMA CH5 requests       
+  *     @arg SYSCFG_DMARemapCh7_SPI1_TX: Remap SPI1 TX DMA CH7 requests       
+  *     @arg SYSCFG_DMARemapCh7_I2C1_RX: Remap I2C1 RX DMA CH7 requests
+  *     @arg SYSCFG_DMARemapCh3_I2C1_RX: Remap I2C1 RX DMA CH3 requests       
+  *     @arg SYSCFG_DMARemapCh5_I2C1_RX: Remap I2C1 RX DMA CH5 requests      
+  *     @arg SYSCFG_DMARemapCh6_I2C1_TX: Remap I2C1 TX DMA CH6 requests       
+  *     @arg SYSCFG_DMARemapCh2_I2C1_TX: Remap I2C1 TX DMA CH2 requests       
+  *     @arg SYSCFG_DMARemapCh4_I2C1_TX: Remap I2C1 TX DMA CH4 requests   
+  *     @arg SYSCFG_DMARemapCh4_ADC2: Remap ADC2 DMA1 Ch4 requests    
+  *     @arg SYSCFG_DMARemapCh2_ADC2: Remap ADC2 DMA1 Ch2 requests
   * @param  NewState: new state of the DMA channel remapping. 
   *         This parameter can be: Enable or Disable.
   * @note   When enabled, DMA channel of the selected peripheral is remapped
@@ -178,15 +198,31 @@ void SYSCFG_DMAChannelRemapConfig(uint32_t SYSCFG_DMARemap, FunctionalState NewS
   assert_param(IS_SYSCFG_DMA_REMAP(SYSCFG_DMARemap));
   assert_param(IS_FUNCTIONAL_STATE(NewState));
 
-  if (NewState != DISABLE)
+  if ((SYSCFG_DMARemap & 0x80000000)!= 0x80000000)
   {
-    /* Remap the DMA channel */
-    SYSCFG->CFGR1 |= (uint32_t)SYSCFG_DMARemap;
+    if (NewState != DISABLE)
+    {
+      /* Remap the DMA channel */
+      SYSCFG->CFGR1 |= (uint32_t)SYSCFG_DMARemap;
+    }
+    else
+    {
+      /* use the default DMA channel mapping */
+      SYSCFG->CFGR1 &= (uint32_t)(~SYSCFG_DMARemap);
+    }
   }
   else
   {
-    /* use the default DMA channel mapping */
-    SYSCFG->CFGR1 &= (uint32_t)(~SYSCFG_DMARemap);
+    if (NewState != DISABLE)
+    {
+      /* Remap the DMA channel */
+      SYSCFG->CFGR3 |= (uint32_t)SYSCFG_DMARemap;
+    }
+    else
+    {
+      /* use the default DMA channel mapping */
+      SYSCFG->CFGR3 &= (uint32_t)(~SYSCFG_DMARemap);
+    }
   }
 }
 
@@ -196,6 +232,8 @@ void SYSCFG_DMAChannelRemapConfig(uint32_t SYSCFG_DMARemap, FunctionalState NewS
   *   This parameter can be one of the following values:
   *     @arg SYSCFG_TriggerRemap_DACTIM3: Remap DAC trigger from TIM8 to TIM3
   *     @arg SYSCFG_TriggerRemap_TIM1TIM17: Remap TIM1 ITR3 from TIM4 TRGO to TIM17 OC
+  *     @arg SYSCFG_TriggerRemap_DACHRTIM1_TRIG1: Remap DAC trigger to HRTIM1 TRIG1
+  *     @arg SYSCFG_TriggerRemap_DACHRTIM1_TRIG2: Remap DAC trigger to HRTIM1 TRIG2    
   * @param  NewState: new state of the trigger mapping. 
   *         This parameter can be: ENABLE or DISABLE.
   * @note   ENABLE:  Enable fast mode plus driving capability for selected pin
@@ -207,16 +245,32 @@ void SYSCFG_TriggerRemapConfig(uint32_t SYSCFG_TriggerRemap, FunctionalState New
   /* Check the parameters */
   assert_param(IS_SYSCFG_TRIGGER_REMAP(SYSCFG_TriggerRemap));
   assert_param(IS_FUNCTIONAL_STATE(NewState));
-
-  if (NewState != DISABLE)
+  
+  if ((SYSCFG_TriggerRemap & 0x80000000)!= 0x80000000)
   {
-    /* Remap the trigger */
-    SYSCFG->CFGR1 |= (uint32_t)SYSCFG_TriggerRemap;
+    if (NewState != DISABLE)
+    {
+      /* Remap the trigger */
+      SYSCFG->CFGR1 |= (uint32_t)SYSCFG_TriggerRemap;
+    }
+    else
+    {
+      /* Use the default trigger mapping */
+      SYSCFG->CFGR1 &= (uint32_t)(~SYSCFG_TriggerRemap);
+    }
   }
   else
   {
-    /* Use the default trigger mapping */
-    SYSCFG->CFGR1 &= (uint32_t)(~SYSCFG_TriggerRemap);
+    if (NewState != DISABLE)
+    {
+      /* Remap the trigger */
+      SYSCFG->CFGR3 |= (uint32_t)SYSCFG_TriggerRemap;
+    }
+    else
+    {
+      /* Use the default trigger mapping */
+      SYSCFG->CFGR3 &= (uint32_t)(~SYSCFG_TriggerRemap);
+    }
   }
 }
 
@@ -263,7 +317,7 @@ void SYSCFG_USBInterruptLineRemapCmd(FunctionalState NewState)
   /* Check the parameter */
   assert_param(IS_FUNCTIONAL_STATE(NewState));
 
-  /* Remap the USB interupt lines */
+  /* Remap the USB interrupt lines */
   *(__IO uint32_t *) CFGR1_USBITRMP_BB = (uint32_t)NewState;
 }
 
@@ -277,6 +331,7 @@ void SYSCFG_USBInterruptLineRemapCmd(FunctionalState NewState)
   *     @arg SYSCFG_I2CFastModePlus_PB9: Configure fast mode plus driving capability for PB9
   *     @arg SYSCFG_I2CFastModePlus_I2C1: Configure fast mode plus driving capability for I2C1 pins
   *     @arg SYSCFG_I2CFastModePlus_I2C2: Configure fast mode plus driving capability for I2C2 pins
+  *     @arg SYSCFG_I2CFastModePlus_I2C3: Configure fast mode plus driving capability for I2C3 pins  
   * @param  NewState: new state of the DMA channel remapping. 
   *         This parameter can be:
   *     @arg ENABLE: Enable fast mode plus driving capability for selected I2C pin
@@ -284,7 +339,7 @@ void SYSCFG_USBInterruptLineRemapCmd(FunctionalState NewState)
   * @note  For I2C1, fast mode plus driving capability can be enabled on all selected
   *        I2C1 pins using SYSCFG_I2CFastModePlus_I2C1 parameter or independently
   *        on each one of the following pins PB6, PB7, PB8 and PB9.
-  * @note  For remaing I2C1 pins (PA14, PA15...) fast mode plus driving capability
+  * @note  For remaining I2C1 pins (PA14, PA15...) fast mode plus driving capability
   *        can be enabled only by using SYSCFG_I2CFastModePlus_I2C1 parameter.
   * @note  For all I2C2 pins fast mode plus driving capability can be enabled
   *        only by using SYSCFG_I2CFastModePlus_I2C2 parameter.
@@ -318,7 +373,7 @@ void SYSCFG_I2CFastModePlusConfig(uint32_t SYSCFG_I2CFastModePlus, FunctionalSta
   *     @arg SYSCFG_IT_UFC: Underflow Interrupt
   *     @arg SYSCFG_IT_DZC: Divide-by-zero Interrupt
   *     @arg SYSCFG_IT_IOC: Invalid operation Interrupt
-  * @param  NewState: new state of the specified SDADC interrupts.
+  * @param  NewState: new state of the specified SYSCFG interrupts.
   *         This parameter can be: ENABLE or DISABLE.
   * @retval None
   */
@@ -343,7 +398,7 @@ void SYSCFG_ITConfig(uint32_t SYSCFG_IT, FunctionalState NewState)
 /**
   * @brief  Selects the GPIO pin used as EXTI Line.
   * @param  EXTI_PortSourceGPIOx : selects the GPIO port to be used as source 
-  *                                for EXTI lines where x can be (A, B, C, D, E or F).
+  *                                for EXTI lines where x can be (A, B, C, D, E, F, G, H).
   * @param  EXTI_PinSourcex: specifies the EXTI line to be configured.
   *         This parameter can be EXTI_PinSourcex where x can be (0..15)
   * @retval None
@@ -369,7 +424,7 @@ void SYSCFG_EXTILineConfig(uint8_t EXTI_PortSourceGPIOx, uint8_t EXTI_PinSourcex
   *   This parameter can be any combination of the following values:
   *     @arg SYSCFG_Break_PVD: PVD interrupt is connected to the break input of TIM1.
   *     @arg SYSCFG_Break_SRAMParity: SRAM Parity error is connected to the break input of TIM1.
-  *     @arg SYSCFG_Break_HardFault: Lockup output of CortexM0 is connected to the break input of TIM1.
+  *     @arg SYSCFG_Break_HardFault: Lockup output of CortexM4 is connected to the break input of TIM1.
   * @retval None
   */
 void SYSCFG_BreakConfig(uint32_t SYSCFG_Break)
@@ -389,8 +444,50 @@ void SYSCFG_BreakConfig(uint32_t SYSCFG_Break)
   */
 void SYSCFG_BypassParityCheckDisable(void)
 {
-  /* Disable the adddress parity check on RAM */
+  /* Disable the address parity check on RAM */
   *(__IO uint32_t *) CFGR1_BYPADDRPAR_BB = (uint32_t)0x00000001;
+}
+
+/**
+  * @brief  Configures the remapping capabilities of DAC/TIM triggers.
+  * @param  SYSCFG_ADCTriggerRemap: selects the ADC trigger to be remapped.
+  *   This parameter can be one of the following values: 
+  *     @arg REMAPADCTRIGGER_ADC12_EXT2: Input trigger of ADC12 regular channel EXT2
+  *     @arg REMAPADCTRIGGER_ADC12_EXT3: Input trigger of ADC12 regular channel EXT3
+  *     @arg REMAPADCTRIGGER_ADC12_EXT5: Input trigger of ADC12 regular channel EXT5
+  *     @arg REMAPADCTRIGGER_ADC12_EXT13: Input trigger of ADC12 regular channel EXT13
+  *     @arg REMAPADCTRIGGER_ADC12_EXT15: Input trigger of ADC12 regular channel EXT15
+  *     @arg REMAPADCTRIGGER_ADC12_JEXT3: Input trigger of ADC12 injected channel JEXT3
+  *     @arg REMAPADCTRIGGER_ADC12_JEXT6: Input trigger of ADC12 injected channel JEXT6
+  *     @arg REMAPADCTRIGGER_ADC12_JEXT13: Input trigger of ADC12 injected channel JEXT16
+  *     @arg REMAPADCTRIGGER_ADC34_EXT5: Input trigger of ADC34 regular channel EXT5
+  *     @arg REMAPADCTRIGGER_ADC34_EXT6: Input trigger of ADC34 regular channel EXT6
+  *     @arg REMAPADCTRIGGER_ADC34_EXT15: Input trigger of ADC34 regular channel EXT15
+  *     @arg REMAPADCTRIGGER_ADC34_JEXT5: Input trigger of ADC34 injected channel JEXT5
+  *     @arg REMAPADCTRIGGER_ADC34_JEXT11: Input trigger of ADC34 injected channel JEXT11
+  *     @arg REMAPADCTRIGGER_ADC34_JEXT14: Input trigger of ADC34 injected channel JEXT14  
+  * @param  NewState: new state of the trigger mapping. 
+  *         This parameter can be: ENABLE or DISABLE.
+  * @note   ENABLE:  Enable fast mode plus driving capability for selected pin
+  * @note   DISABLE: Disable fast mode plus driving capability for selected pin
+  * @retval None
+  */
+void SYSCFG_ADCTriggerRemapConfig(uint32_t SYSCFG_ADCTriggerRemap, FunctionalState NewState)
+{
+  /* Check the parameters */
+  assert_param(IS_SYSCFG_ADC_TRIGGER_REMAP(SYSCFG_ADCTriggerRemap));
+  assert_param(IS_FUNCTIONAL_STATE(NewState));
+  
+  if (NewState != DISABLE)
+  {
+    /* Remap the trigger */
+    SYSCFG->CFGR4 |= (uint32_t)SYSCFG_ADCTriggerRemap;
+  }
+  else
+  {
+    /* Use the default trigger mapping */
+    SYSCFG->CFGR4 &= (uint32_t)(~SYSCFG_ADCTriggerRemap);
+  }
 }
 
 /**

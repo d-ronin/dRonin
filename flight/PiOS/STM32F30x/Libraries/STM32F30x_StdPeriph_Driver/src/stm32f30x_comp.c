@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    stm32f30x_comp.c
   * @author  MCD Application Team
-  * @version V1.0.0
-  * @date    04-September-2012
+  * @version V1.2.3
+  * @date    10-July-2015
   * @brief   This file provides firmware functions to manage the following 
   *          functionalities of the 7 analog comparators (COMP1, COMP2...COMP7) peripheral: 
   *           + Comparators configuration
@@ -46,10 +46,11 @@
  |                 | 1/2 VREFINT    |  OK   |  OK   |  OK   |  OK   |  OK   |  OK   |  OK   |
  |                 | 3/4 VREFINT    |  OK   |  OK   |  OK   |  OK   |  OK   |  OK   |  OK   |
  | Inverting Input | VREFINT        |  OK   |  OK   |  OK   |  OK   |  OK   |  OK   |  OK   |
- |                 | DAC1 OUT (PA4) |  OK   |  OK   |  OK   |  OK   |  OK   |  OK   |  OK   |
- |                 | DAC2 OUT (PA5) |  OK   |  OK   |  OK   |  OK   |  OK   |  OK   |  OK   |
+ |                 | DAC1 OUT1(PA4) |  OK   |  OK   |  OK   |  OK   |  OK   |  OK   |  OK   |
+ |                 | DAC1 OUT2(PA5) |  OK   |  OK   |  OK   |  OK   |  OK   |  OK   |  OK   |
  |                 | IO1            |  PA0  |  PA2  |  PD15 |  PE8  |  PD13 |  PD10 |  PC0  |
  |                 | IO2            |  ---  |  ---  |  PB12 |  PB2  |  PB10 |  PB15 |  ---  |
+ |                 | DAC2 OUT1(PA6) |  ---  |  OK   |  ---  |  OK   |  ---  |  OK   |  ---  |
  |-----------------|----------------|-------|-------|-------|-------|-------|-------|-------|
  |  Non Inverting  | IO1            |  PA1  |  PA7  |  PB14 |  PB0  |  PD12 |  PD11 |  PA0  |
  |    Input        | IO2            |  ---  |  PA3  |  PD14 |  PE7  |  PB13 |  PB11 |  PC1  |
@@ -145,7 +146,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT 2012 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT 2014 STMicroelectronics</center></h2>
   *
   * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
   * You may not use this file except in compliance with the License.
@@ -236,6 +237,9 @@ void COMP_DeInit(uint32_t COMP_Selection)
   *           - COMP_OutputPol select output polarity
   *           - COMP_Hysteresis configures COMP hysteresis value
   *           - COMP_Mode configures COMP power mode
+  * @note    COMP_Hysteresis must be configured only for STM32F303xC. Otherwise, COMP_Hysteresis
+  *          must be kept at reset value(COMP_Hysteresis_No).
+  * @note    COMP_Mode field is only applicable for STM32F303xC devices.
   * @retval None
   */
 void COMP_Init(uint32_t COMP_Selection, COMP_InitTypeDef* COMP_InitStruct)

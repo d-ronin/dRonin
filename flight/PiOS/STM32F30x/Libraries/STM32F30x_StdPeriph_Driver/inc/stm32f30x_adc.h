@@ -2,14 +2,14 @@
   ******************************************************************************
   * @file    stm32f30x_adc.h
   * @author  MCD Application Team
-  * @version V1.0.0
-  * @date    04-September-2012
+  * @version V1.2.3
+  * @date    10-July-2015
   * @brief   This file contains all the functions prototypes for the ADC firmware 
   *          library.
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT 2012 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT 2015 STMicroelectronics</center></h2>
   *
   * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
   * You may not use this file except in compliance with the License.
@@ -117,8 +117,7 @@ typedef struct
   uint32_t ADC_DMAMode;                  /*!< Configures the DMA mode for ADC.                                             
                                               This parameter can be a value of @ref ADC_DMA_Mode_definition */
   uint8_t ADC_TwoSamplingDelay;          /*!< Configures the Delay between 2 sampling phases.
-                                               This parameter can be a value of 
-                                               @ref ADC_delay_between_2_sampling_phases */
+                                               This parameter can be a value between  0x0 and 0xF  */
   
 }ADC_CommonInitTypeDef;
 
@@ -445,7 +444,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup ADC_injected_channel_selection 
+/** @defgroup ADC_injected_Channel_selection 
   * @{
   */
 
@@ -453,10 +452,55 @@ typedef struct
 #define ADC_InjectedChannel_2                       ADC_Channel_2        /*!<  ADC Injected channel 2 */
 #define ADC_InjectedChannel_3                       ADC_Channel_3        /*!<  ADC Injected channel 3 */
 #define ADC_InjectedChannel_4                       ADC_Channel_4        /*!<  ADC Injected channel 4 */
+#define ADC_InjectedChannel_5                       ADC_Channel_5        /*!<  ADC Injected channel 5 */
+#define ADC_InjectedChannel_6                       ADC_Channel_6        /*!<  ADC Injected channel 6 */
+#define ADC_InjectedChannel_7                       ADC_Channel_7        /*!<  ADC Injected channel 7 */
+#define ADC_InjectedChannel_8                       ADC_Channel_8        /*!<  ADC Injected channel 8 */
+#define ADC_InjectedChannel_9                       ADC_Channel_9        /*!<  ADC Injected channel 9 */
+#define ADC_InjectedChannel_10                      ADC_Channel_10       /*!<  ADC Injected channel 10 */
+#define ADC_InjectedChannel_11                      ADC_Channel_11       /*!<  ADC Injected channel 11 */
+#define ADC_InjectedChannel_12                      ADC_Channel_12       /*!<  ADC Injected channel 12 */
+#define ADC_InjectedChannel_13                      ADC_Channel_13       /*!<  ADC Injected channel 13 */
+#define ADC_InjectedChannel_14                      ADC_Channel_14       /*!<  ADC Injected channel 14 */
+#define ADC_InjectedChannel_15                      ADC_Channel_15       /*!<  ADC Injected channel 15 */
+#define ADC_InjectedChannel_16                      ADC_Channel_16       /*!<  ADC Injected channel 16 */
+#define ADC_InjectedChannel_17                      ADC_Channel_17       /*!<  ADC Injected channel 17 */
+#define ADC_InjectedChannel_18                      ADC_Channel_18       /*!<  ADC Injected channel 18 */
+
 #define IS_ADC_INJECTED_CHANNEL(CHANNEL) (((CHANNEL) == ADC_InjectedChannel_1) || \
                                           ((CHANNEL) == ADC_InjectedChannel_2) || \
                                           ((CHANNEL) == ADC_InjectedChannel_3) || \
-                                          ((CHANNEL) == ADC_InjectedChannel_4))
+                                          ((CHANNEL) == ADC_InjectedChannel_4) ||\
+                                          ((CHANNEL) == ADC_InjectedChannel_5) ||\
+                                          ((CHANNEL) == ADC_InjectedChannel_6) ||\
+                                          ((CHANNEL) == ADC_InjectedChannel_7) ||\
+                                          ((CHANNEL) == ADC_InjectedChannel_8) ||\
+                                          ((CHANNEL) == ADC_InjectedChannel_9) ||\
+                                          ((CHANNEL) == ADC_InjectedChannel_10) ||\
+                                          ((CHANNEL) == ADC_InjectedChannel_11) ||\
+                                          ((CHANNEL) == ADC_InjectedChannel_12) ||\
+                                          ((CHANNEL) == ADC_InjectedChannel_13) ||\
+                                          ((CHANNEL) == ADC_InjectedChannel_14) ||\
+                                          ((CHANNEL) == ADC_InjectedChannel_15) ||\
+                                          ((CHANNEL) == ADC_InjectedChannel_16) ||\
+                                          ((CHANNEL) == ADC_InjectedChannel_17) ||\
+                                          ((CHANNEL) == ADC_InjectedChannel_18))
+/**
+  * @}
+  */
+
+/** @defgroup ADC_injected_Sequence_selection 
+  * @{
+  */
+
+#define ADC_InjectedSequence_1                       ADC_Channel_1        /*!<  ADC Injected sequence 1 */
+#define ADC_InjectedSequence_2                       ADC_Channel_2        /*!<  ADC Injected sequence 2 */
+#define ADC_InjectedSequence_3                       ADC_Channel_3        /*!<  ADC Injected sequence 3 */
+#define ADC_InjectedSequence_4                       ADC_Channel_4        /*!<  ADC Injected sequence 4 */
+#define IS_ADC_INJECTED_SEQUENCE(SEQUENCE) (((SEQUENCE) == ADC_InjectedSequence_1) || \
+                                            ((SEQUENCE) == ADC_InjectedSequence_2) || \
+                                            ((SEQUENCE) == ADC_InjectedSequence_3) || \
+                                            ((SEQUENCE) == ADC_InjectedSequence_4))
 /**
   * @}
   */
@@ -712,7 +756,7 @@ void ADC_TempSensorCmd(ADC_TypeDef* ADCx, FunctionalState NewState);
 void ADC_VrefintCmd(ADC_TypeDef* ADCx, FunctionalState NewState); 
 void ADC_VbatCmd(ADC_TypeDef* ADCx, FunctionalState NewState); 
 
-/* Regular Channels Configuration functions ***********************************/
+/* Channels Configuration functions ***********************************/
 void ADC_RegularChannelConfig(ADC_TypeDef* ADCx, uint8_t ADC_Channel, uint8_t Rank, uint8_t ADC_SampleTime);
 void ADC_RegularChannelSequencerLengthConfig(ADC_TypeDef* ADCx, uint8_t SequencerLength); 
 void ADC_ExternalTriggerConfig(ADC_TypeDef* ADCx, uint16_t ADC_ExternalTrigConvEvent, uint16_t ADC_ExternalTrigEventEdge); 
@@ -740,11 +784,7 @@ void ADC_DMACmd(ADC_TypeDef* ADCx, FunctionalState NewState);
 void ADC_DMAConfig(ADC_TypeDef* ADCx, uint32_t ADC_DMAMode);  
 
 /* Injected channels Configuration functions **********************************/
-void ADC_InjectedChannelConfig(ADC_TypeDef* ADCx, uint8_t ADC_Channel, uint8_t Rank, uint8_t ADC_SampleTime);
-void ADC_InjectedSequencerLengthConfig(ADC_TypeDef* ADCx, uint8_t SequencerLength); 
-
-void ADC_ExternalTriggerInjectedConfig(ADC_TypeDef* ADCx, uint16_t ADC_ExternalTrigInjecConvEvent, uint16_t ADC_ExternalTrigInjecEventEdge);
-
+void ADC_InjectedChannelSampleTimeConfig(ADC_TypeDef* ADCx, uint8_t ADC_InjectedChannel, uint8_t ADC_SampleTime);
 void ADC_StartInjectedConversion(ADC_TypeDef* ADCx); 
 FlagStatus ADC_GetStartInjectedConversionStatus(ADC_TypeDef* ADCx); 
 void ADC_StopInjectedConversion(ADC_TypeDef* ADCx); 
