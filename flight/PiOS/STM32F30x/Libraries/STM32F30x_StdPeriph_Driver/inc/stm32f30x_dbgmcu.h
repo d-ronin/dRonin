@@ -2,13 +2,13 @@
   ******************************************************************************
   * @file    stm32f30x_dbgmcu.h
   * @author  MCD Application Team
-  * @version V1.0.0
-  * @date    04-September-2012
+  * @version V1.2.3
+  * @date    10-July-2015
   * @brief   This file contains all the functions prototypes for the DBGMCU firmware library.
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT 2012 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT 2015 STMicroelectronics</center></h2>
   *
   * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
   * You may not use this file except in compliance with the License.
@@ -66,15 +66,17 @@
 #define DBGMCU_I2C1_SMBUS_TIMEOUT    ((uint32_t)0x00200000)
 #define DBGMCU_I2C2_SMBUS_TIMEOUT    ((uint32_t)0x00400000)
 #define DBGMCU_CAN1_STOP             ((uint32_t)0x02000000)
+#define DBGMCU_I2C3_SMBUS_TIMEOUT    ((uint32_t)0x40000000)
 
-#define IS_DBGMCU_APB1PERIPH(PERIPH) ((((PERIPH) & 0xFD9FE3C8) == 0x00) && ((PERIPH) != 0x00))
+#define IS_DBGMCU_APB1PERIPH(PERIPH) ((((PERIPH) & 0xBD9FE3C8) == 0x00) && ((PERIPH) != 0x00))
 
 #define DBGMCU_TIM1_STOP             ((uint32_t)0x00000001)
 #define DBGMCU_TIM8_STOP             ((uint32_t)0x00000002)
 #define DBGMCU_TIM15_STOP            ((uint32_t)0x00000004)
 #define DBGMCU_TIM16_STOP            ((uint32_t)0x00000008)
 #define DBGMCU_TIM17_STOP            ((uint32_t)0x00000010)
-#define IS_DBGMCU_APB2PERIPH(PERIPH) ((((PERIPH) & 0xFFFFFFE0) == 0x00) && ((PERIPH) != 0x00))
+#define DBGMCU_TIM20_STOP            ((uint32_t)0x00000020)
+#define IS_DBGMCU_APB2PERIPH(PERIPH) ((((PERIPH) & 0xFFFFFFC0) == 0x00) && ((PERIPH) != 0x00))
 
 /**
   * @}

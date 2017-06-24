@@ -2,14 +2,14 @@
   ******************************************************************************
   * @file    stm32f30x_gpio.h
   * @author  MCD Application Team
-  * @version V1.0.0
-  * @date    04-September-2012
+  * @version V1.2.3
+  * @date    10-July-2015
   * @brief   This file contains all the functions prototypes for the GPIO 
   *          firmware library. 
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT 2012 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT 2015 STMicroelectronics</center></h2>
   *
   * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
   * You may not use this file except in compliance with the License.
@@ -52,11 +52,15 @@
                                     ((PERIPH) == GPIOC) || \
                                     ((PERIPH) == GPIOD) || \
                                     ((PERIPH) == GPIOE) || \
-                                    ((PERIPH) == GPIOF))  
+                                    ((PERIPH) == GPIOF) || \
+                                    ((PERIPH) == GPIOG) || \
+                                    ((PERIPH) == GPIOH))  
                                     
 #define IS_GPIO_LIST_PERIPH(PERIPH) (((PERIPH) == GPIOA) || \
                                      ((PERIPH) == GPIOB) || \
-                                     ((PERIPH) == GPIOD))  
+                                     ((PERIPH) == GPIOC)|| \
+                                     ((PERIPH) == GPIOD) || \
+                                     ((PERIPH) == GPIOF))  
 /** @defgroup Configuration_Mode_enumeration 
   * @{
   */ 
@@ -65,7 +69,7 @@ typedef enum
   GPIO_Mode_IN   = 0x00, /*!< GPIO Input Mode */
   GPIO_Mode_OUT  = 0x01, /*!< GPIO Output Mode */
   GPIO_Mode_AF   = 0x02, /*!< GPIO Alternate function Mode */
-  GPIO_Mode_AN   = 0x03  /*!< GPIO Analog Mode */
+  GPIO_Mode_AN   = 0x03  /*!< GPIO Analog In/Out Mode      */
 }GPIOMode_TypeDef;
 
 #define IS_GPIO_MODE(MODE) (((MODE) == GPIO_Mode_IN)|| ((MODE) == GPIO_Mode_OUT) || \
@@ -94,13 +98,13 @@ typedef enum
   */ 
 typedef enum
 { 
-  GPIO_Speed_2MHz   = 0x01, /*!< Medium Speed */
-  GPIO_Speed_10MHz  = 0x02, /*!< Fast Speed   */
-  GPIO_Speed_50MHz  = 0x03  /*!< High Speed   */
+  GPIO_Speed_Level_1  = 0x01, /*!< Fast Speed     */
+  GPIO_Speed_Level_2  = 0x02, /*!< Meduim Speed   */
+  GPIO_Speed_Level_3  = 0x03  /*!< High Speed     */
 }GPIOSpeed_TypeDef;
 
-#define IS_GPIO_SPEED(SPEED) (((SPEED) == GPIO_Speed_2MHz) || \
-                              ((SPEED) == GPIO_Speed_10MHz)||  ((SPEED) == GPIO_Speed_50MHz))
+#define IS_GPIO_SPEED(SPEED) (((SPEED) == GPIO_Speed_Level_1) || ((SPEED) == GPIO_Speed_Level_2) || \
+                              ((SPEED) == GPIO_Speed_Level_3))
 /**
   * @}
   */  
@@ -263,12 +267,12 @@ typedef struct
 /** 
   * @brief  AF 2 selection
   */ 
-#define GPIO_AF_2            ((uint8_t)0x02) /* COMP1_OUT, TIM1, TIM2, TIM3, TIM4, TIM8, TIM15 */
+#define GPIO_AF_2            ((uint8_t)0x02) /* COMP1_OUT, TIM1, TIM2, TIM3, TIM4, TIM8, TIM15, TIM16 */
 
 /** 
   * @brief  AF 3 selection
   */ 
-#define GPIO_AF_3            ((uint8_t)0x03) /* COMP7_OUT, TIM8, TIM15, Touch */
+#define GPIO_AF_3            ((uint8_t)0x03) /* COMP7_OUT, TIM8, TIM15, Touch, HRTIM1 */
 
 /** 
   * @brief  AF 4 selection
@@ -315,7 +319,12 @@ typedef struct
 /** 
    * @brief  AF 12 selection
    */ 
-#define GPIO_AF_12            ((uint8_t)0x0E) /* TIM1 */
+#define GPIO_AF_12            ((uint8_t)0x0C) /* TIM1, HRTIM1 */
+
+/** 
+   * @brief  AF 13 selection
+   */ 
+#define GPIO_AF_13            ((uint8_t)0x0D) /* HRTIM1, AOP2_OUT */
 
 /** 
   * @brief  AF 14 selection
@@ -333,7 +342,20 @@ typedef struct
                           ((AF) == GPIO_AF_6)||((AF) == GPIO_AF_7)||\
                           ((AF) == GPIO_AF_8)||((AF) == GPIO_AF_9)||\
                           ((AF) == GPIO_AF_10)||((AF) == GPIO_AF_11)||\
+                          ((AF) == GPIO_AF_12)||((AF) == GPIO_AF_13)||\
                           ((AF) == GPIO_AF_14)||((AF) == GPIO_AF_15))
+
+/**
+  * @}
+  */
+
+/** @defgroup GPIO_Speed_Legacy 
+  * @{
+  */
+
+#define GPIO_Speed_10MHz GPIO_Speed_Level_1   /*!< Fast Speed:10MHz   */
+#define GPIO_Speed_2MHz  GPIO_Speed_Level_2   /*!< Medium Speed:2MHz  */
+#define GPIO_Speed_50MHz GPIO_Speed_Level_3   /*!< High Speed:50MHz   */
 
 /**
   * @}

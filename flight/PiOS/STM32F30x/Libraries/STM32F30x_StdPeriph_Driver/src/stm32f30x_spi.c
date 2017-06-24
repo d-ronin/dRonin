@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    stm32f30x_spi.c
   * @author  MCD Application Team
-  * @version V1.0.0
-  * @date    04-September-2012
+  * @version V1.2.3
+  * @date    10-July-2015
   * @brief   This file provides firmware functions to manage the following 
   *          functionalities of the Serial peripheral interface (SPI):
   *           + Initialization and Configuration
@@ -102,7 +102,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT 2012 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT 2015 STMicroelectronics</center></h2>
   *
   * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
   * You may not use this file except in compliance with the License.
@@ -165,7 +165,7 @@
          use the following function to manage the NSS bit:
          void SPI_NSSInternalSoftwareConfig(SPI_TypeDef* SPIx, uint16_t SPI_NSSInternalSoft);
     [..] In Master mode, when the Hardware NSS management (SPI_InitStruct->SPI_NSS = SPI_NSS_Hard)
-         is selected, use the follwoing function to enable the NSS output feature.
+         is selected, use the following function to enable the NSS output feature.
          void SPI_SSOutputCmd(SPI_TypeDef* SPIx, FunctionalState NewState);
     [..] The NSS pulse mode can be managed by the SPI TI mode when enabling it using the 
          following function: void SPI_TIModeCmd(SPI_TypeDef* SPIx, FunctionalState NewState);
@@ -206,14 +206,21 @@ void SPI_I2S_DeInit(SPI_TypeDef* SPIx)
     /* Release SPI2 from reset state */
     RCC_APB1PeriphResetCmd(RCC_APB1Periph_SPI2, DISABLE);
   }
+  else if (SPIx == SPI3)
+  {
+    /* Enable SPI3 reset state */
+    RCC_APB1PeriphResetCmd(RCC_APB1Periph_SPI3, ENABLE);
+    /* Release SPI3 from reset state */
+    RCC_APB1PeriphResetCmd(RCC_APB1Periph_SPI3, DISABLE);
+  }
   else
   {
-    if (SPIx == SPI3)
+    if (SPIx == SPI4)
     {
-      /* Enable SPI3 reset state */
-      RCC_APB1PeriphResetCmd(RCC_APB1Periph_SPI3, ENABLE);
-      /* Release SPI3 from reset state */
-      RCC_APB1PeriphResetCmd(RCC_APB1Periph_SPI3, DISABLE);
+      /* Enable SPI4 reset state */
+      RCC_APB2PeriphResetCmd(RCC_APB2Periph_SPI4, ENABLE);
+      /* Release SPI4 from reset state */
+      RCC_APB2PeriphResetCmd(RCC_APB2Periph_SPI4, DISABLE);
     }
   }
 }
@@ -249,7 +256,7 @@ void SPI_StructInit(SPI_InitTypeDef* SPI_InitStruct)
 /**
   * @brief  Initializes the SPIx peripheral according to the specified 
   *         parameters in the SPI_InitStruct.
-  * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral.
+  * @param  SPIx: where x can be 1, 2,  3 or 4 to select the SPI peripheral.
   * @param  SPI_InitStruct: pointer to a SPI_InitTypeDef structure that
   *         contains the configuration information for the specified SPI peripheral.
   * @retval None
@@ -486,7 +493,7 @@ void I2S_Init(SPI_TypeDef* SPIx, I2S_InitTypeDef* I2S_InitStruct)
 
 /**
   * @brief  Enables or disables the specified SPI peripheral.
-  * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral.
+  * @param  SPIx: where x can be 1, 2,  3 or 4 to select the SPI peripheral.
   * @param  NewState: new state of the SPIx peripheral. 
   *         This parameter can be: ENABLE or DISABLE.
   * @retval None
@@ -516,7 +523,7 @@ void SPI_Cmd(SPI_TypeDef* SPIx, FunctionalState NewState)
   * @note    When TI mode is selected, the control bits SSM, SSI, CPOL and CPHA 
   *          are not taken into consideration and are configured by hardware 
   *          respectively to the TI mode requirements.  
-  * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral.  
+  * @param  SPIx: where x can be 1, 2,  3 or 4 to select the SPI peripheral.  
   * @param  NewState: new state of the selected SPI TI communication mode.
   *         This parameter can be: ENABLE or DISABLE.
   * @retval None
@@ -566,7 +573,7 @@ void I2S_Cmd(SPI_TypeDef* SPIx, FunctionalState NewState)
 
 /**
   * @brief  Configures the data size for the selected SPI.
-  * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral. 
+  * @param  SPIx: where x can be 1, 2,  3 or 4 to select the SPI peripheral. 
   * @param  SPI_DataSize: specifies the SPI data size.
   *   For the SPIx peripheral this parameter can be one of the following values:
   *     @arg SPI_DataSize_4b: Set data size to 4 bits
@@ -602,7 +609,7 @@ void SPI_DataSizeConfig(SPI_TypeDef* SPIx, uint16_t SPI_DataSize)
 
 /**
   * @brief  Configures the FIFO reception threshold for the selected SPI.
-  * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral. 
+  * @param  SPIx: where x can be 1, 2,  3 or 4 to select the SPI peripheral. 
   * @param  SPI_RxFIFOThreshold: specifies the FIFO reception threshold.
   *   This parameter can be one of the following values:
   *     @arg SPI_RxFIFOThreshold_HF: RXNE event is generated if the FIFO 
@@ -626,7 +633,7 @@ void SPI_RxFIFOThresholdConfig(SPI_TypeDef* SPIx, uint16_t SPI_RxFIFOThreshold)
 
 /**
   * @brief  Selects the data transfer direction in bidirectional mode for the specified SPI.
-  * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral. 
+  * @param  SPIx: where x can be 1, 2,  3 or 4 to select the SPI peripheral. 
   * @param  SPI_Direction: specifies the data transfer direction in bidirectional mode. 
   *   This parameter can be one of the following values:
   *     @arg SPI_Direction_Tx: Selects Tx transmission direction
@@ -654,7 +661,7 @@ void SPI_BiDirectionalLineConfig(SPI_TypeDef* SPIx, uint16_t SPI_Direction)
   * @brief  Configures internally by software the NSS pin for the selected SPI.
   * @note    This function can be called only after the SPI_Init() function has 
   *          been called.  
-  * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral.
+  * @param  SPIx: where x can be 1, 2,  3 or 4 to select the SPI peripheral.
   * @param  SPI_NSSInternalSoft: specifies the SPI NSS internal state.
   *   This parameter can be one of the following values:
   *     @arg SPI_NSSInternalSoft_Set: Set NSS pin internally
@@ -692,7 +699,7 @@ void SPI_NSSInternalSoftwareConfig(SPI_TypeDef* SPIx, uint16_t SPI_NSSInternalSo
   *         used for the master I2S peripheral. In this case, if the master is 
   *         configured as transmitter, the slave will be receiver and vice versa.
   *         Or you can force a different mode by modifying the field I2S_Mode to the
-  *         value I2S_SlaveRx or I2S_SlaveTx indepedently of the master configuration.    
+  *         value I2S_SlaveRx or I2S_SlaveTx independently of the master configuration.    
   *         
   * @note   The I2S full duplex extension can be configured in slave mode only.    
   *  
@@ -744,7 +751,7 @@ void I2S_FullDuplexConfig(SPI_TypeDef* I2Sxext, I2S_InitTypeDef* I2S_InitStruct)
   * @brief  Enables or disables the SS output for the selected SPI.
   * @note    This function can be called only after the SPI_Init() function has 
   *          been called and the NSS hardware management mode is selected. 
-  * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral.
+  * @param  SPIx: where x can be 1, 2,  3 or 4 to select the SPI peripheral.
   * @param  NewState: new state of the SPIx SS output. 
   *         This parameter can be: ENABLE or DISABLE.
   * @retval None
@@ -773,7 +780,7 @@ void SPI_SSOutputCmd(SPI_TypeDef* SPIx, FunctionalState NewState)
   * @note    When TI mode is selected, the control bits NSSP is not taken into 
   *          consideration and are configured by hardware respectively to the 
   *          TI mode requirements. 
-  * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral. 
+  * @param  SPIx: where x can be 1, 2,  3 or 4 to select the SPI peripheral. 
   * @param  NewState: new state of the NSS pulse management mode.
   *         This parameter can be: ENABLE or DISABLE.
   * @retval None
@@ -823,7 +830,7 @@ void SPI_NSSPulseModeCmd(SPI_TypeDef* SPIx, FunctionalState NewState)
 
 /**
   * @brief  Transmits a Data through the SPIx peripheral.
-  * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral.
+  * @param  SPIx: where x can be 1, 2,  3 or 4 to select the SPI peripheral.
   * @param  Data: Data to be transmitted.
   * @retval None
   */
@@ -857,7 +864,7 @@ void SPI_I2S_SendData16(SPI_TypeDef* SPIx, uint16_t Data)
 
 /**
   * @brief  Returns the most recent received data by the SPIx peripheral. 
-  * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral.
+  * @param  SPIx: where x can be 1, 2,  3 or 4 to select the SPI peripheral.
   * @retval The value of the received data.
   */
 uint8_t SPI_ReceiveData8(SPI_TypeDef* SPIx)
@@ -875,7 +882,7 @@ uint8_t SPI_ReceiveData8(SPI_TypeDef* SPIx)
 
 /**
   * @brief  Returns the most recent received data by the SPIx peripheral. 
-  * @param  SPIx: To select the SPIx/I2Sx peripheral, where x can be: 1, 2 or 3 
+  * @param  SPIx: To select the SPIx/I2Sx peripheral, where x can be: 1, 2,  3 or 4 
   *         in SPI mode or 2 or 3 in I2S mode or I2Sxext for I2S full duplex mode.
   * @retval The value of the received data.
   */
@@ -954,7 +961,7 @@ uint16_t SPI_I2S_ReceiveData16(SPI_TypeDef* SPIx)
 
 /**
   * @brief  Configures the CRC calculation length for the selected SPI.
-  * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral.
+  * @param  SPIx: where x can be 1, 2,  3 or 4 to select the SPI peripheral.
   * @param  SPI_CRCLength: specifies the SPI CRC calculation length.
   *   This parameter can be one of the following values:
   *     @arg SPI_CRCLength_8b: Set CRC Calculation to 8 bits
@@ -976,7 +983,7 @@ void SPI_CRCLengthConfig(SPI_TypeDef* SPIx, uint16_t SPI_CRCLength)
 
 /**
   * @brief  Enables or disables the CRC value calculation of the transferred bytes.
-  * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral.
+  * @param  SPIx: where x can be 1, 2,  3 or 4 to select the SPI peripheral.
   * @param  NewState: new state of the SPIx CRC value calculation.
   *   This parameter can be: ENABLE or DISABLE.
   * @retval None
@@ -1001,7 +1008,7 @@ void SPI_CalculateCRC(SPI_TypeDef* SPIx, FunctionalState NewState)
 
 /**
   * @brief  Transmits the SPIx CRC value.
-  * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral.
+  * @param  SPIx: where x can be 1, 2,  3 or 4 to select the SPI peripheral.
   * @retval None
   */
 void SPI_TransmitCRC(SPI_TypeDef* SPIx)
@@ -1015,7 +1022,7 @@ void SPI_TransmitCRC(SPI_TypeDef* SPIx)
 
 /**
   * @brief  Returns the transmit or the receive CRC register value for the specified SPI.
-  * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral.
+  * @param  SPIx: where x can be 1, 2,  3 or 4 to select the SPI peripheral.
   * @param  SPI_CRC: specifies the CRC register to be read.
   *   This parameter can be one of the following values:
   *     @arg SPI_CRC_Tx: Selects Tx CRC register
@@ -1045,7 +1052,7 @@ uint16_t SPI_GetCRC(SPI_TypeDef* SPIx, uint8_t SPI_CRC)
 
 /**
   * @brief  Returns the CRC Polynomial register value for the specified SPI.
-  * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral.
+  * @param  SPIx: where x can be 1, 2,  3 or 4 to select the SPI peripheral.
   * @retval The CRC Polynomial register value.
   */
 uint16_t SPI_GetCRCPolynomial(SPI_TypeDef* SPIx)
@@ -1075,7 +1082,7 @@ uint16_t SPI_GetCRCPolynomial(SPI_TypeDef* SPIx)
 
 /**
   * @brief  Enables or disables the SPIx/I2Sx DMA interface.
-  * @param  SPIx:To select the SPIx/I2Sx peripheral, where x can be: 1, 2 or 3 
+  * @param  SPIx:To select the SPIx/I2Sx peripheral, where x can be: 1, 2,  3 or 4 
   *         in SPI mode or 2 or 3 in I2S mode or I2Sxext for I2S full duplex mode. 
   * @param  SPI_I2S_DMAReq: specifies the SPI DMA transfer request to be enabled or disabled. 
   *   This parameter can be any combination of the following values:
@@ -1109,7 +1116,7 @@ void SPI_I2S_DMACmd(SPI_TypeDef* SPIx, uint16_t SPI_I2S_DMAReq, FunctionalState 
   *         last transfers and for the selected SPI.
   * @note   This function have a meaning only if DMA mode is selected and if 
   *         the packing mode is used (data length <= 8 and DMA transfer size halfword)  
-  * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral.
+  * @param  SPIx: where x can be 1, 2,  3 or 4 to select the SPI peripheral.
   * @param  SPI_LastDMATransfer: specifies the SPI last DMA transfers state.
   *   This parameter can be one of the following values:
   *     @arg SPI_LastDMATransfer_TxEvenRxEven: Number of data for transmission Even
@@ -1210,7 +1217,7 @@ void SPI_LastDMATransferCmd(SPI_TypeDef* SPIx, uint16_t SPI_LastDMATransfer)
 
 /**
   * @brief  Enables or disables the specified SPI/I2S interrupts.
-  * @param  SPIx: To select the SPIx/I2Sx peripheral, where x can be: 1, 2 or 3 
+  * @param  SPIx: To select the SPIx/I2Sx peripheral, where x can be: 1, 2,  3 or 4 
   *         in SPI mode or 2 or 3 in I2S mode or I2Sxext for I2S full duplex mode.  
   * @param  SPI_I2S_IT: specifies the SPI interrupt source to be enabled or disabled. 
   *   This parameter can be one of the following values:
@@ -1250,7 +1257,7 @@ void SPI_I2S_ITConfig(SPI_TypeDef* SPIx, uint8_t SPI_I2S_IT, FunctionalState New
 
 /**
   * @brief  Returns the current SPIx Transmission FIFO filled level.
-  * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral.
+  * @param  SPIx: where x can be 1, 2,  3 or 4 to select the SPI peripheral.
   * @retval The Transmission FIFO filling state.
   *   - SPI_TransmissionFIFOStatus_Empty: when FIFO is empty
   *   - SPI_TransmissionFIFOStatus_1QuarterFull: if more than 1 quarter-full.
@@ -1265,7 +1272,7 @@ uint16_t SPI_GetTransmissionFIFOStatus(SPI_TypeDef* SPIx)
 
 /**
   * @brief  Returns the current SPIx Reception FIFO filled level.
-  * @param  SPIx: where x can be 1, 2 or 3 to select the SPI peripheral.
+  * @param  SPIx: where x can be 1, 2,  3 or 4 to select the SPI peripheral.
   * @retval The Reception FIFO filling state.
   *   - SPI_ReceptionFIFOStatus_Empty: when FIFO is empty
   *   - SPI_ReceptionFIFOStatus_1QuarterFull: if more than 1 quarter-full.
@@ -1280,7 +1287,7 @@ uint16_t SPI_GetReceptionFIFOStatus(SPI_TypeDef* SPIx)
 
 /**
   * @brief  Checks whether the specified SPI flag is set or not.
-  * @param  SPIx: To select the SPIx/I2Sx peripheral, where x can be: 1, 2 or 3 
+  * @param  SPIx: To select the SPIx/I2Sx peripheral, where x can be: 1, 2,  3 or 4 
   *         in SPI mode or 2 or 3 in I2S mode or I2Sxext for I2S full duplex mode.  
   * @param  SPI_I2S_FLAG: specifies the SPI flag to check. 
   *   This parameter can be one of the following values:
@@ -1319,7 +1326,7 @@ FlagStatus SPI_I2S_GetFlagStatus(SPI_TypeDef* SPIx, uint16_t SPI_I2S_FLAG)
 
 /**
   * @brief  Clears the SPIx CRC Error (CRCERR) flag.
-  * @param  SPIx: To select the SPIx/I2Sx peripheral, where x can be: 1, 2 or 3 
+  * @param  SPIx: To select the SPIx/I2Sx peripheral, where x can be: 1, 2,  3 or 4 
   *         in SPI mode or 2 or 3 in I2S mode or I2Sxext for I2S full duplex mode. 
   * @param  SPI_I2S_FLAG: specifies the SPI flag to clear. 
   *   This function clears only CRCERR flag.
@@ -1343,7 +1350,7 @@ void SPI_I2S_ClearFlag(SPI_TypeDef* SPIx, uint16_t SPI_I2S_FLAG)
 
 /**
   * @brief  Checks whether the specified SPI/I2S interrupt has occurred or not.
-  * @param  SPIx: To select the SPIx/I2Sx peripheral, where x can be: 1, 2 or 3 
+  * @param  SPIx: To select the SPIx/I2Sx peripheral, where x can be: 1, 2,  3 or 4 
   *         in SPI mode or 2 or 3 in I2S mode or I2Sxext for I2S full duplex mode.  
   * @param  SPI_I2S_IT: specifies the SPI interrupt source to check. 
   *   This parameter can be one of the following values:

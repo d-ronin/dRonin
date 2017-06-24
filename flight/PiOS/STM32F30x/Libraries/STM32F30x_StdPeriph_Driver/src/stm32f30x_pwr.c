@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    stm32f30x_pwr.c
   * @author  MCD Application Team
-  * @version V1.0.0
-  * @date    04-September-2012
+  * @version V1.2.3
+  * @date    10-July-2015
   * @brief   This file provides firmware functions to manage the following 
   *          functionalities of the Power Controller (PWR) peripheral:           
   *           + Backup Domain Access
@@ -15,7 +15,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT 2012 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT 2015 STMicroelectronics</center></h2>
   *
   * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
   * You may not use this file except in compliance with the License.
@@ -330,7 +330,7 @@ void PWR_WakeUpPinCmd(uint32_t PWR_WakeUpPin, FunctionalState NewState)
 
     (+) Comparator auto-wakeup (AWU) from the Stop mode
         (++) To wake up from the Stop mode with a comparator wakeup event, it is necessary to:
-             (+++) Configure the correspondant comparator EXTI Line to be sensitive to 
+             (+++) Configure the correspondent comparator EXTI Line to be sensitive to 
                    the selected edges (falling, rising or falling and rising) 
                    (Interrupt or Event modes) using the EXTI_Init() function.
              (+++) Configure the comparator to generate the event.
@@ -365,6 +365,8 @@ void PWR_EnterSleepMode(uint8_t PWR_SLEEPEntry)
   else
   {
     /* Request Wait For Event */
+    __SEV();
+    __WFE(); 
     __WFE();
   }
 }
@@ -373,7 +375,7 @@ void PWR_EnterSleepMode(uint8_t PWR_SLEEPEntry)
   * @brief  Enters STOP mode.
   * @note   In Stop mode, all I/O pins keep the same state as in Run mode.
   * @note   When exiting Stop mode by issuing an interrupt or a wakeup event, 
-  *         the MSI RC oscillator is selected as system clock.
+  *         the HSI RC oscillator is selected as system clock.
   * @note   When the voltage regulator operates in low power mode, an additional 
   *         startup delay is incurred when waking up from Stop mode. 
   *         By keeping the internal regulator ON during Stop mode, the consumption 
@@ -431,15 +433,13 @@ void PWR_EnterSTOPMode(uint32_t PWR_Regulator, uint8_t PWR_STOPEntry)
   * @note     Reset pad (still available) 
   * @note     RTC_AF1 pin (PC13) if configured for Wakeup pin 2 (WKUP2), tamper, 
   *           time-stamp, RTC Alarm out, or RTC clock calibration out.
-  * @note     WKUP pin 1 (PA0) and WKUP pin 3 (PE6), if enabled.       
+  * @note     WKUP pin 1 (PA0) and WKUP pin 3 (PE6), if enabled.    
+  * @note The Wakeup flag (WUF) need to be cleared at application level before to call this function.        
   * @param  None
   * @retval None
   */
 void PWR_EnterSTANDBYMode(void)
 {
-  /* Clear Wakeup flag */
-  PWR->CR |= PWR_CR_CWUF;
-  
   /* Select STANDBY mode */
   PWR->CR |= PWR_CR_PDDS;
   

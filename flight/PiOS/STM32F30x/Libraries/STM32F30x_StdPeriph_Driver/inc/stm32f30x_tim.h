@@ -2,14 +2,14 @@
   ******************************************************************************
   * @file    stm32f30x_tim.h
   * @author  MCD Application Team
-  * @version V1.0.0
-  * @date    04-September-2012
+  * @version V1.2.3
+  * @date    10-July-2015
   * @brief   This file contains all the functions prototypes for the TIM firmware 
   *          library.
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT 2012 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT 2015 STMicroelectronics</center></h2>
   *
   * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
   * You may not use this file except in compliance with the License.
@@ -27,8 +27,8 @@
   */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __stm32f30x_TIM_H
-#define __stm32f30x_TIM_H
+#ifndef __STM32F30x_TIM_H
+#define __STM32F30x_TIM_H
 
 #ifdef __cplusplus
  extern "C" {
@@ -67,7 +67,7 @@ typedef struct
   uint16_t TIM_ClockDivision;     /*!< Specifies the clock division.
                                       This parameter can be a value of @ref TIM_Clock_Division_CKD */
 
-  uint8_t TIM_RepetitionCounter;  /*!< Specifies the repetition counter value. Each time the RCR downcounter
+  uint16_t TIM_RepetitionCounter;  /*!< Specifies the repetition counter value. Each time the RCR downcounter
                                        reaches zero, an update event is generated and counting restarts
                                        from the RCR value (N).
                                        This means in PWM mode that (N+1) corresponds to:
@@ -181,8 +181,10 @@ typedef struct
                                    ((PERIPH) == TIM8) || \
                                    ((PERIPH) == TIM15) || \
                                    ((PERIPH) == TIM16) || \
-                                   ((PERIPH) == TIM17))
-/* LIST1: TIM1, TIM2, TIM3, TIM4, TIM8, TIM15, TIM16 and TIM17 */                                         
+                                   ((PERIPH) == TIM17) || \
+                                   ((PERIPH) == TIM20))
+                                   
+/* LIST1: TIM1, TIM2, TIM3, TIM4, TIM8, TIM15, TIM16, TIM20 and TIM17 */                                         
 #define IS_TIM_LIST1_PERIPH(PERIPH) (((PERIPH) == TIM1) || \
                                      ((PERIPH) == TIM2) || \
                                      ((PERIPH) == TIM3) || \
@@ -190,24 +192,31 @@ typedef struct
                                      ((PERIPH) == TIM8) || \
                                      ((PERIPH) == TIM15) || \
                                      ((PERIPH) == TIM16) || \
-                                     ((PERIPH) == TIM17))
+                                     ((PERIPH) == TIM17) || \
+                                     ((PERIPH) == TIM20))
                                      
-/* LIST2: TIM1, TIM2, TIM3, TIM4, TIM8 and TIM15 */ 
+/* LIST2: TIM1, TIM2, TIM3, TIM4, TIM8, TIM20 and TIM15 */ 
 #define IS_TIM_LIST2_PERIPH(PERIPH) (((PERIPH) == TIM1) || \
                                      ((PERIPH) == TIM2) || \
                                      ((PERIPH) == TIM3) || \
                                      ((PERIPH) == TIM4) || \
                                      ((PERIPH) == TIM8) || \
-                                     ((PERIPH) == TIM15))
-/* LIST3: TIM1, TIM2, TIM3, TIM4 and TIM8 */ 
+                                     ((PERIPH) == TIM15)|| \
+                                     ((PERIPH) == TIM20))
+                                     
+/* LIST3: TIM1, TIM2, TIM3, TIM4, TIM20 and TIM8 */ 
 #define IS_TIM_LIST3_PERIPH(PERIPH) (((PERIPH) == TIM1) || \
                                      ((PERIPH) == TIM2) || \
                                      ((PERIPH) == TIM3) || \
                                      ((PERIPH) == TIM4) || \
-                                     ((PERIPH) == TIM8))
-/* LIST4: TIM1 and TIM8 */ 
+                                     ((PERIPH) == TIM8) || \
+                                     ((PERIPH) == TIM20))
+                                     
+/* LIST4: TIM1, TIM20 and TIM8 */ 
 #define IS_TIM_LIST4_PERIPH(PERIPH) (((PERIPH) == TIM1) ||\
-                                     ((PERIPH) == TIM8))
+                                     ((PERIPH) == TIM8) ||\
+                                     ((PERIPH) == TIM20))
+                                     
 /* LIST5: TIM1, TIM2, TIM3, TIM4, TIM5, TIM6, TIM7 and TIM8 */
 #define IS_TIM_LIST5_PERIPH(PERIPH) (((PERIPH) == TIM1) || \
                                      ((PERIPH) == TIM2) || \
@@ -216,14 +225,15 @@ typedef struct
                                      ((PERIPH) == TIM6) || \
                                      ((PERIPH) == TIM7) || \
                                      ((PERIPH) == TIM8))
-/* LIST6: TIM1, TIM8, TIM15, TIM16 and TIM17 */                               
+/* LIST6: TIM1, TIM8, TIM15, TIM16, TIM20 and TIM17 */                               
 #define IS_TIM_LIST6_PERIPH(PERIPH) (((PERIPH) == TIM1) || \
                                      ((PERIPH) == TIM8) || \
                                      ((PERIPH) == TIM15) || \
                                      ((PERIPH) == TIM16) || \
-                                     ((PERIPH) == TIM17))
+                                     ((PERIPH) == TIM17) || \
+                                     ((PERIPH) == TIM20))
 
-/* LIST5: TIM1, TIM2, TIM3, TIM4, TIM5, TIM6, TIM7 and TIM8 */
+/* LIST5: TIM1, TIM2, TIM3, TIM4, TIM5, TIM6, TIM7, TIM20 and TIM8 */
 #define IS_TIM_LIST7_PERIPH(PERIPH) (((PERIPH) == TIM1) || \
                                      ((PERIPH) == TIM2) || \
                                      ((PERIPH) == TIM3) || \
@@ -231,11 +241,14 @@ typedef struct
                                      ((PERIPH) == TIM6) || \
                                      ((PERIPH) == TIM7) || \
                                      ((PERIPH) == TIM8) || \
-                                     ((PERIPH) == TIM15))
+                                     ((PERIPH) == TIM15)|| \
+                                     ((PERIPH) == TIM20))
+                                     
 /* LIST8: TIM16 (option register) */                               
 #define IS_TIM_LIST8_PERIPH(PERIPH) (((PERIPH) == TIM16)||  \
-                                     ((PERIPH) == TIM1)||\
-                                     ((PERIPH) == TIM8))
+                                     ((PERIPH) == TIM1) ||\
+                                     ((PERIPH) == TIM8) ||\
+                                     ((PERIPH) == TIM20))
 
 /** @defgroup TIM_Output_Compare_and_PWM_modes 
   * @{
@@ -1065,6 +1078,13 @@ typedef struct
 #define TIM8_ADC3_AWDG2                ((uint16_t)0x0008)
 #define TIM8_ADC3_AWDG3                ((uint16_t)0x000C)
 
+#define TIM20_ADC3_AWDG1               ((uint16_t)0x0001)
+#define TIM20_ADC3_AWDG2               ((uint16_t)0x0002)
+#define TIM20_ADC3_AWDG3               ((uint16_t)0x0003)
+#define TIM20_ADC4_AWDG1               ((uint16_t)0x0004)
+#define TIM20_ADC4_AWDG2               ((uint16_t)0x0008)
+#define TIM20_ADC4_AWDG3               ((uint16_t)0x000C)
+
 #define IS_TIM_REMAP(TIM_REMAP)  (((TIM_REMAP) == TIM16_GPIO)|| \
                                   ((TIM_REMAP) == TIM16_RTC_CLK) || \
                                   ((TIM_REMAP) == TIM16_HSEDiv32) || \
@@ -1080,7 +1100,13 @@ typedef struct
                                   ((TIM_REMAP) == TIM8_ADC2_AWDG3) ||\
                                   ((TIM_REMAP) == TIM8_ADC3_AWDG1) ||\
                                   ((TIM_REMAP) == TIM8_ADC3_AWDG2) ||\
-                                  ((TIM_REMAP) == TIM8_ADC3_AWDG3))                                  
+                                  ((TIM_REMAP) == TIM8_ADC3_AWDG3) ||\
+                                  ((TIM_REMAP) == TIM20_ADC3_AWDG1)||\
+                                  ((TIM_REMAP) == TIM20_ADC3_AWDG2)||\
+                                  ((TIM_REMAP) == TIM20_ADC3_AWDG3)||\
+                                  ((TIM_REMAP) == TIM20_ADC4_AWDG1)||\
+                                  ((TIM_REMAP) == TIM20_ADC4_AWDG2)||\
+                                  ((TIM_REMAP) == TIM20_ADC4_AWDG3))                                  
 
 /**
   * @}
@@ -1321,7 +1347,7 @@ void TIM_RemapConfig(TIM_TypeDef* TIMx, uint16_t TIM_Remap);
 }
 #endif
 
-#endif /*__stm32f30x_TIM_H */
+#endif /*__STM32F30x_TIM_H */
 
 /**
   * @}

@@ -2,14 +2,14 @@
   ******************************************************************************
   * @file    stm32f30x_iwdg.h
   * @author  MCD Application Team
-  * @version V1.0.0
-  * @date    04-September-2012
+  * @version V1.2.3
+  * @date    10-July-2015
   * @brief   This file contains all the functions prototypes for the IWDG 
   *          firmware library.  
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT 2012 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT 2015 STMicroelectronics</center></h2>
   *
   * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
   * You may not use this file except in compliance with the License.
@@ -27,8 +27,8 @@
   */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __STM32F30X_IWDG_H
-#define __STM32F30X_IWDG_H
+#ifndef __STM32F30x_IWDG_H
+#define __STM32F30x_IWDG_H
 
 #ifdef __cplusplus
  extern "C" {
@@ -140,7 +140,7 @@ FlagStatus IWDG_GetFlagStatus(uint16_t IWDG_FLAG);
 }
 #endif
 
-#endif /* __STM32F30X_IWDG_H */
+#endif /* __STM32F30x_IWDG_H */
 
 /**
   * @}

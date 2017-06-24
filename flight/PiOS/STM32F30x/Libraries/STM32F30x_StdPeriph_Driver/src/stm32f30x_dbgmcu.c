@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    stm32f30x_dbgmcu.c
   * @author  MCD Application Team
-  * @version V1.0.0
-  * @date    04-September-2012
+  * @version V1.2.3
+  * @date    10-July-2015
   * @brief   This file provides firmware functions to manage the following 
   *          functionalities of the Debug MCU (DBGMCU) peripheral:
   *           + Device and Revision ID management
@@ -11,7 +11,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT 2012 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT 2015 STMicroelectronics</center></h2>
   *
   * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
   * You may not use this file except in compliance with the License.
@@ -144,7 +144,9 @@ void DBGMCU_Config(uint32_t DBGMCU_Periph, FunctionalState NewState)
   *          Core is halted.
   *     @arg DBGMCU_I2C2_SMBUS_TIMEOUT: I2C2 SMBUS timeout mode stopped when 
   *          Core is halted.
-  *     @arg DBGMCU_CAN1_STOP: Debug CAN2 stopped when Core is halted.        
+  *     @arg DBGMCU_CAN1_STOP: Debug CAN2 stopped when Core is halted.  
+  *     @arg DBGMCU_I2C3_SMBUS_TIMEOUT: I2C3 SMBUS timeout mode stopped when 
+  *          Core is halted.      
   * @param  NewState: new state of the specified APB1 peripheral in Debug mode.
   *         This parameter can be: ENABLE or DISABLE.
   * @retval None
@@ -174,6 +176,7 @@ void DBGMCU_APB1PeriphConfig(uint32_t DBGMCU_Periph, FunctionalState NewState)
   *     @arg DBGMCU_TIM15_STOP: TIM15 counter stopped when Core is halted.                
   *     @arg DBGMCU_TIM16_STOP: TIM16 counter stopped when Core is halted.
   *     @arg DBGMCU_TIM17_STOP: TIM17 counter stopped when Core is halted.   
+  *     @arg DBGMCU_TIM20_STOP: TIM20 counter stopped when Core is halted.   
   * @param  NewState: new state of the specified APB2 peripheral in Debug mode.
   *         This parameter can be: ENABLE or DISABLE.
   * @retval None

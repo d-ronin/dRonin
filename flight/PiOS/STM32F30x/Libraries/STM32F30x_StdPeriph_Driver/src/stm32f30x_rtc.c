@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    stm32f30x_rtc.c
   * @author  MCD Application Team
-  * @version V1.0.0
-  * @date    04-September-2012
+  * @version V1.2.3
+  * @date    10-July-2015
   * @brief   This file provides firmware functions to manage the following 
   *          functionalities of the Real-Time Clock (RTC) peripheral:
   *           + Initialization
@@ -40,12 +40,12 @@
     [..] When the backup domain is supplied by VDD (analog switch connected 
          to VDD), the following functions are available:
            (#) PC14 and PC15 can be used as either GPIO or LSE pins
-           (#) PC13 can be used as a GPIO or as the RTC_AF1 pin
+           (#) PC13 can be used as a GPIO or as the RTC_AF pin
   
     [..] When the backup domain is supplied by VBAT (analog switch connected 
          to VBAT because VDD is not present), the following functions are available:
            (#) PC14 and PC15 can be used as LSE pins only
-           (#) PC13 can be used as the RTC_AF1 pin 
+           (#) PC13 can be used as the RTC_AF pin 
 
                         ##### Backup Domain Reset #####
  ===============================================================================
@@ -112,10 +112,10 @@
     [..] The RTC has 2 different outputs:
          (+) AFO_ALARM: this output is used to manage the RTC Alarm A, Alarm B
              and WaKeUp signals.          
-             To output the selected RTC signal on RTC_AF1 pin, use the 
+             To output the selected RTC signal on RTC_AF pin, use the 
              RTC_OutputConfig() function.                
          (+) AFO_CALIB: this output is 512Hz signal or 1Hz .
-             To output the RTC Clock on RTC_AF1 pin, use the RTC_CalibOutputCmd()
+             To output the RTC Clock on RTC_AF pin, use the RTC_CalibOutputCmd()
              function.                
                 
     *** Smooth digital Calibration configuration ***
@@ -128,7 +128,7 @@
     *** TimeStamp configuration ***
     ===============================    
     [..]
-         (+) Configure the RTC_AF1 trigger and enables the RTC TimeStamp 
+         (+) Configure the RTC_AF trigger and enables the RTC TimeStamp 
              using the RTC_TimeStampCmd() function.
          (+) To read the RTC TimeStamp Time and Date register, use the 
              RTC_GetTimeStamp() function.
@@ -175,9 +175,9 @@
          Wakeup from STOP and Standby modes is possible only when the RTC 
          clock source is LSE or LSI.
            
-                ##### Selection of RTC_AF1 alternate functions #####
+                ##### Selection of RTC_AF alternate functions #####
  ===============================================================================
-    [..] The RTC_AF1 pin (PC13) can be used for the following purposes:
+    [..] The RTC_AF pin (PC13) can be used for the following purposes:
          (+) Wakeup pin 2 (WKUP2) using the PWR_WakeUpPinCmd() function.
          (+) AFO_ALARM output      
          (+) AFO_CALIB output
@@ -185,15 +185,15 @@
          (+) AFI_TIMESTAMP
                          
  +------------------------------------------------------------------------------------------+
- |     Pin         |AFO_ALARM |AFO_CALIB |AFI_TAMPER |AFI_TIMESTAMP | WKUP2  |ALARMOUTTYPE  |
- |  configuration  | ENABLED  | ENABLED  |  ENABLED  |   ENABLED    |ENABLED |  AFO_ALARM   |
- |  and function   |          |          |           |              |        |Configuration |
+ |     Pin         |RTC ALARM |RTC CALIB |RTC TAMPER |RTC TIMESTAMP |PC13MODE|  PC13VALUE   |
+ |  configuration  | OUTPUT   | OUTPUT   |  INPUT    |    INPUT     |  bit   |     bit      |
+ |  and function   | ENABLED  | ENABLED  | ENABLED   |   ENABLED    |        |              |
  |-----------------|----------|----------|-----------|--------------|--------|--------------|
  |   Alarm out     |          |          |           |              | Don't  |              |
- |   output OD     |     1    |    0     |Don't care | Don't care   | care   |      0       |
+ |   output OD     |     1    |Don't care|Don't care | Don't care   | care   |      0       |
  |-----------------|----------|----------|-----------|--------------|--------|--------------|
  |   Alarm out     |          |          |           |              | Don't  |              |
- |   output PP     |     1    |    0     |Don't care | Don't care   | care   |      1       |
+ |   output PP     |     1    |Don't care|Don't care | Don't care   | care   |      1       |
  |-----------------|----------|----------|-----------|--------------|--------|--------------|
  | Calibration out |          |          |           |              | Don't  |              |
  |   output PP     |     0    |    1     |Don't care | Don't care   | care   |  Don't care  |
@@ -208,9 +208,11 @@
  | TIMESTAMP input |          |          |           |              | Don't  |              |
  |    floating     |     0    |    0     |     0     |      1       | care   |  Don't care  |
  |-----------------|----------|----------|-----------|--------------|--------|--------------|
- |  Wakeup Pin 2   |     0    |    0     |     0     |      0       |   1    |  Don't care  |
+ |   Output PP     |     0    |    0     |     0     |      0       |   1    | PC13 output  |
+ |    Forced       |          |          |           |              |        |              |
  |-----------------|----------|----------|-----------|--------------|--------|--------------|
- |  Standard GPIO  |     0    |    0     |     0     |      0       |   0    |  Don't care  |
+ |  Wakeup Pin or  |     0    |    0     |     0     |      0       |   0    | Don't care   |
+ |  Standard GPIO  |          |          |           |              |        |              |
  +------------------------------------------------------------------------------------------+
     
   @endverbatim
@@ -218,7 +220,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT 2012 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT 2015 STMicroelectronics</center></h2>
   *
   * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
   * You may not use this file except in compliance with the License.
@@ -1751,7 +1753,7 @@ void RTC_CalibOutputConfig(uint32_t RTC_CalibOutput)
   *   This parameter can be can be one of the following values:
   *     @arg RTC_SmoothCalibPeriod_32sec : The smooth calibration periode is 32s.
   *     @arg RTC_SmoothCalibPeriod_16sec : The smooth calibration periode is 16s.
-  *     @arg RTC_SmoothCalibPeriod_8sec  : The smooth calibartion periode is 8s.
+  *     @arg RTC_SmoothCalibPeriod_8sec  : The smooth calibration periode is 8s.
   * @param  RTC_SmoothCalibPlusPulses : Select to Set or reset the CALP bit.
   *   This parameter can be one of the following values:
   *     @arg RTC_SmoothCalibPlusPulses_Set  : Add one RTCCLK puls every 2**11 pulses.
@@ -2161,7 +2163,7 @@ void RTC_TamperPullUpCmd(FunctionalState NewState)
 /**
   * @brief  Writes a data in a specified RTC Backup data register.
   * @param  RTC_BKP_DR: RTC Backup data Register number.
-  *   This parameter can be: RTC_BKP_DRx where x can be from 0 to 19 to 
+  *   This parameter can be: RTC_BKP_DRx where x can be from 0 to 15 to 
   *                          specify the register.
   * @param  Data: Data to be written in the specified RTC Backup data register.                     
   * @retval None
@@ -2183,7 +2185,7 @@ void RTC_WriteBackupRegister(uint32_t RTC_BKP_DR, uint32_t Data)
 /**
   * @brief  Reads data from the specified RTC Backup data Register.
   * @param  RTC_BKP_DR: RTC Backup data Register number.
-  *   This parameter can be: RTC_BKP_DRx where x can be from 0 to 19 to 
+  *   This parameter can be: RTC_BKP_DRx where x can be from 0 to 15 to 
   *                          specify the register.                   
   * @retval None
   */

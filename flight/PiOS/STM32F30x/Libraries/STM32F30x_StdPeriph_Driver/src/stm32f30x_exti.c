@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    stm32f30x_exti.c
   * @author  MCD Application Team
-  * @version V1.0.0
-  * @date    04-September-2012
+  * @version V1.2.3
+  * @date    10-July-2015
   * @brief   This file provides firmware functions to manage the following 
   *          functionalities of the EXTI peripheral:
   *           + Initialization and Configuration 
@@ -60,7 +60,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT 2012 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT 2015 STMicroelectronics</center></h2>
   *
   * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
   * You may not use this file except in compliance with the License.
@@ -300,14 +300,11 @@ void EXTI_ClearFlag(uint32_t EXTI_Line)
 ITStatus EXTI_GetITStatus(uint32_t EXTI_Line)
 {
   ITStatus bitstatus = RESET;
-  uint32_t enablestatus = 0;
   
   /* Check the parameters */
   assert_param(IS_GET_EXTI_LINE(EXTI_Line));
   
-  enablestatus =  *(__IO uint32_t *) (((uint32_t) &(EXTI->IMR)) + ((EXTI_Line) >> 5 ) * 0x20) & (uint32_t)(1 << (EXTI_Line & 0x1F));
- 
-  if ( (((*(__IO uint32_t *) (((uint32_t) &(EXTI->PR)) + (((EXTI_Line) >> 5 ) * 0x20) )) & (uint32_t)(1 << (EXTI_Line & 0x1F))) != (uint32_t)RESET) && (enablestatus != (uint32_t)RESET))
+  if ((*(__IO uint32_t *) (((uint32_t) &(EXTI->PR)) + ((EXTI_Line) >> 5 ) * 0x20)& (uint32_t)(1 << (EXTI_Line & 0x1F))) != (uint32_t)RESET)
   {
     bitstatus = SET;
   }
