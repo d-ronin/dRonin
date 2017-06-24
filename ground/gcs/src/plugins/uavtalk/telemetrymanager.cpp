@@ -30,7 +30,7 @@
 #include <coreplugin/icore.h>
 
 TelemetryManager::TelemetryManager()
-    : m_connected(false)
+    : autopilotConnected(false)
 {
     // Get UAVObjectManager instance
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
@@ -45,6 +45,11 @@ TelemetryManager::TelemetryManager()
 
 TelemetryManager::~TelemetryManager()
 {
+}
+
+bool TelemetryManager::isConnected()
+{
+    return autopilotConnected;
 }
 
 void TelemetryManager::start(QIODevice *dev)
@@ -71,16 +76,14 @@ void TelemetryManager::stop()
 
 void TelemetryManager::onConnect()
 {
-    m_connected = true;
+    autopilotConnected = true;
     emit connected();
-    emit connectedChanged(m_connected);
 }
 
 void TelemetryManager::onDisconnect()
 {
-    m_connected = false;
+    autopilotConnected = false;
     emit disconnected();
-    emit connectedChanged(m_connected);
 }
 
 void TelemetryManager::onGeneralSettingsChanged()

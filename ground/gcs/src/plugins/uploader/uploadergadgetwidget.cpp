@@ -40,8 +40,7 @@
 
 #include "uploadergadgetwidget.h"
 #include "firmwareiapobj.h"
-#include <coreplugin/coreconstants.h>
-#include <coreplugin/icore.h>
+#include "coreplugin/icore.h"
 #include <coreplugin/modemanager.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include "rawhid/rawhidplugin.h"
@@ -753,7 +752,7 @@ bool UploaderGadgetWidget::tradeSettingsWithCloud(QString srcRelease, QString an
                            QVariant("form-data; name=\"ancestor\""));
     ancestorPart.setBody(ancestor.toLatin1());
 
-    const QString gcsRev(Core::Constants::GCS_REVISION_STR);
+    const QString gcsRev(GCS_REVISION);
     adaptTo.setHeader(QNetworkRequest::ContentDispositionHeader,
                       QVariant("form-data; name=\"adaptTo\""));
     adaptTo.setBody(gcsRev.toLatin1());

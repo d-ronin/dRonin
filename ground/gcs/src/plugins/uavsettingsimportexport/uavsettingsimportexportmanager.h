@@ -31,10 +31,10 @@
 #ifndef UAVSETTINGSIMPORTEXPORTFACTORY_H
 #define UAVSETTINGSIMPORTEXPORTFACTORY_H
 #include "uavsettingsimportexport_global.h"
-#include <QObject>
+#include "uavobjectutil/uavobjectutilmanager.h"
+#include "../../../../../build/ground/gcs/gcsversioninfo.h"
 
 class QDomNode;
-class UAVObject;
 
 class UAVSETTINGSIMPORTEXPORT_EXPORT UAVSettingsImportExportManager : public QObject
 {
@@ -43,18 +43,14 @@ class UAVSETTINGSIMPORTEXPORT_EXPORT UAVSettingsImportExportManager : public QOb
 public:
     UAVSettingsImportExportManager(QObject *parent = 0);
     ~UAVSettingsImportExportManager();
-
     static bool updateObject(UAVObject *obj, QDomNode *node);
+
     bool importUAVSettings(const QByteArray &settings, bool quiet = false);
-    void extensionsInitialized();
 
 public slots:
     void importUAVSettings();
     void exportUAVSettings();
     void exportUAVData();
-
-private Q_SLOTS:
-    void setCommandsEnabled(bool enabled);
 
 private:
     enum storedData { Settings, Data, Both };

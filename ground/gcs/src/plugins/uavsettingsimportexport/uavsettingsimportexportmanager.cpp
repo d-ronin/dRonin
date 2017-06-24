@@ -41,14 +41,12 @@
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/icore.h>
-#include <uavtalk/telemetrymanager.h>
 #include <QKeySequence>
 
 // for UAVObjects
 #include "uavdataobject.h"
 #include "uavobjectmanager.h"
 #include "extensionsystem/pluginmanager.h"
-#include "uavobjectutil/uavobjectutilmanager.h"
 
 // for XML object
 #include <QDomDocument>
@@ -66,10 +64,9 @@ UAVSettingsImportExportManager::~UAVSettingsImportExportManager()
 UAVSettingsImportExportManager::UAVSettingsImportExportManager(QObject *parent)
     : QObject(parent)
 {
-    auto core = Core::ICore::instance();
 
     // Add Menu entry
-    Core::ActionManager *am = core->actionManager();
+    Core::ActionManager *am = Core::ICore::instance()->actionManager();
     Core::ActionContainer *ac = am->actionContainer(Core::Constants::M_FILE);
     Core::Command *cmd =
         am->registerAction(new QAction(this), "UAVSettingsImportExportPlugin.UAVSettingsExport",
@@ -92,16 +89,6 @@ UAVSettingsImportExportManager::UAVSettingsImportExportManager(QObject *parent)
     cmd->action()->setText(tr("Export UAV Data..."));
     ac->addAction(cmd, Core::Constants::G_HELP_HELP);
     connect(cmd->action(), SIGNAL(triggered(bool)), this, SLOT(exportUAVData()));
-}
-
-void UAVSettingsImportExportManager::extensionsInitialized()
-{
-    auto pm = ExtensionSystem::PluginManager::instance();
-    auto telemetry = pm->getObject<TelemetryManager>();
-    // enabled/disabled commands when board is connected/disconnected
-    connect(telemetry, &TelemetryManager::connectedChanged,
-            this, &UAVSettingsImportExportManager::setCommandsEnabled);
-    setCommandsEnabled(telemetry->isConnected());
 }
 
 bool UAVSettingsImportExportManager::importUAVSettings(const QByteArray &settings, bool quiet)
@@ -535,21 +522,4 @@ void UAVSettingsImportExportManager::exportUAVData()
     msgBox.setText(tr("Data saved."));
     msgBox.setStandardButtons(QMessageBox::Ok);
     msgBox.exec();
-}
-
-void UAVSettingsImportExportManager::setCommandsEnabled(bool enabled)
-{
-    static const std::vector<QString> commands {
-        QStringLiteral("UAVSettingsImportExportPlugin.UAVSettingsExport"),
-        QStringLiteral("UAVSettingsImportExportPlugin.UAVSettingsImport"),
-        QStringLiteral("UAVSettingsImportExportPlugin.UAVDataExport")
-    };
-
-    Core::ActionManager *am = Core::ICore::instance()->actionManager();
-    if (!am)
-        return;
-
-    for (const auto &command : commands)
-        if (Core::Command *cmd = am->command(command))
-            cmd->action()->setEnabled(enabled);
 }
