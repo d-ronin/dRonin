@@ -417,10 +417,6 @@ void PIOS_Board_Init(void) {
 	PIOS_DEBUG_Init(&pios_tim_servo_all_channels, NELEMENTS(pios_tim_servo_all_channels));
 #endif
 
-#if defined(PIOS_INCLUDE_DMASHOT)
-	PIOS_DMAShot_Init(&dmashot_config);
-#endif
-
 	HwRevolutionData hwRevoMini;
 	HwRevolutionGet(&hwRevoMini);
 
