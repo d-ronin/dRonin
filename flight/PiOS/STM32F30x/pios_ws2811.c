@@ -186,7 +186,7 @@ void PIOS_WS2811_set(ws2811_dev_t dev, int led,
 
 	int offset = led * WS2811_BITS_PER_LED;
 
-	uint32_t grb = (g << 16) | (r << 8) | (b);
+	uint32_t grb = (g << 16) | (r << 8) | b;
 
 	for (int bit = (WS2811_BITS_PER_LED - 1); bit >= 0; --bit) {
 		dev->dma_buffer[offset++] =
