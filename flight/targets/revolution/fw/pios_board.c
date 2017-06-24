@@ -492,6 +492,8 @@ void PIOS_Board_Init(void) {
 				break;
 
 			case HWREVOLUTION_WS2811PIN_PA0SERVOOUT6:
+				/* 0 indexed */
+				PIOS_Servo_DisableChannel(6 - 1);
 				PIOS_WS2811_init(&pios_ws2811,
 						&pios_ws2811_cfg_pa0,
 						num_leds);

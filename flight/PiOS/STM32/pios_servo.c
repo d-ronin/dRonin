@@ -54,6 +54,8 @@
 /* Private variables */
 static const struct pios_servo_cfg *servo_cfg;
 
+static int channel_mask;
+
 //! The counter rate for the channel, used to calculate compare values.
 
 enum dshot_gpio {
@@ -153,20 +155,25 @@ int32_t PIOS_Servo_Init(const struct pios_servo_cfg *cfg)
 	return 0;
 }
 
+void PIOS_Servo_DisableChannel(int channel)
+{
+	channel_mask |= 1 << channel;
+}
+
 int PIOS_Servo_GetPins(dio_tag_t *dios, int max_dio)
 {
-	int i;
+	int out = 0;
 
-	for (i = 0; i < max_dio; i++) {
-		if (i >= servo_cfg->num_channels) {
-			break;
+	for (int i = 0; (i < servo_cfg->num_channels) && (out < max_dio); i++) {
+		if (channel_mask & (1 << i)) {
+			continue;
 		}
 
-		dios[i] = DIO_MAKE_TAG(servo_cfg->channels[i].pin.gpio,
+		dios[out++] = DIO_MAKE_TAG(servo_cfg->channels[i].pin.gpio,
 				servo_cfg->channels[i].pin.init.GPIO_Pin);
 	}
 
-	return i;
+	return out;
 }
 
 struct timer_bank {
@@ -440,6 +447,10 @@ int PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_t
 
 		/* Configure frequency scaler for all channels that use the same timer */
 		for (uint8_t j = 0; j < servo_cfg->num_channels; j++) {
+			if (channel_mask & (1 << j)) {
+				continue;
+			}
+
 			const struct pios_tim_channel *chan = &servo_cfg->channels[j];
 			if (timer_banks[i].timer == chan->timer) {
 				/* save the frequency for these channels */
@@ -527,6 +538,10 @@ void PIOS_Servo_SetFraction(uint8_t servo, uint16_t fraction,
 		return;
 	}
 
+	if (channel_mask & (1 << servo)) {
+		return;
+	}
+
 	switch (output_channels[servo].mode) {
 		case SYNC_DSHOT_300:
 		case SYNC_DSHOT_600:
@@ -590,6 +605,10 @@ void PIOS_Servo_Set(uint8_t servo, float position)
 		return;
 	}
 
+	if (channel_mask & (1 << servo)) {
+		return;
+	}
+
 	switch (output_channels[servo].mode) {
 		case SYNC_DSHOT_300:
 		case SYNC_DSHOT_600:
@@ -648,6 +667,10 @@ static int DSHOT_Update()
 
 	for (int i = 0; i < servo_cfg->num_channels; i++) {
 		struct output_channel *chan = &output_channels[i];
+
+		if (channel_mask & (1 << i)) {
+			continue;
+		}
 
 		switch (chan->mode) {
 			case SYNC_DSHOT_300:
@@ -816,6 +839,9 @@ void PIOS_Servo_Update(void)
 	// If some banks are oneshot and some are dshot (why would you do this?)
 	// get the oneshots firing first.
 	for (uint8_t i = 0; i < servo_cfg->num_channels; i++) {
+		if (channel_mask & (1 << 1)) {
+			continue;
+		}
 
 		if (output_channels[i].mode != SYNC_PWM) {
 			continue;
