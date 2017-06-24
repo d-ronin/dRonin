@@ -286,7 +286,7 @@ UAVTalkRxState UAVTalkProcessInputStreamQuiet(UAVTalkConnection connectionHandle
 
 		// Determine data length
 		if (iproc->type == UAVTALK_TYPE_OBJ_REQ || iproc->type == UAVTALK_TYPE_ACK || iproc->type == UAVTALK_TYPE_NACK) {
-			iproc->length = iproc->packet_size - iproc->rxPacketLength;
+			iproc->length = 0;
 			iproc->instanceLength = 0;
 
 			/* Length is always pretty much expected to be 0
@@ -295,9 +295,11 @@ UAVTalkRxState UAVTalkProcessInputStreamQuiet(UAVTalkConnection connectionHandle
 			 * figure this out-- use the packet length
 			 * [so we can properly NAK objects we don't know]
 			 */
-			if (iproc->length == 2) {
-				iproc->length = 0;
+			if ((iproc->packet_size - iproc->rxPacketLength) == 2) {
 				iproc->instanceLength = 2;
+			} else if (iproc->length > 0) {
+				iproc->state = UAVTALK_STATE_ERROR;
+				break; 
 			}
 		} else {
 			if (iproc->obj) {
