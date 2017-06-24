@@ -833,6 +833,24 @@ const struct pios_usb_cfg * PIOS_BOARD_HW_DEFS_GetUsbCfg (uint32_t board_revisio
 
 #endif	/* PIOS_INCLUDE_USB */
 
+#if defined(PIOS_INCLUDE_WS2811)
+#include "pios_ws2811.h"
+
+ws2811_dev_t pios_ws2811;
+
+static const struct pios_ws2811_cfg pios_ws2811_cfg = {
+	.timer = TIM16,
+	.timer_chan = TIM_Channel_1,
+	.led_gpio = GPIOA,
+	.gpio_pin = GPIO_Pin_6,
+	.remap = GPIO_AF_1,
+	.timer_dma_source = TIM_DMA_Update,
+	.dma_chan = DMA1_Channel3,
+	.dma_tcif = DMA1_FLAG_TC3,
+	.dma_irqn = DMA1_Channel3_IRQn,
+};
+#endif /* PIOS_INCLUDE_WS2811 */
+
 #if defined(PIOS_INCLUDE_COM_MSG)
 
 #include <pios_com_msg_priv.h>

@@ -50,19 +50,6 @@ static const struct pios_annunc pios_annuncs[] = {
 		},
 		.active_high = false,
 	},
-	[PIOS_LED_ALARM] = {
-		.pin = {
-			.gpio = GPIOA,
-			.init = {
-				.GPIO_Pin   = GPIO_Pin_8,
-				.GPIO_Speed = GPIO_Speed_50MHz,
-				.GPIO_Mode  = GPIO_Mode_OUT,
-				.GPIO_OType = GPIO_OType_PP,
-				.GPIO_PuPd  = GPIO_PuPd_NOPULL
-			},
-		},
-		.active_high = false,
-	},
 	[PIOS_ANNUNCIATOR_BUZZER] = {
 		.pin = {
 			// Not sure.  Using values from CleanFlight which seem
@@ -569,19 +556,6 @@ static const struct pios_tim_clock_cfg tim_3_cfg = {
 	},
 };
 
-static const struct pios_tim_clock_cfg tim_1_cfg = {
-	.timer = TIM1,
-	.time_base_init = &tim_1_8_15_16_17_time_base,
-	.irq = {
-		.init = {
-			.NVIC_IRQChannel                   = TIM1_CC_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
-			.NVIC_IRQChannelSubPriority        = 0,
-			.NVIC_IRQChannelCmd                = ENABLE,
-		},
-	},
-};
-
 static const struct pios_tim_clock_cfg tim_8_cfg = {
 	.timer = TIM8,
 	.time_base_init = &tim_1_8_15_16_17_time_base,
@@ -948,6 +922,24 @@ const struct pios_usb_cfg * PIOS_BOARD_HW_DEFS_GetUsbCfg (uint32_t board_revisio
 #include "pios_usbhook.h"
 
 #endif	/* PIOS_INCLUDE_USB */
+
+#if defined(PIOS_INCLUDE_WS2811)
+#include "pios_ws2811.h"
+
+ws2811_dev_t pios_ws2811;
+
+static const struct pios_ws2811_cfg pios_ws2811_cfg = {
+	.timer = TIM1,
+	.timer_chan = TIM_Channel_1,
+	.led_gpio = GPIOA,
+	.gpio_pin = GPIO_Pin_8,
+	.remap = GPIO_AF_6,
+	.timer_dma_source = TIM_DMA_Update,
+	.dma_chan = DMA1_Channel5,
+	.dma_tcif = DMA1_FLAG_TC5,
+	.dma_irqn = DMA1_Channel5_IRQn,
+};
+#endif /* PIOS_INCLUDE_WS2811 */
 
 #if defined(PIOS_INCLUDE_COM_MSG)
 
