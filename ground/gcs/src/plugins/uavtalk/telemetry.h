@@ -84,7 +84,9 @@ public:
     Telemetry(UAVTalk *utalk, UAVObjectManager *objMngr);
     ~Telemetry();
     TelemetryStats getStats();
-    QByteArray *downloadFile(quint32 fileId, quint32 maxSize);
+    QByteArray *downloadFile(quint32 fileId, quint32 maxSize,
+            std::function<void(quint32)>progressCb = nullptr);
+
     void transactionTimeout(ObjectTransactionInfo *info);
 
 signals:

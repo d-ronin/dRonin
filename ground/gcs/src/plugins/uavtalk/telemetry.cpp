@@ -398,7 +398,12 @@ void Telemetry::transactionTimeout(ObjectTransactionInfo *transInfo)
     }
 }
 
-QByteArray *Telemetry::downloadFile(quint32 fileId, quint32 maxSize)
+/* This is synchronous, so we use a primitive callback mechanism
+ * instead of signal/slot.  Can have a future async variant if
+ * necessary
+ */
+QByteArray *Telemetry::downloadFile(quint32 fileId, quint32 maxSize,
+        std::function<void(quint32)>progressCb)
 {
     quint32 curOffset = 0;
 
@@ -455,6 +460,10 @@ QByteArray *Telemetry::downloadFile(quint32 fileId, quint32 maxSize)
 
                     inactivityCount = 0;
                     failCount = 0;
+
+                    if (progressCb) {
+                        progressCb(curOffset);
+                    }
                 }
             );
 

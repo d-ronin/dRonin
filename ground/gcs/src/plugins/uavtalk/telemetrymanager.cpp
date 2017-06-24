@@ -98,11 +98,12 @@ void TelemetryManager::onGeneralSettingsChanged()
     }
 }
 
-QByteArray *TelemetryManager::downloadFile(quint32 fileId, quint32 maxSize)
+QByteArray *TelemetryManager::downloadFile(quint32 fileId, quint32 maxSize,
+        std::function<void(quint32)>progressCb)
 {
     if (!telemetry) {
         return NULL;
     }
 
-    return telemetry->downloadFile(fileId, maxSize);
+    return telemetry->downloadFile(fileId, maxSize, progressCb);
 }

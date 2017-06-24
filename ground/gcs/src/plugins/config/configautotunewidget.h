@@ -28,6 +28,7 @@
 #define CONFIGAUTOTUNE_H
 
 #include "ui_autotune.h"
+#include "ui_autotunebeginning.h"
 #include "ui_autotuneproperties.h"
 #include "ui_autotunesliders.h"
 #include "ui_autotunefinalpage.h"
@@ -78,7 +79,7 @@ struct AutotunedValues
     float outerKi;
 };
 
-class AutotuneBeginningPage : public QWizardPage
+class AutotuneBeginningPage : public QWizardPage, private Ui::AutotuneBeginning
 {
     Q_OBJECT
 
@@ -131,7 +132,6 @@ private:
     void biquadFilter(float cutoff, int pts, QVector<float> &data);
     float getSampleDelay(int pts, const QVector<float> &delayed,
             const QVector<float> &orig);
-
 };
 
 class AutotuneMeasuredPropertiesPage : public QWizardPage, private Ui::AutotuneProperties

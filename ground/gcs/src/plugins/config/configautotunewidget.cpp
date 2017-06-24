@@ -706,6 +706,7 @@ AutotuneBeginningPage::AutotuneBeginningPage(QWidget *parent,
     av = autoValues;
     this->autoOpened = autoOpened;
     dataValid = false;
+    setupUi(this);
 }
 
 QString AutotuneBeginningPage::tuneValid(bool *okToContinue) const
@@ -776,12 +777,11 @@ void AutotuneBeginningPage::initializePage()
     setTitle(tr("Preparing autotune..."));
 
     if (autoOpened) {
-        setSubTitle(
-            tr("It looks like you have run a new autotune since you last connected to the flight "
+        subtitle->setText(tr("It looks like you have run a new autotune since you last connected to the flight "
                "controller.  This wizard will assist you in applying a set of autotune "
                "measurements to your aircraft."));
     } else {
-        setSubTitle(tr("This wizard will assist you in applying a set of autotune "
+        subtitle->setText(tr("This wizard will assist you in applying a set of autotune "
                                   "measurements to your aircraft."));
     }
 
@@ -791,7 +791,14 @@ void AutotuneBeginningPage::initializePage()
         TelemetryManager *telMngr = pm->getObject<TelemetryManager>();
 
         if (!av->data) {
-            av->data = telMngr->downloadFile(4, 32768);
+            av->data = telMngr->downloadFile(4, 32768, [&](quint32 progress) {
+                        float fraction = progress / 32768.0;
+
+                        if (fraction > 0.8f) {
+                            fraction = 0.8f;
+                        }
+                        qDebug() << "Progress " << fraction;
+                    });
         }
 
         if (av->data) {
@@ -801,12 +808,7 @@ void AutotuneBeginningPage::initializePage()
 
     QString initialWarnings = tuneValid(&dataValid);
 
-    QLabel *status = new QLabel(initialWarnings);
-    status->setWordWrap(true);
-
-    QVBoxLayout *layout = new QVBoxLayout;
-    layout->addWidget(status);
-    setLayout(layout);
+    status->setText(initialWarnings);
 }
 
 bool AutotuneBeginningPage::isComplete() const
