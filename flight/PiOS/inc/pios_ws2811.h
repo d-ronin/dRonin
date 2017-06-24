@@ -32,7 +32,7 @@
 #ifndef _PIOS_WS2811_H
 #define _PIOS_WS2811_H
 
-#include <pios_ws2811_target.h>
+#include <pios_ws2811_cfg.h>
 
 typedef struct ws2811_dev_s *ws2811_dev_t;
 
