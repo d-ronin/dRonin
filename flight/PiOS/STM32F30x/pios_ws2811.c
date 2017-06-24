@@ -1,7 +1,11 @@
 /**
  ******************************************************************************
  *
- * @file       pios_ws2811.c
+ * @addtogroup PIOS PIOS Core hardware abstraction layer
+ * @{
+ * @addtogroup PIOS_WS2811 WS2811 RGB LED Driver
+ * @{
+ * @file       flight/PiOS/STM32F30x/pios_ws2811.c
  * @author     Cleanflight/Betaflight
  * @author     The LibrePilot Project, http://www.librepilot.org Copyright (C) 2017.
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2017
@@ -37,7 +41,7 @@
 #define WS2811_DELAY_BUFFER_LENGTH 42
 
 #define WS2811_TIMER_HZ            24000000
-#define WS2811_TIMER_PERIOD        29
+#define WS2811_TIMER_PERIOD        29	// 800KHz
 // timer compare value for logical 1
 #define BIT_COMPARE_1              17
 // timer compare value for logical 0
@@ -87,8 +91,8 @@ int PIOS_WS2811_init(ws2811_dev_t *dev_out,
 	GPIO_InitTypeDef gpio_cfg = {
 		.GPIO_Pin = ws2811_cfg->gpio_pin,
 		.GPIO_Mode = GPIO_Mode_AF,
-		/* Drive hard-- the pin is loaded on F3E, and there could be
-		 * a big bus
+		/* Drive hard-- the pin is loaded on some targets-- like F3E,
+		 * and there could be a big bus on any.
 		 */
 		.GPIO_Speed = GPIO_Speed_50MHz,
 		.GPIO_OType = GPIO_OType_PP,
@@ -105,7 +109,7 @@ int PIOS_WS2811_init(ws2811_dev_t *dev_out,
 
 	/* Time base configuration */
 	TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
-	TIM_TimeBaseStructure.TIM_Period        = WS2811_TIMER_PERIOD;// 800kHz
+	TIM_TimeBaseStructure.TIM_Period        = WS2811_TIMER_PERIOD;
 	TIM_TimeBaseStructure.TIM_Prescaler     = prescalerValue;
 	TIM_TimeBaseStructure.TIM_ClockDivision = 0;
 	TIM_TimeBaseStructure.TIM_CounterMode   = TIM_CounterMode_Up;
@@ -142,17 +146,19 @@ int PIOS_WS2811_init(ws2811_dev_t *dev_out,
 	DMA_DeInit(ws2811_cfg->dma_chan);
 
 	DMA_StructInit(&DMA_InitStructure);
-	DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)&ws2811_cfg->timer->CCR1 + ws2811_cfg->timer_chan;
-	DMA_InitStructure.DMA_MemoryBaseAddr     = (uint32_t)ws2811_dev->dma_buffer;
-	DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralDST;
+	DMA_InitStructure.DMA_PeripheralBaseAddr =
+		(uint32_t)&ws2811_cfg->timer->CCR1 + ws2811_cfg->timer_chan;
+	DMA_InitStructure.DMA_MemoryBaseAddr     =
+		(uint32_t)ws2811_dev->dma_buffer;
+	DMA_InitStructure.DMA_DIR                = DMA_DIR_PeripheralDST;
 	DMA_InitStructure.DMA_BufferSize         = ws2811_dev->buffer_size;
 	DMA_InitStructure.DMA_PeripheralInc      = DMA_PeripheralInc_Disable;
 	DMA_InitStructure.DMA_MemoryInc          = DMA_MemoryInc_Enable;
 	DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Word;
 	DMA_InitStructure.DMA_MemoryDataSize     = DMA_MemoryDataSize_Byte;
-	DMA_InitStructure.DMA_Mode     = DMA_Mode_Normal;
-	DMA_InitStructure.DMA_Priority = DMA_Priority_High;
-	DMA_InitStructure.DMA_M2M = DMA_M2M_Disable;
+	DMA_InitStructure.DMA_Mode               = DMA_Mode_Normal;
+	DMA_InitStructure.DMA_Priority           = DMA_Priority_High;
+	DMA_InitStructure.DMA_M2M                = DMA_M2M_Disable;
 
 	DMA_Init(ws2811_cfg->dma_chan, &DMA_InitStructure);
 
@@ -223,4 +229,7 @@ int PIOS_WS2811_get_num_leds(ws2811_dev_t dev)
 	return dev->max_leds;
 }
 
-
+/*
+ * @}
+ * @}
+ */

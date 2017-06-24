@@ -1,7 +1,11 @@
 /**
  ******************************************************************************
  *
- * @file       pios_ws2811_cfg.h
+ * @addtogroup PIOS PIOS Core hardware abstraction layer
+ * @{
+ * @addtogroup PIOS_WS2811 WS2811 RGB LED Driver
+ * @{
+ * @file       flight/PiOS/STM32F30x/inc/pios_ws2811_cfg.h
  * @author     Cleanflight/Betaflight
  * @author     The LibrePilot Project, http://www.librepilot.org Copyright (C) 2017.
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2017
@@ -51,3 +55,8 @@ struct pios_ws2811_cfg {
 };
 
 #endif /* _PIOS_WS2811_TARGET_H */
+
+/*
+ * @}
+ * @}
+ */

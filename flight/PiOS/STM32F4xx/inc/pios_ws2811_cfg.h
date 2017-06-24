@@ -5,7 +5,7 @@
  * @addtogroup PIOS_WS2811 WS2811 Functions
  * @{
  *
- * @file       pios_ws2811_target.h
+ * @file       flight/PiOS/STM32F4xx/pios_ws2811_target.h
  * @author     dRonin, http://dronin.org Copyright (C) 2016
  * @see        The GNU Public License (GPL) Version 3
  *
