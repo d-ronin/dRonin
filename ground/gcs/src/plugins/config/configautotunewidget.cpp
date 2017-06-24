@@ -907,7 +907,8 @@ void AutotuneBeginningPage::biquadFilter(float cutoff, int pts,
 
 /* Returns number of samples of delay between series */
 float AutotuneBeginningPage::getSampleDelay(int pts,
-        const QVector<float> &delayed, const QVector<float> &orig)
+        const QVector<float> &delayed, const QVector<float> &orig,
+        int seriesCutoff)
 {
     ffft::FFTReal<float> fft(pts);
 
@@ -952,7 +953,7 @@ float AutotuneBeginningPage::getSampleDelay(int pts,
     int max_idx = 0;
     float max_val = 0;
 
-    for (int i = 0; i < fpts; i++) {
+    for (int i = 0; i < fpts / seriesCutoff; i++) {
         float real = prod_time[i];
         float imag = prod_time[i + fpts];
         mags[i] = sqrt(real * real + imag * imag);
@@ -1017,7 +1018,8 @@ bool AutotuneBeginningPage::processAutotuneData()
 
         gyro_deriv[0] = flash_data->data[0].y[axis] - flash_data->data[pts - 1].y[axis];
 
-        float sample_tau = getSampleDelay(pts, gyro_deriv, actu_desired);
+        float sample_tau = getSampleDelay(pts, gyro_deriv, actu_desired,
+                (axis == 2) ? 8 : 4);
 
         float tau = sample_tau / flash_data->hdr.sample_rate;
 

@@ -139,7 +139,7 @@ private:
     bool processAutotuneData();
     void biquadFilter(float cutoff, int pts, QVector<float> &data);
     float getSampleDelay(int pts, const QVector<float> &delayed,
-            const QVector<float> &orig);
+            const QVector<float> &orig, int seriesCutoff = 4);
 
 private slots:
     void doDownloadAndProcess();
