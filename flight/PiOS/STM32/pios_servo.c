@@ -54,7 +54,7 @@
 /* Private variables */
 static const struct pios_servo_cfg *servo_cfg;
 
-static int channel_mask;
+static uint32_t channel_mask = 0;
 
 //! The counter rate for the channel, used to calculate compare values.
 
