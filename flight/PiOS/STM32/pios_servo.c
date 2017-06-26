@@ -162,18 +162,19 @@ void PIOS_Servo_DisableChannel(int channel)
 
 int PIOS_Servo_GetPins(dio_tag_t *dios, int max_dio)
 {
-	int out = 0;
+	int i;
 
-	for (int i = 0; (i < servo_cfg->num_channels) && (out < max_dio); i++) {
+	for (i = 0; (i < servo_cfg->num_channels) && (i < max_dio); i++) {
 		if (channel_mask & (1 << i)) {
+			dios[i] = DIO_NULL;
 			continue;
 		}
 
-		dios[out++] = DIO_MAKE_TAG(servo_cfg->channels[i].pin.gpio,
+		dios[i] = DIO_MAKE_TAG(servo_cfg->channels[i].pin.gpio,
 				servo_cfg->channels[i].pin.init.GPIO_Pin);
 	}
 
-	return out;
+	return i;
 }
 
 struct timer_bank {

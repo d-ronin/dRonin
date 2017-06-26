@@ -107,8 +107,13 @@ static inline pwmOutputPort_t *pwmGetMotors(void)
 	int i;
 
 	for (i = 0; i < num_mot; i++) {
-		pwm_val[i].enabled = true;
-		pwm_val[i].io = dios_tmp[i];
+		if (dios_tmp[i] != DIO_NULL) {
+			pwm_val[i].enabled = true;
+			pwm_val[i].io = dios_tmp[i];
+		} else {
+			pwm_val[i].enabled = false;
+			pwm_val[i].io = dios_tmp[i];
+		}
 	}
 
 	for (; i < MAX_SUPPORTED_MOTORS; i++) {
