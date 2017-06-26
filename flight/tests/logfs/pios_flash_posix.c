@@ -6,8 +6,8 @@
 #include <stdbool.h>
 #include "pios_heap.h"
 #include "pios_flash_posix_priv.h"
-#include "pios_heap.h"
 
+/* TODO: Move into main posix PiOS instead of unit tests */
 enum flash_posix_magic {
 	FLASH_POSIX_MAGIC = 0x321dabc1,
 };
@@ -77,22 +77,32 @@ void PIOS_Flash_Posix_Destroy(uintptr_t chip_id)
 
 static int32_t PIOS_Flash_Posix_StartTransaction(uintptr_t chip_id)
 {
+#if 0
 	struct flash_posix_dev * flash_dev = (struct flash_posix_dev *)chip_id;
 
+	/* TODO: Needs to be a semaphore like other platforms.  In the meantime
+	 * neutering this does nothing bad.
+	 *
+	 * Alternatively could choose to have a counter maintained using
+	 * atomics here.
+	 */
 	assert(!flash_dev->transaction_in_progress);
 
 	flash_dev->transaction_in_progress = true;
+#endif
 
 	return 0;
 }
 
 static int32_t PIOS_Flash_Posix_EndTransaction(uintptr_t chip_id)
 {
+#if 0
 	struct flash_posix_dev * flash_dev = (struct flash_posix_dev *)chip_id;
 
 	assert(flash_dev->transaction_in_progress);
 
 	flash_dev->transaction_in_progress = false;
+#endif
 
 	return 0;
 }
@@ -101,7 +111,7 @@ static int32_t PIOS_Flash_Posix_EraseSector(uintptr_t chip_id, uint32_t chip_sec
 {
 	struct flash_posix_dev * flash_dev = (struct flash_posix_dev *)chip_id;
 
-	assert(flash_dev->transaction_in_progress);
+	/* assert(flash_dev->transaction_in_progress); */
 
 	if (fseek (flash_dev->flash_file, chip_offset, SEEK_SET) != 0) {
 		assert(0);
@@ -128,7 +138,7 @@ static int32_t PIOS_Flash_Posix_WriteData(uintptr_t chip_id, uint32_t chip_offse
 
 	struct flash_posix_dev * flash_dev = (struct flash_posix_dev *)chip_id;
 
-	assert(flash_dev->transaction_in_progress);
+	/* assert(flash_dev->transaction_in_progress); */
 
 	if (fseek (flash_dev->flash_file, chip_offset, SEEK_SET) != 0) {
 		assert(0);
@@ -151,7 +161,7 @@ static int32_t PIOS_Flash_Posix_ReadData(uintptr_t chip_id, uint32_t chip_offset
 
 	struct flash_posix_dev * flash_dev = (struct flash_posix_dev *)chip_id;
 
-	assert(flash_dev->transaction_in_progress);
+	/* assert(flash_dev->transaction_in_progress); */
 
 	if (fseek (flash_dev->flash_file, chip_offset, SEEK_SET) != 0) {
 		assert(0);
