@@ -32,8 +32,8 @@
 #include <extensionsystem/iplugin.h>
 #include <coreplugin/iconfigurableplugin.h>
 #include "uavtalk/telemetrymanager.h"
-#include "uavobjectmanager.h"
-#include "uavobject.h"
+#include "uavobjects/uavobjectmanager.h"
+#include "uavobjects/uavobject.h"
 #include "notificationitem.h"
 
 #include <QSettings>

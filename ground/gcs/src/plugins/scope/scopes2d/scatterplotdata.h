@@ -28,7 +28,7 @@
 #define SCATTERPLOTDATA_H
 
 #include "scopes2d/plotdata2d.h"
-#include "uavobject.h"
+#include "uavobjects/uavobject.h"
 #include "qwt/src/qwt_plot_curve.h"
 
 #include <QTimer>

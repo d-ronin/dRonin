@@ -28,7 +28,7 @@
 #define SPECTROGRAMDATA_H
 
 #include "scopes3d/plotdata3d.h"
-#include "uavobject.h"
+#include "uavobjects/uavobject.h"
 #include "qwt/src/qwt_plot_spectrogram.h"
 #include "qwt/src/qwt_matrix_raster_data.h"
 

@@ -26,7 +26,7 @@
 #define TAULINKGADGETWIDGET_H_
 
 #include "extensionsystem/pluginmanager.h"
-#include "configtaskwidget.h"
+#include "uavobjectwidgetutils/configtaskwidget.h"
 #include "ui_taulink.h"
 
 class Ui_TauLink;

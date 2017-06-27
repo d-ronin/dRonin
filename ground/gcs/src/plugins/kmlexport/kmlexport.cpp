@@ -31,7 +31,7 @@
 #include <coreplugin/coreconstants.h>
 #include "utils/coordinateconversions.h"
 #include "uavobjects/uavobjectsinit.h"
-#include "uavobjectmanager.h"
+#include "uavobjects/uavobjectmanager.h"
 
 #include "kmlexport.h"
 

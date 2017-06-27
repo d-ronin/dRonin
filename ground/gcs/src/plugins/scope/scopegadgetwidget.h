@@ -48,7 +48,7 @@ class UAVDataObject;
 #include "qwt/src/qwt_plot_layout.h"
 #include "qwt/src/qwt_scale_draw.h"
 
-#include "uavobject.h"
+#include "uavobjects/uavobject.h"
 #include "plotdata.h"
 
 #include <QTimer>

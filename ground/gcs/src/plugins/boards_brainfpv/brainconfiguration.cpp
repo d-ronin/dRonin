@@ -26,7 +26,7 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
-#include "smartsavebutton.h"
+#include "uavobjectwidgetutils/smartsavebutton.h"
 #include "brainconfiguration.h"
 #include "ui_brainconfiguration.h"
 

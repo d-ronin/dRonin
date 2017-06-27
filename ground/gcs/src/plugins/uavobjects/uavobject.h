@@ -36,7 +36,7 @@
 #ifndef UAVOBJECT_H
 #define UAVOBJECT_H
 
-#include "uavobjects_global.h"
+#include "uavobjects/uavobjects_global.h"
 #include <QtGlobal>
 #include <QJsonObject>
 #include <QObject>
@@ -44,7 +44,7 @@
 #include <QList>
 #include <QFile>
 #include <qglobal.h>
-#include "uavobjectfield.h"
+#include "uavobjects/uavobjectfield.h"
 
 #ifdef _MSC_VER
 #define PACK(__Declaration__) __pragma(pack(push, 1)) __Declaration__ __pragma(pack(pop))

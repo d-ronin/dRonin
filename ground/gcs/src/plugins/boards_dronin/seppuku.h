@@ -30,7 +30,7 @@
 #ifndef SEPPUKU_H_
 #define SEPPUKU_H_
 
-#include <uavobjectmanager.h>
+#include <uavobjects/uavobjectmanager.h>
 #include <coreplugin/iboardtype.h>
 
 class Seppuku : public Core::IBoardType

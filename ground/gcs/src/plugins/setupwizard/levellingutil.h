@@ -37,7 +37,7 @@
 #include <QObject>
 #include <QTimer>
 
-#include "uavobject.h"
+#include "uavobjects/uavobject.h"
 #include "vehicleconfigurationsource.h"
 
 class LevellingUtil : public QObject

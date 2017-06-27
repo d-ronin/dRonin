@@ -27,8 +27,8 @@
 #ifndef UAVMETAOBJECT_H
 #define UAVMETAOBJECT_H
 
-#include "uavobjects_global.h"
-#include "uavobject.h"
+#include "uavobjects/uavobjects_global.h"
+#include "uavobjects/uavobject.h"
 
 class UAVOBJECTS_EXPORT UAVMetaObject : public UAVObject
 {

@@ -5,8 +5,11 @@ QT += qml
 QT += quick
 
 include(../../gcsplugin.pri)
+
+include(../../libs/utils/utils.pri)
+
 include(../../plugins/coreplugin/coreplugin.pri)
-include(qmlview_dependencies.pri)
+include(../../plugins/uavobjects/uavobjects.pri)
 
 HEADERS += \
     qmlviewplugin.h \
@@ -25,8 +28,7 @@ SOURCES += \
     qmlviewgadgetconfiguration.cpp \
     qmlviewgadgetoptionspage.cpp
 
-OTHER_FILES += QMLView.pluginspec \
-    QMLView.json
+OTHER_FILES += QMLView.pluginspec
 
 FORMS += qmlviewgadgetoptionspage.ui
 

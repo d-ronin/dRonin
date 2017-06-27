@@ -34,7 +34,7 @@
 #include "telemetrymonitor.h"
 #include "telemetry.h"
 #include "uavtalk.h"
-#include "uavobjectmanager.h"
+#include "uavobjects/uavobjectmanager.h"
 #include <QIODevice>
 #include <QObject>
 

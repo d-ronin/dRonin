@@ -2,9 +2,9 @@ TEMPLATE = lib
 TARGET = RfmBindWizard
 QT += svg
 
-
 include(../../gcsplugin.pri)
 include(../../plugins/coreplugin/coreplugin.pri)
+include(../../plugins/uavobjects/uavobjects.pri)
 include(../../plugins/uavobjectutil/uavobjectutil.pri)
 include(../../plugins/uavobjectwidgetutils/uavobjectwidgetutils.pri)
 include(../../plugins/config/config.pri)
@@ -30,8 +30,7 @@ SOURCES += rfmbindwizardplugin.cpp \
     pages/coordinatorpage.cpp \
     pages/coordinatedpage.cpp
 
-OTHER_FILES += RfmBindWizard.pluginspec \
-    RfmBindWizard.json
+OTHER_FILES += RfmBindWizard.pluginspec
 
 FORMS += \
     pages/startpage.ui \

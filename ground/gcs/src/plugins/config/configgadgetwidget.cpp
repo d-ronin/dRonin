@@ -43,7 +43,7 @@
 #include "configtxpidwidget.h"
 #include "configattitudewidget.h"
 #include "defaulthwsettingswidget.h"
-#include "uavobjectutilmanager.h"
+#include "uavobjectutil/uavobjectutilmanager.h"
 
 #include <QDebug>
 #include <QStringList>

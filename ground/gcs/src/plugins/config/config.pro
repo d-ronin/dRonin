@@ -7,13 +7,20 @@ QT += svg
 QT += network
 
 include(../../gcsplugin.pri)
-include(config_dependencies.pri)
-LIBS *= -l$$qtLibraryName(Qwt)
+
+include(../../libs/qwt/qwt.pri)
+include(../../libs/utils/utils.pri)
+
+include(../../plugins/coreplugin/coreplugin.pri)
+include(../../plugins/uavobjects/uavobjects.pri)
+include(../../plugins/uavobjectutil/uavobjectutil.pri)
+include(../../plugins/uavobjectwidgetutils/uavobjectwidgetutils.pri)
+include(../../plugins/uavsettingsimportexport/uavsettingsimportexport.pri)
+include(../../plugins/uavtalk/uavtalk.pri)
 
 INCLUDEPATH *= ../../libs/eigen
 
-OTHER_FILES += Config.pluginspec \
-    Config.json
+OTHER_FILES += Config.pluginspec
 
 HEADERS += calibration.h \
     configplugin.h \

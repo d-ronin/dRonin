@@ -32,8 +32,8 @@
 #include <QMessageBox>
 #include <waypoint.h>
 #include "extensionsystem/pluginmanager.h"
-#include "../plugins/uavobjects/uavobjectmanager.h"
-#include "../plugins/uavobjects/uavobject.h"
+#include "uavobjects/uavobjectmanager.h"
+#include "uavobjects/uavobject.h"
 
 QMap<int, QString> FlightDataModel::modeNames = QMap<int, QString>();
 

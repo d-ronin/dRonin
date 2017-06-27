@@ -27,8 +27,8 @@
 #include "magicwaypointgadgetwidget.h"
 
 #include "extensionsystem/pluginmanager.h"
-#include "uavobjectmanager.h"
-#include "uavobject.h"
+#include "uavobjects/uavobjectmanager.h"
+#include "uavobjects/uavobject.h"
 #include <QDebug>
 
 MagicWaypointGadget::MagicWaypointGadget(QString classId, MagicWaypointGadgetWidget *widget,

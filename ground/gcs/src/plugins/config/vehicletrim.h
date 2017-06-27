@@ -21,9 +21,9 @@
 #ifndef VEHICLETRIM_H
 #define VEHICLETRIM_H
 
-#include <uavobjectmanager.h>
+#include <uavobjects/uavobjectmanager.h>
 #include <extensionsystem/pluginmanager.h>
-#include <uavobject.h>
+#include <uavobjects/uavobject.h>
 #include <tempcompcurve.h>
 
 #include <QObject>

@@ -33,7 +33,7 @@
 #include "telemetry.h"
 #include "uavtalk.h"
 #include "telemetrymanager.h"
-#include "uavobjectmanager.h"
+#include "uavobjects/uavobjectmanager.h"
 
 class UAVTALK_EXPORT UAVTalkPlugin : public ExtensionSystem::IPlugin
 {

@@ -30,8 +30,8 @@
 
 #include <QObject>
 #include <QList>
-#include "uavobject.h"
-#include "uavobjectmanager.h"
+#include "uavobjects/uavobject.h"
+#include "uavobjects/uavobjectmanager.h"
 #include "vehicleconfigurationsource.h"
 #include "actuatorcommand.h"
 

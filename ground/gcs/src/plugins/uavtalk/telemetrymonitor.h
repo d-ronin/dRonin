@@ -39,7 +39,7 @@
 #include <QQueue>
 #include <QTimer>
 #include <QTime>
-#include "uavobjectmanager.h"
+#include "uavobjects/uavobjectmanager.h"
 #include "gcstelemetrystats.h"
 #include "flighttelemetrystats.h"
 #include "systemstats.h"

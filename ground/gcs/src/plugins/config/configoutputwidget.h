@@ -29,9 +29,9 @@
 #include "ui_output.h"
 #include "../uavobjectwidgetutils/configtaskwidget.h"
 #include "extensionsystem/pluginmanager.h"
-#include "uavobjectmanager.h"
-#include "uavobject.h"
-#include "uavobjectutilmanager.h"
+#include "uavobjects/uavobjectmanager.h"
+#include "uavobjects/uavobject.h"
+#include "uavobjectutil/uavobjectutilmanager.h"
 #include "cfg_vehicletypes/vehicleconfig.h"
 #include <QWidget>
 #include <QList>

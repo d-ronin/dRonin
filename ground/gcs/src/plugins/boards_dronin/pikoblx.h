@@ -30,7 +30,7 @@
 #ifndef PIKOBLX_H_
 #define PIKOBLX_H_
 
-#include <uavobjectmanager.h>
+#include <uavobjects/uavobjectmanager.h>
 #include <coreplugin/iboardtype.h>
 
 class PikoBLX : public Core::IBoardType

@@ -28,7 +28,7 @@
 #include "outputcalibrationpage.h"
 #include "ui_outputcalibrationpage.h"
 #include "systemalarms.h"
-#include "uavobjectmanager.h"
+#include "uavobjects/uavobjectmanager.h"
 
 OutputCalibrationPage::OutputCalibrationPage(SetupWizard *wizard, QWidget *parent)
     : AbstractWizardPage(wizard, parent)

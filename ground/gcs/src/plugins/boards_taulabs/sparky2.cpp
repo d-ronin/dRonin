@@ -27,7 +27,7 @@
 
 #include "sparky2.h"
 
-#include <uavobjectmanager.h>
+#include "uavobjects/uavobjectmanager.h"
 #include <extensionsystem/pluginmanager.h>
 #include "board_usb_ids.h"
 

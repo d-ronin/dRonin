@@ -50,7 +50,7 @@
 #include "utils/worldmagmodel.h"
 
 #include "uavtalk/telemetrymanager.h"
-#include "uavobject.h"
+#include "uavobjects/uavobject.h"
 
 #include "positionactual.h"
 #include "homelocation.h"

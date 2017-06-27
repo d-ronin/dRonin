@@ -35,7 +35,7 @@
 #include "rfmbindwizard.h"
 #include "radioprobepage.h"
 
-#include <uavobject.h>
+#include <uavobjects/uavobject.h>
 
 namespace Ui {
 class CoordinatorPage;

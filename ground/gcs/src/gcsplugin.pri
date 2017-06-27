@@ -1,5 +1,8 @@
 include(../gcs.pri)
 
+# all plugins need to link extensionsystem
+include(libs/extensionsystem/extensionsystem.pri)
+
 isEmpty(PROVIDER) {
     PROVIDER = dRonin
 }

@@ -2,7 +2,9 @@ TARGET = GCSControl
 TEMPLATE = lib
 
 include(../../gcsplugin.pri)
+
 include(../../plugins/coreplugin/coreplugin.pri)
+include(../../plugins/uavobjects/uavobjects.pri)
 include(../../plugins/uavobjectutil/uavobjectutil.pri)
 
 DEFINES += GCSCONTROL_LIBRARY

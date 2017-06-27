@@ -31,7 +31,7 @@
 #define SIMULATIONCONFIGURATION_H_
 
 #include <QPixmap>
-#include "configtaskwidget.h"
+#include "uavobjectwidgetutils/configtaskwidget.h"
 
 namespace Ui {
 class SimulationConfiguration;

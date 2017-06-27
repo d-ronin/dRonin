@@ -28,7 +28,7 @@
 
 #include <QWidget>
 #include "ui_outputchannelform.h"
-#include "configtaskwidget.h"
+#include "uavobjectwidgetutils/configtaskwidget.h"
 
 class OutputChannelForm : public ConfigTaskWidget
 {

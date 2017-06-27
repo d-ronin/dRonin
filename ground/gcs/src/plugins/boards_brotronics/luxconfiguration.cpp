@@ -23,7 +23,7 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
-#include "smartsavebutton.h"
+#include "uavobjectwidgetutils/smartsavebutton.h"
 #include "luxconfiguration.h"
 #include "ui_luxconfiguration.h"
 

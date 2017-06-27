@@ -36,7 +36,7 @@
 #include "treeitem.h"
 #include "ui_uavobjectbrowser.h"
 #include "ui_viewoptions.h"
-#include "uavobjectmanager.h"
+#include "uavobjects/uavobjectmanager.h"
 #include <QStringList>
 #include <QHBoxLayout>
 #include <QVBoxLayout>

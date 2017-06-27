@@ -30,12 +30,12 @@
 
 #include "uavtalk/telemetrymanager.h"
 #include "extensionsystem/pluginmanager.h"
-#include "uavobjectmanager.h"
-#include "uavobject.h"
+#include "uavobjects/uavobjectmanager.h"
+#include "uavobjects/uavobject.h"
 #include <QPushButton>
 #include <QList>
 #include <QEventLoop>
-#include "uavobjectutilmanager.h"
+#include "uavobjectutil/uavobjectutilmanager.h"
 #include <QObject>
 #include <QDebug>
 class smartSaveButton : public QObject

@@ -31,7 +31,7 @@
 #include "abstractwizardpage.h"
 #include "rfmbindwizard.h"
 
-#include <uavobject.h>
+#include <uavobjects/uavobject.h>
 
 namespace Ui {
 class ConfigurePage;

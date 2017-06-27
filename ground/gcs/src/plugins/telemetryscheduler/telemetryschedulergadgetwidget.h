@@ -35,7 +35,7 @@
 
 #include "uavobjectutil/uavobjectutilmanager.h"
 #include "extensionsystem/pluginmanager.h"
-#include "uavobject.h"
+#include "uavobjects/uavobject.h"
 
 class Ui_TelemetryScheduler;
 class Ui_Metadata_Dialog;

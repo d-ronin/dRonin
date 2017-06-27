@@ -28,10 +28,10 @@
 #ifndef UAVDATAOBJECT_H
 #define UAVDATAOBJECT_H
 
-#include "uavobjects_global.h"
-#include "uavobject.h"
-#include "uavobjectfield.h"
-#include "uavmetaobject.h"
+#include "uavobjects/uavobjects_global.h"
+#include "uavobjects/uavobject.h"
+#include "uavobjects/uavobjectfield.h"
+#include "uavobjects/uavmetaobject.h"
 #include <QList>
 
 class UAVOBJECTS_EXPORT UAVDataObject : public UAVObject

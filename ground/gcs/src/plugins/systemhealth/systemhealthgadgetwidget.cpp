@@ -27,7 +27,7 @@
 
 #include "systemhealthgadgetwidget.h"
 #include "extensionsystem/pluginmanager.h"
-#include "uavobjectmanager.h"
+#include "uavobjects/uavobjectmanager.h"
 #include "systemalarms.h"
 #include <coreplugin/icore.h>
 #include <QDebug>

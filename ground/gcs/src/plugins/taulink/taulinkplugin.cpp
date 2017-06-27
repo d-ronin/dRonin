@@ -36,7 +36,7 @@
 
 #include <extensionsystem/pluginmanager.h>
 #include <QKeySequence>
-#include "uavobjectmanager.h"
+#include "uavobjects/uavobjectmanager.h"
 
 TauLinkPlugin::TauLinkPlugin()
 {

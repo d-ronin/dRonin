@@ -37,8 +37,8 @@
 
 #include "uavtalk/telemetrymanager.h"
 #include "extensionsystem/pluginmanager.h"
-#include "uavobjectmanager.h"
-#include "uavobject.h"
+#include "uavobjects/uavobjectmanager.h"
+#include "uavobjects/uavobject.h"
 #include "coreplugin/icore.h"
 #include "coreplugin/connectionmanager.h"
 

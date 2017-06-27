@@ -5,8 +5,11 @@ QT += qml
 QT += quick
 
 include(../../gcsplugin.pri)
+
+include(../../libs/utils/utils.pri)
+
 include(../../plugins/coreplugin/coreplugin.pri)
-include(pfdqml_dependencies.pri)
+include(../../plugins/uavobjects/uavobjects.pri)
 
 HEADERS += \
     pfdqmlplugin.h \
@@ -24,8 +27,7 @@ SOURCES += \
     pfdqmlgadgetconfiguration.cpp \
     pfdqmlgadgetoptionspage.cpp
 
-OTHER_FILES += PfdQml.pluginspec \
-    PfdQml.json
+OTHER_FILES += PfdQml.pluginspec
 
 FORMS += pfdqmlgadgetoptionspage.ui
 

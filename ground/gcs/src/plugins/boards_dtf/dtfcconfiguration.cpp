@@ -27,7 +27,7 @@
  * of this source file; otherwise redistribution is prohibited.
  */
 
-#include "smartsavebutton.h"
+#include "uavobjectwidgetutils/smartsavebutton.h"
 #include "dtfcconfiguration.h"
 #include "ui_dtfcconfiguration.h"
 

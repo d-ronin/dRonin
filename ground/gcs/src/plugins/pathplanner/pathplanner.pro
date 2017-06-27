@@ -1,17 +1,20 @@
 QT += xml
-QT+=widgets
+QT += widgets
 TEMPLATE = lib
 TARGET = PathPlanner
-
-include(../../gcsplugin.pri) 
-include(../../plugins/coreplugin/coreplugin.pri) 
-include(../../plugins/uavobjects/uavobjects.pri)
-
 DEFINES += PATHPLANNER_LIBRARY
+
+include(../../gcsplugin.pri)
+
+include(../../libs/utils/utils.pri)
+
+include(../../plugins/coreplugin/coreplugin.pri)
+include(../../plugins/uavobjects/uavobjects.pri)
 
 HEADERS += pathplannergadget.h \
     waypointdialog.h \
     waypointdelegate.h
+
 HEADERS += pathplanner_global.h
 HEADERS += pathplannergadgetwidget.h
 HEADERS += pathplannergadgetfactory.h
@@ -32,12 +35,9 @@ SOURCES += flightdatamodel.cpp
 SOURCES += modeluavoproxy.cpp
 SOURCES += algorithms/pathfillet.cpp
 
-OTHER_FILES += PathPlanner.pluginspec \
-    PathPlanner.json
+OTHER_FILES += PathPlanner.pluginspec
 
 FORMS += pathplanner.ui
 FORMS += waypoint_dialog.ui
 
 RESOURCES += pathplanner.qrc
-
-

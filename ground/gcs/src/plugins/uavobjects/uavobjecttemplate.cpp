@@ -36,7 +36,7 @@
  */
 
 #include "$(NAMELC).h"
-#include "uavobjectfield.h"
+#include "uavobjects/uavobjectfield.h"
 
 const QString $(NAME)::NAME = QString("$(NAME)");
 const QString $(NAME)::DESCRIPTION = QString("$(DESCRIPTION)");

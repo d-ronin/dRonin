@@ -26,7 +26,7 @@
 
 #include "brainre1.h"
 
-#include <uavobjectmanager.h>
+#include "uavobjects/uavobjectmanager.h"
 #include "uavobjectutil/uavobjectutilmanager.h"
 #include <extensionsystem/pluginmanager.h>
 #include "board_usb_ids.h"

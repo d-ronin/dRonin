@@ -36,10 +36,10 @@
 #ifndef UAVOBJECTMANAGER_H
 #define UAVOBJECTMANAGER_H
 
-#include "uavobjects_global.h"
-#include "uavobject.h"
-#include "uavdataobject.h"
-#include "uavmetaobject.h"
+#include "uavobjects/uavobjects_global.h"
+#include "uavobjects/uavobject.h"
+#include "uavobjects/uavdataobject.h"
+#include "uavobjects/uavmetaobject.h"
 #include <QVector>
 #include <QHash>
 

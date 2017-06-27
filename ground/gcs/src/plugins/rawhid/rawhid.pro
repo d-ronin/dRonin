@@ -1,7 +1,11 @@
 TEMPLATE = lib
 TARGET = RawHID
+DEFINES += RAWHID_LIBRARY
+
 include(../../gcsplugin.pri)
-include(rawhid_dependencies.pri)
+
+include(../../plugins/coreplugin/coreplugin.pri)
+
 HEADERS += rawhid_global.h \
     rawhidplugin.h \
     rawhid.h \
@@ -10,16 +14,14 @@ HEADERS += rawhid_global.h \
     usbmonitor.h \
     usbsignalfilter.h \
     usbdevice.h
+
 SOURCES += rawhidplugin.cpp \
     rawhid.cpp \
     usbsignalfilter.cpp \
     usbdevice.cpp \
     usbmonitor.cpp
-FORMS += 
-RESOURCES += 
-DEFINES += RAWHID_LIBRARY
-OTHER_FILES += RawHID.pluginspec \
-    RawHID.json
+
+OTHER_FILES += RawHID.pluginspec
 
 # Platform Specific USB HID Stuff
 win32 { 

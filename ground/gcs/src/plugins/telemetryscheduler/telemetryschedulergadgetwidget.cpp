@@ -47,9 +47,9 @@
 
 #include "extensionsystem/pluginmanager.h"
 #include "utils/xmlconfig.h"
-#include "uavobjectmanager.h"
-#include "uavdataobject.h"
-#include "uavmetaobject.h"
+#include "uavobjects/uavobjectmanager.h"
+#include "uavobjects/uavdataobject.h"
+#include "uavobjects/uavmetaobject.h"
 #include "uavobjectutil/uavobjectutilmanager.h"
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/generalsettings.h>

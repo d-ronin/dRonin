@@ -29,8 +29,8 @@
 #include "lineardialgadgetconfiguration.h"
 #include "ui_lineardialgadgetoptionspage.h"
 #include "extensionsystem/pluginmanager.h"
-#include "uavobjectmanager.h"
-#include "uavdataobject.h"
+#include "uavobjects/uavobjectmanager.h"
+#include "uavobjects/uavdataobject.h"
 
 #include <QFileDialog>
 #include <QtAlgorithms>

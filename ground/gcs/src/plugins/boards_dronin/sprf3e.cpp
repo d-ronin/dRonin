@@ -35,7 +35,7 @@
 #include "board_usb_ids.h"
 
 
-#include <uavobjectmanager.h>
+#include "uavobjects/uavobjectmanager.h"
 #include "uavobjectutil/uavobjectutilmanager.h"
 
 

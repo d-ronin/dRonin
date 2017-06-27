@@ -38,8 +38,8 @@
 #include "tl_dfu.h"
 #include <coreplugin/iboardtype.h>
 #include "uploader_global.h"
-#include "devicedescriptorstruct.h"
-#include "uavobjectutilmanager.h"
+#include "uavobjectutil/devicedescriptorstruct.h"
+#include "uavobjectutil/uavobjectutilmanager.h"
 #include "uavtalk/telemetrymanager.h"
 #include "coreplugin/connectionmanager.h"
 #include "uavsettingsimportexport/uavsettingsimportexportmanager.h"

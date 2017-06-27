@@ -29,8 +29,6 @@
 #include "boardtype_unknown.h"
 #include "ui_boardtype_unknown.h"
 #include "setupwizard.h"
-#include "extensionsystem/pluginmanager.h"
-#include "uavobjectmanager.h"
 
 BoardtypeUnknown::BoardtypeUnknown(SetupWizard *wizard, QWidget *parent)
     : AbstractWizardPage(wizard, parent)

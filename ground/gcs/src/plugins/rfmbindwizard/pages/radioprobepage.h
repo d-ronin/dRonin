@@ -32,7 +32,7 @@
 #include <coreplugin/iboardtype.h>
 #include <coreplugin/icore.h>
 #include <coreplugin/connectionmanager.h>
-#include <uavobject.h>
+#include <uavobjects/uavobject.h>
 
 #include "abstractwizardpage.h"
 #include "rfmbindwizard.h"

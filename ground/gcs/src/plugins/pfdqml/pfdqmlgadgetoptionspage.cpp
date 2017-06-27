@@ -17,8 +17,8 @@
 #include "pfdqmlgadgetconfiguration.h"
 #include "ui_pfdqmlgadgetoptionspage.h"
 #include "extensionsystem/pluginmanager.h"
-#include "uavobjectmanager.h"
-#include "uavdataobject.h"
+#include "uavobjects/uavobjectmanager.h"
+#include "uavobjects/uavdataobject.h"
 
 #include <QFileDialog>
 #include <QtAlgorithms>

@@ -22,12 +22,12 @@
 #ifndef CALIBRATION_H
 #define CALIBRATION_H
 
-#include <config_global.h>
-#include <uavobjectmanager.h>
+#include <config/config_global.h>
+#include <uavobjects/uavobjectmanager.h>
 #include "uavobjectutil/uavobjectutilmanager.h"
 #include <extensionsystem/pluginmanager.h>
-#include <uavobject.h>
-#include <tempcompcurve.h>
+#include <uavobjects/uavobject.h>
+#include <config/tempcompcurve.h>
 
 #include <QObject>
 #include <QTimer>

@@ -4,12 +4,18 @@ DEFINES += UPLOADER_LIBRARY
 QT += svg widgets
 QT += testlib
 QT += network
+
 include(../../gcsplugin.pri)
-include(uploader_dependencies.pri)
 
-CONFIG(release, debug|release):DEFINES += FIRMWARE_RELEASE_CONFIG
+include(../../libs/utils/utils.pri)
 
-INCLUDEPATH *= ../../libs/glc_lib
+include(../../plugins/coreplugin/coreplugin.pri)
+include(../../plugins/rawhid/rawhid.pri)
+include(../../plugins/uavobjects/uavobjects.pri)
+include(../../plugins/uavobjectutil/uavobjectutil.pri)
+include(../../plugins/uavsettingsimportexport/uavsettingsimportexport.pri)
+include(../../plugins/uavtalk/uavtalk.pri)
+
 HEADERS += uploadergadget.h \
     uploadergadgetfactory.h \
     uploadergadgetwidget.h \
@@ -26,8 +32,7 @@ SOURCES += uploadergadget.cpp \
     upgradeassistantdialog.cpp \
     tl_dfu.cpp
 
-OTHER_FILES += Uploader.pluginspec \
-    Uploader.json
+OTHER_FILES += Uploader.pluginspec
 
 FORMS += \
     uploader.ui \

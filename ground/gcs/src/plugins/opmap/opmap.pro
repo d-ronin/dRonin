@@ -1,14 +1,17 @@
 QT += xml
 TEMPLATE = lib
 TARGET = OPMapGadget
+
 include(../../gcsplugin.pri)
-include(../../plugins/coreplugin/coreplugin.pri)
+
 include(../../libs/tlmapcontrol/tlmapcontrol.pri)
+include(../../libs/utils/utils.pri)
+
+include(../../plugins/coreplugin/coreplugin.pri)
+include(../../plugins/pathplanner/pathplanner.pri)
 include(../../plugins/uavobjects/uavobjects.pri)
 include(../../plugins/uavobjectutil/uavobjectutil.pri)
 include(../../plugins/uavtalk/uavtalk.pri)
-include(../../plugins/pathplanner/pathplanner.pri)
-include(../../libs/utils/utils.pri)
 
 HEADERS += opmapplugin.h \
     opmapgadgetoptionspage.h \
@@ -32,8 +35,7 @@ SOURCES += opmapplugin.cpp \
     modelmapproxy.cpp \
     homeeditor.cpp
 
-OTHER_FILES += OPMapGadget.pluginspec \
-    OPMapGadget.json
+OTHER_FILES += OPMapGadget.pluginspec
 
 FORMS += opmapgadgetoptionspage.ui \
     opmap_widget.ui \

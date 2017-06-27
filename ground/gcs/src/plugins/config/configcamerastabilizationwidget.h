@@ -29,8 +29,8 @@
 #include "ui_camerastabilization.h"
 #include "../uavobjectwidgetutils/configtaskwidget.h"
 #include "extensionsystem/pluginmanager.h"
-#include "uavobjectmanager.h"
-#include "uavobject.h"
+#include "uavobjects/uavobjectmanager.h"
+#include "uavobjects/uavobject.h"
 #include "camerastabsettings.h"
 #include <QWidget>
 #include <QList>

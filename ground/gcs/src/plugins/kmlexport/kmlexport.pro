@@ -1,8 +1,13 @@
 TEMPLATE = lib
 TARGET = KMLExport
 QT += svg
+
 include(../../gcsplugin.pri)
-include(kmlexport_dependencies.pri)
+
+include(../../plugins/coreplugin/coreplugin.pri)
+include(../../plugins/uavobjects/uavobjects.pri)
+include(../../plugins/uavtalk/uavtalk.pri)
+
 HEADERS += kmlexportplugin.h \
     kmlexport.h
 
