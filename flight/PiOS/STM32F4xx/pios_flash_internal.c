@@ -132,10 +132,8 @@ static int32_t PIOS_Flash_Internal_EndTransaction(uintptr_t chip_id)
 	return 0;
 }
 
-// XXX eliminate section attribute warning by adding new section to
-// linker scripts
 int32_t PIOS_Flash_Internal_EraseSector_FromRam(uint16_t st_sector)
-	__attribute__ ((section (".data"),long_call));
+	__attribute__ ((section (".ramtext"),long_call));
 
 static int32_t PIOS_Flash_Internal_EraseSector(uintptr_t chip_id, uint32_t chip_sector, uint32_t chip_offset)
 {
