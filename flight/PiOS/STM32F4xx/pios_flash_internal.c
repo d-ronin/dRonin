@@ -164,7 +164,11 @@ static int32_t PIOS_Flash_Internal_EraseSector(uintptr_t chip_id, uint32_t chip_
 		return ret;
 	}
 
-	return FLASH_GetStatus();
+	if (FLASH_GetStatus() != FLASH_COMPLETE) {
+		return -1;
+	}
+
+	return 0;
 }
 
 int32_t PIOS_Flash_Internal_EraseSector_FromRam(uint16_t st_sector)
