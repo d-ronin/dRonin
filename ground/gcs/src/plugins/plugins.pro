@@ -5,11 +5,6 @@ TEMPLATE  = subdirs
 
 SUBDIRS   = plugin_coreplugin
 
-# Blank Template Plugin, not compiled by default
-#SUBDIRS += plugin_donothing
-#plugin_donothing.subdir = donothing
-#plugin_donothing.depends = plugin_coreplugin
-
 # Core plugin
 plugin_coreplugin.subdir = coreplugin
 # Empty UAVGadget - Default for new splits
