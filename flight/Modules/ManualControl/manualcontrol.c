@@ -73,6 +73,8 @@ static int32_t control_event_arm();
 static int32_t control_event_arming();
 static int32_t control_event_disarm();
 
+bool vehicle_is_armed = false;
+
 // This is exposed to transmitter_control
 bool ok_to_arm(void);
 
@@ -208,6 +210,7 @@ static int32_t control_event_arm()
 		if (flightStatus.Armed != FLIGHTSTATUS_ARMED_ARMED) {
 			flightStatus.Armed = FLIGHTSTATUS_ARMED_ARMED;
 			FlightStatusSet(&flightStatus);
+			vehicle_is_armed = true;
 		}
 	}
 	return 0;
@@ -221,6 +224,7 @@ static int32_t control_event_arming()
 	if (flightStatus.Armed != FLIGHTSTATUS_ARMED_ARMING) {
 		flightStatus.Armed = FLIGHTSTATUS_ARMED_ARMING;
 		FlightStatusSet(&flightStatus);
+		vehicle_is_armed = true;
 	}
 	return 0;
 }
@@ -233,6 +237,7 @@ static int32_t control_event_disarm()
 	if (flightStatus.Armed != FLIGHTSTATUS_ARMED_DISARMED) {
 		flightStatus.Armed = FLIGHTSTATUS_ARMED_DISARMED;
 		FlightStatusSet(&flightStatus);
+		vehicle_is_armed = false;
 	}
 	return 0;
 }

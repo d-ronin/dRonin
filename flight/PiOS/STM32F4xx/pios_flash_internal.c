@@ -7,6 +7,8 @@
  *
  * @file       pios_flash_internal.c  
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2017
+ *
  * @brief Provides a flash driver for the STM32 internal flash sectors
  *****************************************************************************/
 /* 
@@ -33,6 +35,9 @@
 #include "pios_wdg.h"
 #include "pios_semaphore.h"
 #include <stdbool.h>
+
+/* Todo: consider relocating to a good header */
+bool __attribute__((weak)) vehicle_is_armed = false;
 
 static const uint16_t sector_to_st_sector_map[] = {
 	[0] = FLASH_Sector_0,
@@ -171,8 +176,7 @@ static int32_t PIOS_Flash_Internal_EraseSector(uintptr_t chip_id, uint32_t chip_
 
 int32_t PIOS_Flash_Internal_EraseSector_FromRam(uint16_t st_sector)
 {
-	/* XXX armed-check infrastructure */
-	if (0) {
+	if (vehicle_is_armed) {
 		return -1;
 	}
 
