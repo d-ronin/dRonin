@@ -1,7 +1,3 @@
-include(uavobjects_dependencies.pri)
-
-# Add the include path to the built-in uavobject include files.
-INCLUDEPATH *= $$PWD
-DEPENDPATH *= $$PWD
-
 LIBS *= -l$$qtLibraryName(UAVObjects)
+
+include(uavobject_synthetics.pri)

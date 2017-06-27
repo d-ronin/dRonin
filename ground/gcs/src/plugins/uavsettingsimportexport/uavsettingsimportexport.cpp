@@ -31,16 +31,6 @@
 #include <QDebug>
 #include <QCheckBox>
 #include "importsummary.h"
-// for menu item
-#include <coreplugin/coreconstants.h>
-#include <coreplugin/actionmanager/actionmanager.h>
-#include <coreplugin/icore.h>
-#include <QKeySequence>
-
-// for UAVObjects
-#include "uavdataobject.h"
-#include "uavobjectmanager.h"
-#include "extensionsystem/pluginmanager.h"
 
 // for XML object
 #include <QDomDocument>

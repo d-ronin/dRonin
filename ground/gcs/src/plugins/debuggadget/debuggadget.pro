@@ -1,11 +1,13 @@
 TEMPLATE = lib
 TARGET = DebugGadget
 QT += widgets
+DEFINES += DEBUGGADGET_LIBRARY
 
 include(../../gcsplugin.pri)
-include(../../plugins/coreplugin/coreplugin.pri)
 
-DEFINES += DEBUGGADGET_LIBRARY
+include(../../libs/extensionsystem/extensionsystem.pri)
+
+include(../../plugins/coreplugin/coreplugin.pri)
 
 HEADERS += debugplugin.h \
     debugengine.h
@@ -18,8 +20,7 @@ SOURCES += debuggadget.cpp
 SOURCES += debuggadgetfactory.cpp
 SOURCES += debuggadgetwidget.cpp
 
-OTHER_FILES += DebugGadget.pluginspec \
-               DebugGadget.json
+OTHER_FILES += DebugGadget.pluginspec
 
 FORMS += \
     debug.ui

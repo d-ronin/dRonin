@@ -34,8 +34,8 @@
 // GCS headers
 #include "extensionsystem/pluginmanager.h"
 #include "utils/pathutils.h"
-#include "uavobjectmanager.h"
-#include "uavobject.h"
+#include "uavobjects/uavobjectmanager.h"
+#include "uavobjects/uavobject.h"
 
 // Notify plugin headers
 #include "notificationitem.h"

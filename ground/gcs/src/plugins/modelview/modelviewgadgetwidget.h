@@ -30,14 +30,14 @@
 #include <QGLWidget>
 #include <QTimer>
 
-#include "glc_factory.h"
-#include "viewport/glc_viewport.h"
-#include "viewport/glc_movercontroller.h"
-#include "shading/glc_light.h"
-#include "sceneGraph/glc_world.h"
-#include "glc_exception.h"
+#include "glc_lib/glc_factory.h"
+#include "glc_lib/viewport/glc_viewport.h"
+#include "glc_lib/viewport/glc_movercontroller.h"
+#include "glc_lib/shading/glc_light.h"
+#include "glc_lib/sceneGraph/glc_world.h"
+#include "glc_lib/glc_exception.h"
 
-#include "uavobjectmanager.h"
+#include "uavobjects/uavobjectmanager.h"
 #include "attitudeactual.h"
 
 class ModelViewGadgetWidget : public QGLWidget

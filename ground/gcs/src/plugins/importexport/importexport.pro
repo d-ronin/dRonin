@@ -1,17 +1,26 @@
 TEMPLATE = lib
-QT += widgets
 TARGET = ImportExportGadget
-DEFINES += IMPORTEXPORT_LIBRARY
+QT += widgets
 QT += xml
+
+DEFINES += IMPORTEXPORT_LIBRARY
+
 include(../../gcsplugin.pri)
-include(importexport_dependencies.pri)
+
+include(../../libs/extensionsystem/extensionsystem.pri)
+include(../../libs/utils/utils.pri)
+
+include(../../plugins/coreplugin/coreplugin.pri)
+
 HEADERS += importexportplugin.h \
     importexportgadgetwidget.h \
     importexportdialog.h
+
 SOURCES += importexportplugin.cpp \
     importexportgadgetwidget.cpp \
     importexportdialog.cpp
-OTHER_FILES += ImportExportGadget.pluginspec \
-    ImportExportGadget.json
+
+OTHER_FILES += ImportExportGadget.pluginspec
+
 FORMS += importexportgadgetwidget.ui \
     importexportdialog.ui

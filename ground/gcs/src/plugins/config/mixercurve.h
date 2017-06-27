@@ -33,9 +33,8 @@
 #include <QTableWidget>
 
 #include "ui_mixercurve.h"
-#include "mixercurvewidget.h"
+#include "uavobjectwidgetutils/mixercurvewidget.h"
 #include "dblspindelegate.h"
-#include "uavobjectwidgetutils_global.h"
 #include "uavobjectwidgetutils/popupwidget.h"
 
 namespace Ui {

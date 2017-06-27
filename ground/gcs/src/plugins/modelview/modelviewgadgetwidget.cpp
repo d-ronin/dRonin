@@ -29,10 +29,10 @@
 #endif
 #include "modelviewgadgetwidget.h"
 #include "extensionsystem/pluginmanager.h"
-#include "glc_context.h"
-#include "glc_exception.h"
-#include "glc_openglexception.h"
-#include "viewport/glc_userinput.h"
+#include "glc_lib/glc_context.h"
+#include "glc_lib/glc_exception.h"
+#include "glc_lib/glc_openglexception.h"
+#include "glc_lib/viewport/glc_userinput.h"
 
 #include <iostream>
 

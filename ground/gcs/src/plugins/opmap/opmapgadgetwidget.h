@@ -53,9 +53,9 @@
 #include "utils/coordinateconversions.h"
 
 #include "extensionsystem/pluginmanager.h"
-#include "uavobjectutilmanager.h"
-#include "uavobjectmanager.h"
-#include "uavobject.h"
+#include "uavobjectutil/uavobjectutilmanager.h"
+#include "uavobjects/uavobjectmanager.h"
+#include "uavobjects/uavobject.h"
 #include "objectpersistence.h"
 #include <QItemSelectionModel>
 

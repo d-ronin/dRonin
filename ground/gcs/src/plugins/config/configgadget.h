@@ -32,10 +32,8 @@
 #define CONFIGGADGET_H
 
 #include <coreplugin/iuavgadget.h>
-#include "../uavobjectwidgetutils/configtaskwidget.h"
+#include "uavobjectwidgetutils/configtaskwidget.h"
 #include "extensionsystem/pluginmanager.h"
-#include "uavobjectmanager.h"
-#include "uavobject.h"
 #include <QWidget>
 #include <QTimer>
 

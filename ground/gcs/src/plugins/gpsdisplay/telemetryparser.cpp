@@ -25,6 +25,8 @@
  */
 
 #include "telemetryparser.h"
+#include "extensionsystem/pluginmanager.h"
+#include "uavobjects/uavobjectmanager.h"
 #include <math.h>
 #include <QDebug>
 #include <QStringList>

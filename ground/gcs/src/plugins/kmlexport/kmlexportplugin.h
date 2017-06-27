@@ -31,9 +31,6 @@
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/iconnection.h>
 #include <extensionsystem/iplugin.h>
-#include "uavobjectmanager.h"
-#include "gcstelemetrystats.h"
-#include <uavtalk/uavtalk.h>
 #include "kmlexport.h"
 
 #include <QQueue>

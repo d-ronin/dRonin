@@ -28,8 +28,8 @@
 #ifndef UAVOBJECTFIELD_H
 #define UAVOBJECTFIELD_H
 
-#include "uavobjects_global.h"
-#include "uavobject.h"
+#include "uavobjects/uavobjects_global.h"
+#include "uavobjects/uavobject.h"
 #include <QStringList>
 #include <QVariant>
 #include <QList>

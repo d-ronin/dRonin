@@ -31,8 +31,8 @@
 #include <QDesktopServices>
 #include <QUrl>
 #include "ui_importsummarydialog.h"
-#include "uavdataobject.h"
-#include "uavobjectmanager.h"
+#include "uavobjects/uavdataobject.h"
+#include "uavobjects/uavobjectmanager.h"
 #include "extensionsystem/pluginmanager.h"
 #include "uavobjectutil/uavobjectutilmanager.h"
 

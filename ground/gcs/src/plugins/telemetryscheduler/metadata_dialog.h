@@ -26,7 +26,7 @@
 #ifndef METADATA_DIALOG_H_
 #define METADATA_DIALOG_H_
 
-#include "uavobject.h"
+#include "uavobjects/uavobject.h"
 
 #include "ui_metadata_dialog.h"
 

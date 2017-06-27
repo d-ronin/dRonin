@@ -33,7 +33,7 @@
 #include <QMutexLocker>
 #include <QDebug>
 #include <QBuffer>
-#include "uavobjectmanager.h"
+#include "uavobjects/uavobjectmanager.h"
 #include <math.h>
 
 class LogFile : public QIODevice

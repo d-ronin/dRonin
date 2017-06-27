@@ -30,7 +30,7 @@
 #define BIASCALIBRATIONPAGE_H
 
 #include "abstractwizardpage.h"
-#include "calibration.h"
+#include "config/calibration.h"
 
 namespace Ui {
 class BiasCalibrationPage;

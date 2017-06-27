@@ -26,8 +26,8 @@
 #include "taulinkgadgetwidget.h"
 
 #include "extensionsystem/pluginmanager.h"
-#include "uavobjectmanager.h"
-#include "uavobject.h"
+#include "uavobjects/uavobjectmanager.h"
+#include "uavobjects/uavobject.h"
 
 TauLinkGadget::TauLinkGadget(QString classId, TauLinkGadgetWidget *widget, QWidget *parent)
     : IUAVGadget(classId, parent)

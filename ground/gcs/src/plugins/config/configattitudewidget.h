@@ -35,10 +35,10 @@
 #include "ui_attitude.h"
 #include "calibration.h"
 
-#include "configtaskwidget.h"
+#include "uavobjectwidgetutils/configtaskwidget.h"
 #include "extensionsystem/pluginmanager.h"
-#include "uavobjectmanager.h"
-#include "uavobject.h"
+#include "uavobjects/uavobjectmanager.h"
+#include "uavobjects/uavobject.h"
 #include "calibration.h"
 #include <QWidget>
 #include <QSvgRenderer>

@@ -32,10 +32,10 @@
 #include "uavobjectutil_global.h"
 
 #include "extensionsystem/pluginmanager.h"
-#include "uavobjectmanager.h"
-#include "uavobject.h"
+#include "uavobjects/uavobjectmanager.h"
+#include "uavobjects/uavobject.h"
 #include "objectpersistence.h"
-#include "devicedescriptorstruct.h"
+#include "uavobjectutil/devicedescriptorstruct.h"
 #include <coreplugin/iboardtype.h>
 #include <QtGlobal>
 #include <QObject>

@@ -30,7 +30,7 @@
 
 #include <extensionsystem/iplugin.h>
 #include <coreplugin/globalmessaging.h>
-#include "uavobject.h"
+#include "uavobjects/uavobject.h"
 #include "uavtalk/telemetrymanager.h"
 
 using namespace Core;

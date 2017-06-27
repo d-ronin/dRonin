@@ -30,7 +30,7 @@
 
 #include "gcscontrol_global.h"
 #include "manualcontrolsettings.h"
-#include "uavobjectmanager.h"
+#include "uavobjects/uavobjectmanager.h"
 #include "gcsreceiver.h"
 #include "extensionsystem/pluginmanager.h"
 #include "QTimer"

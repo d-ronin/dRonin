@@ -33,9 +33,9 @@
 #include <QtSvg/QSvgRenderer>
 #include <QtSvg/QGraphicsSvgItem>
 #include <QtCore/QPointer>
-#include "mixercurvepoint.h"
-#include "mixercurveline.h"
-#include "uavobjectwidgetutils_global.h"
+#include "uavobjectwidgetutils/mixercurvepoint.h"
+#include "uavobjectwidgetutils/mixercurveline.h"
+#include "uavobjectwidgetutils/uavobjectwidgetutils_global.h"
 
 class UAVOBJECTWIDGETUTILS_EXPORT MixerCurveWidget : public QGraphicsView
 {

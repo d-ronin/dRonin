@@ -28,7 +28,7 @@
 #include "ui_endpage.h"
 #include <coreplugin/modemanager.h>
 #include <extensionsystem/pluginmanager.h>
-#include <configgadgetfactory.h>
+#include <config/configgadgetfactory.h>
 #include <QMessageBox>
 
 TLEndPage::TLEndPage(SetupWizard *wizard, QWidget *parent)

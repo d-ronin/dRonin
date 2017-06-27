@@ -30,8 +30,8 @@
 #include "dialgadgetconfiguration.h"
 #include "ui_dialgadgetoptionspage.h"
 #include "extensionsystem/pluginmanager.h"
-#include "uavobjectmanager.h"
-#include "uavdataobject.h"
+#include "uavobjects/uavobjectmanager.h"
+#include "uavobjects/uavdataobject.h"
 
 #include <QFileDialog>
 #include <QtAlgorithms>

@@ -27,7 +27,7 @@
 #define CONFIGTXPIDWIDGET_H
 
 #include "ui_txpid.h"
-#include "configtaskwidget.h"
+#include "uavobjectwidgetutils/configtaskwidget.h"
 
 class ConfigTxPIDWidget : public ConfigTaskWidget
 {

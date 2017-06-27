@@ -29,7 +29,7 @@
 
 #include "ui_gpsdisplaywidget.h"
 #include "gpsconstellationwidget.h"
-#include "uavobject.h"
+#include "uavobjects/uavobject.h"
 #include <QGraphicsView>
 #include <QtSvg/QSvgRenderer>
 #include <QtSvg/QGraphicsSvgItem>

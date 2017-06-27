@@ -30,7 +30,7 @@
 #ifndef SPRF3E_H_
 #define SPRF3E_H_
 
-#include <uavobjectmanager.h>
+#include <uavobjects/uavobjectmanager.h>
 #include <coreplugin/iboardtype.h>
 
 class Sprf3e : public Core::IBoardType

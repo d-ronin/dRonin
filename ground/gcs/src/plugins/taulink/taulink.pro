@@ -2,8 +2,14 @@ TEMPLATE = lib
 TARGET = TauLinkGadget
 DEFINES += TAULINK_LIBRARY
 QT += svg
+
 include(../../gcsplugin.pri)
-include(taulink_dependencies.pri)
+
+include(../../plugins/coreplugin/coreplugin.pri)
+include(../../plugins/uavobjects/uavobjects.pri)
+include(../../plugins/uavobjectwidgetutils/uavobjectwidgetutils.pri)
+include(../../plugins/uavtalk/uavtalk.pri)
+
 HEADERS += taulinkplugin.h \
     taulinkgadgetwidget.h \
     taulinkgadget.h \
@@ -14,7 +20,6 @@ SOURCES += taulinkplugin.cpp \
     taulinkgadget.cpp \
     taulinkgadgetfactory.cpp
 
-OTHER_FILES += TauLinkGadget.pluginspec \
-    TauLinkGadget.json
-FORMS += taulink.ui
+OTHER_FILES += TauLinkGadget.pluginspec
 
+FORMS += taulink.ui

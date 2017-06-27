@@ -27,7 +27,7 @@
  * of this source file; otherwise redistribution is prohibited.
  */
 
-#include "smartsavebutton.h"
+#include "uavobjectwidgetutils/smartsavebutton.h"
 #include "simulationconfiguration.h"
 #include "ui_simulationconfiguration.h"
 

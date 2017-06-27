@@ -30,7 +30,7 @@
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/iconnection.h>
 #include <extensionsystem/iplugin.h>
-#include "uavobjectmanager.h"
+#include "uavobjects/uavobjectmanager.h"
 
 #include "taulinkgadgetfactory.h"
 

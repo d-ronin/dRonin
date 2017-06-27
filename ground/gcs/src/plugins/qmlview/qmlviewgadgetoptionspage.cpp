@@ -28,8 +28,8 @@
 #include "qmlviewgadgetconfiguration.h"
 #include "ui_qmlviewgadgetoptionspage.h"
 #include "extensionsystem/pluginmanager.h"
-#include "uavobjectmanager.h"
-#include "uavdataobject.h"
+#include "uavobjects/uavobjectmanager.h"
+#include "uavobjects/uavdataobject.h"
 
 #include <QFileDialog>
 #include <QtAlgorithms>

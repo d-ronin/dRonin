@@ -29,7 +29,7 @@
 #include "flightlogdownload.h"
 #include "ui_flightlogdownload.h"
 
-#include <uavobjectmanager.h>
+#include <uavobjects/uavobjectmanager.h>
 #include "uavobjectutil/uavobjectutilmanager.h"
 #include <extensionsystem/pluginmanager.h>
 

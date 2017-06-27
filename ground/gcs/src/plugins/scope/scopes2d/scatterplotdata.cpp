@@ -28,7 +28,7 @@
 #include <math.h>
 
 #include "extensionsystem/pluginmanager.h"
-#include "uavobjectmanager.h"
+#include "uavobjects/uavobjectmanager.h"
 #include "scopes2d/scatterplotdata.h"
 #include "scopes2d/scatterplotscopeconfig.h"
 #include "scopegadgetwidget.h"

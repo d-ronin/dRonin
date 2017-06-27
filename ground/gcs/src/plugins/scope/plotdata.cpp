@@ -26,7 +26,7 @@
  */
 
 #include "extensionsystem/pluginmanager.h"
-#include "uavobjectmanager.h"
+#include "uavobjects/uavobjectmanager.h"
 
 #include "scopes2d/plotdata2d.h"
 #include "scopes3d/plotdata3d.h"

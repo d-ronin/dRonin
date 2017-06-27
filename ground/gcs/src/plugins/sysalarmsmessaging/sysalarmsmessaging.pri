@@ -1,3 +1,1 @@
-include(serial_dependencies.pri)
-
-LIBS *= -l$$qtLibraryName(Serial)
+LIBS *= -l$$qtLibraryName(SysAlarmsMessaging)

@@ -2,8 +2,15 @@ TEMPLATE = lib
 TARGET = LoggingGadget
 DEFINES += LOGGING_LIBRARY
 QT += svg
+
 include(../../gcsplugin.pri)
-include(logging_dependencies.pri)
+
+include(../../plugins/coreplugin/coreplugin.pri)
+include(../../plugins/scope/scope.pri)
+include(../../plugins/uavobjects/uavobjects.pri)
+include(../../plugins/uavobjectutil/uavobjectutil.pri)
+include(../../plugins/uavtalk/uavtalk.pri)
+
 HEADERS += loggingplugin.h \
     logfile.h \
     logginggadgetwidget.h \
@@ -11,8 +18,6 @@ HEADERS += loggingplugin.h \
     logginggadgetfactory.h \
     loggingdevice.h \
     flightlogdownload.h
-#    logginggadgetconfiguration.h
-#   logginggadgetoptionspage.h
 
 SOURCES += loggingplugin.cpp \
     logfile.cpp \
@@ -21,11 +26,8 @@ SOURCES += loggingplugin.cpp \
     logginggadgetfactory.cpp \
     loggingdevice.cpp \
     flightlogdownload.cpp
-#    logginggadgetconfiguration.cpp \
-#    logginggadgetoptionspage.cpp
-OTHER_FILES += LoggingGadget.pluginspec \
-    LoggingGadget.json
+
+OTHER_FILES += LoggingGadget.pluginspec
+
 FORMS += logging.ui \
     flightlogdownload.ui
-#    logginggadgetwidget.ui \
-#    loggingdialog.ui

@@ -9,16 +9,20 @@ QT += xml \
     sql
 
 include(../../gcsplugin.pri)
-include(../../libs/utils/utils.pri)
+include(../../../gcsversioninfo.pri)
+
+include(../../libs/extensionsystem/extensionsystem.pri)
 include(../../libs/runguard/runguard.pri)
-include(coreplugin_dependencies.pri)
+include(../../libs/utils/utils.pri)
 
 INCLUDEPATH *= dialogs \
     uavgadgetmanager \
     actionmanager
+
 DEPENDPATH += dialogs \
     uavgadgetmanager \
     actionmanager
+
 SOURCES += mainwindow.cpp \
     generalsettings.cpp \
     uniqueidmanager.cpp \
@@ -61,6 +65,7 @@ SOURCES += mainwindow.cpp \
     idevice.cpp \
     globalmessaging.cpp \
     alarmsmonitorwidget.cpp
+
 HEADERS += mainwindow.h \
     generalsettings.h \
     uniqueidmanager.h \
@@ -116,20 +121,21 @@ HEADERS += mainwindow.h \
     idevice.h \
     globalmessaging.h \
     alarmsmonitorwidget.h
+
 FORMS += dialogs/settingsdialog.ui \
     dialogs/shortcutsettings.ui \
     generalsettings.ui \
     uavgadgetoptionspage.ui \
     workspacesettings.ui \
     dialogs/importsettings.ui
+
 RESOURCES += core.qrc
+
 unix:!macx { 
     images.files = $${GCS_PROJECT_BRANDING_PRETTY}/gcs_logo_*.png
     images.files = images/qtcreator_logo_*.png
     images.path = /share/pixmaps
     INSTALLS += images
 }
-OTHER_FILES += Core.pluginspec \
-    coreplugin.json
 
-include(../../../gcsversioninfo.pri)
+OTHER_FILES += Core.pluginspec

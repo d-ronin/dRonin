@@ -5,7 +5,7 @@ include(../../plugins/uavobjects/uavobjects.pri)
 include(../../plugins/coreplugin/coreplugin.pri)
 include(../../../usbids.pri)
 
-OTHER_FILES += AeroQuad.json
+OTHER_FILES += AeroQuad.pluginspec
 
 HEADERS += \
     aeroquadplugin.h \

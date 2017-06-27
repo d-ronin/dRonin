@@ -33,8 +33,8 @@
 #ifndef $(NAMEUC)_H
 #define $(NAMEUC)_H
 
-#include "uavdataobject.h"
-#include "uavobjectmanager.h"
+#include "uavobjects/uavdataobject.h"
+#include "uavobjects/uavobjectmanager.h"
 
 #include "uavogcsversion.h"
 

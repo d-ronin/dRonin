@@ -39,7 +39,7 @@
 #include <QIODevice>
 #include <QMap>
 #include <QSemaphore>
-#include "uavobjectmanager.h"
+#include "uavobjects/uavobjectmanager.h"
 #include "uavtalk_global.h"
 #include <QtNetwork/QUdpSocket>
 

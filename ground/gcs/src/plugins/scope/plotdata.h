@@ -31,7 +31,7 @@
 class ScopeGadgetWidget;
 class ScopeConfig;
 
-#include "uavobject.h"
+#include "uavobjects/uavobject.h"
 
 #include "qwt/src/qwt_color_map.h"
 #include "qwt/src/qwt_scale_widget.h"

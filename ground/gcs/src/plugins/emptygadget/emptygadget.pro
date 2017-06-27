@@ -1,7 +1,11 @@
 TEMPLATE = lib 
 TARGET = EmptyGadget
 QT += widgets
+
 include(../../gcsplugin.pri)
+
+include(../../libs/extensionsystem/extensionsystem.pri)
+
 include(../../plugins/coreplugin/coreplugin.pri) 
 
 HEADERS += emptyplugin.h
@@ -13,5 +17,4 @@ SOURCES += emptygadget.cpp
 SOURCES += emptygadgetfactory.cpp
 SOURCES += emptygadgetwidget.cpp
 
-OTHER_FILES += EmptyGadget.pluginspec \
-                EmptyGadget.json
+OTHER_FILES += EmptyGadget.pluginspec

@@ -29,7 +29,7 @@
 #define BRAINCONFIGURATION_H
 
 #include <QPixmap>
-#include "configtaskwidget.h"
+#include "uavobjectwidgetutils/configtaskwidget.h"
 
 namespace Ui {
 class BrainConfiguration;

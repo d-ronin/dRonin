@@ -15,8 +15,8 @@
 
 #include "pfdqmlgadgetwidget.h"
 #include "extensionsystem/pluginmanager.h"
-#include "uavobjectmanager.h"
-#include "uavobject.h"
+#include "uavobjects/uavobjectmanager.h"
+#include "uavobjects/uavobject.h"
 #include "utils/svgimageprovider.h"
 #include <QDebug>
 #include <QSvgRenderer>

@@ -4,7 +4,14 @@ DEFINES += UAVOBJECTWIDGETUTILS_LIBRARY
 QT += svg
 
 include(../../gcsplugin.pri)
-include(uavobjectwidgetutils_dependencies.pri)
+
+include(../../libs/utils/utils.pri)
+
+include(../../plugins/coreplugin/coreplugin.pri)
+include(../../plugins/uavobjects/uavobjects.pri)
+include(../../plugins/uavobjectutil/uavobjectutil.pri)
+include(../../plugins/uavsettingsimportexport/uavsettingsimportexport.pri)
+include(../../plugins/uavtalk/uavtalk.pri)
 
 HEADERS += uavobjectwidgetutils_global.h \
     uavobjectwidgetutilsplugin.h \
@@ -25,7 +32,6 @@ SOURCES += uavobjectwidgetutilsplugin.cpp \
     popupwidget.cpp \
     connectiondiagram.cpp
 
-OTHER_FILES += UAVObjectWidgetUtils.pluginspec \
-    UAVObjectWidgetUtils.json
+OTHER_FILES += UAVObjectWidgetUtils.pluginspec
 
 FORMS += connectiondiagram.ui

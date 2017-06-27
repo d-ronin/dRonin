@@ -34,10 +34,10 @@
 
 #include "uavobjecttreemodel.h"
 #include "fieldtreeitem.h"
-#include "uavobjectmanager.h"
-#include "uavdataobject.h"
-#include "uavmetaobject.h"
-#include "uavobjectfield.h"
+#include "uavobjects/uavobjectmanager.h"
+#include "uavobjects/uavdataobject.h"
+#include "uavobjects/uavmetaobject.h"
+#include "uavobjects/uavobjectfield.h"
 #include "extensionsystem/pluginmanager.h"
 #include <QColor>
 #include <QtCore/QTimer>

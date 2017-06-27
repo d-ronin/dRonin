@@ -33,7 +33,7 @@
 #include <QSvgRenderer>
 #include <QGraphicsSvgItem>
 
-#include "configtaskwidget.h"
+#include "uavobjectwidgetutils/configtaskwidget.h"
 #include "ui_sprf3econfiguration.h"
 
 class Sprf3eConfiguration : public ConfigTaskWidget

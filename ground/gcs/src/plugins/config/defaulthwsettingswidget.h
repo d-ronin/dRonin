@@ -28,8 +28,8 @@
 #define DEFAULTHWSETTINGSt_H
 
 #include "ui_defaulthwsettings.h"
-#include "../uavobjectwidgetutils/configtaskwidget.h"
-#include "uavobject.h"
+#include "uavobjectwidgetutils/configtaskwidget.h"
+#include "uavobjects/uavobject.h"
 #include <QWidget>
 
 class Ui_Widget;

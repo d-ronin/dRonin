@@ -1,11 +1,17 @@
 TEMPLATE = lib
-QT+=widgets
+QT += widgets
 TARGET = ScopeGadget
 DEFINES += SCOPE_LIBRARY
 DEFINES += QWT_DLL
 
 include(../../gcsplugin.pri)
-include (scope_dependencies.pri)
+
+include(../../libs/qwt/qwt.pri)
+include(../../libs/utils/utils.pri)
+
+include(../../plugins/coreplugin/coreplugin.pri)
+include(../../plugins/uavobjects/uavobjects.pri)
+include(../../plugins/uavtalk/uavtalk.pri)
 
 HEADERS += scopeplugin.h \
     scopes2d/histogramplotdata.h \
@@ -26,6 +32,7 @@ HEADERS += scopegadgetconfiguration.h
 HEADERS += scopegadget.h
 HEADERS += scopegadgetwidget.h
 HEADERS += scopegadgetfactory.h
+
 SOURCES += scopeplugin.cpp \
     scopes2d/histogramplotdata.cpp \
     scopes2d/histogramscopeconfig.cpp \
@@ -39,6 +46,7 @@ SOURCES += scopegadgetconfiguration.cpp
 SOURCES += scopegadget.cpp
 SOURCES += scopegadgetfactory.cpp
 SOURCES += scopegadgetwidget.cpp
-OTHER_FILES += ScopeGadget.pluginspec \
-    ScopeGadget.json
+
+OTHER_FILES += ScopeGadget.pluginspec
+
 FORMS += scopegadgetoptionspage.ui

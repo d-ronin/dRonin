@@ -32,9 +32,9 @@
 #include <QList>
 #include <QPair>
 #include "vehicleconfigurationsource.h"
-#include "uavobjectmanager.h"
+#include "uavobjects/uavobjectmanager.h"
 #include "systemsettings.h"
-#include "cfg_vehicletypes/vehicleconfig.h"
+#include "config/cfg_vehicletypes/vehicleconfig.h"
 #include "actuatorsettings.h"
 
 struct mixerChannelSettings

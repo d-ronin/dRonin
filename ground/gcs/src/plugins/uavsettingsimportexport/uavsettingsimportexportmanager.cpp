@@ -44,8 +44,8 @@
 #include <QKeySequence>
 
 // for UAVObjects
-#include "uavdataobject.h"
-#include "uavobjectmanager.h"
+#include "uavobjects/uavdataobject.h"
+#include "uavobjects/uavobjectmanager.h"
 #include "extensionsystem/pluginmanager.h"
 
 // for XML object

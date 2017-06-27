@@ -5,6 +5,7 @@ TARGET = TelemetryScheduler
 DEFINES += TELEMETRYSCHEDULER_LIBRARY
 
 include(../../gcsplugin.pri) 
+
 include(../../plugins/coreplugin/coreplugin.pri) 
 include(../../plugins/uavobjects/uavobjects.pri)
 include(../../plugins/uavobjectutil/uavobjectutil.pri)
@@ -22,8 +23,7 @@ SOURCES += telemetryschedulergadgetfactory.cpp
 SOURCES += telemetryschedulerplugin.cpp
 SOURCES += metadata_dialog.cpp
 
-OTHER_FILES += telemetryscheduler.json
+OTHER_FILES += TelemetryScheduler.pluginspec
 
 FORMS += telemetryscheduler.ui
 FORMS += metadata_dialog.ui
-

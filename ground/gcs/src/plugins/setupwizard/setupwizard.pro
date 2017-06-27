@@ -1,13 +1,17 @@
-TEMPLATE = lib 
-TARGET = SetupWizard 
+TEMPLATE = lib
+TARGET = SetupWizard
 QT += svg
 
-
 include(../../gcsplugin.pri)
+
+include(../../libs/extensionsystem/extensionsystem.pri)
+
+include(../../plugins/config/config.pri)
 include(../../plugins/coreplugin/coreplugin.pri)
+include(../../plugins/uavobjects/uavobjects.pri)
 include(../../plugins/uavobjectutil/uavobjectutil.pri)
 include(../../plugins/uavobjectwidgetutils/uavobjectwidgetutils.pri)
-include(../../plugins/config/config.pri)
+include(../../plugins/uavtalk/uavtalk.pri)
 
 HEADERS += setupwizardplugin.h \ 
     setupwizard.h \
@@ -59,8 +63,7 @@ SOURCES += setupwizardplugin.cpp \
     pages/tlendpage.cpp \
     pages/tlstartpage.cpp
 
-OTHER_FILES += SetupWizard.pluginspec \
-    SetupWizard.json
+OTHER_FILES += SetupWizard.pluginspec
 
 FORMS += \
     pages/startpage.ui \

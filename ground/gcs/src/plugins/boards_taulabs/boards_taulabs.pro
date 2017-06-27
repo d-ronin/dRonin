@@ -1,13 +1,15 @@
 TEMPLATE = lib
 TARGET = TauLabs
+
 include(../../gcsplugin.pri)
-include(../../plugins/uavobjects/uavobjects.pri)
-include(../../plugins/coreplugin/coreplugin.pri)
-include(../../plugins/uavobjectutil/uavobjectutil.pri)
-include(../../plugins/uavobjectwidgetutils/uavobjectwidgetutils.pri)
 include(../../../usbids.pri)
 
-OTHER_FILES += TauLabs.json
+include(../../plugins/coreplugin/coreplugin.pri)
+include(../../plugins/uavobjects/uavobjects.pri)
+include(../../plugins/uavobjectutil/uavobjectutil.pri)
+include(../../plugins/uavobjectwidgetutils/uavobjectwidgetutils.pri)
+
+OTHER_FILES += TauLabs.pluginspec
 
 HEADERS += \
     taulabsplugin.h \
@@ -23,5 +25,3 @@ SOURCES += \
 
 RESOURCES += \
     taulabs.qrc
-
-FORMS += \

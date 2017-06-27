@@ -29,7 +29,7 @@
 #define BRAINRE1CONFIGURATION_H
 
 #include <QPixmap>
-#include "configtaskwidget.h"
+#include "uavobjectwidgetutils/configtaskwidget.h"
 #include "hwbrainre1.h"
 
 namespace Ui {

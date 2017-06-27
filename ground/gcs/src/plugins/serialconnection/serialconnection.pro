@@ -4,7 +4,11 @@ QT += widgets
 QT += serialport
 
 include(../../gcsplugin.pri)
-include(serial_dependencies.pri)
+
+include(../../libs/extensionsystem/extensionsystem.pri)
+
+include(../../plugins/coreplugin/coreplugin.pri)
+
 HEADERS += serialplugin.h \
             serialpluginconfiguration.h \
             serialpluginoptionspage.h \
@@ -13,8 +17,9 @@ SOURCES += serialplugin.cpp \
             serialpluginconfiguration.cpp \
             serialpluginoptionspage.cpp \
             serialdevice.cpp
-FORMS += \ 
+FORMS += \
     serialpluginoptions.ui
-RESOURCES += 
-OTHER_FILES += Serial.pluginspec \
-    Serial.json
+
+RESOURCES +=
+
+OTHER_FILES += Serial.pluginspec

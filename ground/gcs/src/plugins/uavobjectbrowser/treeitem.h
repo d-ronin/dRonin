@@ -35,10 +35,10 @@
 #ifndef TREEITEM_H
 #define TREEITEM_H
 
-#include "uavobject.h"
-#include "uavdataobject.h"
-#include "uavmetaobject.h"
-#include "uavobjectfield.h"
+#include "uavobjects/uavobject.h"
+#include "uavobjects/uavdataobject.h"
+#include "uavobjects/uavmetaobject.h"
+#include "uavobjects/uavobjectfield.h"
 #include <QtCore/QList>
 #include <QtCore/QLinkedList>
 #include <QtCore/QMap>

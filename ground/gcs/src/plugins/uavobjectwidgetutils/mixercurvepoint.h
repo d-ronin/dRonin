@@ -32,7 +32,7 @@
 #include <QColor>
 #include <QList>
 #include <QFont>
-#include <uavobjectwidgetutils_global.h>
+#include <uavobjectwidgetutils/uavobjectwidgetutils_global.h>
 
 class Edge;
 class MixerCurveWidget;

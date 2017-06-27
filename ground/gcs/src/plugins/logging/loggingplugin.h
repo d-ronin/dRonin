@@ -31,7 +31,7 @@
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/iconnection.h>
 #include <extensionsystem/iplugin.h>
-#include "uavobjectmanager.h"
+#include "uavobjects/uavobjectmanager.h"
 #include "gcstelemetrystats.h"
 #include "loggingdevice.h"
 #include <uavtalk/uavtalk.h>

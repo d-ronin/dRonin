@@ -29,7 +29,7 @@
 #include <QScrollBar>
 #include <QInputDialog>
 
-#include "uavmetaobject.h"
+#include "uavobjects/uavmetaobject.h"
 #include "extensionsystem/pluginmanager.h"
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/generalsettings.h>

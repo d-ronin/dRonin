@@ -32,10 +32,10 @@
 #define PACK(__Declaration__) __Declaration__ __attribute__((__packed__))
 #endif
 
-#include "../uavobjectwidgetutils/configtaskwidget.h"
+#include "uavobjectwidgetutils/configtaskwidget.h"
 #include "extensionsystem/pluginmanager.h"
-#include "uavobjectmanager.h"
-#include "uavobject.h"
+#include "uavobjects/uavobjectmanager.h"
+#include "uavobjects/uavobject.h"
 #include "mixersettings.h"
 #include "systemsettings.h"
 

@@ -37,7 +37,7 @@
 #define TELEMETRY_H
 
 #include "uavtalk.h"
-#include "uavobjectmanager.h"
+#include "uavobjects/uavobjectmanager.h"
 #include "gcstelemetrystats.h"
 #include <QTimer>
 #include <QQueue>

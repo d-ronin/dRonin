@@ -2,8 +2,15 @@ TEMPLATE = lib
 TARGET = UAVObjects
 DEFINES += UAVOBJECTS_LIBRARY
 QT += qml
+
 include(../../gcsplugin.pri)
-include(uavobjects_dependencies.pri)
+
+include(../../libs/extensionsystem/extensionsystem.pri)
+include(../../libs/utils/utils.pri)
+
+include(../../plugins/coreplugin/coreplugin.pri)
+
+include(uavobject_synthetics.pri)
 
 HEADERS += uavobjects_global.h \
     uavobject.h \
@@ -21,8 +28,7 @@ SOURCES += uavobject.cpp \
     uavobjectfield.cpp \
     uavobjectsplugin.cpp
 
-OTHER_FILES += UAVObjects.pluginspec \
-    UAVObjects.json
+OTHER_FILES += UAVObjects.pluginspec
 
 # Add in all of the synthetic/generated uavobject files
 HEADERS += $$files($$UAVOBJECT_SYNTHETICS/*.h)

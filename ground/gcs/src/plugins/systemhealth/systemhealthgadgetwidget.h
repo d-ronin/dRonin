@@ -28,7 +28,7 @@
 #define SYSTEMHEALTHGADGETWIDGET_H_
 
 #include "systemhealthgadgetconfiguration.h"
-#include "uavobject.h"
+#include "uavobjects/uavobject.h"
 #include "uavtalk/telemetrymanager.h"
 #include <QGraphicsView>
 #include <QtSvg/QSvgRenderer>
