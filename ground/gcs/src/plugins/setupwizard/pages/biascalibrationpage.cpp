@@ -94,7 +94,7 @@ void BiasCalibrationPage::performCalibration()
 
     QTimer *timer = new QTimer(this);
     timer->setSingleShot(true);
-    timer->setInterval(20000);
+    timer->setInterval(30000);
 
     connect(m_calibrationUtil, &Calibration::levelingProgressChanged, this,
             &BiasCalibrationPage::calibrationProgress);
