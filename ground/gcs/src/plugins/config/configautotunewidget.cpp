@@ -407,8 +407,10 @@ void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened,
         StabilizationSettings *stabilizationSettings =
             StabilizationSettings::GetInstance(getObjectManager());
         Q_ASSERT(stabilizationSettings);
-        if (!stabilizationSettings)
+        if (!stabilizationSettings) {
+            qWarning() << "Abandoning autotune commit because no StabSettings";
             return;
+        }
 
         StabilizationSettings::DataFields stabData = stabilizationSettings->getData();
 
@@ -858,7 +860,6 @@ void AutotuneBeginningPage::initializePage()
     progressBar->setValue(0);
 
     QMetaObject::invokeMethod(this, "doDownloadAndProcess", Qt::QueuedConnection);
-
 }
 
 bool AutotuneBeginningPage::isComplete() const
