@@ -36,7 +36,9 @@
 #include "pios_semaphore.h"
 #include <stdbool.h>
 
-/* Todo: consider relocating to a good header */
+/* TODO: Build an armed infrastructure for PiOS as a whole-- figure out
+ * a good header to put it in, and use accessor functions from outside
+ * PiOS. */
 bool __attribute__((weak)) vehicle_is_armed = false;
 
 static const uint16_t sector_to_st_sector_map[] = {
