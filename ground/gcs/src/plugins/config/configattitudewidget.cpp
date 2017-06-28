@@ -156,6 +156,16 @@ ConfigAttitudeWidget::ConfigAttitudeWidget(QWidget *parent)
             &Calibration::doCancelTempCalPoint);
     connect(m_ui->tempCalRange, QOverload<int>::of(&QSpinBox::valueChanged), &calibration,
             &Calibration::setTempCalRange);
+    // only allow the calibration to be accepted after min temperature change
+    m_ui->acceptTempCal->setEnabled(false);
+    connect(&calibration, &Calibration::tempCalProgressChanged, this, [this](int progress) {
+        if (!m_ui->acceptTempCal)
+            return;
+        if (progress >= 100)
+            m_ui->acceptTempCal->setEnabled(true);
+        else if (m_ui->acceptTempCal->isEnabled())
+            m_ui->acceptTempCal->setEnabled(false);
+    });
     calibration.setTempCalRange(m_ui->tempCalRange->value());
 
     // Let calibration update the UI
