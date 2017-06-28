@@ -77,6 +77,8 @@ public:
     int getBoardRevision();
     QString getFirmwareHash();
     QString getGcsHash();
+    bool boardConfigured();
+    bool firmwareHashMatchesGcs();
 
 protected:
     FirmwareIAPObj::DataFields getFirmwareIap();

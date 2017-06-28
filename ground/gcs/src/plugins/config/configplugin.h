@@ -32,12 +32,13 @@
 #include <coreplugin/actionmanager/actionmanager.h>
 #include "uavtalk/telemetrymanager.h"
 #include "objectpersistence.h"
+#include "config_global.h"
 
 #include <QMessageBox>
 
 class ConfigGadgetFactory;
 
-class ConfigPlugin : public ExtensionSystem::IPlugin
+class CONFIG_EXPORT ConfigPlugin : public ExtensionSystem::IPlugin
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.dronin.plugins.Config")
@@ -50,6 +51,9 @@ public:
     void extensionsInitialized();
     bool initialize(const QStringList &arguments, QString *errorString);
     void shutdown();
+
+signals:
+    void launchSetupWizard();
 
 private slots:
     void eraseAllSettings();

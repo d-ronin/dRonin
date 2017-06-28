@@ -51,7 +51,7 @@
 #include "vehicleconfigurationhelper.h"
 #include "actuatorsettings.h"
 
-SetupWizard::SetupWizard(QWidget *parent)
+SetupWizard::SetupWizard(bool autoLaunched, QWidget *parent)
     : QWizard(parent)
     , VehicleConfigurationSource()
     , m_controllerType(NULL)
@@ -60,8 +60,10 @@ SetupWizard::SetupWizard(QWidget *parent)
     , m_escType(ESC_UNKNOWN)
     , m_calibrationPerformed(false)
     , m_restartNeeded(false)
+    , m_autoLaunched(autoLaunched)
     , m_connectionManager(0)
 {
+    connect(this, &QWizard::rejected, this, &SetupWizard::boardIgnorePrompt);
     setWindowTitle(tr("dRonin Setup Wizard"));
     setOption(QWizard::IndependentPages, false);
     for (quint16 i = 0; i < ActuatorSettings::CHANNELMAX_NUMELEM; i++) {
@@ -365,4 +367,26 @@ bool SetupWizard::saveHardwareSettings() const
     VehicleConfigurationHelper helper(const_cast<SetupWizard *>(this));
 
     return helper.setupHardwareSettings();
+}
+
+void SetupWizard::boardIgnorePrompt()
+{
+    if (!m_autoLaunched)
+        return;
+
+    QMessageBox prompt(QMessageBox::Question, tr("Ignore Board?"),
+                       tr("Would you like to ignore the setup wizard for this board?"),
+                       QMessageBox::Yes | QMessageBox::No);
+    if (prompt.exec() == QMessageBox::No)
+        return;
+
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    UAVObjectUtilManager *utilMngr = pm->getObject<UAVObjectUtilManager>();
+    if (!utilMngr) {
+        qWarning() << "Can't get UAVObjectUtilManager";
+        Q_ASSERT(false);
+        return;
+    }
+    emit boardIgnored(utilMngr->getBoardCPUSerial());
+    qInfo() << "Setup wizard will be ignored for this board";
 }

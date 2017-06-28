@@ -40,7 +40,7 @@ ConfigPlugin::ConfigPlugin()
 
 ConfigPlugin::~ConfigPlugin()
 {
-    // Do nothing
+    removeObject(this);
 }
 
 bool ConfigPlugin::initialize(const QStringList &args, QString *errMsg)
@@ -75,9 +75,9 @@ bool ConfigPlugin::initialize(const QStringList &args, QString *errMsg)
     connect(telMngr, &TelemetryManager::connected, this, &ConfigPlugin::onAutopilotConnect);
     connect(telMngr, &TelemetryManager::disconnected, this, &ConfigPlugin::onAutopilotDisconnect);
 
-    // And check whether by any chance we are not already connected
-    if (telMngr->isConnected())
-        onAutopilotConnect();
+    cmd->action()->setEnabled(false);
+
+    addObject(this);
 
     return true;
 }
@@ -95,7 +95,6 @@ UAVObjectManager *ConfigPlugin::getObjectManager()
 
 void ConfigPlugin::extensionsInitialized()
 {
-    cmd->action()->setEnabled(false);
 }
 
 void ConfigPlugin::shutdown()
@@ -108,7 +107,23 @@ void ConfigPlugin::shutdown()
   */
 void ConfigPlugin::onAutopilotConnect()
 {
+    // erase action
     cmd->action()->setEnabled(true);
+
+    auto pm = ExtensionSystem::PluginManager::instance();
+    auto uavoUtilManager = pm->getObject<UAVObjectUtilManager>();
+
+    if (uavoUtilManager->firmwareHashMatchesGcs()) {
+        // check if the board has been configured for flight
+        // if not, let's pop setup wizard automatically
+        if (!uavoUtilManager->boardConfigured())
+            Q_EMIT launchSetupWizard();
+    } else {
+        /** @todo upgrade firmware
+         * Currently the uploader plugin does this indepenently
+         * but it needs a big refactor because everything is done
+         * inside a UAVGadget */
+    }
 }
 
 /**
