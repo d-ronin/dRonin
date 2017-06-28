@@ -151,7 +151,7 @@ ASFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS))
 #    --cref:    add cross reference to  map file
 LDFLAGS = -nostartfiles -Wl,-Map=$(OUTDIR)/$(TARGET).map,--cref,--gc-sections
 LDFLAGS += -Wl,-static
-LDFLAGS += -lc_nano -lgcc 
+LDFLAGS += -lc -lgcc
 LDFLAGS += -Wl,--warn-common
 LDFLAGS += -Wl,--fatal-warnings
 
