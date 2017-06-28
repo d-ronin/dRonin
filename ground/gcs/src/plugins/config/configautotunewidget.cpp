@@ -572,7 +572,8 @@ void AutotuneSlidersPage::compute()
     tuneState->damping = damp;
     tuneState->noiseSens = ghf;
 
-    double tau = tuneState->tau[0];
+    /* Average roll and pitch tau for now. */
+    double tau = (tuneState->tau[0] + tuneState->tau[1]) / 2.0;
     double beta_roll = tuneState->beta[0];
     double beta_pitch = tuneState->beta[1];
     double beta_yaw = tuneState->beta[2];
