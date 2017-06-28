@@ -55,7 +55,7 @@ struct AutotunedValues
 {
     bool valid;
 
-    QByteArray *data;
+    QByteArray data;
 
     // Parameters
     float tau[3];
@@ -102,7 +102,7 @@ public:
 private:
     QString tuneValid(bool *okToContinue) const;
 
-    AutotunedValues *av;
+    AutotunedValues *tuneState;
     bool autoOpened;
     bool dataValid;
 
@@ -156,7 +156,7 @@ public:
     void initializePage();
 
 private:
-    AutotunedValues *av;
+    AutotunedValues *tuneState;
     QChart *makeChart(int axis);
 };
 
@@ -173,7 +173,7 @@ public:
     void initializePage();
 
 private:
-    AutotunedValues *av;
+    AutotunedValues *tuneState;
 
     void setText(QLabel *lbl, double value, int precision);
 
