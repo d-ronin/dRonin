@@ -97,6 +97,8 @@ uintptr_t external_i2c_adapter_id;
 #include "pios_hmc5883_priv.h"
 #endif
 
+int orig_stdout;
+
 static void Usage(char *cmdName) {
 	printf( "usage: %s [-f] [-r] [-m orientation] [-s spibase] [-d drvname:bus:id]\n"
 		"\t\t[-l logfile] [-I i2cdev] [-i drvname:bus] [-g port]"
@@ -606,6 +608,20 @@ static void sigfpe_handler(int signum, siginfo_t *siginfo, void *ucontext)
 
 void PIOS_SYS_Init(void)
 {
+	/* Save the old stdout in case we want to do something with it in
+	 * the future, but ensure that all output goes to stderr. */
+	orig_stdout = dup(STDOUT_FILENO);
+
+	if (orig_stdout < 0) {
+		perror("dup");
+		exit(1);
+	}
+
+	if (dup2(STDERR_FILENO, STDOUT_FILENO) < 0) {
+		perror("dup2");
+		exit(1);
+	}
+
 	char ser_text[PIOS_SYS_SERIAL_NUM_ASCII_LEN + 1];
 
 	int ret = PIOS_SYS_SerialNumberGet(ser_text);
