@@ -56,8 +56,10 @@ static void PIOS_SERIAL_TxStart(uintptr_t udp_id, uint16_t tx_bytes_avail);
 static void PIOS_SERIAL_RxStart(uintptr_t udp_id, uint16_t rx_bytes_avail);
 
 typedef struct {
-	int fd;
+	int readfd, writefd;
 
+	// TODO: Think about the volatility of callbacks, etc.
+	// (Not unique to this module)
 	pios_com_callback tx_out_cb;
 	uintptr_t tx_out_context;
 	pios_com_callback rx_in_cb;
@@ -65,6 +67,8 @@ typedef struct {
 
 	uint8_t rx_buffer[PIOS_SERIAL_RX_BUFFER_SIZE];
 	uint8_t tx_buffer[PIOS_SERIAL_RX_BUFFER_SIZE];
+
+	bool dont_touch_line;
 } pios_ser_dev;
 
 const struct pios_com_driver pios_serial_com_driver = {
@@ -80,6 +84,19 @@ static pios_ser_dev * find_ser_dev_by_id(uintptr_t serial)
 	return (pios_ser_dev *) serial;
 }
 
+static void rx_do_cb(pios_ser_dev *ser_dev, uint8_t *incoming_buffer,
+		int len) {
+
+	if (ser_dev->rx_in_cb) {
+		bool rx_need_yield = false;
+
+		ser_dev->rx_in_cb(ser_dev->rx_in_context, incoming_buffer,
+				len, NULL, &rx_need_yield);
+
+		return;
+	}
+}
+
 /**
  * RxTask
  */
@@ -88,18 +105,17 @@ static void PIOS_SERIAL_RxTask(void *ser_dev_n)
 	pios_ser_dev *ser_dev = (pios_ser_dev*)ser_dev_n;
 
 	const int INCOMING_BUFFER_SIZE = 16;
-	char incoming_buffer[INCOMING_BUFFER_SIZE];
+	uint8_t incoming_buffer[INCOMING_BUFFER_SIZE];
 
 	while (1) {
-		int result = read(ser_dev->fd, incoming_buffer, INCOMING_BUFFER_SIZE);
+		int result = read(ser_dev->readfd, incoming_buffer,
+				INCOMING_BUFFER_SIZE);
 
-		if (result > 0 && ser_dev->rx_in_cb) {
-			bool rx_need_yield = false;
-
-			ser_dev->rx_in_cb(ser_dev->rx_in_context, (uint8_t*)incoming_buffer, result, NULL, &rx_need_yield);
+		if (result > 0) {
+			rx_do_cb(ser_dev, incoming_buffer, result);
 		}
 
-		if (result == 0) {
+		if (result == 0) {	/* EOF */
 			break;
 		}
 
@@ -112,7 +128,8 @@ static void PIOS_SERIAL_RxTask(void *ser_dev_n)
 /**
  * Open SERIAL connection
  */
-int32_t PIOS_SERIAL_Init(uintptr_t *serial_id, const char *path)
+int32_t PIOS_SERIAL_InitFromFd(uintptr_t *serial_id, int readfd,
+		int writefd, bool dont_touch_line)
 {
 	pios_ser_dev *ser_dev = PIOS_malloc(sizeof(pios_ser_dev));
 
@@ -122,19 +139,16 @@ int32_t PIOS_SERIAL_Init(uintptr_t *serial_id, const char *path)
 	ser_dev->rx_in_cb = NULL;
 	ser_dev->tx_out_cb = NULL;
 
-	/* open fd */
-	ser_dev->fd = open(path, O_RDWR | O_NOCTTY);
+	ser_dev->dont_touch_line = dont_touch_line;
 
-	if (ser_dev->fd < 0) {
-		perror("serial-open");
-		return -1;
-	}
+	ser_dev->readfd = readfd;
+	ser_dev->writefd = writefd;
 
 	PIOS_Thread_Create(PIOS_SERIAL_RxTask, "pios_serial_rx",
 		PIOS_THREAD_STACK_SIZE_MIN, ser_dev, PIOS_THREAD_PRIO_HIGHEST);
 
-	printf("serial dev %p - path %s - fd %i opened\n", ser_dev,
-		path, ser_dev->fd);
+	printf("serial dev %p - fd %i/%i opened\n", ser_dev,
+		ser_dev->readfd, ser_dev->writefd);
 
 	*serial_id = (uintptr_t) ser_dev;
 
@@ -142,6 +156,29 @@ int32_t PIOS_SERIAL_Init(uintptr_t *serial_id, const char *path)
 
 	return 0;
 }
+
+int32_t PIOS_SERIAL_Init(uintptr_t *serial_id, const char *path)
+{
+	int fd = open(path, O_RDWR | O_NOCTTY);
+
+	if (fd < 0) {
+		perror("serial-open");
+		return -1;
+	}
+
+	int ret = PIOS_SERIAL_InitFromFd(serial_id, fd, fd, false);
+
+	if (ret < 0) {
+		close(fd);
+
+		return ret;
+	}
+
+	printf("serial dev %d - (path %s)\n", *serial_id, path);
+
+	return ret;
+}
+
 
 void PIOS_SERIAL_ChangeBaud(uintptr_t serial_id, uint32_t baud)
 {
@@ -153,6 +190,10 @@ void PIOS_SERIAL_ChangeBaud(uintptr_t serial_id, uint32_t baud)
 
 	PIOS_Assert(ser_dev);
 
+	if (ser_dev->dont_touch_line) {
+		return;
+	}
+
 	/* This serinfo magic for baud rate is deprecated in favor of BOTHER
 	 * on Linux.  However, that requires termios2 and there's various conflict
 	 * that makes it hard to do.
@@ -163,7 +204,7 @@ void PIOS_SERIAL_ChangeBaud(uintptr_t serial_id, uint32_t baud)
 	if (baud != 9600) {
 		struct serial_struct serinfo;
 
-		if (ioctl(ser_dev->fd, TIOCGSERIAL, &serinfo)) {
+		if (ioctl(ser_dev->readfd, TIOCGSERIAL, &serinfo)) {
 			perror("ioctl-TIOCGSERIAL");
 		}
 
@@ -177,7 +218,7 @@ void PIOS_SERIAL_ChangeBaud(uintptr_t serial_id, uint32_t baud)
 					baud, closest_speed);
 		}
 
-		if (ioctl(ser_dev->fd, TIOCSSERIAL, &serinfo)) {
+		if (ioctl(ser_dev->readfd, TIOCSSERIAL, &serinfo)) {
 			perror("ioctl-TIOCSSERIAL");
 		}
 	}
@@ -202,7 +243,7 @@ void PIOS_SERIAL_ChangeBaud(uintptr_t serial_id, uint32_t baud)
 	 */
 	options.c_cc[VMIN] = 1;
 
-	if (tcsetattr(ser_dev->fd, TCSANOW, &options)) {
+	if (tcsetattr(ser_dev->readfd, TCSANOW, &options)) {
 		perror("tcsetattr");
 	}
 }
@@ -229,7 +270,8 @@ static void PIOS_SERIAL_TxStart(uintptr_t serial_id, uint16_t tx_bytes_avail)
 			rem = length;
 			while (rem > 0) {
 				ssize_t len = 0;
-				len = write(ser_dev->fd, ser_dev->tx_buffer, length);
+				len = write(ser_dev->writefd, ser_dev->tx_buffer,
+						length);
 				if (len <= 0) {
 					rem = 0;
 				} else {
