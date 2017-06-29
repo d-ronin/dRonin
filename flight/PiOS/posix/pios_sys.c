@@ -177,6 +177,14 @@ static int handle_serial_device(const char *optarg) {
 
 		com_driver = &pios_tcp_com_driver;
 
+	} else if (!strcmp(ser_path, "stdio")) {
+		if (PIOS_SERIAL_InitFromFd(&lower_id, STDIN_FILENO,
+					orig_stdout, true)) {
+			printf("Can't init stdio-serial\n");
+			goto fail;
+		}
+
+		com_driver = &pios_serial_com_driver;
 	} else {
 		if (PIOS_SERIAL_Init(&lower_id, ser_path)) {
 			printf("Can't init serial\n");
