@@ -55,11 +55,10 @@
 #define PIOS_TOLERATE_MISSING_SENSORS
 
 #define FLASH_FREERTOS
+
 /* Com systems to include */
 #define PIOS_INCLUDE_MAVLINK
 #define PIOS_INCLUDE_LIGHTTELEMETRY
-
-#define PIOS_GPS_SETS_HOMELOCATION
 
 #define PIOS_INCLUDE_DMASHOT
 
@@ -83,7 +82,6 @@
 #define OSD_USE_BRAINFPV_LOGO
 
 /* Flags that alter behaviors - mostly to lower resources for CC */
-#define PIOS_GPS_SETS_HOMELOCATION      /* GPS options */
 #define AUTOTUNE_AVERAGING_MODE
 #define AUTOTUNE_AVERAGING_DECIMATION 2
 #define SYSTEMMOD_RGBLED_SUPPORT
