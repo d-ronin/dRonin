@@ -90,19 +90,28 @@ int32_t PIOS_TIM_InitClock(const struct pios_tim_clock_cfg * cfg)
 	return 0;
 }
 
+void PIOS_TIM_InitTimerPin(uintptr_t tim_id, int idx)
+{
+	struct pios_tim_dev * tim_dev = (struct pios_tim_dev *) tim_id;
+
+	PIOS_Assert(idx < tim_dev->num_channels);
+
+	const struct pios_tim_channel * chan = &tim_dev->channels[idx];
+
+	GPIO_Init(chan->pin.gpio, (GPIO_InitTypeDef*)&chan->pin.init);
+
+	PIOS_DEBUG_Assert(chan->remap);
+
+	GPIO_PinAFConfig(chan->pin.gpio, chan->pin.pin_source, chan->remap);
+}
+
 void PIOS_TIM_InitAllTimerPins(uintptr_t tim_id)
 {
 	struct pios_tim_dev * tim_dev = (struct pios_tim_dev *) tim_id;
 
 	/* Configure the pins */
 	for (uint8_t i = 0; i < tim_dev->num_channels; i++) {
-		const struct pios_tim_channel * chan = &tim_dev->channels[i];
-
-		GPIO_Init(chan->pin.gpio, (GPIO_InitTypeDef*)&chan->pin.init);
-
-		PIOS_DEBUG_Assert(chan->remap);
-
-		GPIO_PinAFConfig(chan->pin.gpio, chan->pin.pin_source, chan->remap);
+		PIOS_TIM_InitTimerPin(tim_id, i);
 	}
 }
 

@@ -26,6 +26,7 @@ struct pios_tim_callbacks {
 int32_t PIOS_TIM_InitClock(const struct pios_tim_clock_cfg * cfg);
 int32_t PIOS_TIM_InitChannels(uintptr_t * tim_id, const struct pios_tim_channel * channels, uint8_t num_channels, const struct pios_tim_callbacks * callbacks, uintptr_t context);
 
+void PIOS_TIM_InitTimerPin(uintptr_t tim_id, int idx);
 void PIOS_TIM_InitAllTimerPins(uintptr_t tim_id);
 void PIOS_TIM_SetBankToGPOut(uintptr_t tim_id, TIM_TypeDef *timer);
 

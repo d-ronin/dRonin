@@ -317,15 +317,20 @@ int PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_t
 
 	struct timer_bank timer_banks[PIOS_SERVO_MAX_BANKS];
 
-	PIOS_TIM_InitAllTimerPins(servo_tim_id);
-
 	memset(&timer_banks, 0, sizeof(timer_banks));
 	int banks_found = 0;
 
 	// find max pulse length for each bank
-	for (int i = 0; i < servo_cfg->num_channels && banks_found < banks; i++) {
+	for (int i = 0; i < servo_cfg->num_channels; i++) {
+		if (channel_mask & (1 << i)) {
+			continue;
+		}
+
+		PIOS_TIM_InitTimerPin(servo_tim_id, i);
+
 		int bank = -1;
 		const struct pios_tim_channel *chan = &servo_cfg->channels[i];
+
 		for (int j = 0; j < banks_found; j++) {
 			if (timer_banks[j].timer == chan->timer)
 				bank = j;
