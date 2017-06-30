@@ -145,11 +145,6 @@ extern uint32_t pios_spi_telem_flash_id;
 // Packet Handler
 //-------------------------
 #define RS_ECC_NPARITY 4
-#define PIOS_PH_MAX_PACKET 255
-#define PIOS_PH_WIN_SIZE 3
-#define PIOS_PH_MAX_CONNECTIONS 1
-extern uint32_t pios_packet_handler;
-#define PIOS_PACKET_HANDLER (pios_packet_handler)
 
 #define PIOS_SYSCLK										168000000
 //	Peripherals that belongs to APB1 are:

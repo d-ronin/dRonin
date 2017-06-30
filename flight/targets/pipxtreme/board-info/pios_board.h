@@ -273,18 +273,6 @@ extern uint32_t pios_rfm22b_id;
 #endif /* PIOS_INCLUDE_RFM22B */
 
 //-------------------------
-// Packet Handler
-//-------------------------
-#if defined(PIOS_INCLUDE_PACKET_HANDLER)
-extern uint32_t pios_packet_handler;
-#define PIOS_PACKET_HANDLER (pios_packet_handler)
-#define PIOS_PH_MAX_PACKET 255
-#define PIOS_PH_WIN_SIZE 3
-#define PIOS_PH_MAX_CONNECTIONS 1
-#define RS_ECC_NPARITY 4
-#endif /* PIOS_INCLUDE_PACKET_HANDLER */
-
-//-------------------------
 // Reed-Solomon ECC
 //-------------------------
 
