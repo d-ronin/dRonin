@@ -456,7 +456,7 @@ class FDTelemetry(BidirTelemetry):
     Intended for network streams.
     """
 
-    def __init__(self, fd, *args, **kwargs):
+    def __init__(self, fd, write_fd=None, *args, **kwargs):
         """ Instantiates a telemetry instance on a given fd.
 
         Probably should only be called by derived classes.
@@ -471,29 +471,34 @@ class FDTelemetry(BidirTelemetry):
 
         self.fd = fd
 
+        if write_fd is None:
+            self.write_fd = fd
+        else:
+            self.write_fd = write_fd
+
     # Call select and do one set of IO operations.
     def _do_io(self, finish_time):
         import select
 
-        rdSet = []
-        wrSet = []
+        rd_set = []
+        wr_set = []
 
         did_stuff = False
 
         if len(self.recv_buf) < 1024:
-            rdSet.append(self.fd)
+            rd_set.append(self.fd)
 
         if len(self.send_buf) > 0:
-            wrSet.append(self.fd)
+            wr_set.append(self.write_fd)
 
         now = time.time()
         if finish_time is None:
-            r,w,e = select.select(rdSet, wrSet, [])
+            r,w,e = select.select(rd_set, wr_set, [])
         else:
             tm = finish_time-now
             if tm < 0: tm=0
 
-            r,w,e = select.select(rdSet, wrSet, [], tm)
+            r,w,e = select.select(rd_set, wr_set, [], tm)
 
         if r:
             # Shouldn't throw an exception-- they just told us
@@ -515,7 +520,7 @@ class FDTelemetry(BidirTelemetry):
 
         if w:
             with self.send_lock:
-                written = os.write(self.fd, self.send_buf)
+                written = os.write(self.write_fd, self.send_buf)
 
                 if written > 0:
                     self.send_buf = self.send_buf[written:]
@@ -523,6 +528,41 @@ class FDTelemetry(BidirTelemetry):
                 did_stuff = True
 
         return did_stuff
+
+class SubprocessTelemetry(FDTelemetry):
+    """ TCP telemetry interface. """
+    def __init__(self, cmdline, shell=True, *args, **kwargs):
+        """ Creates a telemetry instance talking over TCP.
+
+         - host: hostname to connect to (default localhost)
+         - port: port number to communicate on (default 9000)
+
+        Meaningful parameters passed up to TelemetryBase include: githash,
+        service_in_iter, iter_blocks, use_walltime
+        """
+
+        import subprocess
+
+        sp = subprocess.Popen(cmdline, stdout=subprocess.PIPE,
+                stdin=subprocess.PIPE, shell=shell)
+
+        wfd = sp.stdin.fileno()
+        rfd = sp.stdout.fileno()
+
+        import fcntl
+
+        flag = fcntl.fcntl(wfd, fcntl.F_GETFD)
+        fcntl.fcntl(wfd, fcntl.F_SETFL, flag | os.O_NONBLOCK)
+
+        flag = fcntl.fcntl(rfd, fcntl.F_GETFD)
+        fcntl.fcntl(rfd, fcntl.F_SETFL, flag | os.O_NONBLOCK)
+
+        self.sp = sp
+
+        FDTelemetry.__init__(self, fd=rfd, write_fd=wfd, *args, **kwargs)
+
+    def _close(self):
+        self.sp.kill()
 
 class NetworkTelemetry(FDTelemetry):
     """ TCP telemetry interface. """
@@ -851,6 +891,12 @@ def get_telemetry_by_args(desc="Process telemetry", service_in_iter=True,
                         default = "115200",
                         help    = "baud rate for serial communications")
 
+    parser.add_argument("-c", "--command",
+                        action  = "store_true",
+                        default = False,
+                        dest    = "command",
+                        help    = "indicates that source is a command")
+
     parser.add_argument("-u", "--hid",
                         action  = "store_true",
                         default = False,
@@ -858,7 +904,7 @@ def get_telemetry_by_args(desc="Process telemetry", service_in_iter=True,
                         help    = "use usb hid to communicate with FC")
 
     parser.add_argument("source",
-            help  = "file, host:port, vid:pid, or serial port")
+            help  = "file, host:port, vid:pid, command, or serial port")
 
     # Parse the command-line.
     args = parser.parse_args()
@@ -874,11 +920,6 @@ def get_telemetry_by_args(desc="Process telemetry", service_in_iter=True,
 
     from dronin import telemetry
 
-    if args.hid:
-        return telemetry.HIDTelemetry(args.source,
-                service_in_iter=service_in_iter, iter_blocks=iter_blocks,
-                githash=githash)
-
     if args.serial:
         return telemetry.SerialTelemetry(args.source, speed=args.baud,
                 service_in_iter=service_in_iter, iter_blocks=iter_blocks,
@@ -887,6 +928,16 @@ def get_telemetry_by_args(desc="Process telemetry", service_in_iter=True,
     if args.baud != "115200":
         parser.print_help()
         raise ValueError("Baud rates only apply to serial ports")
+
+    if args.hid:
+        return telemetry.HIDTelemetry(args.source,
+                service_in_iter=service_in_iter, iter_blocks=iter_blocks,
+                githash=githash)
+
+    if args.command:
+        return telemetry.SubprocessTelemetry(args.source,
+                service_in_iter=service_in_iter, iter_blocks=iter_blocks,
+                githash=githash)
 
     import os.path
 
