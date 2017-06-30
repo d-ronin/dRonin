@@ -419,14 +419,24 @@ int main(int argc, char **argv)
 
     pluginManager.loadPlugins();
     {
-        QStringList errors;
-        foreach (ExtensionSystem::PluginSpec *p, pluginManager.plugins())
-            if (p->hasError())
+        QStringList errors, plugins;
+        for (const auto p : pluginManager.plugins()) {
+            if (p->hasError()) {
                 errors.append(p->errorString());
-        if (!errors.isEmpty())
-            QMessageBox::warning(
-                0, QCoreApplication::translate("Application", "Plugin loader messages"),
-                errors.join(QString::fromLatin1("\n\n")));
+                plugins.append(p->name());
+            }
+        }
+
+        if (!errors.isEmpty()) {
+            QString msg(QCoreApplication::tr(
+                        "Some problems were encountered whilst loading the following plugins: "));
+            msg.append(plugins.join(QStringLiteral(", ")));
+            QMessageBox msgBox(QMessageBox::Warning,
+                               QCoreApplication::tr("Plugin loader messages"),
+                               msg, QMessageBox::Ok);
+            msgBox.setDetailedText(errors.join(QStringLiteral("\n\n")));
+            msgBox.exec();
+        }
     }
 
     QTimer::singleShot(100, &pluginManager, SLOT(startTests()));
