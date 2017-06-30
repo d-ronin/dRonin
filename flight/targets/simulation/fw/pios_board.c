@@ -32,7 +32,6 @@
 #include "pios_board.h"
 #include <pios_com_priv.h>
 #include <pios_tcp_priv.h>
-#include <pios_udp_priv.h>
 #include <openpilot.h>
 #include <uavobjectsinit.h>
 
