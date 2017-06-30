@@ -51,7 +51,8 @@ typedef struct pios_bmm150_dev * pios_bmm150_dev_t;
  * @brief Initialize the BMM-xxxx 6/9-axis sensor on SPI
  * @return 0 for success, -1 for failure to allocate, -10 for failure to get irq
  */
-int32_t PIOS_BMM150_SPI_Init(pios_bmm150_dev_t *dev, uint32_t spi_id, uint32_t slave_mag, const struct pios_bmm150_cfg *cfg);
+int32_t PIOS_BMM150_SPI_Init(pios_bmm150_dev_t *dev, pios_spi_t spi_id,
+		uint32_t slave_mag, const struct pios_bmm150_cfg *cfg);
 
 #endif /* PIOS_BMM150_H */
 

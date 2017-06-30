@@ -157,7 +157,7 @@ static const struct pios_spi_cfg pios_spi_sdCard_cfg = {
 	} },
 };
 
-uint32_t pios_spi_sdCard_id;
+pios_spi_t pios_spi_sdCard_id;
 
 /* SPI2 Interface
  *      - Used for external communications
@@ -223,7 +223,7 @@ static const struct pios_spi_cfg pios_spi_external_cfg = {
 	} },
 };
 
-uint32_t pios_spi_external_id;
+pios_spi_t pios_spi_external_id;
 
 /* SPI3 Interface
  *      - Used for gyro communications
@@ -289,7 +289,7 @@ static const struct pios_spi_cfg pios_spi_internal_cfg = {
 	} },
 };
 
-uint32_t pios_spi_internal_id;
+pios_spi_t pios_spi_internal_id;
 
 #endif	/* PIOS_INCLUDE_SPI */
 

@@ -53,7 +53,7 @@ typedef struct lis3mdl_dev * lis3mdl_dev_t;
  * @brief Initialize the LIS3MDL mag
  * @return 0 for success, -1 for failure to allocate, -10 for failure to get irq
  */
-int32_t PIOS_LIS3MDL_SPI_Init(lis3mdl_dev_t *dev, uint32_t spi_id, uint32_t slave_mag, const struct pios_lis3mdl_cfg *cfg);
+int32_t PIOS_LIS3MDL_SPI_Init(lis3mdl_dev_t *dev, pios_spi_t spi_id, uint32_t slave_mag, const struct pios_lis3mdl_cfg *cfg);
 
 #endif /* PIOS_LIS3MDL_H */
 

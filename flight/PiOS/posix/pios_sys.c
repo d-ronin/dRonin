@@ -76,7 +76,7 @@ bool are_realtime = false;
 
 #ifdef PIOS_INCLUDE_SPI
 int num_spi = 0;
-uintptr_t spi_devs[16];
+pios_spi_t spi_devs[16];
 
 #include "pios_spi_posix_priv.h"
 #include "pios_ms5611_priv.h"

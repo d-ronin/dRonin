@@ -242,7 +242,7 @@ static const struct pios_spi_cfg pios_spi_telem_flash_cfg = {
 	},
 };
 
-uint32_t pios_spi_telem_flash_id;
+pios_spi_t pios_spi_telem_flash_id;
 
 #if defined(PIOS_INCLUDE_RFM22B)
 #include <pios_rfm22b_priv.h>

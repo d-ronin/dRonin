@@ -1077,6 +1077,7 @@ void PIOS_HAL_ConfigureHID(HwSharedUSB_HIDPortOptions port_type,
  * @param[in] status_inst Which instance number to save RFM22BStatus to
  */
 void PIOS_HAL_ConfigureRFM22B(HwSharedRadioPortOptions radio_type,
+		pios_spi_t spi_dev,
 		uint8_t board_type, uint8_t board_rev,
 		HwSharedMaxRfPowerOptions max_power,
 		HwSharedMaxRfSpeedOptions max_speed,
@@ -1106,7 +1107,7 @@ void PIOS_HAL_ConfigureRFM22B(HwSharedRadioPortOptions radio_type,
 #if defined(PIOS_INCLUDE_OPENLRS_RCVR)
 		uintptr_t openlrs_id;
 
-		PIOS_OpenLRS_Init(&openlrs_id, PIOS_RFM22_SPI_PORT, 0, openlrs_cfg, rf_band);
+		PIOS_OpenLRS_Init(&openlrs_id, spi_dev, 0, openlrs_cfg, rf_band);
 
 		{
 			uintptr_t rfm22brcvr_id;
@@ -1122,7 +1123,7 @@ void PIOS_HAL_ConfigureRFM22B(HwSharedRadioPortOptions radio_type,
 			max_power == HWSHARED_MAXRFPOWER_0) {
 		// When radio disabled, it is ok for init to fail. This allows
 		// boards without populating this component.
-		if (PIOS_RFM22B_Init(&pios_rfm22b_id, PIOS_RFM22_SPI_PORT, rfm22b_cfg->slave_num, rfm22b_cfg, rf_band) == 0) {
+		if (PIOS_RFM22B_Init(&pios_rfm22b_id, spi_dev, rfm22b_cfg->slave_num, rfm22b_cfg, rf_band) == 0) {
 			PIOS_RFM22B_SetTxPower(pios_rfm22b_id, RFM22_tx_pwr_txpow_0);
 			rfm22bstatus.DeviceID = PIOS_RFM22B_DeviceID(pios_rfm22b_id);
 			rfm22bstatus.BoardRevision = PIOS_RFM22B_ModuleVersion(pios_rfm22b_id);
@@ -1140,7 +1141,7 @@ void PIOS_HAL_ConfigureRFM22B(HwSharedRadioPortOptions radio_type,
 		// Sparky2 can only receive PPM only
 
 		/* Configure the RFM22B device. */
-		if (PIOS_RFM22B_Init(&pios_rfm22b_id, PIOS_RFM22_SPI_PORT, rfm22b_cfg->slave_num, rfm22b_cfg, rf_band)) {
+		if (PIOS_RFM22B_Init(&pios_rfm22b_id, spi_dev, rfm22b_cfg->slave_num, rfm22b_cfg, rf_band)) {
 			PIOS_Assert(0);
 		}
 
@@ -1456,7 +1457,7 @@ int PIOS_HAL_ConfigureExternalMag(HwSharedMagOptions mag,
 
 #ifdef PIOS_INCLUDE_HMC5983_I2C
 	case HWSHARED_MAG_EXTERNALHMC5983:
-		if (PIOS_HMC5983_Init(*i2c_id, 0, &external_hmc5983_cfg))
+		if (PIOS_HMC5983_I2C_Init(*i2c_id, &external_hmc5983_cfg))
 			goto mag_fail;
 
 		if (PIOS_HMC5983_Test())

@@ -160,7 +160,7 @@ static const struct pios_spi_cfg pios_spi_flash_cfg = {
 	} },
 };
 
-uint32_t pios_spi_flash_id;
+pios_spi_t pios_spi_flash_id;
 
 /* SPI1 Interface
  *      - Used for gyro communications
@@ -225,7 +225,7 @@ static const struct pios_spi_cfg pios_spi_gyro_accel_cfg = {
 	} },
 };
 
-uint32_t pios_spi_gyro_accel_id;
+pios_spi_t pios_spi_gyro_accel_id;
 
 #endif	/* PIOS_INCLUDE_SPI */
 

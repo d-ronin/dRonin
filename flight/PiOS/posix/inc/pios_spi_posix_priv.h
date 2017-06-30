@@ -8,17 +8,6 @@
 
 #define SPI_MAX_SUBDEV 8
 
-struct pios_spi_dev {
-	const struct pios_spi_cfg *cfg;
-	struct pios_semaphore *busy;
-	uint32_t slave_count;
-	uint32_t speed_hz;
-
-	int fd[SPI_MAX_SUBDEV];
-
-	int selected;
-};
-
 struct pios_spi_cfg {
 	char base_path[PATH_MAX];
 };

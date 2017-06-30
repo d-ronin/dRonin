@@ -63,9 +63,9 @@ enum lis3mdl_dev_magic {
  */
 struct lis3mdl_dev {
 	enum lis3mdl_dev_magic magic;       /**< Magic bytes to validate the struct contents */
-	const struct pios_lis3mdl_cfg *cfg;      /**< Device configuration structure */
-	uint32_t spi_id;                        /**< Handle to the communication driver */
-	uint32_t spi_slave_mag;                 /**< The slave number (SPI) */
+	const struct pios_lis3mdl_cfg *cfg; /**< Device configuration structure */
+	pios_spi_t spi_id;                  /**< Handle to the communication driver */
+	uint32_t spi_slave_mag;             /**< The slave number (SPI) */
 
 	struct pios_queue *mag_queue;
 
@@ -156,7 +156,7 @@ static int32_t AssertReg(lis3mdl_dev_t lis_dev,
 	return 0;
 }
 
-int32_t PIOS_LIS3MDL_SPI_Init(lis3mdl_dev_t *dev, uint32_t spi_id, 
+int32_t PIOS_LIS3MDL_SPI_Init(lis3mdl_dev_t *dev, pios_spi_t spi_id, 
 		uint32_t slave_mag, const struct pios_lis3mdl_cfg *cfg)
 {
 	lis3mdl_dev_t lis_dev = PIOS_LIS_Alloc(cfg);

@@ -113,7 +113,7 @@ enum pios_re1fpga_dev_magic {
 };
 
 struct re1fpga_dev {
-	uint32_t spi_id;
+	pios_spi_t spi_id;
 	uint32_t slave_num;
 	const struct pios_re1fpga_cfg *cfg;
 	struct re1_shadow_reg shadow_reg;
@@ -154,7 +154,8 @@ volatile uint8_t test;
  * @brief Initialize the driver
  * @return 0 for success
  */
-int32_t PIOS_RE1FPGA_Init(uint32_t spi_id, uint32_t slave_num, const struct pios_re1fpga_cfg *cfg, bool load_config)
+int32_t PIOS_RE1FPGA_Init(pios_spi_t spi_id, uint32_t slave_num,
+		const struct pios_re1fpga_cfg *cfg, bool load_config)
 {
 	dev = PIOS_RE1FPGA_alloc(cfg);
 	if (dev == NULL)

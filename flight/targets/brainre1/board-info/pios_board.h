@@ -146,12 +146,6 @@ extern uintptr_t pios_com_debug_id;
 #include <pios_ws2811.h>
 extern ws2811_dev_t pios_ws2811;
 
-#if defined(PIOS_INCLUDE_RFM22B)
-extern uint32_t pios_rfm22b_id;
-extern uint32_t pios_spi_telem_flash_id;
-#define PIOS_RFM22_SPI_PORT             (pios_spi_telem_flash_id)
-#endif /* PIOS_INCLUDE_RFM22B */
-
 //-------------------------
 // Packet Handler
 //-------------------------

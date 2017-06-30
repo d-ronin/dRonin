@@ -54,7 +54,9 @@ typedef struct pios_bmx055_dev * pios_bmx055_dev_t;
  * @brief Initialize the BMX-xxxx 6/9-axis sensor on SPI
  * @return 0 for success, -1 for failure to allocate, -10 for failure to get irq
  */
-int32_t PIOS_BMX055_SPI_Init(pios_bmx055_dev_t *dev, uint32_t spi_id, uint32_t slave_gyro, uint32_t slave_accel, const struct pios_bmx055_cfg *cfg);
+int32_t PIOS_BMX055_SPI_Init(pios_bmx055_dev_t *dev, pios_spi_t spi_id,
+		uint32_t slave_gyro, uint32_t slave_accel,
+		const struct pios_bmx055_cfg *cfg);
 
 #if 0
 /**

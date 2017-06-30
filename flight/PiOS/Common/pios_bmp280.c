@@ -83,7 +83,7 @@ struct bmp280_dev {
 	uint32_t i2c_id;
 #endif
 #ifdef PIOS_INCLUDE_BMP280_SPI
-	uint32_t spi_id;
+	pios_spi_t spi_id;
 	uint32_t spi_slave;
 #endif
 
@@ -216,8 +216,8 @@ int32_t PIOS_BMP280_Init(const struct pios_bmp280_cfg *cfg, int32_t i2c_device)
 #endif /* PIOS_EXCLUDE_BMP280_I2C */
 
 #ifdef PIOS_INCLUDE_BMP280_SPI
-int32_t PIOS_BMP280_SPI_Init(const struct pios_bmp280_cfg *cfg, int32_t spi_device,
-	int spi_slave)
+int32_t PIOS_BMP280_SPI_Init(const struct pios_bmp280_cfg *cfg, pios_spi_t spi_device,
+	uint32_t spi_slave)
 {
 	dev = (struct bmp280_dev *) PIOS_BMP280_alloc();
 	if (dev == NULL)

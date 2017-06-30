@@ -72,7 +72,7 @@ static struct pios_spi_dev *PIOS_SPI_alloc(void)
 * \param[in] mode currently only mode 0 supported
 * \return < 0 if initialisation failed
 */
-int32_t PIOS_SPI_Init(uint32_t *spi_id, const struct pios_spi_cfg *cfg)
+int32_t PIOS_SPI_Init(pios_spi_t *spi_id, const struct pios_spi_cfg *cfg)
 {
 	uint32_t	init_ssel = 0;
 
@@ -157,8 +157,7 @@ int32_t PIOS_SPI_Init(uint32_t *spi_id, const struct pios_spi_cfg *cfg)
 	/* Enable SPI */
 	SPI_Cmd(spi_dev->cfg->regs, ENABLE);
 
-	/* Must store this before enabling interrupt */
-	*spi_id = (uint32_t)spi_dev;
+	*spi_id = spi_dev;
 
 	return (0);
 
@@ -166,10 +165,8 @@ out_fail:
 	return (-1);
 }
 
-int32_t PIOS_SPI_SetClockSpeed(uint32_t spi_id, uint32_t spi_speed)
+int32_t PIOS_SPI_SetClockSpeed(pios_spi_t spi_dev, uint32_t spi_speed)
 {
-	struct pios_spi_dev *spi_dev = (struct pios_spi_dev *)spi_id;
-
 	bool valid = PIOS_SPI_validate(spi_dev);
 	PIOS_Assert(valid);
 
@@ -228,10 +225,8 @@ int32_t PIOS_SPI_SetClockSpeed(uint32_t spi_id, uint32_t spi_speed)
 	return spiBusClock >> (1 + spi_prescaler);
 }
 
-int32_t PIOS_SPI_ClaimBus(uint32_t spi_id)
+int32_t PIOS_SPI_ClaimBus(pios_spi_t spi_dev)
 {
-	struct pios_spi_dev *spi_dev = (struct pios_spi_dev *)spi_id;
-
 	bool valid = PIOS_SPI_validate(spi_dev);
 	PIOS_Assert(valid)
 
@@ -241,10 +236,8 @@ int32_t PIOS_SPI_ClaimBus(uint32_t spi_id)
 	return 0;
 }
 
-int32_t PIOS_SPI_ReleaseBus(uint32_t spi_id)
+int32_t PIOS_SPI_ReleaseBus(pios_spi_t spi_dev)
 {
-	struct pios_spi_dev *spi_dev = (struct pios_spi_dev *)spi_id;
-
 	bool valid = PIOS_SPI_validate(spi_dev);
 	PIOS_Assert(valid)
 
@@ -253,10 +246,8 @@ int32_t PIOS_SPI_ReleaseBus(uint32_t spi_id)
 	return 0;
 }
 
-int32_t PIOS_SPI_RC_PinSet(uint32_t spi_id, uint32_t slave_id, bool pin_value)
+int32_t PIOS_SPI_RC_PinSet(pios_spi_t spi_dev, uint32_t slave_id, bool pin_value)
 {
-	struct pios_spi_dev *spi_dev = (struct pios_spi_dev *)spi_id;
-
 	bool valid = PIOS_SPI_validate(spi_dev);
 	PIOS_Assert(valid)
 	PIOS_Assert(slave_id <= spi_dev->cfg->slave_count)
@@ -270,10 +261,8 @@ int32_t PIOS_SPI_RC_PinSet(uint32_t spi_id, uint32_t slave_id, bool pin_value)
 	return 0;
 }
 
-uint8_t PIOS_SPI_TransferByte(uint32_t spi_id, uint8_t b)
+uint8_t PIOS_SPI_TransferByte(pios_spi_t spi_dev, uint8_t b)
 {
-	struct pios_spi_dev *spi_dev = (struct pios_spi_dev *)spi_id;
-
 	bool valid = PIOS_SPI_validate(spi_dev);
 	PIOS_Assert(valid)
 
@@ -320,9 +309,9 @@ uint8_t PIOS_SPI_TransferByte(uint32_t spi_id, uint8_t b)
 * \return >= 0 if no error during transfer
 * \return -1 if disabled SPI port selected
 */
-static int32_t SPI_PIO_TransferBlock(uint32_t spi_id, const uint8_t *send_buffer, uint8_t *receive_buffer, uint16_t len)
+static int32_t SPI_PIO_TransferBlock(pios_spi_t spi_dev,
+		const uint8_t *send_buffer, uint8_t *receive_buffer, uint16_t len)
 {
-	struct pios_spi_dev *spi_dev = (struct pios_spi_dev *)spi_id;
 	uint8_t b;
 
 	bool valid = PIOS_SPI_validate(spi_dev);
@@ -355,25 +344,10 @@ static int32_t SPI_PIO_TransferBlock(uint32_t spi_id, const uint8_t *send_buffer
 	return 0;
 }
 
-int32_t PIOS_SPI_TransferBlock(uint32_t spi_id, const uint8_t *send_buffer, uint8_t *receive_buffer, uint16_t len)
+int32_t PIOS_SPI_TransferBlock(pios_spi_t spi_dev, const uint8_t *send_buffer,
+		uint8_t *receive_buffer, uint16_t len)
 {
-	return SPI_PIO_TransferBlock(spi_id, send_buffer, receive_buffer, len);
-}
-
-void PIOS_SPI_IRQ_Handler(uint32_t spi_id)
-{
-	PIOS_IRQ_Prologue();
-
-	struct pios_spi_dev *spi_dev = (struct pios_spi_dev *)spi_id;
-
-	bool valid = PIOS_SPI_validate(spi_dev);
-	PIOS_Assert(valid)
-
-	if (spi_dev->cfg->init.SPI_Mode != SPI_Mode_Master) {
-		/* XXX handle appropriate slave callback stuff */
-	}
-
-	PIOS_IRQ_Epilogue();
+	return SPI_PIO_TransferBlock(spi_dev, send_buffer, receive_buffer, len);
 }
 
 #endif

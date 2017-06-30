@@ -73,7 +73,7 @@ const struct pios_adc_driver pios_flyingpio_adc_driver = {
  */
 struct pios_flyingpio_dev {
 	enum pios_flyingpio_dev_magic magic;    /**< Magic bytes to validate the struct contents */
-	uint32_t spi_id;                        /**< Handle to the communication driver */
+	pios_spi_t spi_id;                      /**< Handle to the communication driver */
 	uint32_t spi_slave;                     /**< The slave number (SPI) */
 
 	uint32_t last_msg_time;			/**< Time of last message send completion */
@@ -147,7 +147,8 @@ static int32_t PIOS_FLYINGPIO_Validate(struct pios_flyingpio_dev *dev)
 	return 0;
 }
 
-int32_t PIOS_FLYINGPIO_SPI_Init(pios_flyingpio_dev_t *dev, uint32_t spi_id, uint32_t slave_idx)
+int32_t PIOS_FLYINGPIO_SPI_Init(pios_flyingpio_dev_t *dev, pios_spi_t spi_id,
+		uint32_t slave_idx)
 {
 	fpio_dev = PIOS_FLYINGPIO_Alloc();
 	if (fpio_dev == NULL)

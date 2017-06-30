@@ -1129,10 +1129,10 @@ static struct pios_openlrs_dev * g_openlrs_dev;
  * @param[in] slave_num  The SPI bus slave number.
  * @param[in] cfg  The device configuration.
  */
-int32_t PIOS_OpenLRS_Init(uintptr_t * openlrs_id, uint32_t spi_id,
-			 uint32_t slave_num,
-			 const struct pios_openlrs_cfg *cfg,
-			 HwSharedRfBandOptions rf_band)
+int32_t PIOS_OpenLRS_Init(uintptr_t * openlrs_id,
+		pios_spi_t spi_id, uint32_t slave_num,
+		const struct pios_openlrs_cfg *cfg,
+		HwSharedRfBandOptions rf_band)
 {
 	PIOS_DEBUG_Assert(rfm22b_id);
 	PIOS_DEBUG_Assert(cfg);

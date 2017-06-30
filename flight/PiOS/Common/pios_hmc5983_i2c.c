@@ -108,7 +108,8 @@ static int32_t PIOS_HMC5983_Validate(struct hmc5983_dev *dev)
  * @brief Initialize the HMC5983 magnetometer sensor.
  * @return 0 on success
  */
-int32_t PIOS_HMC5983_Init(uint32_t i2c_id, uint32_t slave_num, const struct pios_hmc5983_cfg *cfg)
+int32_t PIOS_HMC5983_I2C_Init(uint32_t i2c_id,
+		const struct pios_hmc5983_cfg *cfg)
 {
 	dev = (struct hmc5983_dev *) PIOS_HMC5983_alloc();
 	if (dev == NULL)

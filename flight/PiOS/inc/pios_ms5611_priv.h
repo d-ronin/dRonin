@@ -53,7 +53,7 @@ struct pios_ms5611_cfg {
 };
 
 int32_t PIOS_MS5611_Init(const struct pios_ms5611_cfg * cfg, int32_t i2c_device);
-int32_t PIOS_MS5611_SPI_Init(uint32_t spi_id, uint32_t slave_num, const struct pios_ms5611_cfg *cfg);
+int32_t PIOS_MS5611_SPI_Init(pios_spi_t spi_id, uint32_t slave_num, const struct pios_ms5611_cfg *cfg);
 
 #endif /* PIOS_MS5611_PRIV_H */
 

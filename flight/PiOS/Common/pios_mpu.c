@@ -98,7 +98,8 @@ struct pios_mpu_dev {
 	const struct pios_mpu_cfg *cfg;             /**< Device configuration structure */
 	enum pios_mpu_type mpu_type;                /**< The IMU device type */
 	enum pios_mpu_com_driver com_driver_type;   /**< Communication driver type */
-	uint32_t com_driver_id;                     /**< Handle to the communication driver */
+	pios_spi_t spi_driver_id;
+	uint32_t i2c_driver_id;                     /**< Handle to the communication driver */
 	uint32_t com_slave_addr;                    /**< The slave address (I2C) or number (SPI) */
 	struct pios_queue *gyro_queue;
 	struct pios_queue *accel_queue;
@@ -216,8 +217,6 @@ static int32_t PIOS_MPU_Validate(struct pios_mpu_dev *dev)
 		return -1;
 	if (dev->magic != PIOS_MPU_DEV_MAGIC)
 		return -2;
-	if (dev->com_driver_id == 0)
-		return -3;
 	return 0;
 }
 
@@ -724,7 +723,7 @@ int32_t PIOS_MPU_I2C_Init(pios_mpu_dev_t *dev, uint32_t i2c_id, const struct pio
 	}
 
 	mpu_dev->com_driver_type = PIOS_MPU_COM_I2C;
-	mpu_dev->com_driver_id = i2c_id;
+	mpu_dev->i2c_driver_id = i2c_id;
 	mpu_dev->cfg = cfg;
 
 	if (PIOS_MPU_I2C_Probe(&mpu_dev->mpu_type) != 0)
@@ -756,7 +755,7 @@ static int32_t PIOS_MPU_I2C_Read(uint8_t address, uint8_t *buffer, uint8_t len)
 		}
 	};
 
-	return PIOS_I2C_Transfer(mpu_dev->com_driver_id, txn_list, NELEMENTS(txn_list));
+	return PIOS_I2C_Transfer(mpu_dev->i2c_driver_id, txn_list, NELEMENTS(txn_list));
 }
 
 static int32_t PIOS_MPU_I2C_Write(uint8_t address, uint8_t buffer)
@@ -776,12 +775,13 @@ static int32_t PIOS_MPU_I2C_Write(uint8_t address, uint8_t buffer)
 		},
 	};
 
-	return PIOS_I2C_Transfer(mpu_dev->com_driver_id, txn_list, NELEMENTS(txn_list));
+	return PIOS_I2C_Transfer(mpu_dev->i2c_driver_id, txn_list, NELEMENTS(txn_list));
 }
 #endif // defined(PIOS_INCLUDE_I2C)
 
 #if defined(PIOS_INCLUDE_SPI)
-int32_t PIOS_MPU_SPI_Init(pios_mpu_dev_t *dev, uint32_t spi_id, uint32_t slave_num, const struct pios_mpu_cfg *cfg)
+int32_t PIOS_MPU_SPI_Init(pios_mpu_dev_t *dev, pios_spi_t spi_id,
+		uint32_t slave_num, const struct pios_mpu_cfg *cfg)
 {
 	if (!*dev) {
 		mpu_dev = PIOS_MPU_Alloc(cfg);
@@ -793,7 +793,7 @@ int32_t PIOS_MPU_SPI_Init(pios_mpu_dev_t *dev, uint32_t spi_id, uint32_t slave_n
 	}
 
 	mpu_dev->com_driver_type = PIOS_MPU_COM_SPI;
-	mpu_dev->com_driver_id = spi_id;
+	mpu_dev->spi_driver_id = spi_id;
 	mpu_dev->com_slave_addr = slave_num;
 	mpu_dev->cfg = cfg;
 
@@ -817,13 +817,13 @@ static int32_t PIOS_MPU_ClaimBus(bool lowspeed)
 	if (PIOS_MPU_Validate(mpu_dev) != 0)
 		return -1;
 
-	if (PIOS_SPI_ClaimBus(mpu_dev->com_driver_id) != 0)
+	if (PIOS_SPI_ClaimBus(mpu_dev->spi_driver_id) != 0)
 		return -2;
 
 	if (lowspeed)
-		PIOS_SPI_SetClockSpeed(mpu_dev->com_driver_id, PIOS_MPU_SPI_LOW_SPEED);
+		PIOS_SPI_SetClockSpeed(mpu_dev->spi_driver_id, PIOS_MPU_SPI_LOW_SPEED);
 
-	PIOS_SPI_RC_PinSet(mpu_dev->com_driver_id, mpu_dev->com_slave_addr, 0);
+	PIOS_SPI_RC_PinSet(mpu_dev->spi_driver_id, mpu_dev->com_slave_addr, 0);
 
 	return 0;
 }
@@ -833,12 +833,12 @@ static int32_t PIOS_MPU_ReleaseBus(bool lowspeed)
 	if (PIOS_MPU_Validate(mpu_dev) != 0)
 		return -1;
 
-	PIOS_SPI_RC_PinSet(mpu_dev->com_driver_id, mpu_dev->com_slave_addr, 1);
+	PIOS_SPI_RC_PinSet(mpu_dev->spi_driver_id, mpu_dev->com_slave_addr, 1);
 
 	if (lowspeed)
-		PIOS_SPI_SetClockSpeed(mpu_dev->com_driver_id, PIOS_MPU_SPI_HIGH_SPEED);
+		PIOS_SPI_SetClockSpeed(mpu_dev->spi_driver_id, PIOS_MPU_SPI_HIGH_SPEED);
 
-	PIOS_SPI_ReleaseBus(mpu_dev->com_driver_id);
+	PIOS_SPI_ReleaseBus(mpu_dev->spi_driver_id);
 
 	return 0;
 }
@@ -848,8 +848,8 @@ static int32_t PIOS_MPU_SPI_Read(uint8_t address, uint8_t *buffer)
 	if (PIOS_MPU_ClaimBus(true) != 0)
 		return -1;
 
-	PIOS_SPI_TransferByte(mpu_dev->com_driver_id, 0x80 | address); // request byte
-	*buffer = PIOS_SPI_TransferByte(mpu_dev->com_driver_id, 0);   // receive response
+	PIOS_SPI_TransferByte(mpu_dev->spi_driver_id, 0x80 | address); // request byte
+	*buffer = PIOS_SPI_TransferByte(mpu_dev->spi_driver_id, 0);   // receive response
 
 	PIOS_MPU_ReleaseBus(true);
 
@@ -861,8 +861,8 @@ static int32_t PIOS_MPU_SPI_Write(uint8_t address, uint8_t buffer)
 	if (PIOS_MPU_ClaimBus(true) != 0)
 		return -1;
 
-	PIOS_SPI_TransferByte(mpu_dev->com_driver_id, 0x7f & address);
-	PIOS_SPI_TransferByte(mpu_dev->com_driver_id, buffer);
+	PIOS_SPI_TransferByte(mpu_dev->spi_driver_id, 0x7f & address);
+	PIOS_SPI_TransferByte(mpu_dev->spi_driver_id, buffer);
 
 	PIOS_MPU_ReleaseBus(true);
 
@@ -997,7 +997,7 @@ static void PIOS_MPU_Task(void *parameters)
 			if (PIOS_MPU_ClaimBus(false) != 0)
 				continue;
 
-			if (PIOS_SPI_TransferBlock(mpu_dev->com_driver_id, mpu_tx_buf, mpu_rec_buf, transfer_size) < 0) {
+			if (PIOS_SPI_TransferBlock(mpu_dev->spi_driver_id, mpu_tx_buf, mpu_rec_buf, transfer_size) < 0) {
 				PIOS_MPU_ReleaseBus(false);
 				continue;
 			}

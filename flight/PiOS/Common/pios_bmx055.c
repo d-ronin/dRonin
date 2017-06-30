@@ -67,10 +67,10 @@ enum pios_bmx055_dev_magic {
  * @brief The device state struct
  */
 struct pios_bmx055_dev {
-	enum pios_bmx055_dev_magic magic;              /**< Magic bytes to validate the struct contents */
-	const struct pios_bmx055_cfg *cfg;             /**< Device configuration structure */
-	uint32_t spi_id;                            /**< Handle to the communication driver */
-	uint32_t spi_slave_gyro;                    /**< The slave number (SPI) */
+	enum pios_bmx055_dev_magic magic;   /**< Magic bytes to validate the struct contents */
+	const struct pios_bmx055_cfg *cfg;  /**< Device configuration structure */
+	pios_spi_t spi_id;                  /**< Handle to the communication driver */
+	uint32_t spi_slave_gyro;            /**< The slave number (SPI) */
 	uint32_t spi_slave_accel;
 
 	struct pios_queue *gyro_queue;
@@ -179,7 +179,9 @@ static int32_t AssertReg(int slave, uint8_t address, uint8_t expect) {
 	return 0;
 }
 
-int32_t PIOS_BMX055_SPI_Init(pios_bmx055_dev_t *dev, uint32_t spi_id, uint32_t slave_gyro, uint32_t slave_accel, const struct pios_bmx055_cfg *cfg)
+int32_t PIOS_BMX055_SPI_Init(pios_bmx055_dev_t *dev, pios_spi_t spi_id,
+		uint32_t slave_gyro, uint32_t slave_accel,
+		const struct pios_bmx055_cfg *cfg)
 {
 	DEBUG_PRINTF(2, "BMX: SPI_Init called\n");
 

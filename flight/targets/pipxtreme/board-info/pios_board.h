@@ -262,8 +262,6 @@ extern uintptr_t pios_com_frsky_sport_id;
 //-------------------------
 
 #if defined(PIOS_INCLUDE_RFM22B)
-extern uint32_t pios_spi_rfm22b_id;
-#define PIOS_RFM22_SPI_PORT             (pios_spi_rfm22b_id)
 extern uint32_t pios_rfm22b_id;
 #endif /* PIOS_INCLUDE_RFM22B */
 

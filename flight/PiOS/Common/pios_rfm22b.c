@@ -390,7 +390,7 @@ static bool init_requested;
  * @param[in] cfg  The device configuration.
  * @param[in] band  The frequency band to operate on
  */
-int32_t PIOS_RFM22B_Init(uint32_t * rfm22b_id, uint32_t spi_id,
+int32_t PIOS_RFM22B_Init(uint32_t * rfm22b_id, pios_spi_t spi_id,
 			 uint32_t slave_num,
 			 const struct pios_rfm22b_cfg *cfg,
 			 HwSharedRfBandOptions band)
