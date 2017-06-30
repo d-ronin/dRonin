@@ -116,6 +116,18 @@ static void PIOS_SERIAL_RxTask(void *ser_dev_n)
 		}
 
 		if (result == 0) {	/* EOF */
+			if (ser_dev->dont_touch_line) {
+				/* In any case we don't expect a device
+				 * to go away.  For true serial devices,
+				 * it probably means USB or something and
+				 * keeping the rest of the tasks going
+				 * seems best.  If it's stdio-ish, then
+				 * we really want to take the process
+				 * down.
+				 */
+				exit(1);
+			}
+
 			break;
 		}
 
