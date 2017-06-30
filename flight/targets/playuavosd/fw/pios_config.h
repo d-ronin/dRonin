@@ -60,7 +60,6 @@
 #define PIOS_INCLUDE_GPS
 #define PIOS_INCLUDE_GPS_NMEA_PARSER
 #define PIOS_INCLUDE_GPS_UBX_PARSER
-#define PIOS_GPS_SETS_HOMELOCATION
 
 #define PIOS_INCLUDE_FLASH
 #define PIOS_INCLUDE_LOGFS_SETTINGS
@@ -77,8 +76,6 @@
 
 /* Flags that alter behaviors - mostly to lower resources for CC */
 #define PIOS_INCLUDE_INITCALL           /* Include init call structures */
-//#define PIOS_QUATERNION_STABILIZATION   /* Stabilization options */
-#define PIOS_GPS_SETS_HOMELOCATION      /* GPS options */
 
 /* Alarm Thresholds */
 #define HEAP_LIMIT_WARNING		1000

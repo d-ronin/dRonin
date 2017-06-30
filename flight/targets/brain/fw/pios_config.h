@@ -58,8 +58,6 @@
 #define PIOS_INCLUDE_MAVLINK
 #define PIOS_INCLUDE_LIGHTTELEMETRY
 
-#define PIOS_GPS_SETS_HOMELOCATION
-
 /* Supported receiver interfaces */
 #define PIOS_INCLUDE_PWM
 
@@ -75,11 +73,7 @@
 #define OSD_USE_BRAINFPV_LOGO
 #define PIOS_OMIT_TIM2IRQ
 
-/* Other Interfaces */
-//#define PIOS_INCLUDE_I2C_ESC
-
 /* Flags that alter behaviors - mostly to lower resources for CC */
-#define PIOS_GPS_SETS_HOMELOCATION      /* GPS options */
 
 #define AUTOTUNE_AVERAGING_MODE
 

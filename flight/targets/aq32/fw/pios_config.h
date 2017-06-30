@@ -32,9 +32,9 @@
 #include <pios_flight_config.h>
 
 /* Major features */
-#define PIOS_INCLUDE_FLASH_JEDEC
 
 /* Enable/Disable PiOS Modules */
+#define PIOS_INCLUDE_FLASH_JEDEC
 #define PIOS_INCLUDE_I2C
 #define PIOS_INCLUDE_SPI
 #define PIOS_INCLUDE_FASTHEAP
@@ -52,10 +52,8 @@
 #define PIOS_TOLERATE_MISSING_SENSORS
 
 /* Com systems to include */
-#define PIOS_INCLUDE_TELEMETRY_RF
 #define PIOS_INCLUDE_MAVLINK
 #define PIOS_INCLUDE_LIGHTTELEMETRY
-
 
 /* Supported receiver interfaces */
 
