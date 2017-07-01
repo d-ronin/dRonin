@@ -59,7 +59,7 @@
 
 #define PIOS_INCLUDE_DMASHOT
 
-/* Flags that alter behaviours - mostly to lower resources for CC */
+/* Flags that alter behaviours */
 
 #define SYSTEMMOD_RGBLED_SUPPORT
 

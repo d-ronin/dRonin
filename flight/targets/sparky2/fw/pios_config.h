@@ -69,8 +69,7 @@
 
 #define PIOS_INCLUDE_DEBUG_CONSOLE
 
-/* Flags that alter behaviors - mostly to lower resources for CC */
-#define AUTOTUNE_AVERAGING_MODE
+/* Flags that alter behaviors */
 
 #define CAMERASTAB_POI_MODE
 

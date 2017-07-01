@@ -74,7 +74,7 @@
 #define PIOS_INCLUDE_MAX7456
 #define PIOS_OMIT_TIM2IRQ
 
-/* Flags that alter behaviors - mostly to lower resources for CC */
+/* Flags that alter behaviors */
 #define PIOS_INCLUDE_INITCALL           /* Include init call structures */
 
 /* Alarm Thresholds */
