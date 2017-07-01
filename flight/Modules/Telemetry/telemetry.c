@@ -100,7 +100,7 @@ struct telemetry_state {
 
 static struct telemetry_state telem_state = { };
 
-#if defined(PIOS_INCLUDE_USB)
+#if defined(PIOS_COM_TELEM_USB)
 static volatile uint32_t usb_timeout_time;
 #endif
 
@@ -584,7 +584,7 @@ static void telemetryTxTask(void *parameters)
 	}
 }
 
-#if defined(PIOS_INCLUDE_USB)
+#if defined(PIOS_COM_TELEM_USB)
 /**
  * Updates the USB activity timer, and returns whether we should use USB this
  * time around.
@@ -628,7 +628,7 @@ static bool processUsbActivity(bool seen_active)
 
 	return true;
 }
-#endif // PIOS_INCLUDE_USB
+#endif // PIOS_COM_TELEM_USB
 
 /**
  * Telemetry transmit task. Processes queue events and periodic updates.
@@ -651,7 +651,7 @@ static void telemetryRxTask(void *parameters)
 			if (bytes_to_process > 0) {
 				UAVTalkProcessInputStream(telem->uavTalkCon, serial_data, bytes_to_process);
 
-#if defined(PIOS_INCLUDE_USB)
+#if defined(PIOS_COM_TELEM_USB)
 				if (inputPort == PIOS_COM_TELEM_USB) {
 					processUsbActivity(true);
 				}
@@ -828,7 +828,7 @@ static void updateSettings()
  */
 static uintptr_t getComPort()
 {
-#if defined(PIOS_INCLUDE_USB)
+#if defined(PIOS_COM_TELEM_USB)
 	if (PIOS_COM_Available(PIOS_COM_TELEM_USB)) {
 		/* Let's further qualify this.  If there's anything spooled
 		 * up for RX, bump the activity time.
@@ -840,7 +840,7 @@ static uintptr_t getComPort()
 			return PIOS_COM_TELEM_USB;
 		}
 	}
-#endif /* PIOS_INCLUDE_USB */
+#endif /* PIOS_COM_TELEM_USB */
 
 	if (PIOS_COM_Available(PIOS_COM_TELEM_RF) )
 		return PIOS_COM_TELEM_RF;
