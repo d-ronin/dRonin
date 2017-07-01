@@ -56,8 +56,7 @@
 #define PIOS_INCLUDE_PWM
 
 
-/* Flags that alter behaviors - mostly to lower resources for CC */
-#define AUTOTUNE_AVERAGING_MODE
+/* Flags that alter behaviors */
 #define AUTOTUNE_AVERAGING_DECIMATION 2
 
 /* Alarm Thresholds */

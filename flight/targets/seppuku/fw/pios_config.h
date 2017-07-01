@@ -81,11 +81,10 @@
 
 #define MODULE_FLIGHTSTATS_BUILTIN
 
-/* Flags that alter behaviors - mostly to lower resources for CC */
+/* Flags that alter behaviors */
 
 #define SYSTEMMOD_RGBLED_SUPPORT
 #define SYSTEMMOD_RGBLED_VIDEO_HACK
-#define AUTOTUNE_AVERAGING_MODE
 
 #define CAMERASTAB_POI_MODE
 

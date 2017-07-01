@@ -65,7 +65,6 @@
 #define TELEM_QUEUE_SIZE                20
 #define PIOS_TELEM_STACK_SIZE           PIOS_THREAD_STACK_SIZE_MIN
 
-#define AUTOTUNE_AVERAGING_MODE
 
 /* Stabilization options */
 

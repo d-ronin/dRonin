@@ -73,9 +73,8 @@
 #define OSD_USE_BRAINFPV_LOGO
 #define PIOS_OMIT_TIM2IRQ
 
-/* Flags that alter behaviors - mostly to lower resources for CC */
-
-#define AUTOTUNE_AVERAGING_MODE
+/* Flags that alter behaviors */
+#define PIOS_GPS_SETS_HOMELOCATION      /* GPS options */
 
 #define CAMERASTAB_POI_MODE
 
