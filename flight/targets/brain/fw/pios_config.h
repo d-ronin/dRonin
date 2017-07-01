@@ -74,7 +74,6 @@
 #define PIOS_OMIT_TIM2IRQ
 
 /* Flags that alter behaviors */
-#define PIOS_GPS_SETS_HOMELOCATION      /* GPS options */
 
 #define CAMERASTAB_POI_MODE
 

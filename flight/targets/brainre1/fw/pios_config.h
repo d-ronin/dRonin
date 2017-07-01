@@ -82,7 +82,6 @@
 #define OSD_USE_BRAINFPV_LOGO
 
 /* Flags that alter behaviors */
-#define PIOS_GPS_SETS_HOMELOCATION      /* GPS options */
 #define AUTOTUNE_AVERAGING_DECIMATION 2
 #define SYSTEMMOD_RGBLED_SUPPORT
 
