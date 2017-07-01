@@ -374,9 +374,9 @@ void SetupWizard::boardIgnorePrompt()
     if (!m_autoLaunched)
         return;
 
-    QMessageBox prompt(QMessageBox::Question, tr("Ignore Board?"),
-                       tr("Would you like to ignore the setup wizard for this board?"),
-                       QMessageBox::Yes | QMessageBox::No);
+    QMessageBox prompt(QMessageBox::Question, tr("Setup Wizard Cancelled"),
+                       tr("Would you like to prevent the setup wizard from automatically opening"
+                       " for the remainder of this session?"), QMessageBox::Yes | QMessageBox::No);
     if (prompt.exec() == QMessageBox::No)
         return;
 
