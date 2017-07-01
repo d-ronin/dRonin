@@ -71,6 +71,8 @@ SECTIONS
         _sdata = .;
         *(.data .data.*)
         . = ALIGN(4);
+        *(.ramtext)
+        . = ALIGN(4);
         _edata = . ;
     } > SRAM
 

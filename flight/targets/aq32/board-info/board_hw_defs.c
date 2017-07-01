@@ -508,7 +508,7 @@ static const struct pios_flash_partition pios_flash_partition_table[] = {
 		.size         = (3 - 2 + 1) * FLASH_SECTOR_16KB, // 32KB
 	},
 
-    /* NOTE: sector 4 of internal flash is currently unallocated */
+	/* NOTE: sector 4 of internal flash is currently unallocated */
 
 	{
 		.label        = FLASH_PARTITION_LABEL_FW,
@@ -525,10 +525,14 @@ static const struct pios_flash_partition pios_flash_partition_table[] = {
 		.label        = FLASH_PARTITION_LABEL_AUTOTUNE,
 		.chip_desc    = &pios_flash_chip_internal,
 		.first_sector = 10,
-		.last_sector  = 11,
+		.last_sector  = 10,
 		.chip_offset  = (4 * FLASH_SECTOR_16KB) + (1 * FLASH_SECTOR_64KB) + (5 * FLASH_SECTOR_128KB), // 0x080C 0000
-		.size         = (11 - 10 + 1) * FLASH_SECTOR_128KB,                                           // 256KB
+		.size         = (10 - 10 + 1) * FLASH_SECTOR_128KB,                                           // 128KB
 	},
+
+	/* Sector 11 is unallocated, but in old bootloaders was allocated to
+	 * waypoints/autotune.
+	 */
 };
 
 const struct pios_flash_partition * PIOS_BOARD_HW_DEFS_GetPartitionTable (uint32_t board_revision, uint32_t * num_partitions)

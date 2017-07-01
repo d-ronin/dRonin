@@ -7,6 +7,8 @@
  *
  * @file       pios_flash_internal.c  
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2017
+ *
  * @brief Provides a flash driver for the STM32 internal flash sectors
  *****************************************************************************/
 /* 
@@ -33,6 +35,11 @@
 #include "pios_wdg.h"
 #include "pios_semaphore.h"
 #include <stdbool.h>
+
+/* TODO: Build an armed infrastructure for PiOS as a whole-- figure out
+ * a good header to put it in, and use accessor functions from outside
+ * PiOS. */
+bool __attribute__((weak)) vehicle_is_armed = false;
 
 static const uint16_t sector_to_st_sector_map[] = {
 	[0] = FLASH_Sector_0,
@@ -132,6 +139,9 @@ static int32_t PIOS_Flash_Internal_EndTransaction(uintptr_t chip_id)
 	return 0;
 }
 
+int32_t PIOS_Flash_Internal_EraseSector_FromRam(uint16_t st_sector)
+	__attribute__ ((section (".ramtext"),long_call));
+
 static int32_t PIOS_Flash_Internal_EraseSector(uintptr_t chip_id, uint32_t chip_sector, uint32_t chip_offset)
 {
 	struct pios_internal_flash_dev *flash_dev = (struct pios_internal_flash_dev *)chip_id;
@@ -149,8 +159,56 @@ static int32_t PIOS_Flash_Internal_EraseSector(uintptr_t chip_id, uint32_t chip_
 
 	uint32_t st_sector = sector_to_st_sector_map[chip_sector];
 
-	if (FLASH_EraseSector(st_sector, VoltageRange_3) != FLASH_COMPLETE)
-		return -3;
+	PIOS_IRQ_Disable();
+
+	int32_t ret = PIOS_Flash_Internal_EraseSector_FromRam(st_sector);
+
+	PIOS_IRQ_Enable();
+
+	if (ret) {
+		return ret;
+	}
+
+	if (FLASH_GetStatus() != FLASH_COMPLETE) {
+		return -1;
+	}
+
+	return 0;
+}
+
+int32_t PIOS_Flash_Internal_EraseSector_FromRam(uint16_t st_sector)
+{
+	if (vehicle_is_armed) {
+		return -1;
+	}
+
+#define KR_KEY_RELOAD    ((uint16_t)0xAAAA)
+
+	/* Wait for last operation to be completed */
+	while ((FLASH->SR & FLASH_FLAG_BSY) == FLASH_FLAG_BSY) {
+		IWDG->KR = KR_KEY_RELOAD;
+	}
+
+	uint32_t cr = FLASH->CR;
+
+	cr &= CR_PSIZE_MASK;
+	cr |= FLASH_PSIZE_WORD;
+
+#define SECTOR_MASK               ((uint32_t)0xFFFFFF07)
+
+	cr &= SECTOR_MASK;
+	cr |= FLASH_CR_SER | st_sector;
+
+	FLASH->CR = cr;
+
+	/* Start operation */
+	FLASH->CR = cr | FLASH_CR_STRT;
+
+	while ((FLASH->SR & FLASH_FLAG_BSY) == FLASH_FLAG_BSY) {
+		IWDG->KR = KR_KEY_RELOAD;
+	}
+
+	FLASH->CR &= (~FLASH_CR_SER) & SECTOR_MASK;
 
 	return 0;
 }
