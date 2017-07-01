@@ -9,9 +9,13 @@ NSIS_SCRIPT   := $(NSIS_DIR)/dronin.nsi
 NSIS_TEMPLATE := $(NSIS_DIR)/dronin.tpl
 NSIS_HEADER   := $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)/dronin.nsh
 
+standalone: QT_BIN_DIR:=$(dir $(shell which qmake))
 standalone: $(STANDALONE_DEPENDENCIES)
 	$(V1) windeployqt -pdb -printsupport -concurrent -gui -opengl -xml -quick -quickwidgets -test -sql -serialport -multimedia -multimediawidgets --list relative --qmldir $(ROOT_DIR)/build/ground/gcs/share/welcome $(ROOT_DIR)/build/ground/gcs/bin/drgcs.exe 
 	$(V1) windeployqt -pdb -printsupport -concurrent -gui -opengl -xml -quick -quickwidgets -test -sql -serialport -multimedia -multimediawidgets --qmldir $(ROOT_DIR)/build/ground/gcs/share/welcome $(ROOT_DIR)/build/ground/gcs/bin/drgcs.exe 
+	# hax to work around windeployqt lack of support for -charts
+	$(V1) cp -v -f "$(QT_BIN_DIR)Qt5Charts.dll" $(ROOT_DIR)/build/ground/gcs/bin
+	$(V1) cp -v -f "$(QT_BIN_DIR)Qt5Charts.pdb" $(ROOT_DIR)/build/ground/gcs/bin || true
 
 installer_package: package_ground extract_firmware
 	$(V1) rm -rf "$(PACKAGE_DIR)"/firmware_$(PACKAGE_LBL)/*.debug

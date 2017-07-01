@@ -27,10 +27,6 @@
 #ifndef CONFIGAUTOTUNE_H
 #define CONFIGAUTOTUNE_H
 
-#include "ui_autotune.h"
-#include "ui_autotuneproperties.h"
-#include "ui_autotunesliders.h"
-#include "ui_autotunefinalpage.h"
 #include "../uavobjectwidgetutils/configtaskwidget.h"
 #include "extensionsystem/pluginmanager.h"
 #include "uavobjects/uavobjectmanager.h"
@@ -38,16 +34,28 @@
 #include "actuatorsettings.h"
 #include "stabilizationsettings.h"
 #include "systemident.h"
-#include <QWidget>
+
+#include <QChart>
+#include <QLineSeries>
 #include <QTimer>
+#include <QWidget>
 #include <QWizardPage>
 #include <QtNetwork/QNetworkReply>
 
+QT_CHARTS_USE_NAMESPACE
+
+#include "ui_autotune.h"
+#include "ui_autotunebeginning.h"
+#include "ui_autotuneproperties.h"
+#include "ui_autotunesliders.h"
+#include "ui_autotunefinalpage.h"
 #include "configgadgetwidget.h"
 
 struct AutotunedValues
 {
     bool valid;
+
+    QByteArray data;
 
     // Parameters
     float tau[3];
@@ -74,6 +82,68 @@ struct AutotunedValues
 
     float outerKp;
     float outerKi;
+
+    QLineSeries *model[3];
+    QLineSeries *actual[3];
+};
+
+class AutotuneBeginningPage : public QWizardPage, private Ui::AutotuneBeginning
+{
+    Q_OBJECT
+
+public:
+    explicit AutotuneBeginningPage(QWidget *parent, bool autoOpened,
+                                            AutotunedValues *autoValues);
+
+    void initializePage();
+
+    bool isComplete() const;
+
+private:
+    QString tuneValid(bool *okToContinue) const;
+
+    AutotunedValues *tuneState;
+    bool autoOpened;
+    bool dataValid;
+
+    /* Need a better place for all of these implementation things.  But
+     * for now this is at least encapsulated and won't get tainted
+     * elsewhere
+     */
+    const uint64_t ATFLASH_MAGIC = 0x656e755480008041;
+
+    struct at_flash_header
+    {
+        uint64_t magic;
+        uint16_t wiggle_points;
+        uint16_t aux_data_len;
+        uint16_t sample_rate;
+
+        // Consider total number of averages here
+        uint16_t resv;
+    };
+
+    struct at_measurement
+    {
+        float y[3]; /* Gyro measurements */
+        float u[3]; /* Actuator desired */
+    };
+
+    struct at_flash
+    {
+        struct at_flash_header hdr;
+
+        struct at_measurement data[];
+    };
+
+    bool processAutotuneData();
+    void biquadFilter(float cutoff, int pts, QVector<float> &data);
+    float getSampleDelay(int pts, const QVector<float> &delayed,
+            const QVector<float> &orig, int seriesCutoff = 4);
+
+private slots:
+    void doDownloadAndProcess();
+
 };
 
 class AutotuneMeasuredPropertiesPage : public QWizardPage, private Ui::AutotuneProperties
@@ -86,7 +156,8 @@ public:
     void initializePage();
 
 private:
-    AutotunedValues *av;
+    AutotunedValues *tuneState;
+    QChart *makeChart(int axis);
 };
 
 class AutotuneSlidersPage : public QWizardPage, private Ui::AutotuneSliders
@@ -99,8 +170,10 @@ public:
 
     bool isComplete() const;
 
+    void initializePage();
+
 private:
-    AutotunedValues *av;
+    AutotunedValues *tuneState;
 
     void setText(QLabel *lbl, double value, int precision);
 
@@ -142,7 +215,6 @@ private slots:
     void openAutotuneDialog(bool autoOpened, AutotunedValues *precalc_vals = nullptr);
 
     void openAutotuneFile();
-    AutotunedValues processAutotuneData(QByteArray *loadedFile);
 
     void atConnected();
     void atDisconnected();
