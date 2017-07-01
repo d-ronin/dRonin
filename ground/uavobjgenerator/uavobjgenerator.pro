@@ -10,7 +10,7 @@ macx {
 # we are a bit looser on Qt release for uavogen
 # lets doc builders etc. use PPAs which always carry only latest patch release
 !equals(QT_MAJOR_VERSION, $$DR_QT_MAJOR_VERSION) | !equals(QT_MINOR_VERSION, $$DR_QT_MINOR_VERSION) | lessThan(QT_PATCH_VERSION, $$DR_QT_PATCH_VERSION) {
-    error("Qt $${DR_QT_MAJOR_VERSION}.$${DR_QT_MINOR_VERSION}.$${DR_QT_PATCH_VERSION}+ required. Please run 'make qt_sdk_install'.")
+    error("Qt $${DR_QT_MAJOR_VERSION}.$${DR_QT_MINOR_VERSION}.$${DR_QT_PATCH_VERSION}+ required (Qt $${QT_MAJOR_VERSION}.$${QT_MINOR_VERSION}.$${QT_PATCH_VERSION} installed). Please run 'make qt_sdk_install'.")
 }
 
 cache()
