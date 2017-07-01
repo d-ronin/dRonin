@@ -32,11 +32,14 @@
 #include <QStringList>
 #include <extensionsystem/pluginmanager.h>
 
+#include <config/configplugin.h>
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/icore.h>
 #include <QKeySequence>
 #include <coreplugin/modemanager.h>
+#include <extensionsystem/pluginmanager.h>
+#include <uploader/uploadergadgetwidget.h>
 
 SetupWizardPlugin::SetupWizardPlugin()
     : wizardRunning(false)
@@ -72,30 +75,65 @@ bool SetupWizardPlugin::initialize(const QStringList &args, QString *errMsg)
 
 void SetupWizardPlugin::extensionsInitialized()
 {
+    auto pm = ExtensionSystem::PluginManager::instance();
+    auto config = pm->getObject<ConfigPlugin>();
+    if (config)
+        connect(config, &ConfigPlugin::launchSetupWizard,
+                std::bind(&SetupWizardPlugin::showSetupWizard, this, true));
 }
 
 void SetupWizardPlugin::shutdown()
 {
 }
 
-void SetupWizardPlugin::showSetupWizard()
+void SetupWizardPlugin::showSetupWizard(bool autoLaunched)
 {
-    if (!wizardRunning) {
-        Core::ModeManager::instance()->activateModeByWorkspaceName(Core::Constants::MODE_WELCOME);
+    if (wizardRunning)
+        return;
 
-        wizardRunning = true;
-        SetupWizard *m_wiz = new SetupWizard();
-        connect(m_wiz, &QDialog::finished, this, &SetupWizardPlugin::wizardTerminated);
-        m_wiz->setAttribute(Qt::WA_DeleteOnClose, true);
-        m_wiz->setWindowFlags(m_wiz->windowFlags() | Qt::WindowStaysOnTopHint);
-        m_wiz->show();
+    if (autoLaunched) {
+        ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+
+        // check if uploader is working with this board
+        auto uploaders = pm->getObjects<uploader::UploaderGadgetWidget>();
+        for (const auto uploader : uploaders) {
+            if (uploader->active())
+                return;
+        }
+
+        // check if it's been ignored already
+        UAVObjectUtilManager *utilMngr = pm->getObject<UAVObjectUtilManager>();
+        if (!utilMngr) {
+            qWarning() << "Could not get UAVObjectUtilManager";
+            Q_ASSERT(false);
+            return;
+        }
+        if (ignoredBoards.contains(utilMngr->getBoardCPUSerial())) {
+            qInfo() << "Ignoring board";
+            return;
+        }
     }
+
+    Core::ModeManager::instance()->activateModeByWorkspaceName(Core::Constants::MODE_WELCOME);
+
+    wizardRunning = true;
+    SetupWizard *m_wiz = new SetupWizard(autoLaunched);
+    connect(m_wiz, &SetupWizard::boardIgnored, this, &SetupWizardPlugin::ignoreBoard);
+    connect(m_wiz, &QDialog::finished, this, &SetupWizardPlugin::wizardTerminated);
+    m_wiz->setAttribute(Qt::WA_DeleteOnClose, true);
+    m_wiz->setWindowFlags(m_wiz->windowFlags() | Qt::WindowStaysOnTopHint);
+    m_wiz->show();
 }
 
 void SetupWizardPlugin::wizardTerminated()
 {
     wizardRunning = false;
     disconnect(this, SLOT(wizardTerminated()));
+}
+
+void SetupWizardPlugin::ignoreBoard(QByteArray uuid)
+{
+    ignoredBoards << uuid;
 }
 
 /**

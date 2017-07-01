@@ -34,6 +34,7 @@
 #include <QDesktopServices>
 #include <QHttpPart>
 #include <QHttpMultiPart>
+#include <QNetworkAccessManager>
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QUrl>
@@ -45,6 +46,8 @@
 #include <coreplugin/modemanager.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include "rawhid/rawhidplugin.h"
+#include "ui_uploader.h"
+#include <extensionsystem/pluginmanager.h>
 
 using namespace uploader;
 
@@ -166,6 +169,8 @@ UploaderGadgetWidget::UploaderGadgetWidget(QWidget *parent)
  */
 UploaderGadgetWidget::~UploaderGadgetWidget()
 {
+    // TODO remove this when addObject removed from factory
+    ExtensionSystem::PluginManager::instance()->removeObject(this);
 }
 
 /**
@@ -814,6 +819,8 @@ bool UploaderGadgetWidget::tradeSettingsWithCloud(QString srcRelease, QString an
 
 void UploaderGadgetWidget::upgradeError(QString why)
 {
+    upgraderActive = false;
+
     Q_UNUSED(why);
 
     m_dialog.hide();
@@ -850,6 +857,8 @@ void UploaderGadgetWidget::stepChangeAndDelay(QEventLoop &loop, int delayMs,
 
 void UploaderGadgetWidget::doUpgradeOperation(bool blankFC, tl_dfu::device &dev)
 {
+    upgraderActive = true;
+
     Core::ModeManager::instance()->activateModeByWorkspaceName("Firmware");
 
     m_dialog.onStepChanged(UpgradeAssistantDialog::STEP_ENTERLOADER);
@@ -1214,6 +1223,8 @@ void UploaderGadgetWidget::doUpgradeOperation(bool blankFC, tl_dfu::device &dev)
     while (!aborted) {
         loop.exec();
     }
+
+    upgraderActive = false;
 }
 
 /**
@@ -1980,4 +1991,20 @@ bool UploaderGadgetWidget::FirmwareCheckForUpdate(deviceDescriptorStruct device)
         }
     }
     return false;
+}
+
+bool UploaderGadgetWidget::active() const
+{
+    switch (uploaderStatus) {
+    case DISCONNECTED:
+    case CONNECTED_TO_TELEMETRY:
+        return upgraderActive;
+    case ENTERING_LOADER:
+    case BL_SITTING:
+    case BL_BUSY:
+    case UPGRADING:
+    case UPGRADING_CATCHLOADER:
+        break;
+    }
+    return true;
 }

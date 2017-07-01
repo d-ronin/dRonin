@@ -44,6 +44,7 @@
 #include "firmwareiapobj.h"
 #include "homelocation.h"
 #include "gpsposition.h"
+#include "actuatorsettings.h"
 
 #include <coreplugin/coreconstants.h>
 
@@ -737,6 +738,44 @@ QString UAVObjectUtilManager::getFirmwareHash()
 QString UAVObjectUtilManager::getGcsHash()
 {
     return QString(Core::Constants::GCS_REVISION_SHORT_STR);
+}
+
+/**
+ * @brief Check if firmware version hash matches GCS version hash
+ * @return false if version doesn't match, true otherwise
+ */
+bool UAVObjectUtilManager::firmwareHashMatchesGcs()
+{
+    return getFirmwareHash().toLower() == getGcsHash().toLower();
+}
+
+/**
+ * @brief Check if the board has been configured for flight
+ * The heuristic is whether one or more actuators are configured for non-zero output
+ * @return false if not configured, true otherwise
+ */
+bool UAVObjectUtilManager::boardConfigured()
+{
+    auto actuatorSettings = ActuatorSettings::GetInstance(obm);
+    if (!actuatorSettings)
+        return true; // this might seem odd, but matches the API description
+
+    auto minField = actuatorSettings->getField("ChannelMin");
+    auto maxField = actuatorSettings->getField("ChannelMax");
+    if (!minField || !maxField)
+        return true;
+
+    for (unsigned i = 0; i < maxField->getNumElements(); i++) {
+        if (maxField->getValue(i).toInt() > 0)
+            return true;
+    }
+
+    for (unsigned i = 0; i < minField->getNumElements(); i++) {
+        if (minField->getValue(i).toInt() > 0)
+            return true;
+    }
+
+    return false;
 }
 
 // ******************************
