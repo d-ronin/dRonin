@@ -96,12 +96,15 @@ UAVSettingsImportExportManager::UAVSettingsImportExportManager(QObject *parent)
 
 void UAVSettingsImportExportManager::extensionsInitialized()
 {
+        // problems with circular lib dep on windows, probably related to uploader
+#ifndef Q_OS_WIN
     auto pm = ExtensionSystem::PluginManager::instance();
     auto telemetry = pm->getObject<TelemetryManager>();
     // enabled/disabled commands when board is connected/disconnected
     connect(telemetry, &TelemetryManager::connectedChanged,
             this, &UAVSettingsImportExportManager::setCommandsEnabled);
     setCommandsEnabled(telemetry->isConnected());
+#endif
 }
 
 bool UAVSettingsImportExportManager::importUAVSettings(const QByteArray &settings, bool quiet)
