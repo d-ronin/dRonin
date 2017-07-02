@@ -67,6 +67,10 @@ public:
     int displayIntegerBase() const;
     void setDisplayIntegerBase(int base);
 
+    virtual QSize minimumSizeHint() const override;
+
+    virtual bool event(QEvent *event) override;
+
 protected:
     QValidator::State validate(QString &input, int &pos) const override;
     virtual qint64 valueFromText(const QString &text);
@@ -95,6 +99,7 @@ private:
     QString m_prefix, m_suffix;
     int m_displayBase;
     bool m_showGroupSeparator;
+    mutable QSize m_cachedMinSize;
 
     Q_DISABLE_COPY(LongLongSpinBox)
 };

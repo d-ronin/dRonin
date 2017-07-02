@@ -30,9 +30,11 @@
 
 #include "longlongspinbox.h"
 
-#include <QLineEdit>
+#include <QApplication>
 #include <QEvent>
+#include <QLineEdit>
 #include <QStyle>
+#include <QStyleOptionSpinBox>
 
 #include <limits>
 
@@ -72,6 +74,7 @@ void LongLongSpinBox::setPrefix(const QString &prefix)
 {
     m_prefix = prefix;
     updateEdit();
+    m_cachedMinSize = QSize();
     updateGeometry();
 }
 
@@ -84,6 +87,7 @@ void LongLongSpinBox::setSuffix(const QString &suffix)
 {
     m_suffix = suffix;
     updateEdit();
+    m_cachedMinSize = QSize();
     updateGeometry();
 }
 
@@ -128,6 +132,7 @@ void LongLongSpinBox::setRange(qint64 min, qint64 max)
     m_min = min;
     m_max = max < min ? min : max;
     setValue(qBound(m_min, m_value, m_max));
+    m_cachedMinSize = QSize();
 }
 
 int LongLongSpinBox::displayIntegerBase() const
@@ -146,6 +151,8 @@ void LongLongSpinBox::setDisplayIntegerBase(int base)
         m_displayBase = base;
         updateEdit();
     }
+
+    m_cachedMinSize = QSize();
 }
 
 QString LongLongSpinBox::textFromValue(qint64 val) const
@@ -323,6 +330,52 @@ void LongLongSpinBox::lineEditChanged(const QString &t)
             setValue(v);
         }
     }
+}
+
+QSize LongLongSpinBox::minimumSizeHint() const
+{
+    if (m_cachedMinSize.isEmpty()) {
+        ensurePolished();
+
+        const QFontMetrics fm(fontMetrics());
+        int h = lineEdit()->minimumSizeHint().height();
+
+        QString s = textFromValue(m_min);
+        QString fixedContent = m_prefix + QStringLiteral("  ") + m_suffix;
+        s.truncate(18);
+        s += fixedContent;
+        int w = fm.width(s);
+        s = textFromValue(m_max);
+        s.truncate(18);
+        s += fixedContent;
+        w = std::max(w, fm.width(s));
+
+        if (specialValueText().size())
+            w = qMax(w, fm.width(specialValueText()));
+
+        w += 2; // cursor blinking space
+
+        QStyleOptionSpinBox opt;
+        initStyleOption(&opt);
+        QSize hint(w, h);
+
+        m_cachedMinSize = style()->sizeFromContents(QStyle::CT_SpinBox, &opt, hint, this)
+                .expandedTo(QApplication::globalStrut());
+    }
+    return m_cachedMinSize;
+}
+
+bool LongLongSpinBox::event(QEvent *event)
+{
+    switch (event->type()) {
+    case QEvent::FontChange:
+    case QEvent::StyleChange:
+        m_cachedMinSize = QSize();
+        break;
+    default:
+        break;
+    }
+    return QAbstractSpinBox::event(event);
 }
 
 /**
