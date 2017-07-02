@@ -33,10 +33,6 @@
 #include "pages/coordinatorpage.h"
 #include "pages/coordinatedpage.h"
 
-#include "uploader/uploadergadgetfactory.h"
-
-using namespace uploader;
-
 RfmBindWizard::RfmBindWizard(QWidget *parent)
     : QWizard(parent)
     , m_ppm(false)

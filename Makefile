@@ -75,6 +75,7 @@ export FLIGHT_BUILD_CONF ?= default
 # Paths
 UAVOBJ_XML_DIR := $(ROOT_DIR)/shared/uavobjectdefinition
 UAVOBJ_OUT_DIR := $(BUILD_DIR)/uavobject-synthetics
+export SHAREDUSBIDDIR:= $(BUILD_DIR)/shared/usb_ids
 
 # Markers used in sequencing build steps
 UAVOBJECT_MARKER := $(UAVOBJ_OUT_DIR)/.uav-marker
@@ -283,7 +284,7 @@ endif
 GCS_QMAKE_DEPS := $(shell find $(ROOT_DIR)/ground -name '*.pr?')
 $(GCS_QMAKE_DEPS): ;
 
-$(GCS_QMAKE_MARKER): $(UAVOBJECT_MARKER) $(GCS_QMAKE_DEPS)
+$(GCS_QMAKE_MARKER): $(UAVOBJECT_MARKER) $(GCS_QMAKE_DEPS) $(SHAREDUSBIDDIR)/board_usb_ids.h
 	$(V1) mkdir -p $(BUILD_DIR)/ground/gcs
 	$(V1) ( cd $(BUILD_DIR)/ground/gcs && \
 	  PYTHON=$(PYTHON) $(QMAKE) $(ROOT_DIR)/ground/gcs/gcs.pro -spec $(QT_SPEC) -r CONFIG+="$(GCS_BUILD_CONF) $(GCS_SILENT)" $(GCS_QMAKE_OPTS) ; \
@@ -611,7 +612,6 @@ export OPUAVOBJ      := $(ROOT_DIR)/flight/UAVObjects
 export OPUAVTALK     := $(ROOT_DIR)/flight/UAVTalk
 export DOXYGENDIR    := $(ROOT_DIR)/Doxygen
 export SHAREDAPIDIR  := $(ROOT_DIR)/shared/api
-export SHAREDUSBIDDIR:= $(BUILD_DIR)/shared/usb_ids
 export OPUAVSYNTHDIR := $(BUILD_DIR)/uavobject-synthetics/flight
 
 # $(1) = Canonical board name all in lower case (e.g. coptercontrol)
