@@ -1,12 +1,12 @@
 BOARD_TYPE          := 0xA1
 BOARD_REVISION      := 0x01
-BOOTLOADER_VERSION  := 0x88
+BOOTLOADER_VERSION  := 0x89
 HW_TYPE             := 0x00		# seems to be unused
 
 CHIP                := STM32F405RGT
 BOARD               := STM32F4xx_SEPPUKU
 MODEL               := HD
-MODEL_SUFFIX        := 
+MODEL_SUFFIX        :=
 
 USB_VEND            := "dRonin"
 USB_PROD            := "Seppuku"

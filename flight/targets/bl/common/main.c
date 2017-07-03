@@ -357,7 +357,7 @@ static void go_jumping_to_app(struct bl_fsm_context * context)
 	__set_MSP(initial_sp);
 
 	/* Jump to the application entry point */
-	((void (*)(void))initial_pc)();
+	asm volatile("bx %r0" : : "r" (initial_pc) : );
 }
 
 static void go_dfu_idle(struct bl_fsm_context * context)
@@ -434,6 +434,9 @@ static void process_packet_rx(struct bl_fsm_context * context, const struct bl_m
 
 int main(void)
 {
+	/* Interrupts are OK immediately for the loader */
+	__enable_irq();
+
 	/* Configure and enable system clocks */
 	PIOS_SYS_Init();
 

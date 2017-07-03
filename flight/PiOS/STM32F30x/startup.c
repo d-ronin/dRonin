@@ -67,6 +67,9 @@ _main(void)
 	// that might bounds-check the stack
 	asm volatile ("mov r10, %0" : : "r" (&irq_stack[0]) : );
 
+	/* Disable all interrupts, until proper table etc is installed. */
+	__disable_irq();
+
 	/* enable usage, bus and memory faults */
 	SCB->SHCSR |= SCB_SHCSR_USGFAULTENA_Msk | SCB_SHCSR_BUSFAULTENA_Msk | SCB_SHCSR_MEMFAULTENA_Msk;
 

@@ -6,7 +6,7 @@ HW_TYPE             := 0x00
 CHIP                := STM32F407VGT6
 BOARD               := STM32F4xx_AQ32
 MODEL               := HD
-MODEL_SUFFIX        := 
+MODEL_SUFFIX        :=
 
 USB_VEND            := "AeroQuad"
 USB_PROD            := "AQ32"

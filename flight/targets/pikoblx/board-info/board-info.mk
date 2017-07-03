@@ -1,12 +1,12 @@
 BOARD_TYPE          := 0xA2
 BOARD_REVISION      := 0x01
-BOOTLOADER_VERSION  := 0x87
+BOOTLOADER_VERSION  := 0x88
 HW_TYPE             := 0x00		# seems to be unused
 
 CHIP                := STM32F303VCT
 BOARD               := STM32F30x_PIKOBLX
 MODEL               := HD
-MODEL_SUFFIX        := 
+MODEL_SUFFIX        :=
 
 USB_VEND            := "dRonin"
 USB_PROD            := "PikoBLX"
@@ -31,4 +31,3 @@ EF_BANK_SIZE        := 0x00040000  # Size of the entire flash image (from bootlo
 
 OSCILLATOR_FREQ     :=   8000000
 SYSCLK_FREQ         :=  72000000
-

@@ -1,12 +1,12 @@
 BOARD_TYPE          := 0x8B
 BOARD_REVISION      := 0x01
-BOOTLOADER_VERSION  := 0x87
+BOOTLOADER_VERSION  := 0x88
 HW_TYPE             := 0x00		# seems to be unused
 
 CHIP                := STM32F446RET
 BOARD               := STM32F4xx_BRAINFPVRE1
 MODEL               := HD
-MODEL_SUFFIX        := 
+MODEL_SUFFIX        :=
 
 USB_VEND            := "BrainFPV"
 USB_PROD            := "RE1"
@@ -35,4 +35,3 @@ SYSCLK_FREQ         := 180000000
 # Include these here, so they get included in the firmware and bootloader
 SRC += $(BOARD_INFO_DIR)/../re1fpga/fpga_drv.c
 EXTRAINCDIRS += $(BOARD_INFO_DIR)/../re1fpga/
-

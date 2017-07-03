@@ -73,7 +73,7 @@ int main()
 	PIOS_heap_initialize_blocks();
 
 	halInit();
-	chSysInit();
+	chSysInit();	/* Enables interrupts */
 
 	boardInit();
 

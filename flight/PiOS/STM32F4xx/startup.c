@@ -63,9 +63,15 @@ struct cm3_vectors {
 void
 _main(void)
 {
-	// load the stack base for the current stack before we attempt to branch to any function
-	// that might bounds-check the stack
+	/* At least some bootloaders increment the MSP off the top of the stack
+	 * before jumping to here. Let's set it ourselves to make sure it's good */
+	asm volatile ("msr msp, %0" : : "r" (&irq_stack[sizeof(irq_stack)]) : );
+	/* load the stack base for the current stack before we attempt to branch to
+	 * any function that might bounds-check the stack */
 	asm volatile ("mov r10, %0" : : "r" (&irq_stack[0]) : );
+
+	/* Disable all interrupts, until proper table etc is installed. */
+	__disable_irq();
 
 	/* enable usage, bus and memory faults */
 	SCB->SHCSR |= SCB_SHCSR_USGFAULTENA_Msk | SCB_SHCSR_BUSFAULTENA_Msk | SCB_SHCSR_MEMFAULTENA_Msk;
