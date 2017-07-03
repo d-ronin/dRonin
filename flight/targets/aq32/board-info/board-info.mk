@@ -1,12 +1,12 @@
 BOARD_TYPE          := 0x94
 BOARD_REVISION      := 0x01
-BOOTLOADER_VERSION  := 0x87
+BOOTLOADER_VERSION  := 0x88
 HW_TYPE             := 0x00
 
 CHIP                := STM32F407VGT6
 BOARD               := STM32F4xx_AQ32
 MODEL               := HD
-MODEL_SUFFIX        := 
+MODEL_SUFFIX        :=
 
 USB_VEND            := "AeroQuad"
 USB_PROD            := "AQ32"

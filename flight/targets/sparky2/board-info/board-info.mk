@@ -1,12 +1,12 @@
 BOARD_TYPE          := 0x92
 BOARD_REVISION      := 0x01
-BOOTLOADER_VERSION  := 0x87
+BOOTLOADER_VERSION  := 0x88
 HW_TYPE             := 0x00
 
 CHIP                := STM32F405RGT
 BOARD               := STM32F4xx_RM
 MODEL               := HD
-MODEL_SUFFIX        := 
+MODEL_SUFFIX        :=
 
 USB_VEND            := "Tau Labs"
 USB_PROD            := "Sparky2"

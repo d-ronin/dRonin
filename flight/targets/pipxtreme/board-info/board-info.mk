@@ -1,6 +1,6 @@
 BOARD_TYPE          := 0x03
 BOARD_REVISION      := 0x02
-BOOTLOADER_VERSION  := 0x87
+BOOTLOADER_VERSION  := 0x88
 HW_TYPE             := 0x01
 
 CHIP                := STM32F103CBT
@@ -28,4 +28,3 @@ EF_BANK_SIZE        := 0x00020000  # Size of the entire flash image (from bootlo
 
 OSCILLATOR_FREQ     :=   8000000
 SYSCLK_FREQ         :=  72000000
-
