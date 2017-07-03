@@ -592,7 +592,7 @@ static void PIOS_HAL_ConfigureTbsCrossfire(const struct pios_usart_cfg *usart_cr
 void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 		const struct pios_usart_cfg *usart_port_cfg,
 		const struct pios_com_driver *com_driver,
-		uint32_t *i2c_id,
+		pios_i2c_t *i2c_id,
 		const struct pios_i2c_adapter_cfg *i2c_cfg,
 		const struct pios_ppm_cfg *ppm_cfg,
 		const struct pios_pwm_cfg *pwm_cfg,
@@ -1321,7 +1321,7 @@ void PIOS_HAL_ConfigureSerialSpeed(uintptr_t com_id,
 
 
 #ifdef PIOS_INCLUDE_I2C
-static int PIOS_HAL_ConfigureI2C(uint32_t *id,
+static int PIOS_HAL_ConfigureI2C(pios_i2c_t *id,
 		const struct pios_i2c_adapter_cfg *cfg) {
 #ifndef SIM_POSIX
 	if (!*id) {
@@ -1352,7 +1352,7 @@ static int PIOS_HAL_ConfigureI2C(uint32_t *id,
 #endif // PIOS_INCLUDE_I2C
 
 int PIOS_HAL_ConfigureExternalBaro(HwSharedExtBaroOptions baro,
-		uint32_t *i2c_id,
+		pios_i2c_t *i2c_id,
 		const struct pios_i2c_adapter_cfg *i2c_cfg)
 {
 #if !defined(PIOS_INCLUDE_I2C)
@@ -1409,7 +1409,7 @@ done:
 
 int PIOS_HAL_ConfigureExternalMag(HwSharedMagOptions mag,
 		HwSharedMagOrientationOptions orientation,
-		uint32_t *i2c_id,
+		pios_i2c_t *i2c_id,
 		const struct pios_i2c_adapter_cfg *i2c_cfg)
 {
 #if !defined(PIOS_INCLUDE_I2C)

@@ -40,6 +40,45 @@
 
 #include <pios_i2c_priv.h>
 
+struct pios_i2c_adapter {
+	enum pios_i2c_adapter_magic         magic;
+	const struct pios_i2c_adapter_cfg * cfg;
+
+	struct pios_mutex *lock;
+	struct pios_semaphore *sem_ready;
+
+	bool bus_error;
+	bool nack;
+
+	volatile enum i2c_adapter_state curr_state;
+	const struct pios_i2c_txn *active_txn;
+	const struct pios_i2c_txn *last_txn;
+	
+	uint8_t *active_byte;
+	uint8_t *last_byte;
+
+#if defined(PIOS_I2C_DIAGNOSTICS)
+	volatile struct pios_i2c_fault_history i2c_adapter_fault_history;
+
+	volatile uint32_t i2c_evirq_history[I2C_LOG_DEPTH];
+	volatile uint8_t i2c_evirq_history_pointer;
+
+	volatile uint32_t i2c_erirq_history[I2C_LOG_DEPTH];
+	volatile uint8_t i2c_erirq_history_pointer;
+
+	volatile enum i2c_adapter_state i2c_state_history[I2C_LOG_DEPTH];
+	volatile uint8_t i2c_state_history_pointer;
+
+	volatile enum i2c_adapter_event i2c_state_event_history[I2C_LOG_DEPTH];
+	volatile uint8_t i2c_state_event_history_pointer;
+
+	volatile uint32_t i2c_fsm_fault_count;
+	volatile uint32_t i2c_bad_event_counter;
+	volatile uint32_t i2c_error_interrupt_counter;
+	volatile uint32_t i2c_nack_counter;
+	volatile uint32_t i2c_timeout_counter;
+#endif
+};
 /* dirty hack to keep compatible with enum in pios_i2c_priv.h */
 #define I2C_STATE_WRITE_BYTE				I2C_STATE_W_MORE_TXN_ADDR
 #define I2C_STATE_READ_BYTE					I2C_STATE_W_MORE_TXN_MIDDLE
@@ -431,42 +470,23 @@ static bool PIOS_I2C_validate(struct pios_i2c_adapter *i2c_adapter)
 	return (i2c_adapter->magic == PIOS_I2C_DEV_MAGIC);
 }
 
-#if defined(PIOS_INCLUDE_CHIBIOS) && 0
-static struct pios_i2c_dev *PIOS_I2C_alloc(void)
+static pios_i2c_t PIOS_I2C_alloc(void)
 {
-	struct pios_i2c_dev *i2c_adapter;
+	pios_i2c_t i2c_adapter;
 
-	i2c_adapter = (struct pios_i2c_adapter *)PIOS_malloc(sizeof(*i2c_adapter));
+	i2c_adapter = PIOS_malloc(sizeof(*i2c_adapter));
 	if (!i2c_adapter) return (NULL);
 
 	i2c_adapter->magic = PIOS_I2C_DEV_MAGIC;
-	return (i2c_adapter);
+	return i2c_adapter;
 }
-#else
-static struct pios_i2c_adapter pios_i2c_adapters[PIOS_I2C_MAX_DEVS];
-static uint8_t pios_i2c_num_adapters;
-static struct pios_i2c_adapter *PIOS_I2C_alloc(void)
-{
-	struct pios_i2c_adapter *i2c_adapter;
-
-	if (pios_i2c_num_adapters >= PIOS_I2C_MAX_DEVS) {
-		return (NULL);
-	}
-
-	i2c_adapter = &pios_i2c_adapters[pios_i2c_num_adapters++];
-	i2c_adapter->magic = PIOS_I2C_DEV_MAGIC;
-
-	return (i2c_adapter);
-}
-#endif
-
 
 /**
 * Initializes IIC driver
 * \param[in] mode currently only mode 0 supported
 * \return < 0 if initialisation failed
 */
-int32_t PIOS_I2C_Init(uint32_t *i2c_id, const struct pios_i2c_adapter_cfg *cfg)
+int32_t PIOS_I2C_Init(pios_i2c_t *i2c_id, const struct pios_i2c_adapter_cfg *cfg)
 {
 	PIOS_DEBUG_Assert(i2c_id);
 	PIOS_DEBUG_Assert(cfg);
@@ -486,7 +506,7 @@ int32_t PIOS_I2C_Init(uint32_t *i2c_id, const struct pios_i2c_adapter_cfg *cfg)
 	/* Initialize the state machine */
 	i2c_adapter_fsm_init(i2c_adapter);
 
-	*i2c_id = (uint32_t)i2c_adapter;
+	*i2c_id = i2c_adapter;
 
 	/* Configure and enable I2C interrupts */
 	NVIC_Init((NVIC_InitTypeDef *) & (i2c_adapter->cfg->event.init));
@@ -505,10 +525,8 @@ out_fail:
  * @returns -1 Bus is in use
  * @returns -2 Bus not clear
  */
-int32_t PIOS_I2C_CheckClear(uint32_t i2c_id)
+int32_t PIOS_I2C_CheckClear(pios_i2c_t i2c_adapter)
 {
-	struct pios_i2c_adapter *i2c_adapter = (struct pios_i2c_adapter *)i2c_id;
-
 	bool valid = PIOS_I2C_validate(i2c_adapter);
 	PIOS_Assert(valid)
 
@@ -531,11 +549,8 @@ int32_t PIOS_I2C_CheckClear(uint32_t i2c_id)
 	return 0;
 }
 
-int32_t PIOS_I2C_Transfer(uint32_t i2c_id, const struct pios_i2c_txn txn_list[], uint32_t num_txns)
+int32_t PIOS_I2C_Transfer(pios_i2c_t i2c_adapter, const struct pios_i2c_txn txn_list[], uint32_t num_txns)
 {
-	//FIXME: only supports transfer sizes up to 255 bytes
-	struct pios_i2c_adapter *i2c_adapter = (struct pios_i2c_adapter *)i2c_id;
-
 	bool valid = PIOS_I2C_validate(i2c_adapter);
 	PIOS_Assert(valid)
 
@@ -576,11 +591,9 @@ int32_t PIOS_I2C_Transfer(uint32_t i2c_id, const struct pios_i2c_txn txn_list[],
 	return result;
 }
 
-void PIOS_I2C_EV_IRQ_Handler(uint32_t i2c_id)
+void PIOS_I2C_EV_IRQ_Handler(pios_i2c_t i2c_adapter)
 {
 	PIOS_IRQ_Prologue();
-
-	struct pios_i2c_adapter *i2c_adapter = (struct pios_i2c_adapter *)i2c_id;
 
 	bool valid = PIOS_I2C_validate(i2c_adapter);
 	PIOS_Assert(valid)
@@ -637,11 +650,9 @@ void PIOS_I2C_EV_IRQ_Handler(uint32_t i2c_id)
 }
 
 
-void PIOS_I2C_ER_IRQ_Handler(uint32_t i2c_id)
+void PIOS_I2C_ER_IRQ_Handler(pios_i2c_t i2c_adapter)
 {
 	PIOS_IRQ_Prologue();
-
-	struct pios_i2c_adapter *i2c_adapter = (struct pios_i2c_adapter *)i2c_id;
 
 	bool valid = PIOS_I2C_validate(i2c_adapter);
 	PIOS_Assert(valid)

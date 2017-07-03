@@ -89,9 +89,9 @@ pios_spi_t spi_devs[16];
 char mag_orientation = 255;
 
 int num_i2c = 0;
-uintptr_t i2c_devs[16];
+pios_i2c_t i2c_devs[16];
 
-uintptr_t external_i2c_adapter_id;
+pios_i2c_t external_i2c_adapter_id;
 
 #include "pios_px4flow_priv.h"
 #include "pios_hmc5883_priv.h"

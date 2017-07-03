@@ -132,7 +132,7 @@ extern int32_t PIOS_HMC5983_Init(pios_spi_t spi_id, uint32_t slave_num, const st
 extern bool PIOS_HMC5983_IRQHandler(void);
 
 #if defined(PIOS_INCLUDE_HMC5983_I2C)
-int32_t PIOS_HMC5983_I2C_Init(uint32_t i2c_id,
+int32_t PIOS_HMC5983_I2C_Init(pios_i2c_t i2c_id,
 		const struct pios_hmc5983_cfg *cfg);
 extern int32_t PIOS_HMC5983_Test(void);
 extern int32_t PIOS_HMC5983_SetOrientation(enum pios_hmc5983_orientation orientation);

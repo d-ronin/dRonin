@@ -53,7 +53,7 @@ enum pios_px4flow_dev_magic {
 };
 
 struct px4flow_dev {
-	uint32_t i2c_id;
+	pios_i2c_t i2c_id;
 	const struct pios_px4flow_cfg *cfg;
 	struct pios_queue *optical_flow_queue;
 	struct pios_queue *rangefinder_queue;
@@ -110,7 +110,7 @@ static int32_t PIOS_PX4Flow_Validate(struct px4flow_dev *dev)
  * @brief Initialize the PX4Flow optical flow sensor.
  * @return 0 on success
  */
-int32_t PIOS_PX4Flow_Init(const struct pios_px4flow_cfg *cfg, const uint32_t i2c_id)
+int32_t PIOS_PX4Flow_Init(const struct pios_px4flow_cfg *cfg, pios_i2c_t i2c_id)
 {
 	dev = (struct px4flow_dev *) PIOS_PX4Flow_alloc();
 	if (dev == NULL)

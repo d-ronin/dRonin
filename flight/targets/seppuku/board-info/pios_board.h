@@ -97,19 +97,6 @@ TIM8  |           |           |           |
 #define PIOS_WATCHDOG_TIMEOUT			250
 #define PIOS_WDG_REGISTER				RTC_BKP_DR4
 
-//------------------------
-// PIOS_I2C
-// See also pios_board.c
-//------------------------
-#define PIOS_I2C_MAX_DEVS				3
-extern uint32_t pios_i2c_internal_adapter_id;
-extern uint32_t pios_i2c_usart1_adapter_id;
-extern uint32_t pios_i2c_usart3_adapter_id;
-#define PIOS_I2C_ETASV3_ADAPTER			(pios_i2c_usart1_adapter_id) //this is dirty and should be removed in favor a cleaner sensor api
-#define PIOS_I2C_ADAPTER_0				(pios_i2c_internal_adapter_id)
-#define PIOS_I2C_ADAPTER_1				(pios_i2c_usart1_adapter_id)
-#define PIOS_I2C_ADAPTER_2				(pios_i2c_usart3_adapter_id)
-
 //-------------------------
 // PIOS_COM
 //

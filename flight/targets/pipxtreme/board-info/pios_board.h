@@ -149,14 +149,6 @@ TIM4  |  RC In 1  |  Servo 3  |  Servo 2  |  Servo 1
 #define PIOS_IRQ_PRIO_HIGH			5		// for SPI, ADC, I2C etc...
 #define PIOS_IRQ_PRIO_HIGHEST			4 		// for USART etc...
 
-//------------------------
-// PIOS_I2C
-// See also pios_board.c
-//------------------------
-#define PIOS_I2C_MAX_DEVS			1
-extern uint32_t pios_i2c_flexi_adapter_id;
-#define PIOS_I2C_MAIN_ADAPTER			(pios_i2c_flexi_adapter_id)
-
 //-------------------------
 // PIOS_COM
 //

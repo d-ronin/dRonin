@@ -51,7 +51,7 @@ uintptr_t pios_com_openlog_logging_id;
 uintptr_t pios_uavo_settings_fs_id;
 uintptr_t pios_internal_adc_id;
 
-uintptr_t external_i2c_adapter_id = 0;
+pios_i2c_t external_i2c_adapter_id;
 
 /**
  * PIOS_Board_Init()
@@ -608,7 +608,7 @@ void PIOS_Board_Init(void) {
 			HwQuantonExtMagPortOptions hw_mag_port;
 			HwQuantonExtMagPortGet(&hw_mag_port);
 
-			uint32_t i2c_mag_id = 0; /* TODO change to a real pointer */
+			pios_i2c_t i2c_mag_id = NULL;
 			const void *i2c_mag_cfg = NULL;
 			switch (hw_mag_port) {
 			case HWQUANTON_EXTMAGPORT_UART1:

@@ -39,7 +39,7 @@
 
 #if defined(PIOS_INCLUDE_PX4FLOW)
 #include "pios_px4flow_priv.h"
-extern uintptr_t external_i2c_adapter_id;
+extern pios_i2c_t external_i2c_adapter_id;
 #endif /* PIOS_INCLUDE_PX4FLOW */
 
 // UAVOs

@@ -639,6 +639,7 @@ void PIOS_Board_Init(void) {
 	uint8_t hw_magnetometer;
 	HwSparky2MagnetometerGet(&hw_magnetometer);
 
+	/* TODO: factor to pios_hal impl */
 	switch (hw_magnetometer) {
 		case HWSPARKY2_MAGNETOMETER_NONE:
 		case HWSPARKY2_MAGNETOMETER_INTERNAL:
@@ -651,7 +652,7 @@ void PIOS_Board_Init(void) {
 			HwSparky2ExtMagPortOptions hw_mag_port;
 			HwSparky2ExtMagPortGet(&hw_mag_port);
 
-			uint32_t i2c_mag_id = 0; /* TODO change to a real pointer */
+			pios_i2c_t i2c_mag_id = 0;
 			const void *i2c_mag_cfg = NULL;
 			switch (hw_mag_port) {
 			case HWSPARKY2_EXTMAGPORT_FLEXIPORT:

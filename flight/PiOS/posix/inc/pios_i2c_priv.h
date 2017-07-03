@@ -27,6 +27,6 @@
 
 #include <pios.h>
 
-int32_t PIOS_I2C_Init(uint32_t *i2c_id, const char *path);
+int32_t PIOS_I2C_Init(pios_i2c_t *i2c_id, const char *path);
 
 #endif /* PIOS_I2C_PRIV_H */

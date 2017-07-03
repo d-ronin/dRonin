@@ -751,7 +751,7 @@ static struct pios_i2c_adapter *PIOS_I2C_alloc(void)
 * \param[in] mode currently only mode 0 supported
 * \return < 0 if initialization failed
 */
-int32_t PIOS_I2C_Init(uint32_t *i2c_id, const struct pios_i2c_adapter_cfg *cfg)
+int32_t PIOS_I2C_Init(pios_i2c_t *i2c_id, const struct pios_i2c_adapter_cfg *cfg)
 {
 	PIOS_DEBUG_Assert(i2c_id);
 	PIOS_DEBUG_Assert(cfg);
@@ -771,7 +771,7 @@ int32_t PIOS_I2C_Init(uint32_t *i2c_id, const struct pios_i2c_adapter_cfg *cfg)
 	/* Initialize the state machine */
 	i2c_adapter_fsm_init(i2c_adapter);
 
-	*i2c_id = (uint32_t)i2c_adapter;
+	*i2c_id = i2c_adapter;
 
 	/* Configure and enable I2C interrupts */
 	NVIC_Init((NVIC_InitTypeDef *) & (i2c_adapter->cfg->event.init));
@@ -787,10 +787,8 @@ int32_t PIOS_I2C_Init(uint32_t *i2c_id, const struct pios_i2c_adapter_cfg *cfg)
  * @returns -1 Bus is in use
  * @returns -2 Bus not clear
  */
-int32_t PIOS_I2C_CheckClear(uint32_t i2c_id)
+int32_t PIOS_I2C_CheckClear(pios_i2c_t i2c_adapter)
 {
-	struct pios_i2c_adapter *i2c_adapter = (struct pios_i2c_adapter *)i2c_id;
-
 	bool valid = PIOS_I2C_validate(i2c_adapter);
 	PIOS_Assert(valid)
 
@@ -813,10 +811,9 @@ int32_t PIOS_I2C_CheckClear(uint32_t i2c_id)
 	return 0;
 }
 
-int32_t PIOS_I2C_Transfer(uint32_t i2c_id, const struct pios_i2c_txn txn_list[], uint32_t num_txns)
+int32_t PIOS_I2C_Transfer(pios_i2c_t i2c_adapter,
+		const struct pios_i2c_txn txn_list[], uint32_t num_txns)
 {
-	struct pios_i2c_adapter *i2c_adapter = (struct pios_i2c_adapter *)i2c_id;
-
 	bool valid = PIOS_I2C_validate(i2c_adapter);
 	if (!valid)
 		return -1;
@@ -861,11 +858,9 @@ int32_t PIOS_I2C_Transfer(uint32_t i2c_id, const struct pios_i2c_txn txn_list[],
 	return result;
 }
 
-void PIOS_I2C_EV_IRQ_Handler(uint32_t i2c_id)
+void PIOS_I2C_EV_IRQ_Handler(pios_i2c_t i2c_adapter)
 {
 	PIOS_IRQ_Prologue();
-
-	struct pios_i2c_adapter *i2c_adapter = (struct pios_i2c_adapter *)i2c_id;
 
 	PIOS_Assert(PIOS_I2C_validate(i2c_adapter) == true)
 
@@ -952,11 +947,9 @@ void PIOS_I2C_EV_IRQ_Handler(uint32_t i2c_id)
 	PIOS_IRQ_Epilogue();
 }
 
-void PIOS_I2C_ER_IRQ_Handler(uint32_t i2c_id)
+void PIOS_I2C_ER_IRQ_Handler(pios_i2c_t i2c_adapter)
 {
 	PIOS_IRQ_Prologue();
-
-	struct pios_i2c_adapter *i2c_adapter = (struct pios_i2c_adapter *)i2c_id;
 
 	bool valid = PIOS_I2C_validate(i2c_adapter);
 	PIOS_Assert(valid)

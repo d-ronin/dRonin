@@ -579,7 +579,7 @@ void PIOS_Board_Init(void) {
 
 		case HWREVOLUTION_MAGNETOMETER_INTERNAL:
 #if defined(PIOS_INCLUDE_HMC5883)
-			if ((PIOS_HMC5883_Init(PIOS_I2C_MAIN_ADAPTER, &pios_hmc5883_cfg) != 0) ||
+			if ((PIOS_HMC5883_Init(pios_i2c_mag_pressure_adapter_id, &pios_hmc5883_cfg) != 0) ||
 					(PIOS_HMC5883_Test() != 0)) {
 				if (!is_modified_clone) {
 					PIOS_HAL_CriticalError(PIOS_LED_HEARTBEAT, PIOS_HAL_PANIC_MAG);

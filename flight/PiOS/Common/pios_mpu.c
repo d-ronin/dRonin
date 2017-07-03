@@ -99,7 +99,7 @@ struct pios_mpu_dev {
 	enum pios_mpu_type mpu_type;                /**< The IMU device type */
 	enum pios_mpu_com_driver com_driver_type;   /**< Communication driver type */
 	pios_spi_t spi_driver_id;
-	uint32_t i2c_driver_id;                     /**< Handle to the communication driver */
+	pios_i2c_t i2c_driver_id;                   /**< Handle to the communication driver */
 	uint32_t com_slave_addr;                    /**< The slave address (I2C) or number (SPI) */
 	struct pios_queue *gyro_queue;
 	struct pios_queue *accel_queue;
@@ -711,7 +711,7 @@ static int32_t PIOS_MPU_I2C_Probe(enum pios_mpu_type *detected_device)
 	return retval;
 }
 
-int32_t PIOS_MPU_I2C_Init(pios_mpu_dev_t *dev, uint32_t i2c_id, const struct pios_mpu_cfg *cfg)
+int32_t PIOS_MPU_I2C_Init(pios_mpu_dev_t *dev, pios_i2c_t i2c_id, const struct pios_mpu_cfg *cfg)
 {
 	if (!*dev) {
 		mpu_dev = PIOS_MPU_Alloc(cfg);

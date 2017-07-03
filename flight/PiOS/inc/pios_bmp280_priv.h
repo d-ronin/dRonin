@@ -44,7 +44,7 @@ struct pios_bmp280_cfg {
 	uint8_t oversampling;
 };
 
-int32_t PIOS_BMP280_Init(const struct pios_bmp280_cfg *cfg, int32_t i2c_device);
+int32_t PIOS_BMP280_Init(const struct pios_bmp280_cfg *cfg, pios_i2c_t i2c_device);
 int32_t PIOS_BMP280_SPI_Init(const struct pios_bmp280_cfg *cfg, pios_spi_t spi_device,
 	uint32_t spi_slave);
 
