@@ -35,7 +35,7 @@
 #define BMP280_HIGH_RESOLUTION			0x31
 #define BMP280_ULTRA_HIGH_RESOLUTION	0x55
 
-//! Configuration structure for the BMP085 driver
+//! Configuration structure for the BMP280 driver
 struct pios_bmp280_cfg {
 
 	//! The oversampling setting for the baro, higher produces
