@@ -493,10 +493,9 @@ void AutotuneMeasuredPropertiesPage::initializePage()
     measuredPitchBias->setText(QString::number(tuneState->bias[1], 'f', 3));
     measuredYawBias->setText(QString::number(tuneState->bias[2], 'f', 3));
 
-    double tau = tuneState->tau[0];
-
-    rollTau->setText(QString::number(tau, 'f', 4));
-    pitchTau->setText(QString::number(tau, 'f', 4));
+    rollTau->setText(QString::number(tuneState->tau[0], 'f', 4));
+    pitchTau->setText(QString::number(tuneState->tau[1], 'f', 4));
+    yawTau->setText(QString::number(tuneState->tau[2], 'f', 4));
 
     measuredRollNoise->setText(QString::number(tuneState->noise[0], 'f', 2));
     measuredPitchNoise->setText(QString::number(tuneState->noise[1], 'f', 2));
