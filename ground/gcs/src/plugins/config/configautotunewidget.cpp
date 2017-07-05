@@ -276,6 +276,9 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson(AutotuneFinalPage *autotuneSh
 
     json["rawSettings"] = rawSettings;
 
+    QByteArray compressedData = qCompress(tuneState->data, 9);
+    json["rawTuneData"] = QString(compressedData.toBase64());
+
     return QJsonDocument(json);
 }
 
