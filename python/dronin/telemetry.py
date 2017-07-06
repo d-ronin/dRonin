@@ -58,9 +58,8 @@ class TelemetryBase(with_metaclass(ABCMeta)):
                                     "shared", "uavobjectdefinition")
             uavo_defs.from_uavo_xml_path(xml_path)
 
-        self.githash = githash
-
         self.uavo_defs = uavo_defs
+
         self.uavtalk_generator = uavtalk.process_stream(uavo_defs,
             use_walltime=use_walltime, gcs_timestamps=gcs_timestamps,
             progress_callback=progress_callback,
@@ -69,6 +68,7 @@ class TelemetryBase(with_metaclass(ABCMeta)):
             reqack_callback=self.reqack_callback,
             filedata_callback=self.filedata_callback)
 
+        # Kick the generator off to a sane start.
         self.uavtalk_generator.send(None)
 
         self.uavo_list = []
@@ -88,7 +88,7 @@ class TelemetryBase(with_metaclass(ABCMeta)):
         self.filename = name
 
         self.acks = set()
-        self.nacks = set()
+        self.req_obj = {}
 
         self.eof = False
 
@@ -110,9 +110,14 @@ class TelemetryBase(with_metaclass(ABCMeta)):
             self.ack_cond.notifyAll()
 
     def gotnack_callback(self, obj):
-        with self.ack_cond:
-            self.nacks.add(obj)
-            self.ack_cond.notifyAll()
+        with self.cond:
+            # TODO: Need to handle instance id better
+            key = (obj._id, 0)
+
+            request = self.req_obj.pop(key, None)
+
+            if request is not None:
+                request.completed(None)
 
     def as_numpy_array(self, match_class, filter_cond=None):
         """ Transforms all received instances of a given object to a numpy array.
@@ -177,6 +182,8 @@ class TelemetryBase(with_metaclass(ABCMeta)):
         if not self.do_handshaking:
             raise ValueError("Can only send on handshaking/bidir sessions")
 
+        # It seems OK / desirable to do these synchronously.  Can always support
+        # a future async API.
         if req_ack:
             self.__remove_from_ack_set(send_obj.__class__)
 
@@ -209,11 +216,94 @@ class TelemetryBase(with_metaclass(ABCMeta)):
 
             self.send_object(send_obj)
 
-    def request_object(self, obj, inst_id = 0):
+    class PendingReq:
+        def __init__(self, obj, inst_id, cb, retries=4, retry_time=0.5):
+            self.obj = obj
+            self.inst_id = inst_id
+            self.retries = retries
+            self.retry_time = retry_time
+            self.expiration = time.time() + self.retry_time
+            self.cbs = [ cb ]
+
+        def inherit_old_state(self, replaces):
+            if replaces is not None:
+                self.cbs.extend(replaces)
+
+        def key(self):
+            return (self.obj._id, self.inst_id)
+
+        def time_to_resend(self):
+            if (not self.retries):
+                return False
+
+            if time.time() >= self.expiration:
+                self.expiration = time.time() + self.retry_time
+                self.retries -= 1
+                return True
+
+            return False
+
+        def completed(self, value):
+            for cb in self.cbs:
+                cb(value)
+
+        def expired(self):
+            if (not self.retries) and (time.time() >= self.expiration):
+                return True
+
+            return False
+
+        def make_request(self):
+            return uavtalk.request_object(self.obj, self.inst_id)
+
+    def _check_resends(self):
+            # Check for anything that needs retrying--- requests,
+            # acked operations.  Do at most one thing per cycle.
+
+            for f in self.req_obj.values():
+                if f.expired():
+                    self.req_obj.pop(f.key())
+                    f.completed(None)
+                elif f.time_to_resend():
+                    key = f.key()
+                    self._send(f.make_request())
+
+                    return
+
+    def request_object(self, obj, inst_id=0, cb=None):
         if not self.do_handshaking:
             raise ValueError("Can only request on handshaking/bidir sessions")
 
-        self._send(uavtalk.request_object(obj, inst_id))
+        response = []
+
+        def default_cb(val):
+            with self.cond:
+                response.append(val)
+                # cond is awfully overloaded, but... the number of waiters
+                # and event rates are relatively moderate.
+                self.cond.notifyAll()
+
+        if cb is None:
+            cb = default_cb
+
+        req = self.PendingReq(obj, inst_id, cb)
+        key = req.key()
+
+        with self.cond:
+            old_req = self.req_obj.pop(key, None)
+
+            if old_req is not None:
+                req.inherit_old_state(old_req)
+
+            self.req_obj[key] = req
+
+            self._send(req.make_request())
+
+            if cb == default_cb:
+                while len(response) < 1:
+                    self.cond.wait()
+
+                return response[0]
 
     def filedata_callback(self, file_id, offset, eof, last_chunk, data):
         #print "Offs %d fd=[%s]" % (offset, data.encode("hex"))
@@ -281,13 +371,6 @@ class TelemetryBase(with_metaclass(ABCMeta)):
 
                 self.ack_cond.wait(diff + 0.001)
 
-    def get_nacks(self):
-        with self.ack_cond:
-            ret = self.nacks
-            self.nacks = set()
-
-            return ret
-
     def __handle_frames(self, frames):
         objs = []
 
@@ -314,6 +397,13 @@ class TelemetryBase(with_metaclass(ABCMeta)):
 
             for obj in objs:
                 self.last_values[obj.__class__]=obj
+
+                key = (obj._id, obj.get_inst_id())
+
+                request = self.req_obj.pop(key, None)
+
+                if request is not None:
+                    request.completed(obj)
 
             self.cond.notifyAll()
 
@@ -380,8 +470,24 @@ class TelemetryBase(with_metaclass(ABCMeta)):
             self.send_object(send_obj)
 
             self.first_handshake_needed = False
-        data = self._receive(finish_time)
-        self.__handle_frames(data)
+
+        while True:
+            # 150ms timesteps
+            expire = time.time() + 0.15
+
+            self._check_resends()
+
+            if (finish_time is not None) and (expire > finish_time):
+                expire = finish_time
+
+            data = self._receive(expire)
+            self.__handle_frames(data)
+
+            if len(data):
+                break
+
+            if (finish_time is not None) and (time.time() >= finish_time):
+                break
 
     @abstractmethod
     def _receive(self, finish_time):
@@ -492,13 +598,11 @@ class FDTelemetry(BidirTelemetry):
             wr_set.append(self.write_fd)
 
         now = time.time()
-        if finish_time is None:
-            r,w,e = select.select(rd_set, wr_set, [])
-        else:
-            tm = finish_time-now
-            if tm < 0: tm=0
 
-            r,w,e = select.select(rd_set, wr_set, [], tm)
+        tm = finish_time-now
+        if tm < 0: tm=0
+
+        r,w,e = select.select(rd_set, wr_set, [], tm)
 
         if r:
             # Shouldn't throw an exception-- they just told us
@@ -639,9 +743,9 @@ class SerialTelemetry(BidirTelemetry):
                         pass
 
             now = time.time()
-            if finish_time is not None:
-                if now > finish_time:
-                    break
+
+            if now > finish_time:
+                break
 
             time.sleep(0.0025)    # 2.5ms, ~28 bytes of time at 115200
 
