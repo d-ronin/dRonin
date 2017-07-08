@@ -119,7 +119,7 @@ class TelemetryBase(with_metaclass(ABCMeta)):
             if request is not None:
                 request.completed(None)
 
-    def as_numpy_array(self, match_class, filter_cond=None):
+    def as_numpy_array(self, match_class, filter_cond=None, blocks=True):
         """ Transforms all received instances of a given object to a numpy array.
 
         match_class: the UAVO_* class you'd like to match.
@@ -127,8 +127,13 @@ class TelemetryBase(with_metaclass(ABCMeta)):
 
         import numpy as np
 
+        if blocks:
+            to_iter = self
+        else:
+            to_iter = self.uavo_list
+
         # Find the subset of this list that is of the requested class
-        filtered_list = [x for x in self if isinstance(x, match_class)]
+        filtered_list = [x for x in to_iter if isinstance(x, match_class)]
 
         # Perform any additional requested filtering
         if filter_cond is not None:
