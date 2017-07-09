@@ -7,6 +7,8 @@ Copyright (C) 2016 dRonin, http://dronin.org
 Licensed under the GNU LGPL version 2.1 or any later version (see COPYING.LESSER)
 """
 
+from __future__ import print_function
+
 import sys, struct
 
 import pandas as pd
@@ -89,10 +91,46 @@ def read_autotune_lump(f_name, **kwargs):
 
         return process_autotune_lump(contents, **kwargs)
 
+def process_autotune_obj(obj, **kwargs):
+    raw = obj['Orig']['rawTuneData']
+
+    import base64
+
+    decoded = base64.b64decode(raw)
+
+    import zlib
+
+    tunedata = zlib.decompress(decoded[4:])
+
+    return process_autotune_lump(tunedata)
+
+def process_autotune_json(contents, **kwargs):
+    import json
+
+    obj = json.loads(contents)
+
+    return process_autotune_obj(obj, **kwargs)
+
+def read_autotune_json_lump(f_name, **kwargs):
+    with open(f_name, 'rb') as f:
+        contents = f.read()
+
+    return process_autotune_json(contents, **kwargs)
+
+def read_autotune_from_autotown(tuneid, **kwargs):
+    from six.moves import urllib
+
+    contents = urllib.request.urlopen("http://dronin-autotown.appspot.com/api/tune?tune=%s"%(tuneid)).read()
+
+    return process_autotune_json(contents)
+
 def main(argv):
     if len(argv) != 1:
         print("nope")
         sys.exit(1)
+
+    #frame, time_step = read_autotune_from_autotown('ahFzfmRyb25pbi1hdXRvdG93bnIYCxILVHVuZVJlc3VsdHMYgICAsPibygkM')
+    #print(frame)
 
     frame, time_step = read_autotune_lump(argv[0])
 
