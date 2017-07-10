@@ -72,7 +72,7 @@ annuncdac_dev_t pios_dac_annunciator_id;
 #endif
 
 #if defined(PIOS_INCLUDE_RFM22B)
-uint32_t pios_rfm22b_id;
+uintptr_t pios_rfm22b_id;
 uintptr_t pios_com_rf_id;
 #endif
 

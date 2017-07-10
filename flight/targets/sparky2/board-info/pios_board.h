@@ -125,7 +125,7 @@ extern uintptr_t pios_com_storm32bgc_id;
 #define DEBUG_PRINTF(level, ...) {if(level <= DEBUG_LEVEL && pios_com_debug_id > 0) { PIOS_COM_SendFormattedStringNonBlocking(pios_com_debug_id, __VA_ARGS__); }}
 
 #if defined(PIOS_INCLUDE_RFM22B)
-extern uint32_t pios_rfm22b_id;
+extern uintptr_t pios_rfm22b_id;
 #endif /* PIOS_INCLUDE_RFM22B */
 
 //-------------------------

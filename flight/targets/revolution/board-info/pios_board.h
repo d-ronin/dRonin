@@ -140,7 +140,7 @@ extern ws2811_dev_t pios_ws2811;
 #endif
 
 #if defined(PIOS_INCLUDE_RFM22B)
-extern uint32_t pios_rfm22b_id;
+extern uintptr_t pios_rfm22b_id;
 #endif /* PIOS_INCLUDE_RFM22B */
 
 #ifdef PIOS_INCLUDE_MAX7456
