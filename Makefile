@@ -625,7 +625,15 @@ export OPUAVSYNTHDIR := $(BUILD_DIR)/uavobject-synthetics/flight
 simulation: sim
 
 ifneq ($(PI_CROSS_SIM)x,x)
+export CROSS_SIM=pi
+endif
+
+ifeq ($(CROSS_SIM),pi)
 SIMSUFFIX=-pi
+else ifeq ($(CROSS_SIM),32)
+SIMSUFFIX=-32
+else ifneq ($(CROSS_SIM)x,x)
+$(error Invalid value of CROSS_SIM)
 endif
 
 define SIM_TEMPLATE

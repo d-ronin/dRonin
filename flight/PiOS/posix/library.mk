@@ -26,10 +26,7 @@ else
 ARCHFLAGS			+= -pthread
 endif
 
+ifeq ($(CROSS_SIM),32)
 # Build 32 bit code.
-ifdef AMD64
-ifeq ($(PI_CROSS_SIM)x,x)
 ARCHFLAGS                      += -m32
 endif
-endif
-
