@@ -33,8 +33,8 @@
 #include <stdint.h>		/* uint*_t */
 
 /* Public Functions */
-extern int32_t PIOS_COM_MSG_Send(uint32_t com_id, const uint8_t *msg, uint16_t msg_len);
-extern uint16_t PIOS_COM_MSG_Receive(uint32_t com_id, uint8_t * buf, uint16_t buf_len);
+extern int32_t PIOS_COM_MSG_Send(uintptr_t com_id, const uint8_t *msg, uint16_t msg_len);
+extern uint16_t PIOS_COM_MSG_Receive(uintptr_t com_id, uint8_t * buf, uint16_t buf_len);
 
 #endif /* PIOS_COM_MSG_H */
 
