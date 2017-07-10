@@ -64,7 +64,7 @@ struct pios_internal_adc_cfg {
 	struct adc_pin adc_pins[];	/**< Array of pins to use */
 };
 
-extern int32_t PIOS_INTERNAL_ADC_Init(uint32_t * internal_adc_id, const struct pios_internal_adc_cfg * cfg);
+extern int32_t PIOS_INTERNAL_ADC_Init(uintptr_t * internal_adc_id, const struct pios_internal_adc_cfg * cfg);
 
 #endif /* PIOS_INTERNAL_ADC_PRIV_H */
 

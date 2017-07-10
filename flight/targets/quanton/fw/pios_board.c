@@ -661,7 +661,7 @@ void PIOS_Board_Init(void) {
 		hw_inport == HWQUANTON_INPORT_PWMADC ||
 		hw_inport == HWQUANTON_INPORT_WS2811SERIALPPMADC)
 	{
-		uint32_t internal_adc_id;
+		uintptr_t internal_adc_id;
 		PIOS_INTERNAL_ADC_Init(&internal_adc_id, &pios_adc_cfg);
 		PIOS_ADC_Init(&pios_internal_adc_id, &pios_internal_adc_driver, internal_adc_id);
 	}

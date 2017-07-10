@@ -226,7 +226,7 @@ int main()
 		PIOS_Assert(0);
 	}
 
-	if (PIOS_ADC_Init(&adc_id, &pios_internal_adc_driver, (uint32_t )adc_dev)) {
+	if (PIOS_ADC_Init(&adc_id, &pios_internal_adc_driver, (uintptr_t )adc_dev)) {
 		PIOS_Assert(0);
 	}
 #endif

@@ -32,10 +32,10 @@
 
 static void PIOS_INTERNAL_ADC_PinConfig(pios_internal_adc_t adc);
 static void PIOS_INTERNAL_ADC_Converter_Config(pios_internal_adc_t adc);
-static bool PIOS_INTERNAL_ADC_Available(uint32_t internal_adc_id, uint32_t pin);
-static int32_t PIOS_INTERNAL_ADC_PinGet(uint32_t internal_adc_id, uint32_t pin);
-static uint8_t PIOS_INTERNAL_ADC_NumberOfChannels(uint32_t internal_adc_id);
-static float PIOS_INTERNAL_ADC_LSB_Voltage(uint32_t internal_adc_id);
+static bool PIOS_INTERNAL_ADC_Available(uintptr_t internal_adc_id, uint32_t pin);
+static int32_t PIOS_INTERNAL_ADC_PinGet(uintptr_t internal_adc_id, uint32_t pin);
+static uint8_t PIOS_INTERNAL_ADC_NumberOfChannels(uintptr_t internal_adc_id);
+static float PIOS_INTERNAL_ADC_LSB_Voltage(uintptr_t internal_adc_id);
 
 const struct pios_adc_driver pios_internal_adc_driver = {
 		.available = PIOS_INTERNAL_ADC_Available,
@@ -202,7 +202,7 @@ void PIOS_INTERNAL_ADC_DoStep(pios_internal_adc_t adc_dev)
  * @param[in] internal_adc_id handler to the device to check
  * @return True if the pin is available.
  */
-static bool PIOS_INTERNAL_ADC_Available(uint32_t internal_adc_id, uint32_t pin)
+static bool PIOS_INTERNAL_ADC_Available(uintptr_t internal_adc_id, uint32_t pin)
 {
 	pios_internal_adc_t adc_dev = (pios_internal_adc_t) internal_adc_id;
 	/* Check if pin exists */
@@ -217,7 +217,7 @@ static bool PIOS_INTERNAL_ADC_Available(uint32_t internal_adc_id, uint32_t pin)
  * @param[in] internal_adc_id handler to the device to check
  * @return number of channels on the device.
  */
-static uint8_t PIOS_INTERNAL_ADC_NumberOfChannels(uint32_t internal_adc_id)
+static uint8_t PIOS_INTERNAL_ADC_NumberOfChannels(uintptr_t internal_adc_id)
 {
 	pios_internal_adc_t adc_dev = (pios_internal_adc_t) internal_adc_id;
 	if (!PIOS_INTERNAL_ADC_validate(adc_dev))
@@ -231,7 +231,7 @@ static uint8_t PIOS_INTERNAL_ADC_NumberOfChannels(uint32_t internal_adc_id)
  * @return ADC pin value averaged over the set of samples since the last reading.
  * @return -1 if pin doesn't exist
  */
-static int32_t PIOS_INTERNAL_ADC_PinGet(uint32_t internal_adc_id, uint32_t pin)
+static int32_t PIOS_INTERNAL_ADC_PinGet(uintptr_t internal_adc_id, uint32_t pin)
 {
 	pios_internal_adc_t adc_dev = (pios_internal_adc_t) internal_adc_id;
 
@@ -246,7 +246,7 @@ static int32_t PIOS_INTERNAL_ADC_PinGet(uint32_t internal_adc_id, uint32_t pin)
 /**
  * @brief Gets the least significant bit voltage of the ADC
  */
-static float PIOS_INTERNAL_ADC_LSB_Voltage(uint32_t internal_adc_id)
+static float PIOS_INTERNAL_ADC_LSB_Voltage(uintptr_t internal_adc_id)
 {
 	pios_internal_adc_t adc_dev = (pios_internal_adc_t) internal_adc_id;
 	if (!PIOS_INTERNAL_ADC_validate(adc_dev)) {

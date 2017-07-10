@@ -35,7 +35,7 @@ enum pios_adc_dev_magic {
 
 struct pios_adc_dev {
 	enum pios_adc_dev_magic magic;
-	uint32_t lower_id;
+	uintptr_t lower_id;
 	const struct pios_adc_driver *driver;
 };
 
@@ -88,7 +88,7 @@ static struct pios_adc_dev *PIOS_ADC_Allocate(void)
  * \param[in] lower_id handle to the lower level device
  * \return < 0 if deviced initialization failed
  */
-int32_t PIOS_ADC_Init(uintptr_t *adc_id, const struct pios_adc_driver *driver, uint32_t lower_id)
+int32_t PIOS_ADC_Init(uintptr_t *adc_id, const struct pios_adc_driver *driver, uintptr_t lower_id)
 {
 	PIOS_Assert(adc_id);
 	PIOS_Assert(driver);
