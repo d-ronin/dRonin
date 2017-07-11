@@ -176,10 +176,8 @@ static const struct pios_spislave_cfg pios_spislave_cfg = {
 #include "pios_internal_adc_simple.h"
 
 /**
- * ADC0 : PA4 ADC_IN4
- * ADC1 : PA5 ADC_IN5
- * ADC2 : PA1 ADC_IN1
- * ADC3 : PB1 ADC_IN9
+ * ADC0 : PA0 ADC_IN0
+ * ADC1 : PA1 ADC_IN1
  */
 static const struct pios_internal_adc_simple_cfg internal_adc_cfg = {
 	.adc_dev = ADC1,

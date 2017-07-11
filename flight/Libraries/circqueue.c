@@ -66,7 +66,7 @@ circ_queue_t circ_queue_new(uint16_t elem_size, uint16_t num_elem) {
 }
 
 /** Get a pointer to the current queue write position.
- * This position is unavailable to any present readers and may be filled in
+ * This position is unavailable to the reader and may be filled in
  * with the desired data without respect to any synchronization.
  * No promise is made that circ_queue_advance_write will succeed, though.
  *
@@ -139,11 +139,11 @@ static inline uint16_t next_pos(uint16_t num_pos, uint16_t current_pos) {
 	return advance_by_n(num_pos, current_pos, 1);
 }
 
-/** Makes multiple elements available to readers.  Amt is expected to be
+/** Makes multiple elements available to the reader.  Amt is expected to be
  * equal or less to an 'avail' returned by circ_queue_cur_write_pos.
  *
  * @param[in] q The circular q handle.
- * @param[in] amt The number of bytes we've filled in for readers.
+ * @param[in] amt The number of bytes we've filled in for the reader.
  * @returns 0 if the write succeeded
  */
 int circ_queue_advance_write_multi(circ_queue_t q, uint16_t amt) {
@@ -180,7 +180,7 @@ int circ_queue_advance_write_multi(circ_queue_t q, uint16_t amt) {
 	return 0;
 }
 
-/** Makes the current block of data available to readers and advances write pos.
+/** Makes the current block of data available to the reader and advances write pos.
  * This may fail if the queue contain num_elems -1 elements, in which case the
  * advance may be retried in the future.  In this case, data already written to
  * write_pos is preserved and the advance may be retried (or overwritten with
