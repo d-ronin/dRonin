@@ -84,11 +84,6 @@ TIM4  |  RC In 1  |  Servo 3  |  Servo 2  |  Servo 1
 #define PIOS_WDG_RFM22B          0x0008
 
 //------------------------
-// TELEMETRY
-//------------------------
-#define TELEM_QUEUE_SIZE         20
-
-//------------------------
 // PIOS_LED
 //------------------------
 #define PIOS_LED_USB	0
