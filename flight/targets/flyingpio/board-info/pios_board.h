@@ -42,32 +42,6 @@
 //------------------------
 #define PIOS_WATCHDOG_TIMEOUT			125
 
-//------------------------
-// PIOS_I2C
-// See also pios_board.c
-//------------------------
-#define PIOS_I2C_MAX_DEVS				1
-
-//-------------------------
-// PIOS_COM
-//
-// See also pios_board.c
-//-------------------------
-extern uintptr_t pios_com_telem_serial_id;
-extern uintptr_t pios_com_gps_id;
-extern uintptr_t pios_com_bridge_id;
-extern uintptr_t pios_com_mavlink_id;
-
-#define PIOS_COM_GPS                    (pios_com_gps_id)
-#define PIOS_COM_TELEM_RF               (pios_com_telem_serial_id)
-#define PIOS_COM_BRIDGE                 (pios_com_bridge_id)
-#define PIOS_COM_MAVLINK                (pios_com_mavlink_id)
-
-//------------------------
-// TELEMETRY
-//------------------------
-#define TELEM_QUEUE_SIZE				20
-
 //-------------------------
 // System Settings
 //-------------------------
@@ -95,12 +69,7 @@ extern uintptr_t pios_com_mavlink_id;
 //-------------------------
 // Receiver PPM input
 //-------------------------
-#define PIOS_PPM_NUM_INPUTS				8
-
-//-------------------------
-// Receiver PWM input
-//-------------------------
-#define PIOS_PWM_NUM_INPUTS				8
+#define PIOS_PPM_NUM_INPUTS				12
 
 //-------------------------
 // Receiver DSM input
@@ -110,7 +79,7 @@ extern uintptr_t pios_com_mavlink_id;
 //-------------------------
 // Reciever HSUM input
 //-------------------------
-#define PIOS_HSUM_MAX_DEVS				2
+#define PIOS_HSUM_MAX_DEVS				1
 #define PIOS_HSUM_NUM_INPUTS			32
 
 //-------------------------
@@ -131,10 +100,6 @@ extern uintptr_t pios_com_mavlink_id;
 
 //-------------------------
 // ADC
-// ADC0 : PA4 ADC_IN4
-// ADC1 : PA5 ADC_IN5
-// ADC2 : PA1 ADC_IN1
-// ADC3 : PB1 ADC_IN9
 //-------------------------
 
 #if defined(PIOS_INCLUDE_ADC)
