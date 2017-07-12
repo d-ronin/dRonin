@@ -489,6 +489,9 @@ static void normalize_input_data(uint32_t this_systime,
 			&(*desired_vect)[MIXERSETTINGS_MIXER1VECTOR_ACCESSORY0]);
 	}
 
+	*armed = flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED;
+	*spin_while_armed = actuatorSettings.MotorsSpinWhileArmed == ACTUATORSETTINGS_MOTORSSPINWHILEARMED_TRUE;
+
 	if (airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) {
 		// Helis set throttle from manual control's throttle value,
 		// unless in failsafe.
@@ -499,10 +502,11 @@ static void normalize_input_data(uint32_t this_systime,
 		throttle_val = desired.Thrust;
 	}
 
-	static uint32_t last_pos_throttle_time = 0;
+	if (!*armed) {
+		throttle_val = -1;
+	}
 
-	*armed = flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED;
-	*spin_while_armed = actuatorSettings.MotorsSpinWhileArmed == ACTUATORSETTINGS_MOTORSSPINWHILEARMED_TRUE;
+	static uint32_t last_pos_throttle_time = 0;
 
 	*stabilize_now = *armed && (throttle_val > 0.0f);
 
