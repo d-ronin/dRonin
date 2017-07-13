@@ -57,12 +57,14 @@ OPTMODULES += UAVOHoTTBridge
 OPTMODULES += UAVOFrSKYSensorHubBridge
 OPTMODULES += UAVOFrSKYSPortBridge
 OPTMODULES += UAVOLighttelemetryBridge
+OPTMODULES += UAVOMSPBridge
 OPTMODULES += Geofence
 OPTMODULES += Logging
 OPTMODULES += VTXConfig
 OPTMODULES += Storm32Bgc
 OPTMODULES += OnScreenDisplay
 OPTMODULES += UAVOCrossfireTelemetry
+
 
 # Paths
 OPUAVOBJINC = $(OPUAVOBJ)/inc
