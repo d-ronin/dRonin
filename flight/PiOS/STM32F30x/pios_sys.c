@@ -220,6 +220,41 @@ int32_t PIOS_SYS_SerialNumberGet(char *str)
 	return 0;
 }
 
+static inline size_t unused_mem(uint32_t *top, uint32_t *bot, uint32_t pattern)
+{
+	uint32_t *p = bot;
+	for (; p < top && *p == pattern; p++);
+	return (p - bot) * sizeof(uint32_t);
+}
+
+#ifdef PIOS_INCLUDE_CHIBIOS
+
+#if !defined(CRT0_STACKS_FILL_PATTERN)
+#define CRT0_STACKS_FILL_PATTERN    0x55555555 /* ChibiOS ResetHandler */
+#endif
+/* c.f. linker */
+extern uint32_t __main_stack_base__;
+extern uint32_t __main_stack_end__;
+
+size_t PIOS_SYS_IrqStackUnused(void)
+{
+	return unused_mem(&__main_stack_end__, &__main_stack_base__,
+		CRT0_STACKS_FILL_PATTERN);
+}
+
+#else
+
+/* c.f. linker */
+extern uint32_t _irq_stack_end;
+extern uint32_t _irq_stack_top;
+
+size_t PIOS_SYS_IrqStackUnused(void)
+{
+	return unused_mem(&_irq_stack_top, &_irq_stack_end, 0xa5a5a5a5);
+}
+
+#endif /* PIOS_INCLUDE_CHIBIOS */
+
 /**
 * Configures Vector Table base location and SysTick
 */

@@ -191,6 +191,11 @@ int32_t PIOS_SYS_SerialNumberGet(char *str)
 	return 0;
 }
 
+size_t PIOS_SYS_IrqStackUnused(void)
+{
+	return 0;
+}
+
 /**
 * Configures SysTick
 */
