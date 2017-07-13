@@ -235,10 +235,18 @@ static inline size_t unused_mem(uint32_t *top, uint32_t *bot, uint32_t pattern)
 /* c.f. linker */
 extern uint32_t __main_stack_base__;
 extern uint32_t __main_stack_end__;
+extern uint32_t __process_stack_base__;
+extern uint32_t __process_stack_end__;
 
 size_t PIOS_SYS_IrqStackUnused(void)
 {
 	return unused_mem(&__main_stack_end__, &__main_stack_base__,
+		CRT0_STACKS_FILL_PATTERN);
+}
+
+size_t PIOS_SYS_OsStackUnused(void)
+{
+	return unused_mem(&__process_stack_end__, &__process_stack_base__,
 		CRT0_STACKS_FILL_PATTERN);
 }
 
@@ -251,6 +259,11 @@ extern uint32_t _irq_stack_top;
 size_t PIOS_SYS_IrqStackUnused(void)
 {
 	return unused_mem(&_irq_stack_top, &_irq_stack_end, 0xa5a5a5a5);
+}
+
+size_t PIOS_SYS_OsStackUnused(void)
+{
+	return 0;
 }
 
 #endif /* PIOS_INCLUDE_CHIBIOS */

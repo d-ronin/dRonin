@@ -744,6 +744,7 @@ static void updateStats()
 
 	// Get Irq stack status
 	stats.IRQStackRemaining = (uint16_t)PIOS_SYS_IrqStackUnused();
+	stats.OSStackRemaining = (uint16_t)PIOS_SYS_OsStackUnused();
 
 	// When idleCounterClear was not reset by the idle-task, it means the idle-task did not run
 	if (idleCounterClear) {
