@@ -438,7 +438,7 @@ int32_t transmitter_control_update()
 		// Set Accessory 2
 		if (settings.ChannelGroups[MANUALCONTROLSETTINGS_CHANNELGROUPS_ACCESSORY2] !=
 			MANUALCONTROLSETTINGS_CHANNELGROUPS_NONE) {
-			cmd.Accessory[2] = scaledChannel[MANUALCONTROLSETTINGS_CHANNELGROUPS_ACCESSORY1];
+			cmd.Accessory[2] = scaledChannel[MANUALCONTROLSETTINGS_CHANNELGROUPS_ACCESSORY2];
 		}
 	}
 
