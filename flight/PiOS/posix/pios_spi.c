@@ -66,9 +66,9 @@ int32_t PIOS_SPI_Init(uint32_t *spi_id, const struct pios_spi_cfg *cfg)
 	spi_dev->slave_count = 0;
 
 	for (int i=0; i < SPI_MAX_SUBDEV; i++) {
-		char path[PATH_MAX];
+		char path[PATH_MAX + 2];
 
-		snprintf(path, PATH_MAX, "%s.%d", cfg->base_path, i);
+		snprintf(path, sizeof(path), "%s.%d", cfg->base_path, i);
 
 		int fd = open(path, O_RDWR);
 
