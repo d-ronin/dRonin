@@ -319,7 +319,7 @@ gcs_ts: tools_required_qt
 gcs_clazy: CLAZY_CHECKS ?= level0
 gcs_clazy: $(UAVOBJECT_MARKER) | tools_required_qt
 	echo $(CLAZY)
-ifeq ($(shell which clazy),)
+ifeq ($(shell which clazy 2>/dev/null),)
 	$(error Please install clazy and ensure it is on PATH first. https://github.com/KDE/clazy#build-instructions)
 endif
 	$(V1) mkdir -p $(BUILD_DIR)/ground/$@
