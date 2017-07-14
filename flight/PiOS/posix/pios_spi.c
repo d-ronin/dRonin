@@ -56,7 +56,7 @@ int32_t PIOS_SPI_Init(uint32_t *spi_id, const struct pios_spi_cfg *cfg)
 
 	struct pios_spi_dev *spi_dev;
 
-	spi_dev = (struct pios_spi_dev *) PIOS_SPI_alloc();
+	spi_dev = (struct pios_spi_dev *)PIOS_SPI_alloc();
 	if (!spi_dev) goto out_fail;
 
 	/* Bind the configuration to the device instance */
@@ -65,7 +65,7 @@ int32_t PIOS_SPI_Init(uint32_t *spi_id, const struct pios_spi_cfg *cfg)
 	spi_dev->busy = PIOS_Semaphore_Create();
 	spi_dev->slave_count = 0;
 
-	for (int i=0; i < SPI_MAX_SUBDEV; i++) {
+	for (int i = 0; i < SPI_MAX_SUBDEV; i++) {
 		char path[PATH_MAX + 2];
 
 		snprintf(path, sizeof(path), "%s.%d", cfg->base_path, i);
@@ -80,10 +80,10 @@ int32_t PIOS_SPI_Init(uint32_t *spi_id, const struct pios_spi_cfg *cfg)
 		spi_dev->fd[i] = fd;
 	}
 
-	for (int i=0; i < spi_dev->slave_count; i++) {
+	for (int i = 0; i < spi_dev->slave_count; i++) {
 		/* Twiddle / ensure slave selects are sane. */
-		PIOS_SPI_RC_PinSet((uint32_t) spi_dev, i, false);
-		PIOS_SPI_RC_PinSet((uint32_t) spi_dev, i, true);
+		PIOS_SPI_RC_PinSet((uint32_t)spi_dev, i, false);
+		PIOS_SPI_RC_PinSet((uint32_t)spi_dev, i, true);
 	}
 
 
@@ -191,7 +191,7 @@ int32_t PIOS_SPI_TransferBlock(uint32_t spi_id, const uint8_t *send_buffer, uint
 	bool valid = PIOS_SPI_validate(spi_dev);
 
 	int slave_id = spi_dev->selected;
-	
+
 	PIOS_Assert(valid)
 	PIOS_Assert(slave_id < spi_dev->slave_count)
 	PIOS_Assert(slave_id >= 0);
