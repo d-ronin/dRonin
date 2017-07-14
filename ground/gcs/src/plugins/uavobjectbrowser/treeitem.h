@@ -302,7 +302,7 @@ public:
         : ObjectTreeItem(data, parent)
     {
     }
-    virtual void apply()
+    virtual void apply() override
     {
         foreach (TreeItem *child, treeChildren()) {
             MetaObjectTreeItem *metaChild = dynamic_cast<MetaObjectTreeItem *>(child);
@@ -310,7 +310,7 @@ public:
                 child->apply();
         }
     }
-    virtual void update()
+    virtual void update() override
     {
         foreach (TreeItem *child, treeChildren()) {
             MetaObjectTreeItem *metaChild = dynamic_cast<MetaObjectTreeItem *>(child);
@@ -318,12 +318,12 @@ public:
                 child->update();
         }
     }
-    void appendChild(TreeItem *child)
+    virtual void appendChild(TreeItem *child)  override
     {
         ObjectTreeItem::appendChild(child);
         child->setIsPresentOnHardware(isPresentOnHardware);
     }
-    void setObject(UAVObject *obj)
+    virtual void setObject(UAVObject *obj) override
     {
         UAVDataObject *dobj = dynamic_cast<UAVDataObject *>(obj);
         if (dobj) {
@@ -340,7 +340,7 @@ public:
             isPresentOnHardware = false;
         }
     }
-    virtual void setIsPresentOnHardware(bool value)
+    virtual void setIsPresentOnHardware(bool value) override
     {
         foreach (TreeItem *item, treeChildren()) {
             if (!dynamic_cast<DataObjectTreeItem *>(item))
