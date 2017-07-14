@@ -9,6 +9,7 @@ QT += charts
 
 include(../../gcsplugin.pri)
 
+include(../../libs/eigen/eigen.pri)
 include(../../libs/qwt/qwt.pri)
 include(../../libs/utils/utils.pri)
 
@@ -18,8 +19,6 @@ include(../../plugins/uavobjectutil/uavobjectutil.pri)
 include(../../plugins/uavobjectwidgetutils/uavobjectwidgetutils.pri)
 include(../../plugins/uavsettingsimportexport/uavsettingsimportexport.pri)
 include(../../plugins/uavtalk/uavtalk.pri)
-
-INCLUDEPATH *= ../../libs/eigen
 
 OTHER_FILES += Config.pluginspec
 
@@ -39,7 +38,7 @@ HEADERS += calibration.h \
     inputchannelform.h \
     configcamerastabilizationwidget.h \
     configtxpidwidget.h \
-    outputchannelform.h \    
+    outputchannelform.h \
     cfg_vehicletypes/configccpmwidget.h \
     cfg_vehicletypes/configfixedwingwidget.h \
     cfg_vehicletypes/configgroundvehiclewidget.h \
