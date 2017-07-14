@@ -67,7 +67,7 @@ ALL_BOARDS :=
 include $(ROOT_DIR)/flight/targets/*/target-defs.mk
 
 # OpenPilot GCS build configuration (debug | release)
-GCS_BUILD_CONF ?= debug
+GCS_BUILD_CONF ?= debug ccache
 
 # And the flight build configuration (debug | default | release)
 export FLIGHT_BUILD_CONF ?= default
@@ -97,9 +97,9 @@ endif
 
 # Checking for $(GCS_BUILD_CONF) to be sane
 ifdef GCS_BUILD_CONF
- ifneq ($(GCS_BUILD_CONF), release)
-  ifneq ($(GCS_BUILD_CONF), debug)
-   $(error Only debug or release are allowed for GCS_BUILD_CONF)
+ ifneq ($(filter release, $(GCS_BUILD_CONF)), release)
+  ifneq ($(filter debug, $(GCS_BUILD_CONF)), debug)
+   $(error Either debug or release are required for GCS_BUILD_CONF)
   endif
  endif
 endif
