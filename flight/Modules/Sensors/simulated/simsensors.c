@@ -241,6 +241,7 @@ static void SensorsTask(void *parameters)
 
 static void simulateYasim()
 {
+#if !(defined(_WIN32) || defined(WIN32) || defined(__MINGW32__))
 	const float GYRO_NOISE_SCALE = 1.0f;
 	const float MAG_PERIOD = 1.0 / 75.0;
 	const float BARO_PERIOD = 1.0 / 20.0;
@@ -479,6 +480,8 @@ static void simulateYasim()
 	attitudeSimulated.Velocity[2] = vel[2];
 #endif
 	AttitudeSimulatedSet(&attitudeSimulated);
+
+#endif /* !(defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)) */
 }
 
 static void simulateModelQuadcopter()
