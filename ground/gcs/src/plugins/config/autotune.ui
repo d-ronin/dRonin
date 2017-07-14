@@ -124,6 +124,20 @@ p, li { white-space: pre-wrap; }
          </spacer>
         </item>
         <item>
+         <widget class="QPushButton" name="adjustTune">
+          <property name="text">
+           <string>Adjust previous autotune...</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="fromDataFileBtn">
+          <property name="text">
+           <string>From data file...</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QPushButton" name="saveStabilizationToSD_6">
           <property name="minimumSize">
            <size>
@@ -144,20 +158,6 @@ p, li { white-space: pre-wrap; }
            <stringlist>
             <string>button:save</string>
            </stringlist>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="adjustTune">
-          <property name="text">
-           <string>Adjust previous autotune...</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="fromDataFileBtn">
-          <property name="text">
-           <string>From data file...</string>
           </property>
          </widget>
         </item>
