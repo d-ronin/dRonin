@@ -256,22 +256,22 @@ void ConfigOsdWidget::updatePositionSlider()
     default:
     case 6:
         ui->osdPagePos6->setEnabled(true);
-    // pass through
+        Q_FALLTHROUGH();
     case 5:
         ui->osdPagePos5->setEnabled(true);
-    // pass through
+        Q_FALLTHROUGH();
     case 4:
         ui->osdPagePos4->setEnabled(true);
-    // pass through
+        Q_FALLTHROUGH();
     case 3:
         ui->osdPagePos3->setEnabled(true);
-    // pass through
+        Q_FALLTHROUGH();
     case 2:
         ui->osdPagePos2->setEnabled(true);
-    // pass through
+        Q_FALLTHROUGH();
     case 1:
         ui->osdPagePos1->setEnabled(true);
-    // pass through
+        Q_FALLTHROUGH();
     case 0:
         break;
     }
@@ -279,22 +279,22 @@ void ConfigOsdWidget::updatePositionSlider()
     switch (onScreenDisplaySettingsDataPriv.NumPages) {
     case 0:
         ui->osdPagePos1->setEnabled(false);
-    // pass through
+        Q_FALLTHROUGH();
     case 1:
         ui->osdPagePos2->setEnabled(false);
-    // pass through
+        Q_FALLTHROUGH();
     case 2:
         ui->osdPagePos3->setEnabled(false);
-    // pass through
+        Q_FALLTHROUGH();
     case 3:
         ui->osdPagePos4->setEnabled(false);
-    // pass through
+        Q_FALLTHROUGH();
     case 4:
         ui->osdPagePos5->setEnabled(false);
-    // pass through
+        Q_FALLTHROUGH();
     case 5:
         ui->osdPagePos6->setEnabled(false);
-    // pass through
+        Q_FALLTHROUGH();
     case 6:
     default:
         break;

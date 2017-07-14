@@ -1383,7 +1383,7 @@ void UploaderGadgetWidget::onBootloaderDetected()
                     break; /* Don't boot in any case */
                 }
             }
-            // fall through to default
+                Q_FALLTHROUGH();
             default:
                 dfu.JumpToApp(false);
                 dfu.CloseBootloaderComs();

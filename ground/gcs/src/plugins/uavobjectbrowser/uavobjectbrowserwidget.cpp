@@ -634,6 +634,7 @@ void UAVObjectBrowserWidget::keyPressEvent(QKeyEvent *e)
     switch (e->key()) {
     case Qt::Key_Escape:
         searchTextCleared();
+        Q_FALLTHROUGH();
     default:
         QWidget::keyPressEvent(e);
     }
@@ -644,6 +645,7 @@ void UAVObjectBrowserWidget::keyReleaseEvent(QKeyEvent *e)
     switch (e->key()) {
     case Qt::Key_Escape:
         searchTextCleared();
+        Q_FALLTHROUGH();
     default:
         QWidget::keyReleaseEvent(e);
     }

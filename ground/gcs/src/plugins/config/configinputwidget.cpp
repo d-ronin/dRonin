@@ -1706,22 +1706,22 @@ void ConfigInputWidget::updatePositionSlider()
     default:
     case 6:
         m_config->fmsModePos6->setEnabled(true);
-    // pass through
+        Q_FALLTHROUGH();
     case 5:
         m_config->fmsModePos5->setEnabled(true);
-    // pass through
+        Q_FALLTHROUGH();
     case 4:
         m_config->fmsModePos4->setEnabled(true);
-    // pass through
+        Q_FALLTHROUGH();
     case 3:
         m_config->fmsModePos3->setEnabled(true);
-    // pass through
+        Q_FALLTHROUGH();
     case 2:
         m_config->fmsModePos2->setEnabled(true);
-    // pass through
+        Q_FALLTHROUGH();
     case 1:
         m_config->fmsModePos1->setEnabled(true);
-    // pass through
+        Q_FALLTHROUGH();
     case 0:
         break;
     }
@@ -1729,22 +1729,22 @@ void ConfigInputWidget::updatePositionSlider()
     switch (manualSettingsDataPriv.FlightModeNumber) {
     case 0:
         m_config->fmsModePos1->setEnabled(false);
-    // pass through
+        Q_FALLTHROUGH();
     case 1:
         m_config->fmsModePos2->setEnabled(false);
-    // pass through
+        Q_FALLTHROUGH();
     case 2:
         m_config->fmsModePos3->setEnabled(false);
-    // pass through
+        Q_FALLTHROUGH();
     case 3:
         m_config->fmsModePos4->setEnabled(false);
-    // pass through
+        Q_FALLTHROUGH();
     case 4:
         m_config->fmsModePos5->setEnabled(false);
-    // pass through
+        Q_FALLTHROUGH();
     case 5:
         m_config->fmsModePos6->setEnabled(false);
-    // pass through
+        Q_FALLTHROUGH();
     case 6:
     default:
         break;

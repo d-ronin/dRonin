@@ -356,6 +356,7 @@ void ConfigVehicleTypeWidget::switchAirframeType(int index)
                     - m_aircraft->customMixerTable->verticalHeader()->width())
                     / 10);
         }
+        Q_FALLTHROUGH();
     case AIRFRAME_MULTIROTOR:
     case AIRFRAME_HELICOPTER:
     case AIRFRAME_GROUND:
