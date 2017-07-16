@@ -1,7 +1,7 @@
 # bashrc for dRonin development on Windows
 # Michael Lyle - 2015-2016
 
-QT_VERSION_FULL=5.8.0
+QT_VERSION_FULL=5.9.2
 QT_VERSION=`echo "$QT_VERSION_FULL" | cut -d '.' -f1-2`
 QT_BASEDIR="/C/Qt"
 
@@ -44,7 +44,7 @@ test_and_add_to_path "$QT_BASEDIR/Tools/$QT_MINGWVERB/bin" "mingw32-make.exe"
 if [ "$USE_MSVC" != "YES" ] ; then
   test_and_add_to_path "$QT_BASEDIR/Tools/$QT_MINGWVERB/bin" "gcc.exe"
   test_and_add_to_path "$QT_BASEDIR/$QT_VERSION/$QT_MINGWVER/bin" "qmltestrunner.exe"
-else 
+else
   if [ $(uname -m)="x86_64" ]; then
 #   VS_PLATFORM="amd64"
 #   WK_PLATFORM="x64"
@@ -87,4 +87,3 @@ test_and_add_to_path "/C/Program Files (x86)/NSIS/Unicode" "makensis.exe"
 if ! which make >/dev/null 2>&1 ; then
   alias make=mingw32-make
 fi
-
