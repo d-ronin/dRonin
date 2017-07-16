@@ -44,9 +44,6 @@ int32_t geofence_control_select(bool reset_controller);
 //! Query if out of bounds and the geofence controller should take over
 bool geofence_control_activate();
 
-//! Get any control events
-enum control_events geofence_control_get_events();
-
  #endif /* GEOFENCE_CONTROL_H */
 
 /**
