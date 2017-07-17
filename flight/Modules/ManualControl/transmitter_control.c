@@ -611,6 +611,9 @@ static void reset_receiver_timer() {
 static bool check_receiver_timer(uint32_t threshold) {
 	if (!threshold) {
 		/* 0 threshold means timer disabled */
+
+		reset_receiver_timer();
+
 		return false;
 	}
 
@@ -641,7 +644,12 @@ static void process_transmitter_events(ManualControlCommandData * cmd, ManualCon
 	valid &= cmd->Connected == MANUALCONTROLCOMMAND_CONNECTED_TRUE;
 
 	if (!valid || (cmd->Connected != MANUALCONTROLCOMMAND_CONNECTED_TRUE)) {
-		/* disarm timeout check-- use least favorable timeout */
+		/* disarm timeout check-- use least favorable timeout.
+		 * Note that if things were low throttle, and are now
+		 * disconnected, we keep the old timer running.
+		 *
+		 * (The same is true for vice-versa).
+		 */
 		uint32_t timeout = 0;
 
 		if (settings->InvalidRXArmedTimeout && settings->ArmedTimeout) {
