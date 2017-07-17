@@ -13,11 +13,13 @@ See [dronin.org](http://dronin.org) for more details.
 - [AeroQuad32](http://aeroquad.com/showwiki.php?title=AeroQuad32-Flight-Control-Board-v2)
 - [BrainFPV](http://brainfpv.com/)
 - [BrainFPV RE1](http://brainfpv.com/) (no nav sensors on board)
-- [DTFAir DTFc](http://www.dtfuhf.com/) (no nav sensors on board)
+- [DTFAir DTFc](http://www.dtfuhf.com/) (no nav sensors on board)  Also Colibri Race / TBS PowerCube.
 - [DTFAir Seppuku](http://www.dtfuhf.com/)
 - [Lumenier Lux](http://www.getfpv.com/lumenier-lux-flight-controller.html) (only V1, and no nav sensors are on board)
 - OpenPilot Revolution (including many race-only variants)
+- PikoBLX and clones
 - Quantec Quanton
+- Seriously Pro Racing F3 EVO (only the EVO variant) and clones
 - Tau Labs Sparky
 - [Tau Labs Sparky2](https://github.com/TauLabs/TauLabs/wiki/Sparky2)
 
