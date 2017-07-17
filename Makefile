@@ -463,6 +463,7 @@ androidgcs_sign:
 # Supply the git hashes of all recent releases here.  Note if UAVOs do not
 # change in a hotfix the release does not need to be listed here.
 UAVO_GIT_VERSIONS := HEAD \
+	Release-20170717 \
 	Release-20170213 \
 	Release-20161004.1 \
 	Release-20160720.1 \
