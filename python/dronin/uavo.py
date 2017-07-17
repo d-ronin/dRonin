@@ -52,7 +52,7 @@ class UAVTupleClass():
         return cls._packstruct.size
 
     @classmethod
-    def from_bytes(cls, data, timestamp, instance_id, offset=0):
+    def from_bytes(cls, data, timestamp, offset=0):
         """ Deserializes and creates an instance of this object.
 
          - data: the data to deserialize
@@ -68,9 +68,6 @@ class UAVTupleClass():
             field_values.append(timestamp / 1000.0)
 
         field_values.append(cls._id)
-
-        if instance_id is not None:
-            field_values.append(instance_id)
 
         # add the remaining fields.  If the thing should be nested, construct
         # an appropriate tuple.
@@ -347,6 +344,10 @@ def make_class(collection, xml_file, update_globals=True):
     num_subelems = []
 
     is_flat = True
+
+    if not is_single_inst:
+        num_subelems.append(1)
+        formats.append('H')
 
     # add formats for each field
     for f in fields:

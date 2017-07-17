@@ -179,10 +179,16 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
             # XXX check length vs pack_len
             obj = uavo_defs[uavo_key]
 
+        instance_len = 0
+
         # Determine data length
         if (pack_type == TYPE_OBJ_REQ) or (pack_type == TYPE_ACK) or (pack_type == TYPE_NACK):
             obj_len = 0
             timestamp_len = 0
+
+            if obj is not None and not obj._single:
+                instance_len = 2
+
         else:
             if obj is not None:
                 timestamp_len = timestamp_fmt.size if pack_type == TYPE_OBJ_TS or pack_type == TYPE_OBJ_ACK_TS else 0
@@ -191,11 +197,6 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
                 # we don't know anything, so fudge to keep sync.
                 timestamp_len = 0
                 obj_len = pack_len - header_fmt.size
-
-        if obj is not None and not obj._single:
-            instance_len = 2
-        else:
-            instance_len = 0
 
         # Check length and determine next state
         if obj_len >= MAX_PAYLOAD_LENGTH:
@@ -272,8 +273,7 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
         data_offset = header_fmt.size + instance_len + timestamp_len + buf_offset
 
         if (obj_len > 0) and (obj is not None):
-            objInstance = obj.from_bytes(buf, timestamp, instance_id,
-                    offset=data_offset)
+            objInstance = obj.from_bytes(buf, timestamp, offset=data_offset)
             received += 1
             if not (received % 10000):
                 if progress_callback is not None:
