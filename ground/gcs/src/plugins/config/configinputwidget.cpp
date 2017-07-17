@@ -192,8 +192,6 @@ ConfigInputWidget::ConfigInputWidget(QWidget *parent)
             &ConfigInputWidget::checkArmingConfig);
     connect(m_config->cbThrottleCheck, &QCheckBox::stateChanged, this,
             &ConfigInputWidget::checkArmingConfig);
-    connect(m_config->cbCalibrateGyros, &QCheckBox::stateChanged, this,
-            &ConfigInputWidget::checkArmingConfig);
     connect(m_config->sbThrottleTimeout, QOverload<int>::of(&QSpinBox::valueChanged), this,
             &ConfigInputWidget::checkArmingConfig);
     connect(m_config->sbFailsafeTimeout, QOverload<int>::of(&QSpinBox::valueChanged), this,
@@ -1917,7 +1915,6 @@ void ConfigInputWidget::checkArmingConfig()
 
     if (lastArmingMethod != arming.method && lastArmingMethod != ARM_INVALID) {
         if (arming.method == ARM_SWITCH) {
-            m_config->cbCalibrateGyros->setChecked(true);
             m_config->cbThrottleCheck->setChecked(true);
         }
     }
@@ -1925,7 +1922,7 @@ void ConfigInputWidget::checkArmingConfig()
 
     m_config->frStickArmTime->setVisible(arming.isStick);
     m_config->frSwitchArmTime->setVisible(arming.isSwitch);
-    m_config->cbSwitchArmTime->setEnabled(m_config->cbCalibrateGyros->isChecked());
+    m_config->cbSwitchArmTime->setEnabled(true);
     // TODO: consider throttle check for initial arm with always armed
     m_config->frThrottleCheck->setVisible(arming.isSwitch);
 
@@ -1971,11 +1968,6 @@ void ConfigInputWidget::checkArmingConfig()
         }
     }
 
-    if (!m_config->frSwitchArmTime->isHidden() && !m_config->cbCalibrateGyros->isChecked())
-        addWarning(m_config->gbWarnings, m_config->frSwitchArmTime,
-                   tr("Disabling gyro calibration will have an adverse impact on flight "
-                      "performance and autotune!"));
-
     if (!m_config->frThrottleCheck->isHidden() && !m_config->cbThrottleCheck->isChecked())
         addWarning(m_config->gbWarnings, m_config->frThrottleCheck,
                    tr("Your vehicle can be armed while throttle is not low, be careful!"));
@@ -2003,8 +1995,6 @@ void ConfigInputWidget::checkArmingConfig()
     case ARM_SWITCH:
         if (m_config->cbThrottleCheck->isChecked())
             armOption += "+Throttle";
-        if (m_config->cbCalibrateGyros->isChecked())
-            armOption += "+Delay";
         break;
     default:
         break;
@@ -2051,7 +2041,6 @@ void ConfigInputWidget::updateArmingConfig(UAVObject *obj)
     if (m_config->cbArmMethod->currentText() != arming.armName)
         m_config->cbArmMethod->setCurrentText(arming.armName);
     m_config->cbThrottleCheck->setChecked(armingOption.contains("Throttle"));
-    m_config->cbCalibrateGyros->setChecked(armingOption.contains("Delay"));
 
     setDirty(wasDirty);
 
