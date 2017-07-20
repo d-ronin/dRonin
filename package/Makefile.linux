@@ -62,7 +62,7 @@ gcs:
 	$(V1) $(MAKE) -C $(ROOT_DIR) GCS_BUILD_CONF=release $@
 
 ground_package_os_specific: ground_package_common usb_id_udev
-	$(V1) cp -v $(BUILD_DIR)/shared/usb_ids/dronin.udev $(PACKAGE_DIR)/rules.udev
+	$(V1) cp -v $(BUILD_DIR)/shared/usb_ids/dronin.udev $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)/rules.udev
 	$(V1) mkdir -p $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)/sim
 	-$(V1) cp -v $(BUILD_DIR)/sim-pi/sim.elf $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)/sim/sim-pi.elf
 	$(V1) cp -v $(BUILD_DIR)/sim/sim.elf $(PACKAGE_DIR)/$(GCS_PACKAGE_NAME)/sim/sim.elf
