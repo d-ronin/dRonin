@@ -1659,6 +1659,42 @@
             </widget>
            </item>
            <item>
+            <widget class="QGroupBox" name="grpManualBuzzer">
+             <property name="title">
+              <string>Manual Buzzer</string>
+             </property>
+             <layout class="QFormLayout" name="formLayout_2">
+              <item row="1" column="0">
+               <widget class="QLabel" name="lblManualBuzzer">
+                <property name="text">
+                 <string>Activated By:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QComboBox" name="cbxManualBuzzer">
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:AnnunciatorSettings</string>
+                  <string>fieldname:ManualBuzzer</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0" colspan="2">
+               <widget class="QLabel" name="label_46">
+                <property name="text">
+                 <string>Sometimes, you may want to activate your buzzer manually by a switch on your radio. Configure an accessory channel on the &quot;Input&quot; tab and select it here. The buzzer will beep with the current alarm if active, otherwise short blinks when armed, or long blinks when disarmed.</string>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
             <widget class="QGroupBox" name="groupBox_3">
              <property name="title">
               <string>Alarm Severities</string>

@@ -22,6 +22,15 @@
 				<elementname>DAC</elementname>
 			</elementnames>
 		</field>
+		<field name="ManualBuzzer" units="" type="enum" elements="1" defaultvalue="Disabled">
+			<description>Select an input accessory channel here to activate the buzzer manually when that channel is above the neutral value</description>
+			<options>
+				<option>Disabled</option>
+				<option>Accessory 0</option>
+				<option>Accessory 1</option>
+				<option>Accessory 2</option>
+			</options>
+		</field>
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
 		<telemetryflight acked="true" updatemode="onchange" period="0"/>
