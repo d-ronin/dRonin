@@ -106,6 +106,7 @@ enum arm_state {
 	ARM_STATE_DISARMED_STILL_HOLDING
 };
 static enum arm_state arm_state = ARM_STATE_DISARMED;
+static bool disarmed_on_powerup = false;
 
 // Private functions
 static float get_thrust_source(ManualControlCommandData *manual_control_command, SystemSettingsAirframeTypeOptions * airframe_type, bool normalize_positive);
@@ -552,8 +553,8 @@ static void set_armed_if_changed(uint8_t new_arm) {
  */
 static bool arming_position(ManualControlCommandData * cmd, ManualControlSettingsData * settings) {
 
-	// If system is not appropriate to arm, do not even attempt
-	if (!ok_to_arm())
+	// If system is not appropriate to arm, do not even attempt.
+	if (!ok_to_arm() || !disarmed_on_powerup)
 		return false;
 
 	bool lowThrottle = cmd->Throttle <= 0;
@@ -677,6 +678,8 @@ static void process_transmitter_events(ManualControlCommandData * cmd, ManualCon
 		} else if (arm) {
 			armedDisarmStart = lastSysTime;
 			arm_state = ARM_STATE_ARMING;
+		} else if (disarming_position(cmd, settings) && valid) {
+			disarmed_on_powerup = true;
 		}
 
 		last_arm = arm;
