@@ -14,6 +14,9 @@
 		<field name="IRQStackRemaining" units="bytes" type="uint16" elements="1">
 			<description>Unused space on the IRQ stack since boot.</description>
 		</field>
+		<field name="OSStackRemaining" units="bytes" type="uint16" elements="1">
+			<description>Unused space on the main thread OS stack since boot.</description>
+		</field>
 		<field name="CPULoad" units="%" type="uint8" elements="1">
 			<description>Indicative measure of current CPU load.</description>
 		</field>

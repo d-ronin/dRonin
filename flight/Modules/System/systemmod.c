@@ -731,33 +731,6 @@ static void updateRfm22bStats() {
 /**
  * Called periodically to update the system stats
  */
-static uint16_t GetFreeIrqStackSize(void)
-{
-	uint32_t i = 0x200;
-
-#if !defined(ARCH_POSIX) && !defined(ARCH_WIN32) && defined(CHECK_IRQ_STACK)
-	extern uint32_t _irq_stack_top;
-	extern uint32_t _irq_stack_end;
-	uint32_t pattern = 0x0000A5A5;
-	uint32_t *ptr = &_irq_stack_end;
-
-	uint32_t stack_size = (((uint32_t)&_irq_stack_top - (uint32_t)&_irq_stack_end) & ~3 ) / 4;
-
-	for (i=0; i< stack_size; i++)
-	{
-		if (ptr[i] != pattern)
-		{
-			i=i*4;
-			break;
-		}
-	}
-#endif
-	return i;
-}
-
-/**
- * Called periodically to update the system stats
- */
 static void updateStats()
 {
 	static uint32_t lastTickCount = 0;
@@ -770,7 +743,8 @@ static void updateStats()
 	stats.FastHeapRemaining = PIOS_fastheap_get_free_size();
 
 	// Get Irq stack status
-	stats.IRQStackRemaining = GetFreeIrqStackSize();
+	stats.IRQStackRemaining = (uint16_t)PIOS_SYS_IrqStackUnused();
+	stats.OSStackRemaining = (uint16_t)PIOS_SYS_OsStackUnused();
 
 	// When idleCounterClear was not reset by the idle-task, it means the idle-task did not run
 	if (idleCounterClear) {
