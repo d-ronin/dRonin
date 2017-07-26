@@ -346,7 +346,7 @@ static void ackResendOrTimeout(telem_t telem, int idx)
 }
 
 /**
- * Checks for acks that need resend or expiration.
+ * Checks for expected-ack messages that need resend or expiration.
  *
  * \param[in] telem Telemetry subsystem handle
  */
