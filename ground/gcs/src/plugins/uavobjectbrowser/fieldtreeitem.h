@@ -64,13 +64,13 @@ public:
         , m_defaultValue(true)
     {
     }
-    bool isEditable() { return true; }
+    inline virtual bool isEditable() override { return true; }
     void setIsDefaultValue(bool isDefault) { m_defaultValue = isDefault; }
     virtual bool isDefaultValue() const override { return m_defaultValue; }
     virtual QWidget *createEditor(QWidget *parent) = 0;
     virtual QVariant getEditorValue(QWidget *editor) = 0;
     virtual void setEditorValue(QWidget *editor, QVariant value) = 0;
-    virtual void apply() {}
+    virtual void apply() override {}
 protected:
     int m_index;
     bool m_defaultValue;

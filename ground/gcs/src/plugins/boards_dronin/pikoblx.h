@@ -50,9 +50,6 @@ public:
     virtual int queryMaxGyroRate();
     virtual QStringList getAdcNames();
     virtual bool hasAnnunciator(AnnunciatorType annunc);
-
-private:
-    UAVObjectManager *uavoManager;
 };
 
 #endif // PIKOBLX_H_
