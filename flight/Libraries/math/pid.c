@@ -43,11 +43,12 @@ static float deriv_gamma = 1.0;
  * Update the PID computation
  * @param[in] pid The PID struture which stores temporary information
  * @param[in] err The error term
- * @param[in] dT  The time step
  * @returns Output the computed controller value
  */
-float pid_apply(struct pid *pid, const float err, float dT)
-{	
+float pid_apply(struct pid *pid, const float err)
+{
+	float dT = pid->dT;
+
 	if (pid->i == 0) {
 		// If Ki is zero, do not change the integrator. We do not reset to zero
 		// because sometimes the accumulator term is set externally
@@ -82,8 +83,10 @@ float pid_apply(struct pid *pid, const float err, float dT)
  *  chapter.
  */
 float pid_apply_antiwindup(struct pid *pid, const float err,
-	float min_bound, float max_bound, float dT)
-{	
+	float min_bound, float max_bound)
+{
+	float dT = pid->dT;
+
 	if (pid->i == 0) {
 		// If Ki is zero, do not change the integrator. We do not reset to zero
 		// because sometimes the accumulator term is set externally
@@ -123,15 +126,16 @@ float pid_apply_antiwindup(struct pid *pid, const float err,
  * @param[in] pid The PID struture which stores temporary information
  * @param[in] setpoint The setpoint to use
  * @param[in] measured The measured value of output
- * @param[in] dT  The time step
  * @returns Output the computed controller value
  *
  * This version of apply uses setpoint weighting for the derivative component so the gain
  * on the gyro derivative can be different than the gain on the setpoint derivative
  */
 float pid_apply_setpoint(struct pid *pid, struct pid_deadband *deadband, const float setpoint,
-	const float measured, float dT)
+	const float measured)
 {
+	float dT = pid->dT;
+
 	float err = setpoint - measured;
 	float err_d = (deriv_gamma * setpoint - measured);
 
@@ -196,7 +200,7 @@ void pid_configure_derivative(float cutoff, float g)
  * @param[in] i The integral term
  * @param[in] d The derivative term
  */
-void pid_configure(struct pid *pid, float p, float i, float d, float iLim)
+void pid_configure(struct pid *pid, float p, float i, float d, float iLim, float dT)
 {
 	if (!pid)
 		return;
@@ -205,6 +209,7 @@ void pid_configure(struct pid *pid, float p, float i, float d, float iLim)
 	pid->i = i;
 	pid->d = d;
 	pid->iLim = iLim;
+	pid->dT = dT;
 }
 
 /**

@@ -44,17 +44,20 @@ struct pid {
 	float i;
 	float d;
 	float iLim;
+
+	float dT;
+
 	float iAccumulator;
 	float lastErr;
 	float lastDer;
 };
 
 //! Methods to use the pid structures
-float pid_apply(struct pid *pid, const float err, float dT);
-float pid_apply_antiwindup(struct pid *pid, const float err, float min_bound, float max_bound, float dT);
-float pid_apply_setpoint(struct pid *pid, struct pid_deadband *deadband, const float setpoint, const float measured, float dT);
+float pid_apply(struct pid *pid, const float err);
+float pid_apply_antiwindup(struct pid *pid, const float err, float min_bound, float max_bound);
+float pid_apply_setpoint(struct pid *pid, struct pid_deadband *deadband, const float setpoint, const float measured);
 void pid_zero(struct pid *pid);
-void pid_configure(struct pid *pid, float p, float i, float d, float iLim);
+void pid_configure(struct pid *pid, float p, float i, float d, float iLim, float dT);
 void pid_configure_derivative(float cutoff, float gamma);
 void pid_configure_deadband(struct pid_deadband *deadband, float width, float slope);
 
