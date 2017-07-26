@@ -45,6 +45,7 @@
 
 #include "annunciatorsettings.h"
 #include "flightstatus.h"
+#include "manualcontrolcommand.h"
 #include "manualcontrolsettings.h"
 #include "objectpersistence.h"
 #include "rfm22bstatus.h"
@@ -528,9 +529,20 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 #endif
 
 #ifdef PIOS_ANNUNCIATOR_BUZZER
+		uint8_t buzzer_prio = blink_prio;
+
+		if (annunciatorSettings.ManualBuzzer !=
+				ANNUNCIATORSETTINGS_MANUALBUZZER_DISABLED) {
+			float acc[MANUALCONTROLCOMMAND_ACCESSORY_NUMELEM];
+			ManualControlCommandAccessoryGet(acc);
+			/* DONT_BUILD_IF to protect this at end of file */
+			if (acc[annunciatorSettings.ManualBuzzer - 1] > 0.0f)
+				buzzer_prio = ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_HAIRONFIRE;
+		}
+
 		consider_annunc(&annunciatorSettings, morse > 0, ever_armed,
 				is_manual_control,
-				blink_prio, PIOS_ANNUNCIATOR_BUZZER,
+				buzzer_prio, PIOS_ANNUNCIATOR_BUZZER,
 				ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_BUZZER);
 #endif
 
@@ -1068,6 +1080,9 @@ static uint32_t processPeriodicUpdates()
 	PIOS_Recursive_Mutex_Unlock(mutex);
 	return timeToNextUpdate - now;
 }
+
+DONT_BUILD_IF(ANNUNCIATORSETTINGS_MANUALBUZZER_MAXOPTVAL >
+	MANUALCONTROLCOMMAND_ACCESSORY_NUMELEM, TooManyManualBuzzers);
 
 /**
  * @}
