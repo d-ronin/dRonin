@@ -76,7 +76,7 @@
 // *** change to adapt Revision
 #define SERIAL_4WAY_VER_MAIN 20
 #define SERIAL_4WAY_VER_SUB_1 (uint8_t) 0
-#define SERIAL_4WAY_VER_SUB_2 (uint8_t) 00
+#define SERIAL_4WAY_VER_SUB_2 (uint8_t) 01
 
 #define SERIAL_4WAY_PROTOCOL_VER 107
 // *** end
@@ -335,7 +335,7 @@ uint16_t _crc_xmodem_update (uint16_t crc, uint8_t data) {
         (pDeviceInfo->words[0] == 0xF850) || (pDeviceInfo->words[0] == 0xE8B1) || \
         (pDeviceInfo->words[0] == 0xE8B2))
 
-#define ARM_DEVICE_MATCH ((pDeviceInfo->words[0] == 0x9307) || (pDeviceInfo->words[0] == 0x930A) || \
+#define ARM_DEVICE_MATCH ((pDeviceInfo->words[0] == 0x1F06) || \
         (pDeviceInfo->words[0] == 0x3306) || (pDeviceInfo->words[0] == 0x3406))
 
 static uint8_t CurrentInterfaceMode;
