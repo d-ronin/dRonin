@@ -60,7 +60,7 @@ static void smoothcontrol_update(smoothcontrol_state state, struct smoothcontrol
 		case SMOOTHCONTROL_EXTENDED:
 			axis->differential = signal_diff * SMOOTHCONTROL_PREDICTOR_SLOPE / (float)state->control_interval;
 			axis->current = axis->signal + signal_diff * SMOOTHCONTROL_CHAMFER_START;
-			axis->integrator_timeout = (uint8_t)MAX((float)state->control_interval *
+			axis->integrator_timeout = (uint8_t)MIN((float)state->control_interval *
 				(axis->mode == SMOOTHCONTROL_NORMAL ? SMOOTHCONTROL_DUTY_CYCLE : SMOOTHCONTROL_EXTENDED_DUTY_CYCLE), 255);
 			break;
 	}
@@ -145,7 +145,7 @@ void smoothcontrol_next(smoothcontrol_state state)
 	// If MCC rang the ringer meanwhile, ticks will be at zero next loop, as expected.
 	if(state->ringer) {
 		int x = ((int)state->control_interval + (int)state->tick_counter) >> 1;
-		state->control_interval = (uint8_t)MAX(x, 255);
+		state->control_interval = (uint8_t)MIN(x, 255);
 		state->tick_counter = 0;
 
 		state->ringer = false;
