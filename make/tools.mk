@@ -589,8 +589,8 @@ breakpad_install: | breakpad_clean
 	$(V0) @echo " BUILDING     $(BREAKPAD_REPO) @ $(BREAKPAD_REV)"
 	$(V1) ( \
 	  cd $(BREAKPAD_BUILD_DIR) ; \
-	  $(QBS) install --install-root $(BREAKPAD_DIR) profile:$(QBS_PROFILE) release ; \
-	  $(QBS) install --install-root $(BREAKPAD_DIR) -p breakpad_client profile:$(QBS_PROFILE) debug ; \
+	  $(QBS) install --settings-dir "$(QBS_SETTINGS_DIR)" --install-root $(BREAKPAD_DIR) profile:$(QBS_PROFILE) release ; \
+	  $(QBS) install --settings-dir "$(QBS_SETTINGS_DIR)" --install-root $(BREAKPAD_DIR) -p breakpad_client profile:$(QBS_PROFILE) debug ; \
 	)
 
 breakpad_clean:
@@ -611,6 +611,7 @@ endif
 #
 ##############################
 
+QBS_SETTINGS_DIR := $(TOOLS_DIR)/qbs
 ifeq ($(shell [ -d "$(QT_SDK_DIR)" ] && echo "exists"), exists)
   QMAKE = $(QT_SDK_QMAKE_PATH)
   QBS = $(QT_SDK_QBS_PATH)
@@ -623,12 +624,12 @@ endif
 .PHONY: tools_required_qbs
 
 tools_required_qbs: | tools_required_qt
-ifeq (,$(shell $(QBS) config --list profiles))
+ifeq (,$(shell $(QBS) config --settings-dir "$(QBS_SETTINGS_DIR)" --list profiles))
 # empty profile config, detect toolchains
-	$(V1) $(QBS) setup-toolchains --detect
-else ifeq (,$(shell $(QBS) config --list | grep "profiles\.$(QBS_PROFILE)\.qbs"))
+	$(V1) $(QBS) setup-toolchains --settings-dir "$(QBS_SETTINGS_DIR)" --detect
+else ifeq (,$(shell $(QBS) config --settings-dir "$(QBS_SETTINGS_DIR)" --list | grep "profiles\.$(QBS_PROFILE)\.qbs"))
 # profile we want is missing. let user know so they can decide if they want to overwrite their config (needed since we don't own Qt install on Windows)
-	$(error "QBS profile '$(QBS_PROFILE)' not found. Try running '$(QBS) setup-toolchains --detect'")
+	$(error "QBS profile '$(QBS_PROFILE)' not found. Try running '$(QBS) setup-toolchains --settings-dir "$(QBS_SETTINGS_DIR)" --detect'")
 endif
 
 ifeq ($(shell [ -d "$(ARM_SDK_DIR)" ] && echo "exists"), exists)

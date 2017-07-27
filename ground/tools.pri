@@ -10,8 +10,8 @@ isEmpty(PYTHON_LOCAL) {
     macx: PYTHON_LOCAL = python
 }
 
-# use ccache with gcc and clang in debug config
-CONFIG(debug, debug|release) {
+# if ccache is in CONFIG, use it
+ccache {
     *-g++*|*-clang* {
         QMAKE_CC=$$(CCACHE_BIN) $$QMAKE_CC
         QMAKE_CXX=$$(CCACHE_BIN) $$QMAKE_CXX

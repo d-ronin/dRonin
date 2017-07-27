@@ -67,7 +67,7 @@ ALL_BOARDS :=
 include $(ROOT_DIR)/flight/targets/*/target-defs.mk
 
 # OpenPilot GCS build configuration (debug | release)
-GCS_BUILD_CONF ?= debug
+GCS_BUILD_CONF ?= debug ccache
 
 # And the flight build configuration (debug | default | release)
 export FLIGHT_BUILD_CONF ?= default
@@ -97,9 +97,9 @@ endif
 
 # Checking for $(GCS_BUILD_CONF) to be sane
 ifdef GCS_BUILD_CONF
- ifneq ($(GCS_BUILD_CONF), release)
-  ifneq ($(GCS_BUILD_CONF), debug)
-   $(error Only debug or release are allowed for GCS_BUILD_CONF)
+ ifneq ($(filter release, $(GCS_BUILD_CONF)), release)
+  ifneq ($(filter debug, $(GCS_BUILD_CONF)), debug)
+   $(error Either debug or release are required for GCS_BUILD_CONF)
   endif
  endif
 endif
@@ -319,7 +319,7 @@ gcs_ts: tools_required_qt
 gcs_clazy: CLAZY_CHECKS ?= level0
 gcs_clazy: $(UAVOBJECT_MARKER) | tools_required_qt
 	echo $(CLAZY)
-ifeq ($(shell which clazy),)
+ifeq ($(shell which clazy 2>/dev/null),)
 	$(error Please install clazy and ensure it is on PATH first. https://github.com/KDE/clazy#build-instructions)
 endif
 	$(V1) mkdir -p $(BUILD_DIR)/ground/$@
