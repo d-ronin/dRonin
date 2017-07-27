@@ -71,6 +71,17 @@
 // Private variables
 static struct pios_thread *sensorsTaskHandle;
 
+static float accel_bias[3];
+
+static float rand_gauss();
+
+static bool use_real_sensors;
+static int sens_rate = 500;
+
+enum sensor_sim_type {MODEL_YASIM, MODEL_QUADCOPTER, MODEL_AIRPLANE, MODEL_CAR} sensor_sim_type;
+
+extern bool use_yasim;
+
 // Private functions
 static void SensorsTask(void *parameters);
 static void simulateModelQuadcopter();
@@ -79,16 +90,6 @@ static void simulateModelCar();
 static void simulateYasim();
 
 static void magOffsetEstimation(MagnetometerData *mag);
-
-static float accel_bias[3];
-
-static float rand_gauss();
-
-static bool use_real_sensors;
-
-extern bool use_yasim;
-
-enum sensor_sim_type {MODEL_YASIM, MODEL_QUADCOPTER, MODEL_AIRPLANE, MODEL_CAR} sensor_sim_type;
 
 extern int32_t SensorsInitialize(void);
 extern int32_t SensorsStart(void);
@@ -117,8 +118,6 @@ static int32_t SimSensorsInitialize(void)
 	PIOS_SENSORS_Register(PIOS_SENSOR_GYRO, (struct pios_queue*)1);
 	PIOS_SENSORS_Register(PIOS_SENSOR_MAG, (struct pios_queue*)1);
 	PIOS_SENSORS_Register(PIOS_SENSOR_BARO, (struct pios_queue*)1);
-
-	int sens_rate = 500;
 
 	if (use_yasim) {
 		sens_rate = 200;
@@ -230,12 +229,7 @@ static void SensorsTask(void *parameters)
 
 		static uint32_t tm = 0;
 
-		if (use_yasim) {
-			// 200Hz.
-			PIOS_Thread_Sleep_Until(&tm, 5);
-		} else {
-			PIOS_Thread_Sleep_Until(&tm, 2);
-		}
+		PIOS_Thread_Sleep_Until(&tm, 1000 / sens_rate);
 	}
 }
 
@@ -330,8 +324,8 @@ static void simulateYasim()
 				close(i);
 			}
 
-			execlp("yasim-svr", "yasim-svr",
-					"/home/mlyle/drhil/pa22-160-yasim.xml",
+			// TODO: Fixup model selection to something nice.
+			execlp("yasim-svr", "yasim-svr", "pa22-160-yasim.xml",
 					NULL);
 
 			perror("execlp");
@@ -432,7 +426,7 @@ static void simulateYasim()
 	}
 
 	uint32_t last_mag_time = 0;
-	if(PIOS_DELAY_DiffuS(last_mag_time) / 1.0e6 > MAG_PERIOD) {
+	if (PIOS_DELAY_DiffuS(last_mag_time) / 1.0e6 > MAG_PERIOD) {
 		MagnetometerData mag;
 		mag.x = homeLocation.Be[0] * Rbe[0][0] + homeLocation.Be[1] * Rbe[0][1] + homeLocation.Be[2] * Rbe[0][2];
 		mag.y = homeLocation.Be[0] * Rbe[1][0] + homeLocation.Be[1] * Rbe[1][1] + homeLocation.Be[2] * Rbe[1][2];
@@ -446,9 +440,9 @@ static void simulateYasim()
 	}
 
 	static float baro_offset = 0;
-	if(baro_offset == 0) {
+	if (baro_offset == 0) {
 		// Hacky initialization
-		baro_offset = 50;// * rand_gauss();
+		baro_offset = 50;
 	} else {
 		// Very small drift process
 		baro_offset += rand_gauss() / 100;
@@ -456,7 +450,7 @@ static void simulateYasim()
 
 	// Update baro periodically
 	static uint32_t last_baro_time = 0;
-	if(PIOS_DELAY_DiffuS(last_baro_time) / 1.0e6 > BARO_PERIOD) {
+	if (PIOS_DELAY_DiffuS(last_baro_time) / 1.0e6 > BARO_PERIOD) {
 		BaroAltitudeData baroAltitude;
 		BaroAltitudeGet(&baroAltitude);
 		baroAltitude.Altitude = -status.alt + baro_offset;
