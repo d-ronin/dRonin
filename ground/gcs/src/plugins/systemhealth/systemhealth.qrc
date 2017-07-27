@@ -66,5 +66,6 @@
         <file>html/Telemetry-Error.html</file>
         <file>html/TempBaro-Error.html</file>
         <file>html/TempBaro-Warning.html</file>
+        <file>html/ManualControl-Warning-ChannelConfiguration.html</file>
     </qresource>
 </RCC>

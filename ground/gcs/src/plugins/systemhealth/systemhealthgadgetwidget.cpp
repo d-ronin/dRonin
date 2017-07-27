@@ -355,6 +355,10 @@ QString SystemHealthGadgetWidget::getAlarmDescriptionFileName(const QString item
             alarmDescriptionFileName =
                 QString(":/systemhealth/html/ManualControl-Critical-PathFollower.html");
             break;
+        case SystemAlarms::MANUALCONTROL_CHANNELCONFIGURATION:
+            alarmDescriptionFileName =
+                QString(":/systemhealth/html/ManualControl-Warning-ChannelConfiguration.html");
+            break;
         case SystemAlarms::MANUALCONTROL_UNDEFINED:
             alarmDescriptionFileName = QString(":/systemhealth/html/ManualControl-Undefined.html");
             break;

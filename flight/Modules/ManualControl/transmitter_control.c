@@ -397,7 +397,19 @@ int32_t transmitter_control_update()
 		cmd.Pitch = 0;
 		cmd.Collective = 0;
 
-		set_manual_control_error(SYSTEMALARMS_MANUALCONTROL_NORX);
+		/* If all relevant channel groups aren't in error mode, then the receiver seems to be working fine.
+		   So if we still reach this point, the channel min/max/neutral values on the input page are faulty. */
+		bool rx_signal_detected = cmd.Channel[MANUALCONTROLSETTINGS_CHANNELGROUPS_THROTTLE] < (uint16_t)PIOS_RCVR_NODRIVER &&
+			cmd.Channel[MANUALCONTROLSETTINGS_CHANNELGROUPS_ROLL] < (uint16_t)PIOS_RCVR_NODRIVER &&
+			cmd.Channel[MANUALCONTROLSETTINGS_CHANNELGROUPS_PITCH] < (uint16_t)PIOS_RCVR_NODRIVER &&
+			cmd.Channel[MANUALCONTROLSETTINGS_CHANNELGROUPS_YAW] < (uint16_t)PIOS_RCVR_NODRIVER &&
+			cmd.Channel[MANUALCONTROLSETTINGS_CHANNELGROUPS_ARMING] < (uint16_t)PIOS_RCVR_NODRIVER &&
+			cmd.Channel[MANUALCONTROLSETTINGS_CHANNELGROUPS_FLIGHTMODE] < (uint16_t)PIOS_RCVR_NODRIVER;
+
+		if (rx_signal_detected)
+			set_manual_control_error(SYSTEMALARMS_MANUALCONTROL_CHANNELCONFIGURATION);
+		else
+			set_manual_control_error(SYSTEMALARMS_MANUALCONTROL_NORX);
 
 	} else if (valid_input_detected) {
 		set_manual_control_error(SYSTEMALARMS_MANUALCONTROL_NONE);
@@ -1346,6 +1358,7 @@ static void set_manual_control_error(SystemAlarmsManualControlOptions error_code
 		severity = SYSTEMALARMS_ALARM_OK;
 		break;
 	case SYSTEMALARMS_MANUALCONTROL_NORX:
+	case SYSTEMALARMS_MANUALCONTROL_CHANNELCONFIGURATION:
 	case SYSTEMALARMS_MANUALCONTROL_ACCESSORY:
 		severity = SYSTEMALARMS_ALARM_WARNING;
 		break;

@@ -53,6 +53,7 @@
 				<option>Accessory</option>
 				<option>AltitudeHold</option>
 				<option>PathFollower</option>
+				<option>ChannelConfiguration</option>
 				<option>Undefined</option>
 				<option>None</option>
 			</options>
