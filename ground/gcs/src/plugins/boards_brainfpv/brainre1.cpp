@@ -77,6 +77,22 @@ bool BrainRE1::queryCapabilities(BoardCapabilities capability)
     case BOARD_CAPABILITIES_OSD:
     case BOARD_CAPABILITIES_UPGRADEABLE:
         return true;
+    case BOARD_CAPABILITIES_MAGS:
+        {
+            ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+            UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
+            HwBrainRE1 *hwBrainRE1 = HwBrainRE1::GetInstance(uavoManager);
+
+            if (!hwBrainRE1) {
+                qWarning() << "Failed to get HwBrainRE1";
+                Q_ASSERT(false);
+                return false;
+            }
+
+            if (hwBrainRE1->getI2CExtMag() != HwBrainRE1::I2CEXTMAG_NONE)
+                return true;
+        }
+        Q_FALLTHROUGH();
     default:
         return false;
     }
