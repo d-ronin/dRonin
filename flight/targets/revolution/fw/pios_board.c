@@ -108,12 +108,17 @@ void PIOS_Board_Init(void) {
 
 #if defined(PIOS_INCLUDE_FLASH)
 	/* Inititialize all flash drivers */
-	if (PIOS_Flash_Jedec_Init(&pios_external_flash_id, pios_spi_telem_flash_id, 1, &flash_m25p_cfg) != 0) {
-		if (PIOS_Flash_Jedec_Init(&pios_external_flash_id, pios_spi_telem_flash_id, 1, &flash_n25q128_cfg) != 0) {
-			PIOS_HAL_CriticalError(PIOS_LED_HEARTBEAT, PIOS_HAL_PANIC_FLASH);
-		} else {
-			is_modified_clone = true;
+	bool flash_chip_ok = false;
+	for (int i = 0; i < NELEMENTS(flash_chip_cfgs); i++) {
+		if (PIOS_Flash_Jedec_Init(&pios_external_flash_id, pios_spi_telem_flash_id,
+				1, &flash_chip_cfgs[i]) == 0) {
+			flash_chip_ok = true;
+			is_modified_clone = i > 0;
+			break;
 		}
+	}
+	if (!flash_chip_ok) {
+		PIOS_HAL_CriticalError(PIOS_LED_HEARTBEAT, PIOS_HAL_PANIC_FLASH);
 	}
 
 	PIOS_Flash_Internal_Init(&pios_internal_flash_id, &flash_internal_cfg);
@@ -247,7 +252,7 @@ void PIOS_Board_Init(void) {
 
 	HwRevolutionDSMxModeOptions hw_DSMxMode;
 	HwRevolutionDSMxModeGet(&hw_DSMxMode);
-	
+
 	/* Configure main USART port */
 
 	uint8_t hw_mainport;

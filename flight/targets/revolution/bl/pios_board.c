@@ -64,10 +64,15 @@ void PIOS_Board_Init()
 
 #if defined(PIOS_INCLUDE_FLASH)
 	/* Inititialize all flash drivers */
-	if (PIOS_Flash_Jedec_Init(&pios_external_flash_id, pios_spi_telem_flash_id, 1, &flash_m25p_cfg) != 0) {
-		// Fallback to clone
-		PIOS_Flash_Jedec_Init(&pios_external_flash_id, pios_spi_telem_flash_id, 1, &flash_n25q128_cfg);
+	bool flash_chip_ok = false;
+	for (int i = 0; i < NELEMENTS(flash_chip_cfgs); i++) {
+		if (PIOS_Flash_Jedec_Init(&pios_external_flash_id, pios_spi_telem_flash_id,
+				1, &flash_chip_cfgs[i]) == 0) {
+			flash_chip_ok = true;
+			break;
+		}
 	}
+	PIOS_Assert(flash_chip_ok);
 
 
 	PIOS_Flash_Internal_Init(&pios_internal_flash_id, &flash_internal_cfg);

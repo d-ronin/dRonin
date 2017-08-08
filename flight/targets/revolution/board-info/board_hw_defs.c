@@ -389,22 +389,31 @@ static const struct flashfs_logfs_cfg flashfs_settings_cfg = {
 #if defined(PIOS_INCLUDE_FLASH_JEDEC)
 #include "pios_flash_jedec_priv.h"
 
-static const struct pios_flash_jedec_cfg flash_m25p_cfg = {
-	.expect_manufacturer = JEDEC_MANUFACTURER_ST,
-	.expect_memorytype   = 0x20,
-	.expect_capacity     = 0x15,
-	.sector_erase        = 0xD8,
-};
-
-/* Larger NOR flash has been shipping on some clone Revolution boards
- * without full sensor suite.  Tolerate any 128mbit NOR flash, and assume
- * it has 64k blocks with an erase command of 0xD8.
- */
-static const struct pios_flash_jedec_cfg flash_n25q128_cfg = {
-	.expect_manufacturer = JEDEC_MANUFACTURER_ANY,
-	.expect_memorytype   = JEDEC_MEMORYTYPE_ANY,
-	.expect_capacity     = 0x18,
-	.sector_erase        = 0xD8,
+static const struct pios_flash_jedec_cfg flash_chip_cfgs[] = {
+	{
+		/* M25P 2MByte chip used in original revo design */
+		.expect_manufacturer = JEDEC_MANUFACTURER_ANY,
+		.expect_memorytype   = 0x20,
+		.expect_capacity     = 0x15,
+		.sector_erase        = 0xD8,
+	},
+	{
+		/* Larger NOR flash has been shipping on some clone Revolution boards
+		 * without full sensor suite.  Tolerate any 128mbit NOR flash, and assume
+		 * it has 64k blocks with an erase command of 0xD8.
+		 */
+		.expect_manufacturer = JEDEC_MANUFACTURER_ANY,
+		.expect_memorytype   = JEDEC_MEMORYTYPE_ANY,
+		.expect_capacity     = 0x18,
+		.sector_erase        = 0xD8,
+	},
+	{
+		/* And some with 8MByte chips too */
+		.expect_manufacturer = JEDEC_MANUFACTURER_ANY,
+		.expect_memorytype   = JEDEC_MEMORYTYPE_ANY,
+		.expect_capacity     = 0x17,
+		.sector_erase        = 0xD8,
+	},
 };
 #endif	/* PIOS_INCLUDE_FLASH_JEDEC */
 
