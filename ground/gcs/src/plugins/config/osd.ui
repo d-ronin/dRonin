@@ -45,16 +45,28 @@
           </item>
           <item row="0" column="1">
            <widget class="QCheckBox" name="cb_osd_enabled">
-            <property name="toolTip">
-             <string>Enable / disable the OSD (requires rebooting the flight controller to take effect)</string>
-            </property>
             <property name="text">
              <string/>
+            </property>
+            <property name="objrelation" stdset="0">
+             <stringlist notr="true">
+              <string>objname:OnScreenDisplaySettings</string>
+              <string>fieldname:OSDEnabled</string>
+              <string>checkedoption:Enabled</string>
+              <string>uncheckedoption:Disabled</string>
+             </stringlist>
             </property>
            </widget>
           </item>
           <item row="0" column="3">
-           <widget class="QComboBox" name="cb_units"/>
+           <widget class="QComboBox" name="cb_units">
+            <property name="objrelation" stdset="0">
+             <stringlist notr="true">
+              <string>objname:OnScreenDisplaySettings</string>
+              <string>fieldname:Units</string>
+             </stringlist>
+            </property>
+           </widget>
           </item>
           <item row="0" column="2">
            <widget class="QLabel" name="label_3">
@@ -89,28 +101,38 @@
            <layout class="QGridLayout" name="gridLayout">
             <item row="5" column="1">
              <widget class="QSpinBox" name="sb_ntsc_xscale">
-              <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;OSD X scaling for NTSC. Not supported by all OSDs.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <property name="objrelation" stdset="0">
+               <stringlist notr="true">
+                <string>objname:OnScreenDisplaySettings</string>
+                <string>fieldname:NTSCXScale</string>
+               </stringlist>
               </property>
              </widget>
             </item>
             <item row="5" column="3">
              <widget class="QSpinBox" name="sb_pal_xscale">
-              <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;OSD X scaling for PAL. Not supported by all OSDs.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <property name="objrelation" stdset="0">
+               <stringlist notr="true">
+                <string>objname:OnScreenDisplaySettings</string>
+                <string>fieldname:PALXScale</string>
+               </stringlist>
               </property>
              </widget>
             </item>
             <item row="4" column="3">
              <widget class="QSpinBox" name="sb_y_offset">
-              <property name="toolTip">
-               <string>Shift the video vertically. Note: Large values can cause sync problems.</string>
-              </property>
               <property name="minimum">
                <number>-20</number>
               </property>
               <property name="maximum">
                <number>20</number>
+              </property>
+              <property name="objrelation" stdset="0">
+               <stringlist notr="true">
+                <string>objname:OnScreenDisplaySettings</string>
+                <string>fieldname:YOffset</string>
+                <string>haslimits:yes</string>
+               </stringlist>
               </property>
              </widget>
             </item>
@@ -129,6 +151,12 @@
               <property name="maximum">
                <number>255</number>
               </property>
+              <property name="objrelation" stdset="0">
+               <stringlist notr="true">
+                <string>objname:OnScreenDisplaySettings</string>
+                <string>fieldname:NTSCWhite</string>
+               </stringlist>
+              </property>
              </widget>
             </item>
             <item row="0" column="2">
@@ -140,11 +168,14 @@
             </item>
             <item row="0" column="1">
              <widget class="QSpinBox" name="sb_black_pal">
-              <property name="toolTip">
-               <string>Black level for PAL. Note: setting a too low value can cause sync probelms.</string>
-              </property>
               <property name="maximum">
                <number>255</number>
+              </property>
+              <property name="objrelation" stdset="0">
+               <stringlist notr="true">
+                <string>objname:OnScreenDisplaySettings</string>
+                <string>fieldname:PALBlack</string>
+               </stringlist>
               </property>
              </widget>
             </item>
@@ -156,18 +187,28 @@
               <property name="maximum">
                <number>255</number>
               </property>
+              <property name="objrelation" stdset="0">
+               <stringlist notr="true">
+                <string>objname:OnScreenDisplaySettings</string>
+                <string>fieldname:NTSCBlack</string>
+               </stringlist>
+              </property>
              </widget>
             </item>
             <item row="4" column="1">
              <widget class="QSpinBox" name="sb_x_offset">
-              <property name="toolTip">
-               <string>Shift the video horizontally. Note: Large values can cause sync problems.</string>
-              </property>
               <property name="minimum">
                <number>-40</number>
               </property>
               <property name="maximum">
                <number>40</number>
+              </property>
+              <property name="objrelation" stdset="0">
+               <stringlist notr="true">
+                <string>objname:OnScreenDisplaySettings</string>
+                <string>fieldname:XOffset</string>
+                <string>haslimits:yes</string>
+               </stringlist>
               </property>
              </widget>
             </item>
@@ -199,6 +240,12 @@
               </property>
               <property name="maximum">
                <number>255</number>
+              </property>
+              <property name="objrelation" stdset="0">
+               <stringlist notr="true">
+                <string>objname:OnScreenDisplaySettings</string>
+                <string>fieldname:PALWhite</string>
+               </stringlist>
               </property>
              </widget>
             </item>
@@ -245,8 +292,11 @@
             </item>
             <item row="6" column="1">
              <widget class="QComboBox" name="cb_3d_osd_mode">
-              <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;OSD 3D mode, e.g. side-by-side 3D for use with NerdCam 3D FPV camera. Not supported by all OSDs.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <property name="objrelation" stdset="0">
+               <stringlist notr="true">
+                <string>objname:OnScreenDisplaySettings</string>
+                <string>fieldname:ThreeDMode</string>
+               </stringlist>
               </property>
              </widget>
             </item>
@@ -259,8 +309,11 @@
             </item>
             <item row="6" column="3">
              <widget class="QSpinBox" name="sb_3d_right_eye_xshift">
-              <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Offset of the right-eye OSD output when side-by-side 3D mode is enabled.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <property name="objrelation" stdset="0">
+               <stringlist notr="true">
+                <string>objname:OnScreenDisplaySettings</string>
+                <string>fieldname:ThreeDRightEyeXShift</string>
+               </stringlist>
               </property>
              </widget>
             </item>
@@ -512,8 +565,12 @@ Setup the flight mode channel on the RC Input tab if you have not done so alread
               <property name="focusPolicy">
                <enum>Qt::StrongFocus</enum>
               </property>
-              <property name="toolTip">
-               <string>Select the stabilization mode on this position (manual/stabilized/auto)</string>
+              <property name="objrelation" stdset="0">
+               <stringlist notr="true">
+                <string>objname:OnScreenDisplaySettings</string>
+                <string>fieldname:PageConfig</string>
+                <string>element:0</string>
+               </stringlist>
               </property>
              </widget>
             </item>
@@ -522,12 +579,26 @@ Setup the flight mode channel on the RC Input tab if you have not done so alread
               <property name="focusPolicy">
                <enum>Qt::StrongFocus</enum>
               </property>
+              <property name="objrelation" stdset="0">
+               <stringlist notr="true">
+                <string>objname:OnScreenDisplaySettings</string>
+                <string>fieldname:PageConfig</string>
+                <string>element:1</string>
+               </stringlist>
+              </property>
              </widget>
             </item>
             <item>
              <widget class="QComboBox" name="osdPagePos3">
               <property name="focusPolicy">
                <enum>Qt::StrongFocus</enum>
+              </property>
+              <property name="objrelation" stdset="0">
+               <stringlist notr="true">
+                <string>objname:OnScreenDisplaySettings</string>
+                <string>fieldname:PageConfig</string>
+                <string>element:2</string>
+               </stringlist>
               </property>
              </widget>
             </item>
@@ -539,8 +610,12 @@ Setup the flight mode channel on the RC Input tab if you have not done so alread
               <property name="focusPolicy">
                <enum>Qt::StrongFocus</enum>
               </property>
-              <property name="toolTip">
-               <string>Select the stabilization mode on this position (manual/stabilized/auto)</string>
+              <property name="objrelation" stdset="0">
+               <stringlist notr="true">
+                <string>objname:OnScreenDisplaySettings</string>
+                <string>fieldname:PageConfig</string>
+                <string>element:3</string>
+               </stringlist>
               </property>
              </widget>
             </item>
@@ -552,6 +627,13 @@ Setup the flight mode channel on the RC Input tab if you have not done so alread
               <property name="focusPolicy">
                <enum>Qt::StrongFocus</enum>
               </property>
+              <property name="objrelation" stdset="0">
+               <stringlist notr="true">
+                <string>objname:OnScreenDisplaySettings</string>
+                <string>fieldname:PageConfig</string>
+                <string>element:4</string>
+               </stringlist>
+              </property>
              </widget>
             </item>
             <item>
@@ -561,6 +643,13 @@ Setup the flight mode channel on the RC Input tab if you have not done so alread
               </property>
               <property name="focusPolicy">
                <enum>Qt::StrongFocus</enum>
+              </property>
+              <property name="objrelation" stdset="0">
+               <stringlist notr="true">
+                <string>objname:OnScreenDisplaySettings</string>
+                <string>fieldname:PageConfig</string>
+                <string>element:5</string>
+               </stringlist>
               </property>
              </widget>
             </item>
@@ -612,8 +701,14 @@ Setup the flight mode channel on the RC Input tab if you have not done so alread
               </item>
               <item row="3" column="1">
                <widget class="QSpinBox" name="RssiWarnThreshold">
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Threshold below which RSSI value will start blinking&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <property name="maximum">
+                 <number>255</number>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:OnScreenDisplaySettings</string>
+                  <string>fieldname:RssiWarnThreshold</string>
+                 </stringlist>
                 </property>
                </widget>
               </item>
@@ -625,7 +720,14 @@ Setup the flight mode channel on the RC Input tab if you have not done so alread
                </widget>
               </item>
               <item row="1" column="1">
-               <widget class="QComboBox" name="cb_page_switch"/>
+               <widget class="QComboBox" name="cb_page_switch">
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:OnScreenDisplaySettings</string>
+                  <string>fieldname:PageSwitch</string>
+                 </stringlist>
+                </property>
+               </widget>
               </item>
               <item row="0" column="1">
                <widget class="QSpinBox" name="sb_num_pages">
@@ -638,6 +740,13 @@ Setup the flight mode channel on the RC Input tab if you have not done so alread
                 <property name="value">
                  <number>3</number>
                 </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:OnScreenDisplaySettings</string>
+                  <string>fieldname:NumPages</string>
+                  <string>haslimits:yes</string>
+                 </stringlist>
+                </property>
                </widget>
               </item>
               <item row="2" column="0">
@@ -649,19 +758,24 @@ Setup the flight mode channel on the RC Input tab if you have not done so alread
               </item>
               <item row="2" column="1">
                <widget class="QCheckBox" name="cb_menu_disabled">
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Disables the OSD menu when aircraft is armed. This is recommended, so the menu can't be entered accidentally when flying.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-                <property name="text">
-                 <string/>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:OnScreenDisplaySettings</string>
+                  <string>fieldname:DisableMenuWhenArmed</string>
+                  <string>checkedoption:Enabled</string>
+                  <string>uncheckedoption:Disabled</string>
+                 </stringlist>
                 </property>
                </widget>
               </item>
               <item row="4" column="1">
                <widget class="QComboBox" name="cb_stats_duration">
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The time for which flight statistics are displayed for when disarming. Note: The statistics can also be accessed using the page switch or the OSD menu.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
+                 <property name="objrelation" stdset="0">
+                  <stringlist notr="true">
+                   <string>objname:OnScreenDisplaySettings</string>
+                   <string>fieldname:StatsDisplayDuration</string>
+                  </stringlist>
+                 </property>
                </widget>
               </item>
               <item row="4" column="0">
@@ -679,11 +793,7 @@ Setup the flight mode channel on the RC Input tab if you have not done so alread
                </widget>
               </item>
               <item row="5" column="1">
-               <widget class="QLineEdit" name="le_custom_text">
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Text that is displayed in the OSD by the &amp;quot;Custom Text&amp;quot; element.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-               </widget>
+               <widget class="QLineEdit" name="le_custom_text"/>
               </item>
              </layout>
             </item>

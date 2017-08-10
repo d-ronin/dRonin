@@ -28,11 +28,12 @@
 #ifndef MIXERCURVEPOINT_H
 #define MIXERCURVEPOINT_H
 
+#include <uavobjectwidgetutils/uavobjectwidgetutils_global.h>
+
 #include <QGraphicsItem>
 #include <QColor>
 #include <QList>
 #include <QFont>
-#include <uavobjectwidgetutils/uavobjectwidgetutils_global.h>
 
 class Edge;
 class MixerCurveWidget;

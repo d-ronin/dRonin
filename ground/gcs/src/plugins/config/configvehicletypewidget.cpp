@@ -45,8 +45,6 @@
 #include "actuatorcommand.h"
 #include "actuatorsettings.h"
 #include "vehicletrim.h"
-#include <extensionsystem/pluginmanager.h>
-#include <coreplugin/generalsettings.h>
 
 /**
   Helper delegate for the custom mixer editor table.
@@ -101,13 +99,6 @@ ConfigVehicleTypeWidget::ConfigVehicleTypeWidget(QWidget *parent)
 {
     m_aircraft = new Ui_AircraftWidget();
     m_aircraft->setupUi(this);
-
-    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    Core::Internal::GeneralSettings *settings = pm->getObject<Core::Internal::GeneralSettings>();
-    if (!settings->useExpertMode())
-        m_aircraft->saveAircraftToRAM->setVisible(false);
-
-    addApplySaveButtons(m_aircraft->saveAircraftToRAM, m_aircraft->saveAircraftToSD);
 
     addUAVObject("SystemSettings");
     addUAVObject("MixerSettings");
@@ -252,9 +243,6 @@ ConfigVehicleTypeWidget::ConfigVehicleTypeWidget(QWidget *parent)
     connect(m_aircraft->bnServoTrim, &QAbstractButton::clicked, this,
             &ConfigVehicleTypeWidget::bnServoTrim_clicked);
 
-    // Connect the help pushbutton
-    connect(m_aircraft->airframeHelp, &QAbstractButton::clicked, this,
-            &ConfigVehicleTypeWidget::openHelp);
     enableControls(false);
     refreshWidgetsValues();
     addToDirtyMonitor();
@@ -624,9 +612,8 @@ void ConfigVehicleTypeWidget::setupAirframeUI(SystemSettings::AirframeTypeOption
   */
 void ConfigVehicleTypeWidget::resetField(UAVObjectField *field)
 {
-    for (unsigned int i = 0; i < field->getNumElements(); i++) {
+    for (auto i = 0; i < field->getNumElements(); i++)
         field->setValue(0, i);
-    }
 }
 
 /**
@@ -798,17 +785,6 @@ void ConfigVehicleTypeWidget::updateObjectsFromWidgets()
     ConfigTaskWidget::updateObjectsFromWidgets();
 
     updateCustomAirframeUI();
-}
-
-/**
- Opens the wiki from the user's default browser
- */
-void ConfigVehicleTypeWidget::openHelp()
-{
-
-    QDesktopServices::openUrl(
-        QUrl("https://github.com/d-ronin/dRonin/wiki/OnlineHelp:-Vehicle-configuration",
-             QUrl::StrictMode));
 }
 
 /**

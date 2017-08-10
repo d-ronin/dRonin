@@ -33,6 +33,9 @@
 #include "configstabilizationwidget.h"
 #include "manualcontrolsettings.h"
 
+#include <coreplugin/iboardtype.h>
+#include <uavobjectutil/uavobjectutilmanager.h>
+
 #include <QDebug>
 #include <QStringList>
 #include <QWidget>
@@ -42,9 +45,6 @@
 #include <QDesktopServices>
 #include <QUrl>
 #include <QList>
-
-#include <extensionsystem/pluginmanager.h>
-#include <coreplugin/generalsettings.h>
 
 ConfigStabilizationWidget::ConfigStabilizationWidget(QWidget *parent)
     : ConfigTaskWidget(parent)
@@ -56,12 +56,6 @@ ConfigStabilizationWidget::ConfigStabilizationWidget(QWidget *parent)
     m_stabilization->tabWidget->setCurrentIndex(0);
 
     updateInProgress = false;
-
-    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    Core::Internal::GeneralSettings *settings = pm->getObject<Core::Internal::GeneralSettings>();
-
-    if (!settings->useExpertMode())
-        m_stabilization->saveStabilizationToRAM_6->setVisible(false);
 
     // display switch arming not selected warning when hangtime enabled
     connect(m_stabilization->sbHangtimeDuration,

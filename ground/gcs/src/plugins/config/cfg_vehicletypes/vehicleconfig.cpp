@@ -25,13 +25,15 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 #include "cfg_vehicletypes/vehicleconfig.h"
-#include "extensionsystem/pluginmanager.h"
-#include "uavobjects/uavobjectmanager.h"
-#include "uavobjects/uavobject.h"
+#include <extensionsystem/pluginmanager.h>
+#include <uavobjects/uavobjectmanager.h>
+#include <uavobjects/uavobject.h>
+#include <uavobjects/uavobjectfield.h>
 
-#include "actuatorcommand.h"
+#include <actuatorcommand.h>
 
 #include <QDebug>
+#include <QPointer>
 
 const double VehicleConfig::mixerScale = 128.0;
 const double VehicleConfig::mixerRange = 256.0; /* For now cap to 2x in UI */
@@ -267,10 +269,9 @@ void VehicleConfig::setThrottleCurve(UAVDataObject *mixer,
     QPointer<UAVObjectField> field;
     field = mixer->getField(mixer->getField("Mixer1Vector")->getElementNames().at(curveType));
 
-    if (field && field->getNumElements() == (quint32)curve.length()) {
-        for (int i = 0; i < curve.length(); i++) {
+    if (field && field->getNumElements() == curve.length()) {
+        for (int i = 0; i < curve.length(); i++)
             field->setValue(curve.at(i), i);
-        }
     }
 }
 
@@ -286,7 +287,7 @@ void VehicleConfig::getThrottleCurve(UAVDataObject *mixer,
 
     if (field) {
         curve->clear();
-        for (unsigned int i = 0; i < field->getNumElements(); i++) {
+        for (auto i = 0; i < field->getNumElements(); i++) {
             curve->append(field->getValue(i).toDouble());
         }
     }
@@ -327,9 +328,8 @@ double VehicleConfig::getCurveMax(QList<double> *curve)
   */
 void VehicleConfig::resetField(UAVObjectField *field)
 {
-    for (unsigned int i = 0; i < field->getNumElements(); i++) {
+    for (auto i = 0; i < field->getNumElements(); i++)
         field->setValue(0, i);
-    }
 }
 
 /**

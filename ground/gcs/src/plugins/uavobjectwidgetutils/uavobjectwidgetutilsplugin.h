@@ -27,9 +27,11 @@
 #ifndef UAVOBJECTWIDGETUTILSPLUGIN_H
 #define UAVOBJECTWIDGETUTILSPLUGIN_H
 
-#include "uavobjectwidgetutils_global.h"
+#include <uavobjectwidgetutils/uavobjectwidgetutils_global.h>
 #include <extensionsystem/iplugin.h>
-#include <QtPlugin>
+
+#include <QObject>
+#include <QStringList>
 
 class UAVOBJECTWIDGETUTILS_EXPORT UAVObjectWidgetUtilsPlugin : public ExtensionSystem::IPlugin
 {
@@ -38,11 +40,11 @@ class UAVOBJECTWIDGETUTILS_EXPORT UAVObjectWidgetUtilsPlugin : public ExtensionS
 
 public:
     UAVObjectWidgetUtilsPlugin();
-    ~UAVObjectWidgetUtilsPlugin();
+    virtual ~UAVObjectWidgetUtilsPlugin() override;
 
-    void extensionsInitialized();
-    bool initialize(const QStringList &arguments, QString *errorString);
-    void shutdown();
+    virtual void extensionsInitialized() override;
+    virtual bool initialize(const QStringList &arguments, QString *errorString) override;
+    virtual void shutdown() override;
 };
 
 #endif

@@ -35,6 +35,20 @@
 
 #include "configautotunewidget.h"
 
+#include <uavobjectutil/devicedescriptorstruct.h>
+#include <uavobjectutil/uavobjectutilmanager.h>
+
+#include "manualcontrolsettings.h"
+#include "mixersettings.h"
+#include "modulesettings.h"
+#include "sensorsettings.h"
+#include "stabilizationsettings.h"
+#include "systemident.h"
+#include "systemsettings.h"
+#include "coreplugin/generalsettings.h"
+#include "extensionsystem/pluginmanager.h"
+#include "coreplugin/iboardtype.h"
+
 #include <QtAlgorithms>
 #include <QChartView>
 #include <QClipboard>
@@ -55,17 +69,6 @@
 #include <QWizard>
 #include <QtNetwork/QNetworkAccessManager>
 #include <QtNetwork/QNetworkRequest>
-
-#include "manualcontrolsettings.h"
-#include "mixersettings.h"
-#include "modulesettings.h"
-#include "sensorsettings.h"
-#include "stabilizationsettings.h"
-#include "systemident.h"
-#include "systemsettings.h"
-#include "coreplugin/generalsettings.h"
-#include "extensionsystem/pluginmanager.h"
-#include "coreplugin/iboardtype.h"
 
 //#define CONF_ATUNE_DEBUG
 #ifdef CONF_ATUNE_DEBUG

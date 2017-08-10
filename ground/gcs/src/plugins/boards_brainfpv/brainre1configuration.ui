@@ -60,7 +60,7 @@
         <x>0</x>
         <y>0</y>
         <width>970</width>
-        <height>772</height>
+        <height>767</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -881,6 +881,7 @@
        <property name="objrelation" stdset="0">
         <stringlist notr="true">
          <string>button:help</string>
+         <string>url:https://www.brainfpv.com/support/</string>
         </stringlist>
        </property>
       </widget>
@@ -921,6 +922,11 @@ Beware of not locking yourself out!</string>
        <property name="checkable">
         <bool>false</bool>
        </property>
+       <property name="objrelation" stdset="0">
+        <stringlist notr="true">
+         <string>button:apply</string>
+        </stringlist>
+       </property>
       </widget>
      </item>
      <item>
@@ -950,6 +956,11 @@ Beware of not locking yourself out!</string>
        <property name="text">
         <string>Save</string>
        </property>
+       <property name="objelation" stdset="0">
+        <stringlist notr="true">
+         <string>button:save</string>
+        </stringlist>
+       </property>
       </widget>
      </item>
      <item>
@@ -958,7 +969,7 @@ Beware of not locking yourself out!</string>
         <string>Reboot</string>
        </property>
        <property name="objrelation" stdset="0">
-        <string>button:reboot</string>
+        <string notr="true">button:reboot</string>
        </property>
       </widget>
      </item>

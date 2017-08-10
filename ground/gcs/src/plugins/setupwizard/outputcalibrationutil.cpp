@@ -31,6 +31,8 @@
 #include "vehicleconfigurationhelper.h"
 #include "manualcontrolsettings.h"
 
+#include <QDebug>
+
 OutputCalibrationUtil::OutputCalibrationUtil(QObject *parent)
     : QObject(parent)
     , m_outputChannel(-1)

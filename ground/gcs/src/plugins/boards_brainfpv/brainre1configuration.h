@@ -45,7 +45,6 @@ public:
     ~BrainRE1Configuration();
 
 private slots:
-    void openHelp();
     void widgetsContentsChanged();
     void generateILapID();
     void generateTrackmateID();

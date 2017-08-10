@@ -32,12 +32,17 @@
  */
 #include "configtaskwidget.h"
 #include "connectiondiagram.h"
-#include <QWidget>
-#include <QLineEdit>
-#include "uavsettingsimportexport/uavsettingsimportexportmanager.h"
+#include "smartsavebutton.h"
+#include "mixercurvewidget.h"
+
 #include <coreplugin/connectionmanager.h>
 #include <coreplugin/icore.h>
+#include <uavsettingsimportexport/uavsettingsimportexportmanager.h>
+#include <uavtalk/telemetrymanager.h>
 #include <utils/longlongspinbox.h>
+
+#include <QWidget>
+#include <QLineEdit>
 
 /**
  * Constructor
@@ -91,36 +96,7 @@ void ConfigTaskWidget::addUAVObject(UAVObject *objectName, QList<int> *reloadGro
         objstr = objectName->getName();
     addUAVObject(objstr, reloadGroups);
 }
-/**
- * Add an UAVObject field to widget relation to the management system
- * @param object name of the object to add
- * @param field name of the field to add
- * @param widget pointer to the widget whitch will display/define the field value
- * @param index index of the field element to add to this relation
- */
-void ConfigTaskWidget::addUAVObjectToWidgetRelation(QString object, QString field, QWidget *widget,
-                                                    QString index)
-{
-    UAVObject *obj = NULL;
-    UAVObjectField *_field = NULL;
-    obj = objManager->getObject(QString(object));
-    Q_ASSERT(obj);
-    _field = obj->getField(QString(field));
-    Q_ASSERT(_field);
-    addUAVObjectToWidgetRelation(object, field, widget, _field->getElementNames().indexOf(index));
-}
 
-void ConfigTaskWidget::addUAVObjectToWidgetRelation(UAVObject *obj, UAVObjectField *field,
-                                                    QWidget *widget, QString index)
-{
-    QString objstr;
-    QString fieldstr;
-    if (obj)
-        objstr = obj->getName();
-    if (field)
-        fieldstr = field->getName();
-    addUAVObjectToWidgetRelation(objstr, fieldstr, widget, index);
-}
 /**
  * Add a UAVObject field to widget relation to the management system
  * @param object name of the object to add
@@ -129,60 +105,43 @@ void ConfigTaskWidget::addUAVObjectToWidgetRelation(UAVObject *obj, UAVObjectFie
  * @param element name of the element of the field element to add to this relation
  * @param scale scale value of this relation
  * @param isLimited bool to signal if this widget contents is limited in value
+ * @param useUnits Use units from UAVO field definition on the widget (e.g. suffix)
  * @param defaultReloadGroups default and reload groups this relation belongs to
  * @param instID instance ID of the object used on this relation
+ * @param oneWayBinding Is the data binding one-way i.e. widget values are not written to object
  */
-void ConfigTaskWidget::addUAVObjectToWidgetRelation(QString object, QString field, QWidget *widget,
+void ConfigTaskWidget::addUAVObjectToWidgetRelation(QString objectName, QString fieldName, QWidget *widget,
                                                     QString element, double scale, bool isLimited,
                                                     bool useUnits, QList<int> *defaultReloadGroups,
-                                                    quint32 instID)
+                                                    quint32 instID, bool oneWayBind)
 {
-    UAVObject *obj = objManager->getObject(QString(object), instID);
-    Q_ASSERT(obj);
-    UAVObjectField *_field;
-    int index = 0;
-    if (!field.isEmpty() && obj) {
-        _field = obj->getField(QString(field));
-        if (!element.isEmpty())
-            index = _field->getElementNames().indexOf(QString(element));
+    UAVObject *obj = objManager->getObject(objectName, instID);
+    if (!obj) {
+        Q_ASSERT(false);
+        qWarning() << "Failed to get object" << objectName;
+        return;
     }
-    addUAVObjectToWidgetRelation(object, field, widget, index, scale, isLimited, useUnits,
-                                 defaultReloadGroups, instID);
-}
 
-void ConfigTaskWidget::addUAVObjectToWidgetRelation(UAVObject *obj, UAVObjectField *field,
-                                                    QWidget *widget, QString element, double scale,
-                                                    bool isLimited, bool useUnits,
-                                                    QList<int> *defaultReloadGroups, quint32 instID)
-{
-    QString objstr;
-    QString fieldstr;
-    if (obj)
-        objstr = obj->getName();
-    if (field)
-        fieldstr = field->getName();
-    addUAVObjectToWidgetRelation(objstr, fieldstr, widget, element, scale, isLimited, useUnits,
-                                 defaultReloadGroups, instID);
-}
-void ConfigTaskWidget::addUAVObjectToWidgetRelation(UAVObject *obj, UAVObjectField *field,
-                                                    QWidget *widget, int index, double scale,
-                                                    bool isLimited, bool useUnits,
-                                                    QList<int> *defaultReloadGroups, quint32 instID)
-{
-    QString objstr;
-    QString fieldstr;
-    if (obj)
-        objstr = obj->getName();
-    if (field)
-        fieldstr = field->getName();
-    addUAVObjectToWidgetRelation(objstr, fieldstr, widget, index, scale, isLimited, useUnits,
-                                 defaultReloadGroups, instID);
+    // turn element string into index
+    int index = 0;
+    if (!fieldName.isEmpty() && !element.isEmpty()) {
+        const auto field = obj->getField(QString(fieldName));
+        if (!field) {
+            Q_ASSERT(false);
+            qWarning() << "Failed to get object field" << objectName << fieldName;
+            return;
+        }
+        index = field->getElementIndex(element);
+    }
+
+    addUAVObjectToWidgetRelation(objectName, fieldName, widget, index, scale, isLimited, useUnits,
+                                 defaultReloadGroups, instID, oneWayBind);
 }
 
 void ConfigTaskWidget::addUAVObjectToWidgetRelation(QString object, QString field, QWidget *widget,
                                                     int index, double scale, bool isLimited,
                                                     bool useUnits, QList<int> *defaultReloadGroups,
-                                                    quint32 instID)
+                                                    quint32 instID, bool oneWayBind)
 {
     if (addShadowWidget(object, field, widget, index, scale, isLimited, useUnits,
                         defaultReloadGroups, instID))
@@ -215,6 +174,7 @@ void ConfigTaskWidget::addUAVObjectToWidgetRelation(QString object, QString fiel
     ow->scale = scale;
     ow->isLimited = isLimited;
     ow->useUnits = useUnits;
+    ow->oneWayBind = oneWayBind;
     objOfInterest.append(ow);
 
     // QLabel is a one-way binding, don't try to save it
@@ -426,8 +386,8 @@ void ConfigTaskWidget::refreshWidgetsValues(UAVObject *obj)
 void ConfigTaskWidget::updateObjectsFromWidgets()
 {
     emit updateObjectsFromWidgetsRequested();
-    foreach (objectToWidget *ow, objOfInterest) {
-        if (ow->object && ow->field)
+    for (const auto ow : objOfInterest) {
+        if (ow->object && ow->field && !ow->oneWayBind)
             setFieldFromWidget(ow->widget, ow->field, ow->index, ow->scale, ow->useUnits);
     }
 }
@@ -754,9 +714,11 @@ void ConfigTaskWidget::autoLoadWidgets()
             uiRelationAutomation uiRelation;
             uiRelation.buttonType = none;
             uiRelation.scale = 1;
+            uiRelation.instanceId = 0;
             uiRelation.element = QString();
             uiRelation.haslimits = false;
             uiRelation.useUnits = false;
+            uiRelation.oneWayBind = false;
             foreach (QString str, info.toStringList()) {
                 QString prop = str.split(":").at(0);
                 QString value = str.split(":").at(1);
@@ -801,10 +763,11 @@ void ConfigTaskWidget::autoLoadWidgets()
                 } else if (prop == "uncheckedoption") {
                     widget->setProperty("unCheckedOption", value);
                 } else if (prop == "useunits") {
-                    if (value == "yes")
-                        uiRelation.useUnits = true;
-                    else
-                        uiRelation.useUnits = false;
+                    uiRelation.useUnits = value == "yes";
+                } else if (prop == "onewaybind") {
+                    uiRelation.oneWayBind = value == "yes";
+                } else if (prop == "instance") {
+                    uiRelation.instanceId = value.toUInt();
                 }
             }
 
@@ -867,7 +830,8 @@ void ConfigTaskWidget::autoLoadWidgets()
                     addUAVObjectToWidgetRelation(uiRelation.objname, uiRelation.fieldname, wid,
                                                  uiRelation.element, uiRelation.scale,
                                                  uiRelation.haslimits, uiRelation.useUnits,
-                                                 &uiRelation.buttonGroup);
+                                                 &uiRelation.buttonGroup, uiRelation.instanceId,
+                                                 uiRelation.oneWayBind);
                 }
             }
         }
@@ -1178,6 +1142,15 @@ void ConfigTaskWidget::disconnectWidgetUpdatesToSlot(QWidget *widget, const char
                  << widget->objectName() << "of class:" << widget->metaObject()->className();
 }
 
+bool ConfigTaskWidget::widgetReadOnly(QWidget *widget) const
+{
+    if (qobject_cast<QLabel *>(widget)) // Labels are readonly
+        return true;
+    if (auto le = qobject_cast<QLineEdit *>(widget))
+        return le->isReadOnly();
+    return false;
+}
+
 /**
  * Sets a widget value from an UAVObject field
  * @param widget pointer for the widget to set
@@ -1189,14 +1162,13 @@ void ConfigTaskWidget::disconnectWidgetUpdatesToSlot(QWidget *widget, const char
 bool ConfigTaskWidget::setFieldFromWidget(QWidget *widget, UAVObjectField *field, int index,
                                           double scale, bool usesUnits)
 {
-    if (!widget || !field)
+    if (!widget || !field || widgetReadOnly(widget))
         return false;
+
     QVariant ret = getVariantFromWidget(widget, scale, usesUnits);
     if (ret.isValid()) {
         field->setValue(ret, index);
         return true;
-    } else if (qobject_cast<QLabel *>(widget)) { // Labels are readonly
-        return false;
     } else {
         qDebug() << __FUNCTION__ << "widget to uavobject relation not implemented for widget: "
                  << widget->objectName() << "of class:" << widget->metaObject()->className();

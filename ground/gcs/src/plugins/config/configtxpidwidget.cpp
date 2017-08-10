@@ -25,10 +25,6 @@
  */
 
 #include "configtxpidwidget.h"
-#include "txpidsettings.h"
-#include "modulesettings.h"
-#include <extensionsystem/pluginmanager.h>
-#include <coreplugin/generalsettings.h>
 
 ConfigTxPIDWidget::ConfigTxPIDWidget(QWidget *parent)
     : ConfigTaskWidget(parent)
@@ -36,59 +32,9 @@ ConfigTxPIDWidget::ConfigTxPIDWidget(QWidget *parent)
     m_txpid = new Ui_TxPIDWidget();
     m_txpid->setupUi(this);
 
-    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    Core::Internal::GeneralSettings *settings = pm->getObject<Core::Internal::GeneralSettings>();
-    if (!settings->useExpertMode())
-        m_txpid->Apply->setVisible(false);
     autoLoadWidgets();
-    addApplySaveButtons(m_txpid->Apply, m_txpid->Save);
-
-    // Cannot use addUAVObjectToWidgetRelation() for OptionaModules enum because
-    // QCheckBox returns bool (0 or -1) and this value is then set to enum instead
-    // or enum options
-    connect(ModuleSettings::GetInstance(getObjectManager()), &UAVObject::objectUpdated, this,
-            &ConfigTxPIDWidget::refreshValues);
-    connect(m_txpid->Apply, &QAbstractButton::clicked, this, &ConfigTxPIDWidget::applySettings);
-    connect(m_txpid->Save, &QAbstractButton::clicked, this, &ConfigTxPIDWidget::saveSettings);
-
-    addUAVObjectToWidgetRelation("TxPIDSettings", "PIDs", m_txpid->PID1,
-                                 TxPIDSettings::PIDS_INSTANCE1);
-    addUAVObjectToWidgetRelation("TxPIDSettings", "PIDs", m_txpid->PID2,
-                                 TxPIDSettings::PIDS_INSTANCE2);
-    addUAVObjectToWidgetRelation("TxPIDSettings", "PIDs", m_txpid->PID3,
-                                 TxPIDSettings::PIDS_INSTANCE3);
-
-    addUAVObjectToWidgetRelation("TxPIDSettings", "Inputs", m_txpid->Input1,
-                                 TxPIDSettings::INPUTS_INSTANCE1);
-    addUAVObjectToWidgetRelation("TxPIDSettings", "Inputs", m_txpid->Input2,
-                                 TxPIDSettings::INPUTS_INSTANCE2);
-    addUAVObjectToWidgetRelation("TxPIDSettings", "Inputs", m_txpid->Input3,
-                                 TxPIDSettings::INPUTS_INSTANCE3);
-
-    addUAVObjectToWidgetRelation("TxPIDSettings", "MinPID", m_txpid->MinPID1,
-                                 TxPIDSettings::MINPID_INSTANCE1);
-    addUAVObjectToWidgetRelation("TxPIDSettings", "MinPID", m_txpid->MinPID2,
-                                 TxPIDSettings::MINPID_INSTANCE2);
-    addUAVObjectToWidgetRelation("TxPIDSettings", "MinPID", m_txpid->MinPID3,
-                                 TxPIDSettings::MINPID_INSTANCE3);
-
-    addUAVObjectToWidgetRelation("TxPIDSettings", "MaxPID", m_txpid->MaxPID1,
-                                 TxPIDSettings::MAXPID_INSTANCE1);
-    addUAVObjectToWidgetRelation("TxPIDSettings", "MaxPID", m_txpid->MaxPID2,
-                                 TxPIDSettings::MAXPID_INSTANCE2);
-    addUAVObjectToWidgetRelation("TxPIDSettings", "MaxPID", m_txpid->MaxPID3,
-                                 TxPIDSettings::MAXPID_INSTANCE3);
-
-    addUAVObjectToWidgetRelation("TxPIDSettings", "ThrottleRange", m_txpid->ThrottleMin,
-                                 TxPIDSettings::THROTTLERANGE_MIN);
-    addUAVObjectToWidgetRelation("TxPIDSettings", "ThrottleRange", m_txpid->ThrottleMax,
-                                 TxPIDSettings::THROTTLERANGE_MAX);
-
-    addUAVObjectToWidgetRelation("TxPIDSettings", "UpdateMode", m_txpid->UpdateMode);
 
     setNotMandatory("TxPIDSettings");
-
-    addWidget(m_txpid->TxPIDEnable);
 
     enableControls(false);
     populateWidgets();
@@ -100,31 +46,6 @@ ConfigTxPIDWidget::ConfigTxPIDWidget(QWidget *parent)
 ConfigTxPIDWidget::~ConfigTxPIDWidget()
 {
     // Do nothing
-}
-
-void ConfigTxPIDWidget::refreshValues()
-{
-    ModuleSettings *moduleSettings = ModuleSettings::GetInstance(getObjectManager());
-    ModuleSettings::DataFields moduleSettingsData = moduleSettings->getData();
-    m_txpid->TxPIDEnable->setChecked(moduleSettingsData.AdminState[ModuleSettings::ADMINSTATE_TXPID]
-                                     == ModuleSettings::ADMINSTATE_ENABLED);
-}
-
-void ConfigTxPIDWidget::applySettings()
-{
-    ModuleSettings *moduleSettings = ModuleSettings::GetInstance(getObjectManager());
-    ModuleSettings::DataFields moduleSettingsData = moduleSettings->getData();
-    moduleSettingsData.AdminState[ModuleSettings::ADMINSTATE_TXPID] =
-        m_txpid->TxPIDEnable->isChecked() ? ModuleSettings::ADMINSTATE_ENABLED
-                                          : ModuleSettings::ADMINSTATE_DISABLED;
-    moduleSettings->setData(moduleSettingsData);
-}
-
-void ConfigTxPIDWidget::saveSettings()
-{
-    applySettings();
-    UAVObject *obj = ModuleSettings::GetInstance(getObjectManager());
-    saveObjectToSD(obj);
 }
 
 /**

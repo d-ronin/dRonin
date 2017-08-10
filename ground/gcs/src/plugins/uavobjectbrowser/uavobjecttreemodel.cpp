@@ -273,7 +273,7 @@ void UAVObjectTreeModel::addArrayField(UAVObjectField *field, TreeItem *parent)
 {
     TreeItem *item = new ArrayFieldTreeItem(field->getName());
     item->setHighlightManager(m_highlightManager);
-    for (uint i = 0; i < field->getNumElements(); ++i) {
+    for (auto i = 0; i < field->getNumElements(); ++i) {
         addSingleField(i, field, item);
     }
     item->setDescription(field->getDescription());

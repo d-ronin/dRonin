@@ -73,8 +73,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>745</width>
-            <height>592</height>
+            <width>750</width>
+            <height>604</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout">
@@ -1169,7 +1169,7 @@ value.</string>
         <bool>true</bool>
        </property>
        <property name="objrelation" stdset="0">
-        <stringlist>
+        <stringlist notr="true">
          <string>button:help</string>
          <string>url:https://github.com/d-ronin/dRonin/wiki/OnlineHelp:-Camera-Stabilization-Configuration</string>
         </stringlist>
@@ -1200,7 +1200,7 @@ Apply or Save button afterwards.</string>
         <string>Reset To Defaults</string>
        </property>
        <property name="objrelation" stdset="0">
-        <stringlist>
+        <stringlist notr="true">
          <string>button:default</string>
          <string>buttongroup:1</string>
         </stringlist>
@@ -1233,7 +1233,7 @@ Apply or Save button afterwards.</string>
         <string>Reload Board Data</string>
        </property>
        <property name="objrelation" stdset="0">
-        <stringlist>
+        <stringlist notr="true">
          <string>button:reload</string>
          <string>buttongroup:1</string>
         </stringlist>
@@ -1261,7 +1261,7 @@ Apply or Save button afterwards.</string>
         <string>Apply</string>
        </property>
        <property name="objrelation" stdset="0">
-        <stringlist>
+        <stringlist notr="true">
          <string>button:apply</string>
         </stringlist>
        </property>
@@ -1291,7 +1291,7 @@ Apply or Save button afterwards.</string>
         <bool>false</bool>
        </property>
        <property name="objrelation" stdset="0">
-        <stringlist>
+        <stringlist notr="true">
          <string>button:save</string>
         </stringlist>
        </property>
@@ -1305,6 +1305,7 @@ Apply or Save button afterwards.</string>
   <tabstop>scrollArea</tabstop>
  </tabstops>
  <resources>
+  <include location="../coreplugin/core.qrc"/>
   <include location="../coreplugin/core.qrc"/>
  </resources>
  <connections/>

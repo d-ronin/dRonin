@@ -70,8 +70,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>838</width>
-            <height>668</height>
+            <width>840</width>
+            <height>666</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -1198,6 +1198,12 @@ Leave at 50Hz for fixed wing.</string>
        <property name="flat">
         <bool>true</bool>
        </property>
+       <property name="objrelation" stdset="0">
+        <stringlist notr="true">
+         <string>button:help</string>
+         <string>url:https://github.com/d-ronin/dRonin/wiki/OnlineHelp:-Output-Configuration</string>
+        </stringlist>
+       </property>
       </widget>
      </item>
      <item>
@@ -1224,6 +1230,11 @@ Be sure to set the Neutral position on all sliders before sending!</string>
        <property name="text">
         <string>Apply</string>
        </property>
+       <property name="objrelation" stdset="0">
+        <stringlist notr="true">
+         <string>button:apply</string>
+        </stringlist>
+       </property>
       </widget>
      </item>
      <item>
@@ -1249,6 +1260,11 @@ Applies and Saves all settings to SD</string>
        </property>
        <property name="text">
         <string>Save</string>
+       </property>
+       <property name="objrelation" stdset="0">
+        <stringlist notr="true">
+         <string>button:save</string>
+        </stringlist>
        </property>
       </widget>
      </item>

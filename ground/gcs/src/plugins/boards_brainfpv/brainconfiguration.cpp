@@ -38,7 +38,6 @@ BrainConfiguration::BrainConfiguration(QWidget *parent)
 {
     ui->setupUi(this);
 
-    addApplySaveButtons(ui->applySettings, ui->saveSettings);
     addUAVObjectToWidgetRelation("HwBrain", "RxPort", ui->cmbRxPort);
     addUAVObjectToWidgetRelation("HwBrain", "RxPortUsart", ui->cmbRxPortUsart);
     addUAVObjectToWidgetRelation("HwBrain", "MainPort", ui->cmbMainPort);
@@ -71,9 +70,4 @@ BrainConfiguration::BrainConfiguration(QWidget *parent)
 BrainConfiguration::~BrainConfiguration()
 {
     delete ui;
-}
-
-void BrainConfiguration::openHelp()
-{
-    QDesktopServices::openUrl(QUrl("http://www.brainfpv.com/support", QUrl::StrictMode));
 }

@@ -58,44 +58,19 @@ public:
 private slots:
     void movePageSlider();
     void updatePositionSlider();
-    void handle_button_0_1();
-    void handle_button_0_2();
-    void handle_button_0_3();
-
-    void handle_button_1_0();
-    void handle_button_1_2();
-    void handle_button_1_3();
-
-    void handle_button_2_0();
-    void handle_button_2_1();
-    void handle_button_2_3();
-
-    void handle_button_3_0();
-    void handle_button_3_1();
-    void handle_button_3_2();
-
     void setCustomText();
     void getCustomText();
 
 private:
-    void setupOsdPage(Ui::OsdPage *page, QWidget *page_widget, UAVObject *settings);
+    void setupOsdPage(Ui::OsdPage *page, QWidget *page_widget, const QString &objName);
     void copyOsdPage(int to, int from);
     quint8 scaleSwitchChannel(quint8 channelNumber, quint8 switchPositions);
-    QVariant getVariantFromWidget(QWidget *widget, double scale, bool usesUnits = false);
-    bool setWidgetFromVariant(QWidget *widget, QVariant value, double scale, QString units = "");
-
-    static QString trueString;
-    static QString falseString;
 
     Ui::Osd *ui;
     Ui::OsdPage *ui_pages[4];
     QWidget *pages[4];
 
     OnScreenDisplaySettings *osdSettingsObj;
-    OnScreenDisplayPageSettings *osdPageSettingsObj;
-    OnScreenDisplayPageSettings2 *osdPageSettings2Obj;
-    OnScreenDisplayPageSettings3 *osdPageSettings3Obj;
-    OnScreenDisplayPageSettings4 *osdPageSettings4Obj;
 
     ManualControlSettings *manualSettingsObj;
     ManualControlSettings::DataFields manualSettingsData;

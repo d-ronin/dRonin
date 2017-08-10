@@ -5,6 +5,8 @@
 #include "gcsreceiver.h"
 
 #include <coreplugin/iboardtype.h>
+#include <uavobjectutil/uavobjectutilmanager.h>
+#include <uavtalk/telemetrymanager.h>
 
 inputChannelForm::inputChannelForm(QWidget *parent, bool showlegend, bool showSlider,
                                    ChannelFunc chanType)

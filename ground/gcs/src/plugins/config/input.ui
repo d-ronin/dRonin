@@ -64,8 +64,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>865</width>
-            <height>589</height>
+            <width>867</width>
+            <height>587</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout">
@@ -261,17 +261,22 @@
                     </item>
                     <item row="0" column="2">
                      <widget class="QDoubleSpinBox" name="deadband">
-                      <property name="toolTip">
-                       <string>Stick deadband in percents of full range (0-10), zero to disable</string>
-                      </property>
                       <property name="decimals">
                        <number>1</number>
                       </property>
                       <property name="maximum">
-                       <double>10.000000000000000</double>
+                       <double>100.000000000000000</double>
                       </property>
                       <property name="singleStep">
                        <double>0.100000000000000</double>
+                      </property>
+                      <property name="objrelation" stdset="0">
+                       <stringlist notr="true">
+                        <string>objname:ManualControlSettings</string>
+                        <string>fieldname:Deadband</string>
+                        <string>haslimits:yes</string>
+                        <string>scale:0.01</string>
+                       </stringlist>
                       </property>
                      </widget>
                     </item>
@@ -451,8 +456,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>865</width>
-            <height>589</height>
+            <width>867</width>
+            <height>587</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_13">
@@ -702,6 +707,13 @@ Setup the flight mode channel on the RC Input tab if you have not done so alread
                   <property name="toolTip">
                    <string>Select the stabilization mode on this position (manual/stabilized/auto)</string>
                   </property>
+                  <property name="objrelation" stdset="0">
+                   <stringlist notr="true">
+                    <string>objname:ManualControlSettings</string>
+                    <string>fieldname:FlightModePosition</string>
+                    <string>element:0</string>
+                   </stringlist>
+                  </property>
                  </widget>
                 </item>
                 <item>
@@ -709,12 +721,26 @@ Setup the flight mode channel on the RC Input tab if you have not done so alread
                   <property name="focusPolicy">
                    <enum>Qt::StrongFocus</enum>
                   </property>
+                  <property name="objrelation" stdset="0">
+                   <stringlist notr="true">
+                    <string>objname:ManualControlSettings</string>
+                    <string>fieldname:FlightModePosition</string>
+                    <string>element:1</string>
+                   </stringlist>
+                  </property>
                  </widget>
                 </item>
                 <item>
                  <widget class="QComboBox" name="fmsModePos3">
                   <property name="focusPolicy">
                    <enum>Qt::StrongFocus</enum>
+                  </property>
+                  <property name="objrelation" stdset="0">
+                   <stringlist notr="true">
+                    <string>objname:ManualControlSettings</string>
+                    <string>fieldname:FlightModePosition</string>
+                    <string>element:2</string>
+                   </stringlist>
                   </property>
                  </widget>
                 </item>
@@ -729,6 +755,13 @@ Setup the flight mode channel on the RC Input tab if you have not done so alread
                   <property name="toolTip">
                    <string>Select the stabilization mode on this position (manual/stabilized/auto)</string>
                   </property>
+                  <property name="objrelation" stdset="0">
+                   <stringlist notr="true">
+                    <string>objname:ManualControlSettings</string>
+                    <string>fieldname:FlightModePosition</string>
+                    <string>element:3</string>
+                   </stringlist>
+                  </property>
                  </widget>
                 </item>
                 <item>
@@ -739,6 +772,13 @@ Setup the flight mode channel on the RC Input tab if you have not done so alread
                   <property name="focusPolicy">
                    <enum>Qt::StrongFocus</enum>
                   </property>
+                  <property name="objrelation" stdset="0">
+                   <stringlist notr="true">
+                    <string>objname:ManualControlSettings</string>
+                    <string>fieldname:FlightModePosition</string>
+                    <string>element:4</string>
+                   </stringlist>
+                  </property>
                  </widget>
                 </item>
                 <item>
@@ -748,6 +788,13 @@ Setup the flight mode channel on the RC Input tab if you have not done so alread
                   </property>
                   <property name="focusPolicy">
                    <enum>Qt::StrongFocus</enum>
+                  </property>
+                  <property name="objrelation" stdset="0">
+                   <stringlist notr="true">
+                    <string>objname:ManualControlSettings</string>
+                    <string>fieldname:FlightModePosition</string>
+                    <string>element:5</string>
+                   </stringlist>
                   </property>
                  </widget>
                 </item>
@@ -797,6 +844,12 @@ channel value for each flight mode.</string>
                     </property>
                     <property name="value">
                      <number>3</number>
+                    </property>
+                    <property name="objrelation" stdset="0">
+                     <stringlist notr="true">
+                      <string>objname:ManualControlSettings</string>
+                      <string>fieldname:FlightModeNumber</string>
+                     </stringlist>
                     </property>
                    </widget>
                   </item>
@@ -900,6 +953,12 @@ channel value for each flight mode.</string>
                 <property name="focusPolicy">
                  <enum>Qt::StrongFocus</enum>
                 </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:ManualControlSettings</string>
+                  <string>fieldname:Stabilization2Reprojection</string>
+                 </stringlist>
+                </property>
                </widget>
               </item>
               <item row="2" column="1">
@@ -922,6 +981,13 @@ channel value for each flight mode.</string>
                <widget class="QComboBox" name="fmsSsPos3Roll">
                 <property name="focusPolicy">
                  <enum>Qt::StrongFocus</enum>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:ManualControlSettings</string>
+                  <string>fieldname:Stabilization3Settings</string>
+                  <string>element:Roll</string>
+                 </stringlist>
                 </property>
                </widget>
               </item>
@@ -995,6 +1061,13 @@ margin:1px;</string>
                 <property name="focusPolicy">
                  <enum>Qt::StrongFocus</enum>
                 </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:ManualControlSettings</string>
+                  <string>fieldname:Stabilization3Settings</string>
+                  <string>element:Yaw</string>
+                 </stringlist>
+                </property>
                </widget>
               </item>
               <item row="2" column="0">
@@ -1012,12 +1085,26 @@ margin:1px;</string>
                 <property name="focusPolicy">
                  <enum>Qt::StrongFocus</enum>
                 </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:ManualControlSettings</string>
+                  <string>fieldname:Stabilization3Settings</string>
+                  <string>element:Pitch</string>
+                 </stringlist>
+                </property>
                </widget>
               </item>
               <item row="2" column="6">
                <widget class="QComboBox" name="fmsSsPos2Yaw">
                 <property name="focusPolicy">
                  <enum>Qt::StrongFocus</enum>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:ManualControlSettings</string>
+                  <string>fieldname:Stabilization2Settings</string>
+                  <string>element:Yaw</string>
+                 </stringlist>
                 </property>
                </widget>
               </item>
@@ -1084,6 +1171,13 @@ margin:1px;</string>
                 <property name="focusPolicy">
                  <enum>Qt::StrongFocus</enum>
                 </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:ManualControlSettings</string>
+                  <string>fieldname:Stabilization2Settings</string>
+                  <string>element:Pitch</string>
+                 </stringlist>
+                </property>
                </widget>
               </item>
               <item row="1" column="6">
@@ -1097,12 +1191,26 @@ margin:1px;</string>
                 <property name="focusPolicy">
                  <enum>Qt::StrongFocus</enum>
                 </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:ManualControlSettings</string>
+                  <string>fieldname:Stabilization1Settings</string>
+                  <string>element:Yaw</string>
+                 </stringlist>
+                </property>
                </widget>
               </item>
               <item row="2" column="2">
                <widget class="QComboBox" name="fmsSsPos2Roll">
                 <property name="focusPolicy">
                  <enum>Qt::StrongFocus</enum>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:ManualControlSettings</string>
+                  <string>fieldname:Stabilization2Settings</string>
+                  <string>element:Roll</string>
+                 </stringlist>
                 </property>
                </widget>
               </item>
@@ -1117,6 +1225,13 @@ margin:1px;</string>
                 <property name="focusPolicy">
                  <enum>Qt::StrongFocus</enum>
                 </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:ManualControlSettings</string>
+                  <string>fieldname:Stabilization1Settings</string>
+                  <string>element:Roll</string>
+                 </stringlist>
+                </property>
                </widget>
               </item>
               <item row="1" column="4">
@@ -1129,6 +1244,13 @@ margin:1px;</string>
                 </property>
                 <property name="focusPolicy">
                  <enum>Qt::StrongFocus</enum>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:ManualControlSettings</string>
+                  <string>fieldname:Stabilization1Settings</string>
+                  <string>element:Pitch</string>
+                 </stringlist>
                 </property>
                </widget>
               </item>
@@ -1207,6 +1329,12 @@ margin:1px;</string>
                 <property name="focusPolicy">
                  <enum>Qt::StrongFocus</enum>
                 </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:ManualControlSettings</string>
+                  <string>fieldname:Stabilization1Reprojection</string>
+                 </stringlist>
+                </property>
                </widget>
               </item>
               <item row="3" column="8">
@@ -1219,6 +1347,12 @@ margin:1px;</string>
                 </property>
                 <property name="focusPolicy">
                  <enum>Qt::StrongFocus</enum>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:ManualControlSettings</string>
+                  <string>fieldname:Stabilization3Reprojection</string>
+                 </stringlist>
                 </property>
                </widget>
               </item>
@@ -1320,8 +1454,8 @@ margin:1px;</string>
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>865</width>
-            <height>589</height>
+            <width>867</width>
+            <height>587</height>
            </rect>
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -2128,6 +2262,12 @@ margin:1px;</string>
        <property name="flat">
         <bool>true</bool>
        </property>
+       <property name="objrelation" stdset="0">
+        <stringlist notr="true">
+         <string>button:help</string>
+         <string>url:https://github.com/d-ronin/dRonin/wiki/OnlineHelp:-Input-Configuration</string>
+        </stringlist>
+       </property>
       </widget>
      </item>
      <item>
@@ -2154,6 +2294,11 @@ Be sure to set the Neutral position on all sliders before sending!</string>
        <property name="text">
         <string>Apply</string>
        </property>
+       <property name="objrelation" stdset="0">
+        <stringlist notr="true">
+         <string>button:apply</string>
+        </stringlist>
+       </property>
       </widget>
      </item>
      <item>
@@ -2179,6 +2324,11 @@ Applies and Saves all settings to SD</string>
        </property>
        <property name="text">
         <string>Save</string>
+       </property>
+       <property name="objrelation" stdset="0">
+        <stringlist notr="true">
+         <string>button:save</string>
+        </stringlist>
        </property>
       </widget>
      </item>

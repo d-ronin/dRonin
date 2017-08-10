@@ -38,14 +38,14 @@
 #include <cfloat>
 
 UAVObjectField::UAVObjectField(const QString &name, const QString &units, FieldType type,
-                               quint32 numElements, const QStringList &options,
+                               int numElements, const QStringList &options,
                                const QList<int> &indices, const QString &limits,
                                const QString &description, const QList<QVariant> defaultValues,
                                const DisplayType display)
 {
     QStringList elementNames;
     // Set element names
-    for (quint32 n = 0; n < numElements; ++n) {
+    for (auto n = 0; n < numElements; ++n) {
         elementNames.append(QString("%1").arg(n));
     }
     // Initialize
@@ -87,46 +87,48 @@ void UAVObjectField::constructorInitialize(const QString &name, const QString &u
     // Set field size
     switch (type) {
     case INT8:
-        numBytesPerElement = sizeof(qint8);
+        elementSize = sizeof(qint8);
         break;
     case INT16:
-        numBytesPerElement = sizeof(qint16);
+        elementSize = sizeof(qint16);
         break;
     case INT32:
-        numBytesPerElement = sizeof(qint32);
+        elementSize = sizeof(qint32);
         break;
     case UINT8:
-        numBytesPerElement = sizeof(quint8);
+        elementSize = sizeof(quint8);
         break;
     case UINT16:
-        numBytesPerElement = sizeof(quint16);
+        elementSize = sizeof(quint16);
         break;
     case UINT32:
-        numBytesPerElement = sizeof(quint32);
+        elementSize = sizeof(quint32);
         break;
     case FLOAT32:
-        numBytesPerElement = sizeof(quint32);
+        elementSize = sizeof(quint32);
         break;
     case ENUM:
-        numBytesPerElement = sizeof(quint8);
+        elementSize = sizeof(quint8);
         break;
     case BITFIELD:
-        numBytesPerElement = sizeof(quint8);
+        elementSize = sizeof(quint8);
         this->options = QStringList() << tr("0") << tr("1");
         this->indices = QList<int>() << 0 << 1;
         break;
     case STRING:
-        numBytesPerElement = sizeof(quint8);
+        elementSize = sizeof(quint8);
         break;
-    default:
-        numBytesPerElement = 0;
     }
     limitsInitialize(limits);
 
     // store default values, default to zero when not provided
     this->defaultValues = defaultValues;
-    for (quint32 i = this->defaultValues.length(); i < this->numElements; i++)
+    for (auto i = this->defaultValues.length(); i < this->numElements; i++)
         this->defaultValues << QVariant(0);
+
+    // fast lookup
+    for (int i = 0; i < indices.length(); i++)
+        enumToIndex.emplace(std::make_pair(indices.at(i), i));
 }
 
 void UAVObjectField::limitsInitialize(const QString &limits)
@@ -140,7 +142,7 @@ void UAVObjectField::limitsInitialize(const QString &limits)
     if (limits.isEmpty())
         return;
     QStringList stringPerElement = limits.split(",");
-    quint32 index = 0;
+    int index = 0;
     foreach (const QString &str, stringPerElement) {
         QStringList ruleList = str.split(";");
         QList<LimitStruct> limitList;
@@ -151,7 +153,7 @@ void UAVObjectField::limitsInitialize(const QString &limits)
             QStringList valuesPerElement = _str.split(":");
             LimitStruct lstruc;
             bool startFlag = valuesPerElement.at(0).startsWith("%");
-            bool maxIndexFlag = (int)(index) < (int)numElements;
+            bool maxIndexFlag = index < numElements;
             bool elemNumberSizeFlag = valuesPerElement.at(0).size() == 3;
             bool aux;
             valuesPerElement.at(0).mid(1, 4).toInt(&aux, 16);
@@ -223,7 +225,7 @@ void UAVObjectField::limitsInitialize(const QString &limits)
     }
 }
 
-bool UAVObjectField::isWithinLimits(QVariant var, quint32 index, int board)
+bool UAVObjectField::isWithinLimits(QVariant var, int index, int board) const
 {
     if (!elementLimits.keys().contains(index))
         return true;
@@ -445,7 +447,7 @@ bool UAVObjectField::isWithinLimits(QVariant var, quint32 index, int board)
     return true;
 }
 
-QVariant UAVObjectField::getMaxLimit(quint32 index, int board)
+QVariant UAVObjectField::getMaxLimit(int index, int board) const
 {
     if (!elementLimits.keys().contains(index)) {
         // if nothing explicitly specified, assume max possible value
@@ -495,7 +497,7 @@ QVariant UAVObjectField::getMaxLimit(quint32 index, int board)
     }
     return QVariant();
 }
-QVariant UAVObjectField::getMinLimit(quint32 index, int board)
+QVariant UAVObjectField::getMinLimit(int index, int board) const
 {
     if (!elementLimits.keys().contains(index)) {
         // if nothing explicitly specified, assume min possible value
@@ -551,12 +553,12 @@ void UAVObjectField::initialize(quint8 *data, quint32 dataOffset, UAVObject *obj
     clear();
 }
 
-UAVObjectField::FieldType UAVObjectField::getType()
+UAVObjectField::FieldType UAVObjectField::getType() const
 {
     return type;
 }
 
-QString UAVObjectField::getTypeAsString()
+QString UAVObjectField::getTypeAsString() const
 {
     switch (type) {
     case UAVObjectField::INT8:
@@ -584,22 +586,36 @@ QString UAVObjectField::getTypeAsString()
     }
 }
 
-QStringList UAVObjectField::getElementNames()
+QStringList UAVObjectField::getElementNames() const
 {
     return elementNames;
 }
 
-QString UAVObjectField::getElementName(quint32 index)
+QString UAVObjectField::getElementName(int index) const
 {
-    if (index >= static_cast<quint32>(elementNames.length())) {
+    if (index < 0 || index >= elementNames.length()) {
         Q_ASSERT(false);
         qWarning() << "Invalid element:" << index << " max=" << elementNames.length();
         return "";
     }
-    return elementNames.at(static_cast<int>(index));
+    return elementNames.at(index);
 }
 
-UAVObject *UAVObjectField::getObject()
+/**
+ * @brief Get the index of an element from it's name
+ * @param name Element name
+ * @return index on success, -1 on failure
+ */
+int UAVObjectField::getElementIndex(const QString &name) const
+{
+    for (int i = 0; i < elementNames.length(); i++) {
+        if (elementNames.at(i) == name)
+            return i;
+    }
+    return -1;
+}
+
+UAVObject *UAVObjectField::getObject() const
 {
     return obj;
 }
@@ -608,25 +624,25 @@ void UAVObjectField::clear()
 {
     switch (type) {
     case BITFIELD:
-        memset(&data[offset], 0, numBytesPerElement * ((quint32)(1 + (numElements - 1) / 8)));
+        memset(&data[offset], 0, elementSize * ((quint32)(1 + (numElements - 1) / 8)));
         break;
     default:
-        memset(&data[offset], 0, numBytesPerElement * numElements);
+        memset(&data[offset], 0, elementSize * numElements);
         break;
     }
 }
 
-QString UAVObjectField::getName()
+QString UAVObjectField::getName() const
 {
     return name;
 }
 
-QString UAVObjectField::getUnits()
+QString UAVObjectField::getUnits() const
 {
     return units;
 }
 
-QStringList UAVObjectField::getOptions()
+QStringList UAVObjectField::getOptions() const
 {
     return options;
 }
@@ -636,33 +652,23 @@ bool UAVObjectField::hasOption(const QString &option)
     return options.contains(option);
 }
 
-quint32 UAVObjectField::getNumElements()
+int UAVObjectField::getNumElements() const
 {
     return numElements;
 }
 
-quint32 UAVObjectField::getDataOffset()
+size_t UAVObjectField::getNumBytes() const
 {
-    return offset;
+    if (type == BITFIELD)
+        return elementSize * static_cast<size_t>((1 + (numElements - 1) / 8));
+    return elementSize * static_cast<size_t>(numElements);
 }
 
-quint32 UAVObjectField::getNumBytes()
-{
-    switch (type) {
-    case BITFIELD:
-        return numBytesPerElement * ((quint32)(1 + (numElements - 1) / 8));
-        break;
-    default:
-        return numBytesPerElement * numElements;
-        break;
-    }
-}
-
-QString UAVObjectField::toString()
+QString UAVObjectField::toString() const
 {
     QString sout;
     sout.append(QString("%1: [ ").arg(name));
-    for (unsigned int n = 0; n < numElements; ++n) {
+    for (auto n = 0; n < numElements; ++n) {
         if (type == ENUM) {
             sout.append(QString("%1 ").arg(getValue(n).toString()));
         } else {
@@ -681,53 +687,53 @@ qint32 UAVObjectField::pack(quint8 *dataOut)
         memcpy(dataOut, &data[offset], numElements);
         break;
     case INT16:
-        for (quint32 index = 0; index < numElements; ++index) {
+        for (auto index = 0; index < numElements; ++index) {
             qint16 value;
-            memcpy(&value, &data[offset + numBytesPerElement * index], numBytesPerElement);
-            qToLittleEndian<qint16>(value, &dataOut[numBytesPerElement * index]);
+            memcpy(&value, &data[offset + elementSize * index], elementSize);
+            qToLittleEndian<qint16>(value, &dataOut[elementSize * index]);
         }
         break;
     case INT32:
-        for (quint32 index = 0; index < numElements; ++index) {
+        for (auto index = 0; index < numElements; ++index) {
             qint32 value;
-            memcpy(&value, &data[offset + numBytesPerElement * index], numBytesPerElement);
-            qToLittleEndian<qint32>(value, &dataOut[numBytesPerElement * index]);
+            memcpy(&value, &data[offset + elementSize * index], elementSize);
+            qToLittleEndian<qint32>(value, &dataOut[elementSize * index]);
         }
         break;
     case UINT8:
-        for (quint32 index = 0; index < numElements; ++index) {
-            dataOut[numBytesPerElement * index] = data[offset + numBytesPerElement * index];
+        for (auto index = 0; index < numElements; ++index) {
+            dataOut[elementSize * index] = data[offset + elementSize * index];
         }
         break;
     case UINT16:
-        for (quint32 index = 0; index < numElements; ++index) {
+        for (auto index = 0; index < numElements; ++index) {
             quint16 value;
-            memcpy(&value, &data[offset + numBytesPerElement * index], numBytesPerElement);
-            qToLittleEndian<quint16>(value, &dataOut[numBytesPerElement * index]);
+            memcpy(&value, &data[offset + elementSize * index], elementSize);
+            qToLittleEndian<quint16>(value, &dataOut[elementSize * index]);
         }
         break;
     case UINT32:
-        for (quint32 index = 0; index < numElements; ++index) {
+        for (auto index = 0; index < numElements; ++index) {
             quint32 value;
-            memcpy(&value, &data[offset + numBytesPerElement * index], numBytesPerElement);
-            qToLittleEndian<quint32>(value, &dataOut[numBytesPerElement * index]);
+            memcpy(&value, &data[offset + elementSize * index], elementSize);
+            qToLittleEndian<quint32>(value, &dataOut[elementSize * index]);
         }
         break;
     case FLOAT32:
-        for (quint32 index = 0; index < numElements; ++index) {
+        for (auto index = 0; index < numElements; ++index) {
             quint32 value;
-            memcpy(&value, &data[offset + numBytesPerElement * index], numBytesPerElement);
-            qToLittleEndian<quint32>(value, &dataOut[numBytesPerElement * index]);
+            memcpy(&value, &data[offset + elementSize * index], elementSize);
+            qToLittleEndian<quint32>(value, &dataOut[elementSize * index]);
         }
         break;
     case ENUM:
-        for (quint32 index = 0; index < numElements; ++index) {
-            dataOut[numBytesPerElement * index] = data[offset + numBytesPerElement * index];
+        for (auto index = 0; index < numElements; ++index) {
+            dataOut[elementSize * index] = data[offset + elementSize * index];
         }
         break;
     case BITFIELD:
-        for (quint32 index = 0; index < (quint32)(1 + (numElements - 1) / 8); ++index) {
-            dataOut[numBytesPerElement * index] = data[offset + numBytesPerElement * index];
+        for (auto index = 0; index < (1 + (numElements - 1) / 8); ++index) {
+            dataOut[elementSize * index] = data[offset + elementSize * index];
         }
         break;
     case STRING:
@@ -746,53 +752,53 @@ qint32 UAVObjectField::unpack(const quint8 *dataIn)
         memcpy(&data[offset], dataIn, numElements);
         break;
     case INT16:
-        for (quint32 index = 0; index < numElements; ++index) {
+        for (auto index = 0; index < numElements; ++index) {
             qint16 value;
-            value = qFromLittleEndian<qint16>(&dataIn[numBytesPerElement * index]);
-            memcpy(&data[offset + numBytesPerElement * index], &value, numBytesPerElement);
+            value = qFromLittleEndian<qint16>(&dataIn[elementSize * index]);
+            memcpy(&data[offset + elementSize * index], &value, elementSize);
         }
         break;
     case INT32:
-        for (quint32 index = 0; index < numElements; ++index) {
+        for (auto index = 0; index < numElements; ++index) {
             qint32 value;
-            value = qFromLittleEndian<qint32>(&dataIn[numBytesPerElement * index]);
-            memcpy(&data[offset + numBytesPerElement * index], &value, numBytesPerElement);
+            value = qFromLittleEndian<qint32>(&dataIn[elementSize * index]);
+            memcpy(&data[offset + elementSize * index], &value, elementSize);
         }
         break;
     case UINT8:
-        for (quint32 index = 0; index < numElements; ++index) {
-            data[offset + numBytesPerElement * index] = dataIn[numBytesPerElement * index];
+        for (auto index = 0; index < numElements; ++index) {
+            data[offset + elementSize * index] = dataIn[elementSize * index];
         }
         break;
     case UINT16:
-        for (quint32 index = 0; index < numElements; ++index) {
+        for (auto index = 0; index < numElements; ++index) {
             quint16 value;
-            value = qFromLittleEndian<quint16>(&dataIn[numBytesPerElement * index]);
-            memcpy(&data[offset + numBytesPerElement * index], &value, numBytesPerElement);
+            value = qFromLittleEndian<quint16>(&dataIn[elementSize * index]);
+            memcpy(&data[offset + elementSize * index], &value, elementSize);
         }
         break;
     case UINT32:
-        for (quint32 index = 0; index < numElements; ++index) {
+        for (auto index = 0; index < numElements; ++index) {
             quint32 value;
-            value = qFromLittleEndian<quint32>(&dataIn[numBytesPerElement * index]);
-            memcpy(&data[offset + numBytesPerElement * index], &value, numBytesPerElement);
+            value = qFromLittleEndian<quint32>(&dataIn[elementSize * index]);
+            memcpy(&data[offset + elementSize * index], &value, elementSize);
         }
         break;
     case FLOAT32:
-        for (quint32 index = 0; index < numElements; ++index) {
+        for (auto index = 0; index < numElements; ++index) {
             quint32 value;
-            value = qFromLittleEndian<quint32>(&dataIn[numBytesPerElement * index]);
-            memcpy(&data[offset + numBytesPerElement * index], &value, numBytesPerElement);
+            value = qFromLittleEndian<quint32>(&dataIn[elementSize * index]);
+            memcpy(&data[offset + elementSize * index], &value, elementSize);
         }
         break;
     case ENUM:
-        for (quint32 index = 0; index < numElements; ++index) {
-            data[offset + numBytesPerElement * index] = dataIn[numBytesPerElement * index];
+        for (auto index = 0; index < numElements; ++index) {
+            data[offset + elementSize * index] = dataIn[elementSize * index];
         }
         break;
     case BITFIELD:
-        for (quint32 index = 0; index < (quint32)(1 + (numElements - 1) / 8); ++index) {
-            data[offset + numBytesPerElement * index] = dataIn[numBytesPerElement * index];
+        for (auto index = 0; index < (1 + (numElements - 1) / 8); ++index) {
+            data[offset + elementSize * index] = dataIn[elementSize * index];
         }
         break;
     case STRING:
@@ -803,168 +809,96 @@ qint32 UAVObjectField::unpack(const quint8 *dataIn)
     return getNumBytes();
 }
 
-bool UAVObjectField::isNumeric()
+bool UAVObjectField::isNumeric() const
 {
     switch (type) {
     case INT8:
-        return true;
-        break;
     case INT16:
-        return true;
-        break;
     case INT32:
-        return true;
-        break;
     case UINT8:
-        return true;
-        break;
     case UINT16:
-        return true;
-        break;
     case UINT32:
-        return true;
-        break;
     case FLOAT32:
-        return true;
-        break;
-    case ENUM:
-        return false;
-        break;
     case BITFIELD:
         return true;
-        break;
+    case ENUM:
     case STRING:
-        return false;
         break;
-    default:
-        return false;
     }
+    return false;
 }
 
-bool UAVObjectField::isText()
+bool UAVObjectField::isText() const
 {
     switch (type) {
     case INT8:
-        return false;
-        break;
     case INT16:
-        return false;
-        break;
     case INT32:
-        return false;
-        break;
     case UINT8:
-        return false;
-        break;
     case UINT16:
-        return false;
-        break;
     case UINT32:
-        return false;
-        break;
     case FLOAT32:
-        return false;
-        break;
-    case ENUM:
-        return true;
-        break;
     case BITFIELD:
         return false;
-        break;
+    case ENUM:
     case STRING:
-        return true;
         break;
-    default:
-        return false;
     }
+    return true;
 }
 
-QVariant UAVObjectField::getValue(quint32 index)
+QVariant UAVObjectField::getValue(int index) const
 {
     // Check that index is not out of bounds
-    if (index >= numElements) {
+    if (index < 0 || index >= numElements) {
         return QVariant();
     }
-    // Get value
-    switch (type) {
-    case INT8: {
-        qint8 tmpint8;
-        memcpy(&tmpint8, &data[offset + numBytesPerElement * index], numBytesPerElement);
-        return QVariant(tmpint8);
-        break;
-    }
-    case INT16: {
-        qint16 tmpint16;
-        memcpy(&tmpint16, &data[offset + numBytesPerElement * index], numBytesPerElement);
-        return QVariant(tmpint16);
-        break;
-    }
-    case INT32: {
-        qint32 tmpint32;
-        memcpy(&tmpint32, &data[offset + numBytesPerElement * index], numBytesPerElement);
-        return QVariant(tmpint32);
-        break;
-    }
-    case UINT8: {
-        quint8 tmpuint8;
-        memcpy(&tmpuint8, &data[offset + numBytesPerElement * index], numBytesPerElement);
-        return QVariant(tmpuint8);
-        break;
-    }
-    case UINT16: {
-        quint16 tmpuint16;
-        memcpy(&tmpuint16, &data[offset + numBytesPerElement * index], numBytesPerElement);
-        return QVariant(tmpuint16);
-        break;
-    }
-    case UINT32: {
-        quint32 tmpuint32;
-        memcpy(&tmpuint32, &data[offset + numBytesPerElement * index], numBytesPerElement);
-        return QVariant(tmpuint32);
-        break;
-    }
-    case FLOAT32: {
-        float tmpfloat;
-        memcpy(&tmpfloat, &data[offset + numBytesPerElement * index], numBytesPerElement);
-        return QVariant(tmpfloat);
-        break;
-    }
-    case ENUM: {
-        quint8 tmpenum;
-        memcpy(&tmpenum, &data[offset + numBytesPerElement * index], numBytesPerElement);
-        // Too slow?
-        for (int i = 0; i < indices.length(); i++) {
-            if (tmpenum == indices[i]) {
-                return QVariant(options[i]);
-            }
-        }
 
-        return QVariant(QString("Bad Value"));
-        break;
-    }
+    const void *d = &data[offset + elementSize * static_cast<unsigned>(index)];
+
+    switch (type) {
+    case INT8:
+        return QVariant::fromValue(*static_cast<const qint8 *>(d));
+    case INT16:
+        return QVariant::fromValue(*static_cast<const qint16 *>(d));
+    case INT32:
+        return QVariant::fromValue(*static_cast<const qint32 *>(d));
+    case UINT8:
+        return QVariant::fromValue(*static_cast<const quint8 *>(d));
+    case UINT16:
+        return QVariant::fromValue(*static_cast<const quint16 *>(d));
+    case UINT32:
+        return QVariant::fromValue(*static_cast<const quint32 *>(d));
+    case FLOAT32:
+        return QVariant::fromValue(*static_cast<const float *>(d));
+    case ENUM:
+        try {
+            auto i = enumToIndex.at(*static_cast<const quint8 *>(d));
+            return QVariant::fromValue(options[i]);
+        } catch (const std::out_of_range &e) {
+            qWarning() << "Invalid value" << *static_cast<const quint8 *>(d)
+                       << "for ENUM field" << name << ":" << e.what();
+        }
+        return QVariant::fromValue(QStringLiteral("Bad Value"));
     case BITFIELD: {
-        quint8 tmpbitfield;
-        memcpy(&tmpbitfield, &data[offset + numBytesPerElement * ((quint32)(index / 8))],
-               numBytesPerElement);
-        tmpbitfield = (tmpbitfield >> (index % 8)) & 1;
-        return QVariant(tmpbitfield);
-        break;
+        d = &data[offset + elementSize * static_cast<unsigned>(index / 8)];
+        quint8 val = (*static_cast<const quint8 *>(d) >> (index % 8)) & 1;
+        return QVariant::fromValue(val);
     }
-    case STRING: {
-        data[offset + numElements - 1] = '\0';
-        QString str((char *)&data[offset]);
-        return QVariant(str);
-        break;
-    }
+    case STRING:
+        return QVariant::fromValue(QString::fromLatin1(static_cast<const char *>(d),
+            static_cast<int>(strnlen(static_cast<const char *>(d),
+                                     static_cast<size_t>(numElements)))));
     }
     // If this point is reached then we got an invalid type
+    Q_ASSERT(false);
     return QVariant();
 }
 
-bool UAVObjectField::checkValue(const QVariant &value, quint32 index)
+bool UAVObjectField::checkValue(const QVariant &value, int index) const
 {
     // Check that index is not out of bounds
-    if (index >= numElements) {
+    if (index < 0 || index >= numElements) {
         return false;
     }
     // Get metadata
@@ -982,77 +916,57 @@ bool UAVObjectField::checkValue(const QVariant &value, quint32 index)
         case STRING:
         case BITFIELD:
             return true;
-            break;
-        case ENUM: {
+        case ENUM:
             if (static_cast<QMetaType::Type>(value.type()) == QMetaType::QString) {
                 int idx = options.indexOf(value.toString());
-                if (idx < 0 || idx >= indices.length())
-                    return false;
+                if (idx > 0 && idx < indices.length())
+                    return true;
             } else if (value.canConvert(QMetaType::Int)) {
-                if (!indices.contains(value.toInt()))
-                    return false;
-            } else {
-                return false;
+                if (indices.contains(value.toInt()))
+                    return true;
             }
-            return true;
-        }
-        default:
-            qDebug() << "checkValue: other types" << type;
-            Q_ASSERT(0); // To catch any programming errors where we tried to test invalid values
-            break;
+            return false;
         }
     }
     return true;
 }
 
-void UAVObjectField::setValue(const QVariant &value, quint32 index)
+void UAVObjectField::setValue(const QVariant &value, int index)
 {
     // Check that index is not out of bounds
-    if (index >= numElements) {
+    if (index < 0 || index >= numElements) {
         return;
     }
+
+    void *d = &data[offset + elementSize * static_cast<unsigned>(index)];
+
     // Get metadata
     UAVObject::Metadata mdata = obj->getMetadata();
     // Update value if the access mode permits
     if (UAVObject::GetGcsAccess(mdata) == UAVObject::ACCESS_READWRITE) {
         switch (type) {
-        case INT8: {
-            qint8 tmpint8 = value.toInt();
-            memcpy(&data[offset + numBytesPerElement * index], &tmpint8, numBytesPerElement);
+        case INT8:
+            *static_cast<qint8 *>(d) = static_cast<qint8>(value.toInt());
             break;
-        }
-        case INT16: {
-            qint16 tmpint16 = value.toInt();
-            memcpy(&data[offset + numBytesPerElement * index], &tmpint16, numBytesPerElement);
+        case INT16:
+            *static_cast<qint16 *>(d) = static_cast<qint16>(value.toInt());
             break;
-        }
-        case INT32: {
-            qint32 tmpint32 = value.toInt();
-            memcpy(&data[offset + numBytesPerElement * index], &tmpint32, numBytesPerElement);
+        case INT32:
+            *static_cast<qint32 *>(d) = static_cast<qint32>(value.toInt());
             break;
-        }
-        case UINT8: {
-            quint8 tmpuint8 = value.toUInt();
-            memcpy(&data[offset + numBytesPerElement * index], &tmpuint8, numBytesPerElement);
+        case UINT8:
+            *static_cast<quint8 *>(d) = static_cast<quint8>(value.toUInt());
             break;
-        }
-        case UINT16: {
-            quint16 tmpuint16 = value.toUInt();
-            memcpy(&data[offset + numBytesPerElement * index], &tmpuint16, numBytesPerElement);
+        case UINT16:
+            *static_cast<quint16 *>(d) = static_cast<quint16>(value.toUInt());
             break;
-        }
-        case UINT32: {
-            quint32 tmpuint32 = value.toUInt();
-            memcpy(&data[offset + numBytesPerElement * index], &tmpuint32, numBytesPerElement);
+        case UINT32:
+            *static_cast<quint32 *>(d) = static_cast<quint32>(value.toUInt());
             break;
-        }
-        case FLOAT32: {
-            float tmpfloat = value.toFloat();
-            memcpy(&data[offset + numBytesPerElement * index], &tmpfloat, numBytesPerElement);
+        case FLOAT32:
+            *static_cast<float *>(d) = value.toFloat();
             break;
-        }
-        case ENUM: {
-            qint8 tmpenum;
+        case ENUM:
             if (static_cast<QMetaType::Type>(value.type()) == QMetaType::QString) {
                 int idx = options.indexOf(value.toString());
                 if (idx < 0 || idx >= indices.length()) {
@@ -1060,69 +974,57 @@ void UAVObjectField::setValue(const QVariant &value, quint32 index)
                     qWarning() << "Invalid option!" << obj->getName() << name << value.toString();
                     return;
                 }
-                tmpenum = static_cast<qint8>(indices[idx]);
+                *static_cast<quint8 *>(d) = static_cast<quint8>(indices[idx]);
             } else if (value.canConvert(QMetaType::Int)) {
                 if (!indices.contains(value.toInt())) {
                     Q_ASSERT(false);
                     qWarning() << "Invalid option!" << obj->getName() << name << value.toInt();
                     return;
                 }
-                tmpenum = static_cast<qint8>(value.toInt());
+                *static_cast<quint8 *>(d) = static_cast<quint8>(value.toInt());
             } else {
                 Q_ASSERT(false);
                 qWarning() << "Invalid type!" << obj->getName() << name << value;
                 return;
             }
-
-            memcpy(&data[offset + numBytesPerElement * index], &tmpenum, numBytesPerElement);
             break;
-        }
-        case BITFIELD: {
-            quint8 tmpbitfield;
-            memcpy(&tmpbitfield, &data[offset + numBytesPerElement * ((quint32)(index / 8))],
-                   numBytesPerElement);
-            tmpbitfield = (tmpbitfield & ~(1 << (index % 8)))
-                | ((value.toUInt() != 0 ? 1 : 0) << (index % 8));
-            memcpy(&data[offset + numBytesPerElement * ((quint32)(index / 8))], &tmpbitfield,
-                   numBytesPerElement);
+        case BITFIELD:
+            d = &data[offset + elementSize * static_cast<unsigned>(index / 8)];
+            *static_cast<quint8 *>(d) &= ~(1 << (index % 8));
+            *static_cast<quint8 *>(d) |= ((value.toUInt() != 0 ? 1 : 0) << (index % 8));
             break;
-        }
         case STRING: {
-            QString str = value.toString();
-            QByteArray barray = str.toLatin1();
-            quint32 index;
-            for (index = 0; index < (quint32)barray.length() && index < (numElements - 1);
-                 ++index) {
-                data[offset + index] = barray[index];
-            }
-            barray[index] = '\0';
+            QByteArray barray = value.toString().toLatin1();
+            barray.resize(numElements);
+            barray[numElements - 1] = '\0';
+            memcpy(d, barray.constData(), static_cast<size_t>(numElements));
             break;
         }
         }
     }
 }
 
-double UAVObjectField::getDouble(quint32 index)
+double UAVObjectField::getDouble(int index) const
 {
     return getValue(index).toDouble();
 }
 
-void UAVObjectField::setDouble(double value, quint32 index)
+void UAVObjectField::setDouble(double value, int index)
 {
     setValue(QVariant(value), index);
 }
 
-QString UAVObjectField::getDescription()
+QString UAVObjectField::getDescription() const
 {
     return description;
 }
 
-QVariant UAVObjectField::getDefaultValue(quint32 index)
+QVariant UAVObjectField::getDefaultValue(int index) const
 {
     return defaultValues.at(index);
 }
 
-bool UAVObjectField::isDefaultValue(quint32 index)
+bool UAVObjectField::isDefaultValue(int index)
 {
     switch (type) {
     case INT8:
@@ -1157,7 +1059,7 @@ bool UAVObjectField::isDefaultValue(quint32 index)
     return false;
 }
 
-int UAVObjectField::getDisplayIntegerBase()
+int UAVObjectField::getDisplayIntegerBase() const
 {
     switch (display) {
     case HEX:
@@ -1171,7 +1073,7 @@ int UAVObjectField::getDisplayIntegerBase()
     }
 }
 
-QString UAVObjectField::getDisplayPrefix()
+QString UAVObjectField::getDisplayPrefix() const
 {
     switch (display) {
     case HEX:

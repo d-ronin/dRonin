@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <ui version="4.0">
  <class>OsdPage</class>
  <widget class="QWidget" name="OsdPage">
@@ -65,8 +65,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>914</width>
-        <height>1170</height>
+        <width>916</width>
+        <height>1031</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -95,34 +95,37 @@
              </widget>
             </item>
             <item row="18" column="4">
-             <widget class="QComboBox" name="GpsLatAlign"/>
+             <widget class="QComboBox" name="GpsLatAlign">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:GpsLatAlign</string></stringlist></property></widget>
             </item>
             <item row="18" column="3">
              <widget class="QSpinBox" name="GpsLatY">
               <property name="maximum">
                <number>265</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:GpsLatPosY</string></stringlist></property></widget>
             </item>
             <item row="11" column="4">
-             <widget class="QComboBox" name="ClimbRateAlign"/>
+             <widget class="QComboBox" name="ClimbRateAlign">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:ClimbRateAlign</string></stringlist></property></widget>
             </item>
             <item row="16" column="2">
              <widget class="QSpinBox" name="GForceX">
               <property name="maximum">
                <number>360</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:GForcePosX</string></stringlist></property></widget>
             </item>
             <item row="21" column="3">
              <widget class="QSpinBox" name="HomeDistanceY">
               <property name="maximum">
                <number>265</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:HomeDistancePosY</string></stringlist></property></widget>
             </item>
             <item row="21" column="5">
-             <widget class="QComboBox" name="HomeDistanceFont"/>
+             <widget class="QComboBox" name="HomeDistanceFont">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:HomeDistanceFont</string></stringlist></property></widget>
             </item>
             <item row="2" column="0">
              <widget class="QLabel" name="label_9">
@@ -138,89 +141,94 @@
              </widget>
             </item>
             <item row="6" column="4">
-             <widget class="QComboBox" name="BatteryVoltAlign"/>
+             <widget class="QComboBox" name="BatteryVoltAlign">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:BatteryVoltAlign</string></stringlist></property></widget>
             </item>
             <item row="8" column="1">
              <widget class="QCheckBox" name="BatteryConsumedEnabled">
               <property name="text">
                <string/>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:BatteryConsumed</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
             <item row="4" column="3">
              <widget class="QSpinBox" name="ArmStatusY">
               <property name="maximum">
                <number>265</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:ArmStatusPosY</string></stringlist></property></widget>
             </item>
             <item row="3" column="3">
              <widget class="QSpinBox" name="AltitudeNumericY">
               <property name="maximum">
                <number>265</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:AltitudeNumericPosY</string></stringlist></property></widget>
             </item>
             <item row="3" column="4">
-             <widget class="QComboBox" name="AltitudeNumericAlign"/>
+             <widget class="QComboBox" name="AltitudeNumericAlign">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:AltitudeNumericAlign</string></stringlist></property></widget>
             </item>
             <item row="12" column="1">
              <widget class="QCheckBox" name="CompassEnabled">
               <property name="text">
                <string/>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:Compass</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
             <item row="24" column="1">
              <widget class="QCheckBox" name="SpeedScaleEnabled">
               <property name="text">
                <string/>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:SpeedScale</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
             <item row="24" column="2">
              <widget class="QSpinBox" name="SpeedScaleX">
               <property name="maximum">
                <number>360</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:SpeedScalePos</string></stringlist></property></widget>
             </item>
             <item row="24" column="4">
-             <widget class="QComboBox" name="SpeedScaleAlign"/>
+             <widget class="QComboBox" name="SpeedScaleAlign">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:SpeedScaleAlign</string></stringlist></property></widget>
             </item>
             <item row="13" column="2">
              <widget class="QSpinBox" name="CpuX">
               <property name="maximum">
                <number>360</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:CpuPosX</string></stringlist></property></widget>
             </item>
             <item row="7" column="2">
              <widget class="QSpinBox" name="BatteryCurrentX">
               <property name="maximum">
                <number>360</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:BatteryCurrentPosX</string></stringlist></property></widget>
             </item>
             <item row="15" column="1">
              <widget class="QCheckBox" name="FlightModeEnabled">
               <property name="text">
                <string/>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:FlightMode</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
             <item row="8" column="3">
              <widget class="QSpinBox" name="BatteryConsumedY">
               <property name="maximum">
                <number>265</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:BatteryConsumedPosY</string></stringlist></property></widget>
             </item>
             <item row="27" column="4">
-             <widget class="QComboBox" name="TimeAlign"/>
+             <widget class="QComboBox" name="TimeAlign">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:TimeAlign</string></stringlist></property></widget>
             </item>
             <item row="27" column="5">
-             <widget class="QComboBox" name="TimeFont"/>
+             <widget class="QComboBox" name="TimeFont">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:TimeFont</string></stringlist></property></widget>
             </item>
             <item row="15" column="0">
              <widget class="QLabel" name="label_18">
@@ -231,7 +239,7 @@
                </font>
               </property>
               <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Flight Mode&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Flight Mode&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="textFormat">
                <enum>Qt::AutoText</enum>
@@ -239,24 +247,26 @@
              </widget>
             </item>
             <item row="1" column="4">
-             <widget class="QComboBox" name="AlarmAlign"/>
+             <widget class="QComboBox" name="AlarmAlign">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:AlarmAlign</string></stringlist></property></widget>
             </item>
             <item row="27" column="3">
              <widget class="QSpinBox" name="TimeY">
               <property name="maximum">
                <number>265</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:TimePosY</string></stringlist></property></widget>
             </item>
             <item row="13" column="4">
-             <widget class="QComboBox" name="CpuAlign"/>
+             <widget class="QComboBox" name="CpuAlign">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:CpuAlign</string></stringlist></property></widget>
             </item>
             <item row="8" column="2">
              <widget class="QSpinBox" name="BatteryConsumedX">
               <property name="maximum">
                <number>360</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:BatteryConsumedPosX</string></stringlist></property></widget>
             </item>
             <item row="12" column="6">
              <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -268,7 +278,7 @@
                 <property name="text">
                  <string>Show Home Direction</string>
                 </property>
-               </widget>
+                <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:CompassHomeDir</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
               </item>
              </layout>
             </item>
@@ -289,7 +299,8 @@
              </widget>
             </item>
             <item row="4" column="5">
-             <widget class="QComboBox" name="ArmStatusFont"/>
+             <widget class="QComboBox" name="ArmStatusFont">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:ArmStatusFont</string></stringlist></property></widget>
             </item>
             <item row="0" column="0">
              <widget class="QLabel" name="label">
@@ -309,7 +320,7 @@
               <property name="text">
                <string/>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:ArtificialHorizon</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
             <item row="6" column="0">
              <widget class="QLabel" name="label_13">
@@ -341,7 +352,8 @@
              </widget>
             </item>
             <item row="14" column="4">
-             <widget class="QComboBox" name="CustomTextAlign"/>
+             <widget class="QComboBox" name="CustomTextAlign">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:CustomTextAlign</string></stringlist></property></widget>
             </item>
             <item row="12" column="0">
              <widget class="QLabel" name="label_16">
@@ -370,28 +382,29 @@
              </widget>
             </item>
             <item row="2" column="4">
-             <widget class="QComboBox" name="AltitudeScaleAlign"/>
+             <widget class="QComboBox" name="AltitudeScaleAlign">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:AltitudeScaleAlign</string></stringlist></property></widget>
             </item>
             <item row="13" column="3">
              <widget class="QSpinBox" name="CpuY">
               <property name="maximum">
                <number>265</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:CpuPosY</string></stringlist></property></widget>
             </item>
             <item row="16" column="3">
              <widget class="QSpinBox" name="GForceY">
               <property name="maximum">
                <number>265</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:GForcePosY</string></stringlist></property></widget>
             </item>
             <item row="1" column="1">
              <widget class="QCheckBox" name="AlarmEnabled">
               <property name="text">
                <string/>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:Alarm</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
             <item row="1" column="0">
              <widget class="QLabel" name="label_8">
@@ -411,14 +424,14 @@
               <property name="maximum">
                <number>265</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:CompassPos</string></stringlist></property></widget>
             </item>
             <item row="11" column="2">
              <widget class="QSpinBox" name="ClimbRateX">
               <property name="maximum">
                <number>360</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:ClimbRatePosX</string></stringlist></property></widget>
             </item>
             <item row="7" column="0">
              <widget class="QLabel" name="label_14">
@@ -457,7 +470,7 @@
                 <property name="maximum">
                  <number>255</number>
                 </property>
-               </widget>
+                <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:ArtificialHorizonMaxPitch</string></stringlist></property></widget>
               </item>
               <item>
                <widget class="QLabel" name="label_40">
@@ -474,7 +487,7 @@
                 <property name="maximum">
                  <number>9</number>
                 </property>
-               </widget>
+                <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:ArtificialHorizonPitchSteps</string></stringlist></property></widget>
               </item>
              </layout>
             </item>
@@ -483,7 +496,7 @@
               <property name="text">
                <string/>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:Throttle</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
             <item row="0" column="3">
              <widget class="QLabel" name="label_4">
@@ -512,12 +525,13 @@
                 <property name="toolTip">
                  <string>Baro: Raw barometer altitude. Nav: Fused altitude from navigation system. </string>
                 </property>
-               </widget>
+                <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:AltitudeScaleSource</string></stringlist></property></widget>
               </item>
              </layout>
             </item>
             <item row="16" column="4">
-             <widget class="QComboBox" name="GForceAlign"/>
+             <widget class="QComboBox" name="GForceAlign">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:GForceAlign</string></stringlist></property></widget>
             </item>
             <item row="3" column="6">
              <layout class="QHBoxLayout" name="horizontalLayout_5">
@@ -529,12 +543,14 @@
                </widget>
               </item>
               <item>
-               <widget class="QComboBox" name="AltitudeNumericSource"/>
+               <widget class="QComboBox" name="AltitudeNumericSource">
+                <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:AltitudeNumericSource</string></stringlist></property></widget>
               </item>
              </layout>
             </item>
             <item row="16" column="5">
-             <widget class="QComboBox" name="GForceFont"/>
+             <widget class="QComboBox" name="GForceFont">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:GForceFont</string></stringlist></property></widget>
             </item>
             <item row="3" column="0">
              <widget class="QLabel" name="label_38">
@@ -563,57 +579,63 @@
              </widget>
             </item>
             <item row="14" column="5">
-             <widget class="QComboBox" name="CustomTextFont"/>
+             <widget class="QComboBox" name="CustomTextFont">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:CustomTextFont</string></stringlist></property></widget>
             </item>
             <item row="25" column="1">
              <widget class="QCheckBox" name="SpeedNumericEnabled">
               <property name="text">
                <string/>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:SpeedNumeric</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
             <item row="6" column="5">
-             <widget class="QComboBox" name="BatteryVoltFont"/>
+             <widget class="QComboBox" name="BatteryVoltFont">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:BatteryVoltFont</string></stringlist></property></widget>
             </item>
             <item row="6" column="2">
              <widget class="QSpinBox" name="BatteryVoltX">
               <property name="maximum">
                <number>360</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:BatteryVoltPosX</string></stringlist></property></widget>
             </item>
             <item row="8" column="4">
-             <widget class="QComboBox" name="BatteryConsumedAlign"/>
+             <widget class="QComboBox" name="BatteryConsumedAlign">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:BatteryConsumedAlign</string></stringlist></property></widget>
             </item>
             <item row="11" column="1">
              <widget class="QCheckBox" name="ClimbRateEnabled">
               <property name="text">
                <string/>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:ClimbRate</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
             <item row="11" column="3">
              <widget class="QSpinBox" name="ClimbRateY">
               <property name="maximum">
                <number>265</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:ClimbRatePosY</string></stringlist></property></widget>
             </item>
             <item row="23" column="6">
              <widget class="QCheckBox" name="RssiShowIcon">
               <property name="text">
                <string>Show icon</string>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:RssiShowIcon</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
             <item row="7" column="4">
-             <widget class="QComboBox" name="BatteryCurrentAlign"/>
+             <widget class="QComboBox" name="BatteryCurrentAlign">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:BatteryCurrentAlign</string></stringlist></property></widget>
             </item>
             <item row="13" column="5">
-             <widget class="QComboBox" name="CpuFont"/>
+             <widget class="QComboBox" name="CpuFont">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:CpuFont</string></stringlist></property></widget>
             </item>
             <item row="11" column="5">
-             <widget class="QComboBox" name="ClimbRateFont"/>
+             <widget class="QComboBox" name="ClimbRateFont">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:ClimbRateFont</string></stringlist></property></widget>
             </item>
             <item row="0" column="5">
              <widget class="QLabel" name="label_6">
@@ -659,44 +681,47 @@
               <property name="text">
                <string/>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:AltitudeNumeric</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
             <item row="2" column="1">
              <widget class="QCheckBox" name="AltitudeScaleEnabled">
               <property name="text">
                <string/>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:AltitudeScale</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
             <item row="20" column="5">
-             <widget class="QComboBox" name="GpsMgrsFont"/>
+             <widget class="QComboBox" name="GpsMgrsFont">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:GpsMgrsFont</string></stringlist></property></widget>
             </item>
             <item row="4" column="4">
-             <widget class="QComboBox" name="ArmStatusAlign"/>
+             <widget class="QComboBox" name="ArmStatusAlign">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:ArmStatusAlign</string></stringlist></property></widget>
             </item>
             <item row="23" column="1">
              <widget class="QCheckBox" name="RssiEnabled">
               <property name="text">
                <string/>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:Rssi</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
             <item row="23" column="2">
              <widget class="QSpinBox" name="RssiX">
               <property name="maximum">
                <number>360</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:RssiPosX</string></stringlist></property></widget>
             </item>
             <item row="23" column="3">
              <widget class="QSpinBox" name="RssiY">
               <property name="maximum">
                <number>265</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:RssiPosY</string></stringlist></property></widget>
             </item>
             <item row="1" column="5">
-             <widget class="QComboBox" name="AlarmFont"/>
+             <widget class="QComboBox" name="AlarmFont">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:AlarmFont</string></stringlist></property></widget>
             </item>
             <item row="21" column="0">
              <widget class="QLabel" name="label_22">
@@ -704,7 +729,7 @@
                <string>Note: NavigationFilter in StateEstimation settings has to be set</string>
               </property>
               <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Home Distance&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Home Distance&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
              </widget>
             </item>
@@ -713,7 +738,7 @@
               <property name="text">
                <string/>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:BatteryVolt</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
             <item row="13" column="0">
              <widget class="QLabel" name="label_17">
@@ -733,7 +758,7 @@
               <property name="maximum">
                <number>360</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:AltitudeScalePos</string></stringlist></property></widget>
             </item>
             <item row="0" column="6">
              <widget class="QLabel" name="label_7">
@@ -753,151 +778,157 @@
               <property name="maximum">
                <number>360</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:FlightModePosX</string></stringlist></property></widget>
             </item>
             <item row="15" column="3">
              <widget class="QSpinBox" name="FlightModeY">
               <property name="maximum">
                <number>265</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:FlightModePosY</string></stringlist></property></widget>
             </item>
             <item row="22" column="1">
              <widget class="QCheckBox" name="HomeArrowEnabled">
               <property name="text">
                <string/>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:HomeArrow</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
             <item row="22" column="2">
              <widget class="QSpinBox" name="HomeArrowX">
               <property name="maximum">
                <number>360</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:HomeArrowPosX</string></stringlist></property></widget>
             </item>
             <item row="7" column="3">
              <widget class="QSpinBox" name="BatteryCurrentY">
               <property name="maximum">
                <number>265</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:BatteryCurrentPosY</string></stringlist></property></widget>
             </item>
             <item row="21" column="1">
              <widget class="QCheckBox" name="HomeDistanceEnabled">
               <property name="text">
                <string/>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:HomeDistance</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
             <item row="21" column="2">
              <widget class="QSpinBox" name="HomeDistanceX">
               <property name="maximum">
                <number>360</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:HomeDistancePosX</string></stringlist></property></widget>
             </item>
             <item row="6" column="3">
              <widget class="QSpinBox" name="BatteryVoltY">
               <property name="maximum">
                <number>265</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:BatteryVoltPosY</string></stringlist></property></widget>
             </item>
             <item row="3" column="2">
              <widget class="QSpinBox" name="AltitudeNumericX">
               <property name="maximum">
                <number>360</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:AltitudeNumericPosX</string></stringlist></property></widget>
             </item>
             <item row="19" column="1">
              <widget class="QCheckBox" name="GpsLonEnabled">
               <property name="text">
                <string/>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:GpsLon</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
             <item row="19" column="2">
              <widget class="QSpinBox" name="GpsLonX">
               <property name="maximum">
                <number>360</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:GpsLonPosX</string></stringlist></property></widget>
             </item>
             <item row="13" column="1">
              <widget class="QCheckBox" name="CpuEnabled">
               <property name="text">
                <string/>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:Cpu</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
             <item row="4" column="1">
              <widget class="QCheckBox" name="ArmStatusEnabled">
               <property name="text">
                <string/>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:ArmStatus</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
             <item row="20" column="3">
              <widget class="QSpinBox" name="GpsMgrsY">
               <property name="maximum">
                <number>265</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:GpsMgrsPosY</string></stringlist></property></widget>
             </item>
             <item row="20" column="4">
-             <widget class="QComboBox" name="GpsMgrsAlign"/>
+             <widget class="QComboBox" name="GpsMgrsAlign">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:GpsMgrsAlign</string></stringlist></property></widget>
             </item>
             <item row="7" column="5">
-             <widget class="QComboBox" name="BatteryCurrentFont"/>
+             <widget class="QComboBox" name="BatteryCurrentFont">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:BatteryCurrentFont</string></stringlist></property></widget>
             </item>
             <item row="1" column="3">
              <widget class="QSpinBox" name="AlarmY">
               <property name="maximum">
                <number>265</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:AlarmPosY</string></stringlist></property></widget>
             </item>
             <item row="25" column="2">
              <widget class="QSpinBox" name="SpeedNumericX">
               <property name="maximum">
                <number>365</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:SpeedNumericPosX</string></stringlist></property></widget>
             </item>
             <item row="25" column="3">
              <widget class="QSpinBox" name="SpeedNumericY">
               <property name="maximum">
                <number>265</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:SpeedNumericPosY</string></stringlist></property></widget>
             </item>
             <item row="25" column="4">
-             <widget class="QComboBox" name="SpeedNumericAlign"/>
+             <widget class="QComboBox" name="SpeedNumericAlign">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:SpeedNumericAlign</string></stringlist></property></widget>
             </item>
             <item row="26" column="2">
              <widget class="QSpinBox" name="ThrottleX">
               <property name="maximum">
                <number>365</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:ThrottlePosX</string></stringlist></property></widget>
             </item>
             <item row="26" column="3">
              <widget class="QSpinBox" name="ThrottleY">
               <property name="maximum">
                <number>265</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:ThrottlePosY</string></stringlist></property></widget>
             </item>
             <item row="26" column="4">
-             <widget class="QComboBox" name="ThrottleAlign"/>
+             <widget class="QComboBox" name="ThrottleAlign">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:ThrottleAlign</string></stringlist></property></widget>
             </item>
             <item row="26" column="5">
-             <widget class="QComboBox" name="ThrottleFont"/>
+             <widget class="QComboBox" name="ThrottleFont">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:ThrottleFont</string></stringlist></property></widget>
             </item>
             <item row="25" column="5">
-             <widget class="QComboBox" name="SpeedNumericFont"/>
+             <widget class="QComboBox" name="SpeedNumericFont">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:SpeedNumericFont</string></stringlist></property></widget>
             </item>
             <item row="26" column="0">
              <widget class="QLabel" name="label_47">
@@ -920,14 +951,14 @@
               <property name="text">
                <string/>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:Time</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
             <item row="27" column="2">
              <widget class="QSpinBox" name="TimeX">
               <property name="maximum">
                <number>360</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:TimePosX</string></stringlist></property></widget>
             </item>
             <item row="25" column="6">
              <layout class="QHBoxLayout" name="horizontalLayout_6">
@@ -939,7 +970,8 @@
                </widget>
               </item>
               <item>
-               <widget class="QComboBox" name="SpeedNumericSource"/>
+               <widget class="QComboBox" name="SpeedNumericSource">
+                <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:SpeedNumericSource</string></stringlist></property></widget>
               </item>
              </layout>
             </item>
@@ -948,7 +980,7 @@
               <property name="text">
                <string>Show icon</string>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:HomeDistanceShowIcon</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
             <item row="22" column="0">
              <widget class="QLabel" name="label_43">
@@ -966,7 +998,7 @@
             <item row="27" column="0">
              <widget class="QLabel" name="label_26">
               <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Time&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Time&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
              </widget>
             </item>
@@ -988,10 +1020,11 @@
               <property name="text">
                <string/>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:BatteryCurrent</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
             <item row="23" column="5">
-             <widget class="QComboBox" name="RssiFont"/>
+             <widget class="QComboBox" name="RssiFont">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:RssiFont</string></stringlist></property></widget>
             </item>
             <item row="24" column="6">
              <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -1007,23 +1040,26 @@
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;GPS: Use velocity from GPS. Nav: Use fused velocity from navigation system. Airspeed: Use airspeed (needs Airspeed module and external sensor).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
-               </widget>
+                <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:SpeedScaleSource</string></stringlist></property></widget>
               </item>
              </layout>
             </item>
             <item row="18" column="5">
-             <widget class="QComboBox" name="GpsLatFont"/>
+             <widget class="QComboBox" name="GpsLatFont">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:GpsLatFont</string></stringlist></property></widget>
             </item>
             <item row="15" column="4">
-             <widget class="QComboBox" name="FlightModeAlign"/>
+             <widget class="QComboBox" name="FlightModeAlign">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:FlightModeAlign</string></stringlist></property></widget>
             </item>
             <item row="15" column="5">
-             <widget class="QComboBox" name="FlightModeFont"/>
+             <widget class="QComboBox" name="FlightModeFont">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:FlightModeFont</string></stringlist></property></widget>
             </item>
             <item row="24" column="0">
              <widget class="QLabel" name="label_24">
               <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Speed Scale&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Speed Scale&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
              </widget>
             </item>
@@ -1032,10 +1068,11 @@
               <property name="maximum">
                <number>265</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:GpsLonPosY</string></stringlist></property></widget>
             </item>
             <item row="19" column="4">
-             <widget class="QComboBox" name="GpsLonAlign"/>
+             <widget class="QComboBox" name="GpsLonAlign">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:GpsLonAlign</string></stringlist></property></widget>
             </item>
             <item row="19" column="0">
              <widget class="QLabel" name="label_21">
@@ -1043,12 +1080,13 @@
                <string>Note: Needs GPS Module</string>
               </property>
               <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;GPS Longitude&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;GPS Longitude&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
              </widget>
             </item>
             <item row="19" column="5">
-             <widget class="QComboBox" name="GpsLonFont"/>
+             <widget class="QComboBox" name="GpsLonFont">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:GpsLonFont</string></stringlist></property></widget>
             </item>
             <item row="20" column="0">
              <widget class="QLabel" name="label_34">
@@ -1068,28 +1106,28 @@
               <property name="maximum">
                <number>265</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:BatteryChargeStatePosY</string></stringlist></property></widget>
             </item>
             <item row="17" column="2">
              <widget class="QSpinBox" name="GpsStatusX">
               <property name="maximum">
                <number>360</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:GpsStatusPosX</string></stringlist></property></widget>
             </item>
             <item row="17" column="3">
              <widget class="QSpinBox" name="GpsStatusY">
               <property name="maximum">
                <number>265</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:GpsStatusPosY</string></stringlist></property></widget>
             </item>
             <item row="17" column="1">
              <widget class="QCheckBox" name="GpsStatusEnabled">
               <property name="text">
                <string/>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:GpsStatus</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
             <item row="16" column="0">
              <widget class="QLabel" name="label_37">
@@ -1109,7 +1147,7 @@
               <property name="text">
                <string/>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:GForce</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
             <item row="17" column="0">
              <widget class="QLabel" name="label_19">
@@ -1117,7 +1155,7 @@
                <string>Note: Needs GPS Module</string>
               </property>
               <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;GPS Status&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;GPS Status&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
              </widget>
             </item>
@@ -1139,46 +1177,48 @@
               <property name="text">
                <string/>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:CustomText</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
             <item row="8" column="5">
-             <widget class="QComboBox" name="BatteryConsumedFont"/>
+             <widget class="QComboBox" name="BatteryConsumedFont">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:BatteryConsumedFont</string></stringlist></property></widget>
             </item>
             <item row="22" column="3">
              <widget class="QSpinBox" name="HomeArrowY">
               <property name="maximum">
                <number>265</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:HomeArrowPosY</string></stringlist></property></widget>
             </item>
             <item row="4" column="2">
              <widget class="QSpinBox" name="ArmStatusX">
               <property name="maximum">
                <number>360</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:ArmStatusPosX</string></stringlist></property></widget>
             </item>
             <item row="3" column="5">
-             <widget class="QComboBox" name="AltitudeNumericFont"/>
+             <widget class="QComboBox" name="AltitudeNumericFont">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:AltitudeNumericFont</string></stringlist></property></widget>
             </item>
             <item row="14" column="2">
              <widget class="QSpinBox" name="CustomTextX">
               <property name="maximum">
                <number>360</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:CustomTextPosX</string></stringlist></property></widget>
             </item>
             <item row="14" column="3">
              <widget class="QSpinBox" name="CustomTextY">
               <property name="maximum">
                <number>265</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:CustomTextPosY</string></stringlist></property></widget>
             </item>
             <item row="23" column="0">
              <widget class="QLabel" name="label_23">
               <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;RSSI&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;RSSI&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
              </widget>
             </item>
@@ -1200,45 +1240,46 @@
               <property name="text">
                <string/>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:GpsMgrs</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
             <item row="20" column="2">
              <widget class="QSpinBox" name="GpsMgrsX">
               <property name="maximum">
                <number>360</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:GpsMgrsPosX</string></stringlist></property></widget>
             </item>
             <item row="17" column="5">
-             <widget class="QComboBox" name="GpsStatusFont"/>
+             <widget class="QComboBox" name="GpsStatusFont">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:GpsStatusFont</string></stringlist></property></widget>
             </item>
             <item row="18" column="1">
              <widget class="QCheckBox" name="GpsLatEnabled">
               <property name="text">
                <string/>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:GpsLat</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
             <item row="18" column="2">
              <widget class="QSpinBox" name="GpsLatX">
               <property name="maximum">
                <number>360</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:GpsLatPosX</string></stringlist></property></widget>
             </item>
             <item row="9" column="1">
              <widget class="QCheckBox" name="BatteryChargeStateEnabled">
               <property name="text">
                <string/>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:BatteryChargeState</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
             <item row="9" column="2">
              <widget class="QSpinBox" name="BatteryChargeStateX">
               <property name="maximum">
                <number>360</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:BatteryChargeStatePosX</string></stringlist></property></widget>
             </item>
             <item row="18" column="0">
              <widget class="QLabel" name="label_20">
@@ -1246,7 +1287,7 @@
                <string>Note: Needs GPS Module</string>
               </property>
               <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;GPS Latitude&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;GPS Latitude&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
              </widget>
             </item>
@@ -1278,7 +1319,7 @@
               <property name="maximum">
                <number>360</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:AlarmPosX</string></stringlist></property></widget>
             </item>
             <item row="28" column="0">
              <widget class="QLabel" name="label_49">
@@ -1298,7 +1339,7 @@
               <property name="text">
                <string/>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:VTXFreq</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
             <item row="10" column="6">
              <layout class="QHBoxLayout" name="horizontalLayout_8">
@@ -1310,7 +1351,13 @@
                </widget>
               </item>
               <item>
-               <widget class="QComboBox" name="CenterMarkMode"/>
+               <widget class="QComboBox" name="CenterMarkMode">
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>fieldname:CenterMark</string>
+                 </stringlist>
+                </property>
+               </widget>
               </item>
              </layout>
             </item>
@@ -1319,27 +1366,29 @@
               <property name="maximum">
                <number>360</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:VTXFreqPosX</string></stringlist></property></widget>
             </item>
             <item row="28" column="3">
              <widget class="QSpinBox" name="VTXFreqY">
               <property name="maximum">
                <number>265</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:VTXFreqPosY</string></stringlist></property></widget>
             </item>
             <item row="28" column="4">
-             <widget class="QComboBox" name="VTXFreqAlign"/>
+             <widget class="QComboBox" name="VTXFreqAlign">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:VTXFreqAlign</string></stringlist></property></widget>
             </item>
             <item row="28" column="5">
-             <widget class="QComboBox" name="VTXFreqFont"/>
+             <widget class="QComboBox" name="VTXFreqFont">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:VTXFreqFont</string></stringlist></property></widget>
             </item>
             <item row="28" column="6">
              <widget class="QCheckBox" name="VTXFreqShowUnit">
               <property name="text">
-               <string>Show unit (&quot;MHz&quot;)</string>
+               <string>Show unit ("MHz")</string>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:VTXFreqShowUnit</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
             <item row="29" column="0">
              <widget class="QLabel" name="label_50">
@@ -1359,34 +1408,36 @@
               <property name="text">
                <string/>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:VTXPower</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
             <item row="29" column="2">
              <widget class="QSpinBox" name="VTXPowerX">
               <property name="maximum">
                <number>360</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:VTXPowerPosX</string></stringlist></property></widget>
             </item>
             <item row="29" column="3">
              <widget class="QSpinBox" name="VTXPowerY">
               <property name="maximum">
                <number>265</number>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:VTXPowerPosY</string></stringlist></property></widget>
             </item>
             <item row="29" column="4">
-             <widget class="QComboBox" name="VTXPowerAlign"/>
+             <widget class="QComboBox" name="VTXPowerAlign">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:VTXPowerAlign</string></stringlist></property></widget>
             </item>
             <item row="29" column="5">
-             <widget class="QComboBox" name="VTXPowerFont"/>
+             <widget class="QComboBox" name="VTXPowerFont">
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:VTXPowerFont</string></stringlist></property></widget>
             </item>
             <item row="29" column="6">
              <widget class="QCheckBox" name="VTXPowerShowUnit">
               <property name="text">
-               <string>Show unit (&quot;mW&quot;)</string>
+               <string>Show unit ("mW")</string>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:VTXPowerShowUnit</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
            </layout>
           </item>
@@ -1404,7 +1455,7 @@
               <property name="toolTip">
                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show either a UAV centered map oriented in flight direction or a home centered map oriented north.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:MapCenterMode</string></stringlist></property></widget>
             </item>
             <item row="2" column="5">
              <widget class="QSpinBox" name="mapHeightMeters">
@@ -1417,7 +1468,7 @@
               <property name="singleStep">
                <number>100</number>
               </property>
-             </widget>
+             <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:MapHeightMeters</string></stringlist></property></widget>
             </item>
             <item row="0" column="4">
              <widget class="QCheckBox" name="mapShowWp">
@@ -1427,7 +1478,7 @@
               <property name="text">
                <string>Show Waypoints</string>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:MapShowWp</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
             <item row="2" column="2">
              <widget class="QLabel" name="label_30">
@@ -1444,7 +1495,7 @@
               <property name="text">
                <string>Show UAV / Home</string>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:MapShowUavHome</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
             <item row="0" column="0">
              <widget class="QLabel" name="label_28">
@@ -1464,7 +1515,7 @@
               <property name="text">
                <string>Enabled</string>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:Map</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
             <item row="2" column="3">
              <widget class="QSpinBox" name="mapWidthMeters">
@@ -1477,7 +1528,7 @@
               <property name="singleStep">
                <number>100</number>
               </property>
-             </widget>
+             <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:MapWidthMeters</string></stringlist></property></widget>
             </item>
             <item row="2" column="4">
              <widget class="QLabel" name="label_31">
@@ -1508,7 +1559,7 @@
               <property name="maximum">
                <number>360</number>
               </property>
-             </widget>
+             <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:MapWidthPixels</string></stringlist></property></widget>
             </item>
             <item row="3" column="5">
              <widget class="QSpinBox" name="mapHeightPixels">
@@ -1518,7 +1569,7 @@
               <property name="maximum">
                <number>266</number>
               </property>
-             </widget>
+             <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:MapHeightPixels</string></stringlist></property></widget>
             </item>
             <item row="3" column="4">
              <widget class="QLabel" name="label_33">
@@ -1532,7 +1583,7 @@
               <property name="text">
                <string>Show Tablet</string>
               </property>
-             </widget>
+              <property name="objrelation" stdset="0"><stringlist notr="true"><string>fieldname:MapShowTablet</string><string>checkedoption:Enabled</string><string>uncheckedoption:Disabled</string></stringlist></property></widget>
             </item>
            </layout>
           </item>

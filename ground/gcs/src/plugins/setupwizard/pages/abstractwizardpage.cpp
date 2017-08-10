@@ -27,6 +27,8 @@
 
 #include "abstractwizardpage.h"
 
+#include <uavobjectutil/uavobjectutilmanager.h>
+
 AbstractWizardPage::AbstractWizardPage(SetupWizard *wizard, QWidget *parent)
     : QWizardPage(parent)
 {

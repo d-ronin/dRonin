@@ -50,6 +50,7 @@
 #include "manualcontrolsettings.h"
 #include "receiveractivity.h"
 
+class TelemetryManager;
 class Ui_InputWidget;
 
 class ConfigInputWidget : public ConfigTaskWidget
@@ -233,7 +234,6 @@ private slots:
     void wzBack();
     void wzCancel();
     void goToWizard();
-    void openHelp();
     void identifyControls();
     void identifyLimits();
     void moveTxControls();

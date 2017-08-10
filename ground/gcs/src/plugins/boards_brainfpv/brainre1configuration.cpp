@@ -42,7 +42,6 @@ BrainRE1Configuration::BrainRE1Configuration(QWidget *parent)
 
     re1_settings_obj = HwBrainRE1::GetInstance(getObjectManager());
 
-    addApplySaveButtons(ui->applySettings, ui->saveSettings);
     addUAVObjectToWidgetRelation("HwBrainRE1", "RxPort", ui->cmbRxPort);
     addUAVObjectToWidgetRelation("HwBrainRE1", "DSMxMode", ui->cmbDSMxMode);
 
@@ -114,11 +113,6 @@ void BrainRE1Configuration::widgetsContentsChanged()
         ui->lblMsg->setText("");
         enableControls(true);
     }
-}
-
-void BrainRE1Configuration::openHelp()
-{
-    QDesktopServices::openUrl(QUrl("http://www.brainfpv.com/support", QUrl::StrictMode));
 }
 
 void BrainRE1Configuration::generateILapID()

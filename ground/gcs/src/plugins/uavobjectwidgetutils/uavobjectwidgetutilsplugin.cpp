@@ -26,7 +26,6 @@
  */
 
 #include "uavobjectwidgetutilsplugin.h"
-#include <QStringList>
 
 UAVObjectWidgetUtilsPlugin::UAVObjectWidgetUtilsPlugin()
 {

@@ -67,8 +67,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>742</width>
-            <height>450</height>
+            <width>747</width>
+            <height>471</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -110,6 +110,15 @@ Up to 3 separate PID options (or option pairs) can be selected and updated.</str
                 </property>
                 <property name="text">
                  <string>Enable TxPID module</string>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:ModuleSettings</string>
+                  <string>fieldname:AdminState</string>
+                  <string>element:TxPID</string>
+                  <string>checkedoption:Enabled</string>
+                  <string>uncheckedoption:Disabled</string>
+                 </stringlist>
                 </property>
                </widget>
               </item>
@@ -276,6 +285,13 @@ margin:1px;</string>
                  <string>Select PID option or option pair to update.
 Set to Disabled if not used.</string>
                 </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:TxPIDSettings</string>
+                  <string>fieldname:PIDs</string>
+                  <string>element:Instance1</string>
+                 </stringlist>
+                </property>
                </widget>
               </item>
               <item row="2" column="2">
@@ -299,6 +315,13 @@ Note that it is possible to set PID Min &gt; Max. In that case increasing
 control input value will decrease the PID option value. This can be
 used, for instance, to decrease PID value when increasing Throttle.</string>
                 </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:TxPIDSettings</string>
+                  <string>fieldname:Inputs</string>
+                  <string>element:Instance1</string>
+                 </stringlist>
+                </property>
                </widget>
               </item>
               <item row="2" column="3">
@@ -315,6 +338,13 @@ Throttle channel lesser or equal to Throttle Min value.</string>
                 </property>
                 <property name="singleStep">
                  <double>0.000100000000000</double>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:TxPIDSettings</string>
+                  <string>fieldname:MinPID</string>
+                  <string>element:Instance1</string>
+                 </stringlist>
                 </property>
                </widget>
               </item>
@@ -333,6 +363,13 @@ Throttle channel greater or equal to Throttle Max value.</string>
                 <property name="singleStep">
                  <double>0.000100000000000</double>
                 </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:TxPIDSettings</string>
+                  <string>fieldname:MaxPID</string>
+                  <string>element:Instance1</string>
+                 </stringlist>
+                </property>
                </widget>
               </item>
               <item row="3" column="0">
@@ -350,6 +387,13 @@ Throttle channel greater or equal to Throttle Max value.</string>
                 <property name="toolTip">
                  <string>Select PID option or option pair to update.
 Set to Disabled if not used.</string>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:TxPIDSettings</string>
+                  <string>fieldname:PIDs</string>
+                  <string>element:Instance2</string>
+                 </stringlist>
                 </property>
                </widget>
               </item>
@@ -374,6 +418,13 @@ Note that it is possible to set PID Min &gt; Max. In that case increasing
 control input value will decrease the PID option value. This can be
 used, for instance, to decrease PID value when increasing Throttle.</string>
                 </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:TxPIDSettings</string>
+                  <string>fieldname:Inputs</string>
+                  <string>element:Instance2</string>
+                 </stringlist>
+                </property>
                </widget>
               </item>
               <item row="3" column="3">
@@ -390,6 +441,13 @@ Throttle channel lesser or equal to Throttle Min value.</string>
                 </property>
                 <property name="singleStep">
                  <double>0.000100000000000</double>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:TxPIDSettings</string>
+                  <string>fieldname:MinPID</string>
+                  <string>element:Instance2</string>
+                 </stringlist>
                 </property>
                </widget>
               </item>
@@ -408,6 +466,13 @@ Throttle channel greater or equal to Throttle Max value.</string>
                 <property name="singleStep">
                  <double>0.000100000000000</double>
                 </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:TxPIDSettings</string>
+                  <string>fieldname:MaxPID</string>
+                  <string>element:Instance2</string>
+                 </stringlist>
+                </property>
                </widget>
               </item>
               <item row="4" column="0">
@@ -425,6 +490,13 @@ Throttle channel greater or equal to Throttle Max value.</string>
                 <property name="toolTip">
                  <string>Select PID option or option pair to update.
 Set to Disabled if not used.</string>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:TxPIDSettings</string>
+                  <string>fieldname:PIDs</string>
+                  <string>element:Instance3</string>
+                 </stringlist>
                 </property>
                </widget>
               </item>
@@ -449,6 +521,13 @@ Note that it is possible to set PID Min &gt; Max. In that case increasing
 control input value will decrease the PID option value. This can be
 used, for instance, to decrease PID value when increasing Throttle.</string>
                 </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:TxPIDSettings</string>
+                  <string>fieldname:Inputs</string>
+                  <string>element:Instance3</string>
+                 </stringlist>
+                </property>
                </widget>
               </item>
               <item row="4" column="3">
@@ -466,6 +545,13 @@ Throttle channel lesser or equal to Throttle Min value.</string>
                 <property name="singleStep">
                  <double>0.000100000000000</double>
                 </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:TxPIDSettings</string>
+                  <string>fieldname:MinPID</string>
+                  <string>element:Instance3</string>
+                 </stringlist>
+                </property>
                </widget>
               </item>
               <item row="4" column="4">
@@ -482,6 +568,13 @@ Throttle channel greater or equal to Throttle Max value.</string>
                 </property>
                 <property name="singleStep">
                  <double>0.000100000000000</double>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:TxPIDSettings</string>
+                  <string>fieldname:MaxPID</string>
+                  <string>element:Instance3</string>
+                 </stringlist>
                 </property>
                </widget>
               </item>
@@ -509,6 +602,12 @@ and constantly updates stabilization settings object. As a workaround,
 this option can be used to temporarily disable updates or enable them
 only when system is armed without disabling the module.</string>
                 </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:TxPIDSettings</string>
+                  <string>fieldname:UpdateMode</string>
+                 </stringlist>
+                </property>
                </widget>
               </item>
               <item row="7" column="0">
@@ -532,6 +631,13 @@ only when system is armed without disabling the module.</string>
                 <property name="singleStep">
                  <double>0.010000000000000</double>
                 </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:TxPIDSettings</string>
+                  <string>fieldname:ThrottleRange</string>
+                  <string>element:Min</string>
+                 </stringlist>
+                </property>
                </widget>
               </item>
               <item row="7" column="2">
@@ -547,6 +653,13 @@ only when system is armed without disabling the module.</string>
                 </property>
                 <property name="singleStep">
                  <double>0.010000000000000</double>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:TxPIDSettings</string>
+                  <string>fieldname:ThrottleRange</string>
+                  <string>element:Max</string>
+                 </stringlist>
                 </property>
                </widget>
               </item>
@@ -734,7 +847,7 @@ margin:1px;</string>
         <bool>true</bool>
        </property>
        <property name="objrelation" stdset="0">
-        <stringlist>
+        <stringlist notr="true">
          <string>button:help</string>
          <string>url:https://github.com/d-ronin/dRonin/wiki/OnlineHelp:-TxPID-Module</string>
         </stringlist>
@@ -758,6 +871,11 @@ margin:1px;</string>
        <property name="text">
         <string>Apply</string>
        </property>
+       <property name="objrelation" stdset="0">
+        <stringlist notr="true">
+         <string>button:apply</string>
+        </stringlist>
+       </property>
       </widget>
      </item>
      <item>
@@ -779,6 +897,11 @@ margin:1px;</string>
        </property>
        <property name="checked">
         <bool>false</bool>
+       </property>
+       <property name="objrelation" stdset="0">
+        <stringlist notr="true">
+         <string>button:save</string>
+        </stringlist>
        </property>
       </widget>
      </item>
@@ -807,6 +930,7 @@ margin:1px;</string>
   <tabstop>UpdateMode</tabstop>
  </tabstops>
  <resources>
+  <include location="../coreplugin/core.qrc"/>
   <include location="../coreplugin/core.qrc"/>
  </resources>
  <connections/>

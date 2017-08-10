@@ -1,13 +1,14 @@
 #ifndef POPUPWIDGET_H
 #define POPUPWIDGET_H
 
+#include <uavobjectwidgetutils/uavobjectwidgetutils_global.h>
+
 #include <QtGui>
 #include <QWidget>
 #include <QDialog>
-
 #include <QHBoxLayout>
 #include <QPushButton>
-#include "uavobjectwidgetutils_global.h"
+
 
 namespace Ui {
 class PopupWidget;

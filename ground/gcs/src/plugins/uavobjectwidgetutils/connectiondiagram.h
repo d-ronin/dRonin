@@ -32,17 +32,18 @@
 #ifndef CONNECTIONDIAGRAM_H
 #define CONNECTIONDIAGRAM_H
 
-#include "uavobjectwidgetutils_global.h"
+#include <uavobjectwidgetutils/uavobjectwidgetutils_global.h>
 
 #include <QDialog>
 #include <QHash>
 #include <QSvgRenderer>
 #include <QGraphicsSvgItem>
-#include <uavobjects/uavobjectmanager.h>
-#include <uavobjectutil/uavobjectutilmanager.h>
 
+class UAVObject;
+class UAVObjectManager;
+class UAVObjectUtilManager;
 namespace Ui {
-class ConnectionDiagram;
+    class ConnectionDiagram;
 }
 
 class UAVOBJECTWIDGETUTILS_EXPORT ConnectionDiagram : public QDialog
