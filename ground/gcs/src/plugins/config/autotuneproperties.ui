@@ -156,13 +156,6 @@
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
             </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:SystemIdent</string>
-              <string>fieldname:Noise</string>
-              <string>element:Roll</string>
-             </stringlist>
-            </property>
            </widget>
           </item>
           <item row="3" column="4">
@@ -172,13 +165,6 @@
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:SystemIdent</string>
-              <string>fieldname:Noise</string>
-              <string>element:Yaw</string>
-             </stringlist>
             </property>
            </widget>
           </item>
@@ -190,13 +176,6 @@
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
             </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:SystemIdent</string>
-              <string>fieldname:Bias</string>
-              <string>element:Yaw</string>
-             </stringlist>
-            </property>
            </widget>
           </item>
           <item row="3" column="1">
@@ -206,13 +185,6 @@
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:SystemIdent</string>
-              <string>fieldname:Beta</string>
-              <string>element:Yaw</string>
-             </stringlist>
             </property>
            </widget>
           </item>
@@ -224,13 +196,6 @@
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
             </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:SystemIdent</string>
-              <string>fieldname:Beta</string>
-              <string>element:Roll</string>
-             </stringlist>
-            </property>
            </widget>
           </item>
           <item row="2" column="4">
@@ -241,13 +206,6 @@
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
             </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:SystemIdent</string>
-              <string>fieldname:Noise</string>
-              <string>element:Pitch</string>
-             </stringlist>
-            </property>
            </widget>
           </item>
           <item row="1" column="2">
@@ -257,13 +215,6 @@
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:SystemIdent</string>
-              <string>fieldname:Bias</string>
-              <string>element:Roll</string>
-             </stringlist>
             </property>
            </widget>
           </item>
@@ -285,13 +236,6 @@
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
             </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:SystemIdent</string>
-              <string>fieldname:Bias</string>
-              <string>element:Pitch</string>
-             </stringlist>
-            </property>
            </widget>
           </item>
           <item row="2" column="1">
@@ -301,13 +245,6 @@
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-            </property>
-            <property name="objrelation" stdset="0">
-             <stringlist>
-              <string>objname:SystemIdent</string>
-              <string>fieldname:Beta</string>
-              <string>element:Pitch</string>
-             </stringlist>
             </property>
            </widget>
           </item>
