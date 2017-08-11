@@ -585,53 +585,6 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="help">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>25</width>
-         <height>25</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>25</width>
-         <height>25</height>
-        </size>
-       </property>
-       <property name="toolTip">
-        <string>Takes you to the wiki page</string>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="icon">
-        <iconset resource="../coreplugin/core.qrc">
-         <normaloff>:/core/images/helpicon.svg</normaloff>:/core/images/helpicon.svg</iconset>
-       </property>
-       <property name="iconSize">
-        <size>
-         <width>25</width>
-         <height>25</height>
-        </size>
-       </property>
-       <property name="flat">
-        <bool>true</bool>
-       </property>
-       <property name="objrelation" stdset="0">
-        <stringlist>
-         <string>button:help</string>
-         <string>url:http://www.getfpv.com/flight-controllers/lumenier-lux-flight-controller.html</string>
-        </stringlist>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QPushButton" name="reloadSettings">
        <property name="minimumSize">
         <size>

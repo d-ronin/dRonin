@@ -25,6 +25,7 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
+#include <cmath>
 #include <limits>
 
 #include "outputchannelform.h"
