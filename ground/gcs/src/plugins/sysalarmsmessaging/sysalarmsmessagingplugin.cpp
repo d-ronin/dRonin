@@ -67,7 +67,7 @@ bool SysAlarmsMessagingPlugin::initialize(const QStringList &arguments, QString 
     SystemAlarms *obj = SystemAlarms::GetInstance(objManager);
 
     for (const auto field : obj->getFields()) {
-        for (auto i = 0; i < field->getNumElements(); ++i) {
+        for (int i = 0; i < field->getNumElements(); ++i) {
             QString element = field->getElementNames()[i];
             GlobalMessage *msg =
                 Core::ICore::instance()->globalMessaging()->addErrorMessage(element, "");
@@ -93,7 +93,7 @@ void SysAlarmsMessagingPlugin::updateAlarms(UAVObject *systemAlarm)
 {
     UAVObjectField *field = systemAlarm->getField(QString("Alarm"));
 
-    for (auto i = 0; i < field->getNumElements(); ++i) {
+    for (int i = 0; i < field->getNumElements(); ++i) {
         const QString element = field->getElementNames()[i];
         const QString value = field->getValue(i).toString();
         if (value == field->getOptions().at(SystemAlarms::ALARM_ERROR)) {
