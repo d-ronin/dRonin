@@ -43,9 +43,6 @@ public:
     explicit BrainConfiguration(QWidget *parent = 0);
     ~BrainConfiguration();
 
-private slots:
-    void openHelp();
-
 private:
     Ui::BrainConfiguration *ui;
 

@@ -551,8 +551,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>1006</width>
-            <height>1199</height>
+            <width>1008</width>
+            <height>1197</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_12">
@@ -4811,8 +4811,8 @@ border-radius: 5;</string>
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>1006</width>
-            <height>1199</height>
+            <width>1008</width>
+            <height>1197</height>
            </rect>
           </property>
           <property name="autoFillBackground">
@@ -7274,8 +7274,8 @@ border-radius: 5;</string>
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>1006</width>
-            <height>1199</height>
+            <width>1008</width>
+            <height>1197</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -9267,7 +9267,7 @@ border-radius: 5;</string>
         <bool>true</bool>
        </property>
        <property name="objrelation" stdset="0">
-        <stringlist>
+        <stringlist notr="true">
          <string>button:help</string>
          <string>url:https://github.com/d-ronin/dRonin/wiki/OnlineHelp:-Stabilization-Panel</string>
         </stringlist>
@@ -9311,7 +9311,7 @@ Useful if you have accidentally changed some settings.</string>
         </size>
        </property>
        <property name="objrelation" stdset="0">
-        <stringlist>
+        <stringlist notr="true">
          <string>button:reload</string>
          <string>buttongroup:10</string>
         </stringlist>
@@ -9348,7 +9348,7 @@ Useful if you have accidentally changed some settings.</string>
         <string>Apply</string>
        </property>
        <property name="objrelation" stdset="0">
-        <stringlist>
+        <stringlist notr="true">
          <string>button:apply</string>
         </stringlist>
        </property>
@@ -9384,7 +9384,7 @@ Useful if you have accidentally changed some settings.</string>
         <string>Save</string>
        </property>
        <property name="objrelation" stdset="0">
-        <stringlist>
+        <stringlist notr="true">
          <string>button:save</string>
         </stringlist>
        </property>

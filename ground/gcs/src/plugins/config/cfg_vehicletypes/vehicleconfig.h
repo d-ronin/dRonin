@@ -39,6 +39,8 @@
 #include "mixersettings.h"
 #include "systemsettings.h"
 
+#include <QComboBox>
+
 PACK(typedef struct {
     uint VTOLMotorN : 4;
     uint VTOLMotorS : 4;

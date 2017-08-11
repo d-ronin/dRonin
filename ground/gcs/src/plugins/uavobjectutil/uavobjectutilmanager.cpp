@@ -765,12 +765,12 @@ bool UAVObjectUtilManager::boardConfigured()
     if (!minField || !maxField)
         return true;
 
-    for (unsigned i = 0; i < maxField->getNumElements(); i++) {
+    for (auto i = 0; i < maxField->getNumElements(); i++) {
         if (maxField->getValue(i).toInt() > 0)
             return true;
     }
 
-    for (unsigned i = 0; i < minField->getNumElements(); i++) {
+    for (auto i = 0; i < minField->getNumElements(); i++) {
         if (minField->getValue(i).toInt() > 0)
             return true;
     }

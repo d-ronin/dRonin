@@ -26,9 +26,8 @@
 
 #include "configmodulewidget.h"
 
-#include <extensionsystem/pluginmanager.h>
-#include <coreplugin/generalsettings.h>
 #include <coreplugin/iboardtype.h>
+#include <uavobjectutil/uavobjectutilmanager.h>
 
 #include "airspeedsettings.h"
 #include "flightbatterysettings.h"
@@ -42,6 +41,8 @@
 #include "rgbledsettings.h"
 
 #include <QColorDialog>
+#include <QDebug>
+#include <QPointer>
 
 ConfigModuleWidget::ConfigModuleWidget(QWidget *parent)
     : ConfigTaskWidget(parent)
@@ -57,10 +58,6 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent)
     // Populate UAVO strings
     AirspeedSettings *airspeedSettings;
     airspeedSettings = AirspeedSettings::GetInstance(getObjectManager());
-
-    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    Core::Internal::GeneralSettings *settings = pm->getObject<Core::Internal::GeneralSettings>();
-    ui->saveRAM->setVisible(settings->useExpertMode());
 
     // Don't allow these to be changed here, only in the respective tabs.
     ui->cbAutotune->setDisabled(true);

@@ -26,7 +26,9 @@
 
 #include <QWidget>
 #include <QResizeEvent>
-#include <math.h>
+
+#include <uavobjectwidgetutils/mixercurvepoint.h>
+
 #include "mixercurve.h"
 #include "dblspindelegate.h"
 

@@ -30,14 +30,19 @@
  */
 
 #include "vehicleconfigurationhelper.h"
-#include "extensionsystem/pluginmanager.h"
-#include "actuatorsettings.h"
-#include "attitudesettings.h"
-#include "mixersettings.h"
-#include "systemsettings.h"
-#include "manualcontrolsettings.h"
-#include "sensorsettings.h"
-#include "stabilizationsettings.h"
+
+#include <actuatorsettings.h>
+#include <attitudesettings.h>
+#include <mixersettings.h>
+#include <systemsettings.h>
+#include <manualcontrolsettings.h>
+#include <sensorsettings.h>
+#include <stabilizationsettings.h>
+
+#include <extensionsystem/pluginmanager.h>
+#include <uavobjectutil/uavobjectutilmanager.h>
+
+#include <QDebug>
 
 const float VehicleConfigurationHelper::DEFAULT_ENABLED_ACCEL_TAU = 0.1;
 
@@ -621,9 +626,8 @@ void VehicleConfigurationHelper::resetVehicleConfig()
     for (int i = 1; i <= 2; i++) {
         UAVObjectField *field = mSettings->getField(throttlePattern.arg(i));
         Q_ASSERT(field);
-        for (quint32 i = 0; i < field->getNumElements(); i++) {
+        for (auto i = 0; i < field->getNumElements(); i++)
             field->setValue(i * (0.9f / (field->getNumElements() - 1)), i);
-        }
     }
 
     // Reset Mixer types and values
@@ -636,9 +640,8 @@ void VehicleConfigurationHelper::resetVehicleConfig()
 
         field = mSettings->getField(mixerVectorPattern.arg(i));
         Q_ASSERT(field);
-        for (quint32 i = 0; i < field->getNumElements(); i++) {
+        for (auto i = 0; i < field->getNumElements(); i++)
             field->setValue(0, i);
-        }
     }
 
     // Apply updates

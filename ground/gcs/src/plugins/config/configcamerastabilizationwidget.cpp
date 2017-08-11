@@ -37,22 +37,12 @@
 #include "modulesettings.h"
 #include "mixersettings.h"
 #include "actuatorcommand.h"
-#include <extensionsystem/pluginmanager.h>
-#include <coreplugin/generalsettings.h>
 
 ConfigCameraStabilizationWidget::ConfigCameraStabilizationWidget(QWidget *parent)
     : ConfigTaskWidget(parent)
 {
     m_camerastabilization = new Ui_CameraStabilizationWidget();
     m_camerastabilization->setupUi(this);
-
-    addApplySaveButtons(m_camerastabilization->camerastabilizationSaveRAM,
-                        m_camerastabilization->camerastabilizationSaveSD);
-
-    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    Core::Internal::GeneralSettings *settings = pm->getObject<Core::Internal::GeneralSettings>();
-    if (!settings->useExpertMode())
-        m_camerastabilization->camerastabilizationSaveRAM->setVisible(false);
 
     // These widgets don't have direct relation to UAVObjects
     // and need special processing

@@ -46,7 +46,7 @@
 #include <QMessageBox>
 
 #include <extensionsystem/pluginmanager.h>
-#include <coreplugin/generalsettings.h>
+#include <uavobjectutil/uavobjectutilmanager.h>
 
 #include "actuatorcommand.h"
 #include "actuatorsettings.h"
@@ -108,15 +108,9 @@ ConfigInputWidget::ConfigInputWidget(QWidget *parent)
 
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     Q_ASSERT(pm);
-    Core::Internal::GeneralSettings *settings = pm->getObject<Core::Internal::GeneralSettings>();
-    if (!settings->useExpertMode())
-        m_config->saveRCInputToRAM->setVisible(false);
-
     // Get telemetry manager and make sure it is valid
     telMngr = pm->getObject<TelemetryManager>();
     Q_ASSERT(telMngr);
-
-    addApplySaveButtons(m_config->saveRCInputToRAM, m_config->saveRCInputToSD);
 
     // Generate the rows of buttons in the input channel form GUI
     int index = 0;
@@ -159,8 +153,6 @@ ConfigInputWidget::ConfigInputWidget(QWidget *parent)
     addUAVObjectToWidgetRelation("ManualControlSettings", "RssiMax", inpForm->ui->channelMax, 0);
     addUAVObjectToWidgetRelation("ManualControlCommand", "RawRssi", inpForm->ui->channelCurrent, 0);
 
-    addUAVObjectToWidgetRelation("ManualControlSettings", "Deadband", m_config->deadband, 0, 0.01f);
-
     connect(m_config->configurationWizard, &QAbstractButton::clicked, this,
             &ConfigInputWidget::goToWizard);
     connect(m_config->runCalibration, &QAbstractButton::toggled, this,
@@ -171,44 +163,6 @@ ConfigInputWidget::ConfigInputWidget(QWidget *parent)
     connect(m_config->wzBack, &QAbstractButton::clicked, this, &ConfigInputWidget::wzBack);
 
     m_config->stackedWidget->setCurrentIndex(0);
-    addUAVObjectToWidgetRelation("ManualControlSettings", "FlightModePosition",
-                                 m_config->fmsModePos1, 0, 1, true);
-    addUAVObjectToWidgetRelation("ManualControlSettings", "FlightModePosition",
-                                 m_config->fmsModePos2, 1, 1, true);
-    addUAVObjectToWidgetRelation("ManualControlSettings", "FlightModePosition",
-                                 m_config->fmsModePos3, 2, 1, true);
-    addUAVObjectToWidgetRelation("ManualControlSettings", "FlightModePosition",
-                                 m_config->fmsModePos4, 3, 1, true);
-    addUAVObjectToWidgetRelation("ManualControlSettings", "FlightModePosition",
-                                 m_config->fmsModePos5, 4, 1, true);
-    addUAVObjectToWidgetRelation("ManualControlSettings", "FlightModePosition",
-                                 m_config->fmsModePos6, 5, 1, true);
-    addUAVObjectToWidgetRelation("ManualControlSettings", "FlightModeNumber", m_config->fmsPosNum);
-
-    addUAVObjectToWidgetRelation("ManualControlSettings", "Stabilization1Settings",
-                                 m_config->fmsSsPos1Roll, "Roll");
-    addUAVObjectToWidgetRelation("ManualControlSettings", "Stabilization2Settings",
-                                 m_config->fmsSsPos2Roll, "Roll");
-    addUAVObjectToWidgetRelation("ManualControlSettings", "Stabilization3Settings",
-                                 m_config->fmsSsPos3Roll, "Roll");
-    addUAVObjectToWidgetRelation("ManualControlSettings", "Stabilization1Settings",
-                                 m_config->fmsSsPos1Pitch, "Pitch");
-    addUAVObjectToWidgetRelation("ManualControlSettings", "Stabilization2Settings",
-                                 m_config->fmsSsPos2Pitch, "Pitch");
-    addUAVObjectToWidgetRelation("ManualControlSettings", "Stabilization3Settings",
-                                 m_config->fmsSsPos3Pitch, "Pitch");
-    addUAVObjectToWidgetRelation("ManualControlSettings", "Stabilization1Settings",
-                                 m_config->fmsSsPos1Yaw, "Yaw");
-    addUAVObjectToWidgetRelation("ManualControlSettings", "Stabilization2Settings",
-                                 m_config->fmsSsPos2Yaw, "Yaw");
-    addUAVObjectToWidgetRelation("ManualControlSettings", "Stabilization3Settings",
-                                 m_config->fmsSsPos3Yaw, "Yaw");
-    addUAVObjectToWidgetRelation("ManualControlSettings", "Stabilization1Reprojection",
-                                 m_config->fmsSsPos1Rep);
-    addUAVObjectToWidgetRelation("ManualControlSettings", "Stabilization2Reprojection",
-                                 m_config->fmsSsPos2Rep);
-    addUAVObjectToWidgetRelation("ManualControlSettings", "Stabilization3Reprojection",
-                                 m_config->fmsSsPos3Rep);
 
     // connect this before the widgets are populated to ensure it always fires
     connect(ManualControlCommand::GetInstance(getObjectManager()), &UAVObject::objectUpdated, this,
@@ -264,8 +218,6 @@ ConfigInputWidget::ConfigInputWidget(QWidget *parent)
 
     populateWidgets();
     refreshWidgetsValues();
-    // Connect the help button
-    connect(m_config->inputHelp, &QAbstractButton::clicked, this, &ConfigInputWidget::openHelp);
 
     m_config->graphicsView->setScene(new QGraphicsScene(this));
     m_config->graphicsView->setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
@@ -448,13 +400,6 @@ void ConfigInputWidget::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
     m_config->graphicsView->fitInView(m_txBackground, Qt::KeepAspectRatio);
-}
-
-void ConfigInputWidget::openHelp()
-{
-    QDesktopServices::openUrl(
-        QUrl("https://github.com/d-ronin/dRonin/wiki/OnlineHelp:-Input-Configuration",
-             QUrl::StrictMode));
 }
 
 void ConfigInputWidget::goToWizard()

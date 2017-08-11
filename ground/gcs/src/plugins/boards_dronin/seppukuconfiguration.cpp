@@ -29,6 +29,8 @@
 
 #include "seppukuconfiguration.h"
 
+#include <QDebug>
+
 SeppukuConfiguration::SeppukuConfiguration(QWidget *parent)
     : ConfigTaskWidget(parent)
     , ui(new Ui::Seppuku)

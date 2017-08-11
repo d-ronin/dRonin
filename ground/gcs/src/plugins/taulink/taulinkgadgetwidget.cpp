@@ -22,9 +22,11 @@
 * You should have received a copy of the GNU General Public License along
 * with this program; if not, see <http://www.gnu.org/licenses/>
 */
-#include "taulinkgadgetwidget.h"
-#include "rfm22bstatus.h"
+
 #include "ui_taulink.h"
+#include "taulinkgadgetwidget.h"
+
+#include <rfm22bstatus.h>
 
 TauLinkGadgetWidget::TauLinkGadgetWidget(QWidget *parent)
     : ConfigTaskWidget(parent)
@@ -32,29 +34,7 @@ TauLinkGadgetWidget::TauLinkGadgetWidget(QWidget *parent)
     ui = new Ui_TauLink();
     ui->setupUi(this);
 
-    // Connect to the LinkStatus object updates
-    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
-    rfm22bStatusObj = dynamic_cast<UAVDataObject *>(objManager->getObject("RFM22BStatus"));
-
-    if (rfm22bStatusObj != NULL) {
-        connect(rfm22bStatusObj, &UAVObject::objectUpdated, this,
-                &TauLinkGadgetWidget::updateStatus);
-        rfm22bStatusObj->requestUpdate();
-
-        autoLoadWidgets();
-
-        addUAVObjectToWidgetRelation("RFM22BStatus", "RxGood", ui->Good);
-        addUAVObjectToWidgetRelation("RFM22BStatus", "RxCorrected", ui->Corrected);
-        addUAVObjectToWidgetRelation("RFM22BStatus", "RxErrors", ui->Errors);
-        addUAVObjectToWidgetRelation("RFM22BStatus", "RxFailure", ui->RxFailure);
-        addUAVObjectToWidgetRelation("RFM22BStatus", "Resets", ui->Resets);
-        addUAVObjectToWidgetRelation("RFM22BStatus", "Timeouts", ui->Timeouts);
-        addUAVObjectToWidgetRelation("RFM22BStatus", "RSSI", ui->RSSI);
-        addUAVObjectToWidgetRelation("RFM22BStatus", "LinkQuality", ui->LinkQuality);
-        addUAVObjectToWidgetRelation("RFM22BStatus", "RXRate", ui->RXRate);
-        addUAVObjectToWidgetRelation("RFM22BStatus", "TXRate", ui->TXRate);
-    }
+    autoLoadWidgets();
 }
 
 TauLinkGadgetWidget::~TauLinkGadgetWidget()
@@ -62,23 +42,6 @@ TauLinkGadgetWidget::~TauLinkGadgetWidget()
     // Do nothing
 }
 
-/*!
-  \brief Called by updates to @RFM22BStatus
-  */
-void TauLinkGadgetWidget::updateStatus(UAVObject *object)
-{
-    // Update the DeviceID field
-    UAVObjectField *idField = object->getField("DeviceID");
-    if (idField) {
-        ui->DeviceID->setText(QString::number(idField->getValue().toUInt(), 16).toUpper());
-    }
-
-    // Update the link state
-    UAVObjectField *linkField = object->getField("LinkState");
-    if (linkField) {
-        ui->LinkState->setText(linkField->getValue().toString());
-    }
-}
 /**
   * @}
   * @}

@@ -578,6 +578,7 @@
        <property name="objrelation" stdset="0">
         <stringlist notr="true">
          <string>button:help</string>
+         <string>url:https://www.brainfpv.com/support/</string>
         </stringlist>
        </property>
       </widget>
@@ -618,6 +619,11 @@ Beware of not locking yourself out!</string>
        <property name="checkable">
         <bool>false</bool>
        </property>
+       <property name="objrelation" stdset="0">
+        <stringlist notr="true">
+         <string>button:apply</string>
+        </stringlist>
+       </property>
       </widget>
      </item>
      <item>
@@ -646,6 +652,11 @@ Beware of not locking yourself out!</string>
        </property>
        <property name="text">
         <string>Save</string>
+       </property>
+       <property name="objrelation" stdset="0">
+        <stringlist notr="true">
+         <string>button:save</string>
+        </stringlist>
        </property>
       </widget>
      </item>

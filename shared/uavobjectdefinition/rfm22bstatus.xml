@@ -3,8 +3,8 @@
 	<object name="RFM22BStatus" singleinstance="false" settings="false">
 		<description>RFM22B link status.</description>
 		<field name="BoardRevision" units="" type="uint16" elements="1"/>
-		<field name="BoardType" units="" type="uint8" elements="1"/>
-		<field name="DeviceID" units="hex" type="uint32" elements="1" defaultvalue="0"/>
+		<field name="BoardType" units="" type="uint8" elements="1" display="hex"/>
+		<field name="DeviceID" units="" type="uint32" elements="1" defaultvalue="0" display="hex"/>
 		<field name="HeapRemaining" units="bytes" type="uint16" elements="1"/>
 		<field name="RxGood" units="%" type="uint8" elements="1" defaultvalue="0"/>
 		<field name="RxCorrected" units="%" type="uint8" elements="1" defaultvalue="0"/>

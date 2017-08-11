@@ -101,7 +101,7 @@ void SystemHealthGadgetWidget::updateAlarms(UAVObject *systemAlarm)
     if (field == NULL)
         return;
 
-    for (uint i = 0; i < field->getNumElements(); ++i) {
+    for (auto i = 0; i < field->getNumElements(); ++i) {
         QString element = field->getElementNames()[i];
         QString value = field->getValue(i).toString();
         if (m_renderer->elementExists(element)) {

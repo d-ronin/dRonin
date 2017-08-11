@@ -88,7 +88,6 @@ private slots:
     void runChannelTests(bool state);
     void sendChannelTest(int index, int value);
     void startESCCalibration();
-    void openHelp();
     void do_SetDirty();
     void assignOutputChannels(UAVObject *obj);
     void refreshWidgetRanges();

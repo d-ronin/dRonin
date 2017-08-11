@@ -29,13 +29,16 @@
 #ifndef VEHICLECONFIGURATIONHELPER_H
 #define VEHICLECONFIGURATIONHELPER_H
 
+#include "vehicleconfigurationsource.h"
+
+#include <config/cfg_vehicletypes/vehicleconfig.h>
+#include <uavobjects/uavobjectmanager.h>
+#include <actuatorsettings.h>
+#include <systemsettings.h>
+
+#include <QEventLoop>
 #include <QList>
 #include <QPair>
-#include "vehicleconfigurationsource.h"
-#include "uavobjects/uavobjectmanager.h"
-#include "systemsettings.h"
-#include "config/cfg_vehicletypes/vehicleconfig.h"
-#include "actuatorsettings.h"
 
 struct mixerChannelSettings
 {

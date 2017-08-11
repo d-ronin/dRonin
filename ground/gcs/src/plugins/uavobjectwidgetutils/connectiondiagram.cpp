@@ -31,17 +31,19 @@
  * of this source file; otherwise redistribution is prohibited.
  */
 
-#include <QDebug>
-#include <QFile>
-#include <QFileDialog>
-#include <QMessageBox>
 #include "connectiondiagram.h"
 #include "ui_connectiondiagram.h"
+
 #include <extensionsystem/pluginmanager.h>
 #include <uavobjects/uavobjectmanager.h>
 #include <uavobjectutil/uavobjectutilmanager.h>
 #include <coreplugin/iboardtype.h>
-#include "systemsettings.h"
+#include <systemsettings.h>
+
+#include <QDebug>
+#include <QFile>
+#include <QFileDialog>
+#include <QMessageBox>
 
 ConnectionDiagram::ConnectionDiagram(QWidget *parent)
     : QDialog(parent)

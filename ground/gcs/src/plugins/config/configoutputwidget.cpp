@@ -51,7 +51,6 @@
 #include "systemsettings.h"
 #include "uavsettingsimportexport/uavsettingsimportexportmanager.h"
 #include <extensionsystem/pluginmanager.h>
-#include <coreplugin/generalsettings.h>
 #include <coreplugin/modemanager.h>
 #include <coreplugin/imode.h>
 
@@ -62,9 +61,6 @@ ConfigOutputWidget::ConfigOutputWidget(QWidget *parent)
     m_config->setupUi(this);
 
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    Core::Internal::GeneralSettings *settings = pm->getObject<Core::Internal::GeneralSettings>();
-    if (!settings->useExpertMode())
-        m_config->saveRCOutputToRAM->setVisible(false);
 
     /* There's lots of situations where it's unsafe to run tests.
      * Import/export:
@@ -105,12 +101,6 @@ ConfigOutputWidget::ConfigOutputWidget(QWidget *parent)
             &ConfigOutputWidget::runChannelTests);
     connect(m_config->calibrateESC, &QAbstractButton::clicked, this,
             &ConfigOutputWidget::startESCCalibration);
-
-    // Configure the task widget
-    // Connect the help button
-    connect(m_config->outputHelp, &QAbstractButton::clicked, this, &ConfigOutputWidget::openHelp);
-
-    addApplySaveButtons(m_config->saveRCOutputToRAM, m_config->saveRCOutputToSD);
 
     // Track the ActuatorSettings object
     addUAVObject("ActuatorSettings");
@@ -644,13 +634,6 @@ quint32 ConfigOutputWidget::timerStringToFreq(QString str) const
         { tr("Dshot1200"), RATE_DSHOT1200 },
     };
     return mapping.value(str, str.toUInt());
-}
-
-void ConfigOutputWidget::openHelp()
-{
-    QDesktopServices::openUrl(
-        QUrl("https://github.com/d-ronin/dRonin/wiki/OnlineHelp:-Output-Configuration",
-             QUrl::StrictMode));
 }
 
 void ConfigOutputWidget::tabSwitchingAway()

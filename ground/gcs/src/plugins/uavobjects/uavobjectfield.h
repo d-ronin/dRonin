@@ -42,7 +42,7 @@ class UAVOBJECTS_EXPORT UAVObjectField : public QObject
     Q_OBJECT
 
 public:
-    typedef enum {
+    enum FieldType {
         INT8 = 0,
         INT16,
         INT32,
@@ -53,18 +53,18 @@ public:
         ENUM,
         BITFIELD,
         STRING
-    } FieldType;
-    typedef enum { EQUAL, NOT_EQUAL, BETWEEN, BIGGER, SMALLER } LimitType;
+    };
+    enum LimitType { EQUAL, NOT_EQUAL, BETWEEN, BIGGER, SMALLER };
     enum DisplayType { DEC, HEX, BIN, OCT };
 
-    typedef struct
+    struct LimitStruct
     {
         LimitType type;
         QList<QVariant> values;
         int board;
-    } LimitStruct;
+    };
 
-    UAVObjectField(const QString &name, const QString &units, FieldType type, quint32 numElements,
+    UAVObjectField(const QString &name, const QString &units, FieldType type, int numElements,
                    const QStringList &options, const QList<int> &indices,
                    const QString &limits = QString(), const QString &description = QString(),
                    const QList<QVariant> defaultValues = QList<QVariant>(),
@@ -76,15 +76,16 @@ public:
                    const QList<QVariant> defaultValues = QList<QVariant>(),
                    const DisplayType display = DEC);
     void initialize(quint8 *data, quint32 dataOffset, UAVObject *obj);
-    UAVObject *getObject();
-    FieldType getType();
-    QString getTypeAsString();
-    QString getName();
-    QString getUnits();
-    quint32 getNumElements();
-    QStringList getElementNames();
-    QString getElementName(quint32 index = 0);
-    QStringList getOptions();
+    UAVObject *getObject() const;
+    FieldType getType() const;
+    QString getTypeAsString() const;
+    QString getName() const;
+    QString getUnits() const;
+    int getNumElements() const;
+    QStringList getElementNames() const;
+    QString getElementName(int index = 0) const;
+    int getElementIndex(const QString &name) const;
+    QStringList getOptions() const;
     /**
      * @brief hasOption Check if the given option exists
      * @param option Option value
@@ -93,43 +94,42 @@ public:
     bool hasOption(const QString &option);
     qint32 pack(quint8 *dataOut);
     qint32 unpack(const quint8 *dataIn);
-    QVariant getValue(quint32 index = 0);
-    bool checkValue(const QVariant &data, quint32 index = 0);
-    void setValue(const QVariant &data, quint32 index = 0);
-    double getDouble(quint32 index = 0);
-    void setDouble(double value, quint32 index = 0);
-    quint32 getDataOffset();
-    quint32 getNumBytes();
-    bool isNumeric();
-    bool isText();
-    QString toString();
-    QString getDescription();
+    QVariant getValue(int index = 0) const;
+    bool checkValue(const QVariant &data, int index = 0) const;
+    void setValue(const QVariant &data, int index = 0);
+    double getDouble(int index = 0) const;
+    void setDouble(double value, int index = 0);
+    size_t getNumBytes() const;
+    bool isNumeric() const;
+    bool isText() const;
+    QString toString() const;
+    QString getDescription() const;
     /**
      * @brief Get the default value (defined in the UAVO def) for the element
      * @param index The element to inspect
      * @return QVariant containing the default value
      */
-    QVariant getDefaultValue(quint32 index = 0);
+    QVariant getDefaultValue(int index = 0) const;
     /**
      * @brief Check if the element is set to default value
      * @param index The element to inspect
      * @return true if set to default
      */
-    bool isDefaultValue(quint32 index = 0);
+    bool isDefaultValue(int index = 0);
     /**
      * @brief Get the preferred integer base for this field
      * @return Preferred base
      */
-    int getDisplayIntegerBase();
+    int getDisplayIntegerBase() const;
     /**
      * @brief Get the prefix for the preferred display format
      * @return "0x" for hex, "0b" for binary etc.
      */
-    QString getDisplayPrefix();
+    QString getDisplayPrefix() const;
 
-    bool isWithinLimits(QVariant var, quint32 index, int board = 0);
-    QVariant getMaxLimit(quint32 index, int board = 0);
-    QVariant getMinLimit(quint32 index, int board = 0);
+    bool isWithinLimits(QVariant var, int index, int board = 0) const;
+    QVariant getMaxLimit(int index, int board = 0) const;
+    QVariant getMinLimit(int index, int board = 0) const;
 signals:
     void fieldUpdated(UAVObjectField *field);
 
@@ -139,13 +139,14 @@ protected:
     FieldType type;
     QStringList elementNames;
     QList<int> indices;
+    std::map<int, int> enumToIndex;
     QStringList options;
-    quint32 numElements;
-    quint32 numBytesPerElement;
-    quint32 offset;
+    int numElements;
+    size_t elementSize;
+    size_t offset;
     quint8 *data;
     UAVObject *obj;
-    QMap<quint32, QList<LimitStruct>> elementLimits;
+    QMap<int, QList<LimitStruct>> elementLimits;
     QString description;
     QList<QVariant> defaultValues;
     DisplayType display;

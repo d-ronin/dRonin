@@ -25,9 +25,7 @@
 #ifndef TAULINKGADGETWIDGET_H_
 #define TAULINKGADGETWIDGET_H_
 
-#include "extensionsystem/pluginmanager.h"
-#include "uavobjectwidgetutils/configtaskwidget.h"
-#include "ui_taulink.h"
+#include <uavobjectwidgetutils/configtaskwidget.h>
 
 class Ui_TauLink;
 class TauLinkPlugin;
@@ -39,9 +37,6 @@ class TauLinkGadgetWidget : public ConfigTaskWidget
 public:
     TauLinkGadgetWidget(QWidget *parent = 0);
     ~TauLinkGadgetWidget();
-
-private slots:
-    void updateStatus(UAVObject *object);
 
 private:
     Ui_TauLink *ui;

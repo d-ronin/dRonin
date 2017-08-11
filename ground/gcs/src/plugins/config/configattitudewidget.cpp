@@ -103,10 +103,6 @@ ConfigAttitudeWidget::ConfigAttitudeWidget(QWidget *parent)
         }
     }
 
-    Core::Internal::GeneralSettings *settings = pm->getObject<Core::Internal::GeneralSettings>();
-    if (!settings->useExpertMode())
-        m_ui->applyButton->setVisible(false);
-
     // Must set up the UI (above) before setting up the UAVO mappings or refreshWidgetValues
     // will be dealing with some null pointers
     addUAVObject("AttitudeSettings");

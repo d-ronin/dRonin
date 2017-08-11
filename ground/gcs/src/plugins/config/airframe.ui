@@ -83,7 +83,7 @@
             <x>0</x>
             <y>0</y>
             <width>889</width>
-            <height>634</height>
+            <height>643</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout">
@@ -1650,8 +1650,8 @@ margin:1px;</string>
                    <rect>
                     <x>0</x>
                     <y>0</y>
-                    <width>773</width>
-                    <height>226</height>
+                    <width>633</width>
+                    <height>214</height>
                    </rect>
                   </property>
                   <layout class="QVBoxLayout" name="verticalLayout_11">
@@ -3206,6 +3206,12 @@ p, li { white-space: pre-wrap; }
        <property name="flat">
         <bool>true</bool>
        </property>
+       <property name="objrelation" stdset="0">
+        <stringlist notr="true">
+         <string>button:help</string>
+         <string>url:https://github.com/d-ronin/dRonin/wiki/OnlineHelp:-Vehicle-configuration</string>
+        </stringlist>
+       </property>
       </widget>
      </item>
      <item>
@@ -3216,6 +3222,11 @@ p, li { white-space: pre-wrap; }
        <property name="text">
         <string>Apply</string>
        </property>
+       <property name="objrelation" stdset="0">
+        <stringlist notr="true">
+         <string>button:apply</string>
+        </stringlist>
+       </property>
       </widget>
      </item>
      <item>
@@ -3225,6 +3236,11 @@ p, li { white-space: pre-wrap; }
        </property>
        <property name="text">
         <string>Save</string>
+       </property>
+       <property name="objrelation" stdset="0">
+        <stringlist notr="true">
+         <string>button:save</string>
+        </stringlist>
        </property>
       </widget>
      </item>

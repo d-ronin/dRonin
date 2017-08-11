@@ -100,7 +100,6 @@ private slots:
     void toggleRudder2(int index);
     void switchAirframeType(int index);
 
-    void openHelp();
     void reverseMultirotorMotor();
 
     void bnLevelTrim_clicked();

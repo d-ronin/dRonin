@@ -28,14 +28,16 @@
 #ifndef MIXERCURVEWIDGET_H_
 #define MIXERCURVEWIDGET_H_
 
+#include <uavobjectwidgetutils/uavobjectwidgetutils_global.h>
+
 #include <QObject>
 #include <QGraphicsView>
-#include <QtSvg/QSvgRenderer>
-#include <QtSvg/QGraphicsSvgItem>
-#include <QtCore/QPointer>
-#include "uavobjectwidgetutils/mixercurvepoint.h"
-#include "uavobjectwidgetutils/mixercurveline.h"
-#include "uavobjectwidgetutils/uavobjectwidgetutils_global.h"
+#include <QSvgRenderer>
+#include <QGraphicsSvgItem>
+#include <QPointer>
+
+class Edge;
+class MixerNode;
 
 class UAVOBJECTWIDGETUTILS_EXPORT MixerCurveWidget : public QGraphicsView
 {
