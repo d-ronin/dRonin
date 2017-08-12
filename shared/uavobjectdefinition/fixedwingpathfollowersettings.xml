@@ -40,6 +40,9 @@
 		<field name="UpdatePeriod" units="ms" type="int16" elements="1" defaultvalue="100">
 			<description/>
 		</field>
+		<field name="PositionFeedforward" units="s" type="float" elements="1" defaultvalue="0.5">
+			<description>The amount of time of the current velocity to feed-forward into position to compensate for turns taking time.</description>
+		</field>
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
 		<telemetryflight acked="true" updatemode="onchange" period="0"/>
