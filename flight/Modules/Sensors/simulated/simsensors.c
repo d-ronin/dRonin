@@ -246,7 +246,7 @@ static void simulateYasim()
 
 	    float roll, pitch, yaw, throttle;
 
-	    float resv[8];
+	    float reserved[8];
 
 	    bool armed;
 	} cmd;
@@ -265,7 +265,7 @@ static void simulateYasim()
 	    /* Provided only to "check" attitude solution */
 	    float roll, pitch, hdg;
 
-	    float resv[4];
+	    float reserved[4];
 	} status;
 
 	static bool inited = false;
