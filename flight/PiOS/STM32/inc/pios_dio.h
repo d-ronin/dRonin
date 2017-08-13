@@ -83,6 +83,8 @@ enum dio_pull {
 
 typedef uintptr_t dio_tag_t;
 
+#define DIO_NULL ((uintptr_t) 0)
+
 /**
  * @brief Configures a GPIO as alternate function output.
  *
@@ -179,7 +181,13 @@ static inline bool dio_read(dio_tag_t t);
 
 #define GET_DIO_PIN(dio)  ((dio) & 0xffff)
 
+#define _DIO_PRELUDE_RET(s) \
+	if (t == DIO_NULL) { return (s); } \
+	GPIO_TypeDef * gp = GET_DIO_PORT(t); \
+	uint16_t pin = GET_DIO_PIN(t);
+
 #define _DIO_PRELUDE \
+	if (t == DIO_NULL) { return; } \
 	GPIO_TypeDef * gp = GET_DIO_PORT(t); \
 	uint16_t pin = GET_DIO_PIN(t);
 
@@ -398,7 +406,7 @@ static inline void dio_set_input(dio_tag_t t, enum dio_pull pull)
 
 static inline bool dio_read(dio_tag_t t)
 {
-	_DIO_PRELUDE;
+	_DIO_PRELUDE_RET(false);
 
 	return !! (gp->IDR & pin);
 }

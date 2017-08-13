@@ -64,6 +64,7 @@ extern int PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const u
 #ifndef SIM_POSIX
 extern void PIOS_Servo_SetFraction(uint8_t servo, uint16_t fraction,
 		uint16_t max_val, uint16_t min_val);
+extern void PIOS_Servo_DisableChannel(int channel);
 #endif
 
 extern void PIOS_Servo_PrepareForReset();

@@ -108,16 +108,16 @@ int32_t PIOS_TIM_InitClock(const struct pios_tim_clock_cfg * cfg)
 	return 0;
 }
 
-void PIOS_TIM_InitAllTimerPins(uintptr_t tim_id)
+void PIOS_TIM_InitTimerPin(uintptr_t tim_id, int idx)
 {
 	struct pios_tim_dev * tim_dev = (struct pios_tim_dev *) tim_id;
 
-	/* Configure the pins */
-	for (uint8_t i = 0; i < tim_dev->num_channels; i++) {
-		const struct pios_tim_channel * chan = &tim_dev->channels[i];
+	PIOS_Assert(idx < tim_dev->num_channels);
 
-		/* Enable the peripheral clock for the GPIO */
-		switch ((uint32_t)chan->pin.gpio) {
+	const struct pios_tim_channel * chan = &tim_dev->channels[idx];
+
+	/* Enable the peripheral clock for the GPIO */
+	switch ((uint32_t)chan->pin.gpio) {
 		case (uint32_t) GPIOA:
 			RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
 			break;
@@ -130,12 +130,21 @@ void PIOS_TIM_InitAllTimerPins(uintptr_t tim_id)
 		default:
 			PIOS_Assert(0);
 			break;
-		}
-		GPIO_Init(chan->pin.gpio, (GPIO_InitTypeDef*)&chan->pin.init);
+	}
+	GPIO_Init(chan->pin.gpio, (GPIO_InitTypeDef*)&chan->pin.init);
 
-		if (chan->remap) {
-			GPIO_PinRemapConfig(chan->remap, ENABLE);
-		}
+	if (chan->remap) {
+		GPIO_PinRemapConfig(chan->remap, ENABLE);
+	}
+}
+
+void PIOS_TIM_InitAllTimerPins(uintptr_t tim_id)
+{
+	struct pios_tim_dev * tim_dev = (struct pios_tim_dev *) tim_id;
+
+	/* Configure the pins */
+	for (uint8_t i = 0; i < tim_dev->num_channels; i++) {
+		PIOS_TIM_InitTimerPin(tim_id, i);
 	}
 }
 
