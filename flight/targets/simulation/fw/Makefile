@@ -33,18 +33,17 @@ all: elf
 
 override THUMB :=
 
-ifneq ($(PI_CROSS_SIM)x,x)
-TCHAIN_PREFIX = arm-linux-gnueabihf-
+TCHAIN_PREFIX =
 
 LDFLAGS += -static
-else
-TCHAIN_PREFIX =
-endif
 
 include $(MAKE_INC_DIR)/firmware-defs.mk
 
-ifneq ($(PI_CROSS_SIM)x,x)
+ifeq ($(CROSS_SIM),pi)
 
+TCHAIN_PREFIX = arm-linux-gnueabihf-
+
+# Prefer GCC 6
 ARMGCC:=$(shell command -v arm-linux-gnueabihf-gcc-6 2>/dev/null)
 
 ifneq ($(ARMGCC),)

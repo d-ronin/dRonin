@@ -42,7 +42,7 @@ struct pios_px4flow_data {
 };
 
 /* Public Functions */
-extern int32_t PIOS_PX4Flow_Init(const struct pios_px4flow_cfg *cfg, const uint32_t i2c_id);
+extern int32_t PIOS_PX4Flow_Init(const struct pios_px4flow_cfg *cfg, pios_i2c_t i2c_id);
 extern int32_t PIOS_PX4Flow_Test(void);
 extern int32_t PIOS_PX4Flow_SetRotation(const struct Rotation rotation);
 extern bool PIOS_PX4Flow_IRQHandler();

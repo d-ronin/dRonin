@@ -78,7 +78,7 @@ enum conversion_type {
 
 struct ms5611_dev {
 	const struct pios_ms5611_cfg * cfg;
-	uint32_t i2c_id;
+	pios_i2c_t i2c_id;
 	struct pios_thread *task;
 	struct pios_queue *queue;
 
@@ -138,7 +138,7 @@ static int32_t PIOS_MS5611_Validate(struct ms5611_dev *dev)
 /**
  * Initialise the MS5611 sensor
  */
-int32_t PIOS_MS5611_Init(const struct pios_ms5611_cfg *cfg, int32_t i2c_device)
+int32_t PIOS_MS5611_Init(const struct pios_ms5611_cfg *cfg, pios_i2c_t i2c_device)
 {
 	dev = (struct ms5611_dev *)PIOS_MS5611_alloc();
 	if (dev == NULL)

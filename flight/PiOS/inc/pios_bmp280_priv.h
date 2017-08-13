@@ -35,7 +35,7 @@
 #define BMP280_HIGH_RESOLUTION			0x31
 #define BMP280_ULTRA_HIGH_RESOLUTION	0x55
 
-//! Configuration structure for the BMP085 driver
+//! Configuration structure for the BMP280 driver
 struct pios_bmp280_cfg {
 
 	//! The oversampling setting for the baro, higher produces
@@ -44,10 +44,9 @@ struct pios_bmp280_cfg {
 	uint8_t oversampling;
 };
 
-int32_t PIOS_BMP280_Init(const struct pios_bmp280_cfg *cfg, int32_t i2c_device);
-int32_t PIOS_BMP280_SPI_Init(const struct pios_bmp280_cfg *cfg, int32_t spi_device,
-	int spi_slave);
-
+int32_t PIOS_BMP280_Init(const struct pios_bmp280_cfg *cfg, pios_i2c_t i2c_device);
+int32_t PIOS_BMP280_SPI_Init(const struct pios_bmp280_cfg *cfg, pios_spi_t spi_device,
+	uint32_t spi_slave);
 
 #endif /* PIOS_BMP280_PRIV_H */
 

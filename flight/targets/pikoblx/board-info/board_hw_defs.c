@@ -227,7 +227,8 @@ static const struct pios_i2c_adapter_cfg pios_i2c_u1_cfg = {
   },
 };
 
-uint32_t pios_i2c_u1_id;
+pios_i2c_t pios_i2c_u1_id;
+
 void PIOS_I2C_u1_ev_irq_handler(void)
 {
   /* Call into the generic code to handle the IRQ for this specific device */

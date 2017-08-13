@@ -223,7 +223,7 @@ static const struct pios_spi_cfg pios_spi_telem_flash_cfg = {
 	},
 };
 
-uint32_t pios_spi_telem_flash_id;
+pios_spi_t pios_spi_telem_flash_id;
 
 #if defined(PIOS_INCLUDE_RFM22B)
 #include <pios_rfm22b_priv.h>
@@ -935,7 +935,7 @@ static const struct pios_i2c_adapter_cfg pios_i2c_mag_pressure_adapter_cfg = {
 	},
 };
 
-uint32_t pios_i2c_mag_pressure_adapter_id;
+pios_i2c_t pios_i2c_mag_pressure_adapter_id;
 void PIOS_I2C_mag_pressure_adapter_ev_irq_handler(void)
 {
 	/* Call into the generic code to handle the IRQ for this specific device */
@@ -1006,7 +1006,7 @@ static const struct pios_i2c_adapter_cfg pios_i2c_flexiport_adapter_cfg = {
 	},
 };
 
-uint32_t pios_i2c_flexiport_adapter_id;
+pios_i2c_t pios_i2c_flexiport_adapter_id;
 void PIOS_I2C_flexiport_adapter_ev_irq_handler(void)
 {
 	/* Call into the generic code to handle the IRQ for this specific device */

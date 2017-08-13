@@ -54,7 +54,6 @@ uintptr_t pios_uavo_settings_fs_id;
  */
 void PIOS_Board_Init(void)
 {
-
 	/* Delay system */
 	PIOS_DELAY_Init();
 
@@ -180,7 +179,8 @@ void PIOS_Board_Init(void)
 	// we just map the baud rate from HwTauLink into this object
 
 	const struct pios_rfm22b_cfg *rfm22b_cfg = PIOS_BOARD_HW_DEFS_GetRfm22Cfg(bdinfo->board_rev);
-	PIOS_HAL_ConfigureRFM22B(hwTauLink.Radio, bdinfo->board_type,
+	PIOS_HAL_ConfigureRFM22B(hwTauLink.Radio, pios_spi_rfm22b_id,
+			bdinfo->board_type,
 			bdinfo->board_rev, hwTauLink.MaxRfPower,
 			hwTauLink.MaxRfSpeed, hwTauLink.RfBand, NULL, rfm22b_cfg,
 			hwTauLink.MinChannel, hwTauLink.MaxChannel,

@@ -50,7 +50,7 @@ enum pios_hmc5983_dev_magic {
 };
 
 struct hmc5983_dev {
-	uint32_t spi_id;
+	pios_spi_t spi_id;
 	uint32_t slave_num;
 	const struct pios_hmc5983_cfg *cfg;
 	struct pios_queue *queue;
@@ -115,7 +115,7 @@ static int32_t PIOS_HMC5983_Validate(struct hmc5983_dev *dev)
  * @brief Initialize the HMC5983 magnetometer sensor.
  * @return none
  */
-int32_t PIOS_HMC5983_Init(uint32_t spi_id, uint32_t slave_num, const struct pios_hmc5983_cfg *cfg)
+int32_t PIOS_HMC5983_Init(pios_spi_t spi_id, uint32_t slave_num, const struct pios_hmc5983_cfg *cfg)
 {
 	dev = (struct hmc5983_dev *)PIOS_HMC5983_alloc();
 	if (dev == NULL)

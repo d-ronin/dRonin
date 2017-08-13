@@ -84,32 +84,32 @@ struct rfm22b_stats {
 };
 
 /* Public Functions */
-extern int32_t PIOS_RFM22B_Init(uint32_t * rfb22b_id, uint32_t spi_id,
+extern int32_t PIOS_RFM22B_Init(uintptr_t * rfb22b_id, pios_spi_t spi_id,
 				uint32_t slave_num,
 				const struct pios_rfm22b_cfg *cfg,
 				HwSharedRfBandOptions band);
-extern void PIOS_RFM22B_Reinit(uint32_t rfb22b_id);
-extern void PIOS_RFM22B_SetTxPower(uint32_t rfm22b_id,
+extern void PIOS_RFM22B_Reinit(uintptr_t rfb22b_id);
+extern void PIOS_RFM22B_SetTxPower(uintptr_t rfm22b_id,
 				   enum rfm22b_tx_power tx_pwr);
-extern void PIOS_RFM22B_Config(uint32_t rfm22b_id,
+extern void PIOS_RFM22B_Config(uintptr_t rfm22b_id,
 					 HwSharedMaxRfSpeedOptions datarate,
 					 uint8_t min_chan,
 					 uint8_t max_chan,
 					 uint32_t coordinator_id, bool oneway,
 					 bool ppm_mode, bool ppm_only);
-extern uint32_t PIOS_RFM22B_DeviceID(uint32_t rfb22b_id);
-extern uint32_t PIOS_RFM22B_ModuleVersion(uint32_t rfb22b_id);
-extern void PIOS_RFM22B_GetStats(uint32_t rfm22b_id,
+extern uint32_t PIOS_RFM22B_DeviceID(uintptr_t rfb22b_id);
+extern uint32_t PIOS_RFM22B_ModuleVersion(uintptr_t rfb22b_id);
+extern void PIOS_RFM22B_GetStats(uintptr_t rfm22b_id,
 				 struct rfm22b_stats *stats);
-extern bool PIOS_RFM22B_LinkStatus(uint32_t rfm22b_id);
-extern bool PIOS_RFM22B_ReceivePacket(uint32_t rfm22b_id, uint8_t * p);
-extern bool PIOS_RFM22B_TransmitPacket(uint32_t rfm22b_id, uint8_t * p,
+extern bool PIOS_RFM22B_LinkStatus(uintptr_t rfm22b_id);
+extern bool PIOS_RFM22B_ReceivePacket(uintptr_t rfm22b_id, uint8_t * p);
+extern bool PIOS_RFM22B_TransmitPacket(uintptr_t rfm22b_id, uint8_t * p,
 				       uint8_t len);
-extern pios_rfm22b_int_result PIOS_RFM22B_ProcessTx(uint32_t rfm22b_id);
-extern pios_rfm22b_int_result PIOS_RFM22B_ProcessRx(uint32_t rfm22b_id);
-extern void PIOS_RFM22B_RegisterRcvr(uint32_t rfm22b_id, uintptr_t rfm22b_rcvr_id);
-extern void PIOS_RFM22B_PPMSet(uint32_t rfm22b_id, int16_t * channels);
-extern bool PIOS_RFM22B_IsCoordinator(uint32_t rfm22b_id);
+extern pios_rfm22b_int_result PIOS_RFM22B_ProcessTx(uintptr_t rfm22b_id);
+extern pios_rfm22b_int_result PIOS_RFM22B_ProcessRx(uintptr_t rfm22b_id);
+extern void PIOS_RFM22B_RegisterRcvr(uintptr_t rfm22b_id, uintptr_t rfm22b_rcvr_id);
+extern void PIOS_RFM22B_PPMSet(uintptr_t rfm22b_id, int16_t * channels);
+extern bool PIOS_RFM22B_IsCoordinator(uintptr_t rfm22b_id);
 extern uint8_t PIOS_RFM22B_RSSI_Get(void);
 
 /* Global Variables */

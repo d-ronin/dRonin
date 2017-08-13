@@ -53,7 +53,7 @@ struct pios_i2c_adapter {
 	struct pios_mutex *lock;
 };
 
-int32_t PIOS_I2C_Init(uint32_t *i2c_id, const char *path)
+int32_t PIOS_I2C_Init(pios_i2c_t *i2c_id, const char *path)
 {
 	struct pios_i2c_adapter *dev;
 
@@ -80,13 +80,13 @@ int32_t PIOS_I2C_Init(uint32_t *i2c_id, const char *path)
 		return -2;
 	}
 
-	*i2c_id = (uintptr_t) dev;
+	*i2c_id = dev;
 
 	/* No error */
 	return 0;
 }
 
-int32_t PIOS_I2C_Transfer(uint32_t i2c_id, const struct pios_i2c_txn txn_list[], uint32_t num_txns)
+int32_t PIOS_I2C_Transfer(pios_i2c_t i2c_id, const struct pios_i2c_txn txn_list[], uint32_t num_txns)
 {
 	struct pios_i2c_adapter *dev = (struct pios_i2c_adapter *)i2c_id;
 

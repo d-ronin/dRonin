@@ -35,6 +35,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include <pios_spi.h>
+
 #define MAX7456_MODE_PAL	0
 #define MAX7456_MODE_NTSC	1
 
@@ -72,7 +74,7 @@ void PIOS_MAX7456_wait_vsync ();
  * @retval 0 on success, else failure
  */
 int PIOS_MAX7456_init (max7456_dev_t *dev_out,
-		uint32_t spi_handle, uint32_t slave_idx);
+		pios_spi_t spi_handle, uint32_t slave_idx);
 
 /**
  * @brief Clear the screen

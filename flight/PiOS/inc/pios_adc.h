@@ -36,11 +36,11 @@
 #include "pios_queue.h"
 
 struct pios_adc_driver {
-	void (*init)(uint32_t id);
-	int32_t (*get_pin)(uint32_t id, uint32_t pin);
-	bool (*available)(uint32_t id, uint32_t device_pin);
-	uint8_t (*number_of_channels)(uint32_t id);
-	float (*lsb_voltage)(uint32_t id);
+	void (*init)(uintptr_t id);
+	int32_t (*get_pin)(uintptr_t id, uint32_t pin);
+	bool (*available)(uintptr_t id, uint32_t device_pin);
+	uint8_t (*number_of_channels)(uintptr_t id);
+	float (*lsb_voltage)(uintptr_t id);
 };
 
 /* Public Functions */

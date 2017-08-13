@@ -86,7 +86,7 @@ void PIOS_HAL_ConfigureCom(const struct pios_usart_cfg *usart_port_cfg, struct p
 void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 		const struct pios_usart_cfg *usart_port_cfg,
 		const struct pios_com_driver *com_driver,
-		uint32_t *i2c_id,
+		pios_i2c_t *i2c_id,
 		const struct pios_i2c_adapter_cfg *i2c_cfg,
 		const struct pios_ppm_cfg *ppm_cfg,
 		const struct pios_pwm_cfg *pwm_cfg,
@@ -99,12 +99,12 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 
 #ifdef PIOS_INCLUDE_I2C
 int PIOS_HAL_ConfigureExternalBaro(HwSharedExtBaroOptions baro,
-		uint32_t *i2c_id,
+		pios_i2c_t *i2c_id,
 		const struct pios_i2c_adapter_cfg *i2c_cfg);
 
 int PIOS_HAL_ConfigureExternalMag(HwSharedMagOptions mag,
 		HwSharedMagOrientationOptions orientation,
-		uint32_t *i2c_id,
+		pios_i2c_t *i2c_id,
 		const struct pios_i2c_adapter_cfg *i2c_cfg);
 #endif
 
@@ -118,6 +118,7 @@ void PIOS_HAL_ConfigureHID(HwSharedUSB_HIDPortOptions port_type,
 
 #if defined(PIOS_INCLUDE_RFM22B)
 void PIOS_HAL_ConfigureRFM22B(HwSharedRadioPortOptions radio_type,
+		pios_spi_t spi_dev,
 		uint8_t board_type, uint8_t board_rev,
 		HwSharedMaxRfPowerOptions max_power,
 		HwSharedMaxRfSpeedOptions max_speed,

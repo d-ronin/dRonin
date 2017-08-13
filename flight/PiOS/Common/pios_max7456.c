@@ -74,7 +74,7 @@
 struct max7456_dev_s {
 #define MAX7456_MAGIC 0x36353437	/* '7456' */
 	uint32_t magic;
-	uint32_t spi_id;
+	pios_spi_t spi_id;
 	uint32_t slave_id;
 
 	uint8_t mode, right, bottom, hcenter, vcenter;
@@ -287,7 +287,7 @@ static void reset_hard(max7456_dev_t dev)
 }
 
 int PIOS_MAX7456_init(max7456_dev_t *dev_out,
-		uint32_t spi_handle, uint32_t slave_idx)
+		pios_spi_t spi_handle, uint32_t slave_idx)
 {
 	// Reset
 	max7456_dev_t dev = PIOS_malloc(sizeof(*dev));

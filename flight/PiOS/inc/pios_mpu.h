@@ -153,12 +153,12 @@ typedef struct pios_mpu_dev * pios_mpu_dev_t;
  * @param[in] cfg MPU config
  * @return 0 for success, -1 for failure to allocate, -10 for failure to get irq
  */
-int32_t PIOS_MPU_I2C_Init(pios_mpu_dev_t *dev, uint32_t i2c_id, const struct pios_mpu_cfg *cfg);
+int32_t PIOS_MPU_I2C_Init(pios_mpu_dev_t *dev, pios_i2c_t i2c_id, const struct pios_mpu_cfg *cfg);
 /**
  * @brief Initialize the MPU-xxxx 6/9-axis sensor on SPI
  * @return 0 for success, -1 for failure to allocate, -10 for failure to get irq
  */
-int32_t PIOS_MPU_SPI_Init(pios_mpu_dev_t *dev, uint32_t spi_id, uint32_t slave_num, const struct pios_mpu_cfg *cfg);
+int32_t PIOS_MPU_SPI_Init(pios_mpu_dev_t *dev, pios_spi_t spi_id, uint32_t slave_num, const struct pios_mpu_cfg *cfg);
 int32_t PIOS_MPU_Test();
 int32_t PIOS_MPU_SetGyroRange(enum pios_mpu_gyro_range range);
 int32_t PIOS_MPU_SetAccelRange(enum pios_mpu_accel_range range);

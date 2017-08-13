@@ -59,7 +59,7 @@ enum pios_re1fpga_buzzer_types {
 };
 
 
-int32_t PIOS_RE1FPGA_Init(uint32_t spi_id, uint32_t slave_num, const struct pios_re1fpga_cfg *cfg, bool load_config);
+int32_t PIOS_RE1FPGA_Init(pios_spi_t spi_id, uint32_t slave_num, const struct pios_re1fpga_cfg *cfg, bool load_config);
 uint8_t PIOS_RE1FPGA_GetHWRevision();
 int32_t PIOS_RE1FPGA_SerialRxInvert(bool invert);
 int32_t PIOS_RE1FPGA_MPTxPinMode(bool bidrectional, bool invert);

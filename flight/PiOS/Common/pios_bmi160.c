@@ -82,7 +82,7 @@ enum pios_bmi160_dev_magic {
 };
 
 struct bmi160_dev {
-	uint32_t spi_id;
+	pios_spi_t spi_id;
 	uint32_t slave_num;
 	const struct pios_bmi160_cfg *cfg;
 	struct pios_queue *gyro_queue;
@@ -114,7 +114,7 @@ static int32_t PIOS_BMI160_ReleaseBus();
  * @brief Initialize the BMI160 6-axis sensor.
  * @return 0 for success, -1 for failure to allocate, -10 for failure to get irq
  */
-int32_t PIOS_BMI160_Init(uint32_t spi_id, uint32_t slave_num, const struct pios_bmi160_cfg *cfg, bool do_foc)
+int32_t PIOS_BMI160_Init(pios_spi_t spi_id, uint32_t slave_num, const struct pios_bmi160_cfg *cfg, bool do_foc)
 {
 	dev = PIOS_BMI160_alloc(cfg);
 	if (dev == NULL)

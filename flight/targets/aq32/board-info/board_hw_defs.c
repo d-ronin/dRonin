@@ -157,7 +157,7 @@ static const struct pios_spi_cfg pios_spi_sdCard_cfg = {
 	} },
 };
 
-uint32_t pios_spi_sdCard_id;
+pios_spi_t pios_spi_sdCard_id;
 
 /* SPI2 Interface
  *      - Used for external communications
@@ -223,7 +223,7 @@ static const struct pios_spi_cfg pios_spi_external_cfg = {
 	} },
 };
 
-uint32_t pios_spi_external_id;
+pios_spi_t pios_spi_external_id;
 
 /* SPI3 Interface
  *      - Used for gyro communications
@@ -289,7 +289,7 @@ static const struct pios_spi_cfg pios_spi_internal_cfg = {
 	} },
 };
 
-uint32_t pios_spi_internal_id;
+pios_spi_t pios_spi_internal_id;
 
 #endif	/* PIOS_INCLUDE_SPI */
 
@@ -357,7 +357,7 @@ static const struct pios_i2c_adapter_cfg pios_i2c_internal_cfg = {
 	},
 };
 
-uint32_t pios_i2c_internal_id;
+pios_i2c_t pios_i2c_internal_id;
 void PIOS_I2C_internal_ev_irq_handler(void)
 {
   /* Call into the generic code to handle the IRQ for this specific device */
@@ -430,7 +430,7 @@ static const struct pios_i2c_adapter_cfg pios_i2c_external_cfg = {
 	},
 };
 
-uint32_t pios_i2c_external_id;
+pios_i2c_t pios_i2c_external_id;
 void PIOS_I2C_external_ev_irq_handler(void)
 {
 /* Call into the generic code to handle the IRQ for this specific device */

@@ -125,7 +125,8 @@ struct pios_hmc5883_data {
 };
 
 /* Public Functions */
-extern int32_t PIOS_HMC5883_Init(uint32_t i2c_id, const struct pios_hmc5883_cfg * cfg);
+extern int32_t PIOS_HMC5883_Init(pios_i2c_t i2c_id,
+		const struct pios_hmc5883_cfg * cfg);
 extern int32_t PIOS_HMC5883_Test(void);
 extern int32_t PIOS_HMC5883_SetOrientation(enum pios_hmc5883_orientation orientation);
 extern bool PIOS_HMC5883_IRQHandler();

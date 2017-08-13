@@ -177,7 +177,7 @@ struct pios_rfm22b_dev {
 	struct pios_rfm22b_cfg cfg;
 
 	// The SPI bus information
-	uint32_t spi_id;
+	pios_spi_t spi_id;
 	uint32_t slave_num;
 
 	// The base frequency

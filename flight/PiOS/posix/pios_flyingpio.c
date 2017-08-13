@@ -54,10 +54,10 @@ const struct pios_rcvr_driver pios_flyingpio_rcvr_driver = {
         .read = PIOS_FLYINGPIO_Receiver_Get,
 };
 
-static bool PIOS_FLYINGPIO_ADC_Available(uint32_t dev_int, uint32_t pin);
-static int32_t PIOS_FLYINGPIO_ADC_PinGet(uint32_t dev_int, uint32_t pin);
-static uint8_t PIOS_FLYINGPIO_ADC_NumberOfChannels(uint32_t dev_int);
-static float PIOS_FLYINGPIO_ADC_LSB_Voltage(uint32_t dev_int);
+static bool PIOS_FLYINGPIO_ADC_Available(uintptr_t dev_int, uint32_t pin);
+static int32_t PIOS_FLYINGPIO_ADC_PinGet(uintptr_t dev_int, uint32_t pin);
+static uint8_t PIOS_FLYINGPIO_ADC_NumberOfChannels(uintptr_t dev_int);
+static float PIOS_FLYINGPIO_ADC_LSB_Voltage(uintptr_t dev_int);
 
 const struct pios_adc_driver pios_flyingpio_adc_driver = {
 		.available = PIOS_FLYINGPIO_ADC_Available,
@@ -73,7 +73,7 @@ const struct pios_adc_driver pios_flyingpio_adc_driver = {
  */
 struct pios_flyingpio_dev {
 	enum pios_flyingpio_dev_magic magic;    /**< Magic bytes to validate the struct contents */
-	uint32_t spi_id;                        /**< Handle to the communication driver */
+	pios_spi_t spi_id;                      /**< Handle to the communication driver */
 	uint32_t spi_slave;                     /**< The slave number (SPI) */
 
 	uint32_t last_msg_time;			/**< Time of last message send completion */
@@ -147,7 +147,8 @@ static int32_t PIOS_FLYINGPIO_Validate(struct pios_flyingpio_dev *dev)
 	return 0;
 }
 
-int32_t PIOS_FLYINGPIO_SPI_Init(pios_flyingpio_dev_t *dev, uint32_t spi_id, uint32_t slave_idx)
+int32_t PIOS_FLYINGPIO_SPI_Init(pios_flyingpio_dev_t *dev, pios_spi_t spi_id,
+		uint32_t slave_idx)
 {
 	fpio_dev = PIOS_FLYINGPIO_Alloc();
 	if (fpio_dev == NULL)
@@ -376,7 +377,7 @@ int32_t PIOS_FLYINGPIO_Receiver_Get(uintptr_t dev_int, uint8_t channel)
 	return dev->rcvr_value[channel];
 }
 
-static bool PIOS_FLYINGPIO_ADC_Available(uint32_t dev_int, uint32_t pin) {
+static bool PIOS_FLYINGPIO_ADC_Available(uintptr_t dev_int, uint32_t pin) {
 	if (pin >= FPPROTO_MAX_ADCCHANS) {
 		return false;
 	}
@@ -384,7 +385,7 @@ static bool PIOS_FLYINGPIO_ADC_Available(uint32_t dev_int, uint32_t pin) {
 	return true;
 }
 
-static int32_t PIOS_FLYINGPIO_ADC_PinGet(uint32_t dev_int, uint32_t pin) {
+static int32_t PIOS_FLYINGPIO_ADC_PinGet(uintptr_t dev_int, uint32_t pin) {
 	pios_flyingpio_dev_t dev = (pios_flyingpio_dev_t) dev_int;
 
 	if (pin >= FPPROTO_MAX_ADCCHANS) {
@@ -394,12 +395,12 @@ static int32_t PIOS_FLYINGPIO_ADC_PinGet(uint32_t dev_int, uint32_t pin) {
 	return dev->adc_value[pin];
 }
 
-static uint8_t PIOS_FLYINGPIO_ADC_NumberOfChannels(uint32_t dev_int) {
+static uint8_t PIOS_FLYINGPIO_ADC_NumberOfChannels(uintptr_t dev_int) {
 	return FPPROTO_MAX_ADCCHANS;
 }
 
 #define VREF_PLUS 3.3f
-static float PIOS_FLYINGPIO_ADC_LSB_Voltage(uint32_t dev_int) {
+static float PIOS_FLYINGPIO_ADC_LSB_Voltage(uintptr_t dev_int) {
 	// Value is expected to be a fraction of 3V3
         return VREF_PLUS / (((uint32_t)1 << 16) - 1);
 }

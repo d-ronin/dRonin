@@ -86,7 +86,7 @@ void PIOS_Board_Init(void)
 #endif	/* PIOS_INCLUDE_ANNUNC */
 
 #if defined(PIOS_INCLUDE_SPI)
-	uint32_t pios_spi_gyro_id;
+	pios_spi_t pios_spi_gyro_id;
 
 	/* Set up the SPI interface to the gyro/acelerometer */
 	if (PIOS_SPI_Init(&pios_spi_gyro_id, &pios_spi_gyro_cfg)) {
@@ -305,7 +305,7 @@ void PIOS_Board_Init(void)
 #endif
 
 #if defined(PIOS_INCLUDE_ADC)
-	uint32_t internal_adc_id;
+	uintptr_t internal_adc_id;
 	if (PIOS_INTERNAL_ADC_Init(&internal_adc_id, &internal_adc_cfg) < 0)
 		PIOS_Assert(0);
 	PIOS_ADC_Init(&pios_internal_adc_id, &pios_internal_adc_driver, internal_adc_id);

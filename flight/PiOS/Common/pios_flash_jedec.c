@@ -61,7 +61,7 @@ enum pios_jedec_dev_magic {
 
 //! Device handle structure
 struct jedec_flash_dev {
-	uint32_t spi_id;
+	pios_spi_t spi_id;
 	uint32_t slave_num;
 	uint32_t capacity_bytes;
 
@@ -126,7 +126,7 @@ uint32_t PIOS_Flash_Jedec_GetCapacity(uintptr_t chip_id)
 /**
  * @brief Initialize the flash device and enable write access
  */
-int32_t PIOS_Flash_Jedec_Init(uintptr_t *chip_id, uint32_t spi_id, uint32_t slave_num, const struct pios_flash_jedec_cfg *cfg)
+int32_t PIOS_Flash_Jedec_Init(uintptr_t *chip_id, pios_spi_t spi_id, uint32_t slave_num, const struct pios_flash_jedec_cfg *cfg)
 {
 	struct jedec_flash_dev *flash_dev = PIOS_Flash_Jedec_alloc();
 	if (flash_dev == NULL)

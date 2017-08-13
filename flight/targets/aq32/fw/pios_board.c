@@ -533,7 +533,7 @@ void PIOS_Board_Init(void) {
         break;
     case HWAQ32_ADCINPUTS_ENABLED:
         {
-            uint32_t internal_adc_id;
+            uintptr_t internal_adc_id;
 
             if (PIOS_INTERNAL_ADC_Init(&internal_adc_id, &pios_adc_cfg) < 0) {
                 PIOS_Assert(0);

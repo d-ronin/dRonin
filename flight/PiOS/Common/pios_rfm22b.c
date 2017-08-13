@@ -390,7 +390,7 @@ static bool init_requested;
  * @param[in] cfg  The device configuration.
  * @param[in] band  The frequency band to operate on
  */
-int32_t PIOS_RFM22B_Init(uint32_t * rfm22b_id, uint32_t spi_id,
+int32_t PIOS_RFM22B_Init(uintptr_t * rfm22b_id, pios_spi_t spi_id,
 			 uint32_t slave_num,
 			 const struct pios_rfm22b_cfg *cfg,
 			 HwSharedRfBandOptions band)
@@ -521,7 +521,7 @@ int32_t PIOS_RFM22B_Init(uint32_t * rfm22b_id, uint32_t spi_id,
  *
  * @param[in] rbm22b_id  The RFM22B device ID.
  */
-void PIOS_RFM22B_Reinit(uint32_t rfm22b_id)
+void PIOS_RFM22B_Reinit(uintptr_t rfm22b_id)
 {
 	//struct pios_rfm22b_dev *rfm22b_dev = (struct pios_rfm22b_dev *)rfm22b_id;
 
@@ -550,7 +550,7 @@ bool PIOS_RFM22_EXT_Int(void)
  * @param[in] rfm22b_id The RFM22B device index.
  * @return The unique device ID
  */
-uint32_t PIOS_RFM22B_DeviceID(uint32_t rfm22b_id)
+uint32_t PIOS_RFM22B_DeviceID(uintptr_t rfm22b_id)
 {
 	struct pios_rfm22b_dev *rfm22b_dev = (struct pios_rfm22b_dev *)rfm22b_id;
 
@@ -566,7 +566,7 @@ uint32_t PIOS_RFM22B_DeviceID(uint32_t rfm22b_id)
  * @param[in] rfm22b_id The RFM22B device index.
  * @return The unique device ID
  */
-uint32_t PIOS_RFM22B_ModuleVersion(uint32_t rfb22b_id)
+uint32_t PIOS_RFM22B_ModuleVersion(uintptr_t rfb22b_id)
 {
 	struct pios_rfm22b_dev *rfm22b_dev = (struct pios_rfm22b_dev *)rfb22b_id;
 
@@ -615,7 +615,7 @@ static bool rfm22_isConnected(struct pios_rfm22b_dev *rfm22b_dev)
  * @param[in] rfm22b_id The RFM22B device index.
  * @param[in] tx_pwr The transmit power.
  */
-void PIOS_RFM22B_SetTxPower(uint32_t rfm22b_id,
+void PIOS_RFM22B_SetTxPower(uintptr_t rfm22b_id,
 			    enum rfm22b_tx_power tx_pwr)
 {
 	struct pios_rfm22b_dev *rfm22b_dev =
@@ -642,7 +642,7 @@ void PIOS_RFM22B_SetTxPower(uint32_t rfm22b_id,
  * @param[in] ppm_mode Should this modem send/receive ppm packets?
  * @param[in] oneway Only the coordinator can send packets if true.
  */
-void PIOS_RFM22B_Config(uint32_t rfm22b_id,
+void PIOS_RFM22B_Config(uintptr_t rfm22b_id,
 				  HwSharedMaxRfSpeedOptions datarate,
 				  uint8_t min_chan, uint8_t max_chan,
 				  uint32_t coordinator_id,
@@ -723,7 +723,7 @@ void PIOS_RFM22B_Config(uint32_t rfm22b_id,
  * @param[in] rfm22b_id The RFM22B device index.
  * @returns True if coordinator, false if not
  */
-extern bool PIOS_RFM22B_IsCoordinator(uint32_t rfm22b_id)
+extern bool PIOS_RFM22B_IsCoordinator(uintptr_t rfm22b_id)
 {
 	struct pios_rfm22b_dev *rfm22b_dev =
 	    (struct pios_rfm22b_dev *)rfm22b_id;
@@ -741,7 +741,7 @@ extern bool PIOS_RFM22B_IsCoordinator(uint32_t rfm22b_id)
  * @param[in] rfm22b_id The RFM22B device index.
  * @param[out] stats The stats are returned in this structure
  */
-void PIOS_RFM22B_GetStats(uint32_t rfm22b_id, struct rfm22b_stats *stats)
+void PIOS_RFM22B_GetStats(uintptr_t rfm22b_id, struct rfm22b_stats *stats)
 {
 	struct pios_rfm22b_dev *rfm22b_dev =
 	    (struct pios_rfm22b_dev *)rfm22b_id;
@@ -762,7 +762,7 @@ void PIOS_RFM22B_GetStats(uint32_t rfm22b_id, struct rfm22b_stats *stats)
  * @param[in] rfm22b_id  The rfm22b device.
  * @return true if there is a valid connection to paired radio, false otherwise.
  */
-bool PIOS_RFM22B_LinkStatus(uint32_t rfm22b_id)
+bool PIOS_RFM22B_LinkStatus(uintptr_t rfm22b_id)
 {
 	struct pios_rfm22b_dev *rfm22b_dev =
 	    (struct pios_rfm22b_dev *)rfm22b_id;
@@ -781,7 +781,7 @@ bool PIOS_RFM22B_LinkStatus(uint32_t rfm22b_id)
  * @param[in] p  The packet to receive into.
  * @return true if Rx mode was entered sucessfully.
  */
-bool PIOS_RFM22B_ReceivePacket(uint32_t rfm22b_id, uint8_t * p)
+bool PIOS_RFM22B_ReceivePacket(uintptr_t rfm22b_id, uint8_t * p)
 {
 	struct pios_rfm22b_dev *rfm22b_dev =
 	    (struct pios_rfm22b_dev *)rfm22b_id;
@@ -846,7 +846,7 @@ bool PIOS_RFM22B_ReceivePacket(uint32_t rfm22b_id, uint8_t * p)
  * @param[in] p  The packet to transmit.
  * @return true if there if the packet was queued for transmission.
  */
-bool PIOS_RFM22B_TransmitPacket(uint32_t rfm22b_id, uint8_t * p,
+bool PIOS_RFM22B_TransmitPacket(uintptr_t rfm22b_id, uint8_t * p,
 				uint8_t len)
 {
 	struct pios_rfm22b_dev *rfm22b_dev =
@@ -942,7 +942,7 @@ bool PIOS_RFM22B_TransmitPacket(uint32_t rfm22b_id, uint8_t * p,
  * @param[in] rfm22b_id  The rfm22b device.
  * @return PIOS_RFM22B_TX_COMPLETE on completed Tx, or PIOS_RFM22B_INT_SUCCESS/PIOS_RFM22B_INT_FAILURE.
  */
-pios_rfm22b_int_result PIOS_RFM22B_ProcessTx(uint32_t rfm22b_id)
+pios_rfm22b_int_result PIOS_RFM22B_ProcessTx(uintptr_t rfm22b_id)
 {
 	struct pios_rfm22b_dev *rfm22b_dev =
 	    (struct pios_rfm22b_dev *)rfm22b_id;
@@ -986,7 +986,7 @@ pios_rfm22b_int_result PIOS_RFM22B_ProcessTx(uint32_t rfm22b_id)
  * @param[in] rfm22b_id  The rfm22b device.
  * @return PIOS_RFM22B_RX_COMPLETE on completed Rx, or PIOS_RFM22B_INT_SUCCESS/PIOS_RFM22B_INT_FAILURE.
  */
-pios_rfm22b_int_result PIOS_RFM22B_ProcessRx(uint32_t rfm22b_id)
+pios_rfm22b_int_result PIOS_RFM22B_ProcessRx(uintptr_t rfm22b_id)
 {
 	struct pios_rfm22b_dev *rfm22b_dev = (struct pios_rfm22b_dev *)rfm22b_id;
 
@@ -1153,7 +1153,7 @@ pios_rfm22b_int_result PIOS_RFM22B_ProcessRx(uint32_t rfm22b_id)
  * @param[in] rfm22b_dev     The RFM22B device ID.
  * @param[in] rfm22b_rcvr_id The receiver device to inform of PPM packets
  */
-void PIOS_RFM22B_RegisterRcvr(uint32_t rfm22b_id, uintptr_t rfm22b_rcvr_id)
+void PIOS_RFM22B_RegisterRcvr(uintptr_t rfm22b_id, uintptr_t rfm22b_rcvr_id)
 {
 	struct pios_rfm22b_dev *rfm22b_dev =
 	    (struct pios_rfm22b_dev *)rfm22b_id;
@@ -1171,7 +1171,7 @@ void PIOS_RFM22B_RegisterRcvr(uint32_t rfm22b_id, uintptr_t rfm22b_rcvr_id)
  * @param[in] rfm22b_dev  The RFM22B device ID.
  * @param[in] channels    The PPM channel values.
  */
-extern void PIOS_RFM22B_PPMSet(uint32_t rfm22b_id, int16_t * channels)
+extern void PIOS_RFM22B_PPMSet(uintptr_t rfm22b_id, int16_t * channels)
 {
 	struct pios_rfm22b_dev *rfm22b_dev =
 	    (struct pios_rfm22b_dev *)rfm22b_id;

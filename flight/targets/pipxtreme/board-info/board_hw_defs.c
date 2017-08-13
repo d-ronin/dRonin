@@ -185,7 +185,7 @@ static const struct pios_spi_cfg pios_spi_rfm22b_cfg =
 	},
 };
 
-uint32_t pios_spi_rfm22b_id;
+pios_spi_t pios_spi_rfm22b_id;
 
 #endif /* PIOS_INCLUDE_SPI */
 

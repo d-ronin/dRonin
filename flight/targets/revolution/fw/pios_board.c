@@ -95,7 +95,7 @@ void PIOS_Board_Init(void) {
 	PIOS_ANNUNC_Init(led_cfg);
 #endif	/* PIOS_INCLUDE_ANNUNC */
 
-	uint32_t pios_spi_gyro_id;
+	pios_spi_t pios_spi_gyro_id;
 	/* Set up the SPI interface to the gyro/acelerometer */
 	if (PIOS_SPI_Init(&pios_spi_gyro_id, &pios_spi_gyro_cfg)) {
 		PIOS_DEBUG_Assert(0);
@@ -452,6 +452,7 @@ void PIOS_Board_Init(void) {
 			const struct pios_rfm22b_cfg *rfm22b_cfg = PIOS_BOARD_HW_DEFS_GetRfm22Cfg(bdinfo->board_rev);
 
 			PIOS_HAL_ConfigureRFM22B(hwRevoMini.Radio,
+					pios_spi_telem_flash_id,
 					bdinfo->board_type, bdinfo->board_rev,
 					hwRevoMini.MaxRfPower,
 					hwRevoMini.MaxRfSpeed,
@@ -580,7 +581,7 @@ void PIOS_Board_Init(void) {
 
 		case HWREVOLUTION_MAGNETOMETER_INTERNAL:
 #if defined(PIOS_INCLUDE_HMC5883)
-			if ((PIOS_HMC5883_Init(PIOS_I2C_MAIN_ADAPTER, &pios_hmc5883_cfg) != 0) ||
+			if ((PIOS_HMC5883_Init(pios_i2c_mag_pressure_adapter_id, &pios_hmc5883_cfg) != 0) ||
 					(PIOS_HMC5883_Test() != 0)) {
 				if (!is_modified_clone) {
 					PIOS_HAL_CriticalError(PIOS_LED_HEARTBEAT, PIOS_HAL_PANIC_MAG);
@@ -620,7 +621,7 @@ void PIOS_Board_Init(void) {
 #endif    /* PIOS_INCLUDE_I2C */
 
 #if defined(PIOS_INCLUDE_ADC)
-	uint32_t internal_adc_id;
+	uintptr_t internal_adc_id;
 	PIOS_INTERNAL_ADC_Init(&internal_adc_id, &pios_adc_cfg);
 	PIOS_ADC_Init(&pios_internal_adc_id, &pios_internal_adc_driver, internal_adc_id);
 

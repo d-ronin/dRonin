@@ -72,7 +72,7 @@ annuncdac_dev_t pios_dac_annunciator_id;
 #endif
 
 #if defined(PIOS_INCLUDE_RFM22B)
-uint32_t pios_rfm22b_id;
+uintptr_t pios_rfm22b_id;
 uintptr_t pios_com_rf_id;
 #endif
 
@@ -592,7 +592,7 @@ static void PIOS_HAL_ConfigureTbsCrossfire(const struct pios_usart_cfg *usart_cr
 void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 		const struct pios_usart_cfg *usart_port_cfg,
 		const struct pios_com_driver *com_driver,
-		uint32_t *i2c_id,
+		pios_i2c_t *i2c_id,
 		const struct pios_i2c_adapter_cfg *i2c_cfg,
 		const struct pios_ppm_cfg *ppm_cfg,
 		const struct pios_pwm_cfg *pwm_cfg,
@@ -1077,6 +1077,7 @@ void PIOS_HAL_ConfigureHID(HwSharedUSB_HIDPortOptions port_type,
  * @param[in] status_inst Which instance number to save RFM22BStatus to
  */
 void PIOS_HAL_ConfigureRFM22B(HwSharedRadioPortOptions radio_type,
+		pios_spi_t spi_dev,
 		uint8_t board_type, uint8_t board_rev,
 		HwSharedMaxRfPowerOptions max_power,
 		HwSharedMaxRfSpeedOptions max_speed,
@@ -1106,7 +1107,7 @@ void PIOS_HAL_ConfigureRFM22B(HwSharedRadioPortOptions radio_type,
 #if defined(PIOS_INCLUDE_OPENLRS_RCVR)
 		uintptr_t openlrs_id;
 
-		PIOS_OpenLRS_Init(&openlrs_id, PIOS_RFM22_SPI_PORT, 0, openlrs_cfg, rf_band);
+		PIOS_OpenLRS_Init(&openlrs_id, spi_dev, 0, openlrs_cfg, rf_band);
 
 		{
 			uintptr_t rfm22brcvr_id;
@@ -1122,7 +1123,7 @@ void PIOS_HAL_ConfigureRFM22B(HwSharedRadioPortOptions radio_type,
 			max_power == HWSHARED_MAXRFPOWER_0) {
 		// When radio disabled, it is ok for init to fail. This allows
 		// boards without populating this component.
-		if (PIOS_RFM22B_Init(&pios_rfm22b_id, PIOS_RFM22_SPI_PORT, rfm22b_cfg->slave_num, rfm22b_cfg, rf_band) == 0) {
+		if (PIOS_RFM22B_Init(&pios_rfm22b_id, spi_dev, rfm22b_cfg->slave_num, rfm22b_cfg, rf_band) == 0) {
 			PIOS_RFM22B_SetTxPower(pios_rfm22b_id, RFM22_tx_pwr_txpow_0);
 			rfm22bstatus.DeviceID = PIOS_RFM22B_DeviceID(pios_rfm22b_id);
 			rfm22bstatus.BoardRevision = PIOS_RFM22B_ModuleVersion(pios_rfm22b_id);
@@ -1140,7 +1141,7 @@ void PIOS_HAL_ConfigureRFM22B(HwSharedRadioPortOptions radio_type,
 		// Sparky2 can only receive PPM only
 
 		/* Configure the RFM22B device. */
-		if (PIOS_RFM22B_Init(&pios_rfm22b_id, PIOS_RFM22_SPI_PORT, rfm22b_cfg->slave_num, rfm22b_cfg, rf_band)) {
+		if (PIOS_RFM22B_Init(&pios_rfm22b_id, spi_dev, rfm22b_cfg->slave_num, rfm22b_cfg, rf_band)) {
 			PIOS_Assert(0);
 		}
 
@@ -1320,7 +1321,7 @@ void PIOS_HAL_ConfigureSerialSpeed(uintptr_t com_id,
 
 
 #ifdef PIOS_INCLUDE_I2C
-static int PIOS_HAL_ConfigureI2C(uint32_t *id,
+static int PIOS_HAL_ConfigureI2C(pios_i2c_t *id,
 		const struct pios_i2c_adapter_cfg *cfg) {
 #ifndef SIM_POSIX
 	if (!*id) {
@@ -1351,7 +1352,7 @@ static int PIOS_HAL_ConfigureI2C(uint32_t *id,
 #endif // PIOS_INCLUDE_I2C
 
 int PIOS_HAL_ConfigureExternalBaro(HwSharedExtBaroOptions baro,
-		uint32_t *i2c_id,
+		pios_i2c_t *i2c_id,
 		const struct pios_i2c_adapter_cfg *i2c_cfg)
 {
 #if !defined(PIOS_INCLUDE_I2C)
@@ -1408,7 +1409,7 @@ done:
 
 int PIOS_HAL_ConfigureExternalMag(HwSharedMagOptions mag,
 		HwSharedMagOrientationOptions orientation,
-		uint32_t *i2c_id,
+		pios_i2c_t *i2c_id,
 		const struct pios_i2c_adapter_cfg *i2c_cfg)
 {
 #if !defined(PIOS_INCLUDE_I2C)
@@ -1456,7 +1457,7 @@ int PIOS_HAL_ConfigureExternalMag(HwSharedMagOptions mag,
 
 #ifdef PIOS_INCLUDE_HMC5983_I2C
 	case HWSHARED_MAG_EXTERNALHMC5983:
-		if (PIOS_HMC5983_Init(*i2c_id, 0, &external_hmc5983_cfg))
+		if (PIOS_HMC5983_I2C_Init(*i2c_id, &external_hmc5983_cfg))
 			goto mag_fail;
 
 		if (PIOS_HMC5983_Test())

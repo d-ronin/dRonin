@@ -138,7 +138,7 @@ struct pios_openlrs_dev {
   struct pios_openlrs_cfg cfg;
 
   // The SPI bus information
-  uint32_t spi_id;
+  pios_spi_t spi_id;
   uint32_t slave_num;
 
   HwSharedRfBandOptions band;

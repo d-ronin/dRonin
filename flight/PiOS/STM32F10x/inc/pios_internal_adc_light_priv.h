@@ -34,7 +34,7 @@
 #include <pios_internal_adc.h>
 #include <pios_internal_adc_priv.h>
 
-extern int32_t PIOS_INTERNAL_ADC_LIGHT_Init(uint32_t *internal_adc_id,
+extern int32_t PIOS_INTERNAL_ADC_LIGHT_Init(uintptr_t *internal_adc_id,
 		const struct pios_internal_adc_cfg *cfg,
 		uint16_t number_of_used_pins);
 

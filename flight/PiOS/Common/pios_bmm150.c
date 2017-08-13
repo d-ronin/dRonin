@@ -64,7 +64,7 @@ enum pios_bmm150_dev_magic {
 struct pios_bmm150_dev {
 	enum pios_bmm150_dev_magic magic;       /**< Magic bytes to validate the struct contents */
 	const struct pios_bmm150_cfg *cfg;      /**< Device configuration structure */
-	uint32_t spi_id;                        /**< Handle to the communication driver */
+	pios_spi_t spi_id;                      /**< Handle to the communication driver */
 	uint32_t spi_slave_mag;                 /**< The slave number (SPI) */
 
 	struct pios_queue *mag_queue;
@@ -245,7 +245,7 @@ static int32_t PIOS_BMM150_ReadTrims(pios_bmm150_dev_t dev)
 	return 0;
 }
 
-int32_t PIOS_BMM150_SPI_Init(pios_bmm150_dev_t *dev, uint32_t spi_id, 
+int32_t PIOS_BMM150_SPI_Init(pios_bmm150_dev_t *dev, pios_spi_t spi_id, 
 		uint32_t slave_mag, const struct pios_bmm150_cfg *cfg)
 {
 	bmm_dev = PIOS_BMM_Alloc(cfg);

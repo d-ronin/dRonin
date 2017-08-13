@@ -98,13 +98,6 @@ TIM8  |           |           |           |
 #define PIOS_WATCHDOG_TIMEOUT			250
 #define PIOS_WDG_REGISTER			RTC_BKP_DR4
 
-//------------------------
-// PIOS_I2C
-// See also pios_board.c
-//------------------------
-#define PIOS_I2C_MAX_DEVS				2
-extern uint32_t pios_i2c_flexi_id;
-#define PIOS_I2C_MAIN_ADAPTER			(pios_i2c_flexi_id)
 //-------------------------
 // PIOS_COM
 //
@@ -145,12 +138,6 @@ extern uintptr_t pios_com_debug_id;
 
 #include <pios_ws2811.h>
 extern ws2811_dev_t pios_ws2811;
-
-#if defined(PIOS_INCLUDE_RFM22B)
-extern uint32_t pios_rfm22b_id;
-extern uint32_t pios_spi_telem_flash_id;
-#define PIOS_RFM22_SPI_PORT             (pios_spi_telem_flash_id)
-#endif /* PIOS_INCLUDE_RFM22B */
 
 //-------------------------
 // Packet Handler
@@ -249,9 +236,6 @@ extern uint32_t pios_spi_telem_flash_id;
 // USB
 //-------------------------
 #define PIOS_USB_ENABLED				1 /* Should remove all references to this */
-
-
-extern uint32_t pios_i2c_external_id;
 
 #endif /* STM3210E_INS_H_ */
 

@@ -31,7 +31,7 @@
 
 #include <pios_adc.h>
 
-extern int32_t PIOS_ADC_Init(uintptr_t * adc_id, const struct pios_adc_driver * driver, uint32_t lower_id);
+extern int32_t PIOS_ADC_Init(uintptr_t * adc_id, const struct pios_adc_driver * driver, uintptr_t lower_id);
 
 #endif /* PIOS_ADC_PRIV_H */
 

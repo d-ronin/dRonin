@@ -117,46 +117,6 @@ struct pios_i2c_fault_history {
 };
 #endif
 
-struct pios_i2c_adapter {
-	enum pios_i2c_adapter_magic         magic;
-	const struct pios_i2c_adapter_cfg * cfg;
-
-	struct pios_mutex *lock;
-	struct pios_semaphore *sem_ready;
-
-	bool bus_error;
-	bool nack;
-
-	volatile enum i2c_adapter_state curr_state;
-	const struct pios_i2c_txn *active_txn;
-	const struct pios_i2c_txn *last_txn;
-	
-	uint8_t *active_byte;
-	uint8_t *last_byte;
-
-#if defined(PIOS_I2C_DIAGNOSTICS)
-	volatile struct pios_i2c_fault_history i2c_adapter_fault_history;
-
-	volatile uint32_t i2c_evirq_history[I2C_LOG_DEPTH];
-	volatile uint8_t i2c_evirq_history_pointer;
-
-	volatile uint32_t i2c_erirq_history[I2C_LOG_DEPTH];
-	volatile uint8_t i2c_erirq_history_pointer;
-
-	volatile enum i2c_adapter_state i2c_state_history[I2C_LOG_DEPTH];
-	volatile uint8_t i2c_state_history_pointer;
-
-	volatile enum i2c_adapter_event i2c_state_event_history[I2C_LOG_DEPTH];
-	volatile uint8_t i2c_state_event_history_pointer;
-
-	volatile uint32_t i2c_fsm_fault_count;
-	volatile uint32_t i2c_bad_event_counter;
-	volatile uint32_t i2c_error_interrupt_counter;
-	volatile uint32_t i2c_nack_counter;
-	volatile uint32_t i2c_timeout_counter;
-#endif
-};
-
-int32_t PIOS_I2C_Init(uint32_t * i2c_id, const struct pios_i2c_adapter_cfg * cfg);
+int32_t PIOS_I2C_Init(pios_i2c_t * i2c_id, const struct pios_i2c_adapter_cfg * cfg);
 
 #endif /* PIOS_I2C_PRIV_H */

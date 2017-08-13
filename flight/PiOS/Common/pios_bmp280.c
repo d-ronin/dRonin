@@ -80,10 +80,10 @@ enum pios_bmp280_dev_magic {
 struct bmp280_dev {
 	const struct pios_bmp280_cfg *cfg;
 #ifndef PIOS_EXCLUDE_BMP280_I2C
-	uint32_t i2c_id;
+	pios_i2c_t i2c_id;
 #endif
 #ifdef PIOS_INCLUDE_BMP280_SPI
-	uint32_t spi_id;
+	pios_spi_t spi_id;
 	uint32_t spi_slave;
 #endif
 
@@ -203,7 +203,7 @@ static int32_t PIOS_BMP280_Common_Init(const struct pios_bmp280_cfg *cfg)
  * Initialise the BMP280 sensor
  */
 #ifndef PIOS_EXCLUDE_BMP280_I2C
-int32_t PIOS_BMP280_Init(const struct pios_bmp280_cfg *cfg, int32_t i2c_device)
+int32_t PIOS_BMP280_Init(const struct pios_bmp280_cfg *cfg, pios_i2c_t i2c_device)
 {
 	dev = (struct bmp280_dev *) PIOS_BMP280_alloc();
 	if (dev == NULL)
@@ -216,8 +216,8 @@ int32_t PIOS_BMP280_Init(const struct pios_bmp280_cfg *cfg, int32_t i2c_device)
 #endif /* PIOS_EXCLUDE_BMP280_I2C */
 
 #ifdef PIOS_INCLUDE_BMP280_SPI
-int32_t PIOS_BMP280_SPI_Init(const struct pios_bmp280_cfg *cfg, int32_t spi_device,
-	int spi_slave)
+int32_t PIOS_BMP280_SPI_Init(const struct pios_bmp280_cfg *cfg, pios_spi_t spi_device,
+	uint32_t spi_slave)
 {
 	dev = (struct bmp280_dev *) PIOS_BMP280_alloc();
 	if (dev == NULL)

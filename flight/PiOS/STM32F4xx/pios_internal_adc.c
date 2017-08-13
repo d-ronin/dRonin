@@ -70,10 +70,10 @@ static void init_pins(void);
 static void init_dma(void);
 static void init_adc(void);
 #endif
-static int32_t PIOS_INTERNAL_ADC_PinGet(uint32_t internal_adc_id, uint32_t pin);
-static uint8_t PIOS_INTERNAL_ADC_Number_of_Channels(uint32_t internal_adc_id);
-static bool PIOS_INTERNAL_ADC_Available(uint32_t adc_id, uint32_t device_pin);
-static float PIOS_INTERNAL_ADC_LSB_Voltage(uint32_t internal_adc_id);
+static int32_t PIOS_INTERNAL_ADC_PinGet(uintptr_t internal_adc_id, uint32_t pin);
+static uint8_t PIOS_INTERNAL_ADC_Number_of_Channels(uintptr_t internal_adc_id);
+static bool PIOS_INTERNAL_ADC_Available(uintptr_t adc_id, uint32_t device_pin);
+static float PIOS_INTERNAL_ADC_LSB_Voltage(uintptr_t internal_adc_id);
 
 const struct pios_adc_driver pios_internal_adc_driver = {
                 .available      = PIOS_INTERNAL_ADC_Available,
@@ -251,7 +251,7 @@ static struct pios_internal_adc_dev * PIOS_INTERNAL_ADC_Allocate(const struct pi
 /**
  * @brief Init the ADC.
  */
-int32_t PIOS_INTERNAL_ADC_Init(uint32_t * internal_adc_id, const struct pios_internal_adc_cfg * cfg)
+int32_t PIOS_INTERNAL_ADC_Init(uintptr_t * internal_adc_id, const struct pios_internal_adc_cfg * cfg)
 {
 	pios_adc_dev = PIOS_INTERNAL_ADC_Allocate(cfg);
 	if (pios_adc_dev == NULL)
@@ -264,7 +264,7 @@ int32_t PIOS_INTERNAL_ADC_Init(uint32_t * internal_adc_id, const struct pios_int
 	init_dma();
 	init_adc();
 #endif
-	*internal_adc_id = (uint32_t)pios_adc_dev;
+	*internal_adc_id = (uintptr_t)pios_adc_dev;
 	return 0;
 }
 
@@ -277,7 +277,7 @@ int32_t PIOS_INTERNAL_ADC_Init(uint32_t * internal_adc_id, const struct pios_int
  * TODO we currently ignore internal_adc_id since this driver doesn't support multiple instances
  * TODO we should probably refactor this similarly to the new F3 driver
  */
-static int32_t PIOS_INTERNAL_ADC_PinGet(uint32_t internal_adc_id, uint32_t pin)
+static int32_t PIOS_INTERNAL_ADC_PinGet(uintptr_t internal_adc_id, uint32_t pin)
 {
 #if defined(PIOS_INCLUDE_ADC)
 	int32_t	result;
@@ -374,7 +374,7 @@ out:
   * \param[in] device_pin pin to check if available
   * \return true if available
   */
-static bool PIOS_INTERNAL_ADC_Available(uint32_t internal_adc_id, uint32_t device_pin) {
+static bool PIOS_INTERNAL_ADC_Available(uintptr_t internal_adc_id, uint32_t device_pin) {
 	struct pios_internal_adc_dev * adc_dev = (struct pios_internal_adc_dev *)internal_adc_id;
 	if(!PIOS_INTERNAL_ADC_validate(adc_dev)) {
 			return 0;
@@ -388,7 +388,7 @@ static bool PIOS_INTERNAL_ADC_Available(uint32_t internal_adc_id, uint32_t devic
   * \param[in] adc_id handle of the device
   * \return number of ADC channels of the device
   */
-static uint8_t PIOS_INTERNAL_ADC_Number_of_Channels(uint32_t internal_adc_id)
+static uint8_t PIOS_INTERNAL_ADC_Number_of_Channels(uintptr_t internal_adc_id)
 {
 	struct pios_internal_adc_dev * adc_dev = (struct pios_internal_adc_dev *)internal_adc_id;
 	if(!PIOS_INTERNAL_ADC_validate(adc_dev))
@@ -399,7 +399,7 @@ static uint8_t PIOS_INTERNAL_ADC_Number_of_Channels(uint32_t internal_adc_id)
 /**
  * @brief Gets the least significant bit voltage of the ADC
  */
-static float PIOS_INTERNAL_ADC_LSB_Voltage(uint32_t internal_adc_id)
+static float PIOS_INTERNAL_ADC_LSB_Voltage(uintptr_t internal_adc_id)
 {
 	struct pios_internal_adc_dev * adc_dev = (struct pios_internal_adc_dev *) internal_adc_id;
 	if (!PIOS_INTERNAL_ADC_validate(adc_dev)) {

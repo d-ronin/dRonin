@@ -125,9 +125,6 @@
 #if defined(PIOS_INCLUDE_ETASV3)
 #include <pios_etasv3.h>
 #endif
-#if defined(PIOS_INCLUDE_BMP085)
-#include <pios_bmp085.h>
-#endif
 #if defined(PIOS_INCLUDE_BMP280)
 #include <pios_bmp280.h>
 #endif

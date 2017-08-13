@@ -710,9 +710,6 @@ const struct pios_video_cfg pios_video_cfg = {
  * SPI3 Interface
  * Used for MAX7456
  */
-void PIOS_SPI_telem_flash_irq_handler(void);
-void DMA1_Stream0_IRQHandler(void) __attribute__((alias("PIOS_SPI_max7456_irq_handler")));
-void DMA1_Stream5_IRQHandler(void) __attribute__((alias("PIOS_SPI_max7456_irq_handler")));
 static const struct pios_spi_cfg pios_spi_max7456_cfg = {
 	.regs = SPI3,
 	.remap = GPIO_AF_SPI3,
@@ -772,12 +769,7 @@ static const struct pios_spi_cfg pios_spi_max7456_cfg = {
 	},
 };
 
-uint32_t pios_spi_max7456_id;
-void PIOS_SPI_max7456_irq_handler(void)
-{
-	/* Call into the generic code to handle the IRQ for this specific device */
-	PIOS_SPI_IRQ_Handler(pios_spi_max7456_id);
-}
+pios_spi_t pios_spi_max7456_id;
 
 #endif // defined(PIOS_INCLUDE_SPI)
 

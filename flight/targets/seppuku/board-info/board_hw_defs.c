@@ -86,7 +86,7 @@ const struct pios_annunc_cfg * PIOS_BOARD_HW_DEFS_GetLedCfg (uint32_t board_revi
 #if defined(PIOS_INCLUDE_SPI)
 #include <pios_spi_priv.h>
 
-uint32_t pios_spi_flash_id;
+pios_spi_t pios_spi_flash_id;
 
 /* SPI3 Interface
  *      - Used for gyro communications
@@ -176,7 +176,7 @@ static const struct pios_spi_cfg pios_spi_gyro_accel_cfg = {
 	},
 };
 
-uint32_t pios_spi_gyro_accel_id;
+pios_spi_t pios_spi_gyro_accel_id;
 
 /**
  * Sensor configurations
@@ -312,7 +312,7 @@ static const struct pios_i2c_adapter_cfg pios_i2c_usart3_adapter_cfg = {
 	},
 };
 
-uint32_t pios_i2c_usart3_adapter_id;
+pios_i2c_t pios_i2c_usart3_adapter_id;
 void PIOS_I2C_usart3_ev_irq_handler(void)
 {
   /* Call into the generic code to handle the IRQ for this specific device */

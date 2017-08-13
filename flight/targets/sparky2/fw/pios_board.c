@@ -297,7 +297,7 @@ void PIOS_Board_Init(void) {
 	PIOS_ANNUNC_Init(led_cfg);
 #endif	/* PIOS_INCLUDE_ANNUNC */
 	
-	uint32_t pios_spi_gyro_id;
+	pios_spi_t pios_spi_gyro_id;
 
 	/* Set up the SPI interface to the gyro/acelerometer */
 	if (PIOS_SPI_Init(&pios_spi_gyro_id, &pios_spi_gyro_cfg)) {
@@ -492,7 +492,7 @@ void PIOS_Board_Init(void) {
 
 	const struct pios_openlrs_cfg *openlrs_cfg = PIOS_BOARD_HW_DEFS_GetOpenLRSCfg(bdinfo->board_rev);
 
-	PIOS_HAL_ConfigureRFM22B(hwSparky2.Radio,
+	PIOS_HAL_ConfigureRFM22B(hwSparky2.Radio, pios_spi_telem_flash_id,
 			bdinfo->board_type, bdinfo->board_rev,
 			hwSparky2.MaxRfPower, hwSparky2.MaxRfSpeed,
 			hwSparky2.RfBand,
@@ -563,7 +563,7 @@ void PIOS_Board_Init(void) {
 	PIOS_SENSORS_Init();
 
 #if defined(PIOS_INCLUDE_ADC)
-	uint32_t internal_adc_id;
+	uintptr_t internal_adc_id;
 	PIOS_INTERNAL_ADC_Init(&internal_adc_id, &pios_adc_cfg);
 	PIOS_ADC_Init(&pios_internal_adc_id, &pios_internal_adc_driver, internal_adc_id);
 #endif
@@ -639,6 +639,7 @@ void PIOS_Board_Init(void) {
 	uint8_t hw_magnetometer;
 	HwSparky2MagnetometerGet(&hw_magnetometer);
 
+	/* TODO: factor to pios_hal impl */
 	switch (hw_magnetometer) {
 		case HWSPARKY2_MAGNETOMETER_NONE:
 		case HWSPARKY2_MAGNETOMETER_INTERNAL:
@@ -651,7 +652,7 @@ void PIOS_Board_Init(void) {
 			HwSparky2ExtMagPortOptions hw_mag_port;
 			HwSparky2ExtMagPortGet(&hw_mag_port);
 
-			uint32_t i2c_mag_id = 0; /* TODO change to a real pointer */
+			pios_i2c_t i2c_mag_id = 0;
 			const void *i2c_mag_cfg = NULL;
 			switch (hw_mag_port) {
 			case HWSPARKY2_EXTMAGPORT_FLEXIPORT:

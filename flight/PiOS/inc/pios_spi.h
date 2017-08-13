@@ -33,15 +33,17 @@ struct pios_spi_cfg;
 
 struct pios_spi_dev;
 
+typedef struct pios_spi_dev *pios_spi_t;
+
 /* Public Functions */
 
 /**
 * Initializes a SPI device.
-* \param[out] spi_id The handle of the device
+* \param[out] spi_dev The handle of the device
 * \param[in] cfg the SPI configuration
 * \return zero on success, nonzero on failure
 */
-int32_t PIOS_SPI_Init(uint32_t * spi_id, const struct pios_spi_cfg * cfg);
+int32_t PIOS_SPI_Init(pios_spi_t * spi_dev, const struct pios_spi_cfg * cfg);
 
 /**
  * (Re-)initialises SPI peripheral clock rate
@@ -50,28 +52,28 @@ int32_t PIOS_SPI_Init(uint32_t * spi_id, const struct pios_spi_cfg * cfg);
  * \param[in] spi_speed configures the SPI speed in Hz
  * \return The actual attained/configured speed.
  */
-int32_t PIOS_SPI_SetClockSpeed(uint32_t spi_id, uint32_t speed);
+int32_t PIOS_SPI_SetClockSpeed(pios_spi_t spi_dev, uint32_t speed);
 
 /**
 * Controls the slave select on a SPI port.
-* \param[in] spi_id the SPI handle
+* \param[in] spi_dev the SPI handle
 * \param[in] slave_id the index of the slave to select/deselect
 * \param[in] pin_value true to deselect slave, false to select
 * \return 0 if no error
 */
-int32_t PIOS_SPI_RC_PinSet(uint32_t spi_id, uint32_t slave_id, bool pin_value);
+int32_t PIOS_SPI_RC_PinSet(pios_spi_t spi_dev, uint32_t slave_id, bool pin_value);
 
 /**
 * Transfers a byte to SPI output and reads back the return value from SPI input
-* \param[in] spi_id SPI handle
+* \param[in] spi_dev SPI handle
 * \param[in] b the byte which should be transfered out
 * \return The received byte
 */
-uint8_t PIOS_SPI_TransferByte(uint32_t spi_id, uint8_t b);
+uint8_t PIOS_SPI_TransferByte(pios_spi_t spi_dev, uint8_t b);
 
 /**
 * Transfers a block of bytes
-* \param[in] spi_id SPI device handle
+* \param[in] spi_dev SPI device handle
 * \param[in] send_buffer pointer to buffer which should be sent.<BR>
 * If NULL, 0xff (all-one) will be sent.
 * \param[in] receive_buffer pointer to buffer which should get the received values.<BR>
@@ -79,24 +81,22 @@ uint8_t PIOS_SPI_TransferByte(uint32_t spi_id, uint8_t b);
 * \param[in] len number of bytes which should be transfered
 * \return >= 0 if no error during transfer
 */
-int32_t PIOS_SPI_TransferBlock(uint32_t spi_id, const uint8_t *send_buffer, uint8_t *receive_buffer, uint16_t len);
+int32_t PIOS_SPI_TransferBlock(pios_spi_t spi_dev, const uint8_t *send_buffer, uint8_t *receive_buffer, uint16_t len);
 
 /**
  * Claim the SPI bus semaphore.
- * \param[in] spi_id SPI handle
+ * \param[in] spi_dev SPI handle
  * \return 0 if no error
  * \return -1 if timeout before claiming semaphore
  */
-int32_t PIOS_SPI_ClaimBus(uint32_t spi_id);
+int32_t PIOS_SPI_ClaimBus(pios_spi_t spi_dev);
 
 /**
  * Release the SPI bus semaphore.
- * \param[in] spi_id SPI handle
+ * \param[in] spi_dev SPI handle
  * \return 0 if no error
  */
-int32_t PIOS_SPI_ReleaseBus(uint32_t spi_id);
-
-void    PIOS_SPI_IRQ_Handler(uint32_t spi_id);
+int32_t PIOS_SPI_ReleaseBus(pios_spi_t spi_dev);
 
 #endif /* PIOS_SPI_H */
 
