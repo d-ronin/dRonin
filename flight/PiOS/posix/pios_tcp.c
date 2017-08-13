@@ -149,7 +149,8 @@ static void PIOS_TCP_RxTask(void *tcp_dev_n)
 			// Received is used to track the scoket whereas the dev variable is only updated when it can be
 
 			int result = recv(tcp_dev->socket_connection,
-					incoming_buffer, INCOMING_BUFFER_SIZE, 0);
+					(void *) incoming_buffer,
+					INCOMING_BUFFER_SIZE, 0);
 			error = errno;
 
 			if (result > 0 && tcp_dev->rx_in_cb) {
