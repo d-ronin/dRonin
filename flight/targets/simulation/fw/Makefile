@@ -35,13 +35,12 @@ override THUMB :=
 
 TCHAIN_PREFIX =
 
-LDFLAGS += -static
-
 include $(MAKE_INC_DIR)/firmware-defs.mk
 
 ifeq ($(CROSS_SIM),pi)
 
 TCHAIN_PREFIX = arm-linux-gnueabihf-
+LDFLAGS += -static
 
 # Prefer GCC 6
 ARMGCC:=$(shell command -v arm-linux-gnueabihf-gcc-6 2>/dev/null)
