@@ -60,7 +60,6 @@
 const static float RTH_MIN_ALTITUDE = 15.f;  //!< Hover at least 15 m above home */
 const static float RTH_ALT_ERROR    = 0.8f;  //!< The altitude to come within for RTH */
 const static float RTH_MIN_RISE     = 1.5f;  //!< Always climb at least this much.
-const static float DT               = 0.05f; // TODO: make the self monitored
 const static float RTH_CLIMB_SPEED  = 1.0f;  //!< Climb at 1m/s 
 
 //! Events that can be be injected into the FSM and trigger state changes
@@ -404,7 +403,7 @@ static float vtol_hold_position_ned[3];
  */
 static int32_t do_hold()
 {
-	if (vtol_follower_control_endpoint(DT, vtol_hold_position_ned) == 0) {
+	if (vtol_follower_control_endpoint(vtol_hold_position_ned) == 0) {
 		if (vtol_follower_control_attitude(DT, NULL) == 0) {
 			return 0;
 		}
@@ -429,7 +428,7 @@ static PathDesiredData vtol_fsm_path_desired = {
 static int32_t do_path()
 {
 	struct path_status progress;
-	if (vtol_follower_control_path(DT, &vtol_fsm_path_desired, &progress) == 0) {
+	if (vtol_follower_control_path(&vtol_fsm_path_desired, &progress) == 0) {
 		if (vtol_follower_control_attitude(DT, NULL) == 0) {
 
 			if (progress.fractional_progress >= 1.0f) {
@@ -480,7 +479,7 @@ static int32_t do_requested_path()
 static int32_t do_land()
 {
 	bool landed;
-	if (vtol_follower_control_land(DT, vtol_hold_position_ned, &landed) == 0) {
+	if (vtol_follower_control_land(vtol_hold_position_ned, &landed) == 0) {
 		if (vtol_follower_control_attitude(DT, NULL) == 0) {
 			return 0;
 		}
@@ -511,7 +510,7 @@ static int32_t do_loiter()
 		hold_position(hold_pos[0], hold_pos[1], hold_pos[2]);
 	}
 
-	if (vtol_follower_control_altrate(DT, vtol_hold_position_ned,
+	if (vtol_follower_control_altrate(vtol_hold_position_ned,
 				alt_adj) == 0) {
 		if (vtol_follower_control_attitude(DT, att_adj) == 0) {
 			return 0;
@@ -531,7 +530,7 @@ static int32_t do_loiter()
  */
 static int32_t do_slow_altitude_change(float descent_rate)
 {
-	if (vtol_follower_control_altrate(DT, vtol_hold_position_ned,
+	if (vtol_follower_control_altrate(vtol_hold_position_ned,
 				descent_rate) == 0) {
 		if (vtol_follower_control_attitude(DT, NULL) == 0) {
 			return 0;
