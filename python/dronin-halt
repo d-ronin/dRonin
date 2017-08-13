@@ -15,10 +15,10 @@ def main():
 
     for i in (1122,2233,3344):
         time.sleep(0.9)
-        # XXX ideally would wait for ack here / retry
+
         f=UAVO_FirmwareIAPObj._make_to_send(Command=i)
 
-        t.send_object(f)
+        t.send_object(f, req_ack=True)
 
 #    expire = time.time() + 3
 

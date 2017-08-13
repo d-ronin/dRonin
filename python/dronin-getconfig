@@ -15,12 +15,26 @@ import sys
 sys.path.insert(1, os.path.dirname(sys.path[0]))
 
 from dronin import uavo, telemetry, uavo_collection
+from threading import Condition
 
 #-------------------------------------------------------------------------------
 USAGE = "%(prog)s"
 DESC  = """
   Retrieve the configuration of a flight controller.\
 """
+
+cond = Condition()
+pending = []
+
+def completion_cb(obj):
+    with cond:
+        pending.remove(obj._id)
+        cond.notifyAll()
+
+def wait_till_less_than(num):
+    with cond:
+        while len(pending) > num:
+            cond.wait()
 
 #-------------------------------------------------------------------------------
 def main():
@@ -33,44 +47,16 @@ def main():
 
     remaining = settings_objects[:]
 
-    # try to retrieve every object 3 times
-    # this is just intended for robustness; never seen this get an object
-    # on anything other than the first try.
-    for retry in range(6):
-        got = 0
-        nack_cnt = 0
-        for s in remaining[:]:
-            tStream.request_object(s)
+    for s in settings_objects:
+        pending.append(s._id)
 
-            for i in range(3):
-                if tStream.last_values.get(s):
-                    got = got + 1
-                    remaining.remove(s)
-                    break
+        tStream.request_object(s, cb=completion_cb)
 
-                nacks = tStream.get_nacks()
-                for n in nacks:
-                    if n in remaining:
-                        remaining.remove(n)
-                        nack_cnt = nack_cnt + 1
+        wait_till_less_than(5)
 
-                if nacks:
-                    break
-
-                time.sleep(0.05)
-
-
-
-        print("got", got)
-        print("nack", nack_cnt)
-
-        if not remaining:
-            break
-    else:
-        raise Exception('Did not get all objects')
+    wait_till_less_than(0)
 
     missing = []
-
     for s in settings_objects:
         val = tStream.last_values.get(s)
         if val is not None:

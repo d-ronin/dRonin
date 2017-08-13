@@ -114,6 +114,9 @@ class UAVTupleClass():
         rep = rep[:-2] + ')'
         return rep
 
+    def get_inst_id(self):
+        return getattr(self, 'inst_id', 0)
+
     def elem_to_string(self, field_name, value):
         mapping = getattr(self, 'ENUMR_' + field_name, None)
 
