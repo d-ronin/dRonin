@@ -349,7 +349,13 @@ static void updatePathVelocity()
 	VelocityActualData velocityActual;
 	VelocityActualGet(&velocityActual);
 
-	float cur[3] = {positionActual.North, positionActual.East, positionActual.Down};
+	float cur[3] = {
+		positionActual.North +
+			velocityActual.North * fixedwingpathfollowerSettings.PositionFeedforward,
+		positionActual.East +
+			velocityActual.East * fixedwingpathfollowerSettings.PositionFeedforward,
+		positionActual.Down
+	};
 	struct path_status progress;
 
 	path_progress(&pathDesired, cur, &progress);
