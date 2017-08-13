@@ -186,7 +186,7 @@ int32_t PIOS_SERIAL_Init(uintptr_t *serial_id, const char *path)
 		return ret;
 	}
 
-	printf("serial dev %d - (path %s)\n", *serial_id, path);
+	printf("serial dev %lu - (path %s)\n", *serial_id, path);
 
 	return ret;
 }
