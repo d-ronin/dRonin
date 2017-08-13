@@ -243,6 +243,7 @@ ConfigVehicleTypeWidget::ConfigVehicleTypeWidget(QWidget *parent)
     connect(m_aircraft->bnServoTrim, &QAbstractButton::clicked, this,
             &ConfigVehicleTypeWidget::bnServoTrim_clicked);
 
+    autoLoadWidgets();
     enableControls(false);
     refreshWidgetsValues();
     addToDirtyMonitor();

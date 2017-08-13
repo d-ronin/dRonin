@@ -102,18 +102,6 @@ ConfigOutputWidget::ConfigOutputWidget(QWidget *parent)
     connect(m_config->calibrateESC, &QAbstractButton::clicked, this,
             &ConfigOutputWidget::startESCCalibration);
 
-    // Track the ActuatorSettings object
-    addUAVObject("ActuatorSettings");
-
-    // Associate the buttons with their UAVO fields
-    addWidget(m_config->cb_outputRate6);
-    addWidget(m_config->cb_outputRate5);
-    addWidget(m_config->cb_outputRate4);
-    addWidget(m_config->cb_outputRate3);
-    addWidget(m_config->cb_outputRate2);
-    addWidget(m_config->cb_outputRate1);
-    addWidget(m_config->spinningArmed);
-
     // Cache all the combo boxes and labels
     lblList.clear();
     lblList << m_config->chBank1 << m_config->chBank2 << m_config->chBank3 << m_config->chBank4
@@ -137,7 +125,19 @@ ConfigOutputWidget::ConfigOutputWidget(QWidget *parent)
     connect(SystemSettings::GetInstance(objManager), &UAVObject::objectUpdated, this,
             &ConfigOutputWidget::assignOutputChannels);
 
+    autoLoadWidgets();
     refreshWidgetsValues();
+
+    // track dirty state of these since they're managed manually
+    // note: must come after autoLoadWidgets because it will choke with no object
+    // TODO: make a cleaner mechanism for just tracking dirtiness
+    addWidget(m_config->cb_outputRate6);
+    addWidget(m_config->cb_outputRate5);
+    addWidget(m_config->cb_outputRate4);
+    addWidget(m_config->cb_outputRate3);
+    addWidget(m_config->cb_outputRate2);
+    addWidget(m_config->cb_outputRate1);
+    addWidget(m_config->spinningArmed);
 }
 
 void ConfigOutputWidget::enableControls(bool enable)
@@ -432,6 +432,7 @@ void ConfigOutputWidget::startESCCalibration()
 
 /**
   Request the current config from the board (RC Output)
+  TODO: un-hax this/use configtaskwidget properly
   */
 void ConfigOutputWidget::refreshWidgetsValues(UAVObject *obj)
 {
@@ -567,7 +568,8 @@ void ConfigOutputWidget::refreshWidgetRanges()
 
 /**
  * Sends the config to the board, without saving to the SD card (RC Output)
-  */
+ * TODO: un-hax this/use configtaskwidget properly
+ */
 void ConfigOutputWidget::updateObjectsFromWidgets()
 {
     emit updateObjectsFromWidgetsRequested();
