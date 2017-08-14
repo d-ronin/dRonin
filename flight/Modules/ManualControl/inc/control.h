@@ -37,11 +37,15 @@ enum control_status {
 		// Lower layer (transmitter control) responsible for timer.
 	STATUS_DISARM,		///< User requested disarm, or low throt timeout
 		// Lower layer (transmitter control) responsible for timers.
-	STATUS_NONE,		///< Things are "normal"
+	STATUS_NORMAL,		///< Things are "normal"
 	STATUS_ARM_INVALID,	///< User requested arm, controls in invalid pos
 	STATUS_ARM_VALID,	///< User requested arm, controls in valid pos
 		// For both of these, upper layer (manual control) responsible
 		// for timer.  (So that manual control can manage "ARMING" state)
+	STATUS_INVALID_FOR_DISARMED,
+				///< Arming switch is in a state that doesn't
+		// make sense for initial arming.. i.e. high throttle.  Go to
+		// safety state
 };
 
 #endif /* CONTROL_H */

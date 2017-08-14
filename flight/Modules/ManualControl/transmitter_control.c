@@ -601,8 +601,9 @@ static bool disarm_commanded(ManualControlCommandData *cmd,
 	return (now - start_time) >= disarm_time;
 }
 
+#define RECEIVER_TIMER_FIRED 0xffffffff
 
-static uint32_t receiver_timer;
+static uint32_t receiver_timer = RECEIVER_TIMER_FIRED;
 
 static void reset_receiver_timer() {
 	receiver_timer = 0;
@@ -617,10 +618,16 @@ static bool check_receiver_timer(uint32_t threshold) {
 		return false;
 	}
 
+	if (receiver_timer == RECEIVER_TIMER_FIRED) {
+		/* It already went off!  We just want a strobe. */
+		return false;
+	}
+
 	uint32_t now = PIOS_Thread_Systime();
 
 	if (receiver_timer) {
 		if ((now - receiver_timer) >= threshold) {
+			receiver_timer = RECEIVER_TIMER_FIRED;
 			return true;
 		}
 
@@ -701,8 +708,14 @@ static void process_transmitter_events(ManualControlCommandData * cmd, ManualCon
 		control_status = STATUS_DISARM;
 		return;
 	} else if (arming_position(cmd, settings)) {
-		/* Not disarming pos, not low throt, not disconnected. */
-		reset_receiver_timer();
+		/* Not disarming pos, not low throt timeout, not disconnected. */
+
+		if (control_status == STATUS_DISARM) {
+			/* Edge detector says it's time to reset the receiver
+			 * timer
+			 */
+			reset_receiver_timer();
+		}
 
 		if (settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCH ||
 				settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCHTHROTTLE) {
@@ -712,9 +725,19 @@ static void process_transmitter_events(ManualControlCommandData * cmd, ManualCon
 		}
 
 		return;
+	} else {
+		/* If the arming switch is flipped on, but we don't otherwise
+		 * qualify for arming, let the upper layer know.
+		 */
+		if (settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCHTHROTTLE) {
+			if (cmd->ArmSwitch == MANUALCONTROLCOMMAND_ARMSWITCH_ARMED) {
+				control_status = STATUS_INVALID_FOR_DISARMED;
+				return;
+			}
+		}
 	}
 
-	control_status = STATUS_NONE;
+	control_status = STATUS_NORMAL;
 
 	return;
 
