@@ -33,6 +33,8 @@
  * of this source file; otherwise redistribution is prohibited.
  */
 
+#include <unistd.h>
+
 #include "pios.h"
 #include "openpilot.h"
 #include "physical_constants.h"
@@ -69,23 +71,25 @@
 // Private variables
 static struct pios_thread *sensorsTaskHandle;
 
-// Private functions
-static void SensorsTask(void *parameters);
-static void simulateConstant();
-static void simulateModelAgnostic();
-static void simulateModelQuadcopter();
-static void simulateModelAirplane();
-static void simulateModelCar();
-
-static void magOffsetEstimation(MagnetometerData *mag);
-
 static float accel_bias[3];
 
 static float rand_gauss();
 
 static bool use_real_sensors;
+static int sens_rate = 500;
 
-enum sensor_sim_type {CONSTANT, MODEL_AGNOSTIC, MODEL_QUADCOPTER, MODEL_AIRPLANE, MODEL_CAR} sensor_sim_type;
+enum sensor_sim_type {MODEL_YASIM, MODEL_QUADCOPTER, MODEL_AIRPLANE, MODEL_CAR} sensor_sim_type;
+
+extern bool use_yasim;
+
+// Private functions
+static void SensorsTask(void *parameters);
+static void simulateModelQuadcopter();
+static void simulateModelAirplane();
+static void simulateModelCar();
+static void simulateYasim();
+
+static void magOffsetEstimation(MagnetometerData *mag);
 
 extern int32_t SensorsInitialize(void);
 extern int32_t SensorsStart(void);
@@ -115,10 +119,14 @@ static int32_t SimSensorsInitialize(void)
 	PIOS_SENSORS_Register(PIOS_SENSOR_MAG, (struct pios_queue*)1);
 	PIOS_SENSORS_Register(PIOS_SENSOR_BARO, (struct pios_queue*)1);
 
-	PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_ACCEL, 500);
-	PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_GYRO, 500);
-	PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_MAG, 500);
-	PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_BARO, 500);
+	if (use_yasim) {
+		sens_rate = 200;
+	}
+
+	PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_ACCEL, sens_rate);
+	PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_GYRO, sens_rate);
+	PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_MAG, 75);
+	PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_BARO, 75);
 
 	accel_bias[0] = rand_gauss() / 10;
 	accel_bias[1] = rand_gauss() / 10;
@@ -190,24 +198,21 @@ static void SensorsTask(void *parameters)
 			case SYSTEMSETTINGS_AIRFRAMETYPE_VTOL:
 			case SYSTEMSETTINGS_AIRFRAMETYPE_HEXA:
 			case SYSTEMSETTINGS_AIRFRAMETYPE_OCTO:
+			default:
 				sensor_sim_type = MODEL_QUADCOPTER;
 				break;
 			case SYSTEMSETTINGS_AIRFRAMETYPE_GROUNDVEHICLECAR:
 				sensor_sim_type = MODEL_CAR;
 				break;
-			default:
-				sensor_sim_type = MODEL_AGNOSTIC;
+		}
+
+		if (use_yasim) {
+			sensor_sim_type = MODEL_YASIM;
 		}
 
 		sensors_count++;
 
 		switch(sensor_sim_type) {
-			case CONSTANT:
-				simulateConstant();
-				break;
-			case MODEL_AGNOSTIC:
-				simulateModelAgnostic();
-				break;
 			case MODEL_QUADCOPTER:
 				simulateModelQuadcopter();
 				break;
@@ -216,119 +221,263 @@ static void SensorsTask(void *parameters)
 				break;
 			case MODEL_CAR:
 				simulateModelCar();
+				break;
+			case MODEL_YASIM:
+				simulateYasim();
+				break;
 		}
 
 		static uint32_t tm = 0;
 
-		PIOS_Thread_Sleep_Until(&tm, 2);
+		PIOS_Thread_Sleep_Until(&tm, 1000 / sens_rate);
 	}
 }
 
-static void simulateConstant()
+static void simulateYasim()
 {
-	AccelsData accelsData; // Skip get as we set all the fields
-	accelsData.x = 0;
-	accelsData.y = 0;
-	accelsData.z = -GRAVITY;
-	accelsData.temperature = 0;
-	AccelsSet(&accelsData);
+#if !(defined(_WIN32) || defined(WIN32) || defined(__MINGW32__))
+	const float GYRO_NOISE_SCALE = 1.0f;
+	const float MAG_PERIOD = 1.0 / 75.0;
+	const float BARO_PERIOD = 1.0 / 20.0;
 
-	GyrosData gyrosData; // Skip get as we set all the fields
-	gyrosData.x = 0;
-	gyrosData.y = 0;
-	gyrosData.z = 0;
+	struct command {
+	    uint32_t magic;
+	    uint32_t flags;
 
-	// Apply bias correction to the gyros
-	GyrosBiasData gyrosBias;
-	GyrosBiasGet(&gyrosBias);
-	gyrosData.x += gyrosBias.x;
-	gyrosData.y += gyrosBias.y;
-	gyrosData.z += gyrosBias.z;
+	    float roll, pitch, yaw, throttle;
 
-	GyrosSet(&gyrosData);
+	    float reserved[8];
 
-	BaroAltitudeData baroAltitude;
-	BaroAltitudeGet(&baroAltitude);
-	baroAltitude.Altitude = 1;
-	BaroAltitudeSet(&baroAltitude);
+	    bool armed;
+	} cmd;
 
-	GPSPositionData gpsPosition;
-	GPSPositionGet(&gpsPosition);
-	gpsPosition.Latitude = 0;
-	gpsPosition.Longitude = 0;
-	gpsPosition.Altitude = 0;
-	GPSPositionSet(&gpsPosition);
+	struct status {
+	    uint32_t magic;
 
-	// Because most crafts wont get enough information from gravity to zero yaw gyro, we try
-	// and make it average zero (weakly)
-	MagnetometerData mag;
-	mag.x = 400;
-	mag.y = 0;
-	mag.z = 800;
-	MagnetometerSet(&mag);
-}
+	    uint32_t flags;
 
-static void simulateModelAgnostic()
-{
-	float Rbe[3][3];
-	float q[4];
+	    double lat, lon, alt;
 
-	// Simulate accels based on current attitude
-	AttitudeActualData attitudeActual;
-	AttitudeActualGet(&attitudeActual);
-	q[0] = attitudeActual.q1;
-	q[1] = attitudeActual.q2;
-	q[2] = attitudeActual.q3;
-	q[3] = attitudeActual.q4;
-	Quaternion2R(q,Rbe);
+	    float p, q, r;
+	    float acc[3];
+	    float vel[3];
 
-	AccelsData accelsData; // Skip get as we set all the fields
-	accelsData.x = -GRAVITY * Rbe[0][2];
-	accelsData.y = -GRAVITY * Rbe[1][2];
-	accelsData.z = -GRAVITY * Rbe[2][2];
+	    /* Provided only to "check" attitude solution */
+	    float roll, pitch, hdg;
+
+	    float reserved[4];
+	} status;
+
+	static bool inited = false;
+
+	static int rfd, wfd;
+
+	if (!inited) {
+		fprintf(stderr, "Initing external yasim instance\n");
+		inited = true;
+		/* pipefd(0) is the read side of pipe */
+
+		int child_in, child_out;
+
+		int pipe_tmp[2];
+
+		int ret = pipe(pipe_tmp);
+
+		if (ret < 0) {
+			perror("pipe");
+			exit(1);
+		}
+
+		child_in = pipe_tmp[0];
+		wfd = pipe_tmp[1];
+
+		ret = pipe(pipe_tmp);
+
+		if (ret < 0) {
+			perror("pipe");
+			exit(1);
+		}
+
+		rfd = pipe_tmp[0];
+		child_out = pipe_tmp[1];
+
+		ret = fork();
+
+		if (ret < 0) {
+			perror("fork");
+			exit(1);
+		}
+
+		if (ret == 0) {
+			/* We are the child */
+			if (dup2(child_in, STDIN_FILENO) < 0) {
+				perror("dup2STDIN");
+				exit(1);
+			}
+
+			if (dup2(child_out, STDOUT_FILENO) < 0) {
+				perror("dup2STDIN");
+				exit(1);
+			}
+
+			for (int i = 3; i < 1024; i++) {
+				close(i);
+			}
+
+			// TODO: Fixup model selection to something nice.
+			execlp("yasim-svr", "yasim-svr", "pa22-160-yasim.xml",
+					NULL);
+
+			perror("execlp");
+			exit(1);
+		}
+
+		/* We are the parent. */
+		close(child_in);
+		close(child_out);
+	}
+
+	int ret = read(rfd, &status, sizeof(status));
+
+	if (ret != sizeof(status)) {
+		fprintf(stderr, "failed: read-from-yasim %d\n", ret);
+		exit(1);
+	}
+
+	if (status.magic != 0x00700799) {
+		fprintf(stderr, "Bad magic on read from yasim\n");
+		exit(1);
+	}
+
+	memset(&cmd, 0, sizeof(cmd));
+
+	cmd.magic = 0xb33fbeef;
+
+	FlightStatusData flightStatus;
+	FlightStatusGet(&flightStatus);
+	ActuatorDesiredData actuatorDesired;
+	ActuatorDesiredGet(&actuatorDesired);
+
+	if (isfinite(actuatorDesired.Roll) && isfinite(actuatorDesired.Pitch)
+			&& isfinite(actuatorDesired.Yaw)
+			&& isfinite(actuatorDesired.Thrust)) {
+		cmd.roll = actuatorDesired.Roll;
+		cmd.pitch = actuatorDesired.Pitch;
+		cmd.yaw = actuatorDesired.Yaw;
+
+		if (actuatorDesired.Thrust >= 0) {
+			cmd.throttle = actuatorDesired.Thrust;
+		} else {
+			cmd.throttle = 0;
+		}
+	} else {
+		/* Work around a bug in attitude where things are going NaN
+		 * initially-- still needs troubleshooting.
+		 */
+		cmd.roll = 0;
+		cmd.pitch = 0;
+		cmd.yaw = 0;
+		cmd.throttle = 0;
+	}
+
+	cmd.armed = flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED;
+
+	ret = write(wfd, &cmd, sizeof(cmd));
+
+	if (ret != sizeof(cmd)) {
+		fprintf(stderr, "failed: write-to-yasim %d\n", ret);
+		exit(1);
+	}
+
+	AccelsData accelsData;
+	accelsData.x = status.acc[0] + accel_bias[0];
+	accelsData.y = status.acc[1] + accel_bias[1];
+	accelsData.z = status.acc[2] + accel_bias[2];
 	accelsData.temperature = 30;
 	AccelsSet(&accelsData);
 
-	RateDesiredData rateDesired;
-	RateDesiredGet(&rateDesired);
-
-	GyrosData gyrosData; // Skip get as we set all the fields
-	gyrosData.x = rateDesired.Roll + rand_gauss();
-	gyrosData.y = rateDesired.Pitch + rand_gauss();
-	gyrosData.z = rateDesired.Yaw + rand_gauss();
-
-	// Apply bias correction to the gyros
-	GyrosBiasData gyrosBias;
-	GyrosBiasGet(&gyrosBias);
-	gyrosData.x += gyrosBias.x;
-	gyrosData.y += gyrosBias.y;
-	gyrosData.z += gyrosBias.z;
-
+	GyrosData gyrosData;
+	gyrosData.x = (status.p * RAD2DEG) + rand_gauss() * GYRO_NOISE_SCALE;
+	gyrosData.y = (status.q * RAD2DEG) + rand_gauss() * GYRO_NOISE_SCALE;
+	gyrosData.z = (status.r * RAD2DEG) + rand_gauss() * GYRO_NOISE_SCALE;
+	gyrosData.temperature = 31;
 	GyrosSet(&gyrosData);
 
-	BaroAltitudeData baroAltitude;
-	BaroAltitudeGet(&baroAltitude);
-	baroAltitude.Altitude = 1;
-	BaroAltitudeSet(&baroAltitude);
+	float rpy[3] = { status.roll * RAD2DEG, status.pitch * RAD2DEG,
+		status.hdg * RAD2DEG };
 
-	GPSPositionData gpsPosition;
-	GPSPositionGet(&gpsPosition);
-	gpsPosition.Latitude = 0;
-	gpsPosition.Longitude = 0;
-	gpsPosition.Altitude = 0;
-	GPSPositionSet(&gpsPosition);
+	float q[4];
 
-	// Because most crafts wont get enough information from gravity to zero yaw gyro, we try
-	// and make it average zero (weakly)
-	MagnetometerData mag;
-	mag.x = 400;
-	mag.y = 0;
-	mag.z = 800;
-	MagnetometerSet(&mag);
+	RPY2Quaternion(rpy, q);
+
+	float Rbe[3][3];
+
+	Quaternion2R(q, Rbe);
+
+	HomeLocationData homeLocation;
+	HomeLocationGet(&homeLocation);
+	if (homeLocation.Set == HOMELOCATION_SET_FALSE) {
+		homeLocation.Be[0] = 100;
+		homeLocation.Be[1] = 0;
+		homeLocation.Be[2] = 400;
+		homeLocation.Set = HOMELOCATION_SET_TRUE;
+
+		HomeLocationSet(&homeLocation);
+	}
+
+	uint32_t last_mag_time = 0;
+	if (PIOS_DELAY_DiffuS(last_mag_time) / 1.0e6 > MAG_PERIOD) {
+		MagnetometerData mag;
+		mag.x = homeLocation.Be[0] * Rbe[0][0] + homeLocation.Be[1] * Rbe[0][1] + homeLocation.Be[2] * Rbe[0][2];
+		mag.y = homeLocation.Be[0] * Rbe[1][0] + homeLocation.Be[1] * Rbe[1][1] + homeLocation.Be[2] * Rbe[1][2];
+		mag.z = homeLocation.Be[0] * Rbe[2][0] + homeLocation.Be[1] * Rbe[2][1] + homeLocation.Be[2] * Rbe[2][2];
+
+		// Run the offset compensation algorithm from the firmware
+		magOffsetEstimation(&mag);
+
+		MagnetometerSet(&mag);
+		last_mag_time = PIOS_DELAY_GetRaw();
+	}
+
+	static float baro_offset = 0;
+	if (baro_offset == 0) {
+		// Hacky initialization
+		baro_offset = 50;
+	} else {
+		// Very small drift process
+		baro_offset += rand_gauss() / 100;
+	}
+
+	// Update baro periodically
+	static uint32_t last_baro_time = 0;
+	if (PIOS_DELAY_DiffuS(last_baro_time) / 1.0e6 > BARO_PERIOD) {
+		BaroAltitudeData baroAltitude;
+		BaroAltitudeGet(&baroAltitude);
+		baroAltitude.Altitude = -status.alt + baro_offset;
+		BaroAltitudeSet(&baroAltitude);
+		last_baro_time = PIOS_DELAY_GetRaw();
+	}
+
+	AttitudeSimulatedData attitudeSimulated;
+	AttitudeSimulatedGet(&attitudeSimulated);
+	attitudeSimulated.q1 = q[0];
+	attitudeSimulated.q2 = q[1];
+	attitudeSimulated.q3 = q[2];
+	attitudeSimulated.q4 = q[3];
+	Quaternion2RPY(q,&attitudeSimulated.Roll);
+#if 0
+	attitudeSimulated.Position[0] = pos[0];
+	attitudeSimulated.Position[1] = pos[1];
+	attitudeSimulated.Position[2] = pos[2];
+	attitudeSimulated.Velocity[0] = vel[0];
+	attitudeSimulated.Velocity[1] = vel[1];
+	attitudeSimulated.Velocity[2] = vel[2];
+#endif
+	AttitudeSimulatedSet(&attitudeSimulated);
+
+#endif /* !(defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)) */
 }
 
-float thrustToDegs = 50;
-bool overideAttitude = false;
 static void simulateModelQuadcopter()
 {
 	static double pos[3] = {0,0,0};
@@ -394,16 +543,6 @@ static void simulateModelQuadcopter()
 	q[1] = q[1] / qmag;
 	q[2] = q[2] / qmag;
 	q[3] = q[3] / qmag;
-
-	if(overideAttitude){
-		AttitudeActualData attitudeActual;
-		AttitudeActualGet(&attitudeActual);
-		attitudeActual.q1 = q[0];
-		attitudeActual.q2 = q[1];
-		attitudeActual.q3 = q[2];
-		attitudeActual.q4 = q[3];
-		AttitudeActualSet(&attitudeActual);
-	}
 
 	static float wind[3] = {0,0,0};
 	wind[0] = wind[0] * 0.95 + rand_gauss() / 10.0;
@@ -600,17 +739,6 @@ static void simulateModelAirplane()
 	if (thrust != thrust)
 		thrust = 0;
 
-	//	float control_scaling = thrust * thrustToDegs;
-	//	// In rad/s
-	//	rpy[0] = control_scaling * actuatorDesired.Roll * (1 - ACTUATOR_ALPHA) + rpy[0] * ACTUATOR_ALPHA;
-	//	rpy[1] = control_scaling * actuatorDesired.Pitch * (1 - ACTUATOR_ALPHA) + rpy[1] * ACTUATOR_ALPHA;
-	//	rpy[2] = control_scaling * actuatorDesired.Yaw * (1 - ACTUATOR_ALPHA) + rpy[2] * ACTUATOR_ALPHA;
-	//
-	//	GyrosData gyrosData; // Skip get as we set all the fields
-	//	gyrosData.x = rpy[0] * 180 / M_PI + rand_gauss();
-	//	gyrosData.y = rpy[1] * 180 / M_PI + rand_gauss();
-	//	gyrosData.z = rpy[2] * 180 / M_PI + rand_gauss();
-
 	/**** 1. Update attitude ****/
 	RateDesiredData rateDesired;
 	RateDesiredGet(&rateDesired);
@@ -651,16 +779,6 @@ static void simulateModelAirplane()
 	q[1] = q[1] / qmag;
 	q[2] = q[2] / qmag;
 	q[3] = q[3] / qmag;
-
-	if(overideAttitude){
-		AttitudeActualData attitudeActual;
-		AttitudeActualGet(&attitudeActual);
-		attitudeActual.q1 = q[0];
-		attitudeActual.q2 = q[1];
-		attitudeActual.q3 = q[2];
-		attitudeActual.q4 = q[3];
-		AttitudeActualSet(&attitudeActual);
-	}
 
 	/**** 2. Update position based on velocity ****/
 	static float wind[3] = {0,0,0};
@@ -889,17 +1007,6 @@ static void simulateModelCar()
 	if (thrust != thrust)
 		thrust = 0;
 
-	//	float control_scaling = thrust * thrustToDegs;
-	//	// In rad/s
-	//	rpy[0] = control_scaling * actuatorDesired.Roll * (1 - ACTUATOR_ALPHA) + rpy[0] * ACTUATOR_ALPHA;
-	//	rpy[1] = control_scaling * actuatorDesired.Pitch * (1 - ACTUATOR_ALPHA) + rpy[1] * ACTUATOR_ALPHA;
-	//	rpy[2] = control_scaling * actuatorDesired.Yaw * (1 - ACTUATOR_ALPHA) + rpy[2] * ACTUATOR_ALPHA;
-	//
-	//	GyrosData gyrosData; // Skip get as we set all the fields
-	//	gyrosData.x = rpy[0] * 180 / M_PI + rand_gauss();
-	//	gyrosData.y = rpy[1] * 180 / M_PI + rand_gauss();
-	//	gyrosData.z = rpy[2] * 180 / M_PI + rand_gauss();
-
 	/**** 1. Update attitude ****/
 	RateDesiredData rateDesired;
 	RateDesiredGet(&rateDesired);
@@ -938,16 +1045,6 @@ static void simulateModelCar()
 	q[2] = q[2] / qmag;
 	q[3] = q[3] / qmag;
 
-	if(overideAttitude){
-		AttitudeActualData attitudeActual;
-		AttitudeActualGet(&attitudeActual);
-		attitudeActual.q1 = q[0];
-		attitudeActual.q2 = q[1];
-		attitudeActual.q3 = q[2];
-		attitudeActual.q4 = q[3];
-		AttitudeActualSet(&attitudeActual);
-	}
-
 	/**** 2. Update position based on velocity ****/
 	// Rbe takes a vector from body to earth.  If we take (1,0,0)^T through this and then dot with airspeed
 	// we get forward airspeed
@@ -957,9 +1054,6 @@ static void simulateModelCar()
 	double forwardSpeed = Rbe[0][0] * groundspeed[0] + Rbe[0][1] * groundspeed[1] + Rbe[0][2] * groundspeed[2];
 	double sidewaysSpeed = Rbe[1][0] * groundspeed[0] + Rbe[1][1] * groundspeed[1] + Rbe[1][2] * groundspeed[2];
 
-	/* Compute aerodynamic forces in body referenced frame.  Later use more sophisticated equations  */
-	/* TODO: This should become more accurate.  Use the force equations to calculate lift from the   */
-	/* various surfaces based on AoA and airspeed.  From that compute torques and forces.  For later */
 	double forces[3]; // X, Y, Z
 	forces[0] = thrust - forwardSpeed * K_FRICTION;         // Friction is applied in all directions in NED
 	forces[1] = 0 - sidewaysSpeed * K_FRICTION * 100;      // No side slip

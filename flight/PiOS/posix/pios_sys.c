@@ -107,6 +107,7 @@ static void Usage(char *cmdName) {
 		"\t-r\tGoes realtime-class and pins all memory (requires root)\n"
 		"\t-l log\tWrites simulation data to a log\n"
 		"\t-g port\tStarts FlightGear driver on port\n"
+		"\t-y\tUse an external simulator (drhil yasim)\n"
 #ifdef PIOS_INCLUDE_SERIAL
 		"\t-S drvname:serialpath\tStarts a serial driver on serialpath\n"
 		"\t\t\tAvailable drivers: gps msp lighttelemetry telemetry omnip\n"
@@ -445,6 +446,8 @@ static void go_realtime() {
 static int saved_argc;
 static char **saved_argv;
 
+bool use_yasim;
+
 void PIOS_SYS_Args(int argc, char *argv[]) {
 	saved_argc = argc;
 	saved_argv = argv;
@@ -453,8 +456,11 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 
 	bool first_arg = true;
 
-	while ((opt = getopt(argc, argv, "frg:l:s:d:S:I:i:")) != -1) {
+	while ((opt = getopt(argc, argv, "yfrg:l:s:d:S:I:i:")) != -1) {
 		switch (opt) {
+			case 'y':
+				use_yasim = true;
+				break;
 			case 'f':
 				debug_fpe = true;
 				break;
