@@ -883,7 +883,7 @@ QVariant UAVObjectField::getValue(int index) const
     case BITFIELD: {
         d = &data[offset + elementSize * static_cast<unsigned>(index / 8)];
         quint8 val = (*static_cast<const quint8 *>(d) >> (index % 8)) & 1;
-        return QVariant::fromValue(val);
+        return QVariant::fromValue(val > 0 ? QChar('1') : QChar('0'));
     }
     case STRING:
         return QVariant::fromValue(QString::fromLatin1(static_cast<const char *>(d),
