@@ -489,20 +489,16 @@ static void SetSysClock(void)
     RCC->CR |= RCC_CR_PLLON;
 
     /* Wait till the main PLL is ready */
-    while((RCC->CR & RCC_CR_PLLRDY) == 0)
-    {
-    }
+    while((RCC->CR & RCC_CR_PLLRDY) == 0);
 
 #if defined(STM32F427_437xx) || defined(STM32F429_439xx) || defined(STM32F446xx)
     /* Enable the Over-drive to extend the clock frequency to 180 Mhz */
     PWR->CR |= PWR_CR_ODEN;
-    while((PWR->CSR & PWR_CSR_ODRDY) == 0)
-    {
-    }
+    while((PWR->CSR & PWR_CSR_ODRDY) == 0);
+
     PWR->CR |= PWR_CR_ODSWEN;
-    while((PWR->CSR & PWR_CSR_ODSWRDY) == 0)
-    {
-    }
+    while((PWR->CSR & PWR_CSR_ODSWRDY) == 0);
+
     /* Configure Flash prefetch, Instruction cache, Data cache and wait state */
     FLASH->ACR = FLASH_ACR_PRFTEN | FLASH_ACR_ICEN |FLASH_ACR_DCEN |FLASH_ACR_LATENCY_5WS;
 #endif /* STM32F427_437x || STM32F429_439xx || STM32F446xx */
@@ -523,8 +519,6 @@ static void SetSysClock(void)
 
     /* Wait till the main PLL is used as system clock source */
     while ((RCC->CFGR & (uint32_t)RCC_CFGR_SWS ) != RCC_CFGR_SWS_PLL);
-    {
-    }
   }
   else
   { /* If HSE fails to start-up, the application will have wrong clock
