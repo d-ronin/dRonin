@@ -212,7 +212,7 @@ static int32_t uavoFrSKYSPortBridgeStart(void)
 		frsky->frsky_settings.batt_cell_count = frsky->frsky_settings.battery_settings.NbCells;
 	}
 	if (BaroAltitudeHandle() != NULL
-			&& PIOS_SENSORS_GetQueue(PIOS_SENSOR_BARO) != NULL)
+			&& PIOS_Sensors_Available(PIOS_SENSOR_BARO))
 		frsky->frsky_settings.use_baro_sensor = true;
 
 	struct pios_thread *task;
