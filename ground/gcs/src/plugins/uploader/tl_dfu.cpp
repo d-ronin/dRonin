@@ -812,6 +812,9 @@ QString DFUObject::partitionStringFromLabel(dfu_partition_label label)
     case DFU_PARTITION_LOG:
         return QString(tr("log"));
         break;
+    case DFU_PARTITION_LOADABLE_EXTENSION:
+        return QString(tr("extension"));
+        break;
     default:
         return QString::number(label);
         break;

@@ -68,6 +68,7 @@ enum dfu_partition_label {
 	DFU_PARTITION_SETTINGS,
 	DFU_PARTITION_AUTOTUNE,
 	DFU_PARTITION_LOG,
+	DFU_PARTITION_LOADABLE_EXTENSION,
 } __attribute__((packed));
 
 #pragma pack(push)  /* push current alignment to stack */
