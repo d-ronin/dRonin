@@ -1396,10 +1396,20 @@ void UploaderGadgetWidget::onBootloaderDetected()
             QTableWidgetItem *label;
             QTableWidgetItem *size;
             int index = 0;
+            int row_count = 0;
+
             QString name;
-            m_widget->partitionBrowserGB->setEnabled(true);
-            m_widget->partitionBrowserTW->setRowCount(dev.PartitionSizes.length());
+
             foreach (int i, dev.PartitionSizes) {
+                if (i <= 0) {
+                    /* PartitionSizes is now sparse; there may be 0 sized parts
+                     * in the middle.
+                     */
+
+                    ++index;
+                    continue;
+                }
+
                 switch (index) {
                 case DFU_PARTITION_FW:
                     name = "Firmware";
@@ -1419,20 +1429,34 @@ void UploaderGadgetWidget::onBootloaderDetected()
                 case DFU_PARTITION_LOG:
                     name = "Log";
                     break;
+                case DFU_PARTITION_LOADABLE_EXTENSION:
+                    name = "Extension";
+                    break;
                 default:
                     name = QString::number(index);
                     break;
                 }
                 label = new QTableWidgetItem(name);
                 size = new QTableWidgetItem(QString::number(i));
-                size->setTextAlignment(Qt::AlignRight);
-                m_widget->partitionBrowserTW->setItem(index, 0, label);
-                m_widget->partitionBrowserTW->setItem(index, 1, size);
+
+                label->setData(Qt::UserRole, index);
+                size->setData(Qt::UserRole, index);
+
+                size->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+
+                m_widget->partitionBrowserTW->setRowCount(row_count + 1);
+
+                m_widget->partitionBrowserTW->setItem(row_count, 0, label);
+                m_widget->partitionBrowserTW->setItem(row_count, 1, size);
                 ++index;
+                ++row_count;
             }
+
+            m_widget->partitionBrowserGB->setEnabled(true);
         } else {
             m_widget->partitionBrowserTW->setRowCount(0);
         }
+
         deviceInfo info;
         info.board = brdMgr->getBoard(dev.ID >> 8);
         if (!info.board) {
@@ -1563,7 +1587,9 @@ void UploaderGadgetWidget::triggerPartitionDownload(int index)
 {
     if (!CheckInBootloaderState())
         return;
-    int size = m_widget->partitionBrowserTW->item(index, 1)->text().toInt();
+
+    tl_dfu::device dev = dfu.findCapabilities();
+    int size = dev.PartitionSizes[index];
 
     setStatusInfo("", uploader::STATUSICON_RUNNING);
     setUploaderStatus(uploader::BL_BUSY);
@@ -1576,7 +1602,7 @@ void UploaderGadgetWidget::triggerPartitionDownload(int index)
  */
 void UploaderGadgetWidget::onPartitionSave()
 {
-    int index = m_widget->partitionBrowserTW->selectedItems().first()->row();
+    int index = m_widget->partitionBrowserTW->selectedItems().first()->data(Qt::UserRole).toInt();
 
     QEventLoop loop;
 
@@ -1639,8 +1665,9 @@ void UploaderGadgetWidget::onPartitionFlash()
     tempArray.clear();
     tempArray = file.readAll();
 
-    int index = m_widget->partitionBrowserTW->selectedItems().first()->row();
-    int size = m_widget->partitionBrowserTW->item(index, 1)->text().toInt();
+    int index = m_widget->partitionBrowserTW->selectedItems().first()->data(Qt::UserRole).toInt();
+    tl_dfu::device dev = dfu.findCapabilities();
+    int size = dev.PartitionSizes[index];
 
     if (tempArray.length() > size) {
         setStatusInfo(tr("File bigger than partition size"), uploader::STATUSICON_FAIL);
@@ -1679,7 +1706,8 @@ void UploaderGadgetWidget::onPartitionFlash()
  */
 void UploaderGadgetWidget::onPartitionErase()
 {
-    int index = m_widget->partitionBrowserTW->selectedItems().first()->row();
+    int index = m_widget->partitionBrowserTW->selectedItems().first()->data(Qt::UserRole).toInt();
+
     if (QMessageBox::warning(this, tr("Warning"),
                              tr("Are you sure you want erase the selected partition?"),
                              QMessageBox::Yes, QMessageBox::No)
