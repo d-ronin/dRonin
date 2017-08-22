@@ -1,6 +1,6 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsLibraries Tau Labs Libraries
+ * @addtogroup Libraries Libraries
  * @{
  *
  * @file       alarms.c

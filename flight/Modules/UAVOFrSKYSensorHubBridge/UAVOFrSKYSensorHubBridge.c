@@ -1,6 +1,6 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsModules TauLabs Modules
+ * @addtogroup Modules Modules
  * @{ 
  * @addtogroup UAVOFrSKYSensorHubBridge UAVO to FrSKY Bridge Module
  * @{ 

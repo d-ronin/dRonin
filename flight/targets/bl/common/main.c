@@ -6,7 +6,7 @@
  * @{
  * @addtogroup Common Common
  * @{
- * @brief Tau Labs unified bootloader main loop and FSM
+ * @brief Unified bootloader main loop and FSM
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify

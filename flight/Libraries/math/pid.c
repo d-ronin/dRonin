@@ -1,8 +1,8 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsLibraries Tau Labs Libraries
+ * @addtogroup Libraries Libraries
  * @{
- * @addtogroup TauLabsMath Tau Labs math support libraries
+ * @addtogroup FlightMath math support libraries
  * @{
  *
  * @file       pid.c

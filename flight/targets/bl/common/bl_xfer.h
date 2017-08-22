@@ -6,7 +6,7 @@
  * @{
  * @addtogroup Common Common
  * @{
- * @brief Data transfer functions for the Tau Labs unified bootloader
+ * @brief Data transfer functions for the unified bootloader
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify

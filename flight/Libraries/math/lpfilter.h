@@ -1,8 +1,8 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsLibraries Tau Labs Libraries
+ * @addtogroup Libraries Libraries
  * @{
- * @addtogroup TauLabsMath Filtering support libraries
+ * @addtogroup FlightMath Filtering support libraries
  * @{
  *
  * @file       filter.h

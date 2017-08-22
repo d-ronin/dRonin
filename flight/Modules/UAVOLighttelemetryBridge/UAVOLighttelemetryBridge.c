@@ -1,6 +1,6 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsModules TauLabs Modules
+ * @addtogroup Modules Modules
  * @{ 
  * @addtogroup UAVOLighttelemetryBridge UAVO to Lighttelemetry Bridge Module
  * @{ 

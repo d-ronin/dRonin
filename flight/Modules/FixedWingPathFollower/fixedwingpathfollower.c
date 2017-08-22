@@ -1,6 +1,6 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsModules Tau Labs Modules
+ * @addtogroup Modules Modules
  * @{
  * @addtogroup FixedWingPathFollower Fixed wing path follower module
  * @{

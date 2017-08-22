@@ -1,6 +1,6 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsModules TauLabs Modules
+ * @addtogroup Modules Modules
  * @{
  * @addtogroup UAVOFrSKYSPortBridge UAVO to FrSKY S.PORT Bridge Module
  * @{

@@ -1,6 +1,6 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsModules Tau Labs Modules
+ * @addtogroup Modules Modules
  * @{ 
  * @addtogroup RadioComBridgeModule Com Port to Radio Bridge Module
  * @{ 
