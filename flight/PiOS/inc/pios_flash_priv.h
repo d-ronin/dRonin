@@ -39,6 +39,7 @@ struct pios_flash_driver {
 	int32_t (*erase_sector)(uintptr_t chip_id, uint32_t chip_sector, uint32_t chip_offset);
 	int32_t (*write_data)(uintptr_t chip_id, uint32_t chip_offset, const uint8_t *data, uint16_t len);
 	int32_t (*read_data)(uintptr_t chip_id, uint32_t chip_offset, uint8_t *data, uint16_t len);
+	void *(*get_pointer)(uintptr_t chip_id, uint32_t chip_offset);
 };
 
 /**

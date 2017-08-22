@@ -51,4 +51,6 @@ extern int32_t PIOS_FLASH_erase_range(uintptr_t partition_id, uint32_t start_off
 extern int32_t PIOS_FLASH_write_data(uintptr_t partition_id, uint32_t offset, const uint8_t *data, uint16_t len);
 extern int32_t PIOS_FLASH_read_data(uintptr_t partition_id, uint32_t offset, uint8_t *data, uint16_t len);
 
+extern void *PIOS_FLASH_get_address(uintptr_t partition_id, uint32_t *partition_size);
+
 #endif	/* PIOS_FLASH_H_ */
