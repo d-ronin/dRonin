@@ -1,6 +1,6 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsModules TauLabs Modules
+ * @addtogroup Modules Modules
  * @{
  * @addtogroup UAVOMavlinkBridge UAVO to Mavlink Bridge Module
  * @{

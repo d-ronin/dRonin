@@ -6,7 +6,7 @@
  * @{
  * @addtogroup Common Common
  * @{
- * @brief Message definitions for the Tau Labs unified bootloader
+ * @brief Message definitions for the unified bootloader
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify

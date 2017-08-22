@@ -1,6 +1,6 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsModules Tau Labs Modules
+ * @addtogroup Modules Modules
  * @{ 
  * @addtogroup AirspeedModule Airspeed Module
  * @{ 

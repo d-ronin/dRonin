@@ -6,7 +6,7 @@
  * @{
  * @addtogroup Common Common
  * @{
- * @brief LED PWM emulation for the Tau Labs unified bootloader
+ * @brief LED PWM emulation for the unified bootloader
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify

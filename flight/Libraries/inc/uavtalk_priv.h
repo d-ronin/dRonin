@@ -1,6 +1,6 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsCore Tau Labs Core components
+ * @addtogroup FlightCore Core components
  * @{
  * @addtogroup UAVTalk UAVTalk implementation
  * @{

@@ -1,6 +1,6 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsModules TauLabs Modules
+ * @addtogroup Modules Modules
  * @{ 
  * @addtogroup UAVOCrossfireTelemetry UAVO to TBS Crossfire telemetry converter
  * @{ 

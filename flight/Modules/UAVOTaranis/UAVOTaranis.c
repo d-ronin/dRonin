@@ -1,6 +1,6 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsModules TauLabs Modules
+ * @addtogroup Modules Modules
  * @{ 
  * @addtogroup UAVOTaranis UAVO to Taranis S.PORT converter
  * @{ 

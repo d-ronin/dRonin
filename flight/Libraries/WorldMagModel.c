@@ -1,6 +1,6 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsLibraries Tau Labs Libraries
+ * @addtogroup Libraries Libraries
  * @{
  * @file       WorldMagModel.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
