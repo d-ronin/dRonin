@@ -53,11 +53,12 @@ static int32_t loadable_initialize(void)
 	return 0;
 }
 
-static void loadable_task(void *parameters);
-
 static void invoke_one_loadable(struct loadable_extension *ext)
 {
 	/* XXX check payload CRC. */
+	void (*entry)() = (void *) (((uintptr_t) ext) + ext->entry_offset);
+
+	entry();
 }
 
 static void invoke_loadables()
@@ -118,16 +119,18 @@ static void invoke_loadables()
 
 }
 
+static void loadable_task(void *parameters);
+
 static int32_t loadable_start(void)
 {
 	if (!module_enabled) {
 		return 0;
 	}
 
-	/* XXX 	for now do stuff in a task, in an infinite loop */
+	/* XXX for now do stuff in a task, in an infinite loop */
 	struct pios_thread *loadable_task_handle;
 
-	loadable_task_handle = PIOS_Thread_Create(loadable_task, "Fault", PIOS_THREAD_STACK_SIZE_MIN, NULL, PIOS_THREAD_PRIO_HIGHEST);
+	loadable_task_handle = PIOS_Thread_Create(loadable_task, "Fault", PIOS_THREAD_STACK_SIZE_MIN, NULL, PIOS_THREAD_PRIO_NORMAL);
 
 	if (!loadable_task_handle) {
 		return -1;
@@ -144,7 +147,7 @@ MODULE_INITCALL(loadable_initialize, loadable_start)
 static void loadable_task(void *parameters)
 {
 	while (1) {
-		PIOS_Thread_Sleep(1000);
+		PIOS_Thread_Sleep(10);
 		invoke_loadables();
 	}
 }
