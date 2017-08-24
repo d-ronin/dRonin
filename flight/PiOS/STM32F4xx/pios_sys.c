@@ -69,6 +69,9 @@ void PIOS_SYS_Init(void)
 	/* do this early to ensure that we take exceptions in the right place */
 	NVIC_Configuration();
 
+	/* Enable specific rather than generic hard faults */
+	SCB->SHCSR |= SCB_SHCSR_USGFAULTENA_Msk | SCB_SHCSR_BUSFAULTENA_Msk | SCB_SHCSR_MEMFAULTENA_Msk;
+
 	/* Init the delay system */
 	PIOS_DELAY_Init();
 
