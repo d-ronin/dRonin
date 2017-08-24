@@ -27,7 +27,7 @@
 
 #include <stdint.h>
 
-/* 32 byte header-- containing a high degree of redundancy/verification
+/* 48 byte header-- containing a high degree of redundancy/verification
  * for sanity.  Payload immediately follows.
  */
 struct loadable_extension {
@@ -36,11 +36,21 @@ struct loadable_extension {
 	uint32_t magic;           /**< Magic number for structure 'dReX' */
 	uint32_t length;          /**< Number of bytes (with header) of extension */
 
+	uint32_t reserved[2];     /**< Reserved for future use, must be 0 */
+
 #define LOADABLE_REQUIRE_VERSION_INVALID 0x00000000
 #define LOADABLE_REQUIRE_VERSION_WIRED   0x00000001
 	uint32_t require_version; /**< Minimum version to try loading */
 
-	uint32_t reserved[2];     /**< Reserved for future use, must be 0 */
+	uint32_t ram_seg_len;     /**< Number of bytes of ram segments */
+	uint32_t ram_seg_copylen; /**< Number of bytes to copy from flash */
+	uint32_t ram_seg_copyoff; /**< Offset, from beginning of structure, of
+				    * where to copy these data segs
+				    */
+	uint32_t ram_seg_gotlen;  /**< Length of stuff in global offset table
+				    * requiring pseudo-relocs.  Assumed to be
+				    * at beginning of copyoff.
+				    */
 
 	uint32_t entry_offset;    /**< Entry point, from beginning of structure */
 	uint32_t header_crc;      /**< CRC of header structure before this point */
