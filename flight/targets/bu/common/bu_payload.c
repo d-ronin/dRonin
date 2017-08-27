@@ -27,7 +27,7 @@
 
 /* This is needed to make ccache aware the binary has changed. Without it,
    ccache will always return old cached files. */
-static const char dummy[] = __stringify(BU_HASH);
+static const char __attribute__((unused)) dummy[] = __stringify(BU_HASH);
 
 asm(
 	".section .rodata\n"

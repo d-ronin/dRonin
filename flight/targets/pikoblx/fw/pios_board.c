@@ -45,17 +45,6 @@
 #include "manualcontrolsettings.h"
 #include "modulesettings.h"
 
-/**
- * Configuration for the MS5611 chip
- */
-#if defined(PIOS_INCLUDE_MS5611)
-#include "pios_ms5611_priv.h"
-static const struct pios_ms5611_cfg pios_ms5611_cfg = {
-	.oversampling = MS5611_OSR_1024,
-	.temperature_interleaving = 1,
-};
-#endif /* PIOS_INCLUDE_MS5611 */
-
 #define PIOS_COM_CAN_RX_BUF_LEN 256
 #define PIOS_COM_CAN_TX_BUF_LEN 256
 

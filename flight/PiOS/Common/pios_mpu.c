@@ -70,17 +70,19 @@ static const uint8_t pios_mpu_whoami[PIOS_MPU_NUM] = {
 /**
  * I2C addresses to probe for device
  */
+#if defined(PIOS_INCLUDE_I2C) || defined(__DOXYGEN__)
 static const uint8_t pios_mpu_i2c_addr[] = {
 	0x68,
 	0x69,
 };
+#endif
 
 /**
  * The available underlying communication drivers
  */
 enum pios_mpu_com_driver {
 	PIOS_MPU_COM_I2C, /**< I2C driver */
-	PIOS_MPU_COM_SPI,  /**< SPI driver */
+	PIOS_MPU_COM_SPI, /**< SPI driver */
 };
 
 /**
