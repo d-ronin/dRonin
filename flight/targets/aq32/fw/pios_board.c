@@ -63,9 +63,6 @@ max7456_dev_t pios_max7456_id;
 #include <pios_board_info.h>
 
 void PIOS_Board_Init(void) {
-    /* Delay system */
-    PIOS_DELAY_Init();
-
     const struct pios_board_info * bdinfo = &pios_board_info_blob;
 
 #if defined(PIOS_INCLUDE_ANNUNC)
@@ -95,15 +92,6 @@ void PIOS_Board_Init(void) {
     if (PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_settings_cfg, FLASH_PARTITION_LABEL_SETTINGS) != 0)
         PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
 #endif    /* PIOS_INCLUDE_FLASH */
-
-    /* Initialize the task monitor library */
-    TaskMonitorInitialize();
-
-    /* Initialize UAVObject libraries */
-    UAVObjInitialize();
-
-    /* Initialize the alarms library */
-    AlarmsInitialize();
 
     HwAQ32Initialize();
     ModuleSettingsInitialize();

@@ -40,6 +40,7 @@
 #include "pios_heap.h"		/* PIOS_malloc_no_dma */
 #include "pios_mutex.h"
 #include "pios_queue.h"
+#include "pios_thread.h"
 #include "misc_math.h"
 
 extern uintptr_t pios_uavo_settings_fs_id;

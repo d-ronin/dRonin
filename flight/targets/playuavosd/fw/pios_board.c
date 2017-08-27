@@ -151,9 +151,6 @@ void PIOS_Board_Init(void) {
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
 	GPIO_ResetBits(GPIOB, GPIO_Pin_12);
 	
-	/* Delay system */
-	PIOS_DELAY_Init();
-
 #if defined(PIOS_INCLUDE_ANNUNC)
 	PIOS_ANNUNC_Init(&pios_annunc_cfg);
 #endif	/* PIOS_INCLUDE_ANNUNC */
@@ -171,9 +168,6 @@ void PIOS_Board_Init(void) {
 		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
 #endif	/* PIOS_INCLUDE_FLASH */
 
-	/* Initialize UAVObject libraries */
-	UAVObjInitialize();
-
 	HwPlayUavOsdInitialize();
 	ModuleSettingsInitialize();
 
@@ -189,12 +183,7 @@ void PIOS_Board_Init(void) {
 		//PIOS_WDG_Init();
 	}
 
-	/* Initialize the alarms library */
-	AlarmsInitialize();
 	PIOS_RESET_Clear();
-
-	/* Initialize the task monitor library */
-	TaskMonitorInitialize();
 
 	/* Set up pulse timers */
 	//inputs

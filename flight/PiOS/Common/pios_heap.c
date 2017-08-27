@@ -49,7 +49,9 @@ bool PIOS_heap_malloc_failed_p(void)
 	return malloc_failed_flag;
 }
 
+#if defined(PIOS_INCLUDE_RTOS)
 #include "pios_thread.h"
+#endif
 
 struct pios_heap {
 	const uintptr_t start_addr;

@@ -33,6 +33,8 @@
 
 struct pios_thread;
 
+#include <taskmonitor.h>
+
 #if defined(PIOS_INCLUDE_CHIBIOS)
 
 #include "ch.h"

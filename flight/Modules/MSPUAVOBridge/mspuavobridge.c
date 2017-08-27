@@ -29,6 +29,7 @@
 
 #include "openpilot.h"
 #include "pios_hal.h"
+#include "pios_thread.h"
 #include "coordinate_conversions.h"
 #include "msp.h"
 

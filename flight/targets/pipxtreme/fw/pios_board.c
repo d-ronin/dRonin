@@ -54,9 +54,6 @@ uintptr_t pios_uavo_settings_fs_id;
  */
 void PIOS_Board_Init(void)
 {
-	/* Delay system */
-	PIOS_DELAY_Init();
-
 	const struct pios_board_info * bdinfo = &pios_board_info_blob;
 
 #if defined(PIOS_INCLUDE_ANNUNC)
@@ -85,12 +82,6 @@ void PIOS_Board_Init(void)
 #endif
 
 #endif  /* PIOS_INCLUDE_FLASH && PIOS_INCLUDE_LOGFS_SETTINGS */
-
-	/* Initialize the task monitor library */
-	TaskMonitorInitialize();
-
-	/* Initialize UAVObject libraries */
-	UAVObjInitialize();
 
 	/* Set up the SPI interface to the rfm22b */
 	if (PIOS_SPI_Init(&pios_spi_rfm22b_id, &pios_spi_rfm22b_cfg)) {

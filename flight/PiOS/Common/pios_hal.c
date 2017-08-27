@@ -39,6 +39,7 @@
 
 #include <pios_modules.h>
 #include <pios_sys.h>
+#include <pios_thread.h>
 
 #include <dacsettings.h>
 #include <manualcontrolsettings.h>

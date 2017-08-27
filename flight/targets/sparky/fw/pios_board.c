@@ -66,10 +66,6 @@ uintptr_t pios_com_openlog_logging_id;
 
 void PIOS_Board_Init(void)
 {
-
-	/* Delay system */
-	PIOS_DELAY_Init();
-
 	const struct pios_board_info *bdinfo = &pios_board_info_blob;
 
 #if defined(PIOS_INCLUDE_ANNUNC)
@@ -110,14 +106,6 @@ void PIOS_Board_Init(void)
 
 #endif	/* PIOS_INCLUDE_FLASH */
 
-	/* Initialize the task monitor library */
-	TaskMonitorInitialize();
-
-	/* Initialize UAVObject libraries */
-	UAVObjInitialize();
-
-	/* Initialize the alarms library. Reads RCC reset flags */
-	AlarmsInitialize();
 	PIOS_RESET_Clear(); // Clear the RCC reset flags after use.
 
 	/* Initialize the hardware UAVOs */

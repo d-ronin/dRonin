@@ -25,7 +25,7 @@
  */
 
 #include "openpilot.h"
-//#include "taskmonitor.h"
+#include "taskmonitor.h"
 #include "pios_mutex.h"
 
 // Private constants

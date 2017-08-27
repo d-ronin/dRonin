@@ -30,6 +30,8 @@
 
 #include "openpilot.h"
 
+#include <pios_thread.h>
+
 #include "rgbleds.h"
 #include "misc_math.h"
 
