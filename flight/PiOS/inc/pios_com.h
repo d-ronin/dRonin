@@ -55,6 +55,7 @@ extern int32_t PIOS_COM_ChangeBaud(uintptr_t com_id, uint32_t baud);
 extern int32_t PIOS_COM_SendCharNonBlocking(uintptr_t com_id, char c);
 extern int32_t PIOS_COM_SendChar(uintptr_t com_id, char c);
 extern int32_t PIOS_COM_SendBufferNonBlocking(uintptr_t com_id, const uint8_t *buffer, uint16_t len);
+extern int32_t PIOS_COM_SendBufferStallTimeout(uintptr_t com_id, const uint8_t *buffer, uint16_t len, uint32_t max_ms);
 extern int32_t PIOS_COM_SendBuffer(uintptr_t com_id, const uint8_t *buffer, uint16_t len);
 extern int32_t PIOS_COM_SendStringNonBlocking(uintptr_t com_id, const char *str);
 extern int32_t PIOS_COM_SendString(uintptr_t com_id, const char *str);
