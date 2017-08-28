@@ -25,6 +25,9 @@
  * of this source file; otherwise redistribution is prohibited.
  */
 
+#ifndef _LOADABLE_EXTENSION_H
+#define _LOADABLE_EXTENSION_H
+
 #include <stdint.h>
 
 /* 48 byte header-- containing a high degree of redundancy/verification
@@ -57,6 +60,27 @@ struct loadable_extension {
 	uint32_t payload_crc;     /**< CRC of payload code */
 };
 
+#define DECLARE_LOADABLE_EXTENSION(ent_func) \
+extern char _sidata; \
+extern char _eidata; \
+ \
+extern char _copylen; \
+extern char _gotlen; \
+extern char _ramlen; \
+ \
+const struct loadable_extension lext __attribute__((section (".extension_header"))) = { \
+	.magic = LOADABLE_EXTENSION_MAGIC, \
+	.length = (uint32_t) &_eidata, \
+	.require_version = LOADABLE_REQUIRE_VERSION_WIRED, \
+	.entry_offset = (uint32_t) ent_func, \
+	.ram_seg_copyoff = (uint32_t) &_sidata, \
+	/* These next & opers are lies, because they're lengths, not offsets */ \
+	.ram_seg_len = (uint32_t) &_ramlen, \
+	.ram_seg_copylen = (uint32_t) &_copylen, \
+	.ram_seg_gotlen = (uint32_t) &_gotlen, \
+}
+
+#endif
 /**
  * @}
  */
