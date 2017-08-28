@@ -51,8 +51,8 @@ enum pios_thread_prio_e
 
 #else
 
-/* Posix or targets without threading */
-#define PIOS_THREAD_STACK_SIZE_MIN (32768)
+/* Posix or targets without threading or default for extensions */
+#define PIOS_THREAD_STACK_SIZE_MIN (4096)
 
 enum pios_thread_prio_e
 {
