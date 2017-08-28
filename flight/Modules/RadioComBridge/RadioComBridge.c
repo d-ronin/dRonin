@@ -511,7 +511,8 @@ static int32_t UAVTalkSendHandler(void *ctx, uint8_t * buf, int32_t length)
 #endif /* PIOS_INCLUDE_USB */
 
 	if (outputPort) {
-		ret = PIOS_COM_SendBuffer(outputPort, buf, length);
+		ret = PIOS_COM_SendBufferStallTimeout(outputPort, buf, length,
+				RETRY_TIMEOUT_MS);
 	} else {
 		ret = -1;
 	}
@@ -534,7 +535,8 @@ static int32_t RadioSendHandler(void *ctx, uint8_t * buf, int32_t length)
 
 	// Don't send any data unless the radio port is available.
 	if (outputPort && PIOS_COM_Available(outputPort)) {
-		return PIOS_COM_SendBuffer(outputPort, buf, length);
+		return PIOS_COM_SendBufferStallTimeout(outputPort, buf, length,
+				RETRY_TIMEOUT_MS);
 	} else {
 		return -1;
 	}
