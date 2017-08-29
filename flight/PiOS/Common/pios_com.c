@@ -331,10 +331,11 @@ int32_t PIOS_COM_SendBufferNonBlocking(uintptr_t com_id, const uint8_t *buffer, 
 * \param[in] port COM port
 * \param[in] buffer character buffer
 * \param[in] len buffer length
+* \param[in] max_ms Maximum num of milliseconds without progress to block.
 * \return -1 if port not available
 * \return number of bytes transmitted on success
 */
-int32_t PIOS_COM_SendBuffer(uintptr_t com_id, const uint8_t *buffer, uint16_t len)
+int32_t PIOS_COM_SendBufferStallTimeout(uintptr_t com_id, const uint8_t *buffer, uint16_t len, uint32_t max_ms)
 {
 	struct pios_com_dev *com_dev = (struct pios_com_dev *)com_id;
 
@@ -354,7 +355,7 @@ int32_t PIOS_COM_SendBuffer(uintptr_t com_id, const uint8_t *buffer, uint16_t le
 			sent += rc;
 		} else if (rc == 0) {
 			/* Block... for 5 seconds? */
-			if (PIOS_Semaphore_Take(com_dev->tx_sem, 5000) != true) {
+			if (PIOS_Semaphore_Take(com_dev->tx_sem, max_ms) != true) {
 				return -3;
 			}
 		} else {
@@ -376,6 +377,21 @@ int32_t PIOS_COM_SendBuffer(uintptr_t com_id, const uint8_t *buffer, uint16_t le
 	}
 
 	return sent;
+}
+
+/**
+* Sends a package over given port
+* (blocking function)
+* \param[in] port COM port
+* \param[in] buffer character buffer
+* \param[in] len buffer length
+* \return -1 if port not available
+* \return number of bytes transmitted on success
+*/
+int32_t PIOS_COM_SendBuffer(uintptr_t com_id, const uint8_t *buffer, uint16_t len)
+{
+	/* Allow 5s with no progress by default */
+	return PIOS_COM_SendBufferStallTimeout(com_id, buffer, len, 5000);
 }
 
 /**
