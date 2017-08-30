@@ -47,8 +47,6 @@
 // Temperature and pressure conversions
 #define CELSIUS2KELVIN     273.15f
 #define INCHES_MERCURY2KPA  3.386f
-#define KPA2HECTAPASCAL     0.001f
-#define HECTAPASCAL2KPA     100.0f
 
 // Distance conversions
 #define FEET2MILES                       0.3048f
