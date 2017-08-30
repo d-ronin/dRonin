@@ -45,6 +45,7 @@
 #include <pios_hal.h>
 #include <openpilot.h>
 #include <uavobjectsinit.h>
+#include <taskmonitor.h>
 #include "hwseppuku.h"
 #include "manualcontrolsettings.h"
 #include "modulesettings.h"
@@ -116,28 +117,6 @@ void OSD_configure_bw_levels(void)
 #endif /* PIOS_INCLUDE_VIDEO */
 
 /**
- * Check the brown out reset threshold is 2.7 volts and if not
- * resets it.
- */
-void check_bor()
-{
-	uint8_t bor = FLASH_OB_GetBOR();
-
-	if (bor != OB_BOR_LEVEL3) {
-		FLASH_OB_Unlock();
-		FLASH_OB_BORConfig(OB_BOR_LEVEL3);
-		FLASH_OB_Launch();
-		while (FLASH_WaitForLastOperation() == FLASH_BUSY) {
-			;
-		}
-		FLASH_OB_Lock();
-		while (FLASH_WaitForLastOperation() == FLASH_BUSY) {
-			;
-		}
-	}
-}
-
-/**
  * PIOS_Board_Init()
  * initializes all the core subsystems on this specific hardware
  * called from System/openpilot.c
@@ -146,11 +125,6 @@ void check_bor()
 #include <pios_board_info.h>
 
 void PIOS_Board_Init(void) {
-	check_bor();
-
-	/* Delay system */
-	PIOS_DELAY_Init();
-	
 	const struct pios_board_info * bdinfo = &pios_board_info_blob;
 
 #if defined(PIOS_INCLUDE_ANNUNC)
@@ -164,7 +138,6 @@ void PIOS_Board_Init(void) {
 		PIOS_Assert(0);
 	}
 #endif
-
 
 #if defined(PIOS_INCLUDE_FLASH)
 	/* Inititialize all flash drivers */
@@ -190,14 +163,6 @@ void PIOS_Board_Init(void) {
 	}
 #endif	/* PIOS_INCLUDE_FLASH */
 
-	/* Initialize the task monitor library */
-	TaskMonitorInitialize();
-
-	/* Initialize UAVObject libraries */
-	UAVObjInitialize();
-
-	/* Initialize the alarms library. Reads RCC reset flags */
-	AlarmsInitialize();
 	PIOS_RESET_Clear(); // Clear the RCC reset flags after use.
 
 	/* Initialize the hardware UAVOs */
@@ -431,7 +396,6 @@ void PIOS_Board_Init(void) {
 
 	PIOS_HAL_ConfigureDAC(pios_dac);
 #endif /* PIOS_INCLUDE_DAC */
-
 
 /* init sensor queue registration */
 	PIOS_SENSORS_Init();

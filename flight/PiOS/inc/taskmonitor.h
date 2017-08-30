@@ -26,8 +26,8 @@
 #ifndef TASKMONITOR_H
 #define TASKMONITOR_H
 
-#include "taskinfo.h"
 #include "pios_thread.h"
+#include "taskinfo.h"
 
 int32_t TaskMonitorInitialize(void);
 int32_t TaskMonitorAdd(TaskInfoRunningElem task, struct pios_thread *handlep);

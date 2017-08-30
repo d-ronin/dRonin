@@ -46,7 +46,6 @@
 #include "manualcontrolsettings.h"
 #include "onscreendisplaysettings.h"
 
-
 #if defined(PIOS_INCLUDE_FRSKY_RSSI)
 #include "pios_frsky_rssi_priv.h"
 #endif /* PIOS_INCLUDE_FRSKY_RSSI */
@@ -124,28 +123,6 @@ void OSD_configure_bw_levels(void)
 #endif /* PIOS_INCLUDE_VIDEO */
 
 /**
- * Check the brown out reset threshold is 2.7 volts and if not
- * resets it.
- */
-void check_bor()
-{
-	uint8_t bor = FLASH_OB_GetBOR();
-
-	if (bor != OB_BOR_LEVEL3) {
-		FLASH_OB_Unlock();
-		FLASH_OB_BORConfig(OB_BOR_LEVEL3);
-		FLASH_OB_Launch();
-		while (FLASH_WaitForLastOperation() == FLASH_BUSY) {
-			;
-		}
-		FLASH_OB_Lock();
-		while (FLASH_WaitForLastOperation() == FLASH_BUSY) {
-			;
-		}
-	}
-}
-
-/**
  * PIOS_Board_Init()
  * initializes all the core subsystems on this specific hardware
  * called from System/openpilot.c
@@ -155,11 +132,6 @@ void check_bor()
 
 void PIOS_Board_Init(void) {
 	bool use_rxport_usart = false;
-
-	check_bor();
-
-	/* Delay system */
-	PIOS_DELAY_Init();
 
 #if defined(PIOS_INCLUDE_ANNUNC)
 	PIOS_ANNUNC_Init(&pios_annunc_cfg);
@@ -194,9 +166,6 @@ void PIOS_Board_Init(void) {
 		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
 #endif	/* PIOS_INCLUDE_FLASH */
 
-	/* Initialize UAVObject libraries */
-	UAVObjInitialize();
-
 	HwBrainInitialize();
 	ModuleSettingsInitialize();
 
@@ -215,9 +184,6 @@ void PIOS_Board_Init(void) {
 	/* Initialize the alarms library */
 	AlarmsInitialize();
 	PIOS_RESET_Clear();
-
-	/* Initialize the task monitor library */
-	TaskMonitorInitialize();
 
 	/* Set up pulse timers */
 	//inputs

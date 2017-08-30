@@ -111,28 +111,6 @@ static void settingdUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len)
 	PIOS_RE1FPGA_SetSyncThreshold(hwre1data->VideoSyncDetectorThreshold);
 }
 
-/**
- * Check the brown out reset threshold is 2.7 volts and if not
- * resets it.
- */
-void check_bor()
-{
-	uint8_t bor = FLASH_OB_GetBOR();
-
-	if (bor != OB_BOR_LEVEL3) {
-		FLASH_OB_Unlock();
-		FLASH_OB_BORConfig(OB_BOR_LEVEL3);
-		FLASH_OB_Launch();
-		while (FLASH_WaitForLastOperation() == FLASH_BUSY) {
-			;
-		}
-		FLASH_OB_Lock();
-		while (FLASH_WaitForLastOperation() == FLASH_BUSY) {
-			;
-		}
-	}
-}
-
 #include <pios_board_info.h>
 
 /**
@@ -141,12 +119,6 @@ void check_bor()
  * called from System/openpilot.c
  */
 void PIOS_Board_Init(void) {
-	/* Check/set the brown out reset threshold */
-	check_bor();
-
-	/* Delay system */
-	PIOS_DELAY_Init();
-
 #if defined(PIOS_INCLUDE_ANNUNC)
 	PIOS_ANNUNC_Init(&pios_annunc_cfg);
 #endif	/* PIOS_INCLUDE_ANNUNC */
@@ -188,9 +160,6 @@ void PIOS_Board_Init(void) {
 
 #endif	/* PIOS_INCLUDE_FLASH */
 
-	/* Initialize UAVObject libraries */
-	UAVObjInitialize();
-
 	HwBrainRE1Initialize();
 
 	/* Connect callback to update FPGA settings when UAVO changes */
@@ -221,12 +190,7 @@ void PIOS_Board_Init(void) {
 	}
 #endif
 
-	/* Initialize the alarms library */
-	AlarmsInitialize();
 	PIOS_RESET_Clear();
-
-	/* Initialize the task monitor library */
-	TaskMonitorInitialize();
 
 	/* Set up pulse timers */
 	//inputs

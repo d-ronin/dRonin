@@ -27,6 +27,8 @@
 
 /* OpenPilot Includes */
 #include "openpilot.h"
+
+#include "pios_config.h"
 #include "uavobjectsinit.h"
 #include "systemmod.h"
 #include "pios_thread.h"
@@ -90,6 +92,38 @@ int main()
 
 	return 0;
 }
+
+#if defined(STM32F4XX)
+
+#include <stm32f4xx_flash.h>
+/**
+ * Check the brown out reset threshold is 2.7 volts and if not
+ * resets it.
+ */
+void check_bor()
+{
+	uint8_t bor = FLASH_OB_GetBOR();
+
+	if (bor != OB_BOR_LEVEL3) {
+		FLASH_OB_Unlock();
+		FLASH_OB_BORConfig(OB_BOR_LEVEL3);
+		FLASH_OB_Launch();
+		while (FLASH_WaitForLastOperation() == FLASH_BUSY) {
+			;
+		}
+		FLASH_OB_Lock();
+		while (FLASH_WaitForLastOperation() == FLASH_BUSY) {
+			;
+		}
+	}
+}
+
+#else
+void check_bor()
+{
+}
+#endif
+
 /**
  * Initialisation task.
  *
@@ -97,6 +131,23 @@ int main()
  */
 void initTask(void *parameters)
 {
+	/* Ensure BOR is programmed sane */
+	check_bor();
+
+	/* Init delay system */
+	PIOS_DELAY_Init();
+
+	/* Initialize the task monitor library */
+	TaskMonitorInitialize();
+
+	/* Initialize UAVObject libraries */
+	UAVObjInitialize();
+
+#ifndef PIPXTREME
+	/* Initialize the alarms library. Reads RCC reset flags */
+	AlarmsInitialize();
+#endif
+
 	/* board driver init */
 	PIOS_Board_Init();
 

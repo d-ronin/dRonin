@@ -32,6 +32,8 @@
  */
 
 #include "openpilot.h"
+
+#include "pios_thread.h"
 #include "pios_crc.h"
 
 #include "vtxinfo.h"

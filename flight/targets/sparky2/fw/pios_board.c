@@ -251,33 +251,7 @@ void set_vtx_channel(HwSparky2VTX_ChOptions channel)
 
 #include <pios_board_info.h>
 
-/**
- * Check the brown out reset threshold is 2.7 volts and if not
- * resets it.  This solves an issue that can prevent boards
- * powering up with some BEC
- */
-void check_bor()
-{
-    uint8_t bor = FLASH_OB_GetBOR();
-
-    if (bor != OB_BOR_LEVEL3) {
-        FLASH_OB_Unlock();
-        FLASH_OB_BORConfig(OB_BOR_LEVEL3);
-        FLASH_OB_Launch();
-        while (FLASH_WaitForLastOperation() == FLASH_BUSY) {
-            ;
-        }
-        FLASH_OB_Lock();
-        while (FLASH_WaitForLastOperation() == FLASH_BUSY) {
-            ;
-        }
-    }
-}
-
 void PIOS_Board_Init(void) {
-
-	check_bor();
-
 	const struct pios_board_info * bdinfo = &pios_board_info_blob;
 
 	// Make sure all the PWM outputs are low
@@ -287,9 +261,6 @@ void PIOS_Board_Init(void) {
 	for (int i = 0; i < num_channels; i++) {
 		GPIO_Init(channels[i].pin.gpio, (GPIO_InitTypeDef*) &channels[i].pin.init);
 	}
-
-	/* Delay system */
-	PIOS_DELAY_Init();
 
 #if defined(PIOS_INCLUDE_ANNUNC)
 	const struct pios_annunc_cfg * led_cfg = PIOS_BOARD_HW_DEFS_GetLedCfg(bdinfo->board_rev);
@@ -334,9 +305,6 @@ void PIOS_Board_Init(void) {
 
 #endif	/* PIOS_INCLUDE_FLASH */
 
-	/* Initialize UAVObject libraries */
-	UAVObjInitialize();
-
 	/* Initialize the hardware UAVOs */
 	HwSparky2Initialize();
 	ModuleSettingsInitialize();
@@ -352,12 +320,7 @@ void PIOS_Board_Init(void) {
 		PIOS_WDG_Init();
 	}
 
-	/* Initialize the alarms library. Reads RCC reset flags */
-	AlarmsInitialize();
 	PIOS_RESET_Clear(); // Clear the RCC reset flags after use.
-
-	/* Initialize the task monitor library */
-	TaskMonitorInitialize();
 
 	/* Set up pulse timers */
 	PIOS_TIM_InitClock(&tim_3_cfg);

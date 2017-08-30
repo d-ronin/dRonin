@@ -33,9 +33,7 @@
 #include <pios.h>
 
 /* OpenPilot Libraries */
-#include "uavobjectmanager.h"
 #include "alarms.h"
-#include "taskmonitor.h"
 
 #endif /* OPENPILOT_H */
 

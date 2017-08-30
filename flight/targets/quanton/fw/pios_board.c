@@ -46,7 +46,6 @@
 #include "modulesettings.h"
 #include "rgbledsettings.h"
 
-
 uintptr_t pios_com_openlog_logging_id;
 uintptr_t pios_uavo_settings_fs_id;
 uintptr_t pios_internal_adc_id;
@@ -62,10 +61,6 @@ pios_i2c_t external_i2c_adapter_id;
 #include <pios_board_info.h>
 
 void PIOS_Board_Init(void) {
-
-	/* Delay system */
-	PIOS_DELAY_Init();
-	
 	const struct pios_board_info * bdinfo = &pios_board_info_blob;
 
 #if defined(PIOS_INCLUDE_ANNUNC)
@@ -102,14 +97,6 @@ void PIOS_Board_Init(void) {
 		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
 #endif	/* PIOS_INCLUDE_FLASH */
 
-	/* Initialize the task monitor library */
-	TaskMonitorInitialize();
-
-	/* Initialize UAVObject libraries */
-	UAVObjInitialize();
-
-	/* Initialize the alarms library. Reads RCC reset flags */
-	AlarmsInitialize();
 	PIOS_RESET_Clear(); // Clear the RCC reset flags after use.
 
 	/* Initialize the hardware UAVOs */

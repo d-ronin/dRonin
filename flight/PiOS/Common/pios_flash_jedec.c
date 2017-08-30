@@ -33,7 +33,10 @@
 
 #include "pios_flash_jedec_priv.h"
 #include "pios_semaphore.h"
+
+#if defined(PIOS_INCLUDE_RTOS)
 #include "pios_thread.h"
+#endif
 
 #define JEDEC_WRITE_ENABLE           0x06
 #define JEDEC_WRITE_DISABLE          0x04
