@@ -54,7 +54,6 @@
 
 
 /* Supported receiver interfaces */
-#define PIOS_INCLUDE_PWM
 
 
 /* Flags that alter behaviors */

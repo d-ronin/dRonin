@@ -48,6 +48,7 @@ void PIOS_Queue_Delete(struct pios_queue *queuep);
 bool PIOS_Queue_Send(struct pios_queue *queuep, const void *itemp, uint32_t timeout_ms);
 bool PIOS_Queue_Send_FromISR(struct pios_queue *queuep, const void *itemp, bool *wokenp);
 bool PIOS_Queue_Receive(struct pios_queue *queuep, void *itemp, uint32_t timeout_ms);
+size_t PIOS_Queue_GetItemSize(struct pios_queue *queuep);
 
 #endif /* PIOS_QUEUE_H_ */
 

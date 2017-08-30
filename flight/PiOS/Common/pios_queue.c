@@ -197,4 +197,18 @@ bool PIOS_Queue_Receive(struct pios_queue *queuep, void *itemp, uint32_t timeout
 	return true;
 }
 
+/*
+ * @brief Gets the item size of a queue.
+ *
+ * @param[in] queuep Pointer to instance of @p struct pios_queue
+ *
+ * @returns Size of item
+ *
+ */
+size_t PIOS_Queue_GetItemSize(struct pios_queue *queuep)
+{
+	PIOS_Assert(queuep);
+	return queuep->mp.mp_object_size;
+}
+
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
