@@ -697,7 +697,12 @@ endif
 
 # OPENSSL download URL
 ifdef WINDOWS
-  openssl_install: OPENSSL_URL  := https://slproweb.com/download/Win32OpenSSL-1_0_2k.exe
+  openssl_install: OPENSSL_URL  := https://slproweb.com$(shell \
+          curl -s https://slproweb.com/products/Win32OpenSSL.html \
+          | grep -P 'Win32OpenSSL-1_0_[0-9]*[A-Za-z].exe' \
+          | head -1 \
+          | sed 's|.*\(/download/Win32OpenSSL.*\.exe\).*|\1|g'\
+  )
 
 openssl_install: OPENSSL_FILE := $(notdir $(OPENSSL_URL))
 OPENSSL_DIR = $(TOOLS_DIR)/win32openssl
