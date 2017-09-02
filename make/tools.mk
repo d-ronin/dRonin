@@ -699,7 +699,8 @@ endif
 ifdef WINDOWS
   openssl_install: OPENSSL_URL  := https://slproweb.com$(shell \
           curl -s https://slproweb.com/products/Win32OpenSSL.html \
-          | grep -P 'Win32OpenSSL-[0-9]*_[0-9]*_[0-9]*[a-z].exe' \
+          | grep -P 'Win32OpenSSL-1_0_[0-9]*[A-Za-z].exe' \
+          | head -1 \
           | sed 's|.*\(/download/Win32OpenSSL.*\.exe\).*|\1|g'\
   )
 
