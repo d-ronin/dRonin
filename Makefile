@@ -318,10 +318,7 @@ gcs_ts: tools_required_qt
 .PHONY: gcs_clazy
 gcs_clazy: CLAZY_CHECKS ?= level0
 gcs_clazy: $(UAVOBJECT_MARKER) | tools_required_qt
-	echo $(CLAZY)
-ifeq ($(shell which clazy 2>/dev/null),)
-	$(error Please install clazy and ensure it is on PATH first. https://github.com/KDE/clazy#build-instructions)
-endif
+	$(V1) which clazy >/dev/null 2>&1; if [ $$? -ne 0 ]; then echo "ERROR: clazy executable not found!"; exit 1; fi
 	$(V1) mkdir -p $(BUILD_DIR)/ground/$@
 	$(V1) ( cd $(BUILD_DIR)/ground/$@ && \
 	  CLAZY_CHECKS=$(CLAZY_CHECKS) PYTHON=$(PYTHON) $(QMAKE) $(ROOT_DIR)/ground/gcs/gcs.pro -spec $(QT_CLANG_SPEC) QMAKE_CXX="clazy" -r CONFIG+="release $(GCS_SILENT)" $(GCS_QMAKE_OPTS) && \
