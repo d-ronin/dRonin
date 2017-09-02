@@ -147,14 +147,12 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
 
                 buf = buf + rx
 
-            for i in range(buf_offset, len(buf)):
-                if indexbytes(buf, i) == SYNC_VAL:
-                    break
-
-            #print "skipping from %d to %d"%(buf_offset, i)
-
-            # Trim off irrelevant stuff, loop and try again
-            buf_offset = i
+            try:
+                buf_offset = buf.index(int2byte(SYNC_VAL), buf_offset)
+            except ValueError:
+                # No sync value
+                buf = b''
+                buf_offset = 0
 
         (sync, pack_type, pack_len, objId) = header_fmt.unpack_from(buf, buf_offset)
 

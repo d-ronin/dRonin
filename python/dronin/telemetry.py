@@ -494,6 +494,9 @@ class TelemetryBase(with_metaclass(ABCMeta)):
             if (finish_time is not None) and (time.time() >= finish_time):
                 break
 
+            if self.eof:
+                break
+
     @abstractmethod
     def _receive(self, finish_time):
         return
