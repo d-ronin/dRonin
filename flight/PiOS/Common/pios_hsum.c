@@ -387,8 +387,8 @@ static void PIOS_HSUM_Supervisor(uintptr_t hsum_id)
 		state->frame_length = HSUM_MAX_FRAME_LENGTH;
 	}
 
-	/* activate failsafe if no frames have arrived in 102.4ms */
-	if (++state->failsafe_timer > 64) {
+	/* activate failsafe if no frames have arrived in ~250ms */
+	if (++state->failsafe_timer > 156) {
 		PIOS_HSUM_ResetChannels(hsum_dev);
 		state->failsafe_timer = 0;
 		state->tx_connected = 0;
