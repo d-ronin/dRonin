@@ -444,8 +444,8 @@ static void PIOS_DSM_Supervisor(uintptr_t dsm_id)
 		state->receive_timer = 0;
 	}
 
-	/* activate failsafe if no frames have arrived in 102.4ms */
-	if (++state->failsafe_timer > 64) {
+	/* activate failsafe if no frames have arrived in ~250ms */
+	if (++state->failsafe_timer > 156) {
 		PIOS_DSM_ResetChannels(dsm_dev);
 		state->failsafe_timer = 0;
 	}
