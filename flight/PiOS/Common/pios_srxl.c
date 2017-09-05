@@ -311,12 +311,12 @@ void PIOS_SRXL_Supervisor(uintptr_t id)
 	 * RTC runs this callback at 625 Hz (T=1.6 ms)
 	 * Frame period is either 14 ms or 21 ms
 	 * We will reset the rx buffer if nothing is received for 8 ms (5 ticks)
-	 * We will failsafe if 4 frames (low rate) are lost
-	 * (4 * 21) / 1.6 ~ 53 ticks
+	 * We will failsafe if 12 frames (low rate) are lost
+	 * (12 * 21) / 1.6 ~ 158 ticks
 	 */
 	if (++dev->rx_timer >= 5)
 		dev->rx_buffer_pos = 0;
-	if (++dev->failsafe_timer >= 53)
+	if (++dev->failsafe_timer >= 158)
 		PIOS_SRXL_ResetChannels(dev, PIOS_RCVR_TIMEOUT);
 }
 
