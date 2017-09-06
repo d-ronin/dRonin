@@ -34,6 +34,7 @@
 #include <pios_tcp_priv.h>
 #include <openpilot.h>
 #include <uavobjectsinit.h>
+#include <pios_thread.h>
 
 #include "accels.h"
 #include "baroaltitude.h"
@@ -84,6 +85,10 @@ uintptr_t pios_com_telem_usb_id;
  * called from System/openpilot.c
  */
 void PIOS_Board_Init(void) {
+
+	/* Delay system */
+	PIOS_DELAY_Init();
+
 	int32_t retval = PIOS_Flash_Posix_Init(&pios_posix_flash_id, &flash_config);
 	if (retval != 0) {
 		printf("Flash file doesn't exist or is too small, creating a new one\n");
@@ -111,7 +116,15 @@ void PIOS_Board_Init(void) {
 	if (PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_config_settings, FLASH_PARTITION_LABEL_SETTINGS) != 0)
 		fprintf(stderr, "Unable to open the settings partition\n");
 
+	/* Initialize the task monitor library */
+	TaskMonitorInitialize();
+
+	/* Initialize UAVObject libraries */
+	UAVObjInitialize();
 	UAVObjectsInitializeAll();
+
+	/* Initialize the alarms library */
+	AlarmsInitialize();
 
 	/* Initialize the sparky object, because developers use this for dev
 	 * test. */
