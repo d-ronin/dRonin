@@ -19,6 +19,8 @@
 #include <qstyleoption.h>
 #include <qmath.h>
 
+#include <functional>
+
 static inline void qwtDrawLine( QPainter *painter, int pos, 
     const QColor &color, const QRect &pipeRect, const QRect &liquidRect,
     Qt::Orientation orientation )
@@ -560,9 +562,9 @@ void QwtThermo::drawLiquid(
         QVector<double> values = qwtTickList( scaleDraw()->scaleDiv() );
 
         if ( scaleMap.isInverting() )
-            qSort( values.begin(), values.end(), qGreater<double>() );
+            std::sort( values.begin(), values.end(), std::greater<double>() );
         else
-            qSort( values.begin(), values.end(), qLess<double>() );
+            std::sort( values.begin(), values.end(), std::less<double>() );
 
         int from;
         if ( !values.isEmpty() )
