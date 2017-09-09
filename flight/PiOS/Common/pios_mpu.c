@@ -429,16 +429,25 @@ static int32_t PIOS_MPU_Common_Init(void)
 
 #ifdef PIOS_INCLUDE_MPU_MAG
 	/* Probe for mag */
-	if (mpu_dev->cfg->use_internal_mag && PIOS_MPU_Mag_Probe() == 0) {
-		PIOS_MPU_Mag_Alloc(mpu_dev);
-		if (mpu_dev->mpu_type == PIOS_MPU60X0)
-			mpu_dev->mpu_type = PIOS_MPU9150;
-		if (PIOS_MPU_Mag_Config() != 0)
+	if (mpu_dev->cfg->use_internal_mag) {
+		if (PIOS_MPU_Mag_Probe() == 0) {
+			PIOS_MPU_Mag_Alloc(mpu_dev);
+			if (mpu_dev->mpu_type == PIOS_MPU60X0)
+				mpu_dev->mpu_type = PIOS_MPU9150;
+
+			if (PIOS_MPU_Mag_Config() != 0)
+				return -PIOS_MPU_ERROR_MAGFAILED;
+		} else if (mpu_dev->mpu_type == PIOS_MPU9250) {
+			/* we have positively identified 9250 so we can be sure
+			 * this is a hardware failure */
 			return -PIOS_MPU_ERROR_MAGFAILED;
+		} else {
+			/* we can't positively identify 9150 so just disable mag
+			 * (and some boards can have 6xx0 _or_ 9150 placed...) */
+			mpu_dev->use_mag = false;
+		}
 	} else {
 		mpu_dev->use_mag = false;
-		if (mpu_dev->mpu_type == PIOS_MPU9250)
-			return -PIOS_MPU_ERROR_MAGFAILED;
 	}
 #endif // PIOS_INCLUDE_MPU_MAG
 
@@ -1034,7 +1043,7 @@ static void PIOS_MPU_Task(void *parameters)
 		float mag_z = (int16_t)(mpu_rec_buf[IDX_MAG_ZOUT_H] << 8 | mpu_rec_buf[IDX_MAG_ZOUT_L]);
 #endif // PIOS_INCLUDE_MPU_MAG
 
-		/* 
+		/*
 		 * Rotate the sensor to our convention (x forward, y right, z down).
 		 * Sensor orientation for all supported Invensense variants is
 		 * x right, y forward, z up.
