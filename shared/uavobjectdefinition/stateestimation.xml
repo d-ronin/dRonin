@@ -2,7 +2,16 @@
 <xml>
 	<object name="StateEstimation" singleinstance="true" settings="true">
 		<description>Settings for how to estimate the state</description>
-		<field name="AttitudeFilter" units="" type="enum" elements="1" options="Complementary,INSIndoor,INSOutdoor" defaultvalue="Complementary"/>
+		<field name="AttitudeFilter" units="" type="enum" elements="1" defaultvalue="Complementary">
+			<options>
+				<option>Complementary</option>
+				<option>INSIndoor</option>
+				<option>INSOutdoor</option>
+			</options>
+			<description>
+				Algorithm used for sensor fusion. Complementary is good for general purpose use, and INSOutdoor is recommended for navigation. INSIndoor should only be used for testing (and will not allow you to fly).
+			</description>
+		</field>
 		<field name="NavigationFilter" units="" type="enum" elements="1" options="None,Raw,INS" defaultvalue="None"/>
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
