@@ -513,13 +513,8 @@ arming it in that case!</string>
              </item>
              <item row="0" column="1">
               <widget class="QComboBox" name="algorithm">
-               <property name="toolTip">
-                <string>Select the sensor integration algorithm here.
-&quot;Simple&quot; only uses accelerometer values
-&quot;INSGPS&quot; the full featured algorithm integrating all sensors</string>
-               </property>
                <property name="objrelation" stdset="0">
-                <stringlist>
+                <stringlist notr="true">
                  <string>objname:StateEstimation</string>
                  <string>fieldname:AttitudeFilter</string>
                 </stringlist>
@@ -536,7 +531,7 @@ arming it in that case!</string>
              <item row="1" column="1">
               <widget class="QComboBox" name="comboBox">
                <property name="objrelation" stdset="0">
-                <stringlist>
+                <stringlist notr="true">
                  <string>objname:StateEstimation</string>
                  <string>fieldname:NavigationFilter</string>
                 </stringlist>
@@ -644,7 +639,7 @@ new home location unless it is in indoor mode.</string>
                  <double>0.001000000000000</double>
                 </property>
                 <property name="objrelation" stdset="0">
-                 <stringlist>
+                 <stringlist notr="true">
                   <string>objname:AttitudeSettings</string>
                   <string>fieldname:AccKi</string>
                   <string>buttongroup:1</string>
@@ -670,7 +665,7 @@ new home location unless it is in indoor mode.</string>
                  <double>0.100000000000000</double>
                 </property>
                 <property name="objrelation" stdset="0">
-                 <stringlist>
+                 <stringlist notr="true">
                   <string>objname:AttitudeSettings</string>
                   <string>fieldname:AccKp</string>
                   <string>buttongroup:1</string>
@@ -705,7 +700,7 @@ new home location unless it is in indoor mode.</string>
                  <number>3</number>
                 </property>
                 <property name="objrelation" stdset="0">
-                 <stringlist>
+                 <stringlist notr="true">
                   <string>objname:AttitudeSettings</string>
                   <string>fieldname:AccelTau</string>
                   <string>buttongroup:1</string>
