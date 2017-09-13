@@ -93,7 +93,12 @@ void PIOS_Board_Init(void) {
 	if (retval != 0) {
 		printf("Flash file doesn't exist or is too small, creating a new one\n");
 		/* create an empty, appropriately sized flash filesystem */
-		FILE * theflash = fopen("theflash.bin", "w");
+		FILE *theflash = fopen("theflash.bin", "w");
+		if (!theflash) {
+			perror("fopen(theflash.bin)");
+			exit(1);
+		}
+
 		uint8_t sector[flash_config.size_of_sector];
 		memset(sector, 0xFF, sizeof(sector));
 		for (uint32_t i = 0; i < flash_config.size_of_flash / flash_config.size_of_sector; i++) {
