@@ -36,25 +36,22 @@
 
 /* Enable/Disable PiOS Modules */
 #define PIOS_INCLUDE_DMA_CB_SUBSCRIBING_FUNCTION
-#define PIOS_INCLUDE_I2C
+/* #define PIOS_INCLUDE_I2C */
 #define PIOS_INCLUDE_SPI
 #define WDG_STATS_DIAGNOSTICS
 
 /* Select the sensors to include */
 #define PIOS_INCLUDE_MPU
 #define PIOS_INCLUDE_MPU_MAG
-#define PIOS_INCLUDE_BMP280
-#define PIOS_INCLUDE_HMC5883
-#define PIOS_INCLUDE_HMC5983_I2C
+/* #define PIOS_INCLUDE_HMC5883 */
+/* #define PIOS_INCLUDE_HMC5983_I2C */
 #define PIOS_TOLERATE_MISSING_SENSORS
 
 /* Com systems to include */
 #define PIOS_INCLUDE_MAVLINK
 #define PIOS_INCLUDE_LIGHTTELEMETRY 
 
-
 /* Supported receiver interfaces */
-
 
 /* Flags that alter behaviors */
 #define AUTOTUNE_AVERAGING_DECIMATION 2

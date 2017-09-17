@@ -130,8 +130,6 @@ void PIOS_Board_Init(void)
 	PIOS_TIM_InitClock(&tim_2_cfg);
 	PIOS_TIM_InitClock(&tim_3_cfg);
 	PIOS_TIM_InitClock(&tim_15_cfg);
-	PIOS_TIM_InitClock(&tim_16_cfg);
-	PIOS_TIM_InitClock(&tim_17_cfg);
 
 	/* IAP System Setup */
 	PIOS_IAP_Init();
@@ -221,7 +219,7 @@ void PIOS_Board_Init(void)
 			&pios_usart_com_driver,		// com_driver
 			NULL,				// i2c_id
 			NULL,				// i2c_cfg
-			NULL,				// ppm_cfg
+			&pios_ppm_cfg,			// ppm_cfg
 			NULL,				// pwm_cfg
 			PIOS_LED_ALARM,			// led_id
 			&pios_uart3_dsm_aux_cfg,	// dsm_cfg
@@ -235,7 +233,7 @@ void PIOS_Board_Init(void)
 			&pios_usart_com_driver,		// com_driver
 			NULL,				// i2c_id
 			NULL,				// i2c_cfg
-			&pios_ppm_cfg,			// ppm_cfg
+			NULL,				// ppm_cfg
 			NULL,				// pwm_cfg
 			PIOS_LED_ALARM,			// led_id
 			&pios_uart2_dsm_aux_cfg,	// dsm_cfg
