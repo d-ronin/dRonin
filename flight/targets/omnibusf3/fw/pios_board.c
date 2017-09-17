@@ -2,7 +2,7 @@
  ******************************************************************************
  * @addtogroup Targets Target Boards
  * @{
- * @addtogroup SPRF3E SP Racing F3 Evo
+ * @addtogroup OMNIBUSF3 SP Racing F3 Evo
  * @{
  *
  * @file       sprf3e/board-info/pios_board.c
@@ -41,7 +41,7 @@
 #include <pios_hal.h>
 #include <openpilot.h>
 #include <uavobjectsinit.h>
-#include "hwsprf3e.h"
+#include "hwomnibusf3.h"
 #include "hwshared.h"
 #include "manualcontrolsettings.h"
 #include "modulesettings.h"
@@ -107,7 +107,7 @@ void PIOS_Board_Init(void)
 	PIOS_RESET_Clear(); // Clear the RCC reset flags after use.
 
 	/* Initialize the hardware UAVOs */
-	HwSprf3eInitialize();
+	HwOmnibusF3Initialize();
 	ModuleSettingsInitialize();
 
 #if defined(PIOS_INCLUDE_RTC)
@@ -139,7 +139,7 @@ void PIOS_Board_Init(void)
 		AlarmsClear(SYSTEMALARMS_ALARM_BOOTFAULT);
 	} else {
 		/* Too many failed boot attempts, force hw config to defaults */
-		HwSprf3eSetDefaults(HwSprf3eHandle(), 0);
+		HwOmnibusF3SetDefaults(HwOmnibusF3Handle(), 0);
 		ModuleSettingsSetDefaults(ModuleSettingsHandle(), 0);
 		AlarmsSet(SYSTEMALARMS_ALARM_BOOTFAULT, SYSTEMALARMS_ALARM_CRITICAL);
 	}
@@ -172,11 +172,11 @@ void PIOS_Board_Init(void)
 
 	uint8_t hw_usb_vcpport;
 	/* Configure the USB VCP port */
-	HwSprf3eUSB_VCPPortGet(&hw_usb_vcpport);
+	HwOmnibusF3USB_VCPPortGet(&hw_usb_vcpport);
 
 	if (!usb_cdc_present) {
 		/* Force VCP port function to disabled if we haven't advertised VCP in our USB descriptor */
-		hw_usb_vcpport = HWSPRF3E_USB_VCPPORT_DISABLED;
+		hw_usb_vcpport = HWOMNIBUSF3_USB_VCPPORT_DISABLED;
 	}
 
 	PIOS_HAL_ConfigureCDC(hw_usb_vcpport, pios_usb_id, &pios_usb_cdc_cfg);
@@ -185,11 +185,11 @@ void PIOS_Board_Init(void)
 #if defined(PIOS_INCLUDE_USB_HID)
 	/* Configure the usb HID port */
 	uint8_t hw_usb_hidport;
-	HwSprf3eUSB_HIDPortGet(&hw_usb_hidport);
+	HwOmnibusF3USB_HIDPortGet(&hw_usb_hidport);
 
 	if (!usb_hid_present) {
 		/* Force HID port function to disabled if we haven't advertised HID in our USB descriptor */
-		hw_usb_hidport = HWSPRF3E_USB_HIDPORT_DISABLED;
+		hw_usb_hidport = HWOMNIBUSF3_USB_HIDPORT_DISABLED;
 	}
 
 	PIOS_HAL_ConfigureHID(hw_usb_hidport, pios_usb_id, &pios_usb_hid_cfg);
@@ -209,11 +209,11 @@ void PIOS_Board_Init(void)
 #endif  // PIOS_INCLUDE_I2C
 
 	/* Configure the IO ports */
-	HwSprf3eDSMxModeOptions hw_DSMxMode;
-	HwSprf3eDSMxModeGet(&hw_DSMxMode);
+	HwOmnibusF3DSMxModeOptions hw_DSMxMode;
+	HwOmnibusF3DSMxModeGet(&hw_DSMxMode);
 
 	uint8_t hw_uart3;
-	HwSprf3eUart3Get(&hw_uart3);
+	HwOmnibusF3Uart3Get(&hw_uart3);
 	PIOS_HAL_ConfigurePort(hw_uart3,		// port_type
 			&pios_uart3_cfg,		// usart_port_cfg
 			&pios_usart_com_driver,		// com_driver
@@ -227,7 +227,7 @@ void PIOS_Board_Init(void)
 			NULL);				// sbus_cfg
 
 	uint8_t hw_uart2;
-	HwSprf3eUart2Get(&hw_uart2);
+	HwOmnibusF3Uart2Get(&hw_uart2);
 	PIOS_HAL_ConfigurePort(hw_uart2,		// port_type
 			&pios_uart2_cfg,		// usart_port_cfg
 			&pios_usart_com_driver,		// com_driver
@@ -241,7 +241,7 @@ void PIOS_Board_Init(void)
 			NULL);				// sbus_cfg
 
 	uint8_t hw_uart1;
-	HwSprf3eUart1Get(&hw_uart1);
+	HwOmnibusF3Uart1Get(&hw_uart1);
 	PIOS_HAL_ConfigurePort(hw_uart1,		// port_type
 			&pios_uart1_cfg,		// usart_port_cfg
 			&pios_usart_com_driver,		// com_driver
@@ -294,112 +294,57 @@ void PIOS_Board_Init(void)
 	PIOS_DELAY_WaitmS(200);
 	PIOS_WDG_Clear();
 
-#if defined(PIOS_INCLUDE_BMP280)
-#include "pios_bmp280.h"
-#include "pios_bmp280_priv.h"
-	uint8_t hw_baro;
-	HwSprf3eBarometerGet(&hw_baro);
-	switch(hw_baro) {
-		case HWSPRF3E_BAROMETER_BMP280:
-		if (PIOS_HAL_ConfigureExternalBaro(hw_baro,
-			&pios_i2c_internal_id, &pios_i2c_internal_cfg))
-			PIOS_SENSORS_SetMissing(PIOS_SENSOR_BARO);
-		break;
-	}
-	PIOS_WDG_Clear();
-#endif
-
-#if defined(PIOS_INCLUDE_MPU)
-	uint8_t hw_mag;
-	uint8_t hw_orientation;
-	HwSprf3eMagnetometerGet(&hw_mag);
-	HwSprf3eExtMagOrientationGet(&hw_orientation);
-
-	// XXX TODO MIXING ENUMS HERE NOT SAFE/CORRECT
-	switch(hw_mag) {
-		case HWSPRF3E_MAGNETOMETER_INTERNAL:
-			pios_mpu_cfg.use_internal_mag=true;
-			break;
-		case HWSPRF3E_MAGNETOMETER_NONE:
-			pios_mpu_cfg.use_internal_mag=false;
-			break;
-		case HWSPRF3E_MAGNETOMETER_EXTERNALHMC5883:
-			pios_mpu_cfg.use_internal_mag=false;
-#if defined(PIOS_INCLUDE_I2C)
-			PIOS_WDG_Clear();
-			if (PIOS_HAL_ConfigureExternalMag(hw_mag, hw_orientation,
-				&pios_i2c_internal_id, &pios_i2c_internal_cfg))
-				PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
-			PIOS_WDG_Clear();
-#else
-			PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
-#endif // PIOS_INCLUDE_I2C
-			break;
-		case HWSPRF3E_MAGNETOMETER_EXTERNALHMC5983:
-			pios_mpu_cfg.use_internal_mag=false;
-#ifdef PIOS_INCLUDE_HMC5983_I2C
-			PIOS_WDG_Clear();
-			if (PIOS_HAL_ConfigureExternalMag(hw_mag, hw_orientation,
-				&pios_i2c_internal_id, &pios_i2c_internal_cfg))
-				PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
-			PIOS_WDG_Clear();
-#else
-			PIOS_SENSORS_SetMissing(PIOS_SENSOR_MAG);
-#endif /* PIOS_INCLUDE_HMC5983_I2C */
-			break;
-	}
-
+	pios_mpu_cfg.use_internal_mag=true;
 	pios_mpu_dev_t mpu_dev = NULL;
 	if (PIOS_MPU_SPI_Init(&mpu_dev, pios_spi_gyro_id, 0, &pios_mpu_cfg) != 0)
 		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 
-	HwSprf3eGyroRangeOptions hw_gyro_range;
-	HwSprf3eGyroRangeGet(&hw_gyro_range);
+	HwOmnibusF3GyroRangeOptions hw_gyro_range;
+	HwOmnibusF3GyroRangeGet(&hw_gyro_range);
 
 	switch(hw_gyro_range) {
-		case HWSPRF3E_GYRORANGE_250:
+		case HWOMNIBUSF3_GYRORANGE_250:
 			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_250_DEG);
 			break;
-		case HWSPRF3E_GYRORANGE_500:
+		case HWOMNIBUSF3_GYRORANGE_500:
 			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_500_DEG);
 			break;
-		case HWSPRF3E_GYRORANGE_1000:
+		case HWOMNIBUSF3_GYRORANGE_1000:
 			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_1000_DEG);
 			break;
-		case HWSPRF3E_GYRORANGE_2000:
+		case HWOMNIBUSF3_GYRORANGE_2000:
 			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_2000_DEG);
 			break;
 	}
 
-	HwSprf3eAccelRangeOptions hw_accel_range;
-	HwSprf3eAccelRangeGet(&hw_accel_range);
+	HwOmnibusF3AccelRangeOptions hw_accel_range;
+	HwOmnibusF3AccelRangeGet(&hw_accel_range);
 	switch(hw_accel_range) {
-		case HWSPRF3E_ACCELRANGE_2G:
+		case HWOMNIBUSF3_ACCELRANGE_2G:
 			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_2G);
 			break;
-		case HWSPRF3E_ACCELRANGE_4G:
+		case HWOMNIBUSF3_ACCELRANGE_4G:
 			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_4G);
 			break;
-		case HWSPRF3E_ACCELRANGE_8G:
+		case HWOMNIBUSF3_ACCELRANGE_8G:
 			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_8G);
 			break;
-		case HWSPRF3E_ACCELRANGE_16G:
+		case HWOMNIBUSF3_ACCELRANGE_16G:
 			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_16G);
 			break;
 	}
 
-	HwSprf3eMPU9250GyroLPFOptions hw_mpu_dlpf;
-	HwSprf3eMPU9250GyroLPFGet(&hw_mpu_dlpf);
+	HwOmnibusF3MPU9250GyroLPFOptions hw_mpu_dlpf;
+	HwOmnibusF3MPU9250GyroLPFGet(&hw_mpu_dlpf);
 	uint16_t bandwidth = \
-		(hw_mpu_dlpf == HWSPRF3E_MPU9250GYROLPF_184) ? 184 : \
-		(hw_mpu_dlpf == HWSPRF3E_MPU9250GYROLPF_92)  ? 92  : \
-		(hw_mpu_dlpf == HWSPRF3E_MPU9250GYROLPF_41)  ? 41  : \
-		(hw_mpu_dlpf == HWSPRF3E_MPU9250GYROLPF_20)  ? 20  : \
-		(hw_mpu_dlpf == HWSPRF3E_MPU9250GYROLPF_10)  ? 10  : \
-		(hw_mpu_dlpf == HWSPRF3E_MPU9250GYROLPF_5)   ? 5   : \
+		(hw_mpu_dlpf == HWOMNIBUSF3_MPU9250GYROLPF_184) ? 184 : \
+		(hw_mpu_dlpf == HWOMNIBUSF3_MPU9250GYROLPF_92)  ? 92  : \
+		(hw_mpu_dlpf == HWOMNIBUSF3_MPU9250GYROLPF_41)  ? 41  : \
+		(hw_mpu_dlpf == HWOMNIBUSF3_MPU9250GYROLPF_20)  ? 20  : \
+		(hw_mpu_dlpf == HWOMNIBUSF3_MPU9250GYROLPF_10)  ? 10  : \
+		(hw_mpu_dlpf == HWOMNIBUSF3_MPU9250GYROLPF_5)   ? 5   : \
 		188;
 	PIOS_MPU_SetGyroBandwidth(bandwidth);
-#endif
 
 	//I2C is slow, sensor init as well, reset watchdog to prevent reset here
 	PIOS_WDG_Clear();
