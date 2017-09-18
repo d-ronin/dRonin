@@ -2,15 +2,15 @@
  ******************************************************************************
  * @addtogroup Targets Target Boards
  * @{
- * @addtogroup SPRF3E SP Racing F3 Evo
+ * @addtogroup OMNIBUSF3 OmnibusF3 and clones
  * @{
  *
  * @file       board_hw_defs.c 
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2011.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
- * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2017
  * @brief      Defines board specific static initializers for hardware for the
- *             sprf3e board.
+ *             omnibusf3 board.
  * @see        The GNU Public License (GPL) Version 3
  * 
  *****************************************************************************/

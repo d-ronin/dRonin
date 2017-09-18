@@ -18,10 +18,10 @@
  ******************************************************************************
  * @addtogroup Targets Target Boards
  * @{
- * @addtogroup SPRF3E SP Racing F3 Evo
+ * @addtogroup OMNIBUSF3 OmnibusF3 and clones
  * @{
  *
- * @file       sprf3e/board-info/mcuconf.h
+ * @file       omnibusf3/board-info/mcuconf.h
  *
  *****************************************************************************/
 

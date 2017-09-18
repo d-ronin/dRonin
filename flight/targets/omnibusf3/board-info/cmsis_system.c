@@ -2,10 +2,10 @@
   ******************************************************************************
   * @addtogroup Targets Target Boards
   * @{
-  * @addtogroup SPRF3E SP Racing F3 Evo
+  * @addtogroup OMNIBUSF3 OmnibusF3 and clones
   * @{
   *
-  * @file    sprf3e/board-info/cmsis_system.c
+  * @file    omnibusf3/board-info/cmsis_system.c
   * @author  MCD Application Team
   * @version V1.0.0
   * @date    04-September-2012

@@ -2,12 +2,12 @@
  ******************************************************************************
  * @addtogroup Targets Target Boards
  * @{
- * @addtogroup OMNIBUSF3 SP Racing F3 Evo
+ * @addtogroup OMNIBUSF3 OmnibusF3 and clones
  * @{
  *
- * @file       sprf3e/board-info/pios_board.c
+ * @file       omnibusf3/board-info/pios_board.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
- * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2017
  * @brief      The board specific initialization routines
  * @see        The GNU Public License (GPL) Version 3
  *

@@ -4,7 +4,7 @@ BOOTLOADER_VERSION  := 0x88
 HW_TYPE             := 0x00		# seems to be unused
 
 CHIP                := STM32F303CCT
-BOARD               := STM32F30x_sprf3e
+BOARD               := STM32F30x_omnibusf3
 MODEL               := HD
 MODEL_SUFFIX        :=
 

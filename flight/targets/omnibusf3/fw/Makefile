@@ -1,12 +1,12 @@
 ###############################################################################
 # @file       Makefile
 # @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
-# @author     dRonin, http://dRonin.org/, Copyright (C) 2016
+# @author     dRonin, http://dRonin.org/, Copyright (C) 2017
 # @addtogroup
 # @{
 # @addtogroup
 # @{
-# @brief Makefile to build firmware for SP Racing F3 Evo.
+# @brief Makefile to build firmware for OmnibusF3.
 ###############################################################################
 #
 # This program is free software; you can redistribute it and/or modify

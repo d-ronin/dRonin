@@ -2,12 +2,12 @@
  ******************************************************************************
  * @addtogroup Targets Target Boards
  * @{
- * @addtogroup SPRF3E SP Racing F3 Evo
+ * @addtogroup OMNIBUSF3 OmnibusF3 and clones
  * @{
  *
- * @file       sprf3e/board-info/pios_config.h
+ * @file       omnibusf3/board-info/pios_config.h
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
- * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2017
  * @brief      Board specific options that modify PiOS capabilities
  * @see        The GNU Public License (GPL) Version 3
  *
