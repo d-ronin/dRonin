@@ -58,7 +58,8 @@ uintptr_t pios_com_debug_id;
 uintptr_t pios_com_aux_id;
 uintptr_t pios_com_telem_rf_id;
 uintptr_t pios_uavo_settings_fs_id;
-uintptr_t pios_internal_adc_id;
+uintptr_t pios_internal_adc1_id;
+uintptr_t pios_internal_adc3_id;
 uintptr_t pios_com_openlog_logging_id;
 
 /**
@@ -285,10 +286,14 @@ void PIOS_Board_Init(void)
 #endif
 
 #if defined(PIOS_INCLUDE_ADC)
-	uintptr_t internal_adc_id;
-	if (PIOS_INTERNAL_ADC_Init(&internal_adc_id, &internal_adc_cfg) < 0)
+	uintptr_t internal_adc1_id;
+	if (PIOS_INTERNAL_ADC_Init(&internal_adc1_id, &internal_adc1_cfg) < 0)
 		PIOS_Assert(0);
-	PIOS_ADC_Init(&pios_internal_adc_id, &pios_internal_adc_driver, internal_adc_id);
+	PIOS_ADC_Init(&pios_internal_adc1_id, &pios_internal_adc_driver, internal_adc1_id);
+	uintptr_t internal_adc3_id;
+	if (PIOS_INTERNAL_ADC_Init(&internal_adc3_id, &internal_adc3_cfg) < 0)
+		PIOS_Assert(0);
+	PIOS_ADC_Init(&pios_internal_adc3_id, &pios_internal_adc_driver, internal_adc3_id);
 #endif /* PIOS_INCLUDE_ADC */
 	PIOS_WDG_Clear();
 	PIOS_DELAY_WaitmS(200);

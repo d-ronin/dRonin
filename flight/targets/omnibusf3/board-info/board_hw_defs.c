@@ -769,10 +769,10 @@ static const struct pios_ppm_cfg pios_ppm_cfg = {
 // ADC
 // ADC0 : PA0 ADC1_IN1  VBat
 // ADC1 : PA1 ADC1_IN2  Current
-// XXX TODO ADC2 : PB1 ADC3_IN1 RSSI
+// ADC2 : PB1 ADC3_IN1 RSSI
 //-------------------------
 
-static const struct pios_internal_adc_cfg internal_adc_cfg = {
+static const struct pios_internal_adc_cfg internal_adc1_cfg = {
 	.dma = {
 		.irq = {
 			.flags   = (DMA1_FLAG_TC1 | DMA1_FLAG_TE1 | DMA1_FLAG_HT1 | DMA1_FLAG_GL1),
@@ -801,6 +801,33 @@ static const struct pios_internal_adc_cfg internal_adc_cfg = {
 	.adc_dev_master = ADC1,
 };
 
+static const struct pios_internal_adc_cfg internal_adc3_cfg = {
+	.dma = {
+		.irq = {
+			.flags   = (DMA2_FLAG_TC5 | DMA2_FLAG_TE5 | DMA2_FLAG_HT5 | DMA2_FLAG_GL5),
+			.init    = {
+				.NVIC_IRQChannel                   = DMA2_Channel5_IRQn,
+				.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGH,
+				.NVIC_IRQChannelSubPriority        = 0,
+				.NVIC_IRQChannelCmd                = ENABLE,
+			},
+		},
+		.rx = {
+			.channel = DMA2_Channel5,
+			.init    = {
+				.DMA_Priority           = DMA_Priority_High,
+			},
+		}
+	},
+	.half_flag = DMA2_IT_HT5,
+	.full_flag = DMA2_IT_TC5,
+	.oversampling = 32,
+	.adc_pin_count = 1,
+	.adc_pins = {
+		{GPIOB, GPIO_Pin_1, ADC_Channel_1, true},  // Voltage
+	},
+	.adc_dev_master = ADC3,
+};
 
 #endif /* PIOS_INCLUDE_ADC */
 
