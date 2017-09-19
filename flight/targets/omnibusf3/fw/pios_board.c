@@ -290,10 +290,6 @@ void PIOS_Board_Init(void)
 	if (PIOS_INTERNAL_ADC_Init(&internal_adc1_id, &internal_adc1_cfg) < 0)
 		PIOS_Assert(0);
 	PIOS_ADC_Init(&pios_internal_adc1_id, &pios_internal_adc_driver, internal_adc1_id);
-	uintptr_t internal_adc3_id;
-	if (PIOS_INTERNAL_ADC_Init(&internal_adc3_id, &internal_adc3_cfg) < 0)
-		PIOS_Assert(0);
-	PIOS_ADC_Init(&pios_internal_adc3_id, &pios_internal_adc_driver, internal_adc3_id);
 #endif /* PIOS_INCLUDE_ADC */
 	PIOS_WDG_Clear();
 	PIOS_DELAY_WaitmS(200);
