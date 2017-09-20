@@ -92,7 +92,7 @@ bool OmnibusF3::queryCapabilities(BoardCapabilities capability)
 
 QPixmap OmnibusF3::getBoardPicture()
 {
-    return QIcon(":/dronin/images/omnibusf3.svg").pixmap(QSize(735, 718));
+    return QPixmap(":/dronin/images/omnibusf3nano.png");
 }
 
 //! Determine if this board supports configuring the receiver
