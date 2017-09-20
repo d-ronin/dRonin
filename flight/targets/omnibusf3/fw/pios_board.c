@@ -45,6 +45,7 @@
 #include "hwshared.h"
 #include "manualcontrolsettings.h"
 #include "modulesettings.h"
+#include <pios_max7456.h>
 
 #if defined(PIOS_INCLUDE_WS2811)
 #include "rgbledsettings.h"
@@ -61,6 +62,9 @@ uintptr_t pios_uavo_settings_fs_id;
 uintptr_t pios_internal_adc1_id;
 uintptr_t pios_internal_adc3_id;
 uintptr_t pios_com_openlog_logging_id;
+#ifdef PIOS_INCLUDE_MAX7456
+max7456_dev_t pios_max7456_id;
+#endif
 
 /**
  * PIOS_Board_Init()
@@ -349,6 +353,13 @@ void PIOS_Board_Init(void)
 
 	//I2C is slow, sensor init as well, reset watchdog to prevent reset here
 	PIOS_WDG_Clear();
+
+#ifdef PIOS_INCLUDE_MAX7456
+	if (!PIOS_MAX7456_init(&pios_max7456_id, pios_spi_gyro_id,
+				1)) {
+		// XXX do something?
+	}
+#endif
 
 #if defined(PIOS_INCLUDE_GPIO)
 	PIOS_GPIO_Init();

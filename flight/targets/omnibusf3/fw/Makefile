@@ -43,24 +43,25 @@ MODULES += FirmwareIAP
 MODULES += Telemetry
 
 OPTMODULES += GPS
-OPTMODULES += CameraStab
+#OPTMODULES += CameraStab
 OPTMODULES += Autotune
 OPTMODULES += TxPID
-OPTMODULES += AltitudeHold
-OPTMODULES += PathPlanner
-OPTMODULES += VtolPathFollower
-OPTMODULES += FixedWingPathFollower
-OPTMODULES += UAVOMavlinkBridge
+#OPTMODULES += AltitudeHold
+#OPTMODULES += PathPlanner
+#OPTMODULES += VtolPathFollower
+#OPTMODULES += FixedWingPathFollower
+#OPTMODULES += UAVOMavlinkBridge
 OPTMODULES += UAVOMSPBridge
-OPTMODULES += UAVOLighttelemetryBridge
+#OPTMODULES += UAVOLighttelemetryBridge
 OPTMODULES += Battery
 OPTMODULES += ComUsbBridge
-OPTMODULES += Airspeed
-OPTMODULES += UAVOHoTTBridge
+#OPTMODULES += Airspeed
+#OPTMODULES += UAVOHoTTBridge
 OPTMODULES += UAVOFrSKYSensorHubBridge
 OPTMODULES += UAVOFrSKYSPortBridge
 OPTMODULES += Logging
 OPTMODULES += UAVOCrossfireTelemetry
+OPTMODULES += CharacterOSD
 
 # Paths
 OPUAVOBJINC = $(OPUAVOBJ)/inc
@@ -146,6 +147,7 @@ SRC += pios_wdg.c
 SRC += pios_reset.c
 SRC += pios_annunc.c
 SRC += pios_crossfire.c
+SRC += pios_max7456.c
 
 # List C++ source files here.
 # use file-extension .cpp for C++-files (not .C)
@@ -305,7 +307,7 @@ LIBS += $(FLIGHTLIBFILE)
 LDFLAGS = -nostartfiles -Wl,-Map=$(OUTDIR)/$(TARGET).map,--cref,--gc-sections
 LDFLAGS += $(patsubst %,-L%,$(EXTRA_LIBDIRS))
 LDFLAGS += $(patsubst %,-l%,$(EXTRA_LIBS))
-LDFLAGS += -lc -lgcc -lm
+LDFLAGS += -lc_nano -lgcc -lm
 LDFLAGS += -Wl,--warn-common
 LDFLAGS += -Wl,--fatal-warnings
 

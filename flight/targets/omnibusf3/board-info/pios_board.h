@@ -223,6 +223,12 @@ extern uintptr_t pios_internal_adc_id;
 
 #define VREF_PLUS				3.3
 
+#ifdef PIOS_INCLUDE_MAX7456
+#include <pios_max7456.h>
+
+extern max7456_dev_t pios_max7456_id;
+#endif
+
 //-------------------------
 // DMA
 //-------------------------
