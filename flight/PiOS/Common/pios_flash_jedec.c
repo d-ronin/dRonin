@@ -274,7 +274,6 @@ static int32_t PIOS_Flash_Jedec_ReadID(struct jedec_flash_dev *flash_dev)
 	flash_dev->manufacturer = in[1];
 	flash_dev->memorytype   = in[2];
 	flash_dev->capacity     = in[3];
-
 	flash_dev->capacity_bytes = 1 << flash_dev->capacity;
 
 	return flash_dev->manufacturer;

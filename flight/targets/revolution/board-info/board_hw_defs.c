@@ -475,6 +475,46 @@ static const struct pios_flash_chip pios_flash_chip_external = {
 };
 #endif /* PIOS_INCLUDE_FLASH_JEDEC */
 
+static const struct pios_flash_partition pios_flash_partition_table_nojedec[] = {
+#if defined(PIOS_INCLUDE_FLASH_INTERNAL)
+	{
+		.label        = FLASH_PARTITION_LABEL_BL,
+		.chip_desc    = &pios_flash_chip_internal,
+		.first_sector = 0,
+		.last_sector  = 1,
+		.chip_offset  = 0,
+		.size         = (1 - 0 + 1) * FLASH_SECTOR_16KB,
+	},
+	{
+		.label        = FLASH_PARTITION_LABEL_AUTOTUNE,
+		.chip_desc    = &pios_flash_chip_internal,
+		.first_sector = 2,
+		.last_sector  = 3,
+		.chip_offset  = (2 * FLASH_SECTOR_16KB),
+		.size         = (3 - 2 + 1) * FLASH_SECTOR_16KB,
+	},
+	/* NOTE: sectors 4 of the internal flash is unallocated */
+	{
+		.label        = FLASH_PARTITION_LABEL_FW,
+		.chip_desc    = &pios_flash_chip_internal,
+		.first_sector = 5,
+		.last_sector  = 7,
+		.chip_offset  = (4 * FLASH_SECTOR_16KB) + (1 * FLASH_SECTOR_64KB),
+		.size         = (7 - 5 + 1) * FLASH_SECTOR_128KB,
+	},
+	{
+		.label        = FLASH_PARTITION_LABEL_SETTINGS,
+		.chip_desc    = &pios_flash_chip_internal,
+		.first_sector = 8,
+		.last_sector  = 9,
+		.chip_offset  = (4 * FLASH_SECTOR_16KB) + (1 * FLASH_SECTOR_64KB) + (3 * FLASH_SECTOR_128KB),
+		.size         = (9 - 8  + 1) * FLASH_SECTOR_128KB,
+	}
+	/* NOTE: sectors 10-11 of the internal flash are currently unallocated */
+#endif /* PIOS_INCLUDE_FLASH_INTERNAL */
+};
+
+#if defined(PIOS_INCLUDE_FLASH_JEDEC)
 static struct pios_flash_partition pios_flash_partition_table[] = {
 #if defined(PIOS_INCLUDE_FLASH_INTERNAL)
 	{
@@ -501,7 +541,6 @@ static struct pios_flash_partition pios_flash_partition_table[] = {
 
 #endif /* PIOS_INCLUDE_FLASH_INTERNAL */
 
-#if defined(PIOS_INCLUDE_FLASH_JEDEC)
 	{
 		.label        = FLASH_PARTITION_LABEL_SETTINGS,
 		.chip_desc    = &pios_flash_chip_external,
@@ -528,31 +567,34 @@ static struct pios_flash_partition pios_flash_partition_table[] = {
 		.chip_offset  = (16 * FLASH_SECTOR_64KB),
 		.size         = (31 - 16 + 1) * FLASH_SECTOR_64KB,
 	},
-#endif	/* PIOS_INCLUDE_FLASH_JEDEC */
 };
+#endif	/* PIOS_INCLUDE_FLASH_JEDEC */
 
 const struct pios_flash_partition * PIOS_BOARD_HW_DEFS_GetPartitionTable (uint32_t board_revision, uint32_t * num_partitions)
 {
 	PIOS_Assert(num_partitions);
 
-	*num_partitions = NELEMENTS(pios_flash_partition_table);
-
 #ifdef PIOS_INCLUDE_FLASH_JEDEC
-	uint32_t capacity = PIOS_Flash_Jedec_GetCapacity(pios_external_flash_id);
+	if (pios_external_flash_id) {
+		*num_partitions = NELEMENTS(pios_flash_partition_table);
 
-	PIOS_FLASH_fixup_partitions_for_capacity(pios_flash_partition_table,
-			NELEMENTS(pios_flash_partition_table),
-			&pios_flash_chip_external,
-			m25p16_sectors,
-			capacity);
+		uint32_t capacity = PIOS_Flash_Jedec_GetCapacity(pios_external_flash_id);
+
+		PIOS_FLASH_fixup_partitions_for_capacity(pios_flash_partition_table,
+				NELEMENTS(pios_flash_partition_table),
+				&pios_flash_chip_external,
+				m25p16_sectors,
+				capacity);
+
+		return pios_flash_partition_table;
+	}
 #endif
 
-	return pios_flash_partition_table;
+	*num_partitions = NELEMENTS(pios_flash_partition_table_nojedec);
+	/* Fall back to the no-SPI-FLASH partition table */
+	return pios_flash_partition_table_nojedec;
 }
-
 #endif	/* PIOS_INCLUDE_FLASH */
-
-
 
 #ifdef PIOS_INCLUDE_USART
 
