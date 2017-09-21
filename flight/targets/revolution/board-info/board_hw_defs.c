@@ -382,7 +382,12 @@ const struct pios_openlrs_cfg * PIOS_BOARD_HW_DEFS_GetOpenLRSCfg (uint32_t board
 
 static const struct flashfs_logfs_cfg flashfs_settings_cfg = {
 	.fs_magic      = 0x99abcedf,
-	.arena_size    = 0x00010000, /* 256 * slot size */
+	/* This was increased from 0x10000 in order to accomodate the
+	 * 0x20000 settings sector size on F4 internal flash.  It's a win
+	 * for external flash, though, as it allows more settings to be
+	 * stored.  The upgrader will fix this automatically.
+	 */
+	.arena_size    = 0x00020000, /* 256 * slot size */
 	.slot_size     = 0x00000100, /* 256 bytes */
 };
 
