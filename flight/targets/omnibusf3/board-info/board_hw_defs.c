@@ -784,7 +784,7 @@ static const struct pios_internal_adc_cfg internal_adc1_cfg = {
 			},
 		},
 		.rx = {
-			.channel = DMA2_Channel1,
+			.channel = DMA1_Channel1,
 			.init    = {
 				.DMA_Priority           = DMA_Priority_High,
 			},
@@ -800,7 +800,6 @@ static const struct pios_internal_adc_cfg internal_adc1_cfg = {
 	},
 	.adc_dev_master = ADC1,
 };
-
 #endif /* PIOS_INCLUDE_ADC */
 
 

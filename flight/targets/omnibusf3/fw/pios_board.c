@@ -295,6 +295,7 @@ void PIOS_Board_Init(void)
 		PIOS_Assert(0);
 	PIOS_ADC_Init(&pios_internal_adc1_id, &pios_internal_adc_driver, internal_adc1_id);
 #endif /* PIOS_INCLUDE_ADC */
+
 	PIOS_WDG_Clear();
 	PIOS_DELAY_WaitmS(200);
 	PIOS_WDG_Clear();
