@@ -1721,8 +1721,26 @@ static const struct pios_usb_cfg pios_usb_main_rm2_cfg = {
 	}
 };
 
+static const struct pios_usb_cfg pios_usb_main_novsense_cfg = {
+	.irq = {
+		.init    = {
+			.NVIC_IRQChannel                   = OTG_FS_IRQn,
+			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGHEST,
+			.NVIC_IRQChannelSubPriority        = 3,
+			.NVIC_IRQChannelCmd                = ENABLE,
+		},
+	},
+};
+
 const struct pios_usb_cfg * PIOS_BOARD_HW_DEFS_GetUsbCfg (uint32_t board_revision)
 {
+	/* Crummy revolution -- omnibus variants -- with no flash often have no
+	 * vsense line connected.
+	 */
+	if (!pios_external_flash_id) {
+		return &pios_usb_main_novsense_cfg;
+	}
+
 	switch(board_revision) {
 		case 2:
 			return &pios_usb_main_rm1_cfg;
