@@ -47,8 +47,6 @@
 
 #define PIOS_INCLUDE_WS2811
 
-#define BOOTLOADER_PAUSE_DELAY 2
-
 #endif /* PIOS_CONFIG_H */
 
 /**
