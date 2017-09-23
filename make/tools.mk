@@ -152,7 +152,7 @@ endif
 	$(V1) echo "*** NOTE NOTE NOTE ***"
 
 ifneq (,$(filter $(UNAME), Darwin))
-	$(V1) hdiutil attach -quiet -private -mountpoint /tmp/qt-installer "$(DL_DIR)/$(QT_SDK_FILE)" 
+	$(V1) hdiutil attach -quiet -private -mountpoint /tmp/qt-installer "$(DL_DIR)/$(QT_SDK_FILE)"
 	$(V1) dronin_qt_path="$(QT_SDK_DIR)" \
 		/tmp/qt-installer/qt-opensource-mac-x64-clang-$(QT_VERSION_LONG).app/Contents/MacOS/qt-opensource-mac-x64-clang-$(QT_VERSION_LONG) \
 		--script $(ROOT_DIR)/make/scripts/qt-install.qs
@@ -262,7 +262,7 @@ libusb_win_clean:
 openocd_win_install: | $(DL_DIR) $(TOOLS_DIR)
 openocd_win_install: OPENOCD_URL  := git://git.code.sf.net/p/openocd/code
 openocd_win_install: OPENOCD_REV  := cf1418e9a85013bbf8dbcc2d2e9985695993d9f4
-openocd_win_install: OPENOCD_OPTIONS := 
+openocd_win_install: OPENOCD_OPTIONS :=
 
 ifeq ($(OPENOCD_FTDI), yes)
 openocd_win_install: OPENOCD_OPTIONS := $(OPENOCD_OPTIONS) --enable-ft2232_ftd2xx --with-ftd2xx-win32-zipdir=$(FTD2XX_DIR)
@@ -564,7 +564,7 @@ zip_clean:
 
 # Google breakpad
 # Must match ground/tools.pri
-BREAKPAD_REV := 20170224
+BREAKPAD_REV := 20170922
 BREAKPAD_REPO := https://github.com/d-ronin/breakpad.git
 BREAKPAD_DIR := $(TOOLS_DIR)/breakpad/$(BREAKPAD_REV)
 BREAKPAD_BUILD_DIR := $(DL_DIR)/breakpad
