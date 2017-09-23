@@ -569,6 +569,28 @@ static void PIOS_HAL_ConfigureTbsCrossfire(const struct pios_usart_cfg *usart_cr
 }
 #endif // PIOS_INCLUDE_CROSSFIRE
 
+#ifdef PIOS_INCLUDE_ESCTELEMETRY
+/**
+ * @brief Configures a TBS Crossfire receiver
+ *
+ * @param[in] usart_crsf_cfg Configuration for the USART for the TBS Crossfire
+ * @param[in] usart_port_params USART port parameters
+ * @param[in] usart_com_driver The COM driver for this USART
+ */
+static void PIOS_HAL_ConfigureESCTelemetry(const struct pios_usart_cfg *usart_crsf_cfg,
+		struct pios_usart_params *usart_port_params,
+		const struct pios_com_driver *usart_com_driver)
+{
+	uintptr_t usart_telem_id;
+	if (PIOS_USART_Init(&usart_telem_id, usart_crsf_cfg, usart_port_params))
+		PIOS_Assert(0);
+
+	uintptr_t telem_id;
+	if (PIOS_ESCTelemetry_Init(&telem_id, usart_com_driver, usart_telem_id))
+		PIOS_Assert(0);
+}
+#endif // PIOS_INCLUDE_ESCTELEMETRY
+
 /** @brief Configure a [flexi/main/rcvr/etc] port.
  *
  * Not all of these parameters will be defined for each port.  Caller may pass
@@ -954,6 +976,21 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 			PIOS_Modules_Enable(PIOS_MODULE_UAVOCROSSFIRETELEMETRY);
 		}
 #endif  /* PIOS_INCLUDE_CROSSFIRE */
+		break;
+
+	case HWSHARED_PORTTYPES_DSHOTESCTELEMETRY:
+#if defined(PIOS_INCLUDE_ESCTELEMETRY)
+		if (usart_port_cfg) {
+			usart_port_params.init.USART_BaudRate            = 115200;
+			usart_port_params.init.USART_WordLength          = USART_WordLength_8b;
+			usart_port_params.init.USART_Parity              = USART_Parity_No;
+			usart_port_params.init.USART_StopBits            = USART_StopBits_1;
+			usart_port_params.init.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+			usart_port_params.init.USART_Mode                = USART_Mode_Rx;
+
+			PIOS_HAL_ConfigureESCTelemetry(usart_port_cfg, &usart_port_params, com_driver);
+		}
+#endif
 		break;
 	} /* port_type */
 

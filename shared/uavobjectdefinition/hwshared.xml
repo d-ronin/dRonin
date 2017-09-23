@@ -32,6 +32,7 @@
         <option>Storm32Bgc</option>
         <option>VTX Config TBS SmartAudio</option>
         <option>TBS Crossfire</option>
+        <option>DShot ESC Telemetry</option>
         <!-- Beyond here are the non-serial, special cases -->
         <option>I2C</option>
         <option>PPM</option>
