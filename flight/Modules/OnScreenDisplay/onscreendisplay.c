@@ -1380,11 +1380,11 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 				sprintf(tmp_str, "%s", "GND");
 				break;
 			case ONSCREENDISPLAYPAGESETTINGS_SPEEDSCALESOURCE_GPS:
-				if (GPSVelocityHandle()) {
-					GPSVelocityNorthGet(&tmp);
-					GPSVelocityEastGet(&tmp1);
-					tmp = sqrt(tmp * tmp + tmp1 * tmp1);
-					speed_valid = has_gps;
+				if (has_gps && GPSPositionHandle()) {
+					GPSPositionGroundspeedGet(&tmp);
+					uint8_t fix;
+					GPSPositionStatusGet(&fix);
+					speed_valid = fix != GPSPOSITION_STATUS_NOFIX;
 				}
 				sprintf(tmp_str, "%s", "GND");
 				break;
