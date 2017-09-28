@@ -150,7 +150,6 @@ static void stabilizationTask(void* parameters);
 static void zero_pids(void);
 static void calculate_pids(float dT);
 static void update_settings(float dT);
-static float get_throttle(StabilizationDesiredData *stabilization_desired, SystemSettingsAirframeTypeOptions *airframe_type);
 
 #ifndef NO_CONTROL_DEADBANDS
 #define get_deadband(axis) (deadbands ? (deadbands + axis) : NULL)
@@ -158,14 +157,18 @@ static float get_throttle(StabilizationDesiredData *stabilization_desired, Syste
 #define get_deadband(axis) NULL
 #endif
 
-static float get_throttle(StabilizationDesiredData *stabilization_desired, SystemSettingsAirframeTypeOptions *airframe_type)
+static float get_throttle(ActuatorDesiredData *actuator_desired, SystemSettingsAirframeTypeOptions *airframe_type)
 {
 	if (*airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) {
 		float heli_throttle;
 		ManualControlCommandThrottleGet( &heli_throttle );
 		return heli_throttle;
 	}
-	return stabilization_desired->Thrust;
+	
+	/* Look at actuator_desired so that it respects the value from
+	 * low power stabilization (comes from StabilizationDesired)
+	 */
+	return actuator_desired->Thrust;
 }
 
 /**
@@ -351,6 +354,8 @@ static void stabilizationTask(void* parameters)
 	while(1) {
 		iteration++;
 
+		uint32_t this_systime = PIOS_Thread_Systime();
+
 		PIOS_WDG_UpdateFlag(PIOS_WDG_STABILIZATION);
 
 		if (settings_flag) {
@@ -421,6 +426,30 @@ static void stabilizationTask(void* parameters)
 		GyrosGet(&gyrosData);
 
 		actuatorDesired.Thrust = stabDesired.Thrust;
+
+		static uint32_t last_pos_thrust_time = 0;
+
+		if (stabDesired.Thrust > 0.0f) {
+			if (settings.LowPowerStabilizationMaxTime) {
+				last_pos_thrust_time = this_systime;
+			}
+		} else if (last_pos_thrust_time) {
+			if ((this_systime - last_pos_thrust_time) <
+					1000.0f * settings.LowPowerStabilizationMaxTime) {
+				/* Choose a barely-positive value to trigger
+				 * low-power stabilization in actuator.
+				 */
+				actuatorDesired.Thrust = 0.000001f;
+			} else {
+				last_pos_thrust_time = 0;
+
+				/* XXX Problematic for 3D */
+				actuatorDesired.Thrust = 0.0f;
+			}
+		} else {
+			/* XXX Problematic for 3D */
+			actuatorDesired.Thrust = 0.0f;
+		}
 
 		// Re-project axes if necessary prior to running stabilization algorithms.
 		uint8_t reprojection = stabDesired.ReprojectionMode;
@@ -1011,7 +1040,7 @@ static void stabilizationTask(void* parameters)
 		ActuatorDesiredSet(&actuatorDesired);
 
 		if(flightStatus.Armed != FLIGHTSTATUS_ARMED_ARMED ||
-		   (lowThrottleZeroIntegral && get_throttle(&stabDesired, &airframe_type) < 0))
+		   (lowThrottleZeroIntegral && get_throttle(&actuatorDesired, &airframe_type) < 0))
 		{
 			// Force all axes to reinitialize when engaged
 			for(uint8_t i=0; i< MAX_AXES; i++)

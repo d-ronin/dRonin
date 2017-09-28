@@ -50,6 +50,7 @@
 
 #include "actuatorcommand.h"
 #include "actuatorsettings.h"
+#include "stabilizationsettings.h"
 #include "systemsettings.h"
 
 // The fraction of range to place the neutral position in
@@ -1934,11 +1935,11 @@ void ConfigInputWidget::checkArmingConfig()
 
     // check hangtime, recommend switch arming if enabled
     bool hangtime = false;
-    ActuatorSettings *actuatorSettings =
-        qobject_cast<ActuatorSettings *>(getObjectManager()->getObject(ActuatorSettings::NAME));
-    Q_ASSERT(actuatorSettings);
-    if (actuatorSettings)
-        hangtime = actuatorSettings->getLowPowerStabilizationMaxTime() > 0;
+    StabilizationSettings *stabilizationSettings =
+        qobject_cast<StabilizationSettings *>(getObjectManager()->getObject(StabilizationSettings::NAME));
+    Q_ASSERT(stabilizationSettings);
+    if (stabilizationSettings)
+        hangtime = stabilizationSettings->getLowPowerStabilizationMaxTime() > 0;
 
     if (hangtime) {
         m_config->lblRecommendedArm->setText(tr("Switch"));

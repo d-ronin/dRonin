@@ -560,26 +560,7 @@ static void normalize_input_data(uint32_t this_systime,
 		throttle_val = -1;
 	}
 
-	static uint32_t last_pos_throttle_time = 0;
-
-	*stabilize_now = *armed && (throttle_val > 0.0f);
-
-	if (*stabilize_now) {
-		if (actuatorSettings.LowPowerStabilizationMaxTime) {
-			last_pos_throttle_time = this_systime;
-		}
-
-		// Could consider stabilizing on a positive arming edge,
-		// but this seems problematic.
-	} else if (last_pos_throttle_time) {
-		if ((this_systime - last_pos_throttle_time) <
-				1000.0f * actuatorSettings.LowPowerStabilizationMaxTime) {
-			*stabilize_now = true;
-			throttle_val = 0.0f;
-		} else {
-			last_pos_throttle_time = 0;
-		}
-	}
+	*stabilize_now = throttle_val > 0.0f;
 
 	float val1 = throt_curve(throttle_val, curve1,
 			MIXERSETTINGS_THROTTLECURVE1_NUMELEM);
