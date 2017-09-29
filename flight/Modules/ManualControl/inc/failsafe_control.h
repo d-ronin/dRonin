@@ -39,9 +39,6 @@ int32_t failsafe_control_update();
 //! Use failsafe mode
 int32_t failsafe_control_select(bool reset_controller);
 
-//! Get any control events
-enum control_events failsafe_control_get_events();
-
  #endif /* FAILSAFE_CONTROL_H */
 
 /**

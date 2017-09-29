@@ -61,7 +61,6 @@ static pios_fileout_dev * find_file_dev_by_id(uintptr_t tcp)
 /**
  * Open file for writing
  */
-struct pios_thread *tcpRxTaskHandle;
 int32_t PIOS_FILEOUT_Init(uintptr_t *file_id, const char *filename,
 		const char *mode)
 {

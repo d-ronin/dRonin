@@ -180,20 +180,13 @@ int32_t tablet_control_select(bool reset_controller)
 
 	// Update mode if changed
 	if (mode != flightStatus.FlightMode) {
+		/* TODO: unsafe! */
 		flightStatus.FlightMode = mode;
 		FlightStatusSet(&flightStatus);
 	}		
 
 	return 0;
 }
-
-//! Get any control events
-enum control_events tablet_control_get_events()
-{
-	// For now ARM / DISARM events still come from the transmitter
-	return transmitter_control_get_events();
-}
-
 
 /**
  * Convert the tablet information (in LLA * 10e6) to NED reference frame

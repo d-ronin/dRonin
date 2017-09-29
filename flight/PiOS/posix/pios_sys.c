@@ -62,6 +62,9 @@
 #include "pios_hal.h"
 #include "pios_adc_priv.h"
 #include "pios_rcvr_priv.h"
+#ifdef PIOS_INCLUDE_RTC
+#include "pios_rtc_priv.h"
+#endif
 
 #include "manualcontrolsettings.h"
 
@@ -643,6 +646,11 @@ void PIOS_SYS_Init(void)
 	if (ret == 0) {
 		printf("HW serial number-- hex: %s\n", ser_text);
 	}
+
+#ifdef PIOS_INCLUDE_RTC
+	PIOS_RTC_Init();
+	printf("Pseudo-RTC started\n");
+#endif
 
 #if !(defined(_WIN32) || defined(WIN32) || defined(__MINGW32__))
 	struct sigaction sa_int = {

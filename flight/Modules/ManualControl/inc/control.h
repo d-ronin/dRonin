@@ -6,6 +6,7 @@
  * @{
  *
  * @file       manualcontrol.h
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2017
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
  * @brief      Control module. Handles safety R/C link and flight mode.
  *
@@ -29,14 +30,22 @@
 #ifndef CONTROL_H
 #define CONTROL_H
 
-// The enum from here is used to determine the flight mode
-#include "flightstatus.h"
-
-enum control_events {
-	CONTROL_EVENTS_NONE,
-	CONTROL_EVENTS_ARM,
-	CONTROL_EVENTS_ARMING,
-	CONTROL_EVENTS_DISARM
+enum control_status {
+	STATUS_DISCONNECTED,	///< RX is disconnected
+	STATUS_ERROR,           ///< Something is fundamentally wrong
+	STATUS_SAFETYTIMEOUT,	///< Disconnected timeout has occurred
+		// Lower layer (transmitter control) responsible for timer.
+	STATUS_DISARM,		///< User requested disarm, or low throt timeout
+		// Lower layer (transmitter control) responsible for timers.
+	STATUS_NORMAL,		///< Things are "normal"
+	STATUS_ARM_INVALID,	///< User requested arm, controls in invalid pos
+	STATUS_ARM_VALID,	///< User requested arm, controls in valid pos
+		// For both of these, upper layer (manual control) responsible
+		// for timer.  (So that manual control can manage "ARMING" state)
+	STATUS_INVALID_FOR_DISARMED,
+				///< Arming switch is in a state that doesn't
+		// make sense for initial arming.. i.e. high throttle.  Go to
+		// safety state
 };
 
 #endif /* CONTROL_H */

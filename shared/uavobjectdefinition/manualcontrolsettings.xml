@@ -127,7 +127,6 @@
 			<description>Combination to arm</description>
 			<options>
 				<option>Always Disarmed</option>
-				<option>Always Armed</option>
 				<option>Roll Left+Throttle</option>
 				<option>Roll Right+Throttle</option>
 				<option>Yaw Left+Throttle</option>
@@ -135,15 +134,13 @@
 				<option>Corners+Throttle</option>
 				<!-- All switch options must occur at the end and below "switch" because of transmitterControl.c#L310 -->
 				<option>Switch</option>
-				<option>Switch+Delay</option>
 				<option>Switch+Throttle</option>
-				<option>Switch+Throttle+Delay</option>
 			</options>
 		</field>
 		<field name="ArmTime" units="ms" type="enum" elements="1" options="250,500,1000,2000" defaultvalue="1000">
 			<description>Arm time</description>
 		</field>
-		<field name="DisarmTime" units="ms" type="enum" elements="1" options="250,500,1000,2000" defaultvalue="1000">
+		<field name="DisarmTime" units="ms" type="enum" elements="1" options="100,250,500,1000,2000" defaultvalue="500">
 			<description>Disarm time</description>
 		</field>
 		<!-- Note these options should be identical to those in StabilizationDesired.StabilizationMode -->
@@ -165,17 +162,11 @@
 		<field name="Stabilization3Reprojection" parent="SharedDefs.ReprojectionMode" type="enum" elements="1" defaultvalue="None">
 			<description>Stabilization 3 reprojection</description>
 		</field>
-		<!-- Note these options values should be identical to those defined in FlightMode -->
 		<field name="FlightModeNumber" units="" type="uint8" elements="1" defaultvalue="3">
 			<description>Number of flight modes</description>
 		</field>
 		<field name="FlightModePosition" units="" type="enum" elements="6" parent="SharedDefs.FlightMode" defaultvalue="Leveling,Leveling,Leveling,Horizon,ReturnToHome,PositionHold">
 			<description>Flight mode per position</description>
-		</field>
-		<!-- This option prevents timing out arming when disabled and in autonomous modes.
-					 It is enabled by default for additional safety to prevent flyaways -->
-		<field name="ArmTimeoutAutonomous" units="" type="enum" elements="1" options="DISABLED,ENABLED" defaultvalue="ENABLED">
-			<description>Arm timeout in autonomous modes</description>
 		</field>
 		<field name="ArmedTimeout" units="ms" type="uint16" elements="1" defaultvalue="30000">
 			<description>Time in armed + idle throttle before disarm</description>

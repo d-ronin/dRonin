@@ -29,7 +29,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="RCInput">
       <attribute name="title">
@@ -1521,12 +1521,9 @@ margin:1px;</string>
                     </spacer>
                    </item>
                    <item>
-                    <widget class="QCheckBox" name="cbCalibrateGyros">
+                    <widget class="QLabel" name="label_3">
                      <property name="text">
-                      <string>Calibrate gyros for: </string>
-                     </property>
-                     <property name="checked">
-                      <bool>true</bool>
+                      <string>Calibrate gyros for:</string>
                      </property>
                     </widget>
                    </item>

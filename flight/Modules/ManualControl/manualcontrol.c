@@ -68,11 +68,6 @@ static struct pios_thread *taskHandle;
 static void manualControlTask(void *parameters);
 static FlightStatusControlSourceOptions control_source_select();
 
-// Private functions for control events
-static int32_t control_event_arm();
-static int32_t control_event_arming();
-static int32_t control_event_disarm();
-
 bool vehicle_is_armed = false;
 
 // This is exposed to transmitter_control
@@ -125,6 +120,18 @@ static void manualControlTask(void *parameters)
 	// Select failsafe before run
 	failsafe_control_select(true);
 
+	uint32_t arm_time = 1000;
+
+	enum arm_state {
+		ARM_STATE_SAFETY,
+		ARM_STATE_DISARMED,
+		ARM_STATE_ARMING,
+		ARM_STATE_HOLDING,
+		ARM_STATE_ARMED,
+	} arm_state = ARM_STATE_SAFETY;
+
+	uint32_t arm_state_time = 0;
+
 	while (1) {
 
 		// Process periodic data for each of the controllers, including reading
@@ -136,63 +143,189 @@ static void manualControlTask(void *parameters)
 
 		// Initialize to invalid value to ensure first update sets FlightStatus
 		static FlightStatusControlSourceOptions last_control_selection = -1;
-		enum control_events control_events = CONTROL_EVENTS_NONE;
 
 		// Control logic to select the valid controller
-		FlightStatusControlSourceOptions control_selection = control_source_select();
+		FlightStatusControlSourceOptions control_selection =
+			control_source_select();
 		bool reset_controller = control_selection != last_control_selection;
+
+		int ret = -1;
+
+		enum control_status status = transmitter_control_get_status();
 
 		// This logic would be better collapsed into control_source_select but
 		// in the case of the tablet we need to be able to abort and fall back
 		// to failsafe for now
 		switch(control_selection) {
 		case FLIGHTSTATUS_CONTROLSOURCE_TRANSMITTER:
-			transmitter_control_select(reset_controller);
-			control_events = transmitter_control_get_events();
+			ret = transmitter_control_select(reset_controller);
 			break;
 		case FLIGHTSTATUS_CONTROLSOURCE_TABLET:
-		{
-			static bool tablet_previously_succeeded = false;
-			if (tablet_control_select(reset_controller) == 0) {
-				control_events = tablet_control_get_events();
-				tablet_previously_succeeded = true;
-			} else {
-				// Failure in tablet control.  This would be better if done
-				// at the selection stage before the tablet is even used.
-				failsafe_control_select(reset_controller || tablet_previously_succeeded);
-				control_events = failsafe_control_get_events();
-				tablet_previously_succeeded = false;
-			}
+			ret = tablet_control_select(reset_controller);
 			break;
-		}
 		case FLIGHTSTATUS_CONTROLSOURCE_GEOFENCE:
-			geofence_control_select(reset_controller);
-			control_events = geofence_control_get_events();
+			ret = geofence_control_select(reset_controller);
 			break;
-		case FLIGHTSTATUS_CONTROLSOURCE_FAILSAFE:
 		default:
-			failsafe_control_select(reset_controller);
-			control_events = failsafe_control_get_events();
+			/* Fall through into failsafe */
 			break;
 		}
+
+		if (ret) {
+			failsafe_control_select(last_control_selection !=
+					FLIGHTSTATUS_CONTROLSOURCE_FAILSAFE);
+			control_selection = FLIGHTSTATUS_CONTROLSOURCE_FAILSAFE;
+		}
+
 		if (control_selection != last_control_selection) {
 			FlightStatusControlSourceSet(&control_selection);
 			last_control_selection = control_selection;
 		}
 
-		// TODO: This can evolve into a full FSM like I2C possibly
-		switch(control_events) {
-		case CONTROL_EVENTS_NONE:
-			break;
-		case CONTROL_EVENTS_ARM:
-			control_event_arm();
-			break;
-		case CONTROL_EVENTS_ARMING:
-			control_event_arming();
-			break;
-		case CONTROL_EVENTS_DISARM:
-			control_event_disarm();
-			break;
+		uint32_t now = PIOS_Thread_Systime();
+
+#define GO_STATE(x) \
+				do { \
+					arm_state = (x); \
+					arm_state_time = (now); \
+				} while (0)
+
+		/* Global state transitions: weird stuff means disarmed +
+		 * safety hold-down.
+		 */
+		if ((status == STATUS_ERROR) ||
+				(status == STATUS_SAFETYTIMEOUT)) {
+			GO_STATE(ARM_STATE_SAFETY);
+		}
+
+		/* If there's an alarm that prevents arming, enter a 0.2s
+		 * no-arming-holddown.  This also stretches transient alarms
+		 * and makes them more visible.
+		 */
+		if (!ok_to_arm() && (arm_state != ARM_STATE_ARMED)) {
+			GO_STATE(ARM_STATE_SAFETY);
+		}
+
+		switch (arm_state) {
+			case ARM_STATE_SAFETY:
+				/* state_time > 0.2s + "NONE" or "DISARM" -> DISARMED
+				 *
+				 * !"NONE" and !"DISARM" -> SAFETY, reset state_time
+				 */
+				if ((status == STATUS_NORMAL) ||
+						(status == STATUS_DISARM)) {
+					if (PIOS_Thread_Period_Elapsed(arm_state_time, 200)) {
+						GO_STATE(ARM_STATE_DISARMED);
+					}
+				} else {
+					GO_STATE(ARM_STATE_SAFETY);
+				}
+
+				break;
+			case ARM_STATE_DISARMED:
+				/* "ARM_*" -> ARMING
+				 * "DISCONNECTED" -> SAFETY
+				 * "INVALID_FOR_DISARMED" -> SAFETY
+				 */
+
+				if ((status == STATUS_ARM_INVALID) ||
+						(status == STATUS_ARM_VALID)) {
+					GO_STATE(ARM_STATE_ARMING);
+				} else if ((status == STATUS_DISCONNECTED) ||
+						(status == STATUS_INVALID_FOR_DISARMED)) {
+					GO_STATE(ARM_STATE_SAFETY);
+				}
+
+				ManualControlSettingsArmTimeOptions arm_enum;
+				ManualControlSettingsArmTimeGet(&arm_enum);
+
+				arm_time = (arm_enum == MANUALCONTROLSETTINGS_ARMTIME_250) ? 250 :
+					(arm_enum == MANUALCONTROLSETTINGS_ARMTIME_500) ? 500 :
+					(arm_enum == MANUALCONTROLSETTINGS_ARMTIME_1000) ? 1000 :
+					(arm_enum == MANUALCONTROLSETTINGS_ARMTIME_2000) ? 2000 : 1000;
+
+				break;
+			case ARM_STATE_ARMING:
+				/* Anything !"ARM_*" -> SAFETY
+				 *
+				 * state_time > ArmTime + ARM_INVALID -> HOLDING
+				 * state_time > ArmTime + ARM_VALID -> ARMED
+				 */
+
+				if ((status != STATUS_ARM_INVALID) &&
+						(status != STATUS_ARM_VALID)) {
+					GO_STATE(ARM_STATE_SAFETY);
+				} else if (PIOS_Thread_Period_Elapsed(arm_state_time, arm_time)) {
+					if (status == STATUS_ARM_VALID) {
+						GO_STATE(ARM_STATE_ARMED);
+					} else {
+						/* Must be STATUS_ARM_INVALID */
+						GO_STATE(ARM_STATE_HOLDING);
+					}
+				}
+
+				break;
+			case ARM_STATE_HOLDING:
+				/* ARM_VALID -> ARMED
+				 * NONE -> ARMED
+				 *
+				 * ARM_INVALID -> Stay here
+				 *
+				 * Anything else -> SAFETY
+				 */
+				if ((status == STATUS_ARM_VALID) ||
+						(status == STATUS_NORMAL)) {
+					GO_STATE(ARM_STATE_ARMED);
+				} else if (status == STATUS_ARM_INVALID) {
+					/* TODO: could consider having a maximum
+					 * time before we go to safety */
+				} else {
+					GO_STATE(ARM_STATE_SAFETY);
+				}
+
+				break;
+			case ARM_STATE_ARMED:
+				/* "DISARM" -> SAFETY (lower layer's job to check
+				 * 	DisarmTime)
+				 */
+				if (status == STATUS_DISARM) {
+					GO_STATE(ARM_STATE_SAFETY);
+				}
+
+				break;
+		}
+
+		FlightStatusArmedOptions armed, prev_armed;
+
+		FlightStatusArmedGet(&prev_armed);
+
+		switch (arm_state) {
+			default:
+			case ARM_STATE_SAFETY:
+			case ARM_STATE_DISARMED:
+				armed = FLIGHTSTATUS_ARMED_DISARMED;
+				vehicle_is_armed = false;
+				break;
+			case ARM_STATE_ARMING:
+				armed = FLIGHTSTATUS_ARMED_ARMING;
+				break;
+			case ARM_STATE_HOLDING:
+				/* For now consider "HOLDING" an armed state,
+				 * like old code does.  (Necessary to get the
+				 * "initial spin while armed" that causes user
+				 * to release arming position).
+				 *
+				 * TODO: do something different because
+				 * control position invalid.
+				 */
+			case ARM_STATE_ARMED:
+				armed = FLIGHTSTATUS_ARMED_ARMED;
+				vehicle_is_armed = true;
+				break;
+		}
+
+		if (armed != prev_armed) {
+			FlightStatusArmedSet(&armed);
 		}
 
 		// Wait until next update
@@ -201,46 +334,6 @@ static void manualControlTask(void *parameters)
 	}
 }
 
-//! When the control system requests to arm the FC
-static int32_t control_event_arm()
-{
-	if(ok_to_arm()) {
-		FlightStatusData flightStatus;
-		FlightStatusGet(&flightStatus);
-		if (flightStatus.Armed != FLIGHTSTATUS_ARMED_ARMED) {
-			flightStatus.Armed = FLIGHTSTATUS_ARMED_ARMED;
-			FlightStatusSet(&flightStatus);
-			vehicle_is_armed = true;
-		}
-	}
-	return 0;
-}
-
-//! When the control system requests to start arming the FC
-static int32_t control_event_arming()
-{
-	FlightStatusData flightStatus;
-	FlightStatusGet(&flightStatus);
-	if (flightStatus.Armed != FLIGHTSTATUS_ARMED_ARMING) {
-		flightStatus.Armed = FLIGHTSTATUS_ARMED_ARMING;
-		FlightStatusSet(&flightStatus);
-		vehicle_is_armed = true;
-	}
-	return 0;
-}
-
-//! When the control system requests to disarm the FC
-static int32_t control_event_disarm()
-{
-	FlightStatusData flightStatus;
-	FlightStatusGet(&flightStatus);
-	if (flightStatus.Armed != FLIGHTSTATUS_ARMED_DISARMED) {
-		flightStatus.Armed = FLIGHTSTATUS_ARMED_DISARMED;
-		FlightStatusSet(&flightStatus);
-		vehicle_is_armed = false;
-	}
-	return 0;
-}
 
 /**
  * @brief control_source_select Determine which sub-module to use

@@ -88,24 +88,16 @@ extern uintptr_t pios_rcvr_group_map[];
 // Private variables
 static ManualControlCommandData   cmd;
 static ManualControlSettingsData  settings;
+
 static SystemSettingsAirframeTypeOptions airframe_type;
 static uint8_t                    disconnected_count = 0;
 static uint8_t                    connected_count = 0;
 static struct rcvr_activity_fsm   activity_fsm;
-static uint32_t               lastActivityTime;
-static uint32_t               lastSysTime;
+static uint32_t                   lastActivityTime;
+static uint32_t                   lastSysTime;
 static float                      flight_mode_value;
-static enum control_events        pending_control_event;
+static enum control_status        control_status;
 static bool                       settings_updated;
-enum arm_state {
-	ARM_STATE_DISARMED,
-	ARM_STATE_ARMING,
-	ARM_STATE_ARMED_STILL_HOLDING,
-	ARM_STATE_ARMED,
-	ARM_STATE_DISARMING,
-	ARM_STATE_DISARMED_STILL_HOLDING
-};
-static enum arm_state arm_state = ARM_STATE_DISARMED;
 
 // Private functions
 static float get_thrust_source(ManualControlCommandData *manual_control_command, SystemSettingsAirframeTypeOptions * airframe_type, bool normalize_positive);
@@ -121,7 +113,6 @@ static void applyDeadband(float *value, float deadband);
 static void resetRcvrActivity(struct rcvr_activity_fsm * fsm);
 static bool updateRcvrActivity(struct rcvr_activity_fsm * fsm);
 static void set_loiter_command(ManualControlCommandData *cmd, SystemSettingsAirframeTypeOptions *airframe_type);
-static void set_armed_if_changed(uint8_t new_arm);
 
 // Exposed from manualcontrol to prevent attempts to arm when unsafe
 extern bool ok_to_arm();
@@ -147,22 +138,16 @@ int rssitype_to_channelgroup() {
 //! Initialize the transmitter control mode
 int32_t transmitter_control_initialize()
 {
-	if (ManualControlCommandInitialize() == -1 \
-		|| FlightStatusInitialize() == -1 \
-		|| StabilizationDesiredInitialize() == -1 \
-		|| ReceiverActivityInitialize() == -1 \
-		|| ManualControlSettingsInitialize() == -1 ){
-
+	if (ManualControlCommandInitialize() == -1
+			|| FlightStatusInitialize() == -1
+			|| StabilizationDesiredInitialize() == -1
+			|| ReceiverActivityInitialize() == -1
+			|| LoiterCommandInitialize() == -1
+			|| ManualControlSettingsInitialize() == -1) {
 		return -1;
 	}
 
-	// Both the gimbal and coptercontrol do not support loitering
-	if (LoiterCommandInitialize() == -1) {
-		return -1;
-	}
-
-	/* No pending control events */
-	pending_control_event = CONTROL_EVENTS_NONE;
+	control_status = STATUS_ERROR;
 
 	/* Initialize the RcvrActivty FSM */
 	lastActivityTime = PIOS_Thread_Systime();
@@ -222,21 +207,6 @@ int32_t transmitter_control_update()
 	if (timeDifferenceMs(lastActivityTime, lastSysTime) > 5000) {
 		resetRcvrActivity(&activity_fsm);
 		lastActivityTime = lastSysTime;
-	}
-
-	if (ManualControlCommandReadOnly()) {
-		FlightTelemetryStatsData flightTelemStats;
-		FlightTelemetryStatsGet(&flightTelemStats);
-		if(flightTelemStats.Status != FLIGHTTELEMETRYSTATS_STATUS_CONNECTED) {
-			/* trying to fly via GCS and lost connection.  fall back to transmitter */
-			UAVObjMetadata metadata;
-			ManualControlCommandGetMetadata(&metadata);
-			UAVObjSetAccess(&metadata, ACCESS_READWRITE);
-			ManualControlCommandSetMetadata(&metadata);
-		}
-
-		// Don't process anything else when GCS is overriding the objects
-		return 0;
 	}
 
 	if (settings.RssiType != MANUALCONTROLSETTINGS_RSSITYPE_NONE) {
@@ -352,10 +322,7 @@ int32_t transmitter_control_update()
 		cmd.Connected = MANUALCONTROLCOMMAND_CONNECTED_FALSE;
 		ManualControlCommandSet(&cmd);
 
-		// Need to do this here since we don't process armed status.  Since this shouldn't happen in flight (changed config)
-		// immediately disarm
-		arm_state = ARM_STATE_DISARMED;
-		set_armed_if_changed(arm_state);
+		control_status = STATUS_ERROR;
 
 		return -1;
 	}
@@ -513,20 +480,17 @@ int32_t transmitter_control_select(bool reset_controller)
 		break;
 	default:
 		set_manual_control_error(SYSTEMALARMS_MANUALCONTROL_UNDEFINED);
-		break;
+		return -1;
 	}
 	lastFlightMode = flightMode;
 
 	return 0;
 }
 
-//! Get any control events and flush it
-enum control_events transmitter_control_get_events()
+//! Get the control & arming status
+enum control_status transmitter_control_get_status()
 {
-	enum control_events to_return = pending_control_event;
-	pending_control_event = CONTROL_EVENTS_NONE;
-
-	return to_return;
+	return control_status;
 }
 
 //! Determine which of N positions the flight mode switch is in but do not set it
@@ -538,25 +502,6 @@ uint8_t transmitter_control_get_flight_mode()
 		pos = settings.FlightModeNumber - 1;
 
 	return settings.FlightModePosition[pos];
-}
-
-//! Schedule the appropriate event to change the arm status
-static void set_armed_if_changed(uint8_t new_arm) {
-	uint8_t arm_status;
-	FlightStatusArmedGet(&arm_status);
-	if (new_arm != arm_status) {
-		switch(new_arm) {
-		case FLIGHTSTATUS_ARMED_DISARMED:
-			pending_control_event = CONTROL_EVENTS_DISARM;
-			break;
-		case FLIGHTSTATUS_ARMED_ARMING:
-			pending_control_event = CONTROL_EVENTS_ARMING;
-			break;
-		case FLIGHTSTATUS_ARMED_ARMED:
-			pending_control_event = CONTROL_EVENTS_ARM;
-			break;
-		}
-	}
 }
 
 /**
@@ -573,8 +518,6 @@ static bool arming_position(ManualControlCommandData * cmd, ManualControlSetting
 	switch(settings->Arming) {
 	case MANUALCONTROLSETTINGS_ARMING_ALWAYSDISARMED:
 		return false;
-	case MANUALCONTROLSETTINGS_ARMING_ALWAYSARMED:
-		return true;
 	case MANUALCONTROLSETTINGS_ARMING_ROLLLEFTTHROTTLE:
 		return lowThrottle && cmd->Roll < -ARMED_THRESHOLD;
 	case MANUALCONTROLSETTINGS_ARMING_ROLLRIGHTTHROTTLE:
@@ -590,10 +533,8 @@ static bool arming_position(ManualControlCommandData * cmd, ManualControlSetting
 			(cmd->Pitch > ARMED_THRESHOLD);
 			// Note that pulling pitch stick down corresponds to positive values
 	case MANUALCONTROLSETTINGS_ARMING_SWITCHTHROTTLE:
-	case MANUALCONTROLSETTINGS_ARMING_SWITCHTHROTTLEDELAY:
 		if (!lowThrottle) return false;
 	case MANUALCONTROLSETTINGS_ARMING_SWITCH:
-	case MANUALCONTROLSETTINGS_ARMING_SWITCHDELAY:
 		return cmd->ArmSwitch == MANUALCONTROLCOMMAND_ARMSWITCH_ARMED;
 	default:
 		return false;
@@ -603,15 +544,13 @@ static bool arming_position(ManualControlCommandData * cmd, ManualControlSetting
 /**
  * Check sticks to determine if they are in the disarmed position
  */
-static bool disarming_position(ManualControlCommandData * cmd, ManualControlSettingsData * settings) {
-
+static bool disarming_position(ManualControlCommandData * cmd, ManualControlSettingsData * settings)
+{
 	bool lowThrottle = cmd->Throttle <= 0;
 
 	switch(settings->Arming) {
 	case MANUALCONTROLSETTINGS_ARMING_ALWAYSDISARMED:
 		return true;
-	case MANUALCONTROLSETTINGS_ARMING_ALWAYSARMED:
-		return false;
 	case MANUALCONTROLSETTINGS_ARMING_ROLLLEFTTHROTTLE:
 		return lowThrottle && cmd->Roll > ARMED_THRESHOLD;
 	case MANUALCONTROLSETTINGS_ARMING_ROLLRIGHTTHROTTLE:
@@ -625,13 +564,79 @@ static bool disarming_position(ManualControlCommandData * cmd, ManualControlSett
 			(cmd->Yaw > ARMED_THRESHOLD || cmd->Yaw < -ARMED_THRESHOLD) &&
 			(cmd->Roll > ARMED_THRESHOLD || cmd->Roll < -ARMED_THRESHOLD) );
 	case MANUALCONTROLSETTINGS_ARMING_SWITCH:
-	case MANUALCONTROLSETTINGS_ARMING_SWITCHDELAY:
 	case MANUALCONTROLSETTINGS_ARMING_SWITCHTHROTTLE:
-	case MANUALCONTROLSETTINGS_ARMING_SWITCHTHROTTLEDELAY:
 		return cmd->ArmSwitch != MANUALCONTROLCOMMAND_ARMSWITCH_ARMED;
 	default:
 		return false;
 	}
+}
+
+static bool disarm_commanded(ManualControlCommandData *cmd,
+		ManualControlSettingsData *settings)
+{
+	static uint32_t start_time;
+
+	if (!disarming_position(cmd, settings)) {
+		start_time = 0;
+		return false;
+	}
+
+	uint32_t now = PIOS_Thread_Systime();
+
+	if (!start_time) {
+		start_time = now;
+		return false;
+	}
+
+	uint16_t disarm_time = 100;
+
+	if ((settings->Arming != MANUALCONTROLSETTINGS_ARMING_SWITCH) &&
+			(settings->Arming != MANUALCONTROLSETTINGS_ARMING_SWITCHTHROTTLE)) {
+		disarm_time = (settings->DisarmTime == MANUALCONTROLSETTINGS_DISARMTIME_250) ? 250 :
+			(settings->DisarmTime == MANUALCONTROLSETTINGS_DISARMTIME_500) ? 500 :
+			(settings->DisarmTime == MANUALCONTROLSETTINGS_DISARMTIME_1000) ? 1000 :
+			(settings->DisarmTime == MANUALCONTROLSETTINGS_DISARMTIME_2000) ? 2000 : 1000;
+	}
+
+	return (now - start_time) >= disarm_time;
+}
+
+#define RECEIVER_TIMER_FIRED 0xffffffff
+
+static uint32_t receiver_timer = RECEIVER_TIMER_FIRED;
+
+static void reset_receiver_timer() {
+	receiver_timer = 0;
+}
+
+static bool check_receiver_timer(uint32_t threshold) {
+	if (!threshold) {
+		/* 0 threshold means timer disabled */
+
+		reset_receiver_timer();
+
+		return false;
+	}
+
+	if (receiver_timer == RECEIVER_TIMER_FIRED) {
+		/* It already went off!  We just want a strobe. */
+		return false;
+	}
+
+	uint32_t now = PIOS_Thread_Systime();
+
+	if (receiver_timer) {
+		if ((now - receiver_timer) >= threshold) {
+			receiver_timer = RECEIVER_TIMER_FIRED;
+			return true;
+		}
+
+		return false;
+	}
+
+	receiver_timer = now;
+
+	return false;
 }
 
 /**
@@ -643,177 +648,98 @@ static bool disarming_position(ManualControlCommandData * cmd, ManualControlSett
  */
 static void process_transmitter_events(ManualControlCommandData * cmd, ManualControlSettingsData * settings, bool valid)
 {
-
-	/* State machine to determine arming of disarming:
-	  DISARMED: if invalid input, remain.
-	            look for the arm signal to go true.
-	              if a switch go straight to ARMED
-	              else store time and go to ARMING
-	  ARMING: if arm signal ends or invalid go to IDLE
-	          if time expires go to ARMED_STILL_HOLDING
-	  ARMED_STILL_HOLDING: if arm signal ends go to ARMED
-	  ARMED: if invalid look for failsafe
-	         look for disarm signal.
-	           if switch go to DISARMED
-	           else store time and go to DISARMING
-	  DISARMING: if arm signal ends return to ARMED
-	             if time expires to go DISARMED_STILL_HOLDING
-	  DISARMED_STILL_HOLDING: wait for release
-	*/
-
-	static uint32_t armedDisarmStart;
-
 	valid &= cmd->Connected == MANUALCONTROLCOMMAND_CONNECTED_TRUE;
 
-	switch(arm_state) {
-	case ARM_STATE_DISARMED:
-	{
-		set_armed_if_changed(FLIGHTSTATUS_ARMED_DISARMED);
+	if (!valid || (cmd->Connected != MANUALCONTROLCOMMAND_CONNECTED_TRUE)) {
+		/* disarm timeout check-- use least favorable timeout.
+		 * Note that if things were low throttle, and are now
+		 * disconnected, we keep the old timer running.
+		 *
+		 * (The same is true for vice-versa).
+		 */
+		uint32_t timeout = 0;
 
-		// last_arm used for detecting a rising edge to trigger switch arming
-		static bool last_arm = false;
-		bool arm = arming_position(cmd, settings) && valid;
-
-		if (arm && (settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCH ||
-				settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCHTHROTTLE)) {
-			if (!last_arm) {
-				armedDisarmStart = lastSysTime;
-				arm_state = ARM_STATE_ARMED;
-			}
-		} else if (arm && (settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCHTHROTTLEDELAY ||
-				settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCHDELAY)) {
-			if (!last_arm) {
-				armedDisarmStart = lastSysTime;
-				arm_state = ARM_STATE_ARMING;
-			}
-		} else if (arm) {
-			armedDisarmStart = lastSysTime;
-			arm_state = ARM_STATE_ARMING;
-		}
-
-		last_arm = arm;
-	}
-		break;
-
-  	case ARM_STATE_ARMING:
-  	{
-  		set_armed_if_changed(FLIGHTSTATUS_ARMED_ARMING);
-
-  		bool arm = arming_position(cmd, settings) && valid;
-		uint16_t arm_time = (settings->ArmTime == MANUALCONTROLSETTINGS_ARMTIME_250) ? 250 : \
-			(settings->ArmTime == MANUALCONTROLSETTINGS_ARMTIME_500) ? 500 : \
-			(settings->ArmTime == MANUALCONTROLSETTINGS_ARMTIME_1000) ? 1000 : \
-			(settings->ArmTime == MANUALCONTROLSETTINGS_ARMTIME_2000) ? 2000 : 1000;
-		if (arm && timeDifferenceMs(armedDisarmStart, lastSysTime) > arm_time) {
-			if (settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCHTHROTTLEDELAY ||
-					settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCHDELAY) {
-				arm_state = ARM_STATE_ARMED;
-			} else {
-				arm_state = ARM_STATE_ARMED_STILL_HOLDING;
-			}
-		} else if (!arm) {
-			arm_state = ARM_STATE_DISARMED;
-		}
-	}
-		break;
-
-	case ARM_STATE_ARMED_STILL_HOLDING:
-	{
-		set_armed_if_changed(FLIGHTSTATUS_ARMED_ARMED);
-
-		bool arm = arming_position(cmd, settings) && valid;
-		if (!arm) {
-			arm_state = ARM_STATE_ARMED;
-		}
-	}
-		break;
-
-	case ARM_STATE_ARMED:
-	{
-		set_armed_if_changed(FLIGHTSTATUS_ARMED_ARMED);
-
-		// Determine whether to disarm when throttle is low
-		uint8_t flight_mode;
-		FlightStatusFlightModeGet(&flight_mode);
-		bool autonomous_mode =
-		                       flight_mode == FLIGHTSTATUS_FLIGHTMODE_POSITIONHOLD ||
-		                       flight_mode == FLIGHTSTATUS_FLIGHTMODE_RETURNTOHOME ||
-		                       flight_mode == FLIGHTSTATUS_FLIGHTMODE_PATHPLANNER  ||
-		                       flight_mode == FLIGHTSTATUS_FLIGHTMODE_ALTITUDEHOLD  ||
-		                       flight_mode == FLIGHTSTATUS_FLIGHTMODE_TABLETCONTROL;
-		bool check_throttle = settings->ArmTimeoutAutonomous == MANUALCONTROLSETTINGS_ARMTIMEOUTAUTONOMOUS_ENABLED ||
-			!autonomous_mode;
-		bool low_throttle = cmd->Throttle < 0;
-
-		// Check for arming timeout if transmitter invalid or throttle is low and checked
-		if (!valid) {
-			/* This is a separate armed timeout for invalid input only.
-			 * It defaults to 0 for now (in which case we still check the below
-			 * low-throttle-or-invalid-input timeout */
-			if ((settings->InvalidRXArmedTimeout != 0) && (timeDifferenceMs(armedDisarmStart, lastSysTime) > settings->InvalidRXArmedTimeout)) {
-				arm_state = ARM_STATE_DISARMED;
-				break;
-			}
-		}
-
-		if (!valid || (low_throttle && check_throttle)) {
-			if ((settings->ArmedTimeout != 0) && (timeDifferenceMs(armedDisarmStart, lastSysTime) > settings->ArmedTimeout)) {
-				arm_state = ARM_STATE_DISARMED;
-				break;
-			}
+		if (settings->InvalidRXArmedTimeout && settings->ArmedTimeout) {
+			timeout = MIN(settings->InvalidRXArmedTimeout,
+				settings->ArmedTimeout);
+		} else if (settings->InvalidRXArmedTimeout) {
+			timeout = settings->InvalidRXArmedTimeout;
 		} else {
-			armedDisarmStart = lastSysTime;
- 		}
+			timeout = settings->ArmedTimeout;
+		}
 
-  		bool disarm = disarming_position(cmd, settings) && valid;
-		if (disarm) {
-			armedDisarmStart = lastSysTime;
-			arm_state = ARM_STATE_DISARMING;
+		if (check_receiver_timer(timeout)) {
+			control_status = STATUS_SAFETYTIMEOUT;
+		} else {
+			control_status = STATUS_DISCONNECTED;
+		}
+
+		return;
+	}
+
+	bool low_throt = cmd->Throttle <= 0;
+
+	if (low_throt) {
+		/* Determine whether to disarm when throttle is low */
+		uint8_t flt_mode;
+		FlightStatusFlightModeGet(&flt_mode);
+
+		if (flt_mode == FLIGHTSTATUS_FLIGHTMODE_POSITIONHOLD ||
+				flt_mode == FLIGHTSTATUS_FLIGHTMODE_RETURNTOHOME ||
+				flt_mode == FLIGHTSTATUS_FLIGHTMODE_PATHPLANNER  ||
+				flt_mode == FLIGHTSTATUS_FLIGHTMODE_ALTITUDEHOLD ||
+				flt_mode == FLIGHTSTATUS_FLIGHTMODE_TABLETCONTROL) {
+			low_throt = false;
 		}
 	}
-  		break;
 
-	case ARM_STATE_DISARMING:
-	{
-  		bool disarm = disarming_position(cmd, settings) && valid;
-		uint16_t disarm_time = (settings->DisarmTime == MANUALCONTROLSETTINGS_DISARMTIME_250) ? 250 : \
-			(settings->DisarmTime == MANUALCONTROLSETTINGS_DISARMTIME_500) ? 500 : \
-			(settings->DisarmTime == MANUALCONTROLSETTINGS_DISARMTIME_1000) ? 1000 : \
-			(settings->DisarmTime == MANUALCONTROLSETTINGS_DISARMTIME_2000) ? 2000 : 1000;
+	if (low_throt) {
+		if (check_receiver_timer(settings->ArmedTimeout)) {
+			control_status = STATUS_DISARM;
+			return;
+		}
+	} else {
+		/* Not low throt, not disconnected. */
+		reset_receiver_timer();
+	}
+
+	if (disarm_commanded(cmd, settings)) {
+		/* Separate timer from the above */
+		control_status = STATUS_DISARM;
+		return;
+	} else if (arming_position(cmd, settings)) {
+		/* Not disarming pos, not low throt timeout, not disconnected. */
+
+		if (control_status == STATUS_DISARM) {
+			/* Edge detector says it's time to reset the receiver
+			 * timer
+			 */
+			reset_receiver_timer();
+		}
 
 		if (settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCH ||
-				settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCHDELAY ||
-				settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCHTHROTTLE ||
-				settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCHTHROTTLEDELAY) {
-			disarm_time = 100;
+				settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCHTHROTTLE) {
+			control_status = STATUS_ARM_VALID;
+		} else {
+			control_status = STATUS_ARM_INVALID;
 		}
 
-  		if (disarm && timeDifferenceMs(armedDisarmStart, lastSysTime) > disarm_time) {
-			if (settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCH ||
-					settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCHDELAY ||
-					settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCHTHROTTLE ||
-					settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCHTHROTTLEDELAY) {
-				arm_state = ARM_STATE_DISARMED;
-			} else {
-				arm_state = ARM_STATE_DISARMED_STILL_HOLDING;
+		return;
+	} else {
+		/* If the arming switch is flipped on, but we don't otherwise
+		 * qualify for arming, let the upper layer know.
+		 */
+		if (settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCHTHROTTLE) {
+			if (cmd->ArmSwitch == MANUALCONTROLCOMMAND_ARMSWITCH_ARMED) {
+				control_status = STATUS_INVALID_FOR_DISARMED;
+				return;
 			}
-  		} else if (!disarm) {
-  			arm_state = ARM_STATE_ARMED;
-  		}
-  	}
-		break;
+		}
+	}
 
-	case ARM_STATE_DISARMED_STILL_HOLDING:
-	{
-  		set_armed_if_changed(FLIGHTSTATUS_ARMED_DISARMED);
+	control_status = STATUS_NORMAL;
 
-  		bool disarm = disarming_position(cmd, settings) && valid;
-  		if (!disarm) {
-  			arm_state = ARM_STATE_DISARMED;
-  		}
-  	}
-  		break;
-  	}
+	return;
 
 }
 

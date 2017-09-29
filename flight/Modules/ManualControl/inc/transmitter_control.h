@@ -36,6 +36,7 @@
 #define TRANSMITTER_CONTROL_H
 
 #include "stdint.h"
+#include "flightstatus.h"
 #include "manualcontrolcommand.h"
 #include "manualcontrolsettings.h"
 #include "stabilizationdesired.h"
@@ -141,7 +142,7 @@ int32_t transmitter_control_select(bool reset_controller);
 uint8_t transmitter_control_get_flight_mode();
 
 //! Get any control events
-enum control_events transmitter_control_get_events();
+enum control_status transmitter_control_get_status();
 
 #endif /* TRANSMITTER_CONTROL_H */
 

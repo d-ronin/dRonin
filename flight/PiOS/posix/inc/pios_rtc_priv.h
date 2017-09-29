@@ -1,14 +1,14 @@
 /**
  ******************************************************************************
- * @addtogroup Modules Modules
+ * @addtogroup PIOS PIOS Core hardware abstraction layer
  * @{
- * @addtogroup Control Control Module
+ * @addtogroup   PIOS_RTC RTC Functions
+ * @brief PIOS interface for RTC tick
  * @{
  *
- * @file       tablet_control.h
- * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
- * @brief      Use tablet for control source
- *
+ * @file       posix/inc/pios_rtc_priv.h
+ * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @brief      RTC private definitions.
  * @see        The GNU Public License (GPL) Version 3
  *
  *****************************************************************************/
@@ -27,23 +27,16 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef TABLET_CONTROL_H
-#define TABLET_CONTROL_H
+#ifndef PIOS_RTC_PRIV_H
+#define PIOS_RTC_PRIV_H
 
-#include "stdint.h"
+#include <pios.h>
 
-//! Initialize the tablet controller
-int32_t tablet_control_initialize();
-
-//! Process updates for the tablet controller
-int32_t tablet_control_update();
-
-//! Use the values for the tablet controller
-int32_t tablet_control_select(bool reset_controller);
-
-#endif /* TABLET_CONTROL_H */
+extern void PIOS_RTC_Init();
+#endif /* PIOS_RTC_PRIV_H */
 
 /**
  * @}
  * @}
  */
+

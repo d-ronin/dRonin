@@ -56,6 +56,7 @@
 #define PIOS_INCLUDE_LOGFS_SETTINGS
 #define PIOS_INCLUDE_RANGEFINDER
 #define PIOS_INCLUDE_INITCALL           /* Include init call structures */
+#define PIOS_INCLUDE_RTC
 
 #define PIOS_RCVR_MAX_CHANNELS			12
 #define PIOS_RCVR_MAX_DEVS              3

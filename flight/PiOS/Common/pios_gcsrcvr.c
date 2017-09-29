@@ -54,7 +54,7 @@ enum pios_gcsrcvr_dev_magic {
 struct pios_gcsrcvr_dev {
 	enum pios_gcsrcvr_dev_magic magic;
 
-	uint8_t supv_timer;
+	uint16_t supv_timer;
 	bool Fresh;
 };
 
@@ -145,14 +145,15 @@ static void PIOS_gcsrcvr_Supervisor(uintptr_t gcsrcvr_id) {
 	/* 
 	 * RTC runs at 625Hz.
 	 */
-	if(++(gcsrcvr_dev->supv_timer) < (PIOS_GCSRCVR_TIMEOUT_MS * 1000 / 625)) {
+	if ((++gcsrcvr_dev->supv_timer) < (PIOS_GCSRCVR_TIMEOUT_MS * 1000 / 625)) {
 		return;
 	}
 	gcsrcvr_dev->supv_timer = 0;
 
-	if (!gcsrcvr_dev->Fresh)
+	if (!gcsrcvr_dev->Fresh) {
 		for (int32_t i = 0; i < GCSRECEIVER_CHANNEL_NUMELEM; i++)
 			gcsreceiverdata.Channel[i] = PIOS_RCVR_TIMEOUT;
+	}
 
 	gcsrcvr_dev->Fresh = false;
 }
