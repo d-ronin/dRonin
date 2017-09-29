@@ -92,6 +92,9 @@ DONT_BUILD_IF((MAX_AXES+0 != 3), stabAxisWrongCount);
 // Please adapt changes here also to the init of the plots  in /ground/gcs/src/plugins/config/configstabilizationwidget.cpp
 #define HORIZON_MODE_MAX_BLEND               0.85f
 
+//! Minimum sane positive value for throttle.
+#define THROTTLE_EPSILON 0.000001f
+
 enum {
 	PID_GROUP_RATE,   // Rate controller settings
 	PID_RATE_ROLL = PID_GROUP_RATE,
@@ -429,7 +432,7 @@ static void stabilizationTask(void* parameters)
 
 		static uint32_t last_pos_thrust_time = 0;
 
-		if (stabDesired.Thrust > 0.0f) {
+		if (stabDesired.Thrust > THROTTLE_EPSILON) {
 			if (settings.LowPowerStabilizationMaxTime) {
 				last_pos_thrust_time = this_systime;
 			}
@@ -439,11 +442,10 @@ static void stabilizationTask(void* parameters)
 				/* Choose a barely-positive value to trigger
 				 * low-power stabilization in actuator.
 				 */
-				actuatorDesired.Thrust = 0.000001f;
+				actuatorDesired.Thrust = THROTTLE_EPSILON;
 			} else {
 				last_pos_thrust_time = 0;
 
-				/* XXX Problematic for 3D */
 				actuatorDesired.Thrust = 0.0f;
 			}
 		} else {
