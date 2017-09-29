@@ -520,26 +520,31 @@ static void stabilizationTask(void* parameters)
 
 		actuatorDesired.Thrust = stabDesired.Thrust;
 
-		static uint32_t last_pos_thrust_time = 0;
+		static uint32_t last_nonzero_thrust_time = 0;
+		static bool last_thrust_pos;
 
-		if (stabDesired.Thrust > THROTTLE_EPSILON) {
+		if (fabsf(stabDesired.Thrust) > THROTTLE_EPSILON) {
 			if (settings.LowPowerStabilizationMaxTime) {
-				last_pos_thrust_time = this_systime;
+				last_nonzero_thrust_time = this_systime;
+				last_thrust_pos = stabDesired.Thrust > 0;
 			}
-		} else if (last_pos_thrust_time) {
-			if ((this_systime - last_pos_thrust_time) <
+		} else if (last_nonzero_thrust_time) {
+			if ((this_systime - last_nonzero_thrust_time) <
 					1000.0f * settings.LowPowerStabilizationMaxTime) {
-				/* Choose a barely-positive value to trigger
+				/* Choose a barely-nonzero value to trigger
 				 * low-power stabilization in actuator.
 				 */
-				actuatorDesired.Thrust = THROTTLE_EPSILON;
+				if (last_thrust_pos) {
+					actuatorDesired.Thrust = THROTTLE_EPSILON;
+				} else {
+					actuatorDesired.Thrust = -THROTTLE_EPSILON;
+				}
 			} else {
-				last_pos_thrust_time = 0;
+				last_nonzero_thrust_time = 0;
 
 				actuatorDesired.Thrust = 0.0f;
 			}
 		} else {
-			/* XXX Problematic for 3D */
 			actuatorDesired.Thrust = 0.0f;
 		}
 
