@@ -183,6 +183,7 @@ static void manualControlTask(void *parameters)
 		}
 
 		uint32_t now = PIOS_Thread_Systime();
+
 #define GO_STATE(x) \
 				do { \
 					arm_state = (x); \
@@ -213,7 +214,7 @@ static void manualControlTask(void *parameters)
 				 */
 				if ((status == STATUS_NORMAL) ||
 						(status == STATUS_DISARM)) {
-					if ((now - arm_state_time) > 200) {
+					if (PIOS_Thread_Period_Elapsed(arm_state_time, 200)) {
 						GO_STATE(ARM_STATE_DISARMED);
 					}
 				} else {
@@ -254,7 +255,7 @@ static void manualControlTask(void *parameters)
 				if ((status != STATUS_ARM_INVALID) &&
 						(status != STATUS_ARM_VALID)) {
 					GO_STATE(ARM_STATE_SAFETY);
-				} else if ((now - arm_state_time) > arm_time) {
+				} else if (PIOS_Thread_Period_Elapsed(arm_state_time, arm_time)) {
 					if (status == STATUS_ARM_VALID) {
 						GO_STATE(ARM_STATE_ARMED);
 					} else {
