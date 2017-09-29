@@ -169,6 +169,7 @@ static float get_thrust_source(ManualControlCommandData *manual_control_command,
 
 	// only valid for helicp, normalizes collective from [-1,1] to [0,1] for things like althold and loiter that are expecting to see a [0,1] command from throttle
 	if( normalize_positive && *airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP ) return (thrust + 1.0f)/2.0f;
+	// XXX fix this up to do sane things with 3D mode or not
 
 	return thrust;
 }

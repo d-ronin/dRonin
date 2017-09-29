@@ -433,6 +433,10 @@ static void post_process_scale_and_commit(float *motor_vect,
 		min_chan *= gain;
 	}
 
+	/* XXX -- needs to be rephrased to ensure all motors are positive,
+	 * or all motors are negative.
+	 */
+
 	/* Sacrifice throttle because of clipping */
 	if (max_chan > 1.0f) {
 		offset = 1.0f - max_chan;
@@ -471,6 +475,7 @@ static void post_process_scale_and_commit(float *motor_vect,
 		// Motors have additional protection for when to be on
 		if (types_mixer[ct] == MIXERSETTINGS_MIXER1TYPE_MOTOR) {
 			if (!armed) {
+				/* XXX need to think about 3D and these */
 				motor_vect[ct] = -1;  //force min throttle
 			} else if (!stabilize_now) {
 				if (!spin_while_armed) {
@@ -522,7 +527,7 @@ static void normalize_input_data(uint32_t this_systime,
 		bool *armed, bool *spin_while_armed, bool *stabilize_now)
 {
 	static float manual_throt = -1;
-	float throttle_val = -1;
+	float throttle_val = 0;
 	ActuatorDesiredData desired;
 
 	static FlightStatusData flightStatus;
@@ -560,8 +565,12 @@ static void normalize_input_data(uint32_t this_systime,
 		throttle_val = -1;
 	}
 
+	/* XXX fixup for 3D */
 	*stabilize_now = throttle_val > 0.0f;
 
+	/* XXX this is problematic, both because of applying to autonomous
+	 * modes and because it breaks 3D support.
+	 */
 	float val1 = throt_curve(throttle_val, curve1,
 			MIXERSETTINGS_THROTTLECURVE1_NUMELEM);
 
@@ -793,6 +802,7 @@ static float channel_failsafe_value(int idx)
 {
 	switch (types_mixer[idx]) {
 	case MIXERSETTINGS_MIXER1TYPE_MOTOR:
+		/* XXX not safe for 3D */
 		return actuatorSettings.ChannelMin[idx];
 	case MIXERSETTINGS_MIXER1TYPE_SERVO:
 		return actuatorSettings.ChannelNeutral[idx];
