@@ -152,6 +152,17 @@ uint32_t PIOS_Thread_Get_Runtime(struct pios_thread *threadp)
 	return 0;	/* XXX */
 }
 
+bool PIOS_Thread_Period_Elapsed(const uint32_t prev_systime,
+		const uint32_t increment_ms)
+{
+	uint32_t now = PIOS_Thread_Systime();
+
+	uint32_t interval = now - prev_systime;
+
+	return increment_ms >= interval;
+}
+
+
 /**
   * @}
   * @}
