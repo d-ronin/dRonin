@@ -165,11 +165,17 @@ int32_t transmitter_control_initialize()
 
 static float get_thrust_source(ManualControlCommandData *manual_control_command, SystemSettingsAirframeTypeOptions * airframe_type, bool normalize_positive)
 {
-	float const thrust = (*airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) ? manual_control_command->Collective : manual_control_command->Throttle;
+	float thrust = (*airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) ? manual_control_command->Collective : manual_control_command->Throttle;
 
 	// only valid for helicp, normalizes collective from [-1,1] to [0,1] for things like althold and loiter that are expecting to see a [0,1] command from throttle
-	if( normalize_positive && *airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP ) return (thrust + 1.0f)/2.0f;
 	// XXX fix this up to do sane things with 3D mode or not
+	if( normalize_positive && *airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP)
+		return (thrust + 1.0f)/2.0f;
+
+	// XXX fix this up to implement 3D mode and deadband.
+	if (thrust < 0) {
+		thrust = 0;
+	}
 
 	return thrust;
 }
@@ -1060,9 +1066,6 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
 
 	// get thrust source; normalize_positive = false since we just want to pass the value through
 	stabilization.Thrust = get_thrust_source(manual_control_command, airframe_type, false);
-
-	// for non-helicp, negative thrust is a special flag to stop the motors
-	if( *airframe_type != SYSTEMSETTINGS_AIRFRAMETYPE_HELICP && stabilization.Thrust < 0 ) stabilization.Thrust = -1;
 
 	// Set the reprojection.
 	stabilization.ReprojectionMode = reprojection;
