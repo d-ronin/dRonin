@@ -272,7 +272,6 @@ CSTANDARD = -std=gnu99
 # Flags for C and C++ (arm-elf-gcc/arm-elf-g++)
 
 CFLAGS += -g$(DEBUGF)
-CFLAGS += -ffast-math
 CFLAGS += -mcpu=$(MCU)
 CFLAGS += $(CDEFS)
 CFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS)) -I.

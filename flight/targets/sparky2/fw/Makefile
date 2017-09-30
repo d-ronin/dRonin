@@ -316,8 +316,6 @@ CSTANDARD = -std=gnu99
 
 CFLAGS += -g$(DEBUGF)
 
-CFLAGS += -ffast-math
-
 CFLAGS += -mcpu=$(MCU)
 CFLAGS += $(CDEFS)
 CFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS)) -I.
