@@ -100,7 +100,6 @@ static float motor_mixer[MAX_MIX_ACTUATORS * MIXERSETTINGS_MIXER1VECTOR_NUMELEM]
 static ActuatorSettingsData actuatorSettings;
 static SystemSettingsAirframeTypeOptions airframe_type;
 
-static float curve1[MIXERSETTINGS_THROTTLECURVE1_NUMELEM];
 static float curve2[MIXERSETTINGS_THROTTLECURVE2_NUMELEM];
 
 static MixerSettingsCurve2SourceOptions curve2_src;
@@ -111,8 +110,6 @@ static void actuator_task(void* parameters);
 static float scale_channel(float value, int idx);
 static void set_failsafe();
 
-static float throt_curve(const float input, const float *curve,
-		uint8_t num_points);
 static float collective_curve(const float input, const float *curve,
 		uint8_t num_points);
 
@@ -341,7 +338,7 @@ static void post_process_scale_and_commit(float *motor_vect,
 	 */
 	float maxpoweradd_softlimit = MAX(
 			2 * actuatorSettings.LowPowerStabilizationMaxPowerAdd,
-			desired_vect[MIXERSETTINGS_MIXER1VECTOR_THROTTLECURVE1])
+			fabsf(desired_vect[MIXERSETTINGS_MIXER1VECTOR_THROTTLECURVE1]))
 		* hangtime_leakybucket_timeconstant;
 
 	/* If we're under the limit, add this tick's hangtime power allotment */
@@ -367,6 +364,8 @@ static void post_process_scale_and_commit(float *motor_vect,
 	 */
 	float maxpoweradd = (*maxpoweradd_bucket) / hangtime_leakybucket_timeconstant;
 
+	bool neg_throttle = desired_vect[MIXERSETTINGS_MIXER1VECTOR_THROTTLECURVE1] < 0.0f;
+
 	for (int ct = 0; ct < MAX_MIX_ACTUATORS; ct++) {
 		switch (types_mixer[ct]) {
 			case MIXERSETTINGS_MIXER1TYPE_DISABLED:
@@ -380,6 +379,11 @@ static void post_process_scale_and_commit(float *motor_vect,
 				break;
 
 			case MIXERSETTINGS_MIXER1TYPE_MOTOR:
+				if (neg_throttle) {
+					/* We'll reverse this later! */
+					motor_vect[ct] = -motor_vect[ct];
+				}
+
 				min_chan = fminf(min_chan, motor_vect[ct]);
 				max_chan = fmaxf(max_chan, motor_vect[ct]);
 
@@ -433,10 +437,6 @@ static void post_process_scale_and_commit(float *motor_vect,
 		min_chan *= gain;
 	}
 
-	/* XXX -- needs to be rephrased to ensure all motors are positive,
-	 * or all motors are negative.
-	 */
-
 	/* Sacrifice throttle because of clipping */
 	if (max_chan > 1.0f) {
 		offset = 1.0f - max_chan;
@@ -475,11 +475,10 @@ static void post_process_scale_and_commit(float *motor_vect,
 		// Motors have additional protection for when to be on
 		if (types_mixer[ct] == MIXERSETTINGS_MIXER1TYPE_MOTOR) {
 			if (!armed) {
-				/* XXX need to think about 3D and these */
-				motor_vect[ct] = -1;  //force min throttle
+				motor_vect[ct] = NAN;  // don't spin
 			} else if (!stabilize_now) {
 				if (!spin_while_armed) {
-					motor_vect[ct] = -1;
+					motor_vect[ct] = NAN;
 				} else {
 					motor_vect[ct] = 0;
 				}
@@ -488,6 +487,11 @@ static void post_process_scale_and_commit(float *motor_vect,
 
 				if (motor_vect[ct] > 0) {
 					// Apply curve fitting, mapping the input to the propeller output.
+
+					if (neg_throttle) {
+						motor_vect[ct] = -motor_vect[ct];
+					}
+
 					motor_vect[ct] = powapprox(motor_vect[ct], actuatorSettings.MotorInputOutputCurveFit);
 				} else {
 					motor_vect[ct] = 0;
@@ -565,14 +569,9 @@ static void normalize_input_data(uint32_t this_systime,
 		throttle_val = -1;
 	}
 
-	/* XXX fixup for 3D */
-	*stabilize_now = throttle_val > 0.0f;
+	*stabilize_now = throttle_val != 0.0f;
 
-	/* XXX this is problematic, both because of applying to autonomous
-	 * modes and because it breaks 3D support.
-	 */
-	float val1 = throt_curve(throttle_val, curve1,
-			MIXERSETTINGS_THROTTLECURVE1_NUMELEM);
+	float val1 = throttle_val;
 
 	//The source for the secondary curve is selectable
 	float val2 = collective_curve(
@@ -638,9 +637,7 @@ static void actuator_task(void* parameters)
 			SystemSettingsAirframeTypeGet(&airframe_type);
 
 			compute_mixer();
-			// XXX compute_inverse_mixer();
 
-			MixerSettingsThrottleCurve1Get(curve1);
 			MixerSettingsThrottleCurve2Get(curve2);
 			MixerSettingsCurve2SourceGet(&curve2_src);
 		}
@@ -739,23 +736,6 @@ static void actuator_task(void* parameters)
 }
 
 /**
- * Interpolate a throttle curve
- *
- * throttle curve assumes input is [0,1]
- * this means that the throttle channel neutral value is nearly the same as its min value
- * this is convenient for throttle, since the neutral value is used as a failsafe and would thus shut off the motor
- *
- * @param input the input value, in [0,1]
- * @param curve the array of points in the curve
- * @param num_points the number of points in the curve
- * @return the output value, in [0,1]
- */
-static float throt_curve(float const input, float const * curve, uint8_t num_points)
-{
-	return linear_interpolate(input, curve, num_points, 0.0f, 1.0f);
-}
-
-/**
  * Interpolate a collective curve
  *
  * we need to accept input in [-1,1] so that the neutral point may be set arbitrarily within the typical channel input range, which is [-1,1]
@@ -802,8 +782,7 @@ static float channel_failsafe_value(int idx)
 {
 	switch (types_mixer[idx]) {
 	case MIXERSETTINGS_MIXER1TYPE_MOTOR:
-		/* XXX not safe for 3D */
-		return actuatorSettings.ChannelMin[idx];
+		return NAN;
 	case MIXERSETTINGS_MIXER1TYPE_SERVO:
 		return actuatorSettings.ChannelNeutral[idx];
 	case MIXERSETTINGS_MIXER1TYPE_DISABLED:
