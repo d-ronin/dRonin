@@ -74,6 +74,7 @@ DONT_BUILD_IF(MAX_MIX_ACTUATORS > ACTUATORCOMMAND_CHANNEL_NUMELEM, TooManyMixers
 DONT_BUILD_IF((MIXERSETTINGS_MIXER1VECTOR_NUMELEM - MIXERSETTINGS_MIXER1VECTOR_ACCESSORY0) < MANUALCONTROLCOMMAND_ACCESSORY_NUMELEM, AccessoryMismatch);
 
 #define MIXER_SCALE 128
+#define ACTUATOR_EPSILON 0.00001f
 
 // Private types
 
@@ -466,7 +467,7 @@ static void post_process_scale_and_commit(float *motor_vect,
 		/* The amount actually added is the above offset, plus the
 		 * amount that came from negative clipping.  (It's negative
 		 * though, so subtract instead of add).  Spend this from
-		 * the leaky bucket. 
+		 * the leaky bucket.
 		 */
 		*maxpoweradd_bucket -= (offset - neg_clip) * dT;
 	}
@@ -478,9 +479,15 @@ static void post_process_scale_and_commit(float *motor_vect,
 				motor_vect[ct] = NAN;  // don't spin
 			} else if (!stabilize_now) {
 				if (!spin_while_armed) {
+					/* No spin */
 					motor_vect[ct] = NAN;
 				} else {
-					motor_vect[ct] = 0;
+					/* Min spin in our direction */
+					if (neg_throttle) {
+						motor_vect[ct] = -ACTUATOR_EPSILON;
+					} else {
+						motor_vect[ct] = ACTUATOR_EPSILON;
+					}
 				}
 			} else {
 				motor_vect[ct] = motor_vect[ct] * gain + offset;
@@ -488,13 +495,14 @@ static void post_process_scale_and_commit(float *motor_vect,
 				if (motor_vect[ct] > 0) {
 					// Apply curve fitting, mapping the input to the propeller output.
 
-					if (neg_throttle) {
-						motor_vect[ct] = -motor_vect[ct];
-					}
-
 					motor_vect[ct] = powapprox(motor_vect[ct], actuatorSettings.MotorInputOutputCurveFit);
 				} else {
-					motor_vect[ct] = 0;
+					/* Clip to minimum spin in this direction */
+					motor_vect[ct] = ACTUATOR_EPSILON;
+				}
+
+				if (neg_throttle) {
+					motor_vect[ct] = -motor_vect[ct];
 				}
 			}
 		}
@@ -566,7 +574,7 @@ static void normalize_input_data(uint32_t this_systime,
 	}
 
 	if (!*armed) {
-		throttle_val = -1;
+		throttle_val = 0.0f;
 	}
 
 	*stabilize_now = throttle_val != 0.0f;
@@ -758,16 +766,32 @@ static float scale_channel(float value, int idx)
 	float max = actuatorSettings.ChannelMax[idx];
 	float min = actuatorSettings.ChannelMin[idx];
 	float neutral = actuatorSettings.ChannelNeutral[idx];
+	float deadband = actuatorSettings.ChannelDeadband[idx];
 
 	float valueScaled;
-	// Scale
-	if (value >= 0.0f) {
-		valueScaled = value*(max-neutral) + neutral;
-	} else {
-		valueScaled = value*(neutral-min) + neutral;
+
+	if (!isfinite(value)) {
+		if (deadband) {
+			/* 3D motor mode */
+			/* NaN signals us to not spin-- e.g. neutral value */
+
+			return neutral;
+		} else {
+			/* Non-3D motor mode. */
+			/* NaN signals us to not spin-- e.g. minimum value */
+			return min;
+		}
 	}
 
-	if (max>min) {
+	if (value >= 0.0f) {
+		valueScaled = value * (max - neutral - deadband)
+			+ neutral + deadband;
+	} else {
+		valueScaled = value * (neutral - min - deadband)
+			+ neutral - deadband;
+	}
+
+	if (max > min) {
 		if (valueScaled > max) valueScaled = max;
 		if (valueScaled < min) valueScaled = min;
 	} else {
