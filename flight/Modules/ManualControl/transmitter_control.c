@@ -71,6 +71,10 @@
 #define RCVR_ACTIVITY_MONITOR_CHANNELS_PER_GROUP 12
 #define RCVR_ACTIVITY_MONITOR_MIN_RANGE 20
 
+// If the neutral point on the throttle channel is 35% over the configured
+// minimum, we assume they're providing bidirectional thrust.
+#define THRUST_BIDIR_THRESH 0.35f
+
 /* All channels must have at least this many counts on each side of neutral.
  * (Except throttle which must have this many on the positive side).  This is
  * to prevent situations where a partial calibration results in spurious
@@ -89,7 +93,6 @@ extern uintptr_t pios_rcvr_group_map[];
 static ManualControlCommandData   cmd;
 static ManualControlSettingsData  settings;
 
-static SystemSettingsAirframeTypeOptions airframe_type;
 static uint8_t                    disconnected_count = 0;
 static uint8_t                    connected_count = 0;
 static struct rcvr_activity_fsm   activity_fsm;
@@ -98,11 +101,14 @@ static uint32_t                   lastSysTime;
 static float                      flight_mode_value;
 static enum control_status        control_status;
 static bool                       settings_updated;
+static bool                       thrust_is_bidir;
+static bool                       collective_is_thrust;
 
 // Private functions
-static float get_thrust_source(ManualControlCommandData *manual_control_command, SystemSettingsAirframeTypeOptions * airframe_type, bool normalize_positive);
-static void update_stabilization_desired(ManualControlCommandData * manual_control_command, ManualControlSettingsData * settings, SystemSettingsAirframeTypeOptions * airframe_type);
-static void altitude_hold_desired(ManualControlCommandData * cmd, bool flightModeChanged, SystemSettingsAirframeTypeOptions * airframe_type);
+static float get_thrust_source(ManualControlCommandData *manual_control_command,
+		bool normalize_positive);
+static void update_stabilization_desired(ManualControlCommandData * manual_control_command, ManualControlSettingsData * settings);
+static void altitude_hold_desired(ManualControlCommandData * cmd, bool flightModeChanged);
 static void set_flight_mode();
 static void process_transmitter_events(ManualControlCommandData * cmd, ManualControlSettingsData * settings, bool valid);
 static void set_manual_control_error(SystemAlarmsManualControlOptions errorCode);
@@ -112,7 +118,7 @@ static uint32_t timeDifferenceMs(uint32_t start_time, uint32_t end_time);
 static void applyDeadband(float *value, float deadband);
 static void resetRcvrActivity(struct rcvr_activity_fsm * fsm);
 static bool updateRcvrActivity(struct rcvr_activity_fsm * fsm);
-static void set_loiter_command(ManualControlCommandData *cmd, SystemSettingsAirframeTypeOptions *airframe_type);
+static void set_loiter_command(ManualControlCommandData *cmd);
 
 // Exposed from manualcontrol to prevent attempts to arm when unsafe
 extern bool ok_to_arm();
@@ -163,21 +169,61 @@ int32_t transmitter_control_initialize()
 	return 0;
 }
 
-static float get_thrust_source(ManualControlCommandData *manual_control_command, SystemSettingsAirframeTypeOptions * airframe_type, bool normalize_positive)
+static float get_thrust_source(ManualControlCommandData *manual_control_command,
+		bool always_fullrange)
 {
-	float thrust = (*airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) ? manual_control_command->Collective : manual_control_command->Throttle;
+	float thrust = collective_is_thrust ?
+			manual_control_command->Collective :
+			manual_control_command->Throttle;
 
-	// only valid for helicp, normalizes collective from [-1,1] to [0,1] for things like althold and loiter that are expecting to see a [0,1] command from throttle
-	// XXX fix this up to do sane things with 3D mode or not
-	if( normalize_positive && *airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP)
-		return (thrust + 1.0f)/2.0f;
+	if (thrust_is_bidir) {
+		/* Thrust is bidirectonal ---- always return it straight */
+		return thrust;
+	}
 
-	// XXX fix this up to implement 3D mode and deadband.
 	if (thrust < 0) {
+		/* Thrust is not intended to be bidirectional, squish the
+		 * bottom half of the range.
+		 */
 		thrust = 0;
 	}
 
-	return thrust;
+	if (!always_fullrange) {
+		/* We have a 0..1 value, and they are OK with a 0..1 value */
+		return thrust;
+	}
+
+	/* We want a -1..1 value, but thrust is squished into a 0..1 range. */
+	return thrust * 2.0f - 1.0f;
+}
+
+static void perform_tc_settings_update()
+{
+	settings_updated = false;
+	ManualControlSettingsGet(&settings);
+
+	uint8_t thrust_channel;
+
+	if (settings.ChannelGroups[MANUALCONTROLSETTINGS_CHANNELGROUPS_COLLECTIVE]
+			< MANUALCONTROLSETTINGS_CHANNELGROUPS_NONE) {
+		collective_is_thrust = true;
+		thrust_channel = MANUALCONTROLSETTINGS_CHANNELGROUPS_COLLECTIVE;
+	} else {
+		collective_is_thrust = false;
+		thrust_channel = MANUALCONTROLSETTINGS_CHANNELGROUPS_THROTTLE;
+	}
+
+	float minval  = settings.ChannelMin[thrust_channel];
+	float maxval  = settings.ChannelMax[thrust_channel];
+	float neutral = settings.ChannelNeutral[thrust_channel];
+
+	float throt_span = neutral - minval / maxval - minval;
+
+	if (throt_span >= THRUST_BIDIR_THRESH) {
+		thrust_is_bidir = true;
+	} else {
+		thrust_is_bidir = false;
+	}
 }
 
 /**
@@ -196,8 +242,13 @@ int32_t transmitter_control_update()
 	bool validChannel[MANUALCONTROLSETTINGS_CHANNELGROUPS_NUMELEM];
 
 	if (settings_updated) {
-		settings_updated = false;
-		ManualControlSettingsGet(&settings);
+		perform_tc_settings_update();
+
+		/* TODO: Factor more of the valid-configuration checks up
+		 * here, so they don't need to be performed each time.
+		 * Also do additonal validation .. e.g. a mostly-negative
+		 * throttle range doesn't make sense!
+		 */
 	}
 
 	/* Update channel activity monitor */
@@ -365,7 +416,7 @@ int32_t transmitter_control_update()
 		// These values are not used but just put ManualControlCommand in a sane state.  When
 		// Connected is false, then the failsafe submodule will be in control.
 
-		cmd.Throttle = -1;
+		cmd.Throttle = 0;
 		cmd.Roll = 0;
 		cmd.Yaw = 0;
 		cmd.Pitch = 0;
@@ -450,8 +501,6 @@ int32_t transmitter_control_select(bool reset_controller)
 
 	ManualControlCommandGet(&cmd);
 
-	SystemSettingsAirframeTypeGet(&airframe_type);
-
 	uint8_t flightMode;
 	FlightStatusFlightModeGet(&flightMode);
 
@@ -472,13 +521,13 @@ int32_t transmitter_control_select(bool reset_controller)
 	case FLIGHTSTATUS_FLIGHTMODE_STABILIZED3:
 	case FLIGHTSTATUS_FLIGHTMODE_FAILSAFE:
 	case FLIGHTSTATUS_FLIGHTMODE_AUTOTUNE:
-		update_stabilization_desired(&cmd, &settings, &airframe_type);
+		update_stabilization_desired(&cmd, &settings);
 		break;
 	case FLIGHTSTATUS_FLIGHTMODE_ALTITUDEHOLD:
-		altitude_hold_desired(&cmd, lastFlightMode != flightMode, &airframe_type);
+		altitude_hold_desired(&cmd, lastFlightMode != flightMode);
 		break;
 	case FLIGHTSTATUS_FLIGHTMODE_POSITIONHOLD:
-		set_loiter_command(&cmd, &airframe_type);
+		set_loiter_command(&cmd);
 		break;
 	case FLIGHTSTATUS_FLIGHTMODE_RETURNTOHOME:
 		// The path planner module processes data here
@@ -941,7 +990,7 @@ static inline float scale_stabilization(StabilizationSettingsData *stabSettings,
 }
 
 //! In stabilization mode, set stabilization desired
-static void update_stabilization_desired(ManualControlCommandData * manual_control_command, ManualControlSettingsData * settings, SystemSettingsAirframeTypeOptions * airframe_type)
+static void update_stabilization_desired(ManualControlCommandData * manual_control_command, ManualControlSettingsData * settings)
 {
 	StabilizationDesiredData stabilization;
 	StabilizationDesiredGet(&stabilization);
@@ -1065,7 +1114,7 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
 			STABILIZATIONDESIRED_STABILIZATIONMODE_YAW);
 
 	// get thrust source; normalize_positive = false since we just want to pass the value through
-	stabilization.Thrust = get_thrust_source(manual_control_command, airframe_type, false);
+	stabilization.Thrust = get_thrust_source(manual_control_command, false);
 
 	// Set the reprojection.
 	stabilization.ReprojectionMode = reprojection;
@@ -1077,7 +1126,8 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
  * @brief Update the altitude desired to current altitude when
  * enabled and enable altitude mode for stabilization
  */
-static void altitude_hold_desired(ManualControlCommandData * cmd, bool flightModeChanged, SystemSettingsAirframeTypeOptions * airframe_type)
+static void altitude_hold_desired(ManualControlCommandData * cmd,
+		bool flightModeChanged)
 {
 	if (AltitudeHoldDesiredHandle() == NULL) {
 		set_manual_control_error(SYSTEMALARMS_MANUALCONTROL_ALTITUDEHOLD);
@@ -1119,19 +1169,17 @@ static void altitude_hold_desired(ManualControlCommandData * cmd, bool flightMod
 		AltitudeHoldSettingsExpoGet(&altitude_hold_expo);
 		AltitudeHoldSettingsDeadbandGet(&altitude_hold_deadband);
 
-		const float DEADBAND_HIGH = 0.50f +
-			(altitude_hold_deadband / 2.0f) * 0.01f;
-		const float DEADBAND_LOW = 0.50f -
-			(altitude_hold_deadband / 2.0f) * 0.01f;
+		const float DEADBAND = altitude_hold_deadband * 0.01f;
 
-		float const thrust_source = get_thrust_source(cmd, airframe_type, true);
+		float const thrust_source = get_thrust_source(cmd, true);
 
 		float climb_rate = 0.0f;
-		if (thrust_source > DEADBAND_HIGH) {
-			climb_rate = expo3((thrust_source - DEADBAND_HIGH) / (1.0f - DEADBAND_HIGH), altitude_hold_expo) *
+
+		if (thrust_source > DEADBAND) {
+			climb_rate = expo3((thrust_source - DEADBAND) / (1.0f - DEADBAND), altitude_hold_expo) *
 		                         altitude_hold_maxclimbrate;
-		} else if (thrust_source < DEADBAND_LOW && altitude_hold_maxdescentrate > MIN_CLIMB_RATE) {
-			climb_rate = ((thrust_source < 0) ? DEADBAND_LOW : DEADBAND_LOW - thrust_source) / DEADBAND_LOW;
+		} else if (thrust_source < -DEADBAND && altitude_hold_maxdescentrate > MIN_CLIMB_RATE) {
+			climb_rate = (thrust_source + DEADBAND) / (1.0f - DEADBAND);
 			climb_rate = -expo3(climb_rate, altitude_hold_expo) * altitude_hold_maxdescentrate;
 		}
 
@@ -1155,14 +1203,14 @@ static void altitude_hold_desired(ManualControlCommandData * cmd, bool flightMod
 }
 
 
-static void set_loiter_command(ManualControlCommandData *cmd, SystemSettingsAirframeTypeOptions *airframe_type)
+static void set_loiter_command(ManualControlCommandData *cmd)
 {
 	LoiterCommandData loiterCommand;
 
 	loiterCommand.Pitch = cmd->Pitch;
 	loiterCommand.Roll = cmd->Roll;
 
-	loiterCommand.Thrust = get_thrust_source(cmd, airframe_type, true);
+	loiterCommand.Thrust = get_thrust_source(cmd, true);
 
 	loiterCommand.Frame = LOITERCOMMAND_FRAME_BODY;
 
@@ -1174,6 +1222,7 @@ static void set_loiter_command(ManualControlCommandData *cmd, SystemSettingsAirf
  */
 static float scaleChannel(int n, int16_t value)
 {
+	// TODO : change these variable names to be safer
 	int16_t min = settings.ChannelMin[n];
 	int16_t max = settings.ChannelMax[n];
 	int16_t neutral = settings.ChannelNeutral[n];
