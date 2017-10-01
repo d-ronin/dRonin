@@ -22,6 +22,7 @@
 				<option>LighttelemetryTx</option>
 				<option>MavLinkTX</option>
 				<option>MSP</option>
+				<option>OpenLog</option>
 				<option>Storm32Bgc</option>
 				<option>Telemetry</option>
 			</options>
