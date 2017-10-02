@@ -396,6 +396,8 @@ void PluginManager::formatPluginVersions(QTextStream &str) const
 void PluginManager::startTests()
 {
 #ifdef WITH_TESTS
+    bool failed = false;
+
     foreach (PluginSpec *pluginSpec, d->testSpecs) {
         const QMetaObject *mo = pluginSpec->plugin()->metaObject();
         QStringList methods;
@@ -407,9 +409,16 @@ void PluginManager::startTests()
                 methods.append(method.left(method.size()-2));
             }
         }
-        QTest::qExec(pluginSpec->plugin(), methods);
-
+        if (QTest::qExec(pluginSpec->plugin(), methods) != 0) {
+            failed = true;
+            qWarning() << "Tests failed for plugin:" << pluginSpec->name();
+        }
     }
+
+    if (failed)
+        QCoreApplication::exit(1);
+    else if (runningTests())
+        QCoreApplication::exit(0);
 #endif
 }
 
