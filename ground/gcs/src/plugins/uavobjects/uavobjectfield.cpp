@@ -858,13 +858,15 @@ QVariant UAVObjectField::getValue(int index) const
 
     switch (type) {
     case INT8:
-        return QVariant::fromValue(*static_cast<const qint8 *>(d));
+        // QVariant treats qint8 as char :(
+        return QVariant::fromValue(static_cast<int>(*static_cast<const qint8 *>(d)));
     case INT16:
         return QVariant::fromValue(*static_cast<const qint16 *>(d));
     case INT32:
         return QVariant::fromValue(*static_cast<const qint32 *>(d));
     case UINT8:
-        return QVariant::fromValue(*static_cast<const quint8 *>(d));
+        // QVariant treats quint8 as char :(
+        return QVariant::fromValue(static_cast<int>(*static_cast<const quint8 *>(d)));
     case UINT16:
         return QVariant::fromValue(*static_cast<const quint16 *>(d));
     case UINT32:
