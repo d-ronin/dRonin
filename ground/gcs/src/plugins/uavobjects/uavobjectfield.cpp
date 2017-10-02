@@ -921,7 +921,7 @@ bool UAVObjectField::checkValue(const QVariant &value, int index) const
         case ENUM:
             if (static_cast<QMetaType::Type>(value.type()) == QMetaType::QString) {
                 int idx = options.indexOf(value.toString());
-                if (idx > 0 && idx < indices.length())
+                if (idx >= 0 && idx < indices.length())
                     return true;
             } else if (value.canConvert(QMetaType::Int)) {
                 if (indices.contains(value.toInt()))
