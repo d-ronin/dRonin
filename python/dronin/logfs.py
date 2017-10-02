@@ -121,7 +121,7 @@ class LogFSImport(dict):
             if obj is not None:
                 # print "  slot state=%08x, objid=%08x, instid=%04x, size=%d"%(state, obj_id, inst_id, size)
 
-                objInstance = obj.from_bytes(contents, 0, None, offset=offset)
+                objInstance = obj.from_bytes(contents, 0, offset=offset)
 
                 self[obj._name] = objInstance
 
