@@ -783,6 +783,10 @@ static float scale_channel(float value, int idx)
 		}
 	}
 
+	if (min > max) {
+		deadband = -deadband;
+	}
+
 	if (value >= 0.0f) {
 		valueScaled = value * (max - neutral - deadband)
 			+ neutral + deadband;
