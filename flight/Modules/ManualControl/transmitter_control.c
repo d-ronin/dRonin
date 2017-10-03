@@ -106,7 +106,7 @@ static bool                       collective_is_thrust;
 
 // Private functions
 static float get_thrust_source(ManualControlCommandData *manual_control_command,
-		bool normalize_positive);
+		bool always_fullrange);
 static void update_stabilization_desired(ManualControlCommandData * manual_control_command, ManualControlSettingsData * settings);
 static void altitude_hold_desired(ManualControlCommandData * cmd, bool flightModeChanged);
 static void set_flight_mode();
@@ -177,7 +177,9 @@ static float get_thrust_source(ManualControlCommandData *manual_control_command,
 			manual_control_command->Throttle;
 
 	if (thrust_is_bidir) {
-		/* Thrust is bidirectonal ---- always return it straight */
+		/* Thrust is bidirectional; apply a deadband and call it good */
+		applyDeadband(&thrust, settings.ThrustDeadband);
+
 		return thrust;
 	}
 
@@ -189,12 +191,29 @@ static float get_thrust_source(ManualControlCommandData *manual_control_command,
 	}
 
 	if (!always_fullrange) {
+		/* TODO/consider: use the value from 3D flight, and remove
+		 * deadbands from downstream subsystems.  May want a
+		 * different deadband, because e.g. helicopters may want no
+		 * deadband except in althold etc.
+		 */
+
 		/* We have a 0..1 value, and they are OK with a 0..1 value */
 		return thrust;
 	}
 
 	/* We want a -1..1 value, but thrust is squished into a 0..1 range. */
 	return thrust * 2.0f - 1.0f;
+}
+
+static bool is_low_throttle_for_arming(
+		ManualControlCommandData *manual_control_command)
+{
+	if (collective_is_thrust) {
+		/* Always use throttle on vehicles with collective */
+		return manual_control_command->Throttle == 0;
+	}
+
+	return get_thrust_source(manual_control_command, false) == 0;
 }
 
 static void perform_tc_settings_update()
@@ -563,33 +582,32 @@ uint8_t transmitter_control_get_flight_mode()
 /**
  * Check sticks to determine if they are in the arming position
  */
-static bool arming_position(ManualControlCommandData * cmd, ManualControlSettingsData * settings) {
-
+static bool arming_position(ManualControlCommandData *cmd,
+		ManualControlSettingsData *settings,
+		bool low_throt) {
 	// If system is not appropriate to arm, do not even attempt
 	if (!ok_to_arm())
 		return false;
-
-	bool lowThrottle = cmd->Throttle == 0;
 
 	switch(settings->Arming) {
 	case MANUALCONTROLSETTINGS_ARMING_ALWAYSDISARMED:
 		return false;
 	case MANUALCONTROLSETTINGS_ARMING_ROLLLEFTTHROTTLE:
-		return lowThrottle && cmd->Roll < -ARMED_THRESHOLD;
+		return low_throt && cmd->Roll < -ARMED_THRESHOLD;
 	case MANUALCONTROLSETTINGS_ARMING_ROLLRIGHTTHROTTLE:
-		return lowThrottle && cmd->Roll > ARMED_THRESHOLD;
+		return low_throt && cmd->Roll > ARMED_THRESHOLD;
 	case MANUALCONTROLSETTINGS_ARMING_YAWLEFTTHROTTLE:
-		return lowThrottle && cmd->Yaw < -ARMED_THRESHOLD;
+		return low_throt && cmd->Yaw < -ARMED_THRESHOLD;
 	case MANUALCONTROLSETTINGS_ARMING_YAWRIGHTTHROTTLE:
-		return lowThrottle && cmd->Yaw > ARMED_THRESHOLD;
+		return low_throt && cmd->Yaw > ARMED_THRESHOLD;
 	case MANUALCONTROLSETTINGS_ARMING_CORNERSTHROTTLE:
-		return lowThrottle && (
+		return low_throt && (
 			(cmd->Yaw > ARMED_THRESHOLD || cmd->Yaw < -ARMED_THRESHOLD) &&
 			(cmd->Roll > ARMED_THRESHOLD || cmd->Roll < -ARMED_THRESHOLD) ) &&
 			(cmd->Pitch > ARMED_THRESHOLD);
 			// Note that pulling pitch stick down corresponds to positive values
 	case MANUALCONTROLSETTINGS_ARMING_SWITCHTHROTTLE:
-		if (!lowThrottle) return false;
+		if (!low_throt) return false;
 	case MANUALCONTROLSETTINGS_ARMING_SWITCH:
 		return cmd->ArmSwitch == MANUALCONTROLCOMMAND_ARMSWITCH_ARMED;
 	default:
@@ -600,23 +618,21 @@ static bool arming_position(ManualControlCommandData * cmd, ManualControlSetting
 /**
  * Check sticks to determine if they are in the disarmed position
  */
-static bool disarming_position(ManualControlCommandData * cmd, ManualControlSettingsData * settings)
+static bool disarming_position(ManualControlCommandData * cmd, ManualControlSettingsData * settings, bool low_throt)
 {
-	bool lowThrottle = cmd->Throttle <= 0;
-
 	switch(settings->Arming) {
 	case MANUALCONTROLSETTINGS_ARMING_ALWAYSDISARMED:
 		return true;
 	case MANUALCONTROLSETTINGS_ARMING_ROLLLEFTTHROTTLE:
-		return lowThrottle && cmd->Roll > ARMED_THRESHOLD;
+		return low_throt && cmd->Roll > ARMED_THRESHOLD;
 	case MANUALCONTROLSETTINGS_ARMING_ROLLRIGHTTHROTTLE:
-		return lowThrottle && cmd->Roll < -ARMED_THRESHOLD;
+		return low_throt && cmd->Roll < -ARMED_THRESHOLD;
 	case MANUALCONTROLSETTINGS_ARMING_YAWLEFTTHROTTLE:
-		return lowThrottle && cmd->Yaw > ARMED_THRESHOLD;
+		return low_throt && cmd->Yaw > ARMED_THRESHOLD;
 	case MANUALCONTROLSETTINGS_ARMING_YAWRIGHTTHROTTLE:
-		return lowThrottle && cmd->Yaw < -ARMED_THRESHOLD;
+		return low_throt && cmd->Yaw < -ARMED_THRESHOLD;
 	case MANUALCONTROLSETTINGS_ARMING_CORNERSTHROTTLE:
-		return lowThrottle && (
+		return low_throt && (
 			(cmd->Yaw > ARMED_THRESHOLD || cmd->Yaw < -ARMED_THRESHOLD) &&
 			(cmd->Roll > ARMED_THRESHOLD || cmd->Roll < -ARMED_THRESHOLD) );
 	case MANUALCONTROLSETTINGS_ARMING_SWITCH:
@@ -628,11 +644,12 @@ static bool disarming_position(ManualControlCommandData * cmd, ManualControlSett
 }
 
 static bool disarm_commanded(ManualControlCommandData *cmd,
-		ManualControlSettingsData *settings)
+		ManualControlSettingsData *settings,
+		bool low_throt)
 {
 	static uint32_t start_time;
 
-	if (!disarming_position(cmd, settings)) {
+	if (!disarming_position(cmd, settings, low_throt)) {
 		start_time = 0;
 		return false;
 	}
@@ -733,7 +750,7 @@ static void process_transmitter_events(ManualControlCommandData * cmd, ManualCon
 		return;
 	}
 
-	bool low_throt = cmd->Throttle <= 0;
+	bool low_throt = is_low_throttle_for_arming(cmd);
 
 	if (low_throt) {
 		/* Determine whether to disarm when throttle is low */
@@ -759,11 +776,11 @@ static void process_transmitter_events(ManualControlCommandData * cmd, ManualCon
 		reset_receiver_timer();
 	}
 
-	if (disarm_commanded(cmd, settings)) {
+	if (disarm_commanded(cmd, settings, low_throt)) {
 		/* Separate timer from the above */
 		control_status = STATUS_DISARM;
 		return;
-	} else if (arming_position(cmd, settings)) {
+	} else if (arming_position(cmd, settings, low_throt)) {
 		/* Not disarming pos, not low throt timeout, not disconnected. */
 
 		if (control_status == STATUS_DISARM) {
