@@ -569,7 +569,7 @@ static bool arming_position(ManualControlCommandData * cmd, ManualControlSetting
 	if (!ok_to_arm())
 		return false;
 
-	bool lowThrottle = cmd->Throttle <= 0;
+	bool lowThrottle = cmd->Throttle == 0;
 
 	switch(settings->Arming) {
 	case MANUALCONTROLSETTINGS_ARMING_ALWAYSDISARMED:
