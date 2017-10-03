@@ -766,7 +766,7 @@ static float scale_channel(float value, int idx)
 	float max = actuatorSettings.ChannelMax[idx];
 	float min = actuatorSettings.ChannelMin[idx];
 	float neutral = actuatorSettings.ChannelNeutral[idx];
-	float deadband = actuatorSettings.ChannelDeadband[idx];
+	float deadband = actuatorSettings.ChannelDeadband[idx] / 2.0f;
 
 	float valueScaled;
 
