@@ -109,7 +109,7 @@ QWidget *ScopeGadgetOptionsPage::createPage(QWidget *parent)
         }
     }
 
-    qSort(toAdd);
+    std::sort(toAdd.begin(), toAdd.end());
 
     foreach (QString elem, toAdd) {
         // Before we only added items to the spectrogram if they were not

@@ -673,24 +673,23 @@
   </layout>
  </widget>
  <tabstops>
+  <tabstop>cmbFlexiPort</tabstop>
+  <tabstop>cmbMainPort</tabstop>
   <tabstop>cmbRxPort</tabstop>
   <tabstop>cmbUsbHidPort</tabstop>
-  <tabstop>cmbUsbVcpPort</tabstop>
   <tabstop>cmbGyroRange</tabstop>
-  <tabstop>cmbAccelRange</tabstop>
   <tabstop>cmbGyroLpf</tabstop>
-  <tabstop>cmbAccelLpf</tabstop>
   <tabstop>cmbDsmxMode</tabstop>
-  <tabstop>help</tabstop>
-  <tabstop>reloadSettings</tabstop>
-  <tabstop>defaultSettings</tabstop>
+  <tabstop>cmbUsbVcpPort</tabstop>
+  <tabstop>cmbAccelRange</tabstop>
+  <tabstop>cmbAccelLpf</tabstop>
   <tabstop>saveSettings</tabstop>
   <tabstop>rebootBoard</tabstop>
+  <tabstop>reloadSettings</tabstop>
+  <tabstop>defaultSettings</tabstop>
  </tabstops>
  <resources>
-  <include location="../coreplugin/core.qrc"/>
   <include location="brotronics.qrc"/>
-  <include location="../coreplugin/core.qrc"/>
  </resources>
  <connections/>
 </ui>

@@ -81,7 +81,7 @@ QList<IDevice *> SerialConnection::availableDevices()
         QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts();
 
         // sort the list by port number (nice idea from PT_Dreamer :))
-        qSort(ports.begin(), ports.end(), sortPorts);
+        std::sort(ports.begin(), ports.end(), sortPorts);
         bool port_exists;
         foreach (QSerialPortInfo port, ports) {
             port_exists = false;

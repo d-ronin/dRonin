@@ -76,7 +76,7 @@ static inline QList<Core::IOptionsPage *> sortedOptionsPages()
 {
     QList<Core::IOptionsPage *> rc =
         ExtensionSystem::PluginManager::instance()->getObjects<IOptionsPage>();
-    qStableSort(rc.begin(), rc.end(), optionsPageLessThan);
+    std::stable_sort(rc.begin(), rc.end(), optionsPageLessThan);
     return rc;
 }
 

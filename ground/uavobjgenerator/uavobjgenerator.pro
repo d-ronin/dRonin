@@ -13,6 +13,8 @@ macx {
     error("Qt $${DR_QT_MAJOR_VERSION}.$${DR_QT_MINOR_VERSION}.$${DR_QT_PATCH_VERSION}+ required (Qt $${QT_MAJOR_VERSION}.$${QT_MINOR_VERSION}.$${QT_PATCH_VERSION} installed). Please run 'make qt_sdk_install'.")
 }
 
+DEFINES += QT_DEPRECATED_WARNINGS
+
 cache()
 
 TARGET = uavobjgenerator
