@@ -44,6 +44,12 @@ public:
     void extensionsInitialized();
     bool initialize(const QStringList &arguments, QString *errorString);
     void shutdown();
+
+#ifdef WITH_TESTS
+private Q_SLOTS:
+    void testEnumFields();
+    void testIntFields();
+#endif
 };
 
 #endif // UAVOBJECTSPLUGIN_H

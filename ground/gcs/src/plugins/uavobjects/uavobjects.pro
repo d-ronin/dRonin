@@ -28,6 +28,10 @@ SOURCES += uavobject.cpp \
     uavobjectfield.cpp \
     uavobjectsplugin.cpp
 
+contains(DEFINES, WITH_TESTS) {
+    SOURCES += uavobjectstests.cpp
+}
+
 OTHER_FILES += UAVObjects.pluginspec
 
 # Add in all of the synthetic/generated uavobject files
