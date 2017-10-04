@@ -256,7 +256,7 @@ void stabilization_failsafe_checks(StabilizationDesiredData *stab_desired,
 			}
 			else
 			{
-				actuator_desired->Thrust = -1.0f;
+				actuator_desired->Thrust = 0.0f;
 
 				switch (i) {
 					case 0: /* Roll */
