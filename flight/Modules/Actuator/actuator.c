@@ -311,14 +311,61 @@ static void fill_desired_vector(
 	 */
 }
 
-static void post_process_scale_and_commit(float *motor_vect, float dT,
-		bool armed, bool spin_while_armed, bool stabilize_now)
+static void post_process_scale_and_commit(float *motor_vect,
+		float *desired_vect, float dT,
+		bool armed, bool spin_while_armed, bool stabilize_now,
+		float *maxpoweradd_bucket)
 {
 	float min_chan = INFINITY;
 	float max_chan = -INFINITY;
 	float neg_clip = 0;
 	int num_motors = 0;
 	ActuatorCommandData command;
+
+	const float hangtime_leakybucket_timeconstant = 0.3f;
+
+	/* Hangtime maximum power add is now a "leaky bucket" system, ensuring
+	 * that the average added power in the long term is the configured value
+	 * but allowing higher values briefly.
+	 *
+	 * The intention is to allow more aggressive maneuvers than hangtime
+	 * previously did, while still providing similar safety properties.
+	 * A secondary motivation is to prevent tumbling when throttle is
+	 * chopped during fast-forward-flight and more than hangtime power
+	 * levels are needed for stabilization (because of aerodynamic forces).
+	 *
+	 * The "maximum" stored is based on recent throttle history-- it decays
+	 * with time; at high throttle it corresponds to 300ms of the current
+	 * power; at lower throttle it corresponds to 300ms of double the
+	 * configured value.
+	 */
+	float maxpoweradd_softlimit = MAX(
+			2 * actuatorSettings.LowPowerStabilizationMaxPowerAdd,
+			desired_vect[MIXERSETTINGS_MIXER1VECTOR_THROTTLECURVE1])
+		* hangtime_leakybucket_timeconstant;
+
+	/* If we're under the limit, add this tick's hangtime power allotment */
+	if (*maxpoweradd_bucket < maxpoweradd_softlimit) {
+		*maxpoweradd_bucket += actuatorSettings.LowPowerStabilizationMaxPowerAdd * dT;
+	} else {
+		/* Otherwise, decay towards the current limit on a 300ms
+		 * time constant.
+		 */
+		float alpha = dT / (dT + hangtime_leakybucket_timeconstant);
+
+		*maxpoweradd_bucket = alpha * maxpoweradd_softlimit +
+			(1-alpha) * (*maxpoweradd_bucket);
+	}
+
+	/* The maximum power add is what would spend the current allotment in
+	 * 300ms.  In other words, in the absence of recent high-throttle,
+	 * start from double the hangtime configured percentage and decay on
+	 * a 300ms time constant IF IT IS ACTUALLY USED.
+	 *
+	 * This is separate from the above decay, so we could actually be
+	 * decaying twice as fast if both are in play.
+	 */
+	float maxpoweradd = (*maxpoweradd_bucket) / hangtime_leakybucket_timeconstant;
 
 	for (int ct = 0; ct < MAX_MIX_ACTUATORS; ct++) {
 		switch (types_mixer[ct]) {
@@ -404,13 +451,20 @@ static void post_process_scale_and_commit(float *motor_vect, float dT,
 		 * if neg_clip is 5%, and maxpoweradd is 10%, we can add up to
 		 * 5% to all motors to further fix clipping.
 		 */
-		offset = neg_clip + actuatorSettings.LowPowerStabilizationMaxPowerAdd;
+		offset = neg_clip + maxpoweradd;
 
 		/* Add the lesser of--
 		 * A) the amount the lowest channel is out of range.
 		 * B) the above calculated offset.
 		 */
 		offset = MIN(-min_chan, offset);
+
+		/* The amount actually added is the above offset, plus the
+		 * amount that came from negative clipping.  (It's negative
+		 * though, so subtract instead of add).  Spend this from
+		 * the leaky bucket. 
+		 */
+		*maxpoweradd_bucket -= (offset - neg_clip) * dT;
 	}
 
 	for (int ct = 0; ct < MAX_MIX_ACTUATORS; ct++) {
@@ -506,26 +560,7 @@ static void normalize_input_data(uint32_t this_systime,
 		throttle_val = -1;
 	}
 
-	static uint32_t last_pos_throttle_time = 0;
-
-	*stabilize_now = *armed && (throttle_val > 0.0f);
-
-	if (*stabilize_now) {
-		if (actuatorSettings.LowPowerStabilizationMaxTime) {
-			last_pos_throttle_time = this_systime;
-		}
-
-		// Could consider stabilizing on a positive arming edge,
-		// but this seems problematic.
-	} else if (last_pos_throttle_time) {
-		if ((this_systime - last_pos_throttle_time) <
-				1000.0f * actuatorSettings.LowPowerStabilizationMaxTime) {
-			*stabilize_now = true;
-			throttle_val = 0.0f;
-		} else {
-			last_pos_throttle_time = 0;
-		}
-	}
+	*stabilize_now = throttle_val > 0.0f;
 
 	float val1 = throt_curve(throttle_val, curve1,
 			MIXERSETTINGS_THROTTLECURVE1_NUMELEM);
@@ -571,6 +606,8 @@ static void actuator_task(void* parameters)
 	uint32_t last_systime = PIOS_Thread_Systime();
 	float desired_vect[MIXERSETTINGS_MIXER1VECTOR_NUMELEM] = { 0 };
 	float dT = 0.0f;
+	
+	float maxpoweradd_bucket = 0.0f;
 
 	// Main task loop
 	while (1) {
@@ -683,8 +720,9 @@ static void actuator_task(void* parameters)
 		 *
 		 * Program the actual values to the timer subsystem.
 		 */
-		post_process_scale_and_commit(motor_vect, dT, armed,
-				spin_while_armed, stabilize_now);
+		post_process_scale_and_commit(motor_vect, desired_vect,
+				dT, armed, spin_while_armed, stabilize_now,
+				&maxpoweradd_bucket);
 
 		/* If we got this far, everything is OK. */
 		AlarmsClear(SYSTEMALARMS_ALARM_ACTUATOR);
