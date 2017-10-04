@@ -287,8 +287,8 @@ static void PIOS_SBus_Supervisor(uintptr_t sbus_id)
 		state->receive_timer = 0;
 	}
 
-	/* activate failsafe if no frames have arrived in 48ms */
-	if (++state->failsafe_timer > 30) {
+	/* Activate failsafe if no frames have arrived in ~250ms. */
+	if (++state->failsafe_timer > 156) {
 		PIOS_SBus_ResetChannels(state);
 		state->failsafe_timer = 0;
 	}

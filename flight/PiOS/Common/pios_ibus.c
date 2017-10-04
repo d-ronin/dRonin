@@ -236,7 +236,8 @@ static void PIOS_IBus_Supervisor(uintptr_t context)
 	if (++dev->rx_timer > 3)
 		PIOS_IBus_ResetBuffer(dev);
 
-	if (++dev->failsafe_timer > 32)
+	/* ~250ms to failsafe. */
+	if (++dev->failsafe_timer > 156)
 		PIOS_IBus_SetAllChannels(dev, PIOS_RCVR_TIMEOUT);
 }
 

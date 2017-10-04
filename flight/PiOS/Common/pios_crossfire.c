@@ -374,7 +374,8 @@ bool PIOS_Crossfire_IsFailsafed(uintptr_t crsf_id)
 	if(!PIOS_Crossfire_Validate(dev))
 		PIOS_Assert(0);
 
-	return dev->failsafe_timer > 32;
+	/* ~250ms to failsafe. */
+	return dev->failsafe_timer > 156;
 }
 
 #endif // PIOS_INCLUDE_CROSSFIRE
