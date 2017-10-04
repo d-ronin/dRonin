@@ -119,6 +119,10 @@ void PIOS_Board_Init(void) {
 		/* Cope with clones with no flash, too. */
 
 		is_modified_clone = true;
+
+		/* Override LED configuration for Omnibus things */
+		PIOS_ANNUNC_Init(&pios_annunc_omnibus_cfg);
+
 		pios_external_flash_id = 0;
 	}
 

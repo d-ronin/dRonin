@@ -433,12 +433,13 @@ bool Revolution::hasAnnunciator(AnnunciatorType annunc)
     case ANNUNCIATOR_HEARTBEAT:
     case ANNUNCIATOR_RGB:
         return true;
+    case ANNUNCIATOR_BUZZER:
+        /* TODO: would be nice to have a distinct "revision" for this */
     case ANNUNCIATOR_ALARM:
         if (uavoUtilManager->getBoardRevision() == 3)
             return true;
         else
             break;
-    case ANNUNCIATOR_BUZZER:
     case ANNUNCIATOR_DAC:
         break;
     }

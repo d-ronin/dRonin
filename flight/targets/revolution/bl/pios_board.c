@@ -77,6 +77,9 @@ void PIOS_Board_Init()
 
 	if (!flash_chip_ok) {
 		pios_external_flash_id = 0;
+
+		/* Override configuration for Omnibus things */
+		PIOS_ANNUNC_Init(&pios_annunc_omnibus_cfg);
 	}
 
 	const struct pios_flash_partition * flash_partition_table;

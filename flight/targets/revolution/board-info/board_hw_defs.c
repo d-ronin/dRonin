@@ -90,6 +90,39 @@ static const struct pios_annunc_cfg pios_annunc_v2_cfg = {
 	.num_annunciators = NELEMENTS(pios_annuncs_v2),
 };
 
+static const struct pios_annunc pios_annuncs_omnibus[] = {
+	[PIOS_LED_HEARTBEAT] = {
+		.pin = {
+			.gpio = GPIOB,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_5,
+				.GPIO_Speed = GPIO_Speed_50MHz,
+				.GPIO_Mode  = GPIO_Mode_OUT,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd = GPIO_PuPd_UP
+			},
+		},
+	},
+	[PIOS_ANNUNCIATOR_BUZZER] = {
+		.pin = {
+			.gpio = GPIOB,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_4,
+				.GPIO_Speed = GPIO_Speed_50MHz,
+				.GPIO_Mode  = GPIO_Mode_OUT,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd = GPIO_PuPd_UP
+			},
+		},
+		.active_high = true,
+	},
+};
+
+static const struct pios_annunc_cfg pios_annunc_omnibus_cfg = {
+	.annunciators     = pios_annuncs_omnibus,
+	.num_annunciators = NELEMENTS(pios_annuncs_omnibus),
+};
+
 const struct pios_annunc_cfg * PIOS_BOARD_HW_DEFS_GetLedCfg (uint32_t board_revision)
 {
 	switch(board_revision) {
