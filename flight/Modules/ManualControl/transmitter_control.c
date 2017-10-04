@@ -236,7 +236,7 @@ static void perform_tc_settings_update()
 	float maxval  = settings.ChannelMax[thrust_channel];
 	float neutral = settings.ChannelNeutral[thrust_channel];
 
-	float throt_span = neutral - minval / maxval - minval;
+	float throt_span = (neutral - minval) / (maxval - minval);
 
 	if (throt_span >= THRUST_BIDIR_THRESH) {
 		thrust_is_bidir = true;
