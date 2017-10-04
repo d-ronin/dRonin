@@ -114,6 +114,10 @@ void PIOS_ANNUNC_On(uint32_t annunc_id)
 		return;
 	}
 
+	if (!annunciator->pin.gpio) {
+		return;
+	}
+
 	if (annunciator->active_high) {
 		GPIO_SetBits(annunciator->pin.gpio,
 				annunciator->pin.init.GPIO_Pin);
@@ -143,6 +147,10 @@ void PIOS_ANNUNC_Off(uint32_t annunc_id)
 
 	if (annunciator->handler) {
 		annunciator->handler(false);
+		return;
+	}
+
+	if (!annunciator->pin.gpio) {
 		return;
 	}
 
