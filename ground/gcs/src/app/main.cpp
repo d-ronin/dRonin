@@ -255,7 +255,7 @@ int main(int argc, char **argv)
         QStringList() << "t" << COMMAND_LINE_TEST,
         QCoreApplication::translate("main", "Runs tests on the plugin. (Requires compiling with -D "
                                             "WITH_TESTS, look in the uploader plugin for example "
-                                            "usage)"),
+                                            "usage). Special argument 'all' will run all tests."),
         QCoreApplication::translate("main", "plugin name"), "");
     parser.addOption(doTestsOption);
     QCommandLineOption pluginOption(

@@ -409,7 +409,7 @@ void PluginManager::startTests()
                 methods.append(method.left(method.size()-2));
             }
         }
-        if (QTest::qExec(pluginSpec->plugin(), methods) != 0) {
+        if (methods.length() > 1 && QTest::qExec(pluginSpec->plugin(), methods) != 0) {
             failed = true;
             qWarning() << "Tests failed for plugin:" << pluginSpec->name();
         }

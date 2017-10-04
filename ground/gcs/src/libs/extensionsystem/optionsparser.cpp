@@ -47,6 +47,12 @@ QStringList OptionsParser::parse(QStringList pluginOptions, QStringList pluginTe
 
 void OptionsParser::checkForTestOption(QStringList pluginTests)
 {
+    if (pluginTests.length() == 1 && pluginTests.at(0).toLower() == QStringLiteral("all")) {
+        for (auto spec : m_pmPrivate->pluginSpecs)
+            m_pmPrivate->testSpecs.append(spec);
+        return;
+    }
+
     foreach (QString plugin, pluginTests) {
         PluginSpec *spec = m_pmPrivate->pluginByName(plugin);
         if (!spec) {
