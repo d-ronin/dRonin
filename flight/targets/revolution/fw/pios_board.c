@@ -494,6 +494,13 @@ void PIOS_Board_Init(void) {
 				PIOS_WS2811_trigger_update(pios_ws2811);
 				break;
 
+			case HWREVOLUTION_WS2811PIN_PB6OMNIBUSF4V2LEDPORT:
+				PIOS_WS2811_init(&pios_ws2811,
+						&pios_ws2811_cfg_pb6,
+						num_leds);
+				PIOS_WS2811_trigger_update(pios_ws2811);
+				break;
+
 			case HWREVOLUTION_WS2811PIN_PA0SERVOOUT6:
 				/* 0 indexed */
 				PIOS_Servo_DisableChannel(6 - 1);

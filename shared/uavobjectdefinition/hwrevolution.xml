@@ -23,6 +23,7 @@
 				<option>Disabled</option>
 				<option>PB12 - InPort Pin 3</option>
 				<option>PD2 - OmniBus F4 LEDPort</option>
+				<option>PB6 - OmniBus F4V2 LEDPort</option>
 				<option>PA0 - Servo Out 6</option>
 			</options>
 		</field>
