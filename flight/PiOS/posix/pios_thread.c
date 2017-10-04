@@ -159,7 +159,7 @@ bool PIOS_Thread_Period_Elapsed(const uint32_t prev_systime,
 
 	uint32_t interval = now - prev_systime;
 
-	return increment_ms >= interval;
+	return increment_ms <= interval;
 }
 
 
