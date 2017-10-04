@@ -180,6 +180,8 @@ void OutputChannelForm::setMin(int minimum)
  */
 void OutputChannelForm::setMinmax(int minimum, int maximum)
 {
+    inhibitRangeChanges = true;
+
     if (minMaxFixed) {
         ui.actuatorMin->setValue(limitMin);
         ui.actuatorMax->setValue(limitMax);
@@ -187,6 +189,9 @@ void OutputChannelForm::setMinmax(int minimum, int maximum)
         ui.actuatorMin->setValue(minimum);
         ui.actuatorMax->setValue(maximum);
     }
+
+    inhibitRangeChanges = false;
+
     setChannelRange();
 }
 
@@ -243,6 +248,10 @@ void OutputChannelForm::setAssignment(const QString &assignment)
  */
 void OutputChannelForm::setChannelRange()
 {
+    if (inhibitRangeChanges) {
+        return;
+    }
+
     if (minMaxFixed) { // special case Dshot
         ui.actuatorNeutral->setRange(limitMin, limitMax);
         ui.actuatorNeutral->setEnabled(true);
@@ -272,12 +281,10 @@ void OutputChannelForm::reverseChannel()
     // can't reverse Dshot at this time
     if (!ui.actuatorMin->isEnabled() || !ui.actuatorMax->isEnabled())
         return;
-    // Swap the min & max values
-    int temp = ui.actuatorMax->value();
-    ui.actuatorMax->setValue(ui.actuatorMin->value());
-    ui.actuatorMin->setValue(temp);
 
-    // Force slider update
+    // Swap the min & max values
+    setMinmax(ui.actuatorMax->value(), ui.actuatorMin->value());
+
     setChannelRange();
 }
 
