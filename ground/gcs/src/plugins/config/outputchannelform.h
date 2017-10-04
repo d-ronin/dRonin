@@ -66,6 +66,8 @@ private:
     int limitMin, limitMax;
     bool minMaxFixed;
 
+    bool inhibitRangeChanges;
+
     void alignFields();
 
 private slots:
