@@ -63,7 +63,7 @@ namespace core {
 #ifdef DEBUG_GetGeocoderFromCache
         qDebug()<<"Entered GetGeocoderFromCache";
 #endif
-        QString ret=QString::null;
+        QString ret;
         QString filename=geoCache+QString(urlEnd)+".geo";
 #ifdef DEBUG_GetGeocoderFromCache
         qDebug()<<"GetGeocoderFromCache: Does file exist?:"<<filename;
@@ -89,7 +89,7 @@ namespace core {
     }
     void Cache::CacheGeocoder(const QString &urlEnd, const QString &content)
     {
-        QString ret=QString::null;
+        QString ret;
         QString filename=geoCache+QString(urlEnd)+".geo";
 #ifdef DEBUG_CACHE
         qDebug()<<"CacheGeocoder: Filename:"<<filename;
@@ -131,7 +131,7 @@ namespace core {
 #ifdef DEBUG_CACHE
         qDebug()<<"Entered GetPlacemarkFromCache";
 #endif //DEBUG_CACHE
-        QString ret=QString::null;
+        QString ret;
         QString filename=placemarkCache+QString(urlEnd)+".plc";
 #ifdef DEBUG_CACHE
         qDebug()<<"GetPlacemarkFromCache: Does file exist?:"<<filename;
@@ -157,7 +157,7 @@ namespace core {
     }
     void Cache::CachePlacemark(const QString &urlEnd, const QString &content)
     {
-        QString ret=QString::null;
+        QString ret;
         QString filename=placemarkCache+QString(urlEnd)+".plc";
 #ifdef DEBUG_CACHE
         qDebug()<<"CachePlacemark: Filename:"<<filename;
