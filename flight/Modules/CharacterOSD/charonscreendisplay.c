@@ -38,7 +38,6 @@
 #include "pios_sensors.h"
 
 #include "modulesettings.h"
-#include "pios_video.h"
 
 #include "physical_constants.h"
 
@@ -102,6 +101,7 @@ static const uint8_t charosd_font_data[] = {
 #include "charosd-font.h"
 };
 
+#ifndef CHAROSD_FONT_MINIMAL
 static const uint8_t charosd_font_small_data[] = {
 #include "charosd-font-small.h"
 };
@@ -109,6 +109,7 @@ static const uint8_t charosd_font_small_data[] = {
 static const uint8_t charosd_font_thin_data[] = {
 #include "charosd-font-thin.h"
 };
+#endif
 
 static void set_mode(charosd_state_t state, uint8_t video_std)
 {
@@ -148,17 +149,21 @@ static void program_characters(charosd_state_t state, uint8_t font)
 	bool changed = false;
 
 	switch (font) {
-	case CHARONSCREENDISPLAYSETTINGS_FONT_REGULAR:
-		font_data = charosd_font_data;
-		loaded_txt = "loaded regular font";
-		break;
 	case CHARONSCREENDISPLAYSETTINGS_FONT_THIN:
+#ifndef CHAROSD_FONT_MINIMAL
 		font_data = charosd_font_thin_data;
 		loaded_txt = "loaded thin font";
 		break;
+#endif
 	case CHARONSCREENDISPLAYSETTINGS_FONT_SMALL:
+#ifndef CHAROSD_FONT_MINIMAL
 		font_data = charosd_font_small_data;
 		loaded_txt = "loaded small font";
+		break;
+#endif
+	case CHARONSCREENDISPLAYSETTINGS_FONT_REGULAR:
+		font_data = charosd_font_data;
+		loaded_txt = "loaded regular font";
 		break;
 	}
 
