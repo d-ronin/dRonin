@@ -18,7 +18,7 @@
  ******************************************************************************
  * @addtogroup Targets Target Boards
  * @{
- * @addtogroup OMNIBUSF3 OmnibusF3 and clones
+ * @addtogroup OMNIBUSF3 OmnibusF3
  * @{
  *
  * @file       omnibusf3/board-info/mcuconf.h

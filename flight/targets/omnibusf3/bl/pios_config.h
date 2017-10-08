@@ -2,7 +2,7 @@
  ******************************************************************************
  * @addtogroup Bootloader Bootloaders
  * @{
- * @addtogroup OMNIBUSF3 OmnibusF3 and clones
+ * @addtogroup OMNIBUSF3 OmnibusF3
  * @{
  *
  * @file       omnibusf3/bl/pios_config.h

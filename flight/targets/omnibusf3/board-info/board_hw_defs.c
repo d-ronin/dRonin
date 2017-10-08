@@ -2,7 +2,7 @@
  ******************************************************************************
  * @addtogroup Targets Target Boards
  * @{
- * @addtogroup OMNIBUSF3 OmnibusF3 and clones
+ * @addtogroup OMNIBUSF3 OmnibusF3
  * @{
  *
  * @file       board_hw_defs.c 
@@ -769,7 +769,10 @@ static const struct pios_ppm_cfg pios_ppm_cfg = {
 // ADC
 // ADC0 : PA0 ADC1_IN1  VBat
 // ADC1 : PA1 ADC1_IN2  Current
-// ADC2 : PB1 ADC3_IN1 RSSI
+// ADC2 : PB1 ADC3_IN1 RSSI --- not currently employed
+//                              (not supported by BF, not on all boards)
+// If desired to support it in the future, note that ADC3 can't slave to ADC1
+// so it'll require a separate config struct / driver instance.
 //-------------------------
 
 static const struct pios_internal_adc_cfg internal_adc1_cfg = {
