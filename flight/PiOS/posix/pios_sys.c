@@ -111,6 +111,7 @@ static void Usage(char *cmdName) {
 		"\t-l log\tWrites simulation data to a log\n"
 		"\t-g port\tStarts FlightGear driver on port\n"
 		"\t-y\tUse an external simulator (drhil yasim)\n"
+		"\t-x time\tExit after time seconds\n"
 #ifdef PIOS_INCLUDE_SERIAL
 		"\t-S drvname:serialpath\tStarts a serial driver on serialpath\n"
 		"\t\t\tAvailable drivers: gps msp lighttelemetry telemetry omnip\n"
@@ -459,7 +460,7 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 
 	bool first_arg = true;
 
-	while ((opt = getopt(argc, argv, "yfrg:l:s:d:S:I:i:")) != -1) {
+	while ((opt = getopt(argc, argv, "yfrx:g:l:s:d:S:I:i:")) != -1) {
 		switch (opt) {
 			case 'y':
 				use_yasim = true;
@@ -586,6 +587,13 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 				}
 
 				first_arg = false;
+				break;
+			}
+			case 'x':
+			{
+				int timeout = atoi(optarg);
+
+				alarm(timeout);
 				break;
 			}
 #endif
