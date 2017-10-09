@@ -138,6 +138,7 @@ ConfigOutputWidget::ConfigOutputWidget(QWidget *parent)
     addWidget(m_config->cb_outputRate2);
     addWidget(m_config->cb_outputRate1);
     addWidget(m_config->spinningArmed);
+    addUAVObject("ActuatorSettings");
 }
 
 void ConfigOutputWidget::enableControls(bool enable)
