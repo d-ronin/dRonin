@@ -229,37 +229,6 @@ int main(int argc, char **argv)
 
     QApplication app(argc, argv);
 
-#ifdef USE_CRASHREPORTING
-    QString dirName(GCS_REVISION_PRETTY);
-    dirName = dirName.replace("%@%", "_");
-    // Limit to alphanumerics plus dots, because this will be a filename
-    // component.
-    dirName = dirName.replace(QRegularExpression("[^A-Za-z0-9.]+"), "_");
-    dirName = QDir::tempPath() + QDir::separator() + GCS_PROJECT_BRANDING + "_" + dirName;
-    QDir().mkdir(dirName);
-    new CrashReporter::Handler(dirName, true, "crashreporterapp");
-#endif
-
-    RunGuard &guard = RunGuard::instance(QStringLiteral(GCS_PROJECT_BRANDING)
-                                         + QStringLiteral("_gcs_run_guard"));
-    if (!guard.tryToRun()) {
-        std::cerr << "GCS already running!" << std::endl;
-        return 1;
-    }
-
-    // suppress SSL warnings generated during startup (handy if you want to use QT_FATAL_WARNINGS)
-    QLoggingCategory::setFilterRules("qt.network.ssl.warning=false");
-
-    // disable QML disk caching, this caches paths in qmlc files which break when the GCS
-    // installation is moved. TODO: see if we can work around that
-    qputenv("QML_DISABLE_DISK_CACHE", "true");
-
-    QString locale = QLocale::system().name();
-
-    // Must be done before any QSettings class is created
-    QSettings::setPath(XmlConfig::XmlSettingsFormat, QSettings::SystemScope,
-                       QCoreApplication::applicationDirPath() + QLatin1String(SHARE_PATH));
-
     QCommandLineParser parser;
     parser.setApplicationDescription(GCS_PROJECT_BRANDING_PRETTY " GCS");
     const QCommandLineOption helpOption = parser.addHelpOption();
@@ -286,7 +255,7 @@ int main(int argc, char **argv)
         QStringList() << "t" << COMMAND_LINE_TEST,
         QCoreApplication::translate("main", "Runs tests on the plugin. (Requires compiling with -D "
                                             "WITH_TESTS, look in the uploader plugin for example "
-                                            "usage)"),
+                                            "usage). Special argument 'all' will run all tests."),
         QCoreApplication::translate("main", "plugin name"), "");
     parser.addOption(doTestsOption);
     QCommandLineOption pluginOption(
@@ -301,11 +270,48 @@ int main(int argc, char **argv)
     parser.addPositionalArgument(
         "config", QCoreApplication::translate("main", "Use the specified configuration file."),
         QCoreApplication::translate("main", "config file"));
+
     if (!parser.parse(QCoreApplication::arguments())) {
         displayError(parser.errorText());
         displayHelpText(parser.helpText());
         return 1;
     }
+
+#ifdef USE_CRASHREPORTING
+    // Only use crash reporter if we're not doing unit tests
+    // This means we won't hang CI, and QtTest will give us a nice stack trace
+    if (parser.values(doTestsOption).isEmpty()) {
+        QString dirName(GCS_REVISION_PRETTY);
+        dirName = dirName.replace("%@%", "_");
+        // Limit to alphanumerics plus dots, because this will be a filename
+        // component.
+        dirName = dirName.replace(QRegularExpression("[^A-Za-z0-9.]+"), "_");
+        dirName = QDir::tempPath() + QDir::separator() + GCS_PROJECT_BRANDING + "_" + dirName;
+        QDir().mkdir(dirName);
+        new CrashReporter::Handler(dirName, true, "crashreporterapp");
+    }
+#endif
+
+    RunGuard &guard = RunGuard::instance(QStringLiteral(GCS_PROJECT_BRANDING)
+                                         + QStringLiteral("_gcs_run_guard"));
+    if (!guard.tryToRun()) {
+        std::cerr << "GCS already running!" << std::endl;
+        return 1;
+    }
+
+    // suppress SSL warnings generated during startup (handy if you want to use QT_FATAL_WARNINGS)
+    QLoggingCategory::setFilterRules("qt.network.ssl.warning=false");
+
+    // disable QML disk caching, this caches paths in qmlc files which break when the GCS
+    // installation is moved. TODO: see if we can work around that
+    qputenv("QML_DISABLE_DISK_CACHE", "true");
+
+    QString locale = QLocale::system().name();
+
+    // Must be done before any QSettings class is created
+    QSettings::setPath(XmlConfig::XmlSettingsFormat, QSettings::SystemScope,
+                       QCoreApplication::applicationDirPath() + QLatin1String(SHARE_PATH));
+
     QString settingsFilename;
     QStringList positionalArguments = parser.positionalArguments();
     {
