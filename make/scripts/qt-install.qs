@@ -3,6 +3,18 @@ function Controller() {
     installer.installationFinished.connect(function() {
         gui.clickButton(buttons.FinishButton);
     })
+
+    var required_keys = ["dr_qt_path", "dr_qt_ver", "dr_packages"];
+    for (var i = 0; i < required_keys.length; i++) {
+        if (!installer.containsValue(required_keys[i])) {
+            console.log("ERROR: " + required_keys[i] + " missing!")
+            var warningLabel = gui.currentPageWidget().WarningLabel;
+            warningLabel.setText("ERROR: " + required_keys[i] + " missing!");
+            installer.autoAcceptMessageBoxes();
+            gui.clickButton(buttons.CancelButton);
+            return;
+        }
+    }
 }
 
 Controller.prototype.WelcomePageCallback = function() {
@@ -19,22 +31,21 @@ Controller.prototype.IntroductionPageCallback = function() {
 
 Controller.prototype.TargetDirectoryPageCallback = function()
 {
-    var qt_path = installer.environmentVariable('dronin_qt_path');
-    if (!qt_path.length) {
-        console.log("ERROR: dronin_qt_path environment variable missing!")
-        var warningLabel = gui.currentPageWidget().WarningLabel;
-        warningLabel.setText("ERROR: dronin_qt_path environment variable missing!");
-        installer.autoAcceptMessageBoxes();
-        gui.clickButton(buttons.CancelButton);
-
-    } else {
-        gui.currentPageWidget().TargetDirectoryLineEdit.setText(qt_path);
-        gui.clickButton(buttons.NextButton);
-    }
+    var qt_path = installer.value('dr_qt_path');
+    gui.currentPageWidget().TargetDirectoryLineEdit.setText(qt_path);
+    gui.clickButton(buttons.NextButton);
 }
 
 Controller.prototype.ComponentSelectionPageCallback = function() {
-    gui.currentPageWidget().deselectComponent("qt.tools.qtcreator")
+    var packages = installer.value("dr_packages").split(",");
+    var ver = installer.value("dr_qt_ver");
+
+    gui.currentPageWidget().deselectAll();
+    packages.forEach(function(package) {
+        gui.currentPageWidget().selectComponent("qt." + ver + "." + package);
+    })
+    gui.currentPageWidget().selectComponent("qt.tools.qtcreator"); // qbs
+
     gui.clickButton(buttons.NextButton);
 }
 

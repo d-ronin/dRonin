@@ -492,7 +492,7 @@ QString UrlFactory::MakeImageUrl(const MapType::Types &type,const Point &pos,con
         break;
     }
 
-    return QString::null;
+    return QString();
 }
 void UrlFactory::GetSecGoogleWords(const Point &pos,  QString &sec1, QString &sec2)
 {
