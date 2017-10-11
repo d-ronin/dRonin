@@ -100,6 +100,21 @@ endif
 # Build openocd without FTDI (yes | no)
 OPENOCD_FTDI ?= yes
 
+
+# $1 URL
+# $2 save dir
+# $3 save filename
+define DOWNLOAD_template =
+  $(V1) (\
+    if [ -e "$(2)/$(3)" ]; then \
+      curl -z "$(2)/$(3)" -L -k -o "$(2)/$(3)" "$(1)"; \
+    else \
+      curl -L -k -o "$(2)/$(3)" "$(1)"; \
+    fi;\
+  )
+endef
+
+
 .PHONY: qt_sdk_install
 
 # QT SDK download URL
@@ -139,11 +154,7 @@ qt_sdk_install: QT_SDK_FILE := $(notdir $(QT_SDK_URL))
 qt_sdk_install : | $(DL_DIR) $(TOOLS_DIR)
 qt_sdk_install: qt_sdk_clean
         # download the source only if it's newer than what we already have
-ifneq ($(OSFAMILY), windows)
-	$(V1) wget -N -P "$(DL_DIR)" "$(QT_SDK_URL)"
-else
-	$(V1) curl -L -k -o "$(DL_DIR)/$(QT_SDK_FILE)" "$(QT_SDK_URL)"
-endif
+	$(call DOWNLOAD_template,$(QT_SDK_URL),$(DL_DIR),$(QT_SDK_FILE))
         # tell the user exactly which path they should select in the GUI
 	$(V1) echo "*** NOTE NOTE NOTE ***"
 	$(V1) echo "*"
