@@ -16,7 +16,7 @@ PYTHON := python
 export PYTHON
 
 QT_SPEC ?= win32-g++
-QT_CLANG_SPEC ?= win32-clang-msvc2015
+QT_CLANG_SPEC ?= win32-clang-msvc
 
 # this might need to switch on debug/release
 UAVOBJGENERATOR := "$(BUILD_DIR)/ground/uavobjgenerator/debug/uavobjgenerator.exe"
