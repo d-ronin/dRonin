@@ -1196,8 +1196,8 @@ static void altitude_hold_desired(ManualControlCommandData * cmd,
 			climb_rate = expo3((thrust_source - DEADBAND) / (1.0f - DEADBAND), altitude_hold_expo) *
 		                         altitude_hold_maxclimbrate;
 		} else if (thrust_source < -DEADBAND && altitude_hold_maxdescentrate > MIN_CLIMB_RATE) {
-			climb_rate = (thrust_source + DEADBAND) / (1.0f - DEADBAND);
-			climb_rate = -expo3(climb_rate, altitude_hold_expo) * altitude_hold_maxdescentrate;
+			climb_rate = expo3((thrust_source + DEADBAND) / (1.0f - DEADBAND), altitude_hold_expo) *
+		                         altitude_hold_maxdescentrate;
 		}
 
 		// If more than MIN_CLIMB_RATE enter vario mode
