@@ -175,7 +175,7 @@ endif
 ifdef WINDOWS
 	$(V1) "$(DL_DIR)/$(QT_SDK_FILE)" \
 		--script $(ROOT_DIR)/make/scripts/qt-install.qs \
-		dr_qt_path="$(QT_SDK_DIR)" \
+		dr_qt_path="C:\\Qt\\Qt$(QT_VERSION_LONG)" \
 		dr_qt_ver=$(QT_PKG_VERSION) \
 		dr_packages="qtcharts,win32_msvc2015,qt.tools.win32_mingw530"
 endif
