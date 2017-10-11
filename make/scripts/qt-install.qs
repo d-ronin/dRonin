@@ -42,7 +42,10 @@ Controller.prototype.ComponentSelectionPageCallback = function() {
 
     gui.currentPageWidget().deselectAll();
     packages.forEach(function(package) {
-        gui.currentPageWidget().selectComponent("qt." + ver + "." + package);
+        if (package.startsWith('qt.')) // tools etc.
+            gui.currentPageWidget().selectComponent(package);
+        else // versioned Qt packages
+            gui.currentPageWidget().selectComponent("qt." + ver + "." + package);
     })
     gui.currentPageWidget().selectComponent("qt.tools.qtcreator"); // qbs
 
