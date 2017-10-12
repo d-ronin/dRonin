@@ -440,13 +440,20 @@ int PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_t
 			}
 #endif
 			if (ret) {
-				dshot_in_use = true;
-
+				/* TODO: attempts to just fall back to
+				 * bitbanging, which seems not ideal-- no
+				 * benefit to doing DMA if we are bitbanging
+				 * at the same time.
+				 */
 				ret = BankSetup_DShot(&timer_banks[i]);
 			}
+
 			if (ret) {
 				return ret;
 			}
+
+			dshot_in_use = true;
+
 			break;
 		}
 
@@ -552,17 +559,11 @@ void PIOS_Servo_SetFraction(uint8_t servo, uint16_t fraction,
 		case SYNC_DSHOT_300:
 		case SYNC_DSHOT_600:
 		case SYNC_DSHOT_1200:
+		case SYNC_DSHOT_DMA:
 			/* Expect a 0 to 2047 range!
 			 * Don't bother with min/max tomfoolery here.
 			 */
 			output_channels[servo].i.dshot.value = fraction >> 5;
-			return;
-		case SYNC_DSHOT_DMA:
-#if defined(PIOS_INCLUDE_DMASHOT)
-			if (PIOS_DMAShot_IsConfigured()) {
-				PIOS_DMAShot_WriteValue(&servo_cfg->channels[servo], fraction >> 5);
-			}
-#endif
 			return;
 		default:
 			break;
@@ -619,24 +620,13 @@ void PIOS_Servo_Set(uint8_t servo, float position)
 		case SYNC_DSHOT_300:
 		case SYNC_DSHOT_600:
 		case SYNC_DSHOT_1200:
+		case SYNC_DSHOT_DMA:
 			if (position > 2047)
 				position = 2047;
 			else if (position < 0)
 				position = 0;
 
 			output_channels[servo].i.dshot.value = position;
-			return;
-		case SYNC_DSHOT_DMA:
-#if defined(PIOS_INCLUDE_DMASHOT)
-			if (PIOS_DMAShot_IsConfigured()) {
-				if (position > 2047)
-					position = 2047;
-				else if (position < 0)
-					position = 0;
-
-				PIOS_DMAShot_WriteValue(&servo_cfg->channels[servo], position);
-			}
-#endif
 			return;
 		default:
 			break;
@@ -666,6 +656,8 @@ static int DSHOT_Update()
 #else
 static int DSHOT_Update()
 {
+	bool triggered = false;
+
 	uint16_t dshot_bits[DS_GPIO_NUMVALS] = { 0 };
 	uint16_t dshot_msg_zeroes[16][DS_GPIO_NUMVALS] = { { 0 } };
 
@@ -673,6 +665,7 @@ static int DSHOT_Update()
 
 	for (int i = 0; i < servo_cfg->num_channels; i++) {
 		struct output_channel *chan = &output_channels[i];
+		struct dshot_info *info = &chan->i.dshot;
 
 		if (channel_mask & (1 << i)) {
 			continue;
@@ -683,6 +676,12 @@ static int DSHOT_Update()
 			case SYNC_DSHOT_600:
 			case SYNC_DSHOT_1200:
 				break;
+			case SYNC_DSHOT_DMA:
+#if defined(PIOS_INCLUDE_DMASHOT)
+				PIOS_DMAShot_WriteValue(&servo_cfg->channels[i],
+						info->value);
+				continue;
+#endif
 			default:
 				continue;	// Continue enclosing loop if not ds
 		}
@@ -693,8 +692,6 @@ static int DSHOT_Update()
 			/* Multiple dshot rates not supported */
 			return -1;
 		}
-
-		struct dshot_info *info = &chan->i.dshot;
 
 		PIOS_Assert(info->gpio >= 0);
 		PIOS_Assert(info->gpio < DS_GPIO_NUMVALS);
@@ -722,6 +719,14 @@ static int DSHOT_Update()
 		info->value = 0;	/* turn off motor if not updated */
 	}
 
+#if defined(PIOS_INCLUDE_DMASHOT)
+	// Do it before bitbanging, so the updates line up +/-.
+	// XXX: what's the use case for doing both at once?
+	if (PIOS_DMAShot_IsReady()) {
+		PIOS_DMAShot_TriggerUpdate();
+		triggered = true;
+	}
+#endif
 	uint16_t time_0, time_1, time_tot;
 
 	/* As specified by original document:
@@ -738,7 +743,7 @@ static int DSHOT_Update()
 
 	switch (dshot_mode) {
 		case UNCONFIGURED:
-			return -1;
+			return !triggered;
 		case SYNC_DSHOT_300:
 			time_0   = PIOS_INLINEDELAY_NsToCycles(1000);
 			time_1   = PIOS_INLINEDELAY_NsToCycles(2166);
@@ -862,13 +867,6 @@ void PIOS_Servo_Update(void)
 			TIM_Cmd(chan->timer, ENABLE);
 		}
 	}
-
-#if defined(PIOS_INCLUDE_DMASHOT)
-	// Do it before bitbanging, so the updates line up +/-.
-	if (PIOS_DMAShot_IsReady()) {
-		PIOS_DMAShot_TriggerUpdate();
-	}
-#endif
 
 	if (dshot_in_use) {
 		if (DSHOT_Update()) {
