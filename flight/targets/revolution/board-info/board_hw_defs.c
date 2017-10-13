@@ -90,6 +90,39 @@ static const struct pios_annunc_cfg pios_annunc_v2_cfg = {
 	.num_annunciators = NELEMENTS(pios_annuncs_v2),
 };
 
+static const struct pios_annunc pios_annuncs_omnibus[] = {
+	[PIOS_LED_HEARTBEAT] = {
+		.pin = {
+			.gpio = GPIOB,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_5,
+				.GPIO_Speed = GPIO_Speed_50MHz,
+				.GPIO_Mode  = GPIO_Mode_OUT,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd = GPIO_PuPd_UP
+			},
+		},
+	},
+	[PIOS_ANNUNCIATOR_BUZZER] = {
+		.pin = {
+			.gpio = GPIOB,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_4,
+				.GPIO_Speed = GPIO_Speed_50MHz,
+				.GPIO_Mode  = GPIO_Mode_OUT,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd = GPIO_PuPd_UP
+			},
+		},
+		.active_high = true,
+	},
+};
+
+static const struct pios_annunc_cfg pios_annunc_omnibus_cfg = {
+	.annunciators     = pios_annuncs_omnibus,
+	.num_annunciators = NELEMENTS(pios_annuncs_omnibus),
+};
+
 const struct pios_annunc_cfg * PIOS_BOARD_HW_DEFS_GetLedCfg (uint32_t board_revision)
 {
 	switch(board_revision) {
@@ -382,7 +415,12 @@ const struct pios_openlrs_cfg * PIOS_BOARD_HW_DEFS_GetOpenLRSCfg (uint32_t board
 
 static const struct flashfs_logfs_cfg flashfs_settings_cfg = {
 	.fs_magic      = 0x99abcedf,
-	.arena_size    = 0x00010000, /* 256 * slot size */
+	/* This was increased from 0x10000 in order to accomodate the
+	 * 0x20000 settings sector size on F4 internal flash.  It's a win
+	 * for external flash, though, as it allows more settings to be
+	 * stored.  The upgrader will fix this automatically.
+	 */
+	.arena_size    = 0x00020000, /* 256 * slot size */
 	.slot_size     = 0x00000100, /* 256 bytes */
 };
 
@@ -475,6 +513,46 @@ static const struct pios_flash_chip pios_flash_chip_external = {
 };
 #endif /* PIOS_INCLUDE_FLASH_JEDEC */
 
+static const struct pios_flash_partition pios_flash_partition_table_nojedec[] = {
+#if defined(PIOS_INCLUDE_FLASH_INTERNAL)
+	{
+		.label        = FLASH_PARTITION_LABEL_BL,
+		.chip_desc    = &pios_flash_chip_internal,
+		.first_sector = 0,
+		.last_sector  = 1,
+		.chip_offset  = 0,
+		.size         = (1 - 0 + 1) * FLASH_SECTOR_16KB,
+	},
+	{
+		.label        = FLASH_PARTITION_LABEL_AUTOTUNE,
+		.chip_desc    = &pios_flash_chip_internal,
+		.first_sector = 2,
+		.last_sector  = 3,
+		.chip_offset  = (2 * FLASH_SECTOR_16KB),
+		.size         = (3 - 2 + 1) * FLASH_SECTOR_16KB,
+	},
+	/* NOTE: sectors 4 of the internal flash is unallocated */
+	{
+		.label        = FLASH_PARTITION_LABEL_FW,
+		.chip_desc    = &pios_flash_chip_internal,
+		.first_sector = 5,
+		.last_sector  = 7,
+		.chip_offset  = (4 * FLASH_SECTOR_16KB) + (1 * FLASH_SECTOR_64KB),
+		.size         = (7 - 5 + 1) * FLASH_SECTOR_128KB,
+	},
+	{
+		.label        = FLASH_PARTITION_LABEL_SETTINGS,
+		.chip_desc    = &pios_flash_chip_internal,
+		.first_sector = 8,
+		.last_sector  = 9,
+		.chip_offset  = (4 * FLASH_SECTOR_16KB) + (1 * FLASH_SECTOR_64KB) + (3 * FLASH_SECTOR_128KB),
+		.size         = (9 - 8  + 1) * FLASH_SECTOR_128KB,
+	}
+	/* NOTE: sectors 10-11 of the internal flash are currently unallocated */
+#endif /* PIOS_INCLUDE_FLASH_INTERNAL */
+};
+
+#if defined(PIOS_INCLUDE_FLASH_JEDEC)
 static struct pios_flash_partition pios_flash_partition_table[] = {
 #if defined(PIOS_INCLUDE_FLASH_INTERNAL)
 	{
@@ -501,7 +579,6 @@ static struct pios_flash_partition pios_flash_partition_table[] = {
 
 #endif /* PIOS_INCLUDE_FLASH_INTERNAL */
 
-#if defined(PIOS_INCLUDE_FLASH_JEDEC)
 	{
 		.label        = FLASH_PARTITION_LABEL_SETTINGS,
 		.chip_desc    = &pios_flash_chip_external,
@@ -528,31 +605,34 @@ static struct pios_flash_partition pios_flash_partition_table[] = {
 		.chip_offset  = (16 * FLASH_SECTOR_64KB),
 		.size         = (31 - 16 + 1) * FLASH_SECTOR_64KB,
 	},
-#endif	/* PIOS_INCLUDE_FLASH_JEDEC */
 };
+#endif	/* PIOS_INCLUDE_FLASH_JEDEC */
 
 const struct pios_flash_partition * PIOS_BOARD_HW_DEFS_GetPartitionTable (uint32_t board_revision, uint32_t * num_partitions)
 {
 	PIOS_Assert(num_partitions);
 
-	*num_partitions = NELEMENTS(pios_flash_partition_table);
-
 #ifdef PIOS_INCLUDE_FLASH_JEDEC
-	uint32_t capacity = PIOS_Flash_Jedec_GetCapacity(pios_external_flash_id);
+	if (pios_external_flash_id) {
+		*num_partitions = NELEMENTS(pios_flash_partition_table);
 
-	PIOS_FLASH_fixup_partitions_for_capacity(pios_flash_partition_table,
-			NELEMENTS(pios_flash_partition_table),
-			&pios_flash_chip_external,
-			m25p16_sectors,
-			capacity);
+		uint32_t capacity = PIOS_Flash_Jedec_GetCapacity(pios_external_flash_id);
+
+		PIOS_FLASH_fixup_partitions_for_capacity(pios_flash_partition_table,
+				NELEMENTS(pios_flash_partition_table),
+				&pios_flash_chip_external,
+				m25p16_sectors,
+				capacity);
+
+		return pios_flash_partition_table;
+	}
 #endif
 
-	return pios_flash_partition_table;
+	*num_partitions = NELEMENTS(pios_flash_partition_table_nojedec);
+	/* Fall back to the no-SPI-FLASH partition table */
+	return pios_flash_partition_table_nojedec;
 }
-
 #endif	/* PIOS_INCLUDE_FLASH */
-
-
 
 #ifdef PIOS_INCLUDE_USART
 
@@ -1674,8 +1754,26 @@ static const struct pios_usb_cfg pios_usb_main_rm2_cfg = {
 	}
 };
 
+static const struct pios_usb_cfg pios_usb_main_novsense_cfg = {
+	.irq = {
+		.init    = {
+			.NVIC_IRQChannel                   = OTG_FS_IRQn,
+			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGHEST,
+			.NVIC_IRQChannelSubPriority        = 3,
+			.NVIC_IRQChannelCmd                = ENABLE,
+		},
+	},
+};
+
 const struct pios_usb_cfg * PIOS_BOARD_HW_DEFS_GetUsbCfg (uint32_t board_revision)
 {
+	/* Crummy revolution -- omnibus variants -- with no flash often have no
+	 * vsense line connected.
+	 */
+	if (!pios_external_flash_id) {
+		return &pios_usb_main_novsense_cfg;
+	}
+
 	switch(board_revision) {
 		case 2:
 			return &pios_usb_main_rm1_cfg;
@@ -1873,6 +1971,31 @@ static const struct pios_ws2811_cfg pios_ws2811_cfg_pa0 = {
 	.fall_time_h = 11,			/* 833ns */
 	.led_gpio = GPIOA,
 	.gpio_pin = GPIO_Pin_0,
+	.bit_set_dma_stream = DMA2_Stream4,
+	.bit_set_dma_channel = DMA_Channel_6,	/* 2/S4/C6: TIM1 CH4|TRIG|COM */
+	.bit_clear_dma_stream = DMA2_Stream6,
+	.bit_clear_dma_channel = DMA_Channel_0,	/* 0/S6/C0: TIM1 CH1|CH2|CH3 */
+};
+
+static const struct pios_ws2811_cfg pios_ws2811_cfg_pb6 = {
+	.timer = TIM1,
+	.clock_cfg = {
+		.TIM_Prescaler = (PIOS_PERIPHERAL_APB2_COUNTER_CLOCK / 12000000) - 1,
+		.TIM_ClockDivision = TIM_CKD_DIV1,
+		.TIM_CounterMode = TIM_CounterMode_Up,
+		.TIM_Period = 25,	/* 2.083us/bit */
+	},
+	.interrupt = {
+		.NVIC_IRQChannel = DMA2_Stream6_IRQn,
+		.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_LOW,
+		.NVIC_IRQChannelSubPriority = 0,
+		.NVIC_IRQChannelCmd = ENABLE,
+	},
+	.bit_clear_dma_tcif = DMA_IT_TCIF6,
+	.fall_time_l = 5,			/* 333ns */
+	.fall_time_h = 11,			/* 833ns */
+	.led_gpio = GPIOB,
+	.gpio_pin = GPIO_Pin_6,
 	.bit_set_dma_stream = DMA2_Stream4,
 	.bit_set_dma_channel = DMA_Channel_6,	/* 2/S4/C6: TIM1 CH4|TRIG|COM */
 	.bit_clear_dma_stream = DMA2_Stream6,

@@ -157,6 +157,16 @@ bool PIOS_USB_CableConnected(uintptr_t id)
 	return PIOS_USB_CheckAvailable(id);
 }
 
+bool PIOS_USB_HaveVSense(uintptr_t id)
+{
+	struct pios_usb_dev * usb_dev = (struct pios_usb_dev *) pios_usb_id;
+
+	if (PIOS_USB_validate(usb_dev) != 0)
+		return false;
+
+	return usb_dev->cfg->vsense.gpio != NULL;
+}
+
 /*
  *
  * Provide STM32 USB OTG BSP layer API

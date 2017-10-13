@@ -42,11 +42,8 @@ extern void PIOS_Board_Init(void);
 #define SEC_TO_MSEC(s) ((s) * 1000)
 #define SEC_TO_USEC(s) ((s) * 1000 * 1000)
 
-#if defined(BOOTLOADER_PAUSE_DELAY) // allow altering bootloader delay
-#define BL_DETECT_BREAK_TO_BL_TIMER MSEC_TO_USEC(BOOTLOADER_PAUSE_DELAY)
-#else
-#define BL_DETECT_BREAK_TO_BL_TIMER MSEC_TO_USEC(500)
-#endif
+#define BL_DETECT_BREAK_TO_BL_TIMER_WITH_VSENSE MSEC_TO_USEC(2)
+#define BL_DETECT_BREAK_TO_BL_TIMER_NO_VSENSE MSEC_TO_USEC(500)
 
 #define BL_WAIT_FOR_DFU_TIMER SEC_TO_USEC(6)
 #define BL_RECOVER_FROM_FAULT_TIMER SEC_TO_USEC(10)
@@ -132,6 +129,8 @@ struct bl_fsm_context {
 	uint8_t dfu_device_number;
 	struct xfer_state xfer;
 };
+
+bool have_vsense;
 
 struct bl_transition {
 	void (*entry_fn) (struct bl_fsm_context * context);
@@ -299,7 +298,14 @@ static void go_fsm_fault(struct bl_fsm_context * context)
 static void go_detect_break_to_bl(struct bl_fsm_context * context)
 {
 	/* Start a timer for how long to wait for a USB host to appear */
-	bl_fsm_timer_start(context, BL_DETECT_BREAK_TO_BL_TIMER);
+	if (have_vsense) {
+		bl_fsm_timer_start(context,
+				BL_DETECT_BREAK_TO_BL_TIMER_WITH_VSENSE);
+	} else {
+		bl_fsm_timer_start(context,
+				BL_DETECT_BREAK_TO_BL_TIMER_NO_VSENSE);
+	}
+
 	led_pwm_config(&context->leds, 0, 0, 0, 0);
 	PIOS_ANNUNC_On(PIOS_LED_HEARTBEAT);
 }
@@ -442,6 +448,9 @@ int main(void)
 
 	/* Initialize the board-specific HW configuration */
 	PIOS_Board_Init();
+
+	/* Adapt delays based on whether target has vsense */
+	have_vsense = PIOS_USB_HaveVSense(0);
 
 	/* Initialize the bootloader FSM */
 	struct bl_fsm_context bl_fsm_context;

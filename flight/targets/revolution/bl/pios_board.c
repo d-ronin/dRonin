@@ -72,10 +72,15 @@ void PIOS_Board_Init()
 			break;
 		}
 	}
-	PIOS_Assert(flash_chip_ok);
-
 
 	PIOS_Flash_Internal_Init(&pios_internal_flash_id, &flash_internal_cfg);
+
+	if (!flash_chip_ok) {
+		pios_external_flash_id = 0;
+
+		/* Override configuration for Omnibus things */
+		PIOS_ANNUNC_Init(&pios_annunc_omnibus_cfg);
+	}
 
 	const struct pios_flash_partition * flash_partition_table;
 	uint32_t num_partitions;

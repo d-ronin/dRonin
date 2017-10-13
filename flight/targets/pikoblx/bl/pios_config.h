@@ -43,8 +43,6 @@
 
 #define PIOS_INCLUDE_USART	// Just to get configuration structures
 
-#define BOOTLOADER_PAUSE_DELAY 500
-
 #endif /* PIOS_CONFIG_H */
 
 /**

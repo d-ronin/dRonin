@@ -204,6 +204,16 @@ bool PIOS_USB_CableConnected(uintptr_t id)
 	return sof_seen_since_reset;
 }
 
+bool PIOS_USB_HaveVSense(uintptr_t id)
+{
+	struct pios_usb_dev * usb_dev = (struct pios_usb_dev *) pios_usb_com_id;
+
+	if (PIOS_USB_validate(usb_dev) != 0)
+		return false;
+
+	return usb_dev->cfg->vsense.gpio != NULL;
+}
+
 /**
  * This function returns the connection status of the USB HID interface
  * \return 1: interface available

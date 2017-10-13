@@ -114,8 +114,16 @@ void PIOS_Board_Init(void) {
 			break;
 		}
 	}
+
 	if (!flash_chip_ok) {
-		PIOS_HAL_CriticalError(PIOS_LED_HEARTBEAT, PIOS_HAL_PANIC_FLASH);
+		/* Cope with clones with no flash, too. */
+
+		is_modified_clone = true;
+
+		/* Override LED configuration for Omnibus things */
+		PIOS_ANNUNC_Init(&pios_annunc_omnibus_cfg);
+
+		pios_external_flash_id = 0;
 	}
 
 	PIOS_Flash_Internal_Init(&pios_internal_flash_id, &flash_internal_cfg);
@@ -482,6 +490,13 @@ void PIOS_Board_Init(void) {
 
 				PIOS_WS2811_init(&pios_ws2811,
 						&pios_ws2811_cfg_pd2,
+						num_leds);
+				PIOS_WS2811_trigger_update(pios_ws2811);
+				break;
+
+			case HWREVOLUTION_WS2811PIN_PB6OMNIBUSF4V2LEDPORT:
+				PIOS_WS2811_init(&pios_ws2811,
+						&pios_ws2811_cfg_pb6,
 						num_leds);
 				PIOS_WS2811_trigger_update(pios_ws2811);
 				break;
