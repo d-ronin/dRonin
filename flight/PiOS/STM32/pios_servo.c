@@ -599,6 +599,20 @@ void PIOS_Servo_SetFraction(uint8_t servo, uint16_t fraction,
 	PIOS_Servo_SetRaw(servo, val);
 }
 
+bool PIOS_Servo_IsDshot(uint8_t servo) {
+	switch (output_channels[servo].mode) {
+		case SYNC_DSHOT_300:
+		case SYNC_DSHOT_600:
+		case SYNC_DSHOT_1200:
+		case SYNC_DSHOT_DMA:
+			return true;
+		default:
+			break;
+	};
+
+	return false;
+}
+
 /**
 * Set servo position
 * \param[in] Servo Servo number (0->num_channels-1)

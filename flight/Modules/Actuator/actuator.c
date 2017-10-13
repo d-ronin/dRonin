@@ -758,11 +758,101 @@ static float collective_curve(float const input, float const * curve, uint8_t nu
 	return linear_interpolate(input, curve, num_points, -1.0f, 1.0f);
 }
 
+static float scale_channel_dshot(float value, int idx)
+{
+	if (!isfinite(value)) {
+		/* Universal-- don't spin */
+		return 0;
+	}
+
+	bool threed = false;
+	bool reversed = false;
+
+#define DSHOT_DEADBAND_NORMAL 0
+#define DSHOT_DEADBAND_3D     1
+#define DSHOT_DEADBAND_3DREV  2
+
+	switch (actuatorSettings.ChannelDeadband[idx]) {
+		case DSHOT_DEADBAND_NORMAL:
+			break;
+		case DSHOT_DEADBAND_3DREV:
+			/* reverse 3D */
+			reversed = true;
+			/* falls through */
+		case DSHOT_DEADBAND_3D:
+			threed = true;
+			break;
+		default:
+			/* Invalid value-- don't spin */
+			return 0;
+	}
+
+	float neutral = actuatorSettings.ChannelNeutral[idx];
+
+	if (!threed) {
+		/* return neutral..2047 */
+		int16_t val = roundf((2047 - neutral) * value) + neutral;
+
+		if (val > 2047) {
+			val = 2047;
+		}
+
+		if (val < 48) {
+			/* Shouldn't happen, unless neutral val is invalid */
+			val = 0;
+		}
+
+		return val;
+	}
+
+	/* OK, this is more tricky.  Convert from a unipolar neutral value
+	 * to a "real one" as sent */
+
+	neutral -= 48;
+	neutral /= 2;
+
+	bool negative;
+
+	if (value < 0) {
+		value = -value;
+		negative = !reversed;
+	} else {
+		negative = reversed;
+	}
+
+	/* come up with a value between real neutral and 999 */
+
+	int16_t val = roundf((999 - neutral) * value + neutral);
+
+	if (val > 999) {
+		val = 999;
+	}
+
+	if (val < 0) {
+		/* Shouldn't happen, unless neutral val is invalid */
+		val = 0;
+	}
+
+	if (negative) {
+		/* 1048 + real neutral .. 2047 */
+		val += 1048;
+	} else {
+		/* 48 + real neutral .. 1047 */
+		val += 48;
+	}
+
+	return val;
+}
+
 /**
  * Convert channel from -1/+1 to servo pulse duration in microseconds
  */
 static float scale_channel(float value, int idx)
 {
+	if (PIOS_Servo_IsDshot(idx)) {
+		return scale_channel_dshot(value, idx);
+	}
+
 	float max = actuatorSettings.ChannelMax[idx];
 	float min = actuatorSettings.ChannelMin[idx];
 	float neutral = actuatorSettings.ChannelNeutral[idx];

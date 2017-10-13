@@ -70,6 +70,7 @@ extern void PIOS_Servo_DisableChannel(int channel);
 extern void PIOS_Servo_PrepareForReset();
 extern void PIOS_Servo_Set(uint8_t servo, float position);
 extern void PIOS_Servo_Update(void);
+extern bool PIOS_Servo_IsDshot(uint8_t servo);
 
 #endif /* PIOS_SERVO_H */
 
