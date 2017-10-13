@@ -117,21 +117,31 @@ void smoothcontrol_run(smoothcontrol_state state, uint8_t axis_num, float *new_s
 // Separate handling of thrust.
 void smoothcontrol_run_thrust(smoothcontrol_state state, float *new_signal)
 {
-	/* The -1 on zero throttle causes a huge blip when throttling up, so
+	/* The 0 on zero throttle causes a huge blip when throttling up, so
 	 * we need to handle it separately.  Also, reset the state, if zero
 	 * throttle is requested, so that none of the modes can keep it
 	 * non-zero.
 	 */
 
-	if (*new_signal <= 0) {
+	if (*new_signal == 0) {
 		smoothcontrol_reinit(state, 3, 0);
 	} else {
+		bool sign = *new_signal > 0;
+
 		smoothcontrol_run(state, 3, new_signal, 1.0f);
 
 		// If prediction undershoots while original signal is positive
 		// bound it to zero.
-		if (*new_signal < 0)
-			*new_signal = 0;
+
+		bool new_sign = *new_signal > 0;
+
+		if (sign != new_sign) {
+			if (sign) {
+				*new_signal = 0.00001f;
+			} else {
+				*new_signal = -0.00001f;
+			}
+		}
 	}
 }
 
