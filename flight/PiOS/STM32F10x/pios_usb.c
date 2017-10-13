@@ -204,7 +204,7 @@ bool PIOS_USB_CableConnected(uintptr_t id)
 	return sof_seen_since_reset;
 }
 
-bool PIOS_USB_HaveVsense(uintptr_t id)
+bool PIOS_USB_HaveVSense(uintptr_t id)
 {
 	struct pios_usb_dev * usb_dev = (struct pios_usb_dev *) pios_usb_com_id;
 

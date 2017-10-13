@@ -450,7 +450,7 @@ int main(void)
 	PIOS_Board_Init();
 
 	/* Adapt delays based on whether target has vsense */
-	have_vsense = PIOS_USB_HaveVsense(0);
+	have_vsense = PIOS_USB_HaveVSense(0);
 
 	/* Initialize the bootloader FSM */
 	struct bl_fsm_context bl_fsm_context;
