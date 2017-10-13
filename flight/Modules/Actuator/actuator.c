@@ -108,13 +108,76 @@ static MixerSettingsCurve2SourceOptions curve2_src;
 // Private functions
 static void actuator_task(void* parameters);
 
-static float scale_channel(float value, int idx);
+static float scale_channel(float value, int idx, bool active_cmd);
 static void set_failsafe();
 
 static float collective_curve(const float input, const float *curve,
 		uint8_t num_points);
 
 volatile enum actuator_interlock actuator_interlock = ACTUATOR_INTERLOCK_OK;
+
+struct dshot_command {
+	union {
+		uint32_t value;
+		struct {
+			uint8_t cmd_id;
+			uint8_t num_to_send;
+			uint16_t channel_mask;
+		};
+	};
+};
+
+static volatile struct dshot_command pending_cmd;
+static struct dshot_command cur_cmd;
+
+static uint16_t channel_3d_mask;
+static uint16_t desired_3d_mask;
+
+#define DSHOT_COMMAND_DONTSPIN 0
+#define DSHOT_COMMAND_NO3DMODE 9
+#define DSHOT_COMMAND_3DMODE   10
+
+#define DSHOT_COUNT_EXCESSIVE 10
+
+static bool actuator_get_dshot_command() {
+	if (cur_cmd.num_to_send) {
+		cur_cmd.num_to_send--;
+		return true;
+	}
+
+	uint32_t value = pending_cmd.value;
+
+	if (!value) {
+		return false;
+	}
+
+	pending_cmd.value = 0;
+	cur_cmd.value = value;
+
+	if (cur_cmd.num_to_send) {
+		cur_cmd.num_to_send--;
+		return true;
+	}
+
+	return false;
+}
+
+int actuator_send_dshot_command(uint8_t cmd_id, uint8_t num_to_send,
+		uint16_t channel_mask)
+{
+	struct dshot_command new_cmd;
+
+	new_cmd.cmd_id = cmd_id;
+	new_cmd.num_to_send = num_to_send;
+	new_cmd.channel_mask = channel_mask;
+
+	if (__sync_bool_compare_and_swap(&pending_cmd.value, 0,
+				new_cmd.value)) {
+		return 0;
+	}
+
+	return -1;
+}
 
 /**
  * @brief Module initialization
@@ -472,6 +535,12 @@ static void post_process_scale_and_commit(float *motor_vect,
 		*maxpoweradd_bucket -= (offset - neg_clip) * dT;
 	}
 
+	bool active_command = false;
+
+	if (!armed) {
+		active_command = actuator_get_dshot_command();
+	}
+
 	for (int ct = 0; ct < MAX_MIX_ACTUATORS; ct++) {
 		// Motors have additional protection for when to be on
 		if (types_mixer[ct] == MIXERSETTINGS_MIXER1TYPE_MOTOR) {
@@ -507,7 +576,8 @@ static void post_process_scale_and_commit(float *motor_vect,
 			}
 		}
 
-		command.Channel[ct] = scale_channel(motor_vect[ct], ct);
+		command.Channel[ct] = scale_channel(motor_vect[ct], ct,
+				active_command);
 	}
 
 	// Store update time
@@ -589,6 +659,25 @@ static void normalize_input_data(uint32_t this_systime,
 	fill_desired_vector(&desired, val1, val2, desired_vect);
 }
 
+static void actuator_settings_update()
+{
+	actuator_settings_updated = false;
+	ActuatorSettingsGet(&actuatorSettings);
+
+	PIOS_Servo_SetMode(actuatorSettings.TimerUpdateFreq,
+			ACTUATORSETTINGS_TIMERUPDATEFREQ_NUMELEM,
+			actuatorSettings.ChannelMax,
+			actuatorSettings.ChannelMin);
+
+	desired_3d_mask = 0;
+
+	for (int i = 0; i < MAX_MIX_ACTUATORS; i++) {
+		if (actuatorSettings.ChannelDeadband[i]) {
+			desired_3d_mask |= (1 << i);
+		}
+	}
+}
+
 /**
  * @brief Main Actuator module task
  *
@@ -608,14 +697,12 @@ static void actuator_task(void* parameters)
 	FlightStatusConnectCallbackCtx(UAVObjCbSetFlag, &flight_status_updated);
 	ManualControlCommandConnectCallbackCtx(UAVObjCbSetFlag, &manual_control_cmd_updated);
 
-	// Ensure the initial state of actuators is safe.
-	actuator_settings_updated = false;
-	ActuatorSettingsGet(&actuatorSettings);
+	/* Prime dshot channels with 12 of the 'disarm' command */
+	actuator_send_dshot_command(0, 13, 0xffff);
+	actuator_get_dshot_command();	/* Consumes 1 of the above */
 
-	PIOS_Servo_SetMode(actuatorSettings.TimerUpdateFreq,
-			ACTUATORSETTINGS_TIMERUPDATEFREQ_NUMELEM,
-			actuatorSettings.ChannelMax,
-			actuatorSettings.ChannelMin);
+	// Ensure the initial state of actuators is safe.
+	actuator_settings_update();
 	set_failsafe();
 
 	/* This is out here because not everything may change each time */
@@ -631,13 +718,7 @@ static void actuator_task(void* parameters)
 		 * state appropriately.
 		 */
 		if (actuator_settings_updated) {
-			actuator_settings_updated = false;
-			ActuatorSettingsGet(&actuatorSettings);
-
-			PIOS_Servo_SetMode(actuatorSettings.TimerUpdateFreq,
-					ACTUATORSETTINGS_TIMERUPDATEFREQ_NUMELEM,
-					actuatorSettings.ChannelMax,
-					actuatorSettings.ChannelMin);
+			actuator_settings_update();
 		}
 
 		if (mixer_settings_updated) {
@@ -648,6 +729,33 @@ static void actuator_task(void* parameters)
 
 			MixerSettingsThrottleCurve2Get(curve2);
 			MixerSettingsCurve2SourceGet(&curve2_src);
+		}
+
+		if (desired_3d_mask != channel_3d_mask) {
+			uint16_t to_chg = desired_3d_mask & (~channel_3d_mask);
+
+			if (to_chg) {
+				/* These are bits to set... */
+
+				if (!actuator_send_dshot_command(
+						DSHOT_COMMAND_3DMODE,
+						DSHOT_COUNT_EXCESSIVE,
+						to_chg)) {
+					channel_3d_mask |= to_chg;
+				}
+			}
+
+			to_chg = (~desired_3d_mask) & channel_3d_mask;
+
+			if (to_chg) {
+				/* These are bits to clear... */
+				if (!actuator_send_dshot_command(
+						DSHOT_COMMAND_NO3DMODE,
+						DSHOT_COUNT_EXCESSIVE,
+						to_chg)) {
+					channel_3d_mask &= ~to_chg;
+				}
+			}
 		}
 
 		PIOS_WDG_UpdateFlag(PIOS_WDG_ACTUATOR);
@@ -758,9 +866,16 @@ static float collective_curve(float const input, float const * curve, uint8_t nu
 	return linear_interpolate(input, curve, num_points, -1.0f, 1.0f);
 }
 
-static float scale_channel_dshot(float value, int idx)
+static float scale_channel_dshot(float value, int idx, bool active_command)
 {
 	if (!isfinite(value)) {
+		/* No spin requested.  if a command is active, send it */
+		if (active_command) {
+			if (cur_cmd.channel_mask & (1 << idx)) {
+				return cur_cmd.cmd_id;
+			}
+		}
+
 		/* Universal-- don't spin */
 		return 0;
 	}
@@ -847,10 +962,10 @@ static float scale_channel_dshot(float value, int idx)
 /**
  * Convert channel from -1/+1 to servo pulse duration in microseconds
  */
-static float scale_channel(float value, int idx)
+static float scale_channel(float value, int idx, bool active_cmd)
 {
 	if (PIOS_Servo_IsDshot(idx)) {
-		return scale_channel_dshot(value, idx);
+		return scale_channel_dshot(value, idx, active_cmd);
 	}
 
 	float max = actuatorSettings.ChannelMax[idx];
