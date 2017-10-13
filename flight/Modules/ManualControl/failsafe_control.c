@@ -77,7 +77,7 @@ int32_t failsafe_control_select(bool reset_controller)
 	SystemSettingsAirframeTypeGet(&airframe_type);
 
 	StabilizationDesiredData stabilization_desired;
-	stabilization_desired.Thrust = (airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) ? 0 : -1;
+	stabilization_desired.Thrust = 0;
 	stabilization_desired.Roll = 0;
 	stabilization_desired.Pitch = 0;
 	stabilization_desired.Yaw   = 0;
