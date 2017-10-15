@@ -521,12 +521,12 @@ static void stabilizationTask(void* parameters)
 		actuatorDesired.Thrust = stabDesired.Thrust;
 
 		static uint32_t last_nonzero_thrust_time = 0;
-		static bool last_thrust_pos;
+		static bool last_thrust_pos = true;
 
 		if (fabsf(stabDesired.Thrust) > THROTTLE_EPSILON) {
 			if (settings.LowPowerStabilizationMaxTime) {
 				last_nonzero_thrust_time = this_systime;
-				last_thrust_pos = stabDesired.Thrust > 0;
+				last_thrust_pos = stabDesired.Thrust >= 0;
 			}
 		} else if (last_nonzero_thrust_time) {
 			if ((this_systime - last_nonzero_thrust_time) <
