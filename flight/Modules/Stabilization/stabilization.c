@@ -167,7 +167,7 @@ static float get_throttle(ActuatorDesiredData *actuator_desired, SystemSettingsA
 		ManualControlCommandThrottleGet( &heli_throttle );
 		return heli_throttle;
 	}
-	
+
 	/* Look at actuator_desired so that it respects the value from
 	 * low power stabilization (comes from StabilizationDesired)
 	 */
@@ -283,7 +283,8 @@ static void calculate_attitude_errors(uint8_t *axis_mode, float *raw_input,
 	       	float *local_attitude_error, float *horizon_rate_fraction)
 {
 	float trimmed_setpoint[YAW+1];
-	
+	float *cur_attitude = &attitudeActual->Roll;
+
 	// Mux in level trim values, and saturate the trimmed attitude setpoint.
 	trimmed_setpoint[ROLL] = bound_min_max(
 			raw_input[ROLL] + subTrim.Roll,
@@ -331,18 +332,38 @@ static void calculate_attitude_errors(uint8_t *axis_mode, float *raw_input,
 		trimmed_setpoint[YAW] = 0;
 	}
 
+	for (int i = ROLL; i <= YAW; i++) {
+		switch (axis_mode[i]) {
+			case STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON:
+			case STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING:
+			case STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE:
+				break;
+			default:
+				/* If the axis isn't in an attitude mode,
+				 * make sure there's no error on it.
+				 */
+				trimmed_setpoint[i] = cur_attitude[i];
+		}
+	}
+
+	/* We want the rotation that will rotate from our attitude to
+	 * desired_quat.  so that's attitude ^ -1 * desired_quat
+	 */
+
+	float desired_quat[4], atti_inverse[4], vehicle_reprojected[4];
+
+	RPY2Quaternion(trimmed_setpoint, desired_quat);
+
+	quat_copy(&attitudeActual->q1, atti_inverse);
+	quat_inverse(atti_inverse);
+
+	quat_mult(atti_inverse, desired_quat, vehicle_reprojected);
+
+	Quaternion2RPY(vehicle_reprojected, local_attitude_error);
+
 	// Note we divide by the maximum limit here so the fraction ranges from 0 to 1 depending on
 	// how much is requested.
 	*horizon_rate_fraction = bound_sym(*horizon_rate_fraction, HORIZON_MODE_MAX_BLEND) / HORIZON_MODE_MAX_BLEND;
-
-	// Calculate the errors in each axis. The local error is used in the following modes:
-	//  ATTITUDE, HORIZON, WEAKLEVELING
-	local_attitude_error[ROLL] = trimmed_setpoint[ROLL] -
-		attitudeActual->Roll;
-	local_attitude_error[PITCH] = trimmed_setpoint[PITCH] -
-		attitudeActual->Pitch;
-	local_attitude_error[YAW] = trimmed_setpoint[YAW] -
-		attitudeActual->Yaw;
 
 	// Wrap yaw error to [-180,180]
 	local_attitude_error[YAW] = circular_modulus_deg(local_attitude_error[YAW]);
