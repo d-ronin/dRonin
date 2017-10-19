@@ -5003,7 +5003,7 @@ border-radius: 5;</string>
                 </property>
                 <property name="objrelation" stdset="0">
                  <stringlist>
-                  <string>objname:ActuatorSettings</string>
+                  <string>objname:StabilizationSettings</string>
                   <string>fieldname:LowPowerStabilizationMaxPowerAdd</string>
                   <string>scale:.01</string>
                   <string>buttongroup:10</string>
