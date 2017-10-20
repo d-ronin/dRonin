@@ -186,7 +186,7 @@ static void process_pio_message_impl(int *resp_len)
 			PIOS_Assert(0);
 			break;
 	}
-			
+
 	/* If we get an edge and no clocking.. make sure the message is
 	 * invalidated / not reused */
 	rx_buf.id = 0;
@@ -211,10 +211,8 @@ int main()
 	/* Brings up System using CMSIS functions, enables the LEDs. */
 	PIOS_SYS_Init();
 
-	const struct pios_board_info *bdinfo = &pios_board_info_blob;
-
 #if defined(PIOS_INCLUDE_ANNUNC)
-	const struct pios_annunc_cfg *led_cfg = PIOS_BOARD_HW_DEFS_GetLedCfg(bdinfo->board_rev);
+	const struct pios_annunc_cfg *led_cfg = PIOS_BOARD_HW_DEFS_GetLedCfg(0);
 	PIOS_Assert(led_cfg);
 	PIOS_ANNUNC_Init(led_cfg);
 #endif	/* PIOS_INCLUDE_ANNUNC */
