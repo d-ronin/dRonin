@@ -7,13 +7,15 @@
 
 #include <stdint.h>
 #include "dcc_stdio.h"
-#if defined(STM32F10X)
+#if defined(STM32F0XX)
+# include "stm32f0xx.h"
+#elif defined(STM32F10X)
 # include "stm32f10x.h"
 #elif defined(STM32F2XX)
 # include "stm32f2xx.h"
 #elif defined(STM32F30X)
 # include "stm32f30x.h"
-#elif defined(STM32F4XX)
+#elif defined(STM32F40_41xxx) || defined(STM32F446xx)
 # include "stm32f4xx.h"
 #else
 #error Unsupported CPU

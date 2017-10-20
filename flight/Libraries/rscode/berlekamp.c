@@ -248,7 +248,7 @@ Find_Roots (void)
     if (sum == 0) 
       { 
 	ErrorLocs[NErrors] = (255-r); NErrors++; 
-	//if (DEBUG) fprintf(stderr, "Root found at r = %d, (255-r) = %d\n", r, (255-r));
+	//if (rscode_debug) fprintf(stderr, "Root found at r = %d, (255-r) = %d\n", r, (255-r));
       }
   }
 }
@@ -289,7 +289,7 @@ correct_errors_erasures (unsigned char codeword[],
     /* first check for illegal error locs */
     for (r = 0; r < NErrors; r++) {
       if (ErrorLocs[r] >= csize) {
-				//if (DEBUG) fprintf(stderr, "Error loc i=%d outside of codeword length %d\n", i, csize);
+				//if (rscode_debug) fprintf(stderr, "Error loc i=%d outside of codeword length %d\n", i, csize);
 	return(0);
       }
     }
@@ -310,14 +310,14 @@ correct_errors_erasures (unsigned char codeword[],
       }
       
       err = gmult(num, ginv(denom));
-      //if (DEBUG) fprintf(stderr, "Error magnitude %#x at loc %d\n", err, csize-i);
+      //if (rscode_debug) fprintf(stderr, "Error magnitude %#x at loc %d\n", err, csize-i);
       
       codeword[csize-i-1] ^= err;
     }
     return(1);
   }
   else {
-    //if (DEBUG && NErrors) fprintf(stderr, "Uncorrectable codeword\n");
+    //if (rscode_debug && NErrors) fprintf(stderr, "Uncorrectable codeword\n");
     return(0);
   }
 }

@@ -3,7 +3,7 @@
 # @author     The OpenPilot Team, http://www.openpilot.org, Copyright (C) 2009.
 # @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
 # @author     dRonin, http://dronin.org Copyright (C) 2015-2016
-# @addtogroup 
+# @addtogroup
 # @{
 # @addtogroup
 # @{
@@ -22,7 +22,7 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>
-# 
+#
 # Additional note on redistribution: The copyright and license notices above
 # must be maintained in each individual source file that is a derivative work
 # of this source file; otherwise redistribution is prohibited.
@@ -35,7 +35,7 @@ DEBUG ?= NO
 
 # List of modules to include
 MODULES = Sensors
-MODULES += Attitude 
+MODULES += Attitude
 MODULES += Actuator
 MODULES += ManualControl
 MODULES += Stabilization
@@ -43,8 +43,8 @@ MODULES += FirmwareIAP
 MODULES += Telemetry
 
 OPTMODULES += GPS
-OPTMODULES += AltitudeHold 
-OPTMODULES += VtolPathFollower 
+OPTMODULES += AltitudeHold
+OPTMODULES += VtolPathFollower
 OPTMODULES += FixedWingPathFollower
 OPTMODULES += PathPlanner
 OPTMODULES += CameraStab
@@ -200,19 +200,16 @@ EXTRA_LIBS =
 # Path to Linker-Scripts
 LINKERSCRIPTPATH = $(PIOSSTM32F4XX)
 
-# Optimization level, can be [0, 1, 2, 3, s].
-# 0 = turn off optimization. s = optimize for size.
-# (Note: 3 is not always the best optimization level. See avr-libc FAQ.)
-
+# debug (un)optimization, see gcc docs
 ifeq ($(DEBUG),YES)
-CFLAGS += -O0
-CFLAGS += -DGENERAL_COV
-CFLAGS += -finstrument-functions -ffixed-r10
+CFLAGS += -Og
+CFLAGS += -ffixed-r10
+# finstrument-functions adds __cyg_profile_func_enter/exit to every function
+# we currently don't have that symbol implemented anywhere
+#CFLAGS += -finstrument-functions
 else
 CFLAGS += -Os -fconserve-stack
 endif
-
-
 
 # common architecture-specific flags from the device-specific library makefile
 CFLAGS += $(ARCHFLAGS)

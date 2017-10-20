@@ -2,9 +2,9 @@
 # @file       Makefile
 # @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
 # @author     dRonin, http://dronin.org Copyright (C) 2015-2016
-# @addtogroup 
+# @addtogroup
 # @{
-# @addtogroup 
+# @addtogroup
 # @{
 # @brief Makefile to build firmware for the Sparky2 board.
 ###############################################################################
@@ -21,7 +21,7 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>
-# 
+#
 # Additional note on redistribution: The copyright and license notices above
 # must be maintained in each individual source file that is a derivative work
 # of this source file; otherwise redistribution is prohibited.
@@ -34,7 +34,7 @@ DEBUG ?= NO
 
 # List of modules to include
 MODULES = Sensors
-MODULES += Attitude 
+MODULES += Attitude
 MODULES += ManualControl
 MODULES += Stabilization
 MODULES += Actuator
@@ -42,9 +42,9 @@ MODULES += FirmwareIAP
 MODULES += Telemetry
 
 OPTMODULES += GPS
-OPTMODULES += AltitudeHold 
+OPTMODULES += AltitudeHold
 OPTMODULES += PathPlanner
-OPTMODULES += VtolPathFollower 
+OPTMODULES += VtolPathFollower
 OPTMODULES += FixedWingPathFollower
 OPTMODULES += CameraStab
 OPTMODULES += Autotune
@@ -86,7 +86,7 @@ DEBUG_CM3_DIR_INC = $(DEBUG_CM3_DIR)/inc
 OPUAVOBJINC = $(OPUAVOBJ)/inc
 MAVLINKINC = $(FLIGHTLIB)/mavlink/v1.0/common
 
-SRC = 
+SRC =
 # optional component libraries
 include $(APPLIBDIR)/ChibiOS/library.mk
 
@@ -230,20 +230,17 @@ EXTRA_LIBS =
 # Path to Linker-Scripts
 LINKERSCRIPTPATH = $(PIOSSTM32F4XX)
 
-# Optimization level, can be [0, 1, 2, 3, s].
-# 0 = turn off optimization. s = optimize for size.
-# (Note: 3 is not always the best optimization level. See avr-libc FAQ.)
-
+# debug (un)optimization, see gcc docs
 ifeq ($(DEBUG),YES)
-CFLAGS += -O0
-CFLAGS += -DGENERAL_COV
-CFLAGS += -finstrument-functions -ffixed-r10
+CFLAGS += -Og
+CFLAGS += -ffixed-r10
+# finstrument-functions adds __cyg_profile_func_enter/exit to every function
+# we currently don't have that symbol implemented anywhere
+#CFLAGS += -finstrument-functions
 else
 CFLAGS += -Os -fconserve-stack
 endif
 
-
-   
 # common architecture-specific flags from the device-specific library makefile
 CFLAGS += $(ARCHFLAGS)
 
@@ -366,7 +363,7 @@ LDFLAGS += -lgcc
 LDFLAGS += -Wl,--warn-common
 LDFLAGS += -Wl,--fatal-warnings
 
-#Linker scripts                                                                                                                                                                                                              
+#Linker scripts
 LDFLAGS += -T memory.ld $(addprefix -T,$(LINKER_SCRIPTS_APP))
 
 include $(MAKE_INC_DIR)/firmware-common.mk

@@ -21,7 +21,7 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>
-# 
+#
 # Additional note on redistribution: The copyright and license notices above
 # must be maintained in each individual source file that is a derivative work
 # of this source file; otherwise redistribution is prohibited.
@@ -33,8 +33,8 @@ include $(MAKE_INC_DIR)/firmware-defs.mk
 DEBUG ?= NO
 
 # List of modules to include
-MODULES = 
-OPTMODULES = 
+MODULES =
+OPTMODULES =
 
 # Paths
 OPUAVOBJINC = $(OPUAVOBJ)/inc
@@ -144,12 +144,13 @@ EXTRA_LIBS =
 # Path to Linker-Scripts
 LINKERSCRIPTPATH = $(PIOSSTM32F0XX)
 
-# Optimization level, can be [0, 1, 2, 3, s].
-# 0 = turn off optimization. s = optimize for size.
-# (Note: 3 is not always the best optimization level. See avr-libc FAQ.)
-
+# debug (un)optimization, see gcc docs
 ifeq ($(DEBUG),YES)
-CFLAGS += -O0 -ffixed-r10
+CFLAGS += -Og
+CFLAGS += -ffixed-r10
+# finstrument-functions adds __cyg_profile_func_enter/exit to every function
+# we currently don't have that symbol implemented anywhere
+#CFLAGS += -finstrument-functions
 else
 CFLAGS += -Os -fconserve-stack
 endif
