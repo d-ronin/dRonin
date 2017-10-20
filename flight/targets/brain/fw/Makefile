@@ -203,19 +203,16 @@ LIBS += $(FLIGHTLIBFILE)
 # Path to Linker-Scripts
 LINKERSCRIPTPATH = $(PIOSSTM32F4XX)
 
-# Optimization level, can be [0, 1, 2, 3, s].
-# 0 = turn off optimization. s = optimize for size.
-# (Note: 3 is not always the best optimization level. See avr-libc FAQ.)
-
+# debug (un)optimization, see gcc docs
 ifeq ($(DEBUG),YES)
-CFLAGS += -O0
-CFLAGS += -DGENERAL_COV
-# CFLAGS += -finstrument-functions -ffixed-r10
+CFLAGS += -Og
+CFLAGS += -ffixed-r10
+# finstrument-functions adds __cyg_profile_func_enter/exit to every function
+# we currently don't have that symbol implemented anywhere
+#CFLAGS += -finstrument-functions
 else
 CFLAGS += -Os -fconserve-stack
 endif
-
-
 
 # common architecture-specific flags from the device-specific library makefile
 CFLAGS += $(ARCHFLAGS)

@@ -8,7 +8,7 @@
  # Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
  # dRonin, http://dronin.org Copyright (C) 2015-2016
  #
- # 
+ #
  # This program is free software; you can redistribute it and/or modify
  # it under the terms of the GNU General Public License as published by
  # the Free Software Foundation; either version 3 of the License, or
@@ -166,7 +166,7 @@ CPPSRCARM =
 # Even though the DOS/Win* filesystem matches both .s and .S the same,
 # it will preserve the spelling of the filenames, and gcc itself does
 # care about how the name is spelled on its command-line.
-ASRC = 
+ASRC =
 
 # List Assembler source files here which must be assembled in ARM-Mode..
 ASRCARM =
@@ -286,7 +286,7 @@ CSTANDARD = -std=gnu99
 # Flags for C and C++ (arm-elf-gcc/arm-elf-g++)
 
 ifeq ($(DEBUG),YES)
-CFLAGS = -DDEBUG
+CFLAGS += -DDEBUG
 endif
 
 ifneq (,$(filter YES,$(STACK_DIAGNOSTICS) $(ALL_DIGNOSTICS)))
@@ -365,4 +365,3 @@ LDFLAGS += -T$(LINKERSCRIPTPATH)/sections_chibios.ld
 NO_AUTO_UAVO=YES
 
 include $(MAKE_INC_DIR)/firmware-common.mk
-
