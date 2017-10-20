@@ -975,7 +975,7 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
 
 	const uint8_t FAILSAFE_SETTINGS[3] = {  STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE,
                                           STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE,
-                                          STABILIZATIONDESIRED_STABILIZATIONMODE_RATE};
+                                          STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE};
 
 	const uint8_t SYSTEMIDENT_SETTINGS[3] = {  STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT,
                                           STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT,
