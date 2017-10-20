@@ -165,6 +165,11 @@ static float get_throttle(ActuatorDesiredData *actuator_desired, SystemSettingsA
 	if (*airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) {
 		float heli_throttle;
 		ManualControlCommandThrottleGet( &heli_throttle );
+
+		if (heli_throttle < 0) {
+			return 0;
+		}
+
 		return heli_throttle;
 	}
 
@@ -1084,7 +1089,7 @@ static void stabilizationTask(void* parameters)
 		ActuatorDesiredSet(&actuatorDesired);
 
 		if(flightStatus.Armed != FLIGHTSTATUS_ARMED_ARMED ||
-		   (lowThrottleZeroIntegral && get_throttle(&actuatorDesired, &airframe_type) < 0))
+		   (lowThrottleZeroIntegral && get_throttle(&actuatorDesired, &airframe_type) == 0))
 		{
 			// Force all axes to reinitialize when engaged
 			for(uint8_t i=0; i< MAX_AXES; i++)
