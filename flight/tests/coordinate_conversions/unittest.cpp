@@ -55,7 +55,7 @@ protected:
   }
 };
 
-// Test fixture for bound_min_max()
+// Test fixture for Rne From LLA, minimal
 class RneFromLLATest : public CoordConversion {
 protected:
   virtual void SetUp() {
@@ -84,3 +84,100 @@ TEST_F(RneFromLLATest, Equator) {
   ASSERT_NEAR(0, Rne[2][1], eps);
   ASSERT_NEAR(0, Rne[2][2], eps);
 };
+
+class QuatRPYTest : public CoordConversion {
+  virtual void SetUp() {
+  }
+
+  virtual void TearDown() {
+  }
+};
+
+TEST_F(QuatRPYTest, BackAndForth) {
+	float eps = 0.8f;
+
+	float quat[4];
+	float rpy[3];
+	float rpy_out[3];
+
+	rpy[0] = 1; rpy[1] = 1; rpy[2] = 1;
+
+	RPY2Quaternion(rpy, quat);
+	Quaternion2RPY(quat, rpy_out);
+
+	for (int i = 0; i < 3; i++) {
+		ASSERT_NEAR(rpy[i], rpy_out[i], eps);
+	}
+
+	rpy[0] = 179; rpy[1] = 1; rpy[2] = 1;
+
+	RPY2Quaternion(rpy, quat);
+	Quaternion2RPY(quat, rpy_out);
+
+	for (int i = 0; i < 3; i++) {
+		ASSERT_NEAR(rpy[i], rpy_out[i], eps);
+	}
+
+	rpy[0] = 40; rpy[1] = 89; rpy[2] = 0;
+
+	RPY2Quaternion(rpy, quat);
+	Quaternion2RPY(quat, rpy_out);
+
+	for (int i = 0; i < 3; i++) {
+		ASSERT_NEAR(rpy[i], rpy_out[i], eps);
+	}
+
+	rpy[0] = 45; rpy[1] = 89; rpy[2] = 0;
+
+	RPY2Quaternion(rpy, quat);
+	Quaternion2RPY(quat, rpy_out);
+
+	for (int i = 0; i < 3; i++) {
+		ASSERT_NEAR(rpy[i], rpy_out[i], eps);
+	}
+
+	rpy[0] = -179; rpy[1] = -89; rpy[2] = 0;
+
+	RPY2Quaternion(rpy, quat);
+	Quaternion2RPY(quat, rpy_out);
+
+	for (int i = 0; i < 3; i++) {
+		ASSERT_NEAR(rpy[i], rpy_out[i], eps);
+	}
+
+	rpy[0] = 0; rpy[1] = -90; rpy[2] = 0;
+
+	RPY2Quaternion(rpy, quat);
+	Quaternion2RPY(quat, rpy_out);
+
+	for (int i = 0; i < 3; i++) {
+		ASSERT_NEAR(rpy[i], rpy_out[i], eps);
+	}
+
+	rpy[0] = 90; rpy[1] = -90; rpy[2] = 0;
+
+	RPY2Quaternion(rpy, quat);
+	Quaternion2RPY(quat, rpy_out);
+
+	for (int i = 0; i < 3; i++) {
+		ASSERT_NEAR(rpy[i], rpy_out[i], eps);
+	}
+
+	rpy[0] = -130; rpy[1] = -90; rpy[2] = 90;
+
+	RPY2Quaternion(rpy, quat);
+	Quaternion2RPY(quat, rpy_out);
+
+	ASSERT_NEAR(rpy[1], rpy_out[1], eps);
+
+	for (float f = -179.5; f < 179.5f; f += 0.1f) {
+		rpy[0] = f; rpy[1] = -90; rpy[2] = 0;
+
+		RPY2Quaternion(rpy, quat);
+		Quaternion2RPY(quat, rpy_out);
+
+		for (int i = 0; i < 3; i++) {
+			ASSERT_NEAR(rpy[i], rpy_out[i], eps);
+		}
+	}
+}
