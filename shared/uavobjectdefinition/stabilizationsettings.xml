@@ -2,9 +2,9 @@
 <xml>
 	<object name="StabilizationSettings" singleinstance="true" settings="true">
 		<description>PID settings used by the Stabilization module to combine the @ref AttitudeActual and @ref AttitudeDesired to compute @ref ActuatorDesired</description>
-		<field name="MaxLevelAngle" units="degrees" type="uint8" elements="3" elementnames="Roll,Pitch,Yaw" defaultvalue="55,55,35" limits="%BE:0:180,%BE:0:180,%BE:0:180"/>
+		<field name="MaxLevelAngle" units="degrees" type="uint8" elements="3" elementnames="Roll,Pitch,Yaw" defaultvalue="55,55,35" limits="%BE:0:180,%BE:0:90,%BE:0:180"/>
 		<field name="RollMax" units="degrees" type="uint8" elements="1" defaultvalue="55" limits="%BE:0:180"/>
-		<field name="PitchMax" units="degrees" type="uint8" elements="1" defaultvalue="55" limits="%BE:0:180"/>
+		<field name="PitchMax" units="degrees" type="uint8" elements="1" defaultvalue="55" limits="%BE:0:90"/>
 		<field name="YawMax" units="degrees" type="uint8" elements="1" defaultvalue="35" limits="%BE:0:180"/>
 		<field name="ManualRate" units="degrees/sec" type="float" elementnames="Roll,Pitch,Yaw" defaultvalue="250,250,225" limits="%BE:0:1650,%BE:0:1650,%BE:0:1650">
 			<description>The rate to rotate on this axis at full stick deflection in rate/acro modeis.</description>
