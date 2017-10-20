@@ -523,7 +523,11 @@ static void stabilizationTask(void* parameters)
 		static uint32_t last_nonzero_thrust_time = 0;
 		static bool last_thrust_pos = true;
 
-		if (fabsf(stabDesired.Thrust) > THROTTLE_EPSILON) {
+		if (flightStatus.Armed != FLIGHTSTATUS_ARMED_ARMED) {
+			actuatorDesired.Thrust = 0.0f;
+			last_thrust_pos = true;
+			last_nonzero_thrust_time = 0;
+		} else if (fabsf(stabDesired.Thrust) > THROTTLE_EPSILON) {
 			if (settings.LowPowerStabilizationMaxTime) {
 				last_nonzero_thrust_time = this_systime;
 				last_thrust_pos = stabDesired.Thrust >= 0;
