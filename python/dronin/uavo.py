@@ -339,10 +339,14 @@ def make_class(collection, xml_file, update_globals=True):
             info = clone_info
         else:
             info['is_clone_of'] = None
-            if info['elements'] is not None:
-                # we've got an inline "elements" attribute
+
+            if field.find('elementnames') is not None:
+                # we must have one or more elementnames/elementname elements in this sub-tree
                 info['elementnames'] = []
-                info['elements'] = int(field.get('elements'))
+                info['elements'] = 0
+                for elementname_text in [elementname.text for elementname in field.findall('elementnames/elementname')]:
+                    info['elementnames'].append(elementname_text)
+                    info['elements'] += 1
             elif info['elementnames'] is not None:
                 # we've got an inline "elementnames" attribute
                 info['elementnames'] = []
@@ -350,13 +354,12 @@ def make_class(collection, xml_file, update_globals=True):
                 for elementname in field.get('elementnames').split(','):
                     info['elementnames'].append(RE_SPECIAL_CHARS.sub('', elementname))
                     info['elements'] += 1
-            else:
-                # we must have one or more elementnames/elementname elements in this sub-tree
+            elif info['elements'] is not None:
+                # we've got an inline "elements" attribute
                 info['elementnames'] = []
-                info['elements'] = 0
-                for elementname_text in [elementname.text for elementname in field.findall('elementnames/elementname')]:
-                    info['elementnames'].append(elementname_text)
-                    info['elements'] += 1
+                info['elements'] = int(field.get('elements'))
+            else:
+                raise ValueError("Missing element count/names")
 
             if info['type'] == 'enum':
                 info['options'] = OrderedDict()
