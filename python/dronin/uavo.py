@@ -415,7 +415,7 @@ def make_class(collection, xml_file, update_globals=True):
                         values = (0,)
                 else:  # float or int
                     values = tuple(float(v) for v in info['defaultvalue'].split(','))
-                    if info['type'] != float:
+                    if info['type'] != 'float':
                         values = tuple(int(v) for v in values)
 
                 if len(values) == 1:
