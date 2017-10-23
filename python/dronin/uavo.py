@@ -2,7 +2,7 @@
 Implementation of UAV Object Types
 
 Copyright (C) 2014-2015 Tau Labs, http://taulabs.org
-Copyright (C) 2015 dRonin, http://dronin.org
+Copyright (C) 2015-2017 dRonin, http://dronin.org
 
 Licensed under the GNU LGPL version 2.1 or any later version (see COPYING.LESSER)
 """
@@ -10,7 +10,6 @@ Licensed under the GNU LGPL version 2.1 or any later version (see COPYING.LESSER
 import re
 from collections import namedtuple, OrderedDict
 import xml.etree.ElementTree as etree
-from xml.etree.ElementTree import Element, SubElement
 import time
 
 try:
@@ -133,7 +132,7 @@ class UAVTupleClass():
     def to_xml_elem(self):
         munged_name = self._name[5:]
         munged_id = '0x%X' % self._id
-        xmlobj = Element('object', { 'name' : munged_name,
+        xmlobj = etree.Element('object', { 'name' : munged_name,
             'id' : munged_id })
 
         raw_dict = self._asdict()
@@ -150,7 +149,7 @@ class UAVTupleClass():
             else:
                 text_value = self.elem_to_string(field_name, field_value)
 
-            xmlfield = SubElement(xmlobj, 'field', { 'name' : field_name, 'values' : text_value })
+            xmlfield = etree.SubElement(xmlobj, 'field', { 'name' : field_name, 'values' : text_value })
 
         return xmlobj
 
