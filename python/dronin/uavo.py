@@ -259,12 +259,14 @@ def canonicalize(subs, fields, is_settings):
                 if len(set(field['defaultvalue'])) > 1:
                     # There's several options
                     defaultvalue = ','.join([ canonicalize_defval_to_name(field, v) for v in field['defaultvalue'] ])
-                elif (field['defaultvalue'][0] != 0) or is_settings:
+                elif (field['defaultvalue'][0] != 0) or is_settings or True:
+                    # TODO: Would be nice to omit this more of the time, but
+                    # existing UAVOgen doesn't seem to do right thing.
                     defaultvalue = canonicalize_defval_to_name(field,
                             field['defaultvalue'][0])
             except TypeError:
                 #not iterable
-                if (field['defaultvalue'] != 0) or is_settings:
+                if (field['defaultvalue'] != 0) or is_settings or True:
                     defaultvalue = canonicalize_defval_to_name(field,
                             field['defaultvalue'])
 
