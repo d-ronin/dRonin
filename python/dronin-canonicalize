@@ -1,0 +1,9 @@
+#!/usr/bin/env python
+
+from dronin import uavo_collection
+
+uavo_defs = uavo_collection.UAVOCollection()
+
+uavo_defs.from_uavo_xml_path('../shared/uavobjectdefinition')
+
+uavo_defs.emit_canonical_xml('outxml')
