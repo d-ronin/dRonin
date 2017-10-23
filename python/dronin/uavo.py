@@ -9,7 +9,12 @@ Licensed under the GNU LGPL version 2.1 or any later version (see COPYING.LESSER
 
 import re
 from collections import namedtuple, OrderedDict
-import xml.etree.ElementTree as etree
+
+try:
+    import lxml.etree as etree
+except:
+    import xml.etree.ElementTree as etree
+
 import time
 
 try:
@@ -27,7 +32,6 @@ def flatten(lst):
         else:
             result.append(element)
     return result
-
 
 class UAVTupleClass():
     """ This is the prototype for a class that contains a uav object. """
@@ -129,6 +133,20 @@ class UAVTupleClass():
         else:
             return 'Unknown'
 
+    @classmethod
+    def to_xml_description(cls, as_text=False):
+        if not as_text:
+            return cls._canonical_xml
+
+        # TODO: Eliminate this useless wrapping
+        xml_elem = etree.Element('xml')
+        xml_elem.append(cls._canonical_xml)
+
+        try:
+            return etree.tostring(xml_elem, pretty_print = True)
+        except Exception:
+            return etree.tostring(xml_elem)
+
     def to_xml_elem(self):
         munged_name = self._name[5:]
         munged_id = '0x%X' % self._id
@@ -187,6 +205,93 @@ struct_element_map = {
     'enum'    : 'B',
     }
 
+def canonicalize_defval_to_name(field, val):
+    if field['type'] == 'enum':
+        for f in field['options'].keys():
+            if field['options'][f] == val:
+                return f
+
+        raise ValueError('missing enum thing')
+
+    return str(val)
+
+def canonicalize(subs, fields, is_settings):
+    # TODO: later, when we accept True, output real singleinstance/settings
+    # value as True / False
+    attribs = {
+            'name' : subs['object'].get('name'),
+            'singleinstance' : subs['object'].get('singleinstance'),
+            'settings' : subs['object'].get('settings')
+            }
+
+    new_tree = etree.Element('object', attribs)
+
+    for elem in ('description', 'access', 'logging', 'telemetrygcs', 'telemetryflight'):
+        subs[elem].tail=None    # Yucky to touch this directy. but meh.
+        new_tree.append(subs[elem])
+        pass
+
+    for field in fields:
+        if field['is_clone_of'] is not None:
+            field_elem = etree.SubElement(new_tree, 'field',
+                    attrib = {
+                        'name' : field['name'],
+                        'cloneof' : field['is_clone_of']
+                    } )
+        else:
+            attribs = {
+                    'name' : field['name'],
+                    'type' : field['type']
+                    }
+
+            for attr in ( 'units', 'parent', 'limits' ):
+                if field.get(attr) is not None:
+                    attribs[attr] = field[attr]
+
+            if len(field['elementnames']) == 0:
+                attribs['elements'] = str(field['elements'])
+
+            defaultvalue = None
+
+            try:
+                dvi = iter(field['defaultvalue'])
+
+                if len(set(field['defaultvalue'])) > 1:
+                    # There's several options
+                    defaultvalue = ','.join([ canonicalize_defval_to_name(field, v) for v in field['defaultvalue'] ])
+                elif (field['defaultvalue'][0] != 0) or is_settings:
+                    defaultvalue = canonicalize_defval_to_name(field,
+                            field['defaultvalue'][0])
+            except TypeError:
+                #not iterable
+                if (field['defaultvalue'] != 0) or is_settings:
+                    defaultvalue = canonicalize_defval_to_name(field,
+                            field['defaultvalue'])
+
+            if defaultvalue is not None:
+                attribs['defaultvalue'] = defaultvalue
+
+            field_elem = etree.SubElement(new_tree, 'field', attribs)
+
+            etree.SubElement(field_elem, 'description').text = field['description']
+
+            if len(field['elementnames']):
+                elementnames = etree.SubElement(field_elem, 'elementnames')
+
+                for n in field['elementnames']:
+                    name_elem = etree.SubElement(elementnames, 'elementname')
+                    name_elem.text = n
+
+            if field['type'] == 'enum':
+                # omit if set is same as parent
+                if field['parent'] is None or not field['options_match']:
+                    options_elem = etree.SubElement(field_elem, 'options')
+                    for f in field['options'].keys():
+                        option_elem = etree.SubElement(options_elem, 'option')
+                        option_elem.text = f
+
+    return new_tree
+
 # This is a very long, scary method.  It parses an XML file describing
 # a UAVO and builds an implementation class.
 def make_class(collection, xml_file, update_globals=True):
@@ -197,7 +302,6 @@ def make_class(collection, xml_file, update_globals=True):
     tree = etree.fromstring(xml_file)
 
     subs = {
-        'tree'            : tree,
         'object'          : tree.find('object'),
         'fields'          : tree.findall('object/field'),
         'description'     : tree.find('object/description'),
@@ -208,8 +312,8 @@ def make_class(collection, xml_file, update_globals=True):
         }
 
     name = subs['object'].get('name')
-    is_single_inst = int((subs['object'].get('singleinstance') == 'true'))
-    is_settings = int((subs['object'].get('settings') == 'true'))
+    is_single_inst = int((subs['object'].get('singleinstance').lower() == 'true'))
+    is_settings = int((subs['object'].get('settings').lower() == 'true'))
 
     description = subs['description'].text
 
@@ -218,7 +322,7 @@ def make_class(collection, xml_file, update_globals=True):
         info = {}
         # process typical attributes
         for attr in ['name', 'units', 'type', 'elements', 'elementnames',
-                     'parent', 'defaultvalue']:
+                     'parent', 'defaultvalue', 'description']:
             info[attr] = field.get(attr)
         if field.get('cloneof'):
             # this is a clone of another field, find its data
@@ -230,9 +334,11 @@ def make_class(collection, xml_file, update_globals=True):
 
             # replace it with the new name
             clone_info['name'] = info['name']
+            clone_info['is_clone_of'] = cloneof_name
             # use the expanded/substituted info instead of the stub
             info = clone_info
         else:
+            info['is_clone_of'] = None
             if info['elements'] is not None:
                 # we've got an inline "elements" attribute
                 info['elementnames'] = []
@@ -270,6 +376,7 @@ def make_class(collection, xml_file, update_globals=True):
             # Get parent
             if info['parent'] is not None:
                 parent_name, field_name = info['parent'].split('.')
+
                 if parent_name == name:
                     for i, fld in enumerate(fields):
                         if fld['name'] == field_name:
@@ -282,9 +389,13 @@ def make_class(collection, xml_file, update_globals=True):
                     mapping = getattr(parent_class, 'ENUM_' + field_name)
 
                 if len(info['options']) == 0:
+                    info['options_match'] = True
+
                     for k, v in sorted(iter(reverse_mapping.items()), key=lambda x: x[0]):
                         info['options'][v] = k
                 else:
+                    info['options_match'] = len(info['options'].keys()) == len(mapping)
+
                     for k in info['options'].keys():
                         info['options'][k] = mapping[k]
 
@@ -316,6 +427,8 @@ def make_class(collection, xml_file, update_globals=True):
                 info['description'] = field.find('description').text
 
         fields.append(info)
+
+    canonical_xml = canonicalize(subs, fields, is_settings)
 
     # Sort fields by size (bigger to smaller) to ensure alignment when packed
     fields.sort(key=lambda x: calcsize(struct_element_map[x['type']]), reverse = True)
@@ -392,6 +505,7 @@ def make_class(collection, xml_file, update_globals=True):
         _num_subelems = num_subelems
         _dtype = dtype
         _is_settings = is_settings
+        _canonical_xml = canonical_xml
         _units = {f['name'] : f['units'] for f in fields}
 
     # This is magic for two reasons.  First, we create the class to have
@@ -416,9 +530,7 @@ def make_class(collection, xml_file, update_globals=True):
     if update_globals:
         globals()[tuple_class.__name__] = tuple_class
 
-
     return tuple_class
-
 
 class UAVOHash():
     def __init__(self):
