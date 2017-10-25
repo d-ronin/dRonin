@@ -2,9 +2,6 @@
 <xml>
 	<object name="MixerSettings" singleinstance="true" settings="true">
 		<description>Settings for the @ref ActuatorModule that controls the channel assignments for the mixer based on AircraftType</description>
-		<field name="ThrottleCurve1" units="percent" type="float" elementnames="0,25,50,75,100" defaultvalue="0,0,0,0,0">
-			<description>Throttle curve</description>
-		</field>
 		<field name="Curve2Source" units="" type="enum" elements="1" defaultvalue="Throttle">
 			<description>Curve source</description>
 			<options>

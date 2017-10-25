@@ -185,10 +185,6 @@ SystemSettings::AirframeTypeOptions ConfigFixedWingWidget::updateConfigObjectsFr
     // Default fixed-wing type is classic airplane
     SystemSettings::AirframeTypeOptions airframeType = SystemSettings::AIRFRAMETYPE_FIXEDWING;
 
-    // Set the throttle curve
-    setThrottleCurve(mixerSettings, MixerSettings::MIXER1VECTOR_THROTTLECURVE1,
-                     m_aircraft->fixedWingThrottle->getCurve());
-
     // Setup the appropriate aircraft type
     if (m_aircraft->fixedWingType->currentText() == "Elevator aileron rudder") {
         airframeType = SystemSettings::AIRFRAMETYPE_FIXEDWING;

@@ -386,10 +386,6 @@ SystemSettings::AirframeTypeOptions ConfigMultiRotorWidget::updateConfigObjectsF
     MixerSettings *mixerSettings = MixerSettings::GetInstance(getObjectManager());
     Q_ASSERT(mixerSettings);
 
-    // Curve is also common to all quads:
-    setThrottleCurve(mixerSettings, MixerSettings::MIXER1VECTOR_THROTTLECURVE1,
-                     m_aircraft->multiThrottleCurve->getCurve());
-
     if (m_aircraft->multirotorFrameType->itemData(m_aircraft->multirotorFrameType->currentIndex())
         == SystemSettings::AIRFRAMETYPE_QUADP) {
         airframeType = SystemSettings::AIRFRAMETYPE_QUADP;

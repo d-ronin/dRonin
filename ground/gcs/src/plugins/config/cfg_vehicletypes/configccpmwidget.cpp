@@ -128,8 +128,6 @@ ConfigCcpmWidget::ConfigCcpmWidget(QWidget *parent)
     }
 
     // initialize our throttle mixer curve
-    // mixercurve defaults to mixercurve_throttle
-    m_ccpm->ThrottleCurve->initLinearCurve(5, 1.0, 0.0);
 
     // initialize channel names
     m_ccpm->ccpmEngineChannel->addItems(channelNames);
@@ -642,7 +640,7 @@ void ConfigCcpmWidget::UpdateMixer()
                 // Generate the mixer vector
                 if (i == 0) { // main motor-engine
                     m_ccpm->ccpmAdvancedSettingsTable->item(i, 1)->setText(
-                        QString("%1").arg(mixerScale)); // ThrottleCurve1
+                        QString("%1").arg(mixerScale)); // Thrust
                     m_ccpm->ccpmAdvancedSettingsTable->item(i, 2)->setText(
                         QString("%1").arg(0)); // ThrottleCurve2
                     m_ccpm->ccpmAdvancedSettingsTable->item(i, 3)->setText(
@@ -662,7 +660,7 @@ void ConfigCcpmWidget::UpdateMixer()
                     if (TypeText.compare(QString::fromUtf8("Coax 2 Servo 90º"), Qt::CaseInsensitive)
                         == 0) {
                         m_ccpm->ccpmAdvancedSettingsTable->item(i, 1)->setText(
-                            QString("%1").arg(mixerScale)); // ThrottleCurve1
+                            QString("%1").arg(mixerScale)); // Thrust
                         m_ccpm->ccpmAdvancedSettingsTable->item(i, 5)->setText(
                             QString("%1").arg(mixerScale)); // Yaw
                     } else {
@@ -681,7 +679,7 @@ void ConfigCcpmWidget::UpdateMixer()
                 }
                 if (i > 1) { // Swashplate
                     m_ccpm->ccpmAdvancedSettingsTable->item(i, 1)->setText(
-                        QString("%1").arg(0)); // ThrottleCurve1
+                        QString("%1").arg(0)); // Thrust
                     m_ccpm->ccpmAdvancedSettingsTable->item(i, 2)->setText(QString("%1").arg(
                         (int)(mixerScale * CollectiveConstant))); // ThrottleCurve2
                     m_ccpm->ccpmAdvancedSettingsTable->item(i, 3)->setText(QString("%1").arg(
@@ -870,15 +868,6 @@ void ConfigCcpmWidget::getMixer()
     // set the airframe type
     QPointer<VehicleConfig> vconfig = new VehicleConfig();
     QList<double> curveValues;
-    vconfig->getThrottleCurve(mixerSettings, MixerSettings::MIXER1VECTOR_THROTTLECURVE1,
-                              &curveValues);
-
-    // is at least one of the curve values != 0?
-    if (vconfig->isValidThrottleCurve(&curveValues)) {
-        m_ccpm->ThrottleCurve->setCurve(&curveValues);
-    } else {
-        m_ccpm->ThrottleCurve->ResetCurve();
-    }
 
     vconfig->getThrottleCurve(mixerSettings, MixerSettings::MIXER1VECTOR_THROTTLECURVE2,
                               &curveValues);
@@ -958,10 +947,8 @@ void ConfigCcpmWidget::setMixer()
     }
 
     // get the user data for the curve into the mixer settings
-    QList<double> curve1 = m_ccpm->ThrottleCurve->getCurve();
     QList<double> curve2 = m_ccpm->PitchCurve->getCurve();
     for (i = 0; i < 5; i++) {
-        mixerSettingsData.ThrottleCurve1[i] = curve1.at(i);
         mixerSettingsData.ThrottleCurve2[i] = curve2.at(i);
     }
 
