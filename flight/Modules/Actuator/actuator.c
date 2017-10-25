@@ -130,7 +130,6 @@ struct dshot_command {
 static volatile struct dshot_command pending_cmd;
 static struct dshot_command cur_cmd;
 
-static uint16_t channel_3d_mask;
 static uint16_t desired_3d_mask;
 
 #define DSHOT_COMMAND_DONTSPIN 0
@@ -712,6 +711,8 @@ static void actuator_task(void* parameters)
 	
 	float maxpoweradd_bucket = 0.0f;
 
+	bool prev_armed = false;
+
 	// Main task loop
 	while (1) {
 		/* If settings objects have changed, update our internal
@@ -729,33 +730,6 @@ static void actuator_task(void* parameters)
 
 			MixerSettingsThrottleCurve2Get(curve2);
 			MixerSettingsCurve2SourceGet(&curve2_src);
-		}
-
-		if (desired_3d_mask != channel_3d_mask) {
-			uint16_t to_chg = desired_3d_mask & (~channel_3d_mask);
-
-			if (to_chg) {
-				/* These are bits to set... */
-
-				if (!actuator_send_dshot_command(
-						DSHOT_COMMAND_3DMODE,
-						DSHOT_COUNT_EXCESSIVE,
-						to_chg)) {
-					channel_3d_mask |= to_chg;
-				}
-			}
-
-			to_chg = (~desired_3d_mask) & channel_3d_mask;
-
-			if (to_chg) {
-				/* These are bits to clear... */
-				if (!actuator_send_dshot_command(
-						DSHOT_COMMAND_NO3DMODE,
-						DSHOT_COUNT_EXCESSIVE,
-						to_chg)) {
-					channel_3d_mask &= ~to_chg;
-				}
-			}
 		}
 
 		PIOS_WDG_UpdateFlag(PIOS_WDG_ACTUATOR);
@@ -836,6 +810,22 @@ static void actuator_task(void* parameters)
 				MAX_MIX_ACTUATORS,
 				MIXERSETTINGS_MIXER1VECTOR_NUMELEM,
 				1);
+
+		/* At arming time, knock all 3d actuators into 3D mode.
+		 * Note we never "take them out" of 3d mode.
+		 */
+		if (armed != prev_armed) {
+			if (armed && desired_3d_mask) {
+				if (!actuator_send_dshot_command(
+						DSHOT_COMMAND_3DMODE,
+						DSHOT_COUNT_EXCESSIVE,
+						desired_3d_mask)) {
+					prev_armed = armed;
+				}
+			} else {
+				prev_armed = armed;
+			}
+		}
 
 		/* Perform clipping adjustments on the outputs, along with
 		 * state-related corrections (spin while armed, disarmed, etc).
