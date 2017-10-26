@@ -715,7 +715,11 @@ static int DSHOT_Update()
 		PIOS_Assert(info->value < 2048);
 
 		uint16_t message = info->value << 5;
-		/* Don't set telem req bit for now */
+
+		/* Set telem bit on commands */
+		if ((info->value > 0) && (info->value < 48)) {
+			message |= 16;
+		}
 
 		message |= 
 			((message >> 4 ) & 0xf) ^
