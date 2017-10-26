@@ -73,11 +73,35 @@ void Quaternion2RPY(const float q[4], float rpy[3])
 	R23 = 2.0f * (q[2] * q[3] + q[0] * q[1]);
 	R33 = q0s - q1s - q2s + q3s;
 
+	/* If we're nearly nose-up or nose-down, consider yaw to be 0, encode
+	 * information in roll to deal with loss of freedom
+	 */
+	if (R13 >= 0.985f) {
+		if (R13 >= 1) {
+			R13 = 1;
+		}
+
+		rpy[2] = 0;
+		rpy[1] = RAD2DEG * asinf(-R13);
+		rpy[0] = 2 * RAD2DEG * atan2f(q[3], q[0]);
+
+		return;
+	} else if (R13 <= -0.985f) {
+		if (R13 <= -1) {
+			R13 = -1;
+		}
+
+		rpy[2] = 0;
+		rpy[1] = RAD2DEG * asinf(-R13);
+		rpy[0] = -2 * RAD2DEG * atan2f(q[3], q[0]);
+
+
+		return;
+	}
+
 	rpy[1] = RAD2DEG * asinf(-R13);	// pitch always between -pi/2 to pi/2
 	rpy[2] = RAD2DEG * atan2f(R12, R11);
 	rpy[0] = RAD2DEG * atan2f(R23, R33);
-
-	//TODO: consider the cases where |R13| ~= 1, |pitch| ~= pi/2
 }
 
 // ****** find quaternion from roll, pitch, yaw ********
@@ -112,9 +136,8 @@ void RPY2Quaternion(const float rpy[3], float q[4])
 //** Find Rbe, that rotates a vector from earth fixed to body frame, from quaternion **
 void Quaternion2R(float q[4], float Rbe[3][3])
 {
-	
 	float q0s = q[0] * q[0], q1s = q[1] * q[1], q2s = q[2] * q[2], q3s = q[3] * q[3];
-	
+
 	Rbe[0][0] = q0s + q1s - q2s - q3s;
 	Rbe[0][1] = 2 * (q[1] * q[2] + q[0] * q[3]);
 	Rbe[0][2] = 2 * (q[1] * q[3] - q[0] * q[2]);
@@ -130,11 +153,10 @@ void Quaternion2R(float q[4], float Rbe[3][3])
 //**  convention, i.e. Rbe=Rot_x(roll)*Rot_y(pitch)*Rot_z(yaw) **
 void Euler2R(float rpy[3], float Rbe[3][3])
 {
-	
 	float sF = sinf(rpy[0]), cF = cosf(rpy[0]);
 	float sT = sinf(rpy[1]), cT = cosf(rpy[1]);
 	float sP = sinf(rpy[2]), cP = cosf(rpy[2]);
-	
+
 	Rbe[0][0] = cT*cP;
 	Rbe[0][1] = cT*sP;
 	Rbe[0][2] = -sT;
@@ -360,9 +382,7 @@ void rot_mult(float R[3][3], const float vec[3], float vec_out[3], bool transpos
 		vec_out[0] = R[0][0] * vec[0] + R[1][0] * vec[1] + R[2][0] * vec[2];
 		vec_out[1] = R[0][1] * vec[0] + R[1][1] * vec[1] + R[2][1] * vec[2];
 		vec_out[2] = R[0][2] * vec[0] + R[1][2] * vec[1] + R[2][2] * vec[2];
-		
 	}
-
 }
 
 /**

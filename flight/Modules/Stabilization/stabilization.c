@@ -167,7 +167,7 @@ static float get_throttle(ActuatorDesiredData *actuator_desired, SystemSettingsA
 		ManualControlCommandThrottleGet( &heli_throttle );
 		return heli_throttle;
 	}
-	
+
 	/* Look at actuator_desired so that it respects the value from
 	 * low power stabilization (comes from StabilizationDesired)
 	 */
@@ -278,6 +278,97 @@ void stabilization_failsafe_checks(StabilizationDesiredData *stab_desired,
 	}
 }
 
+static void calculate_attitude_errors(uint8_t *axis_mode, float *raw_input,
+		AttitudeActualData *attitudeActual,
+	       	float *local_attitude_error, float *horizon_rate_fraction)
+{
+	float trimmed_setpoint[YAW+1];
+	float *cur_attitude = &attitudeActual->Roll;
+
+	// Mux in level trim values, and saturate the trimmed attitude setpoint.
+	trimmed_setpoint[ROLL] = bound_min_max(
+			raw_input[ROLL] + subTrim.Roll,
+			-settings.RollMax + subTrim.Roll,
+			settings.RollMax + subTrim.Roll);
+	trimmed_setpoint[PITCH] = bound_min_max(
+			raw_input[PITCH] + subTrim.Pitch,
+			-settings.PitchMax + subTrim.Pitch,
+			settings.PitchMax + subTrim.Pitch);
+	trimmed_setpoint[YAW] = raw_input[YAW];
+
+	// For horizon mode we need to compute the desire attitude from an unscaled value and apply the
+	// trim offset. Also track the stick with the most deflection to choose rate blending.
+	*horizon_rate_fraction = 0.0f;
+
+	if (axis_mode[ROLL] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) {
+		trimmed_setpoint[ROLL] = bound_min_max(
+				raw_input[ROLL] * settings.RollMax + subTrim.Roll,
+				-settings.RollMax + subTrim.Roll,
+				settings.RollMax + subTrim.Roll);
+		*horizon_rate_fraction = fabsf(raw_input[ROLL]);
+	}
+	if (axis_mode[PITCH] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) {
+		trimmed_setpoint[PITCH] = bound_min_max(
+				raw_input[PITCH] * settings.PitchMax + subTrim.Pitch,
+				-settings.PitchMax + subTrim.Pitch,
+				settings.PitchMax + subTrim.Pitch);
+		*horizon_rate_fraction =
+			MAX(*horizon_rate_fraction, fabsf(raw_input[PITCH]));
+	}
+	if (axis_mode[YAW] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) {
+		trimmed_setpoint[YAW] = raw_input[YAW] * settings.YawMax;
+		*horizon_rate_fraction =
+			MAX(*horizon_rate_fraction, fabsf(raw_input[YAW]));
+	}
+
+	// For weak leveling mode the attitude setpoint is the trim value (drifts back towards "0")
+	if (axis_mode[ROLL] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING) {
+		trimmed_setpoint[ROLL] = subTrim.Roll;
+	}
+	if (axis_mode[PITCH] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING) {
+		trimmed_setpoint[PITCH] = subTrim.Pitch;
+	}
+	if (axis_mode[YAW] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING) {
+		trimmed_setpoint[YAW] = 0;
+	}
+
+	for (int i = ROLL; i <= YAW; i++) {
+		switch (axis_mode[i]) {
+			case STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON:
+			case STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING:
+			case STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE:
+				break;
+			default:
+				/* If the axis isn't in an attitude mode,
+				 * make sure there's no error on it.
+				 */
+				trimmed_setpoint[i] = cur_attitude[i];
+		}
+	}
+
+	/* We want the rotation that will rotate from our attitude to
+	 * desired_quat.  so that's attitude ^ -1 * desired_quat
+	 */
+
+	float desired_quat[4], atti_inverse[4], vehicle_reprojected[4];
+
+	RPY2Quaternion(trimmed_setpoint, desired_quat);
+
+	quat_copy(&attitudeActual->q1, atti_inverse);
+	quat_inverse(atti_inverse);
+
+	quat_mult(atti_inverse, desired_quat, vehicle_reprojected);
+
+	Quaternion2RPY(vehicle_reprojected, local_attitude_error);
+
+	// Note we divide by the maximum limit here so the fraction ranges from 0 to 1 depending on
+	// how much is requested.
+	*horizon_rate_fraction = bound_sym(*horizon_rate_fraction, HORIZON_MODE_MAX_BLEND) / HORIZON_MODE_MAX_BLEND;
+
+	// Wrap yaw error to [-180,180]
+	local_attitude_error[YAW] = circular_modulus_deg(local_attitude_error[YAW]);
+}
+
 MODULE_HIPRI_INITCALL(StabilizationInitialize, StabilizationStart);
 
 /**
@@ -299,8 +390,6 @@ static void stabilizationTask(void* parameters)
 
 	float *actuatorDesiredAxis = &actuatorDesired.Roll;
 	float *rateDesiredAxis = &rateDesired.Roll;
-	float horizonRateFraction = 0.0f;
-
 	smoothcontrol_initialize(&rc_smoothing);
 
 	// Connect callbacks
@@ -496,6 +585,7 @@ static void stabilizationTask(void* parameters)
 		// raw_input will contain desired stabilization or the failsafe overrides.
 		float raw_input[MAX_AXES];
 		uint8_t axis_mode[MAX_AXES];
+
 		stabilization_failsafe_checks(&stabDesired, &actuatorDesired, airframe_type,
 			raw_input, axis_mode);
 
@@ -503,69 +593,11 @@ static void stabilizationTask(void* parameters)
 		for(int i = 0; i < 3; i++)
 			smoothcontrol_run(rc_smoothing, i, &raw_input[i], settings.ManualRate[i]);
 
-		struct TrimmedAttitudeSetpoint {
-			float Roll;
-			float Pitch;
-			float Yaw;
-		} trimmedAttitudeSetpoint;
-
-		// Mux in level trim values, and saturate the trimmed attitude setpoint.
-		trimmedAttitudeSetpoint.Roll = bound_min_max(
-			raw_input[ROLL] + subTrim.Roll,
-			-settings.RollMax + subTrim.Roll,
-			 settings.RollMax + subTrim.Roll);
-		trimmedAttitudeSetpoint.Pitch = bound_min_max(
-			raw_input[PITCH] + subTrim.Pitch,
-			-settings.PitchMax + subTrim.Pitch,
-			 settings.PitchMax + subTrim.Pitch);
-		trimmedAttitudeSetpoint.Yaw = raw_input[YAW];
-
-		// For horizon mode we need to compute the desire attitude from an unscaled value and apply the
-		// trim offset. Also track the stick with the most deflection to choose rate blending.
-		horizonRateFraction = 0.0f;
-		if (axis_mode[ROLL] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) {
-			trimmedAttitudeSetpoint.Roll = bound_min_max(
-				raw_input[ROLL] * settings.RollMax + subTrim.Roll,
-				-settings.RollMax + subTrim.Roll,
-				 settings.RollMax + subTrim.Roll);
-			horizonRateFraction = fabsf(raw_input[ROLL]);
-		}
-		if (axis_mode[PITCH] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) {
-			trimmedAttitudeSetpoint.Pitch = bound_min_max(
-				raw_input[PITCH] * settings.PitchMax + subTrim.Pitch,
-				-settings.PitchMax + subTrim.Pitch,
-				 settings.PitchMax + subTrim.Pitch);
-			horizonRateFraction = MAX(horizonRateFraction, fabsf(raw_input[PITCH]));
-		}
-		if (axis_mode[YAW] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) {
-			trimmedAttitudeSetpoint.Yaw = raw_input[YAW] * settings.YawMax;
-			horizonRateFraction = MAX(horizonRateFraction, fabsf(raw_input[YAW]));
-		}
-
-		// For weak leveling mode the attitude setpoint is the trim value (drifts back towards "0")
-		if (axis_mode[ROLL] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING) {
-			trimmedAttitudeSetpoint.Roll = subTrim.Roll;
-		}
-		if (axis_mode[PITCH] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING) {
-			trimmedAttitudeSetpoint.Pitch = subTrim.Pitch;
-		}
-		if (axis_mode[YAW] == STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING) {
-			trimmedAttitudeSetpoint.Yaw = 0;
-		}
-
-		// Note we divide by the maximum limit here so the fraction ranges from 0 to 1 depending on
-		// how much is requested.
-		horizonRateFraction = bound_sym(horizonRateFraction, HORIZON_MODE_MAX_BLEND) / HORIZON_MODE_MAX_BLEND;
-
-		// Calculate the errors in each axis. The local error is used in the following modes:
-		//  ATTITUDE, HORIZON, WEAKLEVELING
+		float horizon_rate_fraction;
 		float local_attitude_error[MAX_AXES];
-		local_attitude_error[ROLL] = trimmedAttitudeSetpoint.Roll - attitudeActual.Roll;
-		local_attitude_error[PITCH] = trimmedAttitudeSetpoint.Pitch - attitudeActual.Pitch;
-		local_attitude_error[YAW] = trimmedAttitudeSetpoint.Yaw - attitudeActual.Yaw;
-
-		// Wrap yaw error to [-180,180]
-		local_attitude_error[YAW] = circular_modulus_deg(local_attitude_error[YAW]);
+		calculate_attitude_errors(axis_mode, raw_input,
+				&attitudeActual,
+				local_attitude_error, &horizon_rate_fraction);
 
 		float *gyro_filtered = &gyrosData.x;
 
@@ -771,7 +803,7 @@ static void stabilizationTask(void* parameters)
 					// Blend from one rate to another. The maximum of all stick positions is used for the
 					// amount so that when one axis goes completely to rate the other one does too. This
 					// prevents doing flips while one axis tries to stay in attitude mode.
-					rateDesiredAxis[i] = rateDesiredAttitude * (1.0f-horizonRateFraction) + rateDesiredRate * horizonRateFraction;
+					rateDesiredAxis[i] = rateDesiredAttitude * (1.0f - horizon_rate_fraction) + rateDesiredRate * horizon_rate_fraction;
 					rateDesiredAxis[i] = bound_sym(rateDesiredAxis[i], settings.ManualRate[i]);
 
 					// Compute the inner loop
