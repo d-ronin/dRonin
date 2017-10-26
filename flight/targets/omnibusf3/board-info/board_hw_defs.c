@@ -600,7 +600,7 @@ static const struct pios_tim_channel pios_tim_servoport_pins[] = {
 	{ // Ch1 TIM8_CH2 (PB8)
 		.timer = TIM8,
 		.timer_chan = TIM_Channel_2,
-		.remap = GPIO_AF_2,
+		.remap = GPIO_AF_10,
 		.pin = {
 			.gpio = GPIOB,
 			.init = {
@@ -616,7 +616,7 @@ static const struct pios_tim_channel pios_tim_servoport_pins[] = {
 	{ // Ch2 TIM8_CH3 (PB9)
 		.timer = TIM8,
 		.timer_chan = TIM_Channel_3,
-		.remap = GPIO_AF_2,
+		.remap = GPIO_AF_10,
 		.pin = {
 			.gpio = GPIOB,
 			.init = {
