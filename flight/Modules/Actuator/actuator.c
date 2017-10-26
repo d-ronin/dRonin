@@ -136,12 +136,17 @@ static uint16_t desired_3d_mask;
 #define DSHOT_COMMAND_NO3DMODE 9
 #define DSHOT_COMMAND_3DMODE   10
 
-#define DSHOT_COUNT_EXCESSIVE 10
+#define DSHOT_COUNT_EXCESSIVE 12
 
-static bool actuator_get_dshot_command() {
+static bool actuator_get_dshot_command(bool armed) {
+	/* Finish off any current command. */
 	if (cur_cmd.num_to_send) {
 		cur_cmd.num_to_send--;
 		return true;
+	}
+
+	if (armed) {
+		return false;
 	}
 
 	uint32_t value = pending_cmd.value;
@@ -176,6 +181,20 @@ int actuator_send_dshot_command(uint8_t cmd_id, uint8_t num_to_send,
 	}
 
 	return -1;
+}
+
+static int actuator_send_dshot_command_now(uint8_t cmd_id,
+		uint8_t num_to_send, uint16_t channel_mask)
+{
+	if (cur_cmd.num_to_send) {
+		return -1;
+	}
+
+	cur_cmd.cmd_id = cmd_id;
+	cur_cmd.num_to_send = num_to_send;
+	cur_cmd.channel_mask = channel_mask;
+
+	return 0;
 }
 
 /**
@@ -536,9 +555,7 @@ static void post_process_scale_and_commit(float *motor_vect,
 
 	bool active_command = false;
 
-	if (!armed) {
-		active_command = actuator_get_dshot_command();
-	}
+	active_command = actuator_get_dshot_command(armed);
 
 	for (int ct = 0; ct < MAX_MIX_ACTUATORS; ct++) {
 		// Motors have additional protection for when to be on
@@ -697,8 +714,7 @@ static void actuator_task(void* parameters)
 	ManualControlCommandConnectCallbackCtx(UAVObjCbSetFlag, &manual_control_cmd_updated);
 
 	/* Prime dshot channels with 12 of the 'disarm' command */
-	actuator_send_dshot_command(0, 13, 0xffff);
-	actuator_get_dshot_command();	/* Consumes 1 of the above */
+	actuator_send_dshot_command_now(0, 12, 0xffff);
 
 	// Ensure the initial state of actuators is safe.
 	actuator_settings_update();
@@ -816,7 +832,7 @@ static void actuator_task(void* parameters)
 		 */
 		if (armed != prev_armed) {
 			if (armed && desired_3d_mask) {
-				if (!actuator_send_dshot_command(
+				if (!actuator_send_dshot_command_now(
 						DSHOT_COMMAND_3DMODE,
 						DSHOT_COUNT_EXCESSIVE,
 						desired_3d_mask)) {
@@ -858,14 +874,14 @@ static float collective_curve(float const input, float const * curve, uint8_t nu
 
 static float scale_channel_dshot(float value, int idx, bool active_command)
 {
-	if (!isfinite(value)) {
-		/* No spin requested.  if a command is active, send it */
-		if (active_command) {
-			if (cur_cmd.channel_mask & (1 << idx)) {
-				return cur_cmd.cmd_id;
-			}
+	/* If a command is pending, send it */
+	if (active_command) {
+		if (cur_cmd.channel_mask & (1 << idx)) {
+			return cur_cmd.cmd_id;
 		}
+	}
 
+	if (!isfinite(value)) {
 		/* Universal-- don't spin */
 		return 0;
 	}
