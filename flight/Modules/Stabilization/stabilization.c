@@ -337,6 +337,7 @@ static void calculate_attitude_errors(uint8_t *axis_mode, float *raw_input,
 			case STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON:
 			case STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING:
 			case STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE:
+			case STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT:
 				break;
 			default:
 				/* If the axis isn't in an attitude mode,
