@@ -2,7 +2,7 @@
 # Michael Lyle - 2015-2016
 
 QT_VERSION_FULL=5.9.2
-QT_VERSION=`echo "$QT_VERSION_FULL" | cut -d '.' -f1-2`
+QT_VERSION=`echo "$QT_VERSION_FULL" | cut -d '.' -f1-3`
 QT_BASEDIR="/C/Qt"
 
 # This is really unfortunate on the part of Qt.
