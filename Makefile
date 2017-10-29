@@ -1031,7 +1031,12 @@ $(eval $(call SIM_TEMPLATE,simulation,Simulation,'sim '))
 ##############################
 
 ALL_UNITTESTS := logfs misc_math coordinate_conversions error_correcting dsm timeutils
+ifeq ($(LINUX),1)
 ALL_OTHER_UNITTESTS := python_ut_test gcs_ut_test
+else
+# Don't automatically run unit tests on non-Linux plats.
+ALL_OTHER_UNITTESTS := python_ut_test
+endif
 
 UT_OUT_DIR := $(BUILD_DIR)/unit_tests
 
@@ -1106,8 +1111,12 @@ python_ut_ins:
 	)
 
 .PHONY: gcs_ut_test
+
 ifeq ($(LINUX),1)
   gcs_ut_test: GCS_BIN:=$(BUILD_DIR)/ground/gcs/bin/drgcs
+ifeq ($(DISPLAY)x,x)
+  gcs_ut_test: XVFB_CMD:=xvfb-run -a timeout -k 3 400
+endif
 else ifeq ($(MACOSX),1)
   gcs_ut_test: GCS_BIN:="$(BUILD_DIR)/ground/gcs/bin/dRonin-GCS.app/Contents/MacOS/dRonin-GCS"
 else ifeq ($(WINDOWS),1)
@@ -1115,7 +1124,7 @@ else ifeq ($(WINDOWS),1)
 endif
 gcs_ut_test:
 	$(V0) @echo "  GCS_UT drgcs"
-	$(V1) $(GCS_BIN) -t all
+	$(V1) $(XVFB_CMD) $(GCS_BIN) -t all
 
 # Disable parallel make when the all_ut_run target is requested otherwise the TAP
 # output is interleaved with the rest of the make output.
