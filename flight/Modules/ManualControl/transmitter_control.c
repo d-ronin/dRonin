@@ -209,8 +209,13 @@ static bool is_low_throttle_for_arming(
 		ManualControlCommandData *manual_control_command)
 {
 	if (collective_is_thrust) {
-		/* Always use throttle on vehicles with collective */
-		return manual_control_command->Throttle == 0;
+		/* Always use throttle on vehicles with collective; in this
+		 * case negative is OK for arming because it means we're below
+		 * neutral (and presumably a vehicle with collective can't
+		 * actually generate negative throttle).
+		 */
+
+		return manual_control_command->Throttle <= 0;
 	}
 
 	return get_thrust_source(manual_control_command, false) == 0;
