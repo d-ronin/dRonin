@@ -1031,11 +1031,13 @@ $(eval $(call SIM_TEMPLATE,simulation,Simulation,'sim '))
 ##############################
 
 ALL_UNITTESTS := logfs misc_math coordinate_conversions error_correcting dsm timeutils
-ifeq ($(LINUX),1)
-ALL_OTHER_UNITTESTS := python_ut_test gcs_ut_test
-else
-# Don't automatically run unit tests on non-Linux plats.
 ALL_OTHER_UNITTESTS := python_ut_test
+
+# Don't automatically run unit tests on non-Linux plats.
+ifeq ($(LINUX),1)
+ifneq ($(GCS_BUILD_CONF), release)
+ALL_OTHER_UNITTESTS += gcs_ut_test
+endif
 endif
 
 UT_OUT_DIR := $(BUILD_DIR)/unit_tests
@@ -1122,6 +1124,7 @@ else ifeq ($(MACOSX),1)
 else ifeq ($(WINDOWS),1)
   gcs_ut_test: GCS_BIN:="$(BUILD_DIR)/ground/gcs/bin/drgcs.exe"
 endif
+
 gcs_ut_test:
 	$(V0) @echo "  GCS_UT drgcs"
 	$(V1) cp "$(ROOT_DIR)/ground/gcs/share/default_configurations/developer.xml" "$(BUILD_DIR)/gcs_ut.xml"
