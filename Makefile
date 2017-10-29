@@ -1115,7 +1115,7 @@ python_ut_ins:
 ifeq ($(LINUX),1)
   gcs_ut_test: GCS_BIN:=$(BUILD_DIR)/ground/gcs/bin/drgcs
 ifeq ($(DISPLAY)x,x)
-  gcs_ut_test: XVFB_CMD:=xvfb-run -a timeout -k 3 400
+  gcs_ut_test: XVFB_CMD:=xvfb-run --server-args "-screen 0 1280x1024x24" -a timeout -k 3 400
 endif
 else ifeq ($(MACOSX),1)
   gcs_ut_test: GCS_BIN:="$(BUILD_DIR)/ground/gcs/bin/dRonin-GCS.app/Contents/MacOS/dRonin-GCS"
