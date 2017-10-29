@@ -1124,7 +1124,8 @@ else ifeq ($(WINDOWS),1)
 endif
 gcs_ut_test:
 	$(V0) @echo "  GCS_UT drgcs"
-	$(V1) $(XVFB_CMD) $(GCS_BIN) -t all
+	$(V1) cp "$(ROOT_DIR)/ground/gcs/share/default_configurations/developer.xml" "$(BUILD_DIR)/gcs_ut.xml"
+	$(V1) $(XVFB_CMD) $(GCS_BIN) -t all "$(BUILD_DIR)/gcs_ut.xml"
 
 # Disable parallel make when the all_ut_run target is requested otherwise the TAP
 # output is interleaved with the rest of the make output.
