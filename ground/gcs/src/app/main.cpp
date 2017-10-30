@@ -31,6 +31,7 @@
 #define COMMAND_LINE_CLEAN_CONFIG "reset-config"
 #define COMMAND_LINE_NO_LOAD "no-load"
 #define COMMAND_LINE_TEST "test"
+#define COMMAND_LINE_MULTIPLE_OK "multiple-ok"
 #define COMMAND_LINE_PLUGIN_OPTION "plugin-option"
 
 #include "utils/xmlconfig.h"
@@ -262,6 +263,11 @@ int main(int argc, char **argv)
         QStringList() << "p" << COMMAND_LINE_PLUGIN_OPTION,
         QCoreApplication::translate("main", "Passes an option to a plugin."),
         QCoreApplication::translate("main", "option_name=option_value"), "");
+    QCommandLineOption multipleInstancesOption(
+        QStringList() << "m" << COMMAND_LINE_MULTIPLE_OK,
+        QCoreApplication::translate("main", "Allows multiple instances to run at once"));
+    parser.addOption(multipleInstancesOption);
+
     // The options are passed to the plugin init as a QStringList i.e. >> iplugin::initialize(const
     // QStringList &arguments, QString *errorString)
     // These options need to be set in the pluginspec file (look in the Core.pluginspec file for an
@@ -294,9 +300,13 @@ int main(int argc, char **argv)
 
     RunGuard &guard = RunGuard::instance(QStringLiteral(GCS_PROJECT_BRANDING)
                                          + QStringLiteral("_gcs_run_guard"));
+
     if (!guard.tryToRun()) {
         std::cerr << "GCS already running!" << std::endl;
-        return 1;
+
+        if (!parser.isSet(multipleInstancesOption)) {
+            return 1;
+        }
     }
 
     // suppress SSL warnings generated during startup (handy if you want to use QT_FATAL_WARNINGS)

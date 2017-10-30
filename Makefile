@@ -138,7 +138,7 @@ help:
 	@echo "     android_sdk_install  - Install the Android SDK tools"
 	@echo "     gtest_install        - Install the google unit test suite"
 	@echo "     uncrustify_install   - Install the uncrustify code formatter"
-	@echo "     openssl_install      - Install the openssl libraries on windows machines"	
+	@echo "     openssl_install      - Install the openssl libraries on windows machines"
 	@echo "     sdl_install          - Install the SDL libraries"
 ifndef WINDOWS
 	@echo "     depot_tools_install  - Install Google depot-tools for building breakpad tools"
@@ -274,7 +274,7 @@ all_ground: gcs
 ifndef WINDOWS
 # unfortunately the silent linking command is broken on windows
 ifeq ($(V), 1)
-GCS_SILENT := 
+GCS_SILENT :=
 else
 GCS_SILENT := silent
 endif
@@ -329,7 +329,7 @@ gcs_clazy: $(UAVOBJECT_MARKER) | tools_required_qt
 ifndef WINDOWS
 # unfortunately the silent linking command is broken on windows
 ifeq ($(V), 1)
-UAVOGEN_SILENT := 
+UAVOGEN_SILENT :=
 else
 UAVOGEN_SILENT := silent
 endif
@@ -409,7 +409,7 @@ $(ANDROIDGCS_ASSETS_DIR)/uavos:
 
 ifeq ($(V), 1)
 ANT_QUIET := -d
-ANDROID_SILENT := 
+ANDROID_SILENT :=
 else
 ANT_QUIET := -q
 ANDROID_SILENT := -s
@@ -422,7 +422,7 @@ $(ANDROIDGCS_OUT_DIR)/bin/androidgcs-$(ANDROIDGCS_BUILD_CONF).apk: uavo-collecti
 	$(V1) mkdir -p $(ANDROIDGCS_OUT_DIR)
 	$(V1) $(ANDROID) $(ANDROID_SILENT) update project --subprojects --target 'Google Inc.:Google APIs:19' --name androidgcs --path ./androidgcs
 	$(V1) ant -f ./androidgcs/google-play-services_lib/build.xml \
-		$(ANT_QUIET) debug               
+		$(ANT_QUIET) debug
 	$(V1) ant -f ./androidgcs/build.xml \
 		$(ANT_QUIET) \
 		-Dout.dir="../$(call toprel, $(ANDROIDGCS_OUT_DIR)/bin)" \
@@ -1031,7 +1031,14 @@ $(eval $(call SIM_TEMPLATE,simulation,Simulation,'sim '))
 ##############################
 
 ALL_UNITTESTS := logfs misc_math coordinate_conversions error_correcting dsm timeutils
-ALL_PYTHON_UNITTESTS := python_ut_test
+ALL_OTHER_UNITTESTS := python_ut_test
+
+# Don't automatically run unit tests on non-Linux plats.
+ifeq ($(LINUX),1)
+ifneq ($(GCS_BUILD_CONF), release)
+ALL_OTHER_UNITTESTS += gcs_ut_test
+endif
+endif
 
 UT_OUT_DIR := $(BUILD_DIR)/unit_tests
 
@@ -1039,13 +1046,13 @@ $(UT_OUT_DIR):
 	$(V1) mkdir -p $@
 
 .PHONY: all_ut
-all_ut: $(addsuffix _elf, $(addprefix ut_, $(ALL_UNITTESTS))) $(ALL_PYTHON_UNITTESTS)
+all_ut: $(addsuffix _elf, $(addprefix ut_, $(ALL_UNITTESTS))) $(ALL_OTHER_UNITTESTS)
 
 .PHONY: all_ut_xml
 all_ut_xml: $(addsuffix _xml, $(addprefix ut_, $(ALL_UNITTESTS)))
 
 .PHONY: all_ut_run
-all_ut_run: $(addsuffix _run, $(addprefix ut_, $(ALL_UNITTESTS))) $(ALL_PYTHON_UNITTESTS)
+all_ut_run: $(addsuffix _run, $(addprefix ut_, $(ALL_UNITTESTS))) $(ALL_OTHER_UNITTESTS)
 
 .PHONY: all_ut_gcov
 all_ut_gcov: | $(addsuffix _gcov, $(addprefix ut_, $(ALL_UNITTESTS)))
@@ -1105,6 +1112,24 @@ python_ut_ins:
 	  $(PYTHON) test.py \
 	)
 
+.PHONY: gcs_ut_test
+
+ifeq ($(LINUX),1)
+  gcs_ut_test: GCS_BIN:=$(BUILD_DIR)/ground/gcs/bin/drgcs
+ifeq ($(DISPLAY)x,x)
+  gcs_ut_test: XVFB_CMD:=xvfb-run --server-args "-screen 0 1280x1024x24" -a timeout -k 3 400
+endif
+else ifeq ($(MACOSX),1)
+  gcs_ut_test: GCS_BIN:="$(BUILD_DIR)/ground/gcs/bin/dRonin-GCS.app/Contents/MacOS/dRonin-GCS"
+else ifeq ($(WINDOWS),1)
+  gcs_ut_test: GCS_BIN:="$(BUILD_DIR)/ground/gcs/bin/drgcs.exe"
+endif
+
+gcs_ut_test:
+	$(V0) @echo "  GCS_UT drgcs"
+	$(V1) cp "$(ROOT_DIR)/ground/gcs/share/default_configurations/developer.xml" "$(BUILD_DIR)/gcs_ut.xml"
+	$(V1) $(XVFB_CMD) $(GCS_BIN) -t all -n RawHID -n UsageStats -n RfmBindWizard -n Uploader -m "$(BUILD_DIR)/gcs_ut.xml"
+
 # Disable parallel make when the all_ut_run target is requested otherwise the TAP
 # output is interleaved with the rest of the make output.
 ifneq ($(strip $(filter all_ut_run,$(MAKECMDGOALS))),)
@@ -1121,14 +1146,14 @@ export FW_FILES := $(FW_FILES)
 PACKAGE_TARGETS = package_installer package_ground package_flight package_all
 PACKAGE_TARGETS += package_ground_compress package_all_compress
 .PHONY: $(PACKAGE_TARGETS)
-$(PACKAGE_TARGETS): 
+$(PACKAGE_TARGETS):
 	$(V1) cd package && $(MAKE) --no-print-directory $@
 
 package_flight: all_flight
 
 ##############################
 #
-# uncrustify 
+# uncrustify
 #
 ##############################
 

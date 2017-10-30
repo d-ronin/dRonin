@@ -39,8 +39,8 @@ OptionsParser::OptionsParser(PluginManagerPrivate *pmPrivate):m_pmPrivate(pmPriv
 
 QStringList OptionsParser::parse(QStringList pluginOptions, QStringList pluginTests, QStringList pluginNoLoad)
 {
-    checkForTestOption(pluginTests);
     checkForNoLoadOption(pluginNoLoad);
+    checkForTestOption(pluginTests);
     checkForPluginOption(pluginOptions);
     return m_errorStrings;
 }
