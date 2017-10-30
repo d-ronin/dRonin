@@ -650,6 +650,7 @@ static void normalize_input_data(uint32_t this_systime,
 	if (airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) {
 		// Helis set throttle from manual control's throttle value,
 		// unless in failsafe.
+		// TODO: Audit and determine whether this check is even required
 		if (flightStatus.FlightMode != FLIGHTSTATUS_FLIGHTMODE_FAILSAFE) {
 			throttle_val = manual_throt;
 		}

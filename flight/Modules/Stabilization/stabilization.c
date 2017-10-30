@@ -528,7 +528,13 @@ static void stabilizationTask(void* parameters)
 		static uint32_t last_nonzero_thrust_time = 0;
 		static bool last_thrust_pos = true;
 
-		if (flightStatus.Armed != FLIGHTSTATUS_ARMED_ARMED) {
+		if (airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) {
+			/* Don't do anything-- neuter armed state checking
+			 * and hangtime logic on helicp to allow collective
+			 * to move freely.  Safety properties come from
+			 * throttle getting nailed to 0 in failsafe/disarm.
+			 */
+		} else if (flightStatus.Armed != FLIGHTSTATUS_ARMED_ARMED) {
 			actuatorDesired.Thrust = 0.0f;
 			last_thrust_pos = true;
 			last_nonzero_thrust_time = 0;
