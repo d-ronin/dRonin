@@ -319,7 +319,7 @@ static int32_t check_safe_autonomous()
 static int32_t check_stabilization_rates()
 {
 	const float MAXIMUM_SAFE_FRACTIONAL_RATE = 0.85;
-	int32_t max_safe_rate = PIOS_SENSORS_GetMaxGyro() * MAXIMUM_SAFE_FRACTIONAL_RATE;
+	int32_t max_safe_rate = PIOS_Sensors_GetRange(PIOS_Sensors_GetSensor(PIOS_SENSOR_GYRO)) * MAXIMUM_SAFE_FRACTIONAL_RATE;
 	float rates[3];
 
 	StabilizationSettingsManualRateGet(rates);

@@ -34,17 +34,11 @@
 
 #include "pios_semaphore.h"
 #include "pios_thread.h"
-#include "pios_queue.h"
 #include "physical_constants.h"
 #include "taskmonitor.h"
 
 #include "pios_lis3mdl_priv.h"
 
-#define PIOS_LIS_TASK_PRIORITY   PIOS_THREAD_PRIO_HIGHEST
-
-#define PIOS_LIS_TASK_STACK      640
-
-#define PIOS_LIS_QUEUE_LEN       2
 
 #define PIOS_LIS_SPI_SPEED       9400000	/* 10MHz max per datasheet.
 						 * probably results 9.33MHz */
@@ -67,9 +61,8 @@ struct lis3mdl_dev {
 	pios_spi_t spi_id;                  /**< Handle to the communication driver */
 	uint32_t spi_slave_mag;             /**< The slave number (SPI) */
 
-	struct pios_queue *mag_queue;
-
-	struct pios_thread *task_handle;
+	/* Sensor handle. */
+	pios_sensor_t mag_reg;
 };
 
 //! Private functions
@@ -83,8 +76,6 @@ static struct lis3mdl_dev *PIOS_LIS_Alloc(const struct pios_lis3mdl_cfg *cfg);
  * @returns 0 for valid device or -1 otherwise
  */
 static int32_t PIOS_LIS_Validate(struct lis3mdl_dev *dev);
-
-static void PIOS_LIS_Task(void *parameters);
 
 /**
  * @brief Claim the SPI bus for the communications and select this chip
@@ -103,6 +94,8 @@ static int32_t PIOS_LIS_ReadReg(lis3mdl_dev_t lis_dev,
 static int32_t PIOS_LIS_WriteReg(lis3mdl_dev_t lis_dev,
 		uint8_t address, uint8_t buffer); 
 
+int lis3_mag_callback(void *driver, void *output);
+
 static struct lis3mdl_dev *PIOS_LIS_Alloc(const struct pios_lis3mdl_cfg *cfg)
 {
 	lis3mdl_dev_t dev;
@@ -112,12 +105,6 @@ static struct lis3mdl_dev *PIOS_LIS_Alloc(const struct pios_lis3mdl_cfg *cfg)
 		return NULL;
 
 	dev->magic = PIOS_LIS_DEV_MAGIC;
-
-	dev->mag_queue = PIOS_Queue_Create(PIOS_LIS_QUEUE_LEN, sizeof(struct pios_sensor_mag_data));
-	if (dev->mag_queue == NULL) {
-		PIOS_free(dev);
-		return NULL;
-	}
 
 	return dev;
 }
@@ -227,11 +214,10 @@ int32_t PIOS_LIS3MDL_SPI_Init(lis3mdl_dev_t *dev, pios_spi_t spi_id,
 		return ret;
 	}
 
-	lis_dev->task_handle = PIOS_Thread_Create(
-			PIOS_LIS_Task, "pios_lis", PIOS_LIS_TASK_STACK,
-			lis_dev, PIOS_LIS_TASK_PRIORITY);
+	lis_dev->mag_reg = PIOS_Sensors_Register(PIOS_SENSOR_MAG, lis_dev, lis3_mag_callback, PIOS_SENSORS_FLAG_SCHEDULED);
 
-	PIOS_SENSORS_Register(PIOS_SENSOR_MAG, lis_dev->mag_queue);
+	// Set minimum scheduling delay to 2ms to emulate old loop.
+	PIOS_Sensors_SetSchedule(lis_dev->mag_reg, 2000);
 
 	return 0;
 }
@@ -298,117 +284,124 @@ static int32_t PIOS_LIS_WriteReg(lis3mdl_dev_t lis_dev,
 	return 0;
 }
 
-static void PIOS_LIS_Task(void *parameters)
+int lis3_read_mag(void *parameters, struct pios_sensor_mag_data *mag_data)
 {
 	lis3mdl_dev_t lis_dev = (lis3mdl_dev_t) parameters;
 
-	PIOS_Assert(!PIOS_LIS_Validate(lis_dev));
+	uint8_t status;
 
-	while (true) {
-		/* Output rate of 80 implies 12.5ms between samples.
-		 * We sleep 2 at the top of loop, and 9 at the bottom so
-		 * that we poll twice before the sample typically
-		 */
-		PIOS_Thread_Sleep(2);
+	/* Set pause delay to 2ms regardless, so long we need to keep retrying to read
+	   the data. It'll get overridden if the function end is reached. */
+	PIOS_Sensors_SetSchedule(lis_dev->mag_reg, 2000);
 
-		uint8_t status;
+	if (PIOS_LIS_ReadReg(lis_dev, LIS_REG_MAG_STATUS, &status)) {
+		return -1;
+	}
 
-		if (PIOS_LIS_ReadReg(lis_dev, LIS_REG_MAG_STATUS, &status))
-			continue;
+	/* Go back, sleep 2 more if we have no new data */
+	if (!(status & LIS_STATUS_ZYXDA)) {
+		return -1;
+	}
 
-		/* Go back, sleep 2 more if we have no new data */
-		if (!(status & LIS_STATUS_ZYXDA))
-			continue;
+	if (PIOS_LIS_ClaimBus(lis_dev) != 0) {
+		return -1;
+	}
 
-		if (PIOS_LIS_ClaimBus(lis_dev) != 0)
-			continue;
+	// TODO: Consider temperature in future
+	int16_t sensor_buf[
+		(LIS_REG_MAG_OUTZ_H - LIS_REG_MAG_OUTX_L + 1) / 2];
 
-		// TODO: Consider temperature in future
-		int16_t sensor_buf[
-			(LIS_REG_MAG_OUTZ_H - LIS_REG_MAG_OUTX_L + 1) / 2];
+	PIOS_SPI_TransferByte(lis_dev->spi_id,
+			LIS_ADDRESS_READ | LIS_ADDRESS_AUTOINCREMENT |
+			LIS_REG_MAG_OUTX_L);
 
-		PIOS_SPI_TransferByte(lis_dev->spi_id,
-				LIS_ADDRESS_READ | LIS_ADDRESS_AUTOINCREMENT |
-				LIS_REG_MAG_OUTX_L);
-
-		if (PIOS_SPI_TransferBlock(lis_dev->spi_id, NULL,
-					(uint8_t *) sensor_buf,
-					sizeof(sensor_buf)) < 0) {
-			PIOS_LIS_ReleaseBus(lis_dev);
-			continue;
-		}
-
+	if (PIOS_SPI_TransferBlock(lis_dev->spi_id, NULL,
+				(uint8_t *) sensor_buf,
+				sizeof(sensor_buf)) < 0) {
 		PIOS_LIS_ReleaseBus(lis_dev);
+		return -1;
+	}
+
+	PIOS_LIS_ReleaseBus(lis_dev);
 
 #define GET_SB_FROM_REGNO(x) \
-		(sensor_buf[ ((x) - LIS_REG_MAG_OUTX_L) / 2])
+	(sensor_buf[ ((x) - LIS_REG_MAG_OUTX_L) / 2])
 
-		float mag_x = GET_SB_FROM_REGNO(LIS_REG_MAG_OUTX_L);
-		float mag_y = GET_SB_FROM_REGNO(LIS_REG_MAG_OUTY_L);
-		float mag_z = GET_SB_FROM_REGNO(LIS_REG_MAG_OUTZ_L);
+	float mag_x = GET_SB_FROM_REGNO(LIS_REG_MAG_OUTX_L);
+	float mag_y = GET_SB_FROM_REGNO(LIS_REG_MAG_OUTY_L);
+	float mag_z = GET_SB_FROM_REGNO(LIS_REG_MAG_OUTZ_L);
 
-		struct pios_sensor_mag_data mag_data;
-
-		/*
-		 * Vehicle axes = x front, y right, z down
-		 * LIS3MDL axes = x left, y rear, z up
-		 * See flight/Doc/imu_orientation.md
-		 */
-		switch (lis_dev->cfg->orientation) {
-			case PIOS_LIS_TOP_0DEG:
-				mag_data.y  = -mag_x;
-				mag_data.x  = -mag_y;
-				mag_data.z  = -mag_z;
-				break;
-			case PIOS_LIS_TOP_90DEG:
-				mag_data.y  = -mag_y;
-				mag_data.x  =  mag_x;
-				mag_data.z  = -mag_z;
-				break;
-			case PIOS_LIS_TOP_180DEG:
-				mag_data.y  =  mag_x;
-				mag_data.x  =  mag_y;
-				mag_data.z  = -mag_z;
-				break;
-			case PIOS_LIS_TOP_270DEG:
-				mag_data.y  =  mag_y;
-				mag_data.x  = -mag_x;
-				mag_data.z  = -mag_z;
-				break;
-			case PIOS_LIS_BOTTOM_0DEG:
-				mag_data.y  =  mag_x;
-				mag_data.x  = -mag_y;
-				mag_data.z  =  mag_z;
-				break;
-			case PIOS_LIS_BOTTOM_90DEG:
-				mag_data.y  = -mag_y;
-				mag_data.x  = -mag_x;
-				mag_data.z  =  mag_z;
-				break;
-			case PIOS_LIS_BOTTOM_180DEG:
-				mag_data.y  = -mag_x;
-				mag_data.x  =  mag_y;
-				mag_data.z  =  mag_z;
-				break;
-			case PIOS_LIS_BOTTOM_270DEG:
-				mag_data.y  =  mag_y;
-				mag_data.x  =  mag_x;
-				mag_data.z  =  mag_z;
-				break;
-		}
-
-		/* Adjust from 2's comp integer value to appropriate
-		 * range */
-	 	float mag_scale = LIS_RANGE_12GAU_COUNTS_PER_MGAU;
-
-		mag_data.x *= mag_scale;
-		mag_data.y *= mag_scale;
-		mag_data.z *= mag_scale;
-
-		PIOS_Queue_Send(lis_dev->mag_queue, &mag_data, 0);
-
-		PIOS_Thread_Sleep(9);
+	switch (lis_dev->cfg->orientation) {
+		case PIOS_LIS_TOP_0DEG:
+			mag_data->y  =  mag_x;
+			mag_data->x  =  mag_y;
+			mag_data->z  = -mag_z;
+			break;
+		case PIOS_LIS_TOP_90DEG:
+			mag_data->y  = -mag_y;
+			mag_data->x  =  mag_x;
+			mag_data->z  = -mag_z;
+			break;
+		case PIOS_LIS_TOP_180DEG:
+			mag_data->y  = -mag_x;
+			mag_data->x  = -mag_y;
+			mag_data->z  = -mag_z;
+			break;
+		case PIOS_LIS_TOP_270DEG:
+			mag_data->y  =  mag_y;
+			mag_data->x  = -mag_x;
+			mag_data->z  = -mag_z;
+			break;
+		case PIOS_LIS_BOTTOM_0DEG:
+			mag_data->y  = -mag_x;
+			mag_data->x  =  mag_y;
+			mag_data->z  =  mag_z;
+			break;
+		case PIOS_LIS_BOTTOM_90DEG:
+			mag_data->y  =  mag_y;
+			mag_data->x  =  mag_x;
+			mag_data->z  =  mag_z;
+			break;
+		case PIOS_LIS_BOTTOM_180DEG:
+			mag_data->y  =  mag_x;
+			mag_data->x  = -mag_y;
+			mag_data->z  =  mag_z;
+			break;
+		case PIOS_LIS_BOTTOM_270DEG:
+			mag_data->y  = -mag_y;
+			mag_data->x  = -mag_x;
+			mag_data->z  =  mag_z;
+			break;
 	}
+
+	/* Adjust from 2's comp integer value to appropriate
+	 * range */
+ 	float mag_scale = LIS_RANGE_12GAU_COUNTS_PER_MGAU;
+
+	mag_data->x *= mag_scale;
+	mag_data->y *= mag_scale;
+	mag_data->z *= mag_scale;
+
+	// Old task based system paused 2ms at the beginning and 9ms at the end.
+	// Due to things work now, sum these delays up.
+	PIOS_Sensors_SetSchedule(lis_dev->mag_reg, 11000);
+
+	return 0;
+}
+
+/**
+ * @brief Callback to read out mag data.
+ */
+int lis3_mag_callback(void *driver, void *output)
+{
+	PIOS_Assert(driver);
+	PIOS_Assert(output);
+
+	if (!lis3_read_mag(driver, output)) {
+		return PIOS_SENSORS_DATA_AVAILABLE;
+	}
+
+	return PIOS_SENSORS_DATA_NONE;
 }
 
 #endif // PIOS_INCLUDE_LIS3MDL

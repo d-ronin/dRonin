@@ -410,7 +410,7 @@ static void stabilizationTask(void* parameters)
 
 	float dT_expected = 0.001;	// assume 1KHz if we don't know.
 
-	uint16_t samp_rate = PIOS_SENSORS_GetSampleRate(PIOS_SENSOR_GYRO);
+	uint16_t samp_rate = PIOS_Sensors_GetUpdateRate(PIOS_Sensors_GetSensor(PIOS_SENSOR_GYRO));
 
 	if (samp_rate) {
 		dT_expected = 1.0f / samp_rate;
@@ -613,7 +613,7 @@ static void stabilizationTask(void* parameters)
 
 		actuatorDesired.SystemIdentCycle = 0xffff;
 
-		uint16_t max_safe_rate = PIOS_SENSORS_GetMaxGyro() * 0.9f;
+		uint16_t max_safe_rate = PIOS_Sensors_GetRange(PIOS_Sensors_GetSensor(PIOS_SENSOR_GYRO)) * 0.9f;
 
 		//Run the selected stabilization algorithm on each axis:
 		for(uint8_t i=0; i< MAX_AXES; i++)

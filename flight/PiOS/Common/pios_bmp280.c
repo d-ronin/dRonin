@@ -36,11 +36,6 @@
 #include "pios_bmp280_priv.h"
 #include "pios_semaphore.h"
 #include "pios_thread.h"
-#include "pios_queue.h"
-
-/* Private constants */
-#define BMP280_TASK_PRIORITY	PIOS_THREAD_PRIO_HIGHEST
-#define BMP280_TASK_STACK		512
 
 /* BMP280 Addresses */
 #define BMP280_I2C_ADDR		0x76  // 0x77
@@ -67,7 +62,7 @@
 /* Private methods */
 static int32_t PIOS_BMP280_Read(uint8_t address, uint8_t *buffer, uint8_t len);
 static int32_t PIOS_BMP280_WriteCommand(uint8_t address, uint8_t buffer);
-static void PIOS_BMP280_Task(void *parameters);
+static int32_t PIOS_BMP280_GetDelay();
 
 /* Private types */
 
@@ -86,9 +81,6 @@ struct bmp280_dev {
 	pios_spi_t spi_id;
 	uint32_t spi_slave;
 #endif
-
-	struct pios_thread *task;
-	struct pios_queue *queue;
 
 	uint32_t compensatedPressure;
 	int32_t  compensatedTemperature;
@@ -110,9 +102,15 @@ struct bmp280_dev {
 	enum pios_bmp280_dev_magic magic;
 
 	struct pios_semaphore *busy;
+	uint8_t started;
+
+	/* Sensor handle. */
+	pios_sensor_t baro_reg;
 };
 
 static struct bmp280_dev *dev;
+
+int PIOS_BMP280_callback(void *dev, void *output);
 
 /**
  * @brief Allocate a new device
@@ -127,15 +125,11 @@ static struct bmp280_dev *PIOS_BMP280_alloc(void)
 		return NULL;
 	}
 
+	memset(bmp280_dev, 0, sizeof(*bmp280_dev));
+
 	*bmp280_dev = (struct bmp280_dev) {
 		.magic = PIOS_BMP280_DEV_MAGIC
 	};
-
-	bmp280_dev->queue = PIOS_Queue_Create(1, sizeof(struct pios_sensor_baro_data));
-	if (bmp280_dev->queue == NULL) {
-		PIOS_free(bmp280_dev);
-		return NULL;
-	}
 
 	bmp280_dev->busy = PIOS_Semaphore_Create();
 
@@ -189,12 +183,8 @@ static int32_t PIOS_BMP280_Common_Init(const struct pios_bmp280_cfg *cfg)
 	if (PIOS_BMP280_WriteCommand(BMP280_CONFIG, 0x00) != 0)
 		return -2;
 
-	dev->task = PIOS_Thread_Create(
-		PIOS_BMP280_Task, "pios_bmp280", BMP280_TASK_STACK, NULL, BMP280_TASK_PRIORITY);
-	if (dev->task == NULL)
-		return -3;
-
-	PIOS_SENSORS_Register(PIOS_SENSOR_BARO, dev->queue);
+	dev->baro_reg = PIOS_Sensors_Register(PIOS_SENSOR_BARO, dev, PIOS_BMP280_callback, PIOS_SENSORS_FLAG_SCHEDULED);
+	PIOS_Sensors_SetSchedule(dev->baro_reg, PIOS_BMP280_GetDelay() * 600); // 1000 * 3 / 5
 
 	return 0;
 }
@@ -526,37 +516,34 @@ int32_t PIOS_BMP280_Test()
 	return 0;
 }
 
-static void PIOS_BMP280_Task(void *parameters)
+/**
+ * @brief Callback to read out baro data.
+ */
+int PIOS_BMP280_callback(void *driver, void *output)
 {
-	int32_t read_adc_result = 0;
+	struct bmp280_dev *dev = (struct bmp280_dev *)driver;
 
-	PIOS_BMP280_StartADC();
-
-	struct pios_sensor_baro_data data = { };
-
-	while (1) {
-		// Poll a bit faster than sampling rate
-		PIOS_Thread_Sleep(PIOS_BMP280_GetDelay() * 3 / 5);
-		PIOS_BMP280_ClaimDevice();
-		read_adc_result = PIOS_BMP280_ReadADC();
-		PIOS_BMP280_ReleaseDevice();
-
-		if (read_adc_result) {
-			continue;
-		}
-
-		// Compute the altitude from the pressure and temperature and send it out
-
-		data.pressure = ((float) dev->compensatedPressure) / 256.0f / 1000.0f;
-
-		float calc_alt = 44330.0f * (1.0f - powf(data.pressure / BMP280_P0, (1.0f / 5.255f)));
-
-		data.temperature = ((float) dev->compensatedTemperature) / 256.0f / 100.0f;
-
-		data.altitude = calc_alt;
-
-		PIOS_Queue_Send(dev->queue, (void*)&data, 0);
+	if(!dev->started) {
+		PIOS_BMP280_StartADC();
+		dev->started = 1;
+		return PIOS_SENSORS_DATA_NONE;
 	}
+
+	int32_t read_adc_result = PIOS_BMP280_ReadADC();
+
+	if(read_adc_result) {
+		// Non-null, failure.
+		return PIOS_SENSORS_DATA_NONE;
+	}
+
+	struct pios_sensor_baro_data *data = output;
+
+	data->pressure = ((float) dev->compensatedPressure) / 256.0f / 1000.0f;
+	float calc_alt = 44330.0f * (1.0f - powf(data->pressure / BMP280_P0, (1.0f / 5.255f)));
+	data->temperature = ((float) dev->compensatedTemperature) / 256.0f / 100.0f;
+	data->altitude = calc_alt;
+
+	return PIOS_SENSORS_DATA_AVAILABLE;
 }
 
 #endif /* PIOS_INCLUDE_BMP280 */

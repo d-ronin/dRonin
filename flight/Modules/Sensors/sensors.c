@@ -177,7 +177,7 @@ int32_t SensorsInitialize(void)
 		break;
 	}
 
-	if (PIOS_SENSORS_GetQueue(PIOS_SENSOR_OPTICAL_FLOW) != NULL ) {
+	if (PIOS_Sensors_Available(PIOS_SENSOR_OPTICAL_FLOW)) {
 		if (OpticalFlowInitialize() == -1) {
 			return -1;
 		}
@@ -185,7 +185,7 @@ int32_t SensorsInitialize(void)
 #endif /* PIOS_INCLUDE_OPTICALFLOW */
 
 #if defined (PIOS_INCLUDE_RANGEFINDER)
-	if (PIOS_SENSORS_GetQueue(PIOS_SENSOR_RANGEFINDER) != NULL ) {
+	if (PIOS_Sensors_Available(PIOS_SENSOR_RANGEFINDER)) {
 		if (RangefinderInitialize() == -1) {
 			return -1;
 		}
@@ -239,6 +239,9 @@ static void SensorsTask(void *parameters)
 	uint32_t good_runs = 1;
 	uint32_t last_baro_update_time = PIOS_DELAY_GetRaw();
 
+	pios_sensor_t p_gyro = PIOS_Sensors_GetSensor(PIOS_SENSOR_GYRO);
+	pios_sensor_t p_accel = PIOS_Sensors_GetSensor(PIOS_SENSOR_ACCEL);
+
 	while (1) {
 		if (good_runs == 0) {
 			PIOS_WDG_UpdateFlag(PIOS_WDG_SENSORS);
@@ -255,20 +258,23 @@ static void SensorsTask(void *parameters)
 		uint32_t timeval = PIOS_DELAY_GetRaw();
 
 		//Block on gyro data but nothing else
-		struct pios_queue *queue;
-		queue = PIOS_SENSORS_GetQueue(PIOS_SENSOR_GYRO);
-		if (queue == NULL || PIOS_Queue_Receive(queue, &gyros, SENSOR_PERIOD) == false) {
+		if (PIOS_Sensors_WaitOn(p_gyro, SENSOR_PERIOD) == false) {
 			good_runs = 0;
 			continue;
 		}
 
-		queue = PIOS_SENSORS_GetQueue(PIOS_SENSOR_ACCEL);
-		if (queue == NULL || PIOS_Queue_Receive(queue, &accels, 0) == false) {
-			//If no new accels data is ready, reuse the latest sample
-			AccelsSet(&accelsData);
+		if (PIOS_Sensors_GetData(p_gyro, &gyros) < PIOS_SENSORS_DATA_AVAILABLE) {
+			/* Hmmm, shouldn't get here, but don't freak out. */
+			continue;
 		}
-		else
+
+
+		if (PIOS_Sensors_GetData(p_accel, &accels) < PIOS_SENSORS_DATA_AVAILABLE) {
+			/* If no new accels data is ready, reuse the latest sample. */
+			AccelsSet(&accelsData);
+		} else {
 			update_accels(&accels);
+		}
 
 		// Update gyros after the accels since the rest of the code expects
 		// the accels to be available first
@@ -276,64 +282,67 @@ static void SensorsTask(void *parameters)
 
 		bool test_good_run = good_runs > REQUIRED_GOOD_CYCLES;
 
-		queue = PIOS_SENSORS_GetQueue(PIOS_SENSOR_MAG);
-		if (queue != NULL && PIOS_Queue_Receive(queue, &mags, 0) != false) {
-			update_mags(&mags);
-#ifdef PIOS_TOLERATE_MISSING_SENSORS
-		} else if (test_good_run) {
-			if (PIOS_SENSORS_GetMissing(PIOS_SENSOR_MAG)) {
-				// Keep alarm asserted
-				test_good_run = false;
+		uint8_t next_sensor = PIOS_Sensors_GetLRU();
 
-				AlarmsSet(SYSTEMALARMS_ALARM_SENSORS,
-						missing_sensor_severity);
-			}
+		switch (next_sensor) {
+			case PIOS_SENSOR_MAG:
+				if (PIOS_Sensors_GetData(PIOS_Sensors_GetSensor(next_sensor), &mags) != PIOS_SENSORS_DATA_AVAILABLE) {
+					/* Hmmm. */
+#if defined(PIOS_TOLERATE_MISSING_SENSORS)
+					if (test_good_run && PIOS_Sensors_IsMissing(PIOS_SENSOR_MAG)) {
+						test_good_run = false;
+						AlarmsSet(SYSTEMALARMS_ALARM_SENSORS, missing_sensor_severity);
+					}
 #endif
-		}
-
-		queue = PIOS_SENSORS_GetQueue(PIOS_SENSOR_BARO);
-		if (queue != NULL) {
-			if (PIOS_Queue_Receive(queue, &baro, 0) != false) {
-				// we can use the timeval because it contains the current time stamp (PIOS_DELAY_GetRaw())
-				last_baro_update_time = timeval;
-				update_baro(&baro);
-				AlarmsClear(SYSTEMALARMS_ALARM_TEMPBARO);
-			} else {
-				// Check that we got valid sensor datas
-				uint32_t dT_baro_datas = PIOS_DELAY_DiffuS(last_baro_update_time);
-				// if the last valid sensor datas older than 100 ms report an error
-				if (dT_baro_datas > MAX_TIME_BETWEEN_VALID_BARO_DATAS_MS) {
-					AlarmsSet(SYSTEMALARMS_ALARM_TEMPBARO, SYSTEMALARMS_ALARM_ERROR);
+				} else {
+					update_mags(&mags);
 				}
-			}
+				break;
 
-#ifdef PIOS_TOLERATE_MISSING_SENSORS
-		} else {
-			if (PIOS_SENSORS_GetMissing(PIOS_SENSOR_BARO)) {
-				// Keep alarm asserted
-				test_good_run = false;
-
-				AlarmsSet(SYSTEMALARMS_ALARM_TEMPBARO,
-						missing_sensor_severity);
-			}
+			case PIOS_SENSOR_BARO:
+				if (PIOS_Sensors_GetData(PIOS_Sensors_GetSensor(next_sensor), &baro) != PIOS_SENSORS_DATA_AVAILABLE) {
+					/* Hmmm. */
+#if defined(PIOS_TOLERATE_MISSING_SENSORS)
+					if (PIOS_Sensors_IsMissing(PIOS_SENSOR_BARO)) {
+						test_good_run = false;
+						AlarmsSet(SYSTEMALARMS_ALARM_TEMPBARO, missing_sensor_severity);
+					} else
 #endif
-		}
+					{
+						uint32_t dT_baro_datas = PIOS_DELAY_DiffuS(last_baro_update_time);
+						// if the last valid sensor datas older than 100 ms report an error
+						if (dT_baro_datas > MAX_TIME_BETWEEN_VALID_BARO_DATAS_MS) {
+							AlarmsSet(SYSTEMALARMS_ALARM_TEMPBARO, SYSTEMALARMS_ALARM_ERROR);
+						}
+					}
+				} else {
+					last_baro_update_time = timeval;
+					update_baro(&baro);
+					AlarmsClear(SYSTEMALARMS_ALARM_TEMPBARO);
+				}
+				break;
 
 #if defined(PIOS_INCLUDE_OPTICALFLOW)
-		struct pios_sensor_optical_flow_data optical_flow;
-		queue = PIOS_SENSORS_GetQueue(PIOS_SENSOR_OPTICAL_FLOW);
-		if (queue != NULL && PIOS_Queue_Receive(queue, &optical_flow, 0) != false) {
-			update_optical_flow(&optical_flow);
-		}
-#endif /* PIOS_INCLUDE_OPTICALFLOW */
-
+			case PIOS_SENSOR_OPTICAL_FLOW:
+				{
+					struct pios_sensor_optical_flow_data flow;
+					if (PIOS_Sensors_GetData(PIOS_Sensors_GetSensor(next_sensor), &flow) == PIOS_SENSORS_DATA_AVAILABLE) {
+						update_optical_flow(&flow);
+					}
+				}
+				break;
+#endif
 #if defined(PIOS_INCLUDE_RANGEFINDER)
-		struct pios_sensor_rangefinder_data rangefinder;
-		queue = PIOS_SENSORS_GetQueue(PIOS_SENSOR_RANGEFINDER);
-		if (queue != NULL && PIOS_Queue_Receive(queue, &rangefinder, 0) != false) {
-			update_rangefinder(&rangefinder);
+			case PIOS_SENSOR_RANGEFINDER:
+				{
+					struct pios_sensor_rangefinder_data rangefinder;
+					if (PIOS_Sensors_GetData(PIOS_Sensors_GetSensor(next_sensor), &rangefinder) == PIOS_SENSORS_DATA_AVAILABLE) {
+						update_rangefinder(&rangefinder);
+					}
+				}
+				break;
+#endif
 		}
-#endif /* PIOS_INCLUDE_RANGEFINDER */
 
 		if (test_good_run)
 			AlarmsClear(SYSTEMALARMS_ALARM_SENSORS);
@@ -771,8 +780,8 @@ static void settingsUpdatedCb(UAVObjEvent * objEv, void *ctx, void *obj, int len
 		rotate = 1;
 	}
 
-	float gyro_dT = 1.0f / (float)PIOS_SENSORS_GetSampleRate(PIOS_SENSOR_GYRO);
-	float accel_dT = 1.0f / (float)PIOS_SENSORS_GetSampleRate(PIOS_SENSOR_ACCEL);
+	float gyro_dT = 1.0f / (float)PIOS_Sensors_GetUpdateRate(PIOS_Sensors_GetSensor(PIOS_SENSOR_GYRO));
+	float accel_dT = 1.0f / (float)PIOS_Sensors_GetUpdateRate(PIOS_Sensors_GetSensor(PIOS_SENSOR_ACCEL));
 
 	lpfilter_create(&gyro_filter, sensorSettings.LowpassCutoff, gyro_dT, sensorSettings.LowpassOrder, 3);
 	lpfilter_create(&accel_filter, sensorSettings.LowpassCutoff, accel_dT, sensorSettings.LowpassOrder, 3);
