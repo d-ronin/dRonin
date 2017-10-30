@@ -255,18 +255,16 @@ int32_t ActuatorInitialize()
 }
 MODULE_HIPRI_INITCALL(ActuatorInitialize, ActuatorStart);
 
-static float get_curve2_source(ActuatorDesiredData *desired, SystemSettingsAirframeTypeOptions airframe_type, MixerSettingsCurve2SourceOptions source)
+static float get_curve2_source(ActuatorDesiredData *desired,
+		SystemSettingsAirframeTypeOptions airframe_type,
+		MixerSettingsCurve2SourceOptions source,
+		float throttle_val)
 {
 	float tmp;
 
 	switch (source) {
 	case MIXERSETTINGS_CURVE2SOURCE_THROTTLE:
-		if(airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP)
-		{
-			ManualControlCommandThrottleGet(&tmp);
-			return tmp;
-		}
-		return desired->Thrust;
+		return throttle_val;
 		break;
 	case MIXERSETTINGS_CURVE2SOURCE_ROLL:
 		return desired->Roll;
@@ -669,7 +667,8 @@ static void normalize_input_data(uint32_t this_systime,
 
 	//The source for the secondary curve is selectable
 	float val2 = collective_curve(
-			get_curve2_source(&desired, airframe_type, curve2_src),
+			get_curve2_source(&desired, airframe_type, curve2_src,
+				throttle_val),
 			curve2, MIXERSETTINGS_THROTTLECURVE2_NUMELEM);
 
 	fill_desired_vector(&desired, val1, val2, desired_vect);
