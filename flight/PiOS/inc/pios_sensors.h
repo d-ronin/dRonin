@@ -102,8 +102,8 @@ int32_t PIOS_SENSORS_Register(enum pios_sensor_type type, struct pios_queue *que
 //! Checks if a sensor type is registered with the PIOS_SENSORS interface
 bool PIOS_SENSORS_IsRegistered(enum pios_sensor_type type);
 
-//! Get the data queue for a sensor type
-struct pios_queue *PIOS_SENSORS_GetQueue(enum pios_sensor_type type);
+//! Get the data for a sensor type
+bool PIOS_SENSORS_GetData(enum pios_sensor_type type, void *buf, int ms_to_wait);
 
 //! Set the maximum gyro rate in deg/s
 void PIOS_SENSORS_SetMaxGyro(int32_t rate);

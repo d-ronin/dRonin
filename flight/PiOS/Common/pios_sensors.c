@@ -70,12 +70,21 @@ bool PIOS_SENSORS_IsRegistered(enum pios_sensor_type type)
 	return false;
 }
 
-struct pios_queue *PIOS_SENSORS_GetQueue(enum pios_sensor_type type)
+static inline struct pios_queue *PIOS_SENSORS_GetQueue(enum pios_sensor_type type)
 {
 	if (type >= PIOS_SENSOR_LAST)
 		return NULL;
 
 	return queues[type];
+}
+
+bool PIOS_SENSORS_GetData(enum pios_sensor_type type, void *buf, int ms_to_wait)
+{
+	struct pios_queue *q = PIOS_SENSORS_GetQueue(type);
+
+	if (q == NULL) return false;
+
+	return PIOS_Queue_Receive(q, buf, ms_to_wait);
 }
 
 void PIOS_SENSORS_SetMaxGyro(int32_t rate)
