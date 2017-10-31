@@ -81,13 +81,6 @@ enum pios_mpu_dev_magic {
 	PIOS_MPU_DEV_MAGIC = 0xa9dd94b4 /**< Unique byte sequence */
 };
 
-//! Private functions
-int PIOS_MPU_gyro_callback(void *device, void *output);
-int PIOS_MPU_accel_callback(void *device, void *output);
-#ifdef PIOS_INCLUDE_MPU_MAG
-int PIOS_MPU_mag_callback(void *device, void *output);
-#endif /* PIOS_INCLUDE_MPU_MAG */
-
 /**
  * @brief The device state struct
  */
@@ -98,28 +91,24 @@ struct pios_mpu_dev {
 	pios_spi_t spi_driver_id;
 	pios_i2c_t i2c_driver_id;                   /**< Handle to the communication driver */
 	uint32_t com_slave_addr;                    /**< The slave address (I2C) or number (SPI) */
+	struct pios_semaphore *data_ready_sema;
 	enum pios_mpu_gyro_range gyro_range;
 	enum pios_mpu_accel_range accel_range;
 	enum pios_mpu_dev_magic magic;              /**< Magic bytes to validate the struct contents */
-	pios_sensor_t gyro_reg;
-	pios_sensor_t accel_reg;
 	struct pios_sensor_gyro_data gyro_data;
 	struct pios_sensor_accel_data accel_data;
 #ifdef PIOS_INCLUDE_MPU_MAG
 	bool use_mag;
-	pios_sensor_t mag_reg;
 	struct pios_sensor_mag_data mag_data;
 	int mag_age;
 	bool do_full_mag;
 #endif // PIOS_INCLUDE_MPU_MAG
 	volatile uint32_t interrupt_count;
-	volatile uint8_t sensor_read;
-	volatile uint8_t sensor_updated;
+	volatile uint8_t sensor_ready;
 };
 
-#define SENSOR_GYRO				0x1
-#define SENSOR_ACCEL			0x2
-#define SENSOR_MAG				0x4
+#define SENSOR_ACCEL			(1 << 0)
+#define SENSOR_MAG			(1 << 1)
 
 //! Global structure for this device device
 static struct pios_mpu_dev *mpu_dev;
@@ -185,6 +174,73 @@ static int32_t PIOS_MPU_SPI_Probe(enum pios_mpu_type *detected_device);
 static int32_t PIOS_MPU_I2C_Probe(enum pios_mpu_type *detected_device);
 #endif // defined(PIOS_INCLUDE_I2C) || defined(__DOXYGEN__)
 
+static int PIOS_MPU_parse_data(struct pios_mpu_dev *p);
+
+static bool PIOS_MPU_callback_gyro(void *ctx, void *output,
+		int ms_to_wait, int *next_call)
+{
+	struct pios_mpu_dev *dev = (struct pios_mpu_dev *)ctx;
+
+	PIOS_Assert(dev);
+	PIOS_Assert(output);
+
+	*next_call = 0;		/* Baby you know you can call me anytime */
+
+	if (PIOS_Semaphore_Take(dev->data_ready_sema, ms_to_wait) != true) {
+		return false;
+	}
+
+	if (PIOS_MPU_parse_data(dev)) {
+		return false;
+	}
+
+	memcpy(output, &dev->gyro_data, sizeof(dev->gyro_data));
+
+	return true;
+}
+
+static bool PIOS_MPU_callback_accel(void *ctx, void *output,
+		int ms_to_wait, int *next_call)
+{
+	struct pios_mpu_dev *dev = (struct pios_mpu_dev *)ctx;
+
+	PIOS_Assert(dev);
+	PIOS_Assert(output);
+
+	*next_call = 0;
+
+	if (!(dev->sensor_ready & SENSOR_ACCEL)) {
+		return false;
+	}
+
+	memcpy(output, &dev->accel_data, sizeof(dev->accel_data));
+	dev->sensor_ready &= ~SENSOR_ACCEL;
+
+	return true;
+}
+
+#if defined(PIOS_INCLUDE_MPU_MAG)
+static bool PIOS_MPU_callback_mag(void *ctx, void *output,
+		int ms_to_wait, int *next_call)
+{
+	struct pios_mpu_dev *dev = (struct pios_mpu_dev *)ctx;
+
+	PIOS_Assert(dev);
+	PIOS_Assert(output);
+
+	/* TODO: could know this better! */
+	*next_call = 0;
+
+	if (!(dev->sensor_ready & SENSOR_MAG)) {
+		return false;
+	}
+
+	memcpy(output, &dev->mag_data, sizeof(dev->mag_data));
+	dev->sensor_ready &= ~SENSOR_MAG;
+
+	return true;
+}
+#endif // PIOS_INCLUDE_MPU_MAG
 
 static struct pios_mpu_dev *PIOS_MPU_Alloc(const struct pios_mpu_cfg *cfg)
 {
@@ -193,9 +249,16 @@ static struct pios_mpu_dev *PIOS_MPU_Alloc(const struct pios_mpu_cfg *cfg)
 	dev = (struct pios_mpu_dev *)PIOS_malloc(sizeof(*mpu_dev));
 	if (!dev)
 		return NULL;
-	memset(dev, 0, sizeof(*dev));
 
-	dev->magic = PIOS_MPU_DEV_MAGIC;
+	*dev = (struct pios_mpu_dev) {
+		.magic = PIOS_MPU_DEV_MAGIC
+	};
+
+	dev->data_ready_sema = PIOS_Semaphore_Create();
+	if (dev->data_ready_sema == NULL) {
+		PIOS_free(dev);
+		return NULL;
+	}
 
 	return dev;
 }
@@ -408,12 +471,6 @@ static int32_t PIOS_MPU_Common_Init(void)
 	if (PIOS_MPU_Reset() != 0)
 		return -PIOS_MPU_ERROR_NOCONFIG;
 
-	/* If the MPU chip resets successfully, do a hail mary and register sensors
-	   early, so that all the sample rate setting and what not doesn't fail. */
-
-	mpu_dev->gyro_reg = PIOS_Sensors_Register(PIOS_SENSOR_GYRO, (void*)mpu_dev, PIOS_MPU_gyro_callback, PIOS_SENSORS_FLAG_SEMAPHORE);
-	mpu_dev->accel_reg = PIOS_Sensors_Register(PIOS_SENSOR_ACCEL, (void*)mpu_dev, PIOS_MPU_accel_callback, PIOS_SENSORS_FLAG_NONE);
-
 #ifdef PIOS_INCLUDE_MPU_MAG
 	/* Probe for mag */
 	if (mpu_dev->cfg->use_internal_mag) {
@@ -436,8 +493,6 @@ static int32_t PIOS_MPU_Common_Init(void)
 	} else {
 		mpu_dev->use_mag = false;
 	}
-	if (mpu_dev->use_mag)
-		mpu_dev->mag_reg = PIOS_Sensors_Register(PIOS_SENSOR_MAG, (void*)mpu_dev, PIOS_MPU_mag_callback, PIOS_SENSORS_FLAG_NONE);
 #endif // PIOS_INCLUDE_MPU_MAG
 
 	/* Configure the MPU Sensor */
@@ -465,6 +520,24 @@ static int32_t PIOS_MPU_Common_Init(void)
 	mpu_dev->accel_range = PIOS_MPU_SCALE_8G;
 	mpu_dev->gyro_range = PIOS_MPU_SCALE_1000_DEG;
 
+	int ret = PIOS_SENSORS_RegisterCallback(PIOS_SENSOR_GYRO,
+			PIOS_MPU_callback_gyro, mpu_dev);
+
+	PIOS_Assert(!ret);
+
+	ret = PIOS_SENSORS_RegisterCallback(PIOS_SENSOR_ACCEL,
+			PIOS_MPU_callback_accel, mpu_dev);
+
+	PIOS_Assert(!ret);
+#ifdef PIOS_INCLUDE_MPU_MAG
+	if (mpu_dev->use_mag) {
+		ret = PIOS_SENSORS_RegisterCallback(PIOS_SENSOR_MAG,
+				PIOS_MPU_callback_mag, mpu_dev);
+
+		PIOS_Assert(!ret);
+	}
+#endif // PIOS_INCLUDE_MPU_MAG
+
 	return 0;
 }
 
@@ -480,16 +553,16 @@ int32_t PIOS_MPU_SetGyroRange(enum pios_mpu_gyro_range range)
 
 	switch (range) {
 	case PIOS_MPU_SCALE_250_DEG:
-		PIOS_Sensors_SetRange(mpu_dev->gyro_reg, 250);
+		PIOS_SENSORS_SetMaxGyro(250);
 		break;
 	case PIOS_MPU_SCALE_500_DEG:
-		PIOS_Sensors_SetRange(mpu_dev->gyro_reg, 500);
+		PIOS_SENSORS_SetMaxGyro(500);
 		break;
 	case PIOS_MPU_SCALE_1000_DEG:
-		PIOS_Sensors_SetRange(mpu_dev->gyro_reg, 1000);
+		PIOS_SENSORS_SetMaxGyro(1000);
 		break;
 	case PIOS_MPU_SCALE_2000_DEG:
-		PIOS_Sensors_SetRange(mpu_dev->gyro_reg, 2000);
+		PIOS_SENSORS_SetMaxGyro(2000);
 		break;
 	}
 
@@ -668,14 +741,15 @@ int32_t PIOS_MPU_SetSampleRate(uint16_t samplerate_hz)
 	int32_t retval = PIOS_MPU_WriteReg(PIOS_MPU_SMPLRT_DIV_REG, (uint8_t)divisor);
 
 	if (retval == 0) {
-		PIOS_Sensors_SetUpdateRate(mpu_dev->gyro_reg, samplerate_hz);
-		PIOS_Sensors_SetUpdateRate(mpu_dev->accel_reg, samplerate_hz);
+		PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_ACCEL, samplerate_hz);
+		PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_GYRO, samplerate_hz);
 #ifdef PIOS_INCLUDE_MPU_MAG
 		if (mpu_dev->use_mag) {
 			if (mpu_dev->mpu_type == PIOS_MPU9150) {
-				PIOS_Sensors_SetUpdateRate(mpu_dev->mag_reg, samplerate_hz / 10);
+				PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_MAG,
+						samplerate_hz / 10);
 			} else {
-				PIOS_Sensors_SetUpdateRate(mpu_dev->mag_reg, 100);
+				PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_MAG, 100);
 			}
 		}
 #endif // PIOS_INCLUDE_MPU_MAG
@@ -900,23 +974,13 @@ bool PIOS_MPU_IRQHandler(void)
 	if (PIOS_MPU_Validate(mpu_dev) != 0)
 		return false;
 
+	bool woken = false;
+
 	mpu_dev->interrupt_count++;
 
-	mpu_dev->sensor_updated = 1;
-	mpu_dev->sensor_read = SENSOR_GYRO | SENSOR_ACCEL | SENSOR_MAG;
+	PIOS_Semaphore_Give_FromISR(mpu_dev->data_ready_sema, &woken);
 
-	if (mpu_dev->gyro_reg) {
-		PIOS_Sensors_RaiseSignal_FromISR(mpu_dev->gyro_reg);
-		PIOS_Sensors_RaiseSignal_FromISR(mpu_dev->accel_reg);
-	}
-#if defined(PIOS_INCLUDE_MPU_MAG)
-	if (mpu_dev->mag_reg) {
-		if (mpu_dev->use_mag)
-			PIOS_Sensors_RaiseSignal_FromISR(mpu_dev->mag_reg);
-	}
-#endif
-
-	return false;
+	return woken;
 }
 
 /**
@@ -924,12 +988,8 @@ bool PIOS_MPU_IRQHandler(void)
  *
  * @return Zero on success.
  */
-static int PIOS_MPU_parse_data(void *p)
+static int PIOS_MPU_parse_data(struct pios_mpu_dev *p)
 {
-	struct pios_mpu_dev *mpu_dev = (struct pios_mpu_dev *)p;
-	
-	mpu_dev->sensor_updated = 0;
-
 	enum {
 		IDX_SPI_DUMMY_BYTE = 0,
 		IDX_ACCEL_XOUT_H,
@@ -960,8 +1020,6 @@ static int PIOS_MPU_parse_data(void *p)
 	};
 
 	uint8_t mpu_rec_buf[BUFFER_SIZE];
-
-	mpu_dev->sensor_updated = 0;
 
 #ifdef PIOS_INCLUDE_SPI
 	uint8_t mpu_tx_buf[BUFFER_SIZE] = {PIOS_MPU_ACCEL_X_OUT_MSB | 0x80, };
@@ -1171,7 +1229,7 @@ static int PIOS_MPU_parse_data(void *p)
 	gyro_data->temperature = temperature;
 	accel_data->temperature = temperature;
 
-	mpu_dev->sensor_read &= ~(SENSOR_GYRO | SENSOR_ACCEL);
+	mpu_dev->sensor_ready |= SENSOR_ACCEL;
 
 #ifdef PIOS_INCLUDE_MPU_MAG
 	if (mpu_dev->use_mag) {
@@ -1198,7 +1256,7 @@ static int PIOS_MPU_parse_data(void *p)
 				mag_data->y *= mag_scale;
 				mag_data->z *= mag_scale;
 
-				mpu_dev->sensor_read &= ~SENSOR_MAG;
+				mpu_dev->sensor_ready |= SENSOR_MAG;
 			}
 
 			mpu_dev->do_full_mag = false;
@@ -1213,83 +1271,6 @@ static int PIOS_MPU_parse_data(void *p)
 #endif // PIOS_INCLUDE_MPU_MAG
 	return 0;
 }
-
-#define DEVTYPE_GYRO		0
-#define DEVTYPE_ACCEL		1
-#define DEVTYPE_MAG			2
-
-/**
- * @brief Common callback function.
- */
-int PIOS_MPU_callback_common(void *device, void *output, uint8_t devtype)
-{
-	PIOS_Assert(device);
-	PIOS_Assert(output);
-
-	struct pios_mpu_dev *dev = (struct pios_mpu_dev *)device;
-
-	if (dev->sensor_updated) {
-		if (PIOS_MPU_parse_data(dev)) {
-			/* Error while reading sensor. */
-			dev->sensor_read = SENSOR_GYRO | SENSOR_ACCEL | SENSOR_MAG;
-			return PIOS_SENSORS_DATA_NONE;
-		}
-	}
-
-	switch (devtype) {
-	case DEVTYPE_GYRO:
-		if (!(dev->sensor_read & SENSOR_GYRO)) {
-			dev->sensor_read |= SENSOR_GYRO;
-			memcpy(output, &dev->gyro_data, sizeof(dev->gyro_data));
-			return PIOS_SENSORS_DATA_AVAILABLE;
-		}
-		break;
-	case DEVTYPE_ACCEL:
-		if (!(dev->sensor_read & SENSOR_ACCEL)) {
-			dev->sensor_read |= SENSOR_ACCEL;
-			memcpy(output, &dev->accel_data, sizeof(dev->accel_data));
-			return PIOS_SENSORS_DATA_AVAILABLE;
-		}
-		break;
-#if defined(PIOS_INCLUDE_MPU_MAG)
-	case DEVTYPE_MAG:
-		if (!(dev->sensor_read & SENSOR_MAG)) {
-			dev->sensor_read |= SENSOR_MAG;
-			memcpy(output, &dev->mag_data, sizeof(dev->mag_data));
-			return PIOS_SENSORS_DATA_AVAILABLE;
-		}
-		break;
-#endif
-	}
-
-	return PIOS_SENSORS_DATA_NONE;
-}
-
-/**
- * @brief Callback to read out the gyro data.
- */
-int PIOS_MPU_gyro_callback(void *device, void *output)
-{
-	return PIOS_MPU_callback_common(device, output, DEVTYPE_GYRO);
-}
-
-/**
- * @brief Callback to read out the accel data.
- */
-int PIOS_MPU_accel_callback(void *device, void *output)
-{
-	return PIOS_MPU_callback_common(device, output, DEVTYPE_ACCEL);
-}
-
-#if defined(PIOS_INCLUDE_MPU_MAG)
-/**
- * @brief Callback to read out the mag data.
- */
-int PIOS_MPU_mag_callback(void *device, void *output)
-{
-	return PIOS_MPU_callback_common(device, output, DEVTYPE_MAG);
-}
-#endif // PIOS_INCLUDE_MPU_MAG
 
 #endif // PIOS_INCLUDE_MPU
 
