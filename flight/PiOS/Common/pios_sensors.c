@@ -31,60 +31,93 @@
 #include <stddef.h>
 
 //! The list of queue handles
-static struct pios_queue *queues[PIOS_SENSOR_LAST];
-static uint32_t sample_rates[PIOS_SENSOR_LAST];
-static int32_t max_gyro_rate;
+typedef bool (*PIOS_SENSOR_Callback_t)(void *ctx, void *output,
+		int ms_to_wait, int *next_call);
 
-#ifdef PIOS_TOLERATE_MISSING_SENSORS
-static bool missing_sensors[PIOS_SENSOR_LAST];
-#endif
+static struct PIOS_Sensor {
+	PIOS_SENSOR_Callback_t cb_func;
+	void *cb_ctx;
+
+	uint16_t sample_rate;
+	uint16_t missing : 1;
+} sensors[PIOS_SENSOR_NUM];
+
+static int32_t max_gyro_rate;
 
 int32_t PIOS_SENSORS_Init()
 {
-	for (uint32_t i = 0; i < PIOS_SENSOR_LAST; i++) {
-		queues[i] = NULL;
-		sample_rates[i] = 0;
-	}
+	/* sensors array is on BSS and pre-zero'd */
+
+	return 0;
+}
+
+static bool PIOS_SENSORS_QueueCallback(void *ctx, void *buf,
+		int ms_to_wait, int *next_call)
+{
+	struct pios_queue *q = ctx;
+
+	*next_call = 0;		/* May immediately have data on next call */
+
+	return PIOS_Queue_Receive(q, buf, ms_to_wait);
+}
+
+int32_t PIOS_SENSORS_RegisterCallback(enum pios_sensor_type type,
+		PIOS_SENSOR_Callback_t callback, void *ctx)
+{
+	PIOS_Assert(type < PIOS_SENSOR_NUM);
+
+	struct PIOS_Sensor *sensor = &sensors[type];
+
+	sensor->cb_ctx = ctx;
+	sensor->cb_func = callback;
+	sensor->missing = 0;
 
 	return 0;
 }
 
 int32_t PIOS_SENSORS_Register(enum pios_sensor_type type, struct pios_queue *queue)
 {
-	if(queues[type] != NULL)
-		return -1;
-
-	queues[type] = queue;
-
-	return 0;
+	return PIOS_SENSORS_RegisterCallback(type,
+			PIOS_SENSORS_QueueCallback, queue);
 }
 
 bool PIOS_SENSORS_IsRegistered(enum pios_sensor_type type)
 {
-	if(type >= PIOS_SENSOR_LAST)
+	if (type >= PIOS_SENSOR_NUM) {
 		return false;
+	}
 
-	if(queues[type] != NULL)
-		return true;
+	struct PIOS_Sensor *sensor = &sensors[type];
 
-	return false;
-}
+	if (sensor->missing) {
+		return false;
+	}
 
-static inline struct pios_queue *PIOS_SENSORS_GetQueue(enum pios_sensor_type type)
-{
-	if (type >= PIOS_SENSOR_LAST)
-		return NULL;
-
-	return queues[type];
+	return sensor->cb_func != NULL;
 }
 
 bool PIOS_SENSORS_GetData(enum pios_sensor_type type, void *buf, int ms_to_wait)
 {
-	struct pios_queue *q = PIOS_SENSORS_GetQueue(type);
+	if (type >= PIOS_SENSOR_NUM) {
+		return false;
+	}
 
-	if (q == NULL) return false;
+	struct PIOS_Sensor *sensor = &sensors[type];
 
-	return PIOS_Queue_Receive(q, buf, ms_to_wait);
+	if (!sensor->cb_func) {
+		return false;
+	}
+
+	int next_time;
+
+	bool ret = sensor->cb_func(sensor->cb_ctx, buf, ms_to_wait,
+			&next_time);
+
+	/* TODO: keep track of next time it *could* have data to use in
+	 * scheduling.
+	 */
+
+	return ret;
 }
 
 void PIOS_SENSORS_SetMaxGyro(int32_t rate)
@@ -99,35 +132,37 @@ int32_t PIOS_SENSORS_GetMaxGyro()
 
 void PIOS_SENSORS_SetSampleRate(enum pios_sensor_type type, uint32_t sample_rate)
 {
-	if (type >= PIOS_SENSOR_LAST)
-		return;
+	PIOS_Assert(type < PIOS_SENSOR_NUM);
 
-	sample_rates[type] = sample_rate;
+	struct PIOS_Sensor *sensor = &sensors[type];
+
+	sensor->sample_rate = sample_rate;
 }
 
 uint32_t PIOS_SENSORS_GetSampleRate(enum pios_sensor_type type)
 {
-	if (type >= PIOS_SENSOR_LAST)
+	if (type >= PIOS_SENSOR_NUM)
 		return 0;
 
-	return sample_rates[type];
+	struct PIOS_Sensor *sensor = &sensors[type];
+
+	return sensor->sample_rate;
 }
 
 void PIOS_SENSORS_SetMissing(enum pios_sensor_type type)
 {
-	PIOS_Assert(type < PIOS_SENSOR_LAST);
-#ifdef PIOS_TOLERATE_MISSING_SENSORS
-	missing_sensors[type] = true;
-#endif
+	PIOS_Assert(type < PIOS_SENSOR_NUM);
+
+	struct PIOS_Sensor *sensor = &sensors[type];
+
+	sensor->missing = true;
 }
 
 bool PIOS_SENSORS_GetMissing(enum pios_sensor_type type)
 {
-	PIOS_Assert(type < PIOS_SENSOR_LAST);
+	PIOS_Assert(type < PIOS_SENSOR_NUM);
 
-#ifdef PIOS_TOLERATE_MISSING_SENSORS
-	return missing_sensors[type];
-#else
-	return false;
-#endif
+	struct PIOS_Sensor *sensor = &sensors[type];
+
+	return sensor->missing;
 }
