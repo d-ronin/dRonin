@@ -300,7 +300,7 @@ static void SensorsTask(void *parameters)
 			AlarmsSet(SYSTEMALARMS_ALARM_TEMPBARO,
 					missing_sensor_severity);
 #endif
-		} else {
+		} else if (PIOS_SENSORS_IsRegistered(PIOS_SENSOR_BARO)) {
 			// Check that we got valid sensor datas
 			uint32_t dT_baro_datas = PIOS_DELAY_DiffuS(last_baro_update_time);
 			// if the last valid sensor datas older than 100 ms report an error
