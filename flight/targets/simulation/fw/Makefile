@@ -78,10 +78,9 @@ MODULES += Attitude
 MODULES += FirmwareIAP
 MODULES += Logging
 MODULES += ManualControl
-MODULES += Sensors/simulated
-# On "sim", the simulated sensors module instead invokes the real one when
-# gyros are present.
-MODULES += Sensors
+# On "sim", the sensor stabilization module instead invokes the fake one when
+# gyros are not present.
+MODULES += Stabilization/simulated
 MODULES += Stabilization
 MODULES += Telemetry
 

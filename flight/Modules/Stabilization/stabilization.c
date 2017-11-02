@@ -67,6 +67,9 @@
 #include "misc_math.h"
 #include "smoothcontrol.h"
 
+// Sensors subsystem which runs in this task
+#include "sensors.h"
+
 // Includes for various stabilization algorithms
 #include "virtualflybar.h"
 
@@ -79,7 +82,7 @@ DONT_BUILD_IF((MAX_AXES+0 != 3), stabAxisWrongCount);
 #if defined(PIOS_STABILIZATION_STACK_SIZE)
 #define STACK_SIZE_BYTES PIOS_STABILIZATION_STACK_SIZE
 #else
-#define STACK_SIZE_BYTES 860
+#define STACK_SIZE_BYTES 1200
 #endif
 
 #define TASK_PRIORITY PIOS_THREAD_PRIO_HIGHEST
@@ -124,7 +127,6 @@ static StabilizationSettingsData settings;
 static VbarSettingsData vbar_settings;
 
 static SubTrimData subTrim;
-static struct pios_queue *queue;
 
 uint16_t ident_wiggle_points;
 
@@ -184,14 +186,6 @@ static float get_throttle(ActuatorDesiredData *actuator_desired, SystemSettingsA
  */
 int32_t StabilizationStart()
 {
-	// Initialize variables
-	// Create object queue
-	queue = PIOS_Queue_Create(MAX_QUEUE_SIZE, sizeof(UAVObjEvent));
-
-	// Listen for updates.
-	//	AttitudeActualConnectQueue(queue);
-	GyrosConnectQueue(queue);
-
 	// Watchdog must be registered before starting task
 	PIOS_WDG_RegisterFlag(PIOS_WDG_STABILIZATION);
 
@@ -222,6 +216,10 @@ int32_t StabilizationInitialize()
 		return -1;
 	}
 #endif
+
+	if (sensors_init() != 0) {
+		return -1;
+	}
 
 	return 0;
 }
@@ -382,8 +380,6 @@ MODULE_HIPRI_INITCALL(StabilizationInitialize, StabilizationStart);
  */
 static void stabilizationTask(void* parameters)
 {
-	UAVObjEvent ev;
-
 	uint32_t timeval = PIOS_DELAY_GetRaw();
 
 	ActuatorDesiredData actuatorDesired;
@@ -476,9 +472,9 @@ static void stabilizationTask(void* parameters)
 		}
 
 		// Wait until the AttitudeRaw object is updated, if a timeout then go to failsafe
-		if (PIOS_Queue_Receive(queue, &ev, FAILSAFE_TIMEOUT_MS) != true)
+		if (sensors_step() != true)
 		{
-			AlarmsSet(SYSTEMALARMS_ALARM_STABILIZATION,SYSTEMALARMS_ALARM_WARNING);
+			AlarmsSet(SYSTEMALARMS_ALARM_STABILIZATION, SYSTEMALARMS_ALARM_CRITICAL);
 			continue;
 		}
 
