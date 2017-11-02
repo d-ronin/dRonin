@@ -228,25 +228,8 @@ bool sensors_step()
 
 	uint32_t timeval = PIOS_DELAY_GetRaw();
 
-	//Block on gyro data but nothing else
-	if (PIOS_SENSORS_GetData(PIOS_SENSOR_GYRO, &gyros, SENSOR_PERIOD) == false) {
-		good_runs = 0;
-		goto end;
-	} else {
-		ret = true;
-	}
-
-	if (PIOS_SENSORS_GetData(PIOS_SENSOR_ACCEL, &accels, 0) == false) {
-		//If no new accels data is ready, reuse the latest sample
-		AccelsSet(&accelsData);
-	} else {
-		update_accels(&accels);
-	}
-
-	// Update gyros after the accels since the rest of the code expects
-	// the accels to be available first
-	update_gyros(&gyros);
-
+	// First do everything NON-gyro/accel, so as to minimize gyro->stab
+	// latency.
 	bool test_good_run = good_runs > REQUIRED_GOOD_CYCLES;
 
 	if (PIOS_SENSORS_GetData(PIOS_SENSOR_MAG, &mags, 0) != false) {
@@ -299,20 +282,41 @@ bool sensors_step()
 	}
 #endif /* PIOS_INCLUDE_RANGEFINDER */
 
-	if (test_good_run)
-		AlarmsClear(SYSTEMALARMS_ALARM_SENSORS);
-	else
-		good_runs++;
-	
+	//Block on gyro data but nothing else
+	if (PIOS_SENSORS_GetData(PIOS_SENSOR_GYRO, &gyros, SENSOR_PERIOD) == false) {
+		good_runs = 0;
+		test_good_run = false;
+	} else {
+		ret = true;
+	}
+
+	if (PIOS_SENSORS_GetData(PIOS_SENSOR_ACCEL, &accels, 0) == false) {
+		//If no new accels data is ready, reuse the latest sample
+		AccelsSet(&accelsData);
+	} else {
+		update_accels(&accels);
+	}
+
+	// Update gyros after the accels since the rest of the code expects
+	// the accels to be available first
+	update_gyros(&gyros);
+
 	// Check total time to get the sensors wasn't over the limit
 	uint32_t dT_us = PIOS_DELAY_DiffuS(timeval);
-	if (dT_us > (SENSOR_PERIOD * 1000))
+	if (dT_us > (SENSOR_PERIOD * 1000)) {
 		good_runs = 0;
+	}
 
-end:
 	if (good_runs == 0) {
 		AlarmsSet(SYSTEMALARMS_ALARM_SENSORS, SYSTEMALARMS_ALARM_CRITICAL);
+	} else if (test_good_run) {
+		AlarmsClear(SYSTEMALARMS_ALARM_SENSORS);
 	}
+
+	if (ret && (!test_good_run)) {
+		good_runs++;
+	}
+
 
 	return ret;
 }
