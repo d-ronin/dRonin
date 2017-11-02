@@ -219,7 +219,7 @@ int32_t SensorsStart(void)
 	return 0;
 }
 
-#ifndef SIM_POSIX
+#ifndef PIOS_INCLUDE_SIMSENSORS
 MODULE_HIPRI_INITCALL(SensorsInitialize, SensorsStart);
 #endif
 

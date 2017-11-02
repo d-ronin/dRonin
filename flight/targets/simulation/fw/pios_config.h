@@ -110,6 +110,12 @@
 #define PIOS_INCLUDE_HMC5983
 #endif
 
+#define PIOS_INCLUDE_SIMSENSORS
+
+#if !(defined(_WIN32) || defined(WIN32) || defined(__MINGW32__))
+#define PIOS_INCLUDE_SIMSENSORS_YASIM
+#endif
+
 #endif /* PIOS_CONFIG_POSIX_H */
 
 /**

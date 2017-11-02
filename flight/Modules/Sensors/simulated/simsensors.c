@@ -40,6 +40,8 @@
 #include "physical_constants.h"
 #include "pios_thread.h"
 
+#ifdef PIOS_INCLUDE_SIMSENSORS
+
 #include "accels.h"
 #include "actuatordesired.h"
 #include "airspeedactual.h"
@@ -80,14 +82,16 @@ static int sens_rate = 500;
 
 enum sensor_sim_type {MODEL_YASIM, MODEL_QUADCOPTER, MODEL_AIRPLANE, MODEL_CAR} sensor_sim_type;
 
+#ifdef PIOS_INCLUDE_SIMSENSORS_YASIM
 extern bool use_yasim;
+static void simulateYasim();
+#endif
 
 // Private functions
 static void SensorsTask(void *parameters);
 static void simulateModelQuadcopter();
 static void simulateModelAirplane();
 static void simulateModelCar();
-static void simulateYasim();
 
 static void magOffsetEstimation(MagnetometerData *mag);
 
@@ -119,9 +123,11 @@ static int32_t SimSensorsInitialize(void)
 	PIOS_SENSORS_Register(PIOS_SENSOR_MAG, (struct pios_queue*)1);
 	PIOS_SENSORS_Register(PIOS_SENSOR_BARO, (struct pios_queue*)1);
 
+#ifdef PIOS_INCLUDE_SIMSENSORS_YASIM
 	if (use_yasim) {
 		sens_rate = 200;
 	}
+#endif
 
 	PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_ACCEL, sens_rate);
 	PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_GYRO, sens_rate);
@@ -206,14 +212,17 @@ static void SensorsTask(void *parameters)
 				break;
 		}
 
+#ifdef PIOS_INCLUDE_SIMSENSORS_YASIM
 		if (use_yasim) {
 			sensor_sim_type = MODEL_YASIM;
 		}
+#endif
 
 		sensors_count++;
 
 		switch(sensor_sim_type) {
 			case MODEL_QUADCOPTER:
+			default:
 				simulateModelQuadcopter();
 				break;
 			case MODEL_AIRPLANE:
@@ -222,9 +231,11 @@ static void SensorsTask(void *parameters)
 			case MODEL_CAR:
 				simulateModelCar();
 				break;
+#ifdef PIOS_INCLUDE_SIMSENSORS_YASIM
 			case MODEL_YASIM:
 				simulateYasim();
 				break;
+#endif
 		}
 
 		static uint32_t tm = 0;
@@ -233,9 +244,112 @@ static void SensorsTask(void *parameters)
 	}
 }
 
+static void simsensors_scale_controls(float *rpy, float *thrust_out,
+		float max_thrust)
+{
+	const float ACTUATOR_ALPHA = 0.81f;
+
+	FlightStatusData flightStatus;
+	FlightStatusGet(&flightStatus);
+	ActuatorDesiredData actuatorDesired;
+	ActuatorDesiredGet(&actuatorDesired);
+
+	float thrust = (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) ? actuatorDesired.Thrust * max_thrust : 0;
+
+	if (thrust != thrust)
+		thrust = 0;
+
+	*thrust_out = thrust;
+
+	float control_scaling = 3000.0f;
+
+	// In deg/s
+	rpy[0] = control_scaling * actuatorDesired.Roll * (1 - ACTUATOR_ALPHA) + rpy[0] * ACTUATOR_ALPHA;
+	rpy[1] = control_scaling * actuatorDesired.Pitch * (1 - ACTUATOR_ALPHA) + rpy[1] * ACTUATOR_ALPHA;
+	rpy[2] = control_scaling * actuatorDesired.Yaw * (1 - ACTUATOR_ALPHA) + rpy[2] * ACTUATOR_ALPHA;
+}
+
+static void simsensors_gyro_set(float *rpy, float noise_scale,
+		float temperature)
+{
+	GyrosData gyrosData; // Skip get as we set all the fields
+	gyrosData.x = rpy[0] + rand_gauss() * noise_scale + (temperature - 20) * 1 + powf(temperature - 20,2) * 0.11;
+	gyrosData.y = rpy[1] + rand_gauss() * noise_scale + (temperature - 20) * 1 + powf(temperature - 20,2) * 0.11;
+	gyrosData.z = rpy[2] + rand_gauss() * noise_scale + (temperature - 20) * 1 + powf(temperature - 20,2) * 0.11;
+	gyrosData.temperature = temperature;
+	GyrosSet(&gyrosData);
+}
+
+static void simsensors_accels_set(float *xyz, float *accel_bias,
+		float temperature)
+{
+	AccelsData accelsData; // Skip get as we set all fields
+
+	accelsData.x = xyz[0] + accel_bias[0];
+	accelsData.y = xyz[1] + accel_bias[1];
+	accelsData.z = xyz[2] + accel_bias[2];
+
+	accelsData.temperature = temperature;
+
+	AccelsSet(&accelsData);
+}
+
+static void simsensors_accels_setfromned(double *ned_accel,
+		float (*Rbe)[3][3], float *accel_bias, float temperature)
+{
+	float xyz[3];
+
+	xyz[0] = ned_accel[0] * (*Rbe)[0][0] + ned_accel[1] * (*Rbe)[0][1] + ned_accel[2] * (*Rbe)[0][2];
+	xyz[1] = ned_accel[0] * (*Rbe)[1][0] + ned_accel[1] * (*Rbe)[1][1] + ned_accel[2] * (*Rbe)[1][2];
+	xyz[2] = ned_accel[0] * (*Rbe)[2][0] + ned_accel[1] * (*Rbe)[2][1] + ned_accel[2] * (*Rbe)[2][2];
+
+	simsensors_accels_set(xyz, accel_bias, temperature);
+}
+
+static void simsensors_baro_set(float down, float baro_offset) {
+	BaroAltitudeData baroAltitude;
+	BaroAltitudeGet(&baroAltitude);
+	baroAltitude.Altitude = -down + baro_offset;
+	BaroAltitudeSet(&baroAltitude);
+}
+
+static void simsensors_baro_drift(float *baro_offset)
+{
+	if (*baro_offset == 0) {
+		// Hacky initialization
+		*baro_offset = 50;
+	} else {
+		// Very small drift process
+		*baro_offset += rand_gauss() / 100;
+	}
+}
+
+static void simsensors_mag_set(float *be, float (*Rbe)[3][3])
+{
+	MagnetometerData mag;
+
+	mag.x = 100 +
+		be[0] * (*Rbe)[0][0] +
+		be[1] * (*Rbe)[0][1] +
+		be[2] * (*Rbe)[0][2];
+
+	mag.y = 100 +
+		be[0] * (*Rbe)[1][0] +
+		be[1] * (*Rbe)[1][1] +
+		be[2] * (*Rbe)[1][2];
+
+	mag.z = 100 +
+		be[0] * (*Rbe)[2][0] +
+		be[1] * (*Rbe)[2][1] +
+		be[2] * (*Rbe)[2][2];
+
+	magOffsetEstimation(&mag);
+	MagnetometerSet(&mag);
+}
+
+#ifdef PIOS_INCLUDE_SIMSENSORS_YASIM
 static void simulateYasim()
 {
-#if !(defined(_WIN32) || defined(WIN32) || defined(__MINGW32__))
 	const float GYRO_NOISE_SCALE = 1.0f;
 	const float MAG_PERIOD = 1.0 / 75.0;
 	const float BARO_PERIOD = 1.0 / 20.0;
@@ -271,6 +385,8 @@ static void simulateYasim()
 	static bool inited = false;
 
 	static int rfd, wfd;
+
+	static float baro_offset;
 
 	if (!inited) {
 		fprintf(stderr, "Initing external yasim instance\n");
@@ -389,19 +505,8 @@ static void simulateYasim()
 		exit(1);
 	}
 
-	AccelsData accelsData;
-	accelsData.x = status.acc[0] + accel_bias[0];
-	accelsData.y = status.acc[1] + accel_bias[1];
-	accelsData.z = status.acc[2] + accel_bias[2];
-	accelsData.temperature = 30;
-	AccelsSet(&accelsData);
-
-	GyrosData gyrosData;
-	gyrosData.x = (status.p * RAD2DEG) + rand_gauss() * GYRO_NOISE_SCALE;
-	gyrosData.y = (status.q * RAD2DEG) + rand_gauss() * GYRO_NOISE_SCALE;
-	gyrosData.z = (status.r * RAD2DEG) + rand_gauss() * GYRO_NOISE_SCALE;
-	gyrosData.temperature = 31;
-	GyrosSet(&gyrosData);
+	simsensors_gyro_set(&status.p, GYRO_NOISE_SCALE, 30);
+	simsensors_accels_set(status.acc, accel_bias, 31);
 
 	float rpy[3] = { status.roll * RAD2DEG, status.pitch * RAD2DEG,
 		status.hdg * RAD2DEG };
@@ -427,34 +532,17 @@ static void simulateYasim()
 
 	uint32_t last_mag_time = 0;
 	if (PIOS_DELAY_DiffuS(last_mag_time) / 1.0e6 > MAG_PERIOD) {
-		MagnetometerData mag;
-		mag.x = homeLocation.Be[0] * Rbe[0][0] + homeLocation.Be[1] * Rbe[0][1] + homeLocation.Be[2] * Rbe[0][2];
-		mag.y = homeLocation.Be[0] * Rbe[1][0] + homeLocation.Be[1] * Rbe[1][1] + homeLocation.Be[2] * Rbe[1][2];
-		mag.z = homeLocation.Be[0] * Rbe[2][0] + homeLocation.Be[1] * Rbe[2][1] + homeLocation.Be[2] * Rbe[2][2];
+		simsensors_mag_set(homeLocation.Be, &Rbe);
 
-		// Run the offset compensation algorithm from the firmware
-		magOffsetEstimation(&mag);
-
-		MagnetometerSet(&mag);
 		last_mag_time = PIOS_DELAY_GetRaw();
 	}
 
-	static float baro_offset = 0;
-	if (baro_offset == 0) {
-		// Hacky initialization
-		baro_offset = 50;
-	} else {
-		// Very small drift process
-		baro_offset += rand_gauss() / 100;
-	}
+	simsensors_baro_drift(&baro_offset);
 
 	// Update baro periodically
 	static uint32_t last_baro_time = 0;
 	if (PIOS_DELAY_DiffuS(last_baro_time) / 1.0e6 > BARO_PERIOD) {
-		BaroAltitudeData baroAltitude;
-		BaroAltitudeGet(&baroAltitude);
-		baroAltitude.Altitude = -status.alt + baro_offset;
-		BaroAltitudeSet(&baroAltitude);
+		simsensors_baro_set(status.alt, baro_offset);
 		last_baro_time = PIOS_DELAY_GetRaw();
 	}
 
@@ -474,9 +562,8 @@ static void simulateYasim()
 	attitudeSimulated.Velocity[2] = vel[2];
 #endif
 	AttitudeSimulatedSet(&attitudeSimulated);
-
-#endif /* !(defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)) */
 }
+#endif /* PIOS_INCLUDE_SIMSENSORS_YASIM */
 
 static void simulateModelQuadcopter()
 {
@@ -486,10 +573,8 @@ static void simulateModelQuadcopter()
 	static float q[4] = {1,0,0,0};
 	static float rpy[3] = {0,0,0}; // Low pass filtered actuator
 	static float baro_offset = 0.0f;
-	static float temperature = 20;
 	float Rbe[3][3];
 
-	const float ACTUATOR_ALPHA = 0.81f;
 	const float MAX_THRUST = GRAVITY * 2;
 	const float K_FRICTION = 1;
 	const float GPS_PERIOD = 0.1f;
@@ -498,29 +583,10 @@ static void simulateModelQuadcopter()
 	const float GYRO_NOISE_SCALE = 1.0f;
 
 	float dT = 0.002;
+	float thrust;
 
-	FlightStatusData flightStatus;
-	FlightStatusGet(&flightStatus);
-	ActuatorDesiredData actuatorDesired;
-	ActuatorDesiredGet(&actuatorDesired);
-
-	float thrust = (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) ? actuatorDesired.Thrust * MAX_THRUST : 0;
-	if (thrust != thrust)
-		thrust = 0;
-
-	float control_scaling = 3000.0f;
-	// In rad/s
-	rpy[0] = control_scaling * actuatorDesired.Roll * (1 - ACTUATOR_ALPHA) + rpy[0] * ACTUATOR_ALPHA;
-	rpy[1] = control_scaling * actuatorDesired.Pitch * (1 - ACTUATOR_ALPHA) + rpy[1] * ACTUATOR_ALPHA;
-	rpy[2] = control_scaling * actuatorDesired.Yaw * (1 - ACTUATOR_ALPHA) + rpy[2] * ACTUATOR_ALPHA;
-
-	temperature = 20;
-	GyrosData gyrosData; // Skip get as we set all the fields
-	gyrosData.x = rpy[0] + rand_gauss() * GYRO_NOISE_SCALE + (temperature - 20) * 1 + powf(temperature - 20,2) * 0.11; // - powf(temperature - 20,3) * 0.05;;
-	gyrosData.y = rpy[1] + rand_gauss() * GYRO_NOISE_SCALE + (temperature - 20) * 1 + powf(temperature - 20,2) * 0.11;
-	gyrosData.z = rpy[2] + rand_gauss() * GYRO_NOISE_SCALE + (temperature - 20) * 1 + powf(temperature - 20,2) * 0.11;
-	gyrosData.temperature = temperature;
-	GyrosSet(&gyrosData);
+	simsensors_scale_controls(rpy, &thrust, MAX_THRUST);
+	simsensors_gyro_set(rpy, GYRO_NOISE_SCALE, 20);
 
 	// Predict the attitude forward in time
 	float qdot[4];
@@ -578,28 +644,14 @@ static void simulateModelQuadcopter()
 	// Sensor feels gravity (when not acceleration in ned frame e.g. ned_accel[2] = 0)
 	ned_accel[2] -= GRAVITY;
 
-	// Transform the accels back in to body frame
-	AccelsData accelsData; // Skip get as we set all the fields
-	accelsData.x = ned_accel[0] * Rbe[0][0] + ned_accel[1] * Rbe[0][1] + ned_accel[2] * Rbe[0][2] + accel_bias[0];
-	accelsData.y = ned_accel[0] * Rbe[1][0] + ned_accel[1] * Rbe[1][1] + ned_accel[2] * Rbe[1][2] + accel_bias[1];
-	accelsData.z = ned_accel[0] * Rbe[2][0] + ned_accel[1] * Rbe[2][1] + ned_accel[2] * Rbe[2][2] + accel_bias[2];
-	accelsData.temperature = 30;
-	AccelsSet(&accelsData);
+	simsensors_accels_setfromned(ned_accel, &Rbe, accel_bias, 30);
 
-	if(baro_offset == 0) {
-		// Hacky initialization
-		baro_offset = 50;// * rand_gauss();
-	} else {
-		// Very small drift process
-		baro_offset += rand_gauss() / 100;
-	}
+	simsensors_baro_drift(&baro_offset);
+
 	// Update baro periodically
 	static uint32_t last_baro_time = 0;
 	if(PIOS_DELAY_DiffuS(last_baro_time) / 1.0e6 > BARO_PERIOD) {
-		BaroAltitudeData baroAltitude;
-		BaroAltitudeGet(&baroAltitude);
-		baroAltitude.Altitude = -pos[2] + baro_offset;
-		BaroAltitudeSet(&baroAltitude);
+		simsensors_baro_set(pos[2], baro_offset);
 		last_baro_time = PIOS_DELAY_GetRaw();
 	}
 
@@ -664,15 +716,7 @@ static void simulateModelQuadcopter()
 	// Update mag periodically
 	static uint32_t last_mag_time = 0;
 	if(PIOS_DELAY_DiffuS(last_mag_time) / 1.0e6 > MAG_PERIOD) {
-		MagnetometerData mag;
-		mag.x = homeLocation.Be[0] * Rbe[0][0] + homeLocation.Be[1] * Rbe[0][1] + homeLocation.Be[2] * Rbe[0][2];
-		mag.y = homeLocation.Be[0] * Rbe[1][0] + homeLocation.Be[1] * Rbe[1][1] + homeLocation.Be[2] * Rbe[1][2];
-		mag.z = homeLocation.Be[0] * Rbe[2][0] + homeLocation.Be[1] * Rbe[2][1] + homeLocation.Be[2] * Rbe[2][2];
-
-		// Run the offset compensation algorithm from the firmware
-		magOffsetEstimation(&mag);
-
-		MagnetometerSet(&mag);
+		simsensors_mag_set(homeLocation.Be, &Rbe);
 		last_mag_time = PIOS_DELAY_GetRaw();
 	}
 
@@ -713,7 +757,6 @@ static void simulateModelAirplane()
 	float Rbe[3][3];
 
 	const float LIFT_SPEED = 8; // (m/s) where achieve lift for zero pitch
-	const float ACTUATOR_ALPHA = 0.8;
 	const float MAX_THRUST = 9.81 * 2;
 	const float K_FRICTION = 0.2;
 	const float GPS_PERIOD = 0.1;
@@ -721,40 +764,23 @@ static void simulateModelAirplane()
 	const float BARO_PERIOD = 1.0 / 20.0;
 	const float ROLL_HEADING_COUPLING = 0.1; // (deg/s) heading change per deg of roll
 	const float PITCH_THRUST_COUPLING = 0.2; // (m/s^2) of forward acceleration per deg of pitch
+	const float GYRO_NOISE_SCALE = 1.0f;
 
 	float dT = 0.002;
-
-	FlightStatusData flightStatus;
-	FlightStatusGet(&flightStatus);
-	ActuatorDesiredData actuatorDesired;
-	ActuatorDesiredGet(&actuatorDesired);
-
-	float thrust = (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) ? actuatorDesired.Thrust * MAX_THRUST : 0;
-
-	if (thrust != thrust)
-		thrust = 0;
+	float thrust;
 
 	/**** 1. Update attitude ****/
-	RateDesiredData rateDesired;
-	RateDesiredGet(&rateDesired);
-
 	// Need to get roll angle for easy cross coupling
+	// TODO: Uses the FC's idea of attitude for cross coupling.
 	AttitudeActualData attitudeActual;
 	AttitudeActualGet(&attitudeActual);
 	double roll = attitudeActual.Roll;
 	double pitch = attitudeActual.Pitch;
 
-	rpy[0] = (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) * rateDesired.Roll * (1 - ACTUATOR_ALPHA) + rpy[0] * ACTUATOR_ALPHA;
-	rpy[1] = (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) * rateDesired.Pitch * (1 - ACTUATOR_ALPHA) + rpy[1] * ACTUATOR_ALPHA;
-	rpy[2] = (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) * rateDesired.Yaw * (1 - ACTUATOR_ALPHA) + rpy[2] * ACTUATOR_ALPHA;
+	simsensors_scale_controls(rpy, &thrust, MAX_THRUST);
 	rpy[2] += roll * ROLL_HEADING_COUPLING;
 
-
-	GyrosData gyrosData; // Skip get as we set all the fields
-	gyrosData.x = rpy[0] + rand_gauss();
-	gyrosData.y = rpy[1] + rand_gauss();
-	gyrosData.z = rpy[2] + rand_gauss();
-	GyrosSet(&gyrosData);
+	simsensors_gyro_set(rpy, GYRO_NOISE_SCALE, 20);
 
 	// Predict the attitude forward in time
 	float qdot[4];
@@ -841,28 +867,14 @@ static void simulateModelAirplane()
 	// Sensor feels gravity (when not acceleration in ned frame e.g. ned_accel[2] = 0)
 	ned_accel[2] -= GRAVITY;
 
-	// Transform the accels back in to body frame
-	AccelsData accelsData; // Skip get as we set all the fields
-	accelsData.x = ned_accel[0] * Rbe[0][0] + ned_accel[1] * Rbe[0][1] + ned_accel[2] * Rbe[0][2] + accel_bias[0];
-	accelsData.y = ned_accel[0] * Rbe[1][0] + ned_accel[1] * Rbe[1][1] + ned_accel[2] * Rbe[1][2] + accel_bias[1];
-	accelsData.z = ned_accel[0] * Rbe[2][0] + ned_accel[1] * Rbe[2][1] + ned_accel[2] * Rbe[2][2] + accel_bias[2];
-	accelsData.temperature = 30;
-	AccelsSet(&accelsData);
+	simsensors_accels_setfromned(ned_accel, &Rbe, accel_bias, 30);
 
-	if(baro_offset == 0) {
-		// Hacky initialization
-		baro_offset = 50;// * rand_gauss();
-	} else {
-		// Very small drift process
-		baro_offset += rand_gauss() / 100;
-	}
+	simsensors_baro_drift(&baro_offset);
+
 	// Update baro periodically
 	static uint32_t last_baro_time = 0;
 	if(PIOS_DELAY_DiffuS(last_baro_time) / 1.0e6 > BARO_PERIOD) {
-		BaroAltitudeData baroAltitude;
-		BaroAltitudeGet(&baroAltitude);
-		baroAltitude.Altitude = -pos[2] + baro_offset;
-		BaroAltitudeSet(&baroAltitude);
+		simsensors_baro_set(pos[2], baro_offset);
 		last_baro_time = PIOS_DELAY_GetRaw();
 	}
 
@@ -936,12 +948,7 @@ static void simulateModelAirplane()
 	// Update mag periodically
 	static uint32_t last_mag_time = 0;
 	if(PIOS_DELAY_DiffuS(last_mag_time) / 1.0e6 > MAG_PERIOD) {
-		MagnetometerData mag;
-		mag.x = 100+homeLocation.Be[0] * Rbe[0][0] + homeLocation.Be[1] * Rbe[0][1] + homeLocation.Be[2] * Rbe[0][2];
-		mag.y = 100+homeLocation.Be[0] * Rbe[1][0] + homeLocation.Be[1] * Rbe[1][1] + homeLocation.Be[2] * Rbe[1][2];
-		mag.z = 100+homeLocation.Be[0] * Rbe[2][0] + homeLocation.Be[1] * Rbe[2][1] + homeLocation.Be[2] * Rbe[2][2];
-		magOffsetEstimation(&mag);
-		MagnetometerSet(&mag);
+		simsensors_mag_set(homeLocation.Be, &Rbe);
 		last_mag_time = PIOS_DELAY_GetRaw();
 	}
 
@@ -981,43 +988,29 @@ static void simulateModelCar()
 	static float baro_offset = 0.0f;
 	float Rbe[3][3];
 
-	const float ACTUATOR_ALPHA = 0.8;
 	const float MAX_THRUST = 9.81 * 0.5;
 	const float K_FRICTION = 0.2;
 	const float GPS_PERIOD = 0.1;
 	const float MAG_PERIOD = 1.0 / 75.0;
 	const float BARO_PERIOD = 1.0 / 20.0;
+	const float GYRO_NOISE_SCALE = 1.0;
 
 	float dT = 0.002;
+	float thrust;
 
 	FlightStatusData flightStatus;
 	FlightStatusGet(&flightStatus);
 	ActuatorDesiredData actuatorDesired;
 	ActuatorDesiredGet(&actuatorDesired);
 
-	float thrust = (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) ? actuatorDesired.Thrust * MAX_THRUST : 0;
-
-	if (thrust != thrust)
-		thrust = 0;
-
 	/**** 1. Update attitude ****/
-	RateDesiredData rateDesired;
-	RateDesiredGet(&rateDesired);
+	simsensors_scale_controls(rpy, &thrust, MAX_THRUST);
 
-	// Need to get roll angle for easy cross coupling
-	AttitudeActualData attitudeActual;
-	AttitudeActualGet(&attitudeActual);
+	/* Can only yaw */
+	rpy[0] = 0;
+	rpy[1] = 0;
 
-	rpy[0] = 0; // cannot roll
-	rpy[1] = 0; // cannot pitch
-	rpy[2] = (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED) * rateDesired.Yaw * (1 - ACTUATOR_ALPHA) + rpy[2] * ACTUATOR_ALPHA;
-
-
-	GyrosData gyrosData; // Skip get as we set all the fields
-	gyrosData.x = rpy[0] + rand_gauss();
-	gyrosData.y = rpy[1] + rand_gauss();
-	gyrosData.z = rpy[2] + rand_gauss();
-	GyrosSet(&gyrosData);
+	simsensors_gyro_set(rpy, GYRO_NOISE_SCALE, 20);
 
 	// Predict the attitude forward in time
 	float qdot[4];
@@ -1082,27 +1075,14 @@ static void simulateModelCar()
 	ned_accel[2] -= GRAVITY;
 
 	// Transform the accels back in to body frame
-	AccelsData accelsData; // Skip get as we set all the fields
-	accelsData.x = ned_accel[0] * Rbe[0][0] + ned_accel[1] * Rbe[0][1] + ned_accel[2] * Rbe[0][2] + accel_bias[0];
-	accelsData.y = ned_accel[0] * Rbe[1][0] + ned_accel[1] * Rbe[1][1] + ned_accel[2] * Rbe[1][2] + accel_bias[1];
-	accelsData.z = ned_accel[0] * Rbe[2][0] + ned_accel[1] * Rbe[2][1] + ned_accel[2] * Rbe[2][2] + accel_bias[2];
-	accelsData.temperature = 30;
-	AccelsSet(&accelsData);
+	simsensors_accels_setfromned(ned_accel, &Rbe, accel_bias, 30);
 
-	if(baro_offset == 0) {
-		// Hacky initialization
-		baro_offset = 50;// * rand_gauss();
-	} else {
-		// Very small drift process
-		baro_offset += rand_gauss() / 100;
-	}
+	simsensors_baro_drift(&baro_offset);
+
 	// Update baro periodically
 	static uint32_t last_baro_time = 0;
 	if(PIOS_DELAY_DiffuS(last_baro_time) / 1.0e6 > BARO_PERIOD) {
-		BaroAltitudeData baroAltitude;
-		BaroAltitudeGet(&baroAltitude);
-		baroAltitude.Altitude = -pos[2] + baro_offset;
-		BaroAltitudeSet(&baroAltitude);
+		simsensors_baro_set(pos[2], baro_offset);
 		last_baro_time = PIOS_DELAY_GetRaw();
 	}
 
@@ -1164,12 +1144,7 @@ static void simulateModelCar()
 	// Update mag periodically
 	static uint32_t last_mag_time = 0;
 	if(PIOS_DELAY_DiffuS(last_mag_time) / 1.0e6 > MAG_PERIOD) {
-		MagnetometerData mag;
-		mag.x = 100+homeLocation.Be[0] * Rbe[0][0] + homeLocation.Be[1] * Rbe[0][1] + homeLocation.Be[2] * Rbe[0][2];
-		mag.y = 100+homeLocation.Be[0] * Rbe[1][0] + homeLocation.Be[1] * Rbe[1][1] + homeLocation.Be[2] * Rbe[1][2];
-		mag.z = 100+homeLocation.Be[0] * Rbe[2][0] + homeLocation.Be[1] * Rbe[2][1] + homeLocation.Be[2] * Rbe[2][2];
-		magOffsetEstimation(&mag);
-		MagnetometerSet(&mag);
+		simsensors_mag_set(homeLocation.Be, &Rbe);
 		last_mag_time = PIOS_DELAY_GetRaw();
 	}
 
@@ -1263,6 +1238,8 @@ static void magOffsetEstimation(MagnetometerData *mag)
 		MagBiasSet(&magBias);
 	}
 }
+
+#endif /* PIOS_INCLUDE_SIMSENSORS */
 
 /**
   * @}
