@@ -134,6 +134,8 @@ struct pios_i2c_adapter {
 	struct pios_mutex *lock;
 	struct pios_semaphore *sem_ready;
 
+	uint32_t transfer_start;
+
 	bool bus_error;
 	bool nack;
 
