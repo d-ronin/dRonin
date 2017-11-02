@@ -89,6 +89,10 @@ static void update_optical_flow(struct pios_sensor_optical_flow_data *optical_fl
 static void update_rangefinder(struct pios_sensor_rangefinder_data *rangefinder);
 #endif /* PIOS_INCLUDE_RANGEFINDER */
 
+#ifdef PIOS_INCLUDE_SIMSENSORS
+extern int32_t simsensors_init(void);
+#endif
+
 static void mag_calibration_prelemari(MagnetometerData *mag);
 static void mag_calibration_fix_length(MagnetometerData *mag);
 
@@ -200,6 +204,10 @@ int32_t SensorsInitialize(void)
 	SensorSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_updated);
 	INSSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_updated);
 
+#ifdef PIOS_INCLUDE_SIMSENSORS
+	simsensors_init();
+#endif
+
 	return 0;
 }
 
@@ -219,9 +227,7 @@ int32_t SensorsStart(void)
 	return 0;
 }
 
-#ifndef PIOS_INCLUDE_SIMSENSORS
 MODULE_HIPRI_INITCALL(SensorsInitialize, SensorsStart);
-#endif
 
 /**
  * The sensor task.  This polls the gyros and pumps that data to

@@ -82,46 +82,45 @@ static int sens_rate = 500;
 
 enum sensor_sim_type {MODEL_YASIM, MODEL_QUADCOPTER, MODEL_AIRPLANE, MODEL_CAR} sensor_sim_type;
 
+static struct pios_queue *accel_queue, *gyro_queue, *mag_queue, *baro_queue;
+
 #ifdef PIOS_INCLUDE_SIMSENSORS_YASIM
 extern bool use_yasim;
 static void simulateYasim();
 #endif
 
 // Private functions
-static void SensorsTask(void *parameters);
+static void simsensors_task(void *parameters);
 static void simulateModelQuadcopter();
 static void simulateModelAirplane();
 static void simulateModelCar();
-
-static void magOffsetEstimation(MagnetometerData *mag);
-
-extern int32_t SensorsInitialize(void);
-extern int32_t SensorsStart(void);
 
 /**
  * Initialise the module.  Called before the start function
  * \returns 0 on success or -1 if initialisation failed
  */
-static int32_t SimSensorsInitialize(void)
+int32_t simsensors_init(void)
 {
 	if (PIOS_SENSORS_IsRegistered(PIOS_SENSOR_GYRO)) {
 		use_real_sensors = true;
 	}
 
 	if (use_real_sensors) {
-		printf("SimSensorsInitialize: Using real sensors!\n");
-		return SensorsInitialize();
+		printf("SimSensorsInitialize: Declining to do anything, real sensors!\n");
+		return -1;
 	}
 
 	printf("SimSensorsInitialize: Using simulated sensors.\n");
 
-	// Register fake address.  Later if we really fake entire sensors then
-	// it will make sense to have real queues registered.  For now if these
-	// queues are used a crash is appropriate.
-	PIOS_SENSORS_Register(PIOS_SENSOR_ACCEL, (struct pios_queue*)1);
-	PIOS_SENSORS_Register(PIOS_SENSOR_GYRO, (struct pios_queue*)1);
-	PIOS_SENSORS_Register(PIOS_SENSOR_MAG, (struct pios_queue*)1);
-	PIOS_SENSORS_Register(PIOS_SENSOR_BARO, (struct pios_queue*)1);
+	gyro_queue = PIOS_Queue_Create(2, sizeof(struct pios_sensor_gyro_data));
+	accel_queue = PIOS_Queue_Create(2, sizeof(struct pios_sensor_accel_data));
+	mag_queue = PIOS_Queue_Create(2, sizeof(struct pios_sensor_mag_data));
+	baro_queue = PIOS_Queue_Create(2, sizeof(struct pios_sensor_baro_data));
+
+	PIOS_SENSORS_Register(PIOS_SENSOR_GYRO, gyro_queue);
+	PIOS_SENSORS_Register(PIOS_SENSOR_ACCEL, accel_queue);
+	PIOS_SENSORS_Register(PIOS_SENSOR_MAG, mag_queue);
+	PIOS_SENSORS_Register(PIOS_SENSOR_BARO, baro_queue);
 
 #ifdef PIOS_INCLUDE_SIMSENSORS_YASIM
 	if (use_yasim) {
@@ -138,58 +137,33 @@ static int32_t SimSensorsInitialize(void)
 	accel_bias[1] = rand_gauss() / 10;
 	accel_bias[2] = rand_gauss() / 10;
 
-	AccelsInitialize();
 	AttitudeSimulatedInitialize();
 	BaroAltitudeInitialize();
+	/* TODO: Airspeed data should properly go through airspeed module.
+	 */
 	BaroAirspeedInitialize();
-	GyrosInitialize();
-	GyrosBiasInitialize();
 	GPSPositionInitialize();
 	GPSVelocityInitialize();
-	MagnetometerInitialize();
-	MagBiasInitialize();
-
-	return 0;
-}
-
-/**
- * Start the task.  Expects all objects to be initialized by this point.
- *pick \returns 0 on success or -1 if initialisation failed
- */
-static int32_t SimSensorsStart(void)
-{
-	if (use_real_sensors) {
-		printf("SimSensorsInitialize: starting REAL sensor task\n");
-		return SensorsStart();
-	}
 
 	printf("SimSensorsInitialize: starting SIMULATED sensor task\n");
 
-	// Watchdog must be registered before starting task
-	PIOS_WDG_RegisterFlag(PIOS_WDG_SENSORS);
-
 	// Start main task
-	sensorsTaskHandle = PIOS_Thread_Create(SensorsTask, "Sensors", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
-	TaskMonitorAdd(TASKINFO_RUNNING_SENSORS, sensorsTaskHandle);
+	sensorsTaskHandle = PIOS_Thread_Create(simsensors_task, "simsensors", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 
 	return 0;
 }
-
-MODULE_HIPRI_INITCALL(SimSensorsInitialize, SimSensorsStart)
 
 /**
  * Simulated sensor task.  Run a model of the airframe and produce sensor values
  */
 int sensors_count;
-static void SensorsTask(void *parameters)
+static void simsensors_task(void *parameters)
 {
 	AlarmsClear(SYSTEMALARMS_ALARM_SENSORS);
 
 	PIOS_SENSORS_SetMaxGyro(500);
 	// Main task loop
 	while (1) {
-		PIOS_WDG_UpdateFlag(PIOS_WDG_SENSORS);
-
 		SystemSettingsData systemSettings;
 		SystemSettingsGet(&systemSettings);
 
@@ -263,6 +237,11 @@ static void simsensors_scale_controls(float *rpy, float *thrust_out,
 
 	float control_scaling = 3000.0f;
 
+	if (flightStatus.Armed != FLIGHTSTATUS_ARMED_ARMED) {
+		control_scaling = 0;
+		thrust = 0;
+	}
+
 	// In deg/s
 	rpy[0] = control_scaling * actuatorDesired.Roll * (1 - ACTUATOR_ALPHA) + rpy[0] * ACTUATOR_ALPHA;
 	rpy[1] = control_scaling * actuatorDesired.Pitch * (1 - ACTUATOR_ALPHA) + rpy[1] * ACTUATOR_ALPHA;
@@ -272,26 +251,30 @@ static void simsensors_scale_controls(float *rpy, float *thrust_out,
 static void simsensors_gyro_set(float *rpy, float noise_scale,
 		float temperature)
 {
-	GyrosData gyrosData; // Skip get as we set all the fields
-	gyrosData.x = rpy[0] + rand_gauss() * noise_scale + (temperature - 20) * 1 + powf(temperature - 20,2) * 0.11;
-	gyrosData.y = rpy[1] + rand_gauss() * noise_scale + (temperature - 20) * 1 + powf(temperature - 20,2) * 0.11;
-	gyrosData.z = rpy[2] + rand_gauss() * noise_scale + (temperature - 20) * 1 + powf(temperature - 20,2) * 0.11;
-	gyrosData.temperature = temperature;
-	GyrosSet(&gyrosData);
+	struct pios_sensor_gyro_data gyro_data = {
+		.x = rpy[0] + rand_gauss() * noise_scale +
+			(temperature - 20) * 1 + powf(temperature - 20,2) * 0.11,
+		.y = rpy[1] + rand_gauss() * noise_scale +
+			(temperature - 20) * 1 + powf(temperature - 20,2) * 0.11,
+		.z = rpy[2] + rand_gauss() * noise_scale +
+			(temperature - 20) * 1 + powf(temperature - 20,2) * 0.11,
+		.temperature = temperature,
+	};
+
+	PIOS_Queue_Send(gyro_queue, &gyro_data, 0);
 }
 
 static void simsensors_accels_set(float *xyz, float *accel_bias,
 		float temperature)
 {
-	AccelsData accelsData; // Skip get as we set all fields
+	struct pios_sensor_accel_data accel_data = {
+		.x = xyz[0] + accel_bias[0],
+		.y = xyz[1] + accel_bias[1],
+		.z = xyz[2] + accel_bias[2],
+		.temperature = temperature,
+	};
 
-	accelsData.x = xyz[0] + accel_bias[0];
-	accelsData.y = xyz[1] + accel_bias[1];
-	accelsData.z = xyz[2] + accel_bias[2];
-
-	accelsData.temperature = temperature;
-
-	AccelsSet(&accelsData);
+	PIOS_Queue_Send(accel_queue, &accel_data, 0);
 }
 
 static void simsensors_accels_setfromned(double *ned_accel,
@@ -307,10 +290,13 @@ static void simsensors_accels_setfromned(double *ned_accel,
 }
 
 static void simsensors_baro_set(float down, float baro_offset) {
-	BaroAltitudeData baroAltitude;
-	BaroAltitudeGet(&baroAltitude);
-	baroAltitude.Altitude = -down + baro_offset;
-	BaroAltitudeSet(&baroAltitude);
+	struct pios_sensor_baro_data baro_data = {
+		.temperature = 33,
+		.pressure = 123,	/* XXX */
+		.altitude = -down + baro_offset,
+	};
+
+	PIOS_Queue_Send(baro_queue, &baro_data, 0);
 }
 
 static void simsensors_baro_drift(float *baro_offset)
@@ -326,25 +312,22 @@ static void simsensors_baro_drift(float *baro_offset)
 
 static void simsensors_mag_set(float *be, float (*Rbe)[3][3])
 {
-	MagnetometerData mag;
+	struct pios_sensor_mag_data mag_data = {
+		.x = 100 +
+			be[0] * (*Rbe)[0][0] +
+			be[1] * (*Rbe)[0][1] +
+			be[2] * (*Rbe)[0][2],
+		.y = 100 +
+			be[0] * (*Rbe)[1][0] +
+			be[1] * (*Rbe)[1][1] +
+			be[2] * (*Rbe)[1][2],
+		.z = 100 +
+			be[0] * (*Rbe)[2][0] +
+			be[1] * (*Rbe)[2][1] +
+			be[2] * (*Rbe)[2][2],
+	};
 
-	mag.x = 100 +
-		be[0] * (*Rbe)[0][0] +
-		be[1] * (*Rbe)[0][1] +
-		be[2] * (*Rbe)[0][2];
-
-	mag.y = 100 +
-		be[0] * (*Rbe)[1][0] +
-		be[1] * (*Rbe)[1][1] +
-		be[2] * (*Rbe)[1][2];
-
-	mag.z = 100 +
-		be[0] * (*Rbe)[2][0] +
-		be[1] * (*Rbe)[2][1] +
-		be[2] * (*Rbe)[2][2];
-
-	magOffsetEstimation(&mag);
-	MagnetometerSet(&mag);
+	PIOS_Queue_Send(mag_queue, &mag_data, 0);
 }
 
 #ifdef PIOS_INCLUDE_SIMSENSORS_YASIM
@@ -1179,64 +1162,6 @@ static float rand_gauss (void) {
 		return 0.0;
 	else
 		return (v1*sqrtf(-2.0 * log(s) / s));
-}
-
-/**
- * Perform an update of the @ref MagBias based on
- * Magnetometer Offset Cancellation: Theory and Implementation, 
- * revisited William Premerlani, October 14, 2011
- */
-static void magOffsetEstimation(MagnetometerData *mag)
-{
-	HomeLocationData homeLocation;
-	HomeLocationGet(&homeLocation);
-
-	AttitudeActualData attitude;
-	AttitudeActualGet(&attitude);
-
-	MagBiasData magBias;
-	MagBiasGet(&magBias);
-
-	// Remove the current estimate of the bias
-	mag->x -= magBias.x;
-	mag->y -= magBias.y;
-	mag->z -= magBias.z;
-
-	const float Rxy = sqrtf(homeLocation.Be[0]*homeLocation.Be[0] + homeLocation.Be[1]*homeLocation.Be[1]);
-	const float Rz = homeLocation.Be[2];
-
-	const float rate = 0.01;
-	float R[3][3];
-	float B_e[3];
-	float xy[2];
-	float delta[3];
-
-	// Get the rotation matrix
-	Quaternion2R(&attitude.q1, R);
-
-	// Rotate the mag into the NED frame
-	B_e[0] = R[0][0] * mag->x + R[1][0] * mag->y + R[2][0] * mag->z;
-	B_e[1] = R[0][1] * mag->x + R[1][1] * mag->y + R[2][1] * mag->z;
-	B_e[2] = R[0][2] * mag->x + R[1][2] * mag->y + R[2][2] * mag->z;
-
-	float cy = cosf(attitude.Yaw * DEG2RAD);
-	float sy = sinf(attitude.Yaw * DEG2RAD);
-
-	xy[0] =  cy * B_e[0] + sy * B_e[1];
-	xy[1] = -sy * B_e[0] + cy * B_e[1];
-
-	float xy_norm = sqrtf(xy[0]*xy[0] + xy[1]*xy[1]);
-
-	if (xy_norm > 0) {
-		delta[0] = -rate * (xy[0] / xy_norm * Rxy - xy[0]);
-		delta[1] = -rate * (xy[1] / xy_norm * Rxy - xy[1]);
-		delta[2] = -rate * (Rz - B_e[2]);
-
-		magBias.x += delta[0];
-		magBias.y += delta[1];
-		magBias.z += delta[2];
-		MagBiasSet(&magBias);
-	}
 }
 
 #endif /* PIOS_INCLUDE_SIMSENSORS */
