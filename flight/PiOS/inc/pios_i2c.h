@@ -53,6 +53,11 @@ extern int32_t PIOS_I2C_Transfer(pios_i2c_t i2c_id, const struct pios_i2c_txn tx
 extern int32_t PIOS_I2C_Transfer_Callback(pios_i2c_t i2c_id, const struct pios_i2c_txn txn_list[], uint32_t, void *callback);
 extern void PIOS_I2C_EV_IRQ_Handler(pios_i2c_t i2c_id);
 extern void PIOS_I2C_ER_IRQ_Handler(pios_i2c_t i2c_id);
+extern int32_t PIOS_I2C_TransferAsync(pios_i2c_t i2c_adapter,
+		const struct pios_i2c_txn txn_list[], uint32_t num_txns,
+		bool block_on_starting);
+extern int32_t PIOS_I2C_WaitAsync(pios_i2c_t i2c_adapter, uint32_t timeout,
+		bool *txn_completed);
 
 #endif /* PIOS_I2C_H */
 

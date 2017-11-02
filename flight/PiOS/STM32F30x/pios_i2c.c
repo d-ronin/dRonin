@@ -9,7 +9,7 @@
  * @file       pios_i2c.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
- * @author     dRonin, http://dronin.org, Copyright (C) 2016
+ * @author     dRonin, http://dronin.org, Copyright (C) 2016-2017
  * @brief      I2C Enable/Disable routines
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -46,6 +46,8 @@ struct pios_i2c_adapter {
 
 	struct pios_mutex *lock;
 	struct pios_semaphore *sem_ready;
+
+	uint32_t transfer_start;
 
 	bool bus_error;
 	bool nack;
@@ -549,40 +551,84 @@ int32_t PIOS_I2C_CheckClear(pios_i2c_t i2c_adapter)
 	return 0;
 }
 
-int32_t PIOS_I2C_Transfer(pios_i2c_t i2c_adapter, const struct pios_i2c_txn txn_list[], uint32_t num_txns)
+int32_t PIOS_I2C_TransferAsync(pios_i2c_t i2c_adapter,
+		const struct pios_i2c_txn txn_list[], uint32_t num_txns,
+		bool block_on_starting)
 {
 	bool valid = PIOS_I2C_validate(i2c_adapter);
-	PIOS_Assert(valid)
+	if (!valid)
+		return -1;
 
-	PIOS_DEBUG_Assert(txn_list);
-	PIOS_DEBUG_Assert(num_txns);
+	uint32_t timeout = block_on_starting ?
+		i2c_adapter->cfg->transfer_timeout_ms : 0;
 
-	if (PIOS_Mutex_Lock(i2c_adapter->lock, i2c_adapter->cfg->transfer_timeout_ms) == false)
+	if (PIOS_Mutex_Lock(i2c_adapter->lock, timeout) == false)
 		return -2;
 
-	PIOS_DEBUG_Assert(i2c_adapter->curr_state == I2C_STATE_STOPPED);
-
-	i2c_adapter->last_txn = &txn_list[num_txns - 1];
 	i2c_adapter->active_txn = &txn_list[0];
+	i2c_adapter->last_txn = &txn_list[num_txns - 1];
 	i2c_adapter->bus_error = false;
 	i2c_adapter->nack = false;
 
 	/* Make sure the done/ready semaphore is consumed before we start */
 	PIOS_Semaphore_Take(i2c_adapter->sem_ready, 0);
 
+	i2c_adapter->transfer_start = PIOS_DELAY_GetuS();
+
 	bool dummy = false;
 	i2c_adapter_inject_event(i2c_adapter, I2C_EVENT_START, &dummy);
 
+	return 0;
+}
+
+int32_t PIOS_I2C_WaitAsync(pios_i2c_t i2c_adapter, uint32_t timeout,
+		bool *txn_completed)
+{
 	/* Wait for the transfer to complete */
-	bool semaphore_success = (PIOS_Semaphore_Take(i2c_adapter->sem_ready, i2c_adapter->cfg->transfer_timeout_ms) == true);
+
+	bool final_timeout = true;
+	uint32_t time_to_block = i2c_adapter->cfg->transfer_timeout_ms;
+
+	time_to_block -= PIOS_DELAY_GetuSSince(i2c_adapter->transfer_start) / 1000;
+
+	if (time_to_block > i2c_adapter->cfg->transfer_timeout_ms) {
+		/* Wrap! */
+		time_to_block = 0;
+	} else if (time_to_block > timeout) {
+		time_to_block = timeout;
+		final_timeout = false;
+	}
+
+	bool semaphore_success =
+		(PIOS_Semaphore_Take(i2c_adapter->sem_ready, time_to_block) == true);
+
+	if (!semaphore_success) {
+		if (final_timeout) {
+			*txn_completed = true;
+
+			PIOS_IRQ_Disable();
+			i2c_adapter_fsm_init(i2c_adapter);
+			PIOS_IRQ_Enable();
 
 #if defined(PIOS_I2C_DIAGNOSTICS)
-	if (!semaphore_success)
-		i2c_adapter->i2c_timeout_counter++;
+			i2c_adapter->i2c_timeout_counter++;
 #endif
 
-	int32_t result = !semaphore_success ? -2 :
-			i2c_adapter->bus_error ? -1 :
+			PIOS_Mutex_Unlock(i2c_adapter->lock);
+		} else {
+			*txn_completed = false;
+
+			/* They are expected to re-poll, etc; lock stays
+			 * held.
+			 */
+		}
+
+		return -2;
+	}
+
+	*txn_completed = true;
+
+	int32_t result = i2c_adapter->bus_error ? -1 :
 			i2c_adapter->nack ? -3 :
 			0;
 
@@ -591,6 +637,22 @@ int32_t PIOS_I2C_Transfer(pios_i2c_t i2c_adapter, const struct pios_i2c_txn txn_
 	return result;
 }
 
+int32_t PIOS_I2C_Transfer(pios_i2c_t i2c_adapter,
+		const struct pios_i2c_txn txn_list[], uint32_t num_txns)
+{
+	int32_t ret = PIOS_I2C_TransferAsync(i2c_adapter, txn_list,
+			num_txns, true);
+
+	if (ret) return ret;
+
+	bool completed = false;
+
+	ret = PIOS_I2C_WaitAsync(i2c_adapter, 0xfffffff, &completed);
+
+	PIOS_Assert(completed);
+
+	return ret;
+}
 void PIOS_I2C_EV_IRQ_Handler(pios_i2c_t i2c_adapter)
 {
 	PIOS_IRQ_Prologue();
