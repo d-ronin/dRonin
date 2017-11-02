@@ -8,7 +8,7 @@
  * @file       sensors.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2016
- * @author     dRonin, http://dronin.org Copyright (C) 2015-2016
+ * @author     dRonin, http://dronin.org Copyright (C) 2015-2017
  * @brief      Acquire sensor data from sensors registered with @ref PIOS_Sensors
  *
  * @see        The GNU Public License (GPL) Version 3
@@ -75,7 +75,6 @@ enum mag_calibration_algo {
 
 // Private functions
 static void SensorsTask(void *parameters);
-static void settingsUpdatedCb(UAVObjEvent * objEv, void *ctx, void *obj, int len);
 
 static void update_accels(struct pios_sensor_accel_data *accel);
 static void update_gyros(struct pios_sensor_gyro_data *gyro);
@@ -94,11 +93,14 @@ static void mag_calibration_prelemari(MagnetometerData *mag);
 static void mag_calibration_fix_length(MagnetometerData *mag);
 
 static void updateTemperatureComp(float temperature, float *temp_bias);
+static void sensors_settings_update();
 
 // Private variables
 static struct pios_thread *sensorsTaskHandle;
 static INSSettingsData insSettings;
 static AccelsData accelsData;
+
+static volatile bool settings_updated;
 
 // These values are initialized by settings but can be updated by the attitude algorithm
 static bool bias_correct_gyro = true;
@@ -194,9 +196,9 @@ int32_t SensorsInitialize(void)
 
 	rotate = 0;
 
-	AttitudeSettingsConnectCallback(&settingsUpdatedCb);
-	SensorSettingsConnectCallback(&settingsUpdatedCb);
-	INSSettingsConnectCallback(&settingsUpdatedCb);
+	AttitudeSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_updated);
+	SensorSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_updated);
+	INSSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_updated);
 
 	return 0;
 }
@@ -231,8 +233,7 @@ static void SensorsTask(void *parameters)
 
 	AlarmsSet(SYSTEMALARMS_ALARM_SENSORS, SYSTEMALARMS_ALARM_CRITICAL);
 
-	UAVObjEvent ev;
-	settingsUpdatedCb(&ev, NULL, NULL, 0);
+	sensors_settings_update();
 
 	// Main task loop
 	lastSysTime = PIOS_Thread_Systime();
@@ -240,6 +241,10 @@ static void SensorsTask(void *parameters)
 	uint32_t last_baro_update_time = PIOS_DELAY_GetRaw();
 
 	while (1) {
+		if (settings_updated) {
+			sensors_settings_update();
+		}
+
 		if (good_runs == 0) {
 			PIOS_WDG_UpdateFlag(PIOS_WDG_SENSORS);
 			lastSysTime = PIOS_Thread_Systime();
@@ -685,9 +690,9 @@ static void mag_calibration_fix_length(MagnetometerData *mag)
 /**
  * Locally cache some variables from the AtttitudeSettings object
  */
-static void settingsUpdatedCb(UAVObjEvent * objEv, void *ctx, void *obj, int len)
+static void sensors_settings_update()
 {
-	(void) ctx; (void) obj; (void) len;
+	settings_updated = false;
 
 	SensorSettingsData sensorSettings;
 	SensorSettingsGet(&sensorSettings);
