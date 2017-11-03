@@ -35,8 +35,8 @@ typedef bool (*PIOS_SENSOR_Callback_t)(void *ctx, void *output,
 		int ms_to_wait, int *next_call);
 
 static struct PIOS_Sensor {
-	PIOS_SENSOR_Callback_t cb_func;
-	void *cb_ctx;
+	PIOS_SENSOR_Callback_t getdata_cb;
+	void *getdata_ctx;
 
 	uint16_t sample_rate;
 	uint16_t missing : 1;
@@ -68,8 +68,8 @@ int32_t PIOS_SENSORS_RegisterCallback(enum pios_sensor_type type,
 
 	struct PIOS_Sensor *sensor = &sensors[type];
 
-	sensor->cb_ctx = ctx;
-	sensor->cb_func = callback;
+	sensor->getdata_ctx = ctx;
+	sensor->getdata_cb = callback;
 	sensor->missing = 0;
 
 	return 0;
@@ -93,7 +93,7 @@ bool PIOS_SENSORS_IsRegistered(enum pios_sensor_type type)
 		return false;
 	}
 
-	return sensor->cb_func != NULL;
+	return sensor->getdata_cb != NULL;
 }
 
 bool PIOS_SENSORS_GetData(enum pios_sensor_type type, void *buf, int ms_to_wait)
@@ -104,13 +104,13 @@ bool PIOS_SENSORS_GetData(enum pios_sensor_type type, void *buf, int ms_to_wait)
 
 	struct PIOS_Sensor *sensor = &sensors[type];
 
-	if (!sensor->cb_func) {
+	if (!sensor->getdata_cb) {
 		return false;
 	}
 
 	int next_time;
 
-	bool ret = sensor->cb_func(sensor->cb_ctx, buf, ms_to_wait,
+	bool ret = sensor->getdata_cb(sensor->getdata_ctx, buf, ms_to_wait,
 			&next_time);
 
 	/* TODO: keep track of next time it *could* have data to use in
