@@ -743,6 +743,15 @@ static void actuator_task(void* parameters)
  */
 static float throt_curve(float const input, float const * curve, uint8_t num_points)
 {
+        uint8_t flightMode;
+        FlightStatusFlightModeGet(&flightMode);
+
+        // don't use the throttle curve during altitude/position hold to avoid desensitizing
+	// the compensation being applied to maintain altitiude
+        if( flightMode == FLIGHTSTATUS_FLIGHTMODE_ALTITUDEHOLD
+                        || flightMode == FLIGHTSTATUS_FLIGHTMODE_POSITIONHOLD )
+                return input;
+
 	return linear_interpolate(input, curve, num_points, 0.0f, 1.0f);
 }
 
