@@ -34,6 +34,18 @@ class UAVOCollection(dict):
 
         return objs
 
+    def emit_canonical_xml(self, outdir="xml", tolower=True):
+        for u in self.values():
+            uavo_name = u._name[5:]
+
+            if tolower:
+                uavo_name = uavo_name.lower()
+
+            filename = "%s/%s.xml"%(outdir, uavo_name)
+
+            with open(filename, "w") as f:
+                f.write(u.to_xml_description(as_text=True))
+
     def from_file_contents(self, content_list):
         some_processed = True
 
@@ -52,7 +64,7 @@ class UAVOCollection(dict):
                     self.update([('{0:08x}'.format(u._id), u)])
 
                     some_processed = True
-                except Exception:
+                except Exception, e:
                     unprocessed.append(contents)
 
             content_list = unprocessed
