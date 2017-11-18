@@ -246,7 +246,7 @@
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>Usual value is 400 Hz for multirotor airframes.
+                 <string>
 Newer ESCs support OneShot mode with a higher resolution and shorter pulse.
 Leave at 50Hz for fixed wing.</string>
                 </property>
@@ -360,7 +360,7 @@ Leave at 50Hz for fixed wing.</string>
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>Usual value is 400 Hz for multirotor airframes.
+                 <string>
 Newer ESCs support OneShot mode with a higher resolution and shorter pulse.
 Leave at 50Hz for fixed wing.</string>
                 </property>
@@ -474,7 +474,7 @@ Leave at 50Hz for fixed wing.</string>
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>Usual value is 400 Hz for multirotor airframes.
+                 <string>
 Newer ESCs support OneShot mode with a higher resolution and shorter pulse.
 Leave at 50Hz for fixed wing.</string>
                 </property>
@@ -588,7 +588,7 @@ Leave at 50Hz for fixed wing.</string>
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>Usual value is 400 Hz for multirotor airframes.
+                 <string>
 Newer ESCs support OneShot mode with a higher resolution and shorter pulse.
 Leave at 50Hz for fixed wing.</string>
                 </property>
@@ -702,7 +702,7 @@ Leave at 50Hz for fixed wing.</string>
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>Usual value is 400 Hz for multirotor airframes.
+                 <string>
 Newer ESCs support OneShot mode with a higher resolution and shorter pulse.
 Leave at 50Hz for fixed wing.</string>
                 </property>
@@ -822,7 +822,7 @@ Leave at 50Hz for fixed wing.</string>
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>Usual value is 400 Hz for multirotor airframes.
+                 <string>
 Newer ESCs support OneShot mode with a higher resolution and shorter pulse.
 Leave at 50Hz for fixed wing.</string>
                 </property>
