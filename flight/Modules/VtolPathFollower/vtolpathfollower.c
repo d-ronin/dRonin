@@ -112,12 +112,12 @@ int32_t VtolPathFollowerInitialize()
 	}
 #endif
 
-	if (!PIOS_SENSORS_GetQueue(PIOS_SENSOR_BARO)) {
+	if (!PIOS_SENSORS_IsRegistered(PIOS_SENSOR_BARO)) {
 		module_enabled = false;
 		return -1;
 	}
 
-	if (!PIOS_SENSORS_GetQueue(PIOS_SENSOR_MAG)) {
+	if (!PIOS_SENSORS_IsRegistered(PIOS_SENSOR_MAG)) {
 		module_enabled = false;
 		return -1;
 	}

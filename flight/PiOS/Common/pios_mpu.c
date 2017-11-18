@@ -34,21 +34,9 @@
 #if defined(PIOS_INCLUDE_MPU)
 
 #include "pios_semaphore.h"
-#include "pios_thread.h"
-#include "pios_queue.h"
 #include "physical_constants.h"
-#include "taskmonitor.h"
 
 #include "pios_mpu_priv.h"
-
-#define PIOS_MPU_TASK_PRIORITY   PIOS_THREAD_PRIO_HIGHEST
-#ifdef PIOS_INCLUDE_MPU_MAG
-#define PIOS_MPU_TASK_STACK      600
-#else
-#define PIOS_MPU_TASK_STACK      512
-#endif // PIOS_INCLUDE_MPU_MAG
-
-#define PIOS_MPU_QUEUE_LEN       2
 
 #ifndef PIOS_MPU_SPI_HIGH_SPEED
 #define PIOS_MPU_SPI_HIGH_SPEED              20000000	// should result in 10.5MHz clock on F4 targets like Sparky2
@@ -103,19 +91,24 @@ struct pios_mpu_dev {
 	pios_spi_t spi_driver_id;
 	pios_i2c_t i2c_driver_id;                   /**< Handle to the communication driver */
 	uint32_t com_slave_addr;                    /**< The slave address (I2C) or number (SPI) */
-	struct pios_queue *gyro_queue;
-	struct pios_queue *accel_queue;
-	struct pios_thread *task_handle;
 	struct pios_semaphore *data_ready_sema;
 	enum pios_mpu_gyro_range gyro_range;
 	enum pios_mpu_accel_range accel_range;
 	enum pios_mpu_dev_magic magic;              /**< Magic bytes to validate the struct contents */
+	struct pios_sensor_gyro_data gyro_data;
+	struct pios_sensor_accel_data accel_data;
 #ifdef PIOS_INCLUDE_MPU_MAG
 	bool use_mag;
-	struct pios_queue *mag_queue;
+	struct pios_sensor_mag_data mag_data;
+	int mag_age;
+	bool do_full_mag;
 #endif // PIOS_INCLUDE_MPU_MAG
 	volatile uint32_t interrupt_count;
+	volatile uint8_t sensor_ready;
 };
+
+#define SENSOR_ACCEL			(1 << 0)
+#define SENSOR_MAG			(1 << 1)
 
 //! Global structure for this device device
 static struct pios_mpu_dev *mpu_dev;
@@ -128,9 +121,8 @@ static struct pios_mpu_dev *PIOS_MPU_Alloc(const struct pios_mpu_cfg *cfg);
 
 #ifdef PIOS_INCLUDE_MPU_MAG
 /**
- * @brief Allocate a a magnetometer queue
+ * @brief Probes whether there's a magnetometer.
  */
-static bool PIOS_MPU_Mag_Alloc(struct pios_mpu_dev *mpu_dev);
 static int32_t PIOS_MPU_Mag_Probe(void);
 #endif // PIOS_INCLUDE_MPU_MAG
 /**
@@ -139,12 +131,16 @@ static int32_t PIOS_MPU_Mag_Probe(void);
  */
 static int32_t PIOS_MPU_Validate(struct pios_mpu_dev *dev);
 /**
+ * @brief Resets and preps the MPU gyro & accel registers
+ * @return 0 if successful
+ */
+static int32_t PIOS_MPU_Reset();
+/**
  * @brief Initialize the MPU gyro & accel registers
  * @param[in] pios_mpu_cfg struct to be used to configure sensor.
  * @return 0 if successful
  */
 static int32_t PIOS_MPU_Config(struct pios_mpu_cfg const *cfg);
-static void PIOS_MPU_Task(void *parameters);
 static int32_t PIOS_MPU_ReadReg(uint8_t reg);
 static int32_t PIOS_MPU_WriteReg(uint8_t reg, uint8_t data);
 
@@ -178,6 +174,73 @@ static int32_t PIOS_MPU_SPI_Probe(enum pios_mpu_type *detected_device);
 static int32_t PIOS_MPU_I2C_Probe(enum pios_mpu_type *detected_device);
 #endif // defined(PIOS_INCLUDE_I2C) || defined(__DOXYGEN__)
 
+static int PIOS_MPU_parse_data(struct pios_mpu_dev *p);
+
+static bool PIOS_MPU_callback_gyro(void *ctx, void *output,
+		int ms_to_wait, int *next_call)
+{
+	struct pios_mpu_dev *dev = (struct pios_mpu_dev *)ctx;
+
+	PIOS_Assert(dev);
+	PIOS_Assert(output);
+
+	*next_call = 0;		/* Baby you know you can call me anytime */
+
+	if (PIOS_Semaphore_Take(dev->data_ready_sema, ms_to_wait) != true) {
+		return false;
+	}
+
+	if (PIOS_MPU_parse_data(dev)) {
+		return false;
+	}
+
+	memcpy(output, &dev->gyro_data, sizeof(dev->gyro_data));
+
+	return true;
+}
+
+static bool PIOS_MPU_callback_accel(void *ctx, void *output,
+		int ms_to_wait, int *next_call)
+{
+	struct pios_mpu_dev *dev = (struct pios_mpu_dev *)ctx;
+
+	PIOS_Assert(dev);
+	PIOS_Assert(output);
+
+	*next_call = 0;
+
+	if (!(dev->sensor_ready & SENSOR_ACCEL)) {
+		return false;
+	}
+
+	memcpy(output, &dev->accel_data, sizeof(dev->accel_data));
+	dev->sensor_ready &= ~SENSOR_ACCEL;
+
+	return true;
+}
+
+#if defined(PIOS_INCLUDE_MPU_MAG)
+static bool PIOS_MPU_callback_mag(void *ctx, void *output,
+		int ms_to_wait, int *next_call)
+{
+	struct pios_mpu_dev *dev = (struct pios_mpu_dev *)ctx;
+
+	PIOS_Assert(dev);
+	PIOS_Assert(output);
+
+	/* TODO: could know this better! */
+	*next_call = 0;
+
+	if (!(dev->sensor_ready & SENSOR_MAG)) {
+		return false;
+	}
+
+	memcpy(output, &dev->mag_data, sizeof(dev->mag_data));
+	dev->sensor_ready &= ~SENSOR_MAG;
+
+	return true;
+}
+#endif // PIOS_INCLUDE_MPU_MAG
 
 static struct pios_mpu_dev *PIOS_MPU_Alloc(const struct pios_mpu_cfg *cfg)
 {
@@ -187,25 +250,12 @@ static struct pios_mpu_dev *PIOS_MPU_Alloc(const struct pios_mpu_cfg *cfg)
 	if (!dev)
 		return NULL;
 
-	dev->magic = PIOS_MPU_DEV_MAGIC;
-
-	dev->accel_queue = PIOS_Queue_Create(PIOS_MPU_QUEUE_LEN, sizeof(struct pios_sensor_accel_data));
-	if (dev->accel_queue == NULL) {
-		PIOS_free(dev);
-		return NULL;
-	}
-
-	dev->gyro_queue = PIOS_Queue_Create(PIOS_MPU_QUEUE_LEN, sizeof(struct pios_sensor_gyro_data));
-	if (dev->gyro_queue == NULL) {
-		PIOS_Queue_Delete(dev->accel_queue);
-		PIOS_free(dev);
-		return NULL;
-	}
+	*dev = (struct pios_mpu_dev) {
+		.magic = PIOS_MPU_DEV_MAGIC
+	};
 
 	dev->data_ready_sema = PIOS_Semaphore_Create();
 	if (dev->data_ready_sema == NULL) {
-		PIOS_Queue_Delete(dev->accel_queue);
-		PIOS_Queue_Delete(dev->gyro_queue);
 		PIOS_free(dev);
 		return NULL;
 	}
@@ -240,7 +290,7 @@ static int32_t PIOS_MPU_CheckWhoAmI(enum pios_mpu_type *detected_device)
 	return -PIOS_MPU_ERROR_WHOAMI;
 }
 
-static int32_t PIOS_MPU_Config(struct pios_mpu_cfg const *cfg)
+static int32_t PIOS_MPU_Reset()
 {
 	// reset chip
 	if (PIOS_MPU_WriteReg(PIOS_MPU_PWR_MGMT_REG, PIOS_MPU_PWRMGMT_IMU_RST) != 0)
@@ -262,6 +312,11 @@ static int32_t PIOS_MPU_Config(struct pios_mpu_cfg const *cfg)
 			return -PIOS_MPU_ERROR_WRITEFAILED;
 	}
 
+	return 0;
+}
+
+static int32_t PIOS_MPU_Config(struct pios_mpu_cfg const *cfg)
+{
 	// Digital low-pass filter and scale
 	// set this before sample rate else sample rate calculation will fail
 	PIOS_MPU_SetGyroBandwidth(184);
@@ -399,17 +454,6 @@ static int32_t PIOS_MPU_Mag_Config(void)
 	return 0;
 }
 
-static bool PIOS_MPU_Mag_Alloc(struct pios_mpu_dev *dev)
-{
-	dev->mag_queue = PIOS_Queue_Create(PIOS_MPU_QUEUE_LEN, sizeof(struct pios_sensor_mag_data));
-	if (dev->mag_queue == NULL) {
-		dev->use_mag = false;
-		return false;
-	}
-	dev->use_mag = true;
-	return true;
-}
-
 static int32_t PIOS_MPU_Mag_Probe(void)
 {
 	/* probe for mag whomai */
@@ -424,14 +468,14 @@ static int32_t PIOS_MPU_Mag_Probe(void)
 static int32_t PIOS_MPU_Common_Init(void)
 {
 	/* Configure the MPU Sensor */
-	if (PIOS_MPU_Config(mpu_dev->cfg) != 0)
+	if (PIOS_MPU_Reset() != 0)
 		return -PIOS_MPU_ERROR_NOCONFIG;
 
 #ifdef PIOS_INCLUDE_MPU_MAG
 	/* Probe for mag */
 	if (mpu_dev->cfg->use_internal_mag) {
+		mpu_dev->use_mag = true;
 		if (PIOS_MPU_Mag_Probe() == 0) {
-			PIOS_MPU_Mag_Alloc(mpu_dev);
 			if (mpu_dev->mpu_type == PIOS_MPU60X0)
 				mpu_dev->mpu_type = PIOS_MPU9150;
 
@@ -451,6 +495,10 @@ static int32_t PIOS_MPU_Common_Init(void)
 	}
 #endif // PIOS_INCLUDE_MPU_MAG
 
+	/* Configure the MPU Sensor */
+	if (PIOS_MPU_Config(mpu_dev->cfg) != 0)
+		return -PIOS_MPU_ERROR_NOCONFIG;
+
 	/* Set up EXTI line */
 	PIOS_EXTI_Init(mpu_dev->cfg->exti_cfg);
 
@@ -469,20 +517,26 @@ static int32_t PIOS_MPU_Common_Init(void)
 		}
 	}
 
-	mpu_dev->task_handle = PIOS_Thread_Create(
-			PIOS_MPU_Task, "pios_mpu", PIOS_MPU_TASK_STACK, NULL, PIOS_MPU_TASK_PRIORITY);
-	PIOS_Assert(mpu_dev->task_handle != NULL);
-	TaskMonitorAdd(TASKINFO_RUNNING_IMU, mpu_dev->task_handle);
-
-	PIOS_SENSORS_Register(PIOS_SENSOR_ACCEL, mpu_dev->accel_queue);
-	PIOS_SENSORS_Register(PIOS_SENSOR_GYRO, mpu_dev->gyro_queue);
-#ifdef PIOS_INCLUDE_MPU_MAG
-	if (mpu_dev->use_mag)
-		PIOS_SENSORS_Register(PIOS_SENSOR_MAG, mpu_dev->mag_queue);
-#endif // PIOS_INCLUDE_MPU_MAG
-
 	mpu_dev->accel_range = PIOS_MPU_SCALE_8G;
 	mpu_dev->gyro_range = PIOS_MPU_SCALE_1000_DEG;
+
+	int ret = PIOS_SENSORS_RegisterCallback(PIOS_SENSOR_GYRO,
+			PIOS_MPU_callback_gyro, mpu_dev);
+
+	PIOS_Assert(!ret);
+
+	ret = PIOS_SENSORS_RegisterCallback(PIOS_SENSOR_ACCEL,
+			PIOS_MPU_callback_accel, mpu_dev);
+
+	PIOS_Assert(!ret);
+#ifdef PIOS_INCLUDE_MPU_MAG
+	if (mpu_dev->use_mag) {
+		ret = PIOS_SENSORS_RegisterCallback(PIOS_SENSOR_MAG,
+				PIOS_MPU_callback_mag, mpu_dev);
+
+		PIOS_Assert(!ret);
+	}
+#endif // PIOS_INCLUDE_MPU_MAG
 
 	return 0;
 }
@@ -929,10 +983,13 @@ bool PIOS_MPU_IRQHandler(void)
 	return woken;
 }
 
-static void PIOS_MPU_Task(void *parameters)
+/**
+ * @brief Tries to read out the IMU.
+ *
+ * @return Zero on success.
+ */
+static int PIOS_MPU_parse_data(struct pios_mpu_dev *p)
 {
-	(void)parameters;
-
 	enum {
 		IDX_SPI_DUMMY_BYTE = 0,
 		IDX_ACCEL_XOUT_H,
@@ -964,263 +1021,255 @@ static void PIOS_MPU_Task(void *parameters)
 
 	uint8_t mpu_rec_buf[BUFFER_SIZE];
 
-#ifdef PIOS_INCLUDE_MPU_MAG
-	bool do_full_mag = false;
-	int mag_age = 0;
-#endif
-
 #ifdef PIOS_INCLUDE_SPI
 	uint8_t mpu_tx_buf[BUFFER_SIZE] = {PIOS_MPU_ACCEL_X_OUT_MSB | 0x80, };
 #endif // PIOS_INCLUDE_SPI
 
-	while (true) {
 #ifdef PIOS_INCLUDE_MPU_MAG
-		mag_age++;
+	mpu_dev->mag_age++;
 
-		uint8_t transfer_size;
-		/* By default we only transfer the magnetometer status
-		 * information, and leave the actual mag data invalid.  If the
-		 * status info says DRDY, then next time around we transfer it
-		 * all.
-		 */
-		if (mpu_dev->use_mag) {
-			if (do_full_mag) {
-				transfer_size = BUFFER_SIZE;
-			} else {
-				/* If mag_age is low, could consider not
-				 * even polling */
-				transfer_size = IDX_MAG_ST1 + 1;
-			}
+	uint8_t transfer_size;
+	/* By default we only transfer the magnetometer status
+	 * information, and leave the actual mag data invalid.  If the
+	 * status info says DRDY, then next time around we transfer it
+	 * all.
+	 */
+	if (mpu_dev->use_mag) {
+		if (mpu_dev->do_full_mag) {
+			transfer_size = BUFFER_SIZE;
 		} else {
-			transfer_size = IDX_GYRO_ZOUT_L + 1;
+			/* If mag_age is low, could consider not
+			 * even polling */
+			transfer_size = IDX_MAG_ST1 + 1;
 		}
+	} else {
+		transfer_size = IDX_GYRO_ZOUT_L + 1;
+	}
 #else
-		uint8_t transfer_size = BUFFER_SIZE;
+	uint8_t transfer_size = BUFFER_SIZE;
 #endif // PIOS_INCLUDE_MPU_MAG
 
-		//Wait for data ready interrupt
-		if (PIOS_Semaphore_Take(mpu_dev->data_ready_sema, PIOS_SEMAPHORE_TIMEOUT_MAX) != true)
-			continue;
-
 #if defined(PIOS_INCLUDE_SPI)
-		if (mpu_dev->com_driver_type == PIOS_MPU_COM_SPI) {
-			// claim bus in high speed mode
-			if (PIOS_MPU_ClaimBus(false) != 0)
-				continue;
+	if (mpu_dev->com_driver_type == PIOS_MPU_COM_SPI) {
+		// claim bus in high speed mode
+		if (PIOS_MPU_ClaimBus(false) != 0)
+			return -1;
 
-			if (PIOS_SPI_TransferBlock(mpu_dev->spi_driver_id, mpu_tx_buf, mpu_rec_buf, transfer_size) < 0) {
-				PIOS_MPU_ReleaseBus(false);
-				continue;
-			}
-
+		if (PIOS_SPI_TransferBlock(mpu_dev->spi_driver_id, mpu_tx_buf, mpu_rec_buf, transfer_size) < 0) {
 			PIOS_MPU_ReleaseBus(false);
+			return -1;
 		}
+
+		PIOS_MPU_ReleaseBus(false);
+	}
 #endif // defined(PIOS_INCLUDE_SPI)
 
 #if defined(PIOS_INCLUDE_I2C)
-		if (mpu_dev->com_driver_type == PIOS_MPU_COM_I2C) {
-			// we skip the SPI dummy byte at the beginning of the buffer here
-			if (PIOS_MPU_I2C_Read(PIOS_MPU_ACCEL_X_OUT_MSB, &mpu_rec_buf[IDX_ACCEL_XOUT_H], transfer_size - 1) < 0)
-				continue;
-		}
+	if (mpu_dev->com_driver_type == PIOS_MPU_COM_I2C) {
+		// we skip the SPI dummy byte at the beginning of the buffer here
+		if (PIOS_MPU_I2C_Read(PIOS_MPU_ACCEL_X_OUT_MSB, &mpu_rec_buf[IDX_ACCEL_XOUT_H], transfer_size - 1) < 0)
+			return -1;
+	}
 #endif // defined(PIOS_INCLUDE_I2C)
 
-		struct pios_sensor_accel_data accel_data;
-		struct pios_sensor_gyro_data gyro_data;
+	float accel_x = (int16_t)(mpu_rec_buf[IDX_ACCEL_XOUT_H] << 8 | mpu_rec_buf[IDX_ACCEL_XOUT_L]);
+	float accel_y = (int16_t)(mpu_rec_buf[IDX_ACCEL_YOUT_H] << 8 | mpu_rec_buf[IDX_ACCEL_YOUT_L]);
+	float accel_z = (int16_t)(mpu_rec_buf[IDX_ACCEL_ZOUT_H] << 8 | mpu_rec_buf[IDX_ACCEL_ZOUT_L]);
+	float gyro_x  = (int16_t)(mpu_rec_buf[IDX_GYRO_XOUT_H]  << 8 | mpu_rec_buf[IDX_GYRO_XOUT_L]);
+	float gyro_y  = (int16_t)(mpu_rec_buf[IDX_GYRO_YOUT_H]  << 8 | mpu_rec_buf[IDX_GYRO_YOUT_L]);
+	float gyro_z  = (int16_t)(mpu_rec_buf[IDX_GYRO_ZOUT_H]  << 8 | mpu_rec_buf[IDX_GYRO_ZOUT_L]);
 
-		float accel_x = (int16_t)(mpu_rec_buf[IDX_ACCEL_XOUT_H] << 8 | mpu_rec_buf[IDX_ACCEL_XOUT_L]);
-		float accel_y = (int16_t)(mpu_rec_buf[IDX_ACCEL_YOUT_H] << 8 | mpu_rec_buf[IDX_ACCEL_YOUT_L]);
-		float accel_z = (int16_t)(mpu_rec_buf[IDX_ACCEL_ZOUT_H] << 8 | mpu_rec_buf[IDX_ACCEL_ZOUT_L]);
-		float gyro_x  = (int16_t)(mpu_rec_buf[IDX_GYRO_XOUT_H]  << 8 | mpu_rec_buf[IDX_GYRO_XOUT_L]);
-		float gyro_y  = (int16_t)(mpu_rec_buf[IDX_GYRO_YOUT_H]  << 8 | mpu_rec_buf[IDX_GYRO_YOUT_L]);
-		float gyro_z  = (int16_t)(mpu_rec_buf[IDX_GYRO_ZOUT_H]  << 8 | mpu_rec_buf[IDX_GYRO_ZOUT_L]);
+	// Apply sensor scaling
+	float accel_scale = PIOS_MPU_GetAccelScale();
+	float gyro_scale = PIOS_MPU_GetGyroScale();
+
+	accel_x *= accel_scale;
+	accel_y *= accel_scale;
+	accel_z *= accel_scale;
+
+	gyro_x *= gyro_scale;
+	gyro_y *= gyro_scale;
+	gyro_z *= gyro_scale;
 
 #ifdef PIOS_INCLUDE_MPU_MAG
-		struct pios_sensor_mag_data mag_data;
+	float mag_x = (int16_t)(mpu_rec_buf[IDX_MAG_XOUT_H] << 8 | mpu_rec_buf[IDX_MAG_XOUT_L]);
+	float mag_y = (int16_t)(mpu_rec_buf[IDX_MAG_YOUT_H] << 8 | mpu_rec_buf[IDX_MAG_YOUT_L]);
+	float mag_z = (int16_t)(mpu_rec_buf[IDX_MAG_ZOUT_H] << 8 | mpu_rec_buf[IDX_MAG_ZOUT_L]);
 
-		float mag_x = (int16_t)(mpu_rec_buf[IDX_MAG_XOUT_H] << 8 | mpu_rec_buf[IDX_MAG_XOUT_L]);
-		float mag_y = (int16_t)(mpu_rec_buf[IDX_MAG_YOUT_H] << 8 | mpu_rec_buf[IDX_MAG_YOUT_L]);
-		float mag_z = (int16_t)(mpu_rec_buf[IDX_MAG_ZOUT_H] << 8 | mpu_rec_buf[IDX_MAG_ZOUT_L]);
+	struct pios_sensor_mag_data *mag_data = &mpu_dev->mag_data;
 #endif // PIOS_INCLUDE_MPU_MAG
 
-		/*
-		 * Rotate the sensor to our convention (x forward, y right, z down).
-		 * Sensor orientation for all supported Invensense variants is
-		 * x right, y forward, z up.
-		 * The embedded AK8xxx magnetometer in MPU9x50 variants matches our convention.
-		 * See flight/Doc/imu_orientation.md for further detail
-		 */
-		switch (mpu_dev->cfg->orientation) {
-		case PIOS_MPU_TOP_0DEG:
-			accel_data.x =  accel_y;
-			accel_data.y =  accel_x;
-			accel_data.z = -accel_z;
-			gyro_data.x  =  gyro_y;
-			gyro_data.y  =  gyro_x;
-			gyro_data.z  = -gyro_z;
+	struct pios_sensor_gyro_data *gyro_data = &mpu_dev->gyro_data;
+	struct pios_sensor_accel_data *accel_data = &mpu_dev->accel_data;
+
+	/*
+	 * Rotate the sensor to our convention (x forward, y right, z down).
+	 * Sensor orientation for all supported Invensense variants is
+	 * x right, y forward, z up.
+	 * The embedded AK8xxx magnetometer in MPU9x50 variants matches our convention.
+	 * See flight/Doc/imu_orientation.md for further detail
+	 */
+	switch (mpu_dev->cfg->orientation) {
+	case PIOS_MPU_TOP_0DEG:
+		accel_data->x =  accel_y;
+		accel_data->y =  accel_x;
+		accel_data->z = -accel_z;
+		gyro_data->x  =  gyro_y;
+		gyro_data->y  =  gyro_x;
+		gyro_data->z  = -gyro_z;
 #ifdef PIOS_INCLUDE_MPU_MAG
-			mag_data.x   =  mag_x;
-			mag_data.y   =  mag_y;
-			mag_data.z   =  mag_z;
+		mag_data->x   =  mag_x;
+		mag_data->y   =  mag_y;
+		mag_data->z   =  mag_z;
 #endif // PIOS_INCLUDE_MPU_MAG
-			break;
-		case PIOS_MPU_TOP_90DEG:
-			accel_data.x = -accel_x;
-			accel_data.y =  accel_y;
-			accel_data.z = -accel_z;
-			gyro_data.x  = -gyro_x;
-			gyro_data.y  =  gyro_y;
-			gyro_data.z  = -gyro_z;
+		break;
+	case PIOS_MPU_TOP_90DEG:
+		accel_data->x = -accel_x;
+		accel_data->y =  accel_y;
+		accel_data->z = -accel_z;
+		gyro_data->x  = -gyro_x;
+		gyro_data->y  =  gyro_y;
+		gyro_data->z  = -gyro_z;
 #ifdef PIOS_INCLUDE_MPU_MAG
-			mag_data.x   = -mag_y;
-			mag_data.y   =  mag_x;
-			mag_data.z   =  mag_z;
+		mag_data->x   = -mag_y;
+		mag_data->y   =  mag_x;
+		mag_data->z   =  mag_z;
 #endif // PIOS_INCLUDE_MPU_MAG
-			break;
-		case PIOS_MPU_TOP_180DEG:
-			accel_data.x = -accel_y;
-			accel_data.y = -accel_x;
-			accel_data.z = -accel_z;
-			gyro_data.x  = -gyro_y;
-			gyro_data.y  = -gyro_x;
-			gyro_data.z  = -gyro_z;
+		break;
+	case PIOS_MPU_TOP_180DEG:
+		accel_data->x = -accel_y;
+		accel_data->y = -accel_x;
+		accel_data->z = -accel_z;
+		gyro_data->x  = -gyro_y;
+		gyro_data->y  = -gyro_x;
+		gyro_data->z  = -gyro_z;
 #ifdef PIOS_INCLUDE_MPU_MAG
-			mag_data.x   = -mag_x;
-			mag_data.y   = -mag_y;
-			mag_data.z   =  mag_z;
+		mag_data->x   = -mag_x;
+		mag_data->y   = -mag_y;
+		mag_data->z   =  mag_z;
 #endif // PIOS_INCLUDE_MPU_MAG
-			break;
-		case PIOS_MPU_TOP_270DEG:
-			accel_data.x =  accel_x;
-			accel_data.y = -accel_y;
-			accel_data.z = -accel_z;
-			gyro_data.x  =  gyro_x;
-			gyro_data.y  = -gyro_y;
-			gyro_data.z  = -gyro_z;
+		break;
+	case PIOS_MPU_TOP_270DEG:
+		accel_data->x =  accel_x;
+		accel_data->y = -accel_y;
+		accel_data->z = -accel_z;
+		gyro_data->x  =  gyro_x;
+		gyro_data->y  = -gyro_y;
+		gyro_data->z  = -gyro_z;
 #ifdef PIOS_INCLUDE_MPU_MAG
-			mag_data.x   =  mag_y;
-			mag_data.y   = -mag_x;
-			mag_data.z   =  mag_z;
+		mag_data->x   =  mag_y;
+		mag_data->y   = -mag_x;
+		mag_data->z   =  mag_z;
 #endif // PIOS_INCLUDE_MPU_MAG
-			break;
-		case PIOS_MPU_BOTTOM_0DEG:
-			accel_data.x =  accel_y;
-			accel_data.y = -accel_x;
-			accel_data.z =  accel_z;
-			gyro_data.x  =  gyro_y;
-			gyro_data.y  = -gyro_x;
-			gyro_data.z  =  gyro_z;
+		break;
+	case PIOS_MPU_BOTTOM_0DEG:
+		accel_data->x =  accel_y;
+		accel_data->y = -accel_x;
+		accel_data->z =  accel_z;
+		gyro_data->x  =  gyro_y;
+		gyro_data->y  = -gyro_x;
+		gyro_data->z  =  gyro_z;
 #ifdef PIOS_INCLUDE_MPU_MAG
-			mag_data.x   =  mag_x;
-			mag_data.y   = -mag_y;
-			mag_data.z   = -mag_z;
+		mag_data->x   =  mag_x;
+		mag_data->y   = -mag_y;
+		mag_data->z   = -mag_z;
 #endif // PIOS_INCLUDE_MPU_MAG
-			break;
+		break;
 
-		case PIOS_MPU_BOTTOM_90DEG:
-			accel_data.x =  accel_x;
-			accel_data.y =  accel_y;
-			accel_data.z =  accel_z;
-			gyro_data.x  =  gyro_x;
-			gyro_data.y  =  gyro_y;
-			gyro_data.z  =  gyro_z;
+	case PIOS_MPU_BOTTOM_90DEG:
+		accel_data->x =  accel_x;
+		accel_data->y =  accel_y;
+		accel_data->z =  accel_z;
+		gyro_data->x  =  gyro_x;
+		gyro_data->y  =  gyro_y;
+		gyro_data->z  =  gyro_z;
 #ifdef PIOS_INCLUDE_MPU_MAG
-			mag_data.x   =  mag_y;
-			mag_data.y   =  mag_x;
-			mag_data.z   = -mag_z;
+		mag_data->x   =  mag_y;
+		mag_data->y   =  mag_x;
+		mag_data->z   = -mag_z;
 #endif // PIOS_INCLUDE_MPU_MAG
-			break;
+		break;
 
-		case PIOS_MPU_BOTTOM_180DEG:
-			accel_data.x = -accel_y;
-			accel_data.y =  accel_x;
-			accel_data.z =  accel_z;
-			gyro_data.x  = -gyro_y;
-			gyro_data.y  =  gyro_x;
-			gyro_data.z  =  gyro_z;
+	case PIOS_MPU_BOTTOM_180DEG:
+		accel_data->x = -accel_y;
+		accel_data->y =  accel_x;
+		accel_data->z =  accel_z;
+		gyro_data->x  = -gyro_y;
+		gyro_data->y  =  gyro_x;
+		gyro_data->z  =  gyro_z;
 #ifdef PIOS_INCLUDE_MPU_MAG
-			mag_data.x   = -mag_x;
-			mag_data.y   =  mag_y;
-			mag_data.z   = -mag_z;
+		mag_data->x   = -mag_x;
+		mag_data->y   =  mag_y;
+		mag_data->z   = -mag_z;
 #endif // PIOS_INCLUDE_MPU_MAG
-			break;
+		break;
 
-		case PIOS_MPU_BOTTOM_270DEG:
-			accel_data.x = -accel_x;
-			accel_data.y = -accel_y;
-			accel_data.z =  accel_z;
-			gyro_data.x  = -gyro_x;
-			gyro_data.y  = -gyro_y;
-			gyro_data.z  =  gyro_z;
+	case PIOS_MPU_BOTTOM_270DEG:
+		accel_data->x = -accel_x;
+		accel_data->y = -accel_y;
+		accel_data->z =  accel_z;
+		gyro_data->x  = -gyro_x;
+		gyro_data->y  = -gyro_y;
+		gyro_data->z  =  gyro_z;
 #ifdef PIOS_INCLUDE_MPU_MAG
-			mag_data.x   = -mag_y;
-			mag_data.y   = -mag_x;
-			mag_data.z   = -mag_z;
+		mag_data->x   = -mag_y;
+		mag_data->y   = -mag_x;
+		mag_data->z   = -mag_z;
 #endif // PIOS_INCLUDE_MPU_MAG
-			break;
-		}
+		break;
+	}
 
-		int16_t raw_temp = (int16_t)(mpu_rec_buf[IDX_TEMP_OUT_H] << 8 | mpu_rec_buf[IDX_TEMP_OUT_L]);
-		float temperature;
-		if (mpu_dev->mpu_type == PIOS_MPU6500 || mpu_dev->mpu_type == PIOS_MPU9250)
-			temperature = 21.0f + ((float)raw_temp) / 333.87f;
-		else
-			temperature = 35.0f + ((float)raw_temp + 512.0f) / 340.0f;
+	int16_t raw_temp = (int16_t)(mpu_rec_buf[IDX_TEMP_OUT_H] << 8 | mpu_rec_buf[IDX_TEMP_OUT_L]);
+	float temperature;
+	if (mpu_dev->mpu_type == PIOS_MPU6500 || mpu_dev->mpu_type == PIOS_MPU9250)
+		temperature = 21.0f + ((float)raw_temp) / 333.87f;
+	else
+		temperature = 35.0f + ((float)raw_temp + 512.0f) / 340.0f;
 
-		// Apply sensor scaling
-		float accel_scale = PIOS_MPU_GetAccelScale();
-		accel_data.x *= accel_scale;
-		accel_data.y *= accel_scale;
-		accel_data.z *= accel_scale;
-		accel_data.temperature = temperature;
+	gyro_data->temperature = temperature;
+	accel_data->temperature = temperature;
 
-		float gyro_scale = PIOS_MPU_GetGyroScale();
-		gyro_data.x *= gyro_scale;
-		gyro_data.y *= gyro_scale;
-		gyro_data.z *= gyro_scale;
-		gyro_data.temperature = temperature;
-
-		PIOS_Queue_Send(mpu_dev->accel_queue, &accel_data, 0);
-		PIOS_Queue_Send(mpu_dev->gyro_queue, &gyro_data, 0);
+	mpu_dev->sensor_ready |= SENSOR_ACCEL;
 
 #ifdef PIOS_INCLUDE_MPU_MAG
-		if (mpu_dev->use_mag) {
-			if (do_full_mag) {
-				mag_age = 0;
+	if (mpu_dev->use_mag) {
+		if (mpu_dev->do_full_mag) {
+			mpu_dev->mag_age = 0;
 
-				// DRDY will have gotten cleared by the previous
-				// read cycle, so don't look.
+			// DRDY will have gotten cleared by the previous
+			// read cycle, so don't look.
 
-				// check for overflow
-				bool mag_ok = !(mpu_rec_buf[IDX_MAG_ST2] & PIOS_MPU_AK89XX_ST2_HOFL);
+			// check for overflow
+			bool mag_ok = !(mpu_rec_buf[IDX_MAG_ST2] & PIOS_MPU_AK89XX_ST2_HOFL);
 
-				mag_ok &= (mpu_dev->mpu_type != PIOS_MPU9150) ||
-					(!(mpu_rec_buf[IDX_MAG_ST2] & PIOS_MPU_AK8975_ST2_DERR));
-				if (mag_ok) {
-					float mag_scale;
-					if (mpu_dev->mpu_type == PIOS_MPU9150)
-						mag_scale = 3.0f; // 12-bit sampling
-					else if (mpu_rec_buf[IDX_MAG_ST2] & PIOS_MPU_AK8963_ST2_BITM)
-						mag_scale = 1.5f; // 16-bit sampling
-					else
-						mag_scale = 6.0f; // 14-bit sampling
-					mag_data.x *= mag_scale;
-					mag_data.y *= mag_scale;
-					mag_data.z *= mag_scale;
-					PIOS_Queue_Send(mpu_dev->mag_queue, &mag_data, 0);
-				}
+			mag_ok &= (mpu_dev->mpu_type != PIOS_MPU9150) ||
+				(!(mpu_rec_buf[IDX_MAG_ST2] & PIOS_MPU_AK8975_ST2_DERR));
+			if (mag_ok) {
+				float mag_scale;
+				if (mpu_dev->mpu_type == PIOS_MPU9150)
+					mag_scale = 3.0f; // 12-bit sampling
+				else if (mpu_rec_buf[IDX_MAG_ST2] & PIOS_MPU_AK8963_ST2_BITM)
+					mag_scale = 1.5f; // 16-bit sampling
+				else
+					mag_scale = 6.0f; // 14-bit sampling
+				mag_data->x *= mag_scale;
+				mag_data->y *= mag_scale;
+				mag_data->z *= mag_scale;
 
-				do_full_mag = false;
-			} else {
-				if (mpu_rec_buf[IDX_MAG_ST1] & PIOS_MPU_AK89XX_ST1_DRDY) {
-					if (mag_age > 3) {
-						do_full_mag = true;
-					}
+				mpu_dev->sensor_ready |= SENSOR_MAG;
+			}
+
+			mpu_dev->do_full_mag = false;
+		} else {
+			if (mpu_rec_buf[IDX_MAG_ST1] & PIOS_MPU_AK89XX_ST1_DRDY) {
+				if (mpu_dev->mag_age > 3) {
+					mpu_dev->do_full_mag = true;
 				}
 			}
 		}
-#endif // PIOS_INCLUDE_MPU_MAG
 	}
+#endif // PIOS_INCLUDE_MPU_MAG
+	return 0;
 }
 
 #endif // PIOS_INCLUDE_MPU

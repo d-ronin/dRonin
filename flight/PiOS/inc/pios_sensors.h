@@ -90,20 +90,28 @@ enum pios_sensor_type
 	PIOS_SENSOR_BARO,
 	PIOS_SENSOR_OPTICAL_FLOW,
 	PIOS_SENSOR_RANGEFINDER,
-	PIOS_SENSOR_LAST
+	PIOS_SENSOR_NUM
 };
+
+//! Function that calls into sensor to get data.
+typedef bool (*PIOS_SENSOR_Callback_t)(void *ctx, void *output,
+		int ms_to_wait, int *next_call);
 
 //! Initialize the PIOS_SENSORS interface
 int32_t PIOS_SENSORS_Init();
 
-//! Register a sensor with the PIOS_SENSORS interface
+//! Register a queue-based sensor with the PIOS_SENSORS interface
 int32_t PIOS_SENSORS_Register(enum pios_sensor_type type, struct pios_queue *queue);
+
+//! Register a callback-based sensor with the PIOS_SENSORS interface
+int32_t PIOS_SENSORS_RegisterCallback(enum pios_sensor_type type,
+		PIOS_SENSOR_Callback_t callback, void *ctx);
 
 //! Checks if a sensor type is registered with the PIOS_SENSORS interface
 bool PIOS_SENSORS_IsRegistered(enum pios_sensor_type type);
 
-//! Get the data queue for a sensor type
-struct pios_queue *PIOS_SENSORS_GetQueue(enum pios_sensor_type type);
+//! Get the data for a sensor type
+bool PIOS_SENSORS_GetData(enum pios_sensor_type type, void *buf, int ms_to_wait);
 
 //! Set the maximum gyro rate in deg/s
 void PIOS_SENSORS_SetMaxGyro(int32_t rate);
