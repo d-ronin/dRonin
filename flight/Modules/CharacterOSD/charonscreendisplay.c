@@ -57,6 +57,7 @@
 #include "magnetometer.h"
 #include "manualcontrolcommand.h"
 #include "modulesettings.h"
+#include "stabilizationdesired.h"
 #include "stabilizationsettings.h"
 #include "stateestimation.h"
 #include "systemalarms.h"
@@ -237,7 +238,7 @@ static void update_telemetry(charosd_state_t state)
 	SystemStatsFlightTimeGet(&state->telemetry.system.flight_time);
 	AttitudeActualGet(&state->telemetry.attitude_actual);
 	PositionActualGet(&state->telemetry.position_actual);
-	ManualControlCommandThrottleGet(&state->telemetry.manual.throttle);
+	StabilizationDesiredThrustGet(&state->telemetry.manual.thrust);
 	FlightStatusArmedGet(&state->telemetry.flight_status.arm_status);
 	FlightStatusFlightModeGet(&state->telemetry.flight_status.mode);
 

@@ -74,6 +74,7 @@ DONT_BUILD_IF(MAX_MIX_ACTUATORS > ACTUATORCOMMAND_CHANNEL_NUMELEM, TooManyMixers
 DONT_BUILD_IF((MIXERSETTINGS_MIXER1VECTOR_NUMELEM - MIXERSETTINGS_MIXER1VECTOR_ACCESSORY0) < MANUALCONTROLCOMMAND_ACCESSORY_NUMELEM, AccessoryMismatch);
 
 #define MIXER_SCALE 128
+#define ACTUATOR_EPSILON 0.00001f
 
 // Private types
 
@@ -100,7 +101,6 @@ static float motor_mixer[MAX_MIX_ACTUATORS * MIXERSETTINGS_MIXER1VECTOR_NUMELEM]
 static ActuatorSettingsData actuatorSettings;
 static SystemSettingsAirframeTypeOptions airframe_type;
 
-static float curve1[MIXERSETTINGS_THROTTLECURVE1_NUMELEM];
 static float curve2[MIXERSETTINGS_THROTTLECURVE2_NUMELEM];
 
 static MixerSettingsCurve2SourceOptions curve2_src;
@@ -108,15 +108,94 @@ static MixerSettingsCurve2SourceOptions curve2_src;
 // Private functions
 static void actuator_task(void* parameters);
 
-static float scale_channel(float value, int idx);
+static float scale_channel(float value, int idx, bool active_cmd);
 static void set_failsafe();
 
-static float throt_curve(const float input, const float *curve,
-		uint8_t num_points);
 static float collective_curve(const float input, const float *curve,
 		uint8_t num_points);
 
 volatile enum actuator_interlock actuator_interlock = ACTUATOR_INTERLOCK_OK;
+
+struct dshot_command {
+	union {
+		uint32_t value;
+		struct {
+			uint8_t cmd_id;
+			uint8_t num_to_send;
+			uint16_t channel_mask;
+		};
+	};
+};
+
+static volatile struct dshot_command pending_cmd;
+static struct dshot_command cur_cmd;
+
+static uint16_t desired_3d_mask;
+
+#define DSHOT_COMMAND_DONTSPIN 0
+#define DSHOT_COMMAND_NO3DMODE 9
+#define DSHOT_COMMAND_3DMODE   10
+
+#define DSHOT_COUNT_EXCESSIVE 12
+
+static bool actuator_get_dshot_command(bool armed) {
+	/* Finish off any current command. */
+	if (cur_cmd.num_to_send) {
+		cur_cmd.num_to_send--;
+		return true;
+	}
+
+	if (armed) {
+		return false;
+	}
+
+	uint32_t value = pending_cmd.value;
+
+	if (!value) {
+		return false;
+	}
+
+	pending_cmd.value = 0;
+	cur_cmd.value = value;
+
+	if (cur_cmd.num_to_send) {
+		cur_cmd.num_to_send--;
+		return true;
+	}
+
+	return false;
+}
+
+int actuator_send_dshot_command(uint8_t cmd_id, uint8_t num_to_send,
+		uint16_t channel_mask)
+{
+	struct dshot_command new_cmd;
+
+	new_cmd.cmd_id = cmd_id;
+	new_cmd.num_to_send = num_to_send;
+	new_cmd.channel_mask = channel_mask;
+
+	if (__sync_bool_compare_and_swap(&pending_cmd.value, 0,
+				new_cmd.value)) {
+		return 0;
+	}
+
+	return -1;
+}
+
+static int actuator_send_dshot_command_now(uint8_t cmd_id,
+		uint8_t num_to_send, uint16_t channel_mask)
+{
+	if (cur_cmd.num_to_send) {
+		return -1;
+	}
+
+	cur_cmd.cmd_id = cmd_id;
+	cur_cmd.num_to_send = num_to_send;
+	cur_cmd.channel_mask = channel_mask;
+
+	return 0;
+}
 
 /**
  * @brief Module initialization
@@ -176,18 +255,16 @@ int32_t ActuatorInitialize()
 }
 MODULE_HIPRI_INITCALL(ActuatorInitialize, ActuatorStart);
 
-static float get_curve2_source(ActuatorDesiredData *desired, SystemSettingsAirframeTypeOptions airframe_type, MixerSettingsCurve2SourceOptions source)
+static float get_curve2_source(ActuatorDesiredData *desired,
+		SystemSettingsAirframeTypeOptions airframe_type,
+		MixerSettingsCurve2SourceOptions source,
+		float throttle_val)
 {
 	float tmp;
 
 	switch (source) {
 	case MIXERSETTINGS_CURVE2SOURCE_THROTTLE:
-		if(airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP)
-		{
-			ManualControlCommandThrottleGet(&tmp);
-			return tmp;
-		}
-		return desired->Thrust;
+		return throttle_val;
 		break;
 	case MIXERSETTINGS_CURVE2SOURCE_ROLL:
 		return desired->Roll;
@@ -341,7 +418,7 @@ static void post_process_scale_and_commit(float *motor_vect,
 	 */
 	float maxpoweradd_softlimit = MAX(
 			2 * actuatorSettings.LowPowerStabilizationMaxPowerAdd,
-			desired_vect[MIXERSETTINGS_MIXER1VECTOR_THROTTLECURVE1])
+			fabsf(desired_vect[MIXERSETTINGS_MIXER1VECTOR_THROTTLECURVE1]))
 		* hangtime_leakybucket_timeconstant;
 
 	/* If we're under the limit, add this tick's hangtime power allotment */
@@ -367,6 +444,8 @@ static void post_process_scale_and_commit(float *motor_vect,
 	 */
 	float maxpoweradd = (*maxpoweradd_bucket) / hangtime_leakybucket_timeconstant;
 
+	bool neg_throttle = desired_vect[MIXERSETTINGS_MIXER1VECTOR_THROTTLECURVE1] < 0.0f;
+
 	for (int ct = 0; ct < MAX_MIX_ACTUATORS; ct++) {
 		switch (types_mixer[ct]) {
 			case MIXERSETTINGS_MIXER1TYPE_DISABLED:
@@ -380,6 +459,11 @@ static void post_process_scale_and_commit(float *motor_vect,
 				break;
 
 			case MIXERSETTINGS_MIXER1TYPE_MOTOR:
+				if (neg_throttle) {
+					/* We'll reverse this later! */
+					motor_vect[ct] = -motor_vect[ct];
+				}
+
 				min_chan = fminf(min_chan, motor_vect[ct]);
 				max_chan = fmaxf(max_chan, motor_vect[ct]);
 
@@ -462,35 +546,52 @@ static void post_process_scale_and_commit(float *motor_vect,
 		/* The amount actually added is the above offset, plus the
 		 * amount that came from negative clipping.  (It's negative
 		 * though, so subtract instead of add).  Spend this from
-		 * the leaky bucket. 
+		 * the leaky bucket.
 		 */
 		*maxpoweradd_bucket -= (offset - neg_clip) * dT;
 	}
+
+	bool active_command = false;
+
+	active_command = actuator_get_dshot_command(armed);
 
 	for (int ct = 0; ct < MAX_MIX_ACTUATORS; ct++) {
 		// Motors have additional protection for when to be on
 		if (types_mixer[ct] == MIXERSETTINGS_MIXER1TYPE_MOTOR) {
 			if (!armed) {
-				motor_vect[ct] = -1;  //force min throttle
+				motor_vect[ct] = NAN;  // don't spin
 			} else if (!stabilize_now) {
 				if (!spin_while_armed) {
-					motor_vect[ct] = -1;
+					/* No spin */
+					motor_vect[ct] = NAN;
 				} else {
-					motor_vect[ct] = 0;
+					/* Min spin in our direction */
+					if (neg_throttle) {
+						motor_vect[ct] = -ACTUATOR_EPSILON;
+					} else {
+						motor_vect[ct] = ACTUATOR_EPSILON;
+					}
 				}
 			} else {
 				motor_vect[ct] = motor_vect[ct] * gain + offset;
 
 				if (motor_vect[ct] > 0) {
 					// Apply curve fitting, mapping the input to the propeller output.
+
 					motor_vect[ct] = powapprox(motor_vect[ct], actuatorSettings.MotorInputOutputCurveFit);
 				} else {
-					motor_vect[ct] = 0;
+					/* Clip to minimum spin in this direction */
+					motor_vect[ct] = ACTUATOR_EPSILON;
+				}
+
+				if (neg_throttle) {
+					motor_vect[ct] = -motor_vect[ct];
 				}
 			}
 		}
 
-		command.Channel[ct] = scale_channel(motor_vect[ct], ct);
+		command.Channel[ct] = scale_channel(motor_vect[ct], ct,
+				active_command);
 	}
 
 	// Store update time
@@ -522,7 +623,7 @@ static void normalize_input_data(uint32_t this_systime,
 		bool *armed, bool *spin_while_armed, bool *stabilize_now)
 {
 	static float manual_throt = -1;
-	float throttle_val = -1;
+	float throttle_val = 0;
 	ActuatorDesiredData desired;
 
 	static FlightStatusData flightStatus;
@@ -549,6 +650,7 @@ static void normalize_input_data(uint32_t this_systime,
 	if (airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) {
 		// Helis set throttle from manual control's throttle value,
 		// unless in failsafe.
+		// TODO: Audit and determine whether this check is even required
 		if (flightStatus.FlightMode != FLIGHTSTATUS_FLIGHTMODE_FAILSAFE) {
 			throttle_val = manual_throt;
 		}
@@ -557,20 +659,39 @@ static void normalize_input_data(uint32_t this_systime,
 	}
 
 	if (!*armed) {
-		throttle_val = -1;
+		throttle_val = 0.0f;
 	}
 
-	*stabilize_now = throttle_val > 0.0f;
+	*stabilize_now = throttle_val != 0.0f;
 
-	float val1 = throt_curve(throttle_val, curve1,
-			MIXERSETTINGS_THROTTLECURVE1_NUMELEM);
+	float val1 = throttle_val;
 
 	//The source for the secondary curve is selectable
 	float val2 = collective_curve(
-			get_curve2_source(&desired, airframe_type, curve2_src),
+			get_curve2_source(&desired, airframe_type, curve2_src,
+				throttle_val),
 			curve2, MIXERSETTINGS_THROTTLECURVE2_NUMELEM);
 
 	fill_desired_vector(&desired, val1, val2, desired_vect);
+}
+
+static void actuator_settings_update()
+{
+	actuator_settings_updated = false;
+	ActuatorSettingsGet(&actuatorSettings);
+
+	PIOS_Servo_SetMode(actuatorSettings.TimerUpdateFreq,
+			ACTUATORSETTINGS_TIMERUPDATEFREQ_NUMELEM,
+			actuatorSettings.ChannelMax,
+			actuatorSettings.ChannelMin);
+
+	desired_3d_mask = 0;
+
+	for (int i = 0; i < MAX_MIX_ACTUATORS; i++) {
+		if (actuatorSettings.ChannelDeadband[i]) {
+			desired_3d_mask |= (1 << i);
+		}
+	}
 }
 
 /**
@@ -592,14 +713,11 @@ static void actuator_task(void* parameters)
 	FlightStatusConnectCallbackCtx(UAVObjCbSetFlag, &flight_status_updated);
 	ManualControlCommandConnectCallbackCtx(UAVObjCbSetFlag, &manual_control_cmd_updated);
 
-	// Ensure the initial state of actuators is safe.
-	actuator_settings_updated = false;
-	ActuatorSettingsGet(&actuatorSettings);
+	/* Prime dshot channels with 12 of the 'disarm' command */
+	actuator_send_dshot_command_now(0, 12, 0xffff);
 
-	PIOS_Servo_SetMode(actuatorSettings.TimerUpdateFreq,
-			ACTUATORSETTINGS_TIMERUPDATEFREQ_NUMELEM,
-			actuatorSettings.ChannelMax,
-			actuatorSettings.ChannelMin);
+	// Ensure the initial state of actuators is safe.
+	actuator_settings_update();
 	set_failsafe();
 
 	/* This is out here because not everything may change each time */
@@ -609,19 +727,15 @@ static void actuator_task(void* parameters)
 	
 	float maxpoweradd_bucket = 0.0f;
 
+	bool prev_armed = false;
+
 	// Main task loop
 	while (1) {
 		/* If settings objects have changed, update our internal
 		 * state appropriately.
 		 */
 		if (actuator_settings_updated) {
-			actuator_settings_updated = false;
-			ActuatorSettingsGet(&actuatorSettings);
-
-			PIOS_Servo_SetMode(actuatorSettings.TimerUpdateFreq,
-					ACTUATORSETTINGS_TIMERUPDATEFREQ_NUMELEM,
-					actuatorSettings.ChannelMax,
-					actuatorSettings.ChannelMin);
+			actuator_settings_update();
 		}
 
 		if (mixer_settings_updated) {
@@ -629,9 +743,7 @@ static void actuator_task(void* parameters)
 			SystemSettingsAirframeTypeGet(&airframe_type);
 
 			compute_mixer();
-			// XXX compute_inverse_mixer();
 
-			MixerSettingsThrottleCurve1Get(curve1);
 			MixerSettingsThrottleCurve2Get(curve2);
 			MixerSettingsCurve2SourceGet(&curve2_src);
 		}
@@ -715,6 +827,22 @@ static void actuator_task(void* parameters)
 				MIXERSETTINGS_MIXER1VECTOR_NUMELEM,
 				1);
 
+		/* At arming time, knock all 3d actuators into 3D mode.
+		 * Note we never "take them out" of 3d mode.
+		 */
+		if (armed != prev_armed) {
+			if (armed && desired_3d_mask) {
+				if (!actuator_send_dshot_command_now(
+						DSHOT_COMMAND_3DMODE,
+						DSHOT_COUNT_EXCESSIVE,
+						desired_3d_mask)) {
+					prev_armed = armed;
+				}
+			} else {
+				prev_armed = armed;
+			}
+		}
+
 		/* Perform clipping adjustments on the outputs, along with
 		 * state-related corrections (spin while armed, disarmed, etc).
 		 *
@@ -727,23 +855,6 @@ static void actuator_task(void* parameters)
 		/* If we got this far, everything is OK. */
 		AlarmsClear(SYSTEMALARMS_ALARM_ACTUATOR);
 	}
-}
-
-/**
- * Interpolate a throttle curve
- *
- * throttle curve assumes input is [0,1]
- * this means that the throttle channel neutral value is nearly the same as its min value
- * this is convenient for throttle, since the neutral value is used as a failsafe and would thus shut off the motor
- *
- * @param input the input value, in [0,1]
- * @param curve the array of points in the curve
- * @param num_points the number of points in the curve
- * @return the output value, in [0,1]
- */
-static float throt_curve(float const input, float const * curve, uint8_t num_points)
-{
-	return linear_interpolate(input, curve, num_points, 0.0f, 1.0f);
 }
 
 /**
@@ -761,24 +872,141 @@ static float collective_curve(float const input, float const * curve, uint8_t nu
 	return linear_interpolate(input, curve, num_points, -1.0f, 1.0f);
 }
 
+static float scale_channel_dshot(float value, int idx, bool active_command)
+{
+	/* If a command is pending, send it */
+	if (active_command) {
+		if (cur_cmd.channel_mask & (1 << idx)) {
+			return cur_cmd.cmd_id;
+		}
+	}
+
+	if (!isfinite(value)) {
+		/* Universal-- don't spin */
+		return 0;
+	}
+
+	bool threed = false;
+	bool reversed = false;
+
+#define DSHOT_DEADBAND_NORMAL 0
+#define DSHOT_DEADBAND_3D     1
+#define DSHOT_DEADBAND_3DREV  2
+
+	switch (actuatorSettings.ChannelDeadband[idx]) {
+		case DSHOT_DEADBAND_NORMAL:
+			break;
+		case DSHOT_DEADBAND_3DREV:
+			/* reverse 3D */
+			reversed = true;
+			/* falls through */
+		case DSHOT_DEADBAND_3D:
+			threed = true;
+			break;
+		default:
+			/* Invalid value-- don't spin */
+			return 0;
+	}
+
+	float neutral = actuatorSettings.ChannelNeutral[idx];
+
+	if (!threed) {
+		/* return neutral..2047 */
+		int16_t val = roundf((2047 - neutral) * value) + neutral;
+
+		if (val > 2047) {
+			val = 2047;
+		}
+
+		if (val < 48) {
+			/* Shouldn't happen, unless neutral val is invalid */
+			val = 0;
+		}
+
+		return val;
+	}
+
+	/* OK, this is more tricky.  Convert from a unipolar neutral value
+	 * to a "real one" as sent */
+
+	neutral -= 48;
+	neutral /= 2;
+
+	bool negative;
+
+	if (value < 0) {
+		value = -value;
+		negative = !reversed;
+	} else {
+		negative = reversed;
+	}
+
+	/* come up with a value between real neutral and 999 */
+
+	int16_t val = roundf((999 - neutral) * value + neutral);
+
+	if (val > 999) {
+		val = 999;
+	}
+
+	if (val < 0) {
+		/* Shouldn't happen, unless neutral val is invalid */
+		val = 0;
+	}
+
+	if (negative) {
+		/* 1048 + real neutral .. 2047 */
+		val += 1048;
+	} else {
+		/* 48 + real neutral .. 1047 */
+		val += 48;
+	}
+
+	return val;
+}
+
 /**
  * Convert channel from -1/+1 to servo pulse duration in microseconds
  */
-static float scale_channel(float value, int idx)
+static float scale_channel(float value, int idx, bool active_cmd)
 {
+	if (PIOS_Servo_IsDshot(idx)) {
+		return scale_channel_dshot(value, idx, active_cmd);
+	}
+
 	float max = actuatorSettings.ChannelMax[idx];
 	float min = actuatorSettings.ChannelMin[idx];
 	float neutral = actuatorSettings.ChannelNeutral[idx];
+	float deadband = actuatorSettings.ChannelDeadband[idx] / 2.0f;
 
 	float valueScaled;
-	// Scale
-	if (value >= 0.0f) {
-		valueScaled = value*(max-neutral) + neutral;
-	} else {
-		valueScaled = value*(neutral-min) + neutral;
+
+	if (!isfinite(value)) {
+		if (deadband) {
+			/* 3D motor mode */
+			/* NaN signals us to not spin-- e.g. neutral value */
+
+			return neutral;
+		} else {
+			/* Non-3D motor mode. */
+			/* NaN signals us to not spin-- e.g. minimum value */
+			return min;
+		}
 	}
 
-	if (max>min) {
+	if (min > max) {
+		deadband = -deadband;
+	}
+
+	if (value >= 0.0f) {
+		valueScaled = value * (max - neutral - deadband)
+			+ neutral + deadband;
+	} else {
+		valueScaled = value * (neutral - min - deadband)
+			+ neutral - deadband;
+	}
+
+	if (max > min) {
 		if (valueScaled > max) valueScaled = max;
 		if (valueScaled < min) valueScaled = min;
 	} else {
@@ -793,7 +1021,7 @@ static float channel_failsafe_value(int idx)
 {
 	switch (types_mixer[idx]) {
 	case MIXERSETTINGS_MIXER1TYPE_MOTOR:
-		return actuatorSettings.ChannelMin[idx];
+		return NAN;
 	case MIXERSETTINGS_MIXER1TYPE_SERVO:
 		return actuatorSettings.ChannelNeutral[idx];
 	case MIXERSETTINGS_MIXER1TYPE_DISABLED:

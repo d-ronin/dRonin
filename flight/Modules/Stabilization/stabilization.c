@@ -165,6 +165,11 @@ static float get_throttle(ActuatorDesiredData *actuator_desired, SystemSettingsA
 	if (*airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) {
 		float heli_throttle;
 		ManualControlCommandThrottleGet( &heli_throttle );
+
+		if (heli_throttle < 0) {
+			return 0;
+		}
+
 		return heli_throttle;
 	}
 
@@ -256,7 +261,7 @@ void stabilization_failsafe_checks(StabilizationDesiredData *stab_desired,
 			}
 			else
 			{
-				actuator_desired->Thrust = -1.0f;
+				actuator_desired->Thrust = 0.0f;
 
 				switch (i) {
 					case 0: /* Roll */
@@ -520,26 +525,41 @@ static void stabilizationTask(void* parameters)
 
 		actuatorDesired.Thrust = stabDesired.Thrust;
 
-		static uint32_t last_pos_thrust_time = 0;
+		static uint32_t last_nonzero_thrust_time = 0;
+		static bool last_thrust_pos = true;
 
-		if (stabDesired.Thrust > THROTTLE_EPSILON) {
+		if (airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) {
+			/* Don't do anything-- neuter armed state checking
+			 * and hangtime logic on helicp to allow collective
+			 * to move freely.  Safety properties come from
+			 * throttle getting nailed to 0 in failsafe/disarm.
+			 */
+		} else if (flightStatus.Armed != FLIGHTSTATUS_ARMED_ARMED) {
+			actuatorDesired.Thrust = 0.0f;
+			last_thrust_pos = true;
+			last_nonzero_thrust_time = 0;
+		} else if (fabsf(stabDesired.Thrust) > THROTTLE_EPSILON) {
 			if (settings.LowPowerStabilizationMaxTime) {
-				last_pos_thrust_time = this_systime;
+				last_nonzero_thrust_time = this_systime;
+				last_thrust_pos = stabDesired.Thrust >= 0;
 			}
-		} else if (last_pos_thrust_time) {
-			if ((this_systime - last_pos_thrust_time) <
+		} else if (last_nonzero_thrust_time) {
+			if ((this_systime - last_nonzero_thrust_time) <
 					1000.0f * settings.LowPowerStabilizationMaxTime) {
-				/* Choose a barely-positive value to trigger
+				/* Choose a barely-nonzero value to trigger
 				 * low-power stabilization in actuator.
 				 */
-				actuatorDesired.Thrust = THROTTLE_EPSILON;
+				if (last_thrust_pos) {
+					actuatorDesired.Thrust = THROTTLE_EPSILON;
+				} else {
+					actuatorDesired.Thrust = -THROTTLE_EPSILON;
+				}
 			} else {
-				last_pos_thrust_time = 0;
+				last_nonzero_thrust_time = 0;
 
 				actuatorDesired.Thrust = 0.0f;
 			}
 		} else {
-			/* XXX Problematic for 3D */
 			actuatorDesired.Thrust = 0.0f;
 		}
 
@@ -1075,7 +1095,7 @@ static void stabilizationTask(void* parameters)
 		ActuatorDesiredSet(&actuatorDesired);
 
 		if(flightStatus.Armed != FLIGHTSTATUS_ARMED_ARMED ||
-		   (lowThrottleZeroIntegral && get_throttle(&actuatorDesired, &airframe_type) < 0))
+		   (lowThrottleZeroIntegral && get_throttle(&actuatorDesired, &airframe_type) == 0))
 		{
 			// Force all axes to reinitialize when engaged
 			for(uint8_t i=0; i< MAX_AXES; i++)

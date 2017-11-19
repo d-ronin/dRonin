@@ -329,7 +329,7 @@ void HORIZON_update(charosd_state_t state, uint8_t x, uint8_t y)
 }
 
 /* Throttle */
-STD_PANEL(THROTTLE, 7, "\x87%d%%", (int)MAX(0, state->telemetry.manual.throttle*100));
+STD_PANEL(THROTTLE, 7, "\x87%d%%", (int)MAX(-99, state->telemetry.manual.thrust*100));
 
 /* GroundSpeed */
 STD_PANEL(GROUNDSPEED, 7, "\x80%d\x81",

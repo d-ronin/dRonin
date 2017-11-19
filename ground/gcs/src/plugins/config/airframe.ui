@@ -83,7 +83,7 @@
             <x>0</x>
             <y>0</y>
             <width>889</width>
-            <height>643</height>
+            <height>634</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout">
@@ -558,68 +558,6 @@ margin:1px;</string>
                      </layout>
                     </widget>
                    </item>
-                   <item>
-                    <spacer name="horizontalSpacer_4">
-                     <property name="orientation">
-                      <enum>Qt::Horizontal</enum>
-                     </property>
-                     <property name="sizeHint" stdset="0">
-                      <size>
-                       <width>40</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                    </spacer>
-                   </item>
-                   <item>
-                    <widget class="QGroupBox" name="groupBox_3">
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                       <horstretch>0</horstretch>
-                       <verstretch>100</verstretch>
-                      </sizepolicy>
-                     </property>
-                     <property name="title">
-                      <string>Throttle Curve</string>
-                     </property>
-                     <layout class="QVBoxLayout" name="verticalLayout_16">
-                      <item>
-                       <widget class="MixerCurve" name="fixedWingThrottle" native="true">
-                        <property name="sizePolicy">
-                         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                          <horstretch>1</horstretch>
-                          <verstretch>1</verstretch>
-                         </sizepolicy>
-                        </property>
-                        <property name="minimumSize">
-                         <size>
-                          <width>0</width>
-                          <height>0</height>
-                         </size>
-                        </property>
-                        <property name="maximumSize">
-                         <size>
-                          <width>500</width>
-                          <height>500</height>
-                         </size>
-                        </property>
-                        <property name="sizeIncrement">
-                         <size>
-                          <width>10</width>
-                          <height>10</height>
-                         </size>
-                        </property>
-                        <property name="baseSize">
-                         <size>
-                          <width>300</width>
-                          <height>350</height>
-                         </size>
-                        </property>
-                       </widget>
-                      </item>
-                     </layout>
-                    </widget>
-                   </item>
                   </layout>
                  </item>
                  <item>
@@ -830,73 +768,6 @@ margin:1px;</string>
                      </size>
                     </property>
                    </spacer>
-                  </item>
-                 </layout>
-                </widget>
-               </item>
-               <item row="0" column="2">
-                <widget class="QGroupBox" name="groupBox_6">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="minimumSize">
-                  <size>
-                   <width>10</width>
-                   <height>10</height>
-                  </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>16777215</width>
-                   <height>16777215</height>
-                  </size>
-                 </property>
-                 <property name="title">
-                  <string>Throttle Curve</string>
-                 </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_9">
-                  <property name="leftMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="topMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="rightMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="bottomMargin">
-                   <number>0</number>
-                  </property>
-                  <item>
-                   <widget class="MixerCurve" name="multiThrottleCurve" native="true">
-                    <property name="sizePolicy">
-                     <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
-                      <horstretch>0</horstretch>
-                      <verstretch>0</verstretch>
-                     </sizepolicy>
-                    </property>
-                    <property name="minimumSize">
-                     <size>
-                      <width>10</width>
-                      <height>10</height>
-                     </size>
-                    </property>
-                    <property name="sizeIncrement">
-                     <size>
-                      <width>10</width>
-                      <height>10</height>
-                     </size>
-                    </property>
-                    <property name="baseSize">
-                     <size>
-                      <width>50</width>
-                      <height>50</height>
-                     </size>
-                    </property>
-                   </widget>
                   </item>
                  </layout>
                 </widget>
@@ -1650,8 +1521,8 @@ margin:1px;</string>
                    <rect>
                     <x>0</x>
                     <y>0</y>
-                    <width>633</width>
-                    <height>214</height>
+                    <width>845</width>
+                    <height>507</height>
                    </rect>
                   </property>
                   <layout class="QVBoxLayout" name="verticalLayout_11">
@@ -1991,104 +1862,6 @@ margin:1px;</string>
                          </layout>
                         </widget>
                        </item>
-                       <item>
-                        <widget class="QGroupBox" name="gvThrottleCurve1GroupBox">
-                         <property name="sizePolicy">
-                          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                           <horstretch>0</horstretch>
-                           <verstretch>100</verstretch>
-                          </sizepolicy>
-                         </property>
-                         <property name="title">
-                          <string>Front throttle curve</string>
-                         </property>
-                         <layout class="QVBoxLayout" name="verticalLayout_36">
-                          <item>
-                           <widget class="MixerCurve" name="groundVehicleThrottle1" native="true">
-                            <property name="sizePolicy">
-                             <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
-                              <horstretch>0</horstretch>
-                              <verstretch>0</verstretch>
-                             </sizepolicy>
-                            </property>
-                            <property name="minimumSize">
-                             <size>
-                              <width>0</width>
-                              <height>0</height>
-                             </size>
-                            </property>
-                            <property name="maximumSize">
-                             <size>
-                              <width>500</width>
-                              <height>500</height>
-                             </size>
-                            </property>
-                            <property name="sizeIncrement">
-                             <size>
-                              <width>10</width>
-                              <height>10</height>
-                             </size>
-                            </property>
-                            <property name="baseSize">
-                             <size>
-                              <width>300</width>
-                              <height>350</height>
-                             </size>
-                            </property>
-                           </widget>
-                          </item>
-                         </layout>
-                        </widget>
-                       </item>
-                       <item>
-                        <widget class="QGroupBox" name="gvThrottleCurve2GroupBox">
-                         <property name="sizePolicy">
-                          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                           <horstretch>0</horstretch>
-                           <verstretch>0</verstretch>
-                          </sizepolicy>
-                         </property>
-                         <property name="title">
-                          <string>Rear throttle curve</string>
-                         </property>
-                         <layout class="QVBoxLayout" name="verticalLayout_37">
-                          <item>
-                           <widget class="MixerCurve" name="groundVehicleThrottle2" native="true">
-                            <property name="sizePolicy">
-                             <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
-                              <horstretch>0</horstretch>
-                              <verstretch>0</verstretch>
-                             </sizepolicy>
-                            </property>
-                            <property name="minimumSize">
-                             <size>
-                              <width>0</width>
-                              <height>0</height>
-                             </size>
-                            </property>
-                            <property name="maximumSize">
-                             <size>
-                              <width>500</width>
-                              <height>500</height>
-                             </size>
-                            </property>
-                            <property name="sizeIncrement">
-                             <size>
-                              <width>10</width>
-                              <height>10</height>
-                             </size>
-                            </property>
-                            <property name="baseSize">
-                             <size>
-                              <width>300</width>
-                              <height>350</height>
-                             </size>
-                            </property>
-                           </widget>
-                          </item>
-                         </layout>
-                        </widget>
-                       </item>
                       </layout>
                      </item>
                      <item>
@@ -2149,58 +1922,9 @@ margin:1px;</string>
                  <item row="0" column="0">
                   <layout class="QHBoxLayout" name="horizontalLayout_14">
                    <item>
-                    <widget class="QGroupBox" name="groupBox_4">
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                       <horstretch>0</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
-                     <property name="title">
-                      <string>Curve 1</string>
-                     </property>
-                     <layout class="QVBoxLayout" name="verticalLayout_7">
-                      <item>
-                       <widget class="MixerCurve" name="customThrottle1Curve" native="true">
-                        <property name="sizePolicy">
-                         <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
-                          <horstretch>1</horstretch>
-                          <verstretch>1</verstretch>
-                         </sizepolicy>
-                        </property>
-                        <property name="minimumSize">
-                         <size>
-                          <width>50</width>
-                          <height>50</height>
-                         </size>
-                        </property>
-                        <property name="maximumSize">
-                         <size>
-                          <width>1000</width>
-                          <height>1000</height>
-                         </size>
-                        </property>
-                        <property name="sizeIncrement">
-                         <size>
-                          <width>10</width>
-                          <height>10</height>
-                         </size>
-                        </property>
-                        <property name="baseSize">
-                         <size>
-                          <width>300</width>
-                          <height>350</height>
-                         </size>
-                        </property>
-                       </widget>
-                      </item>
-                     </layout>
-                    </widget>
-                   </item>
-                   <item>
                     <widget class="QGroupBox" name="groupBox_5">
                      <property name="title">
-                      <string>Curve 2</string>
+                      <string>Actuator Curve</string>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_17">
                       <item>
@@ -2269,12 +1993,12 @@ margin:1px;</string>
                    </row>
                    <row>
                     <property name="text">
-                     <string>Curve 1</string>
+                     <string>Thrust</string>
                     </property>
                    </row>
                    <row>
                     <property name="text">
-                     <string>Curve 2</string>
+                     <string>Curve</string>
                     </property>
                    </row>
                    <row>

@@ -314,7 +314,6 @@ CFLAGS += -g$(DEBUGF)
 endif
 
 CFLAGS += -DARCH_POSIX
-CFLAGS += -ffast-math
 CFLAGS += $(CDEFS)
 CFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS)) -I.
 

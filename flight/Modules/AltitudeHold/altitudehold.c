@@ -214,11 +214,7 @@ static void altitudeHoldTask(void *parameters)
 			AltitudeHoldDesiredGet(&altitudeHoldDesired);
 			altitude_error = altitudeHoldDesired.Altitude - position_z;
 
-			bool landing = altitudeHoldDesired.Land == ALTITUDEHOLDDESIRED_LAND_TRUE;
-
-			// For landing mode allow throttle to go negative to allow the integrals
-			// to stop winding up
-			const float min_throttle = landing ? -0.1f : 0.0f;
+			const float min_throttle = 0.00001f;
 
 			float velocity_desired = altitude_error * altitudeHoldSettings.PositionKp + altitudeHoldDesired.ClimbRate;
 			float throttle_desired = pid_apply_antiwindup(&velocity_pid, 
@@ -264,21 +260,13 @@ static void altitudeHoldTask(void *parameters)
 
 			stabilizationDesired.ReprojectionMode = STABILIZATIONDESIRED_REPROJECTIONMODE_NONE;
 
-			if (landing) {
-				stabilizationDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
-				stabilizationDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
-				stabilizationDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_AXISLOCK;
-				stabilizationDesired.Roll = 0;
-				stabilizationDesired.Pitch = 0;
-				stabilizationDesired.Yaw = 0;
-			} else {
-				stabilizationDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
-				stabilizationDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
-				stabilizationDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_AXISLOCK;
-				stabilizationDesired.Roll = altitudeHoldDesired.Roll;
-				stabilizationDesired.Pitch = altitudeHoldDesired.Pitch;
-				stabilizationDesired.Yaw = altitudeHoldDesired.Yaw;
-			}
+			stabilizationDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
+			stabilizationDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
+			stabilizationDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_AXISLOCK;
+			stabilizationDesired.Roll = altitudeHoldDesired.Roll;
+			stabilizationDesired.Pitch = altitudeHoldDesired.Pitch;
+			stabilizationDesired.Yaw = altitudeHoldDesired.Yaw;
+
 			StabilizationDesiredSet(&stabilizationDesired);
 		}
 

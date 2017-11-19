@@ -365,7 +365,7 @@ void systemmod_process_rgb_leds(bool led_override, bool led_override_active,
 
 		case RGBLEDSETTINGS_RANGECOLORBLENDSOURCE_THROTTLE:
 			StabilizationDesiredThrustGet(&tmp_float);
-			fraction = float_to_u16(tmp_float);
+			fraction = float_to_u16(fabsf(tmp_float));
 			break;
 
 		case RGBLEDSETTINGS_RANGECOLORBLENDSOURCE_ACCESSORY0:

@@ -50,7 +50,7 @@ typedef struct {
 	GPSPositionData gps_position;
 	struct {
 		int16_t rssi;
-		float throttle;
+		float thrust;
 	} manual;
 	struct {
 		uint8_t arm_status;

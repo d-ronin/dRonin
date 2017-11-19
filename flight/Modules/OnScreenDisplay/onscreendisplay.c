@@ -91,6 +91,7 @@
 #include "magnetometer.h"
 #include "manualcontrolcommand.h"
 #include "modulesettings.h"
+#include "stabilizationdesired.h"
 #include "stabilizationsettings.h"
 #include "stateestimation.h"
 #include "systemalarms.h"
@@ -1463,12 +1464,16 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 
 	// Throttle
 	if (page->Throttle) {
-		ManualControlCommandThrottleGet(&tmp);
-		if (tmp < 0) {
-			tmp = 0;
+		StabilizationDesiredThrustGet(&tmp);
+
+		int throttle = (100 * tmp + 0.5f);
+
+		/* Cap to 3 digits */
+		if (throttle < -99) {
+			throttle = -99;
 		}
 
-		sprintf(tmp_str, "%d", (int)(100 * tmp + 0.5f));
+		sprintf(tmp_str, "%d", throttle);
 
 		write_string(tmp_str, page->ThrottlePosX, page->ThrottlePosY, 0, 0, TEXT_VA_TOP, (int)page->ThrottleAlign, 0,
 				page->ThrottleFont);

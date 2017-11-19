@@ -455,32 +455,21 @@ void ConfigVehicleTypeWidget::refreshWidgetsValues(UAVObject *obj)
     QPointer<VehicleConfig> vconfig = new VehicleConfig();
 
     QList<double> curveValues;
-    vconfig->getThrottleCurve(mixerSettings, MixerSettings::MIXER1VECTOR_THROTTLECURVE1,
-                              &curveValues);
 
-    // is at least one of the curve values != 0?
-    if (vconfig->isValidThrottleCurve(&curveValues)) {
-        // yes, use the curve we just read from mixersettings
-        m_aircraft->multiThrottleCurve->initCurve(&curveValues);
-        m_aircraft->fixedWingThrottle->initCurve(&curveValues);
-        m_aircraft->groundVehicleThrottle1->initCurve(&curveValues);
-    } else {
-        // no, init a straight curve
-        m_aircraft->multiThrottleCurve->initLinearCurve(curveValues.count(), 0.9);
-        m_aircraft->fixedWingThrottle->initLinearCurve(curveValues.count(), 1.0);
-        m_aircraft->groundVehicleThrottle1->initLinearCurve(curveValues.count(), 1.0);
-    }
+    // Setup all Throttle2 curves for all types of airframe
+    vconfig->getThrottleCurve(mixerSettings,
+            MixerSettings::MIXER1VECTOR_THROTTLECURVE2,
+            &curveValues);
 
-    // Setup all Throttle2 curves for all types of airframes //AT THIS MOMENT, THAT MEANS ONLY
-    // GROUND VEHICLES
-    vconfig->getThrottleCurve(mixerSettings, MixerSettings::MIXER1VECTOR_THROTTLECURVE2,
-                              &curveValues);
+    if (!vconfig->isValidThrottleCurve(&curveValues)) {
+        for (int i = 0; i < curveValues.count(); i++) {
+            curveValues[i] = 1.0 * ((double) i / curveValues.count());
+        }
 
-    if (vconfig->isValidThrottleCurve(&curveValues)) {
-        m_aircraft->groundVehicleThrottle2->initCurve(&curveValues);
-    } else {
-        m_aircraft->groundVehicleThrottle2->initLinearCurve(curveValues.count(), 1.0);
-    }
+        vconfig->setThrottleCurve(mixerSettings,
+                MixerSettings::MIXER1VECTOR_THROTTLECURVE2,
+                curveValues);
+    } 
 
     // Load the Settings for vehicle frames:
     switch (frameType) {
@@ -630,16 +619,6 @@ void ConfigVehicleTypeWidget::updateCustomAirframeUI()
     QPointer<VehicleConfig> vconfig = new VehicleConfig();
 
     QList<double> curveValues;
-    vconfig->getThrottleCurve(mixerSettings, MixerSettings::MIXER1VECTOR_THROTTLECURVE1,
-                              &curveValues);
-
-    // is at least one of the curve values != 0?
-    if (vconfig->isValidThrottleCurve(&curveValues)) {
-        m_aircraft->customThrottle1Curve->initCurve(&curveValues);
-    } else {
-        // no, init a straight curve
-        m_aircraft->customThrottle1Curve->initLinearCurve(curveValues.count(), 1.0);
-    }
 
     MixerSettings::DataFields mixerSettingsData = mixerSettings->getData();
     if (mixerSettingsData.Curve2Source == MixerSettings::CURVE2SOURCE_THROTTLE)
@@ -722,11 +701,6 @@ void ConfigVehicleTypeWidget::updateObjectsFromWidgets()
     } else if (m_aircraft->aircraftType->currentText() == "Ground") {
         frameType = m_groundvehicle->updateConfigObjectsFromWidgets();
     } else {
-        vconfig->setThrottleCurve(mixerSettings, MixerSettings::MIXER1VECTOR_THROTTLECURVE1,
-                                  m_aircraft->customThrottle1Curve->getCurve());
-        vconfig->setThrottleCurve(mixerSettings, MixerSettings::MIXER1VECTOR_THROTTLECURVE2,
-                                  m_aircraft->customThrottle2Curve->getCurve());
-
         // Update the table:
         for (int channel = 0; channel < (int)(ActuatorCommand::CHANNEL_NUMELEM); channel++) {
             QComboBox *q = (QComboBox *)m_aircraft->customMixerTable->cellWidget(0, channel);
@@ -927,13 +901,7 @@ void ConfigVehicleTypeWidget::bnServoTrim_clicked()
 void ConfigVehicleTypeWidget::addToDirtyMonitor()
 {
     addWidget(m_aircraft->customMixerTable);
-    addWidget(m_aircraft->customThrottle1Curve->getCurveWidget());
-    addWidget(m_aircraft->customThrottle2Curve->getCurveWidget());
-    addWidget(m_aircraft->multiThrottleCurve->getCurveWidget());
-    addWidget(m_aircraft->fixedWingThrottle->getCurveWidget());
     addWidget(m_aircraft->fixedWingType);
-    addWidget(m_aircraft->groundVehicleThrottle1->getCurveWidget());
-    addWidget(m_aircraft->groundVehicleThrottle2->getCurveWidget());
     addWidget(m_aircraft->groundVehicleType);
     addWidget(m_aircraft->multirotorFrameType);
     addWidget(m_aircraft->multiMotorChannelBox1);
@@ -987,7 +955,6 @@ void ConfigVehicleTypeWidget::addToDirtyMonitor()
     addWidget(m_heli->m_ccpm->ccpmRollScaleBox);
     addWidget(m_heli->m_ccpm->SwashLvlPositionSlider);
     addWidget(m_heli->m_ccpm->SwashLvlPositionSpinBox);
-    addWidget(m_heli->m_ccpm->ThrottleCurve->getCurveWidget());
     addWidget(m_heli->m_ccpm->PitchCurve->getCurveWidget());
     addWidget(m_heli->m_ccpm->ccpmAdvancedSettingsTable);
 }

@@ -154,10 +154,22 @@ void PIOS_DMAShot_WriteValue(const struct pios_tim_channel *servo_channel, uint1
 	int shift = (servo_channel->timer_chan - s_timer->low_channel) >> 2;
 	int channels = PIOS_DMAShot_GetNumChannels(s_timer);
 
+	bool telem_bit = false;
+
+	/* Set telem bit on commands */
+	if ((throttle > 0) && (throttle < 48)) {
+		telem_bit = true;
+	}
+
 	if (throttle > 2047)
 		throttle = 2047;
 
 	throttle <<= 5;
+
+	if (telem_bit) {
+		throttle |= 16;
+	}
+
 	throttle |=
 			((throttle >> 4 ) & 0xf) ^
 			((throttle >> 8 ) & 0xf) ^

@@ -97,9 +97,6 @@ void ConfigGroundVehicleWidget::setupUI(SystemSettings::AirframeTypeOptions fram
 
         m_aircraft->differentialSteeringMixBox->setHidden(false);
 
-        m_aircraft->gvThrottleCurve1GroupBox->setTitle("Left throttle curve");
-        m_aircraft->gvThrottleCurve2GroupBox->setTitle("Right throttle curve");
-
     } else if (frameType == SystemSettings::AIRFRAMETYPE_GROUNDVEHICLEMOTORCYCLE) { // Motorcycle
         setComboCurrentIndex(m_aircraft->groundVehicleType,
                              m_aircraft->groundVehicleType->findText("Motorcycle"));
@@ -121,9 +118,6 @@ void ConfigGroundVehicleWidget::setupUI(SystemSettings::AirframeTypeOptions fram
         m_aircraft->gvSteering2Label->setText("Balancing");
 
         m_aircraft->differentialSteeringMixBox->setHidden(true);
-
-        m_aircraft->gvThrottleCurve1GroupBox->setTitle("Front throttle curve");
-        m_aircraft->gvThrottleCurve2GroupBox->setTitle("Rear throttle curve");
     } else { // Car
         setComboCurrentIndex(m_aircraft->groundVehicleType,
                              m_aircraft->groundVehicleType->findText("Turnable (car)"));
@@ -144,9 +138,6 @@ void ConfigGroundVehicleWidget::setupUI(SystemSettings::AirframeTypeOptions fram
         m_aircraft->gvSteering2Label->setEnabled(true);
 
         m_aircraft->differentialSteeringMixBox->setHidden(true);
-
-        m_aircraft->gvThrottleCurve1GroupBox->setTitle("Front throttle curve");
-        m_aircraft->gvThrottleCurve2GroupBox->setTitle("Rear throttle curve");
     }
 }
 
@@ -195,12 +186,6 @@ SystemSettings::AirframeTypeOptions ConfigGroundVehicleWidget::updateConfigObjec
     // Save the curve (common to all ground vehicle frames)
     MixerSettings *mixerSettings = MixerSettings::GetInstance(getObjectManager());
     Q_ASSERT(mixerSettings);
-
-    // set the throttle curves
-    setThrottleCurve(mixerSettings, MixerSettings::MIXER1VECTOR_THROTTLECURVE1,
-                     m_aircraft->groundVehicleThrottle1->getCurve());
-    setThrottleCurve(mixerSettings, MixerSettings::MIXER1VECTOR_THROTTLECURVE2,
-                     m_aircraft->groundVehicleThrottle2->getCurve());
 
     // All airframe types must start with "GroundVehicle"
     if (m_aircraft->groundVehicleType->currentText() == "Turnable (car)") {

@@ -9,10 +9,13 @@
 			<description>Maximum output pulse length. Actuator commands will be scaled [-1,1] &gt; [ChannelMin,ChannelMax].</description>
 		</field>
 		<field name="ChannelNeutral" units="us" type="uint16" elements="10" defaultvalue="0">
-			<description>Neutral output pulse length. For motors, should be set to the minimum pulse that causes the motor to start and spin reliably.</description>
+			<description>Neutral output pulse length. For motors, should be set to the minimum pulse that causes the motor to start and spin reliably.  For 3D motors, should be the pulse length that results in no spinning.</description>
 		</field>
 		<field name="ChannelMin" units="us" type="uint16" elements="10" defaultvalue="0">
-			<description>Minimum output pulse length. Actuator commands will be scaled from [-1,1] to [ChannelMin,ChannelMax].</description>
+			<description>Minimum output pulse length. Actuator commands will be scaled from [-1,1] to [ChannelMin,ChannelMax].  For normal motors, should be a value that results in no spinning.  For 3D motors, should be the pulse length that result in maximum reverse spin.</description>
+		</field>
+		<field name="ChannelDeadband" units="us" type="uint16" elements="10" defaultvalue="0">
+			<description>If nonzero, indicates that this is a 3D motor.  For non-dshot modes, indicates the total width of the region around ChannelNeutral.  E.g. if ChannelNeutral is 186, and deadband is 10-- 186us will be sent to not spin, 191us to slowly spin forward, and 181us to slowly spin reverse.  For dshot modes, if this is 1, the motor is 3D.  If it is 2, it is reverse-3D.</description>
 		</field>
 		<field name="MotorsSpinWhileArmed" units="" type="enum" elements="1" options="FALSE,TRUE" defaultvalue="FALSE">
 			<description>When enabled, the motors will spin at the ChannelNeutral command when armed with zero throttle.</description>

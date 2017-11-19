@@ -92,4 +92,10 @@ void PIOS_Servo_Update(void)
 void PIOS_Servo_PrepareForReset() {
 }
 
+bool PIOS_Servo_IsDshot(uint8_t servo) {
+	(void) servo;
+
+	return false;
+}
+
 #endif
