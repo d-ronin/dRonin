@@ -1,39 +1,38 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="AnnunciatorSettings" singleinstance="true" settings="true">
-		<description>Settings for alarm annunciation (LEDs, buzzer)</description>
-		<field name="AnnunciateAnytime" units="" type="enum" parent="SharedDefs.AlarmLevels" defaultvalue="OK,Warning,HairOnFire,Warning,Warning">
-			<description>Thresholds for the various annunciator devices.  If an alarm severity is equal to or worse than the threshold for a given annunciator, that annunciator will sound the alarm.</description>
-			<elementnames>
-				<elementname>LED_Heartbeat</elementname>
-				<elementname>LED_Alarm</elementname>
-				<elementname>Buzzer</elementname>
-				<elementname>RGB_LEDs</elementname>
-				<elementname>DAC</elementname>
-			</elementnames>
-		</field>
-		<field name="AnnunciateAfterArming" units="" type="enum" parent="SharedDefs.AlarmLevels" defaultvalue="HairOnFire,HairOnFire,ManualControlOnly,HairOnFire,HairOnFire">
-			<description>These fields are annunciator thresholds; they allow one to set lower thresholds after arming has taken place.</description>
-			<elementnames>
-				<elementname>LED_Heartbeat</elementname>
-				<elementname>LED_Alarm</elementname>
-				<elementname>Buzzer</elementname>
-				<elementname>RGB_LEDs</elementname>
-				<elementname>DAC</elementname>
-			</elementnames>
-		</field>
-		<field name="ManualBuzzer" units="" type="enum" elements="1" defaultvalue="Disabled">
-			<description>Select an input accessory channel here to activate the buzzer manually when that channel is above the neutral value</description>
-			<options>
-				<option>Disabled</option>
-				<option>Accessory 0</option>
-				<option>Accessory 1</option>
-				<option>Accessory 2</option>
-			</options>
-		</field>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="AnnunciatorSettings" settings="true" singleinstance="true">
+    <description>Settings for alarm annunciation (LEDs, buzzer)</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="onchange" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="OK,Warning,HairOnFire,Warning,Warning" name="AnnunciateAnytime" parent="SharedDefs.AlarmLevels" type="enum" units="">
+      <description>Thresholds for the various annunciator devices.  If an alarm severity is equal to or worse than the threshold for a given annunciator, that annunciator will sound the alarm.</description>
+      <elementnames>
+        <elementname>LED_Heartbeat</elementname>
+        <elementname>LED_Alarm</elementname>
+        <elementname>Buzzer</elementname>
+        <elementname>RGB_LEDs</elementname>
+        <elementname>DAC</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="HairOnFire,HairOnFire,ManualControlOnly,HairOnFire,HairOnFire" name="AnnunciateAfterArming" parent="SharedDefs.AlarmLevels" type="enum" units="">
+      <description>These fields are annunciator thresholds; they allow one to set lower thresholds after arming has taken place.</description>
+      <elementnames>
+        <elementname>LED_Heartbeat</elementname>
+        <elementname>LED_Alarm</elementname>
+        <elementname>Buzzer</elementname>
+        <elementname>RGB_LEDs</elementname>
+        <elementname>DAC</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="ManualBuzzer" type="enum" units="">
+      <description>Select an input accessory channel here to activate the buzzer manually when that channel is above the neutral value</description>
+      <options>
+        <option>Disabled</option>
+        <option>Accessory 0</option>
+        <option>Accessory 1</option>
+        <option>Accessory 2</option>
+      </options>
+    </field>
+  </object>
 </xml>

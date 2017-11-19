@@ -1,17 +1,30 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="AttitudeActual" singleinstance="true" settings="false">
-		<description>The updated Attitude estimation from @ref AHRSCommsModule.</description>
-		<field name="q1" units="" type="float" elements="1"/>
-		<field name="q2" units="" type="float" elements="1"/>
-		<field name="q3" units="" type="float" elements="1"/>
-		<field name="q4" units="" type="float" elements="1"/>
-		<field name="Roll" units="degrees" type="float" elements="1"/>
-		<field name="Pitch" units="degrees" type="float" elements="1"/>
-		<field name="Yaw" units="degrees" type="float" elements="1"/>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="false" updatemode="manual" period="0"/>
-		<telemetryflight acked="false" updatemode="throttled" period="100"/>
-		<logging updatemode="periodic" period="500"/>
-	</object>
+  <object name="AttitudeActual" settings="false" singleinstance="true">
+    <description>The updated Attitude estimation from @ref AHRSCommsModule.</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="periodic" period="500"/>
+    <telemetrygcs acked="false" updatemode="manual" period="0"/>
+    <telemetryflight acked="false" updatemode="throttled" period="100"/>
+    <field defaultvalue="0" elements="1" name="q1" type="float" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="q2" type="float" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="q3" type="float" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="q4" type="float" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="Roll" type="float" units="degrees">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="Pitch" type="float" units="degrees">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="Yaw" type="float" units="degrees">
+      <description/>
+    </field>
+  </object>
 </xml>

@@ -1,22 +1,52 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="GPSPosition" singleinstance="true" settings="false">
-		<description>Raw GPS data from @ref GPSModule. </description>
-		<field name="Status" units="" type="enum" elements="1" options="NoGPS,NoFix,Fix2D,Fix3D,Diff3D"/>
-		<field name="Latitude" units="degrees x 10^-7" type="int32" elements="1"/>
-		<field name="Longitude" units="degrees x 10^-7" type="int32" elements="1"/>
-		<field name="Altitude" units="meters" type="float" elements="1"/>
-		<field name="GeoidSeparation" units="meters" type="float" elements="1"/>
-		<field name="Heading" units="degrees" type="float" elements="1"/>
-		<field name="Groundspeed" units="m/s" type="float" elements="1"/>
-		<field name="Satellites" units="" type="uint8" elements="1"/>
-		<field name="Accuracy" units="m" type="float" elements="1"/>
-		<field name="PDOP" units="" type="float" elements="1"/>
-		<field name="HDOP" units="" type="float" elements="1"/>
-		<field name="VDOP" units="" type="float" elements="1"/>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="false" updatemode="manual" period="0"/>
-		<telemetryflight acked="false" updatemode="throttled" period="2000"/>
-		<logging updatemode="periodic" period="1000"/>
-	</object>
+  <object name="GPSPosition" settings="false" singleinstance="true">
+    <description>Raw GPS data from @ref GPSModule. </description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="periodic" period="1000"/>
+    <telemetrygcs acked="false" updatemode="manual" period="0"/>
+    <telemetryflight acked="false" updatemode="throttled" period="2000"/>
+    <field defaultvalue="NoGPS" elements="1" name="Status" type="enum" units="">
+      <description/>
+      <options>
+        <option>NoGPS</option>
+        <option>NoFix</option>
+        <option>Fix2D</option>
+        <option>Fix3D</option>
+        <option>Diff3D</option>
+      </options>
+    </field>
+    <field defaultvalue="0" elements="1" name="Latitude" type="int32" units="degrees x 10^-7">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="Longitude" type="int32" units="degrees x 10^-7">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="Altitude" type="float" units="meters">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="GeoidSeparation" type="float" units="meters">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="Heading" type="float" units="degrees">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="Groundspeed" type="float" units="m/s">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="Satellites" type="uint8" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="Accuracy" type="float" units="m">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="PDOP" type="float" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="HDOP" type="float" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="VDOP" type="float" units="">
+      <description/>
+    </field>
+  </object>
 </xml>

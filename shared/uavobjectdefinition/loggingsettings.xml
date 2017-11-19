@@ -1,22 +1,48 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="LoggingSettings" singleinstance="true" settings="true">
-		<description>Settings for the logging module</description>
-		<field name="LogBehavior" units="" type="enum" options="LogOnStart,LogOnArm,LogOff" elements="1" defaultvalue="LogOnArm">
-			<description>When to start logging</description>
-		</field>
-		<field name="InitiallyLog" units="" type="enum" options="AllObjects,SettingsObjects,None" elements="1" defaultvalue="AllObjects">
-			<description>Which objects to log</description>
-		</field>
-		<field name="MaxLogRate" units="Hz" type="enum" options="5,10,25,50,100,166,250,333,500,1000" elements="1" defaultvalue="50">
-			<description>Maximum log rate</description>
-		</field>
-		<field name="Profile" units="" type="enum" options="Basic,Custom,Fullbore" elements="1" defaultvalue="Fullbore">
-			<description>Profile to use</description>
-		</field>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="LoggingSettings" settings="true" singleinstance="true">
+    <description>Settings for the logging module</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="onchange" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="LogOnArm" elements="1" name="LogBehavior" type="enum" units="">
+      <description>When to start logging</description>
+      <options>
+        <option>LogOnStart</option>
+        <option>LogOnArm</option>
+        <option>LogOff</option>
+      </options>
+    </field>
+    <field defaultvalue="AllObjects" elements="1" name="InitiallyLog" type="enum" units="">
+      <description>Which objects to log</description>
+      <options>
+        <option>AllObjects</option>
+        <option>SettingsObjects</option>
+        <option>None</option>
+      </options>
+    </field>
+    <field defaultvalue="50" elements="1" name="MaxLogRate" type="enum" units="Hz">
+      <description>Maximum log rate</description>
+      <options>
+        <option>5</option>
+        <option>10</option>
+        <option>25</option>
+        <option>50</option>
+        <option>100</option>
+        <option>166</option>
+        <option>250</option>
+        <option>333</option>
+        <option>500</option>
+        <option>1000</option>
+      </options>
+    </field>
+    <field defaultvalue="Fullbore" elements="1" name="Profile" type="enum" units="">
+      <description>Profile to use</description>
+      <options>
+        <option>Basic</option>
+        <option>Custom</option>
+        <option>Fullbore</option>
+      </options>
+    </field>
+  </object>
 </xml>

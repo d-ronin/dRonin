@@ -1,11 +1,12 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="GCSReceiver" singleinstance="true" settings="false">
-		<description>A receiver channel group carried over the telemetry link.</description>
-		<field name="Channel" units="us" type="uint16" elements="8"/>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="false" updatemode="onchange" period="0"/>
-		<telemetryflight acked="false" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="GCSReceiver" settings="false" singleinstance="true">
+    <description>A receiver channel group carried over the telemetry link.</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="false" updatemode="onchange" period="0"/>
+    <telemetryflight acked="false" updatemode="onchange" period="0"/>
+    <field defaultvalue="0" elements="8" name="Channel" type="uint16" units="us">
+      <description/>
+    </field>
+  </object>
 </xml>

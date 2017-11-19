@@ -1,11 +1,12 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="RFM22BReceiver" singleinstance="true" settings="false">
-		<description>A receiver channel group carried over the RFM22B radio.</description>
-		<field name="Channel" units="us" type="int16" elements="8"/>
-		<access gcs="readonly" flight="readwrite"/>
-		<telemetrygcs acked="false" updatemode="onchange" period="0"/>
-		<telemetryflight acked="false" updatemode="onchange" period="1000"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="RFM22BReceiver" settings="false" singleinstance="true">
+    <description>A receiver channel group carried over the RFM22B radio.</description>
+    <access gcs="readonly" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="false" updatemode="onchange" period="0"/>
+    <telemetryflight acked="false" updatemode="onchange" period="1000"/>
+    <field defaultvalue="0" elements="8" name="Channel" type="int16" units="us">
+      <description/>
+    </field>
+  </object>
 </xml>

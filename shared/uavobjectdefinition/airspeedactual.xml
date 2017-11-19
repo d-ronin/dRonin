@@ -1,14 +1,21 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="AirspeedActual" singleinstance="true" settings="false">
-		<description>UAVO for true airspeed, calibrated airspeed, angle of attack, and angle of slip</description>
-		<field name="TrueAirspeed" units="m/s" type="float" elements="1"/>
-		<field name="CalibratedAirspeed" units="m/s" type="float" elements="1"/>
-		<field name="alpha" units="deg" type="float" elements="1"/>
-		<field name="beta" units="deg" type="float" elements="1"/>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="false" updatemode="manual" period="0"/>
-		<telemetryflight acked="false" updatemode="throttled" period="500"/>
-		<logging updatemode="periodic" period="1000"/>
-	</object>
+  <object name="AirspeedActual" settings="false" singleinstance="true">
+    <description>UAVO for true airspeed, calibrated airspeed, angle of attack, and angle of slip</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="periodic" period="1000"/>
+    <telemetrygcs acked="false" updatemode="manual" period="0"/>
+    <telemetryflight acked="false" updatemode="throttled" period="500"/>
+    <field defaultvalue="0" elements="1" name="TrueAirspeed" type="float" units="m/s">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="CalibratedAirspeed" type="float" units="m/s">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="alpha" type="float" units="deg">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="beta" type="float" units="deg">
+      <description/>
+    </field>
+  </object>
 </xml>

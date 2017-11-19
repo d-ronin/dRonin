@@ -1,50 +1,92 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="SensorSettings" singleinstance="true" settings="true">
-		<description>Settings for the @ref Attitude module</description>
-		<field name="AccelBias" units="m/s^2" type="float" elementnames="X,Y,Z" defaultvalue="0">
-			<description/>
-		</field>
-		<field name="AccelScale" units="[-]" type="float" elementnames="X,Y,Z" defaultvalue="1">
-			<description/>
-		</field>
-		<field name="GyroScale" units="-" type="float" elementnames="X,Y,Z" defaultvalue="1">
-			<description/>
-		</field>
-		<field name="XGyroTempCoeff" units="(deg/s)/deg" type="float" elementnames="1,T,T2,T3" defaultvalue="0">
-			<description/>
-		</field>
-		<field name="YGyroTempCoeff" units="(deg/s)/deg" type="float" elementnames="1,T,T2,T3" defaultvalue="0">
-			<description/>
-		</field>
-		<field name="ZGyroTempCoeff" units="(deg/s)/deg" type="float" elementnames="1,T,T2,T3" defaultvalue="0">
-			<description/>
-		</field>
-		<field name="MagBias" units="mGau" type="float" elementnames="X,Y,Z" defaultvalue="0,0,0">
-			<description/>
-		</field>
-		<field name="MagScale" units="gain" type="float" elementnames="X,Y,Z" defaultvalue="1">
-			<description/>
-		</field>
-		<field name="ZAccelOffset" units="m/s^2" type="float" elements="1" defaultvalue="0">
-			<description/>
-		</field>
-		<field name="TolerateMissingSensors" units="" type="enum" elements="1" defaultvalue="FALSE">
-			<description>Tolerate Missing Sensors</description>
-			<options>
-				<option>FALSE</option>
-				<option>TRUE</option>
-			</options>
-		</field>
-		<field name="LowpassCutoff" units="Hz" type="float" elements="1" defaultvalue="55">
-			<description>Cutoff frequency for the lowpass on both the gyroscopes and accelerometers.</description>
-		</field>
-		<field name="LowpassOrder" units="" type="uint8" elements="1" defaultvalue="1">
-			<description>Order of the lowpass filter. Maximum 8, a value of zero bypasses the filter.</description>
-		</field>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="SensorSettings" settings="true" singleinstance="true">
+    <description>Settings for the @ref Attitude module</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="onchange" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="0.0" name="AccelBias" type="float" units="m/s^2">
+      <description/>
+      <elementnames>
+        <elementname>X</elementname>
+        <elementname>Y</elementname>
+        <elementname>Z</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="1.0" name="AccelScale" type="float" units="[-]">
+      <description/>
+      <elementnames>
+        <elementname>X</elementname>
+        <elementname>Y</elementname>
+        <elementname>Z</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="1.0" name="GyroScale" type="float" units="-">
+      <description/>
+      <elementnames>
+        <elementname>X</elementname>
+        <elementname>Y</elementname>
+        <elementname>Z</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="0.0" name="XGyroTempCoeff" type="float" units="(deg/s)/deg">
+      <description/>
+      <elementnames>
+        <elementname>1</elementname>
+        <elementname>T</elementname>
+        <elementname>T2</elementname>
+        <elementname>T3</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="0.0" name="YGyroTempCoeff" type="float" units="(deg/s)/deg">
+      <description/>
+      <elementnames>
+        <elementname>1</elementname>
+        <elementname>T</elementname>
+        <elementname>T2</elementname>
+        <elementname>T3</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="0.0" name="ZGyroTempCoeff" type="float" units="(deg/s)/deg">
+      <description/>
+      <elementnames>
+        <elementname>1</elementname>
+        <elementname>T</elementname>
+        <elementname>T2</elementname>
+        <elementname>T3</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="0.0" name="MagBias" type="float" units="mGau">
+      <description/>
+      <elementnames>
+        <elementname>X</elementname>
+        <elementname>Y</elementname>
+        <elementname>Z</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="1.0" name="MagScale" type="float" units="gain">
+      <description/>
+      <elementnames>
+        <elementname>X</elementname>
+        <elementname>Y</elementname>
+        <elementname>Z</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="0.0" elements="1" name="ZAccelOffset" type="float" units="m/s^2">
+      <description/>
+    </field>
+    <field defaultvalue="FALSE" elements="1" name="TolerateMissingSensors" type="enum" units="">
+      <description>Tolerate Missing Sensors</description>
+      <options>
+        <option>FALSE</option>
+        <option>TRUE</option>
+      </options>
+    </field>
+    <field defaultvalue="55.0" elements="1" name="LowpassCutoff" type="float" units="Hz">
+      <description>Cutoff frequency for the lowpass on both the gyroscopes and accelerometers.</description>
+    </field>
+    <field defaultvalue="1" elements="1" name="LowpassOrder" type="uint8" units="">
+      <description>Order of the lowpass filter. Maximum 8, a value of zero bypasses the filter.</description>
+    </field>
+  </object>
 </xml>

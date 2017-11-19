@@ -1,165 +1,162 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="ModuleSettings" singleinstance="true" settings="true">
-		<description>Optional module configuration.</description>
-		<field name="AdminState" units="" type="enum" options="Disabled,Enabled" defaultvalue="Disabled">
-			<description>Controls whether modules are enabled or not (they will still only run when correctly configured and subject to hardware limitations).</description>
-			<elementnames>
-				<elementname>Airspeed</elementname>
-				<elementname>AltitudeHold</elementname>
-				<elementname>Autotune</elementname>
-				<elementname>Battery</elementname>
-				<elementname>CameraStab</elementname>
-				<elementname>FixedWingPathFollower</elementname>
-				<elementname>Fault</elementname>
-				<elementname>PathPlanner</elementname>
-				<elementname>TxPID</elementname>
-				<elementname>VtolPathFollower</elementname>
-				<elementname>VibrationAnalysis</elementname>
-				<elementname>Geofence</elementname>
-				<elementname>Logging</elementname>
-				<elementname>FlightStats</elementname>
-			</elementnames>
-		</field>
-		<!-- Telemetry Module Settings -->
-		<field name="TelemetrySpeed" units="bps" type="enum" elements="1" defaultvalue="115200" parent="HwShared.SpeedBps">
-			<description>Baudrate for the telemetry port, must match GCS. The "Init *" options send commands to configure bluetooth modules with appropriate settings for telemetry use).</description>
-			<options>
-				<option>9600</option>
-				<option>19200</option>
-				<option>38400</option>
-				<option>57600</option>
-				<option>115200</option>
-				<option>230400</option>
-				<option>Init HC05</option>
-				<option>Init HC06</option>
-				<option>Init HM10</option>
-			</options>
-		</field>
-		<!-- GPS Module Settings -->
-		<field name="GPSSpeed" units="bps" type="enum" elements="1" defaultvalue="57600" parent="HwShared.SpeedBps">
-			<description>Baudrate for the GPS port, must match GPS settings, unless GPS auto-configuration is enabled.</description>
-			<options>
-				<option>2400</option>
-				<option>4800</option>
-				<option>9600</option>
-				<option>19200</option>
-				<option>38400</option>
-				<option>57600</option>
-				<option>115200</option>
-				<option>230400</option>
-			</options>
-		</field>
-		<field name="GPSDataProtocol" units="" type="enum" elements="1" defaultvalue="UBX">
-			<description>Select the protocol used by your GPS.</description>
-			<options>
-				<option>NMEA</option>
-				<option>UBX</option>
-			</options>
-		</field>
-		<field name="GPSAutoConfigure" units="" type="enum" elements="1" defaultvalue="TRUE">
-			<description>Automatically configure the GPS with appropriate baud-rate and settings for UAV navigation. Note: some of the other GPS settings affect the configuration.</description>
-			<options>
-				<option>FALSE</option>
-				<option>TRUE</option>
-			</options>
-		</field>
-		<field name="GPSConstellation" units="" type="enum" elements="1" defaultvalue="All">
-			<description>Type of satellites to use (when GPS is auto-configured).</description>
-			<options>
-				<option>All</option>
-				<option>GPS</option>
-				<option>GLONASS</option>
-			</options>
-		</field>
-		<field name="GPSSBASConstellation" units="" type="enum" elements="1" defaultvalue="All">
-			<description>The types of augmentation satellites that will be used (when GPS is auto-configured). Optimal setting is region dependant.</description>
-			<options>
-				<option>All</option>
-				<option>WAAS</option>
-				<option>EGNOS</option>
-				<option>MSAS</option>
-				<option>GAGAN</option>
-				<option>None</option>
-			</options>
-		</field>
-		<field name="GPSDynamicsMode" units="" type="enum" elements="1" defaultvalue="Airborne2G">
-			<description>Dynamics mode used by the GPS (when auto-configured). Will affect the accuracy of the position fix.</description>
-			<options>
-				<option>Portable</option>
-				<option>Pedestrian</option>
-				<option>Automotive</option>
-				<option>Airborne1G</option>
-				<option>Airborne2G</option>
-				<option>Airborne4G</option>
-			</options>
-		</field>
-		<!-- ComUsbBridge Module Settings -->
-		<field name="ComUsbBridgeSpeed" units="bps" type="enum" elements="1" parent="HwShared.SpeedBps" defaultvalue="57600">
-			<description>Baudrate used by ports configured as ComUsbBridge.</description>
-		</field>
-		<!-- Mavlink Module Settings -->
-		<field name="MavlinkSpeed" units="bps" type="enum" elements="1" parent="HwShared.SpeedBps" defaultvalue="57600">
-			<description>Baudrate used by ports configured for MAVLINK telemetry.</description>
-			<options>
-				<option>2400</option>
-				<option>4800</option>
-				<option>9600</option>
-				<option>19200</option>
-				<option>38400</option>
-				<option>57600</option>
-				<option>115200</option>
-			</options>
-		</field>
-		<field name="MSPSpeed" units="bps" type="enum" elements="1" parent="HwShared.SpeedBps" defaultvalue="115200">
-			<description>Baudrate used by ports configured for MSP telemetry.</description>
-			<options>
-				<option>2400</option>
-				<option>4800</option>
-				<option>9600</option>
-				<option>19200</option>
-				<option>38400</option>
-				<option>57600</option>
-				<option>115200</option>
-			</options>
-		</field>
-		<!-- LightTelemetry Module Settings -->
-		<field name="LightTelemetrySpeed" units="bps" type="enum" elements="1" parent="HwShared.SpeedBps" defaultvalue="1200">
-			<description>Baudrate used by ports configured for LTM telemetry.</description>
-			<options>
-				<option>1200</option>
-				<option>2400</option>
-				<option>4800</option>
-				<option>9600</option>
-				<option>19200</option>
-				<option>38400</option>
-				<option>57600</option>
-				<option>115200</option>
-			</options>
-		</field>
-		<!-- FrSky telemetry Module Settings -->
-		<field name="FrskyAccelData" units="" type="enum" elements="1" defaultvalue="Accels">
-			<description>The accelerometer data source for FrSky telemetry.</description>
-			<options>
-				<option>Accels</option>
-				<option>NEDAccels</option>
-				<option>NEDVelocity</option>
-				<option>AttitudeAngles</option>
-			</options>
-		</field>
-		<field name="OpenLogSpeed" units="bps" type="enum" elements="1" defaultvalue="115200">
-			<description>Baudrate used by ports configured for LTM telemetry.</description>
-			<options>
-				<option>115200</option>
-				<option>250000</option>
-				<option>1500000</option>
-				<option>2000000</option>
-				<option>2470000</option>
-			</options>
-		</field>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="ModuleSettings" settings="true" singleinstance="true">
+    <description>Optional module configuration.</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="onchange" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="Disabled" name="AdminState" type="enum" units="">
+      <description>Controls whether modules are enabled or not (they will still only run when correctly configured and subject to hardware limitations).</description>
+      <elementnames>
+        <elementname>Airspeed</elementname>
+        <elementname>AltitudeHold</elementname>
+        <elementname>Autotune</elementname>
+        <elementname>Battery</elementname>
+        <elementname>CameraStab</elementname>
+        <elementname>FixedWingPathFollower</elementname>
+        <elementname>Fault</elementname>
+        <elementname>PathPlanner</elementname>
+        <elementname>TxPID</elementname>
+        <elementname>VtolPathFollower</elementname>
+        <elementname>VibrationAnalysis</elementname>
+        <elementname>Geofence</elementname>
+        <elementname>Logging</elementname>
+        <elementname>FlightStats</elementname>
+      </elementnames>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="115200" elements="1" name="TelemetrySpeed" parent="HwShared.SpeedBps" type="enum" units="bps">
+      <description>Baudrate for the telemetry port, must match GCS. The "Init *" options send commands to configure bluetooth modules with appropriate settings for telemetry use).</description>
+      <options>
+        <option>9600</option>
+        <option>19200</option>
+        <option>38400</option>
+        <option>57600</option>
+        <option>115200</option>
+        <option>230400</option>
+        <option>Init HC05</option>
+        <option>Init HC06</option>
+        <option>Init HM10</option>
+      </options>
+    </field>
+    <field defaultvalue="57600" elements="1" name="GPSSpeed" parent="HwShared.SpeedBps" type="enum" units="bps">
+      <description>Baudrate for the GPS port, must match GPS settings, unless GPS auto-configuration is enabled.</description>
+      <options>
+        <option>2400</option>
+        <option>4800</option>
+        <option>9600</option>
+        <option>19200</option>
+        <option>38400</option>
+        <option>57600</option>
+        <option>115200</option>
+        <option>230400</option>
+      </options>
+    </field>
+    <field defaultvalue="UBX" elements="1" name="GPSDataProtocol" type="enum" units="">
+      <description>Select the protocol used by your GPS.</description>
+      <options>
+        <option>NMEA</option>
+        <option>UBX</option>
+      </options>
+    </field>
+    <field defaultvalue="TRUE" elements="1" name="GPSAutoConfigure" type="enum" units="">
+      <description>Automatically configure the GPS with appropriate baud-rate and settings for UAV navigation. Note: some of the other GPS settings affect the configuration.</description>
+      <options>
+        <option>FALSE</option>
+        <option>TRUE</option>
+      </options>
+    </field>
+    <field defaultvalue="All" elements="1" name="GPSConstellation" type="enum" units="">
+      <description>Type of satellites to use (when GPS is auto-configured).</description>
+      <options>
+        <option>All</option>
+        <option>GPS</option>
+        <option>GLONASS</option>
+      </options>
+    </field>
+    <field defaultvalue="All" elements="1" name="GPSSBASConstellation" type="enum" units="">
+      <description>The types of augmentation satellites that will be used (when GPS is auto-configured). Optimal setting is region dependant.</description>
+      <options>
+        <option>All</option>
+        <option>WAAS</option>
+        <option>EGNOS</option>
+        <option>MSAS</option>
+        <option>GAGAN</option>
+        <option>None</option>
+      </options>
+    </field>
+    <field defaultvalue="Airborne2G" elements="1" name="GPSDynamicsMode" type="enum" units="">
+      <description>Dynamics mode used by the GPS (when auto-configured). Will affect the accuracy of the position fix.</description>
+      <options>
+        <option>Portable</option>
+        <option>Pedestrian</option>
+        <option>Automotive</option>
+        <option>Airborne1G</option>
+        <option>Airborne2G</option>
+        <option>Airborne4G</option>
+      </options>
+    </field>
+    <field defaultvalue="57600" elements="1" name="ComUsbBridgeSpeed" parent="HwShared.SpeedBps" type="enum" units="bps">
+      <description>Baudrate used by ports configured as ComUsbBridge.</description>
+    </field>
+    <field defaultvalue="57600" elements="1" name="MavlinkSpeed" parent="HwShared.SpeedBps" type="enum" units="bps">
+      <description>Baudrate used by ports configured for MAVLINK telemetry.</description>
+      <options>
+        <option>2400</option>
+        <option>4800</option>
+        <option>9600</option>
+        <option>19200</option>
+        <option>38400</option>
+        <option>57600</option>
+        <option>115200</option>
+      </options>
+    </field>
+    <field defaultvalue="115200" elements="1" name="MSPSpeed" parent="HwShared.SpeedBps" type="enum" units="bps">
+      <description>Baudrate used by ports configured for MSP telemetry.</description>
+      <options>
+        <option>2400</option>
+        <option>4800</option>
+        <option>9600</option>
+        <option>19200</option>
+        <option>38400</option>
+        <option>57600</option>
+        <option>115200</option>
+      </options>
+    </field>
+    <field defaultvalue="1200" elements="1" name="LightTelemetrySpeed" parent="HwShared.SpeedBps" type="enum" units="bps">
+      <description>Baudrate used by ports configured for LTM telemetry.</description>
+      <options>
+        <option>1200</option>
+        <option>2400</option>
+        <option>4800</option>
+        <option>9600</option>
+        <option>19200</option>
+        <option>38400</option>
+        <option>57600</option>
+        <option>115200</option>
+      </options>
+    </field>
+    <field defaultvalue="Accels" elements="1" name="FrskyAccelData" type="enum" units="">
+      <description>The accelerometer data source for FrSky telemetry.</description>
+      <options>
+        <option>Accels</option>
+        <option>NEDAccels</option>
+        <option>NEDVelocity</option>
+        <option>AttitudeAngles</option>
+      </options>
+    </field>
+    <field defaultvalue="115200" elements="1" name="OpenLogSpeed" type="enum" units="bps">
+      <description>Baudrate used by ports configured for LTM telemetry.</description>
+      <options>
+        <option>115200</option>
+        <option>250000</option>
+        <option>1500000</option>
+        <option>2000000</option>
+        <option>2470000</option>
+      </options>
+    </field>
+  </object>
 </xml>

@@ -1,26 +1,36 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="HwPlayUavOsd" singleinstance="true" settings="true" category="HardwareSettings">
-		<description>Selection of optional hardware configurations.</description>
-		<field name="MainPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="MSP">
-			<description>The 8-pin port on the side of the USB connection</description>
-			<options>
-				<option>Disabled</option>
-				<option>ComBridge</option>
-				<option>DebugConsole</option>
-				<option>Telemetry</option>
-				<option>MSP</option>
-			</options>
-		</field>
-		<field name="USB_HIDPort" units="function" type="enum" elements="1" options="USBTelemetry,RCTransmitter,Disabled" defaultvalue="USBTelemetry">
-			<description/>
-		</field>
-		<field name="USB_VCPPort" units="function" type="enum" elements="1" options="USBTelemetry,ComBridge,DebugConsole,Disabled" parent="HwShared.USB_VCPPort" defaultvalue="Disabled">
-			<description>Virtual COM Port protocol</description>
-		</field>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="HwPlayUavOsd" settings="true" singleinstance="true">
+    <description>Selection of optional hardware configurations.</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="onchange" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="MSP" elements="1" name="MainPort" parent="HwShared.PortTypes" type="enum" units="function">
+      <description>The 8-pin port on the side of the USB connection</description>
+      <options>
+        <option>Disabled</option>
+        <option>ComBridge</option>
+        <option>DebugConsole</option>
+        <option>Telemetry</option>
+        <option>MSP</option>
+      </options>
+    </field>
+    <field defaultvalue="USBTelemetry" elements="1" name="USB_HIDPort" type="enum" units="function">
+      <description/>
+      <options>
+        <option>USBTelemetry</option>
+        <option>RCTransmitter</option>
+        <option>Disabled</option>
+      </options>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="USB_VCPPort" parent="HwShared.USB_VCPPort" type="enum" units="function">
+      <description>Virtual COM Port protocol</description>
+      <options>
+        <option>USBTelemetry</option>
+        <option>ComBridge</option>
+        <option>DebugConsole</option>
+        <option>Disabled</option>
+      </options>
+    </field>
+  </object>
 </xml>

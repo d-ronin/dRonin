@@ -1,18 +1,17 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="DACSettings" singleinstance="true" settings="true" category="HardwareSettings">
-		<description>Configuration of DAC usage</description>
-		<field name="DACPrimaryUse" units="function" type="enum" elements="1" defaultvalue="Disabled">
-			<description>The "normal" source of audio from the DAC</description>
-			<options>
-				<option>Disabled</option>
-				<option>FSK1200</option>
-				<option>Annunciators</option>
-			</options>
-		</field>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="DACSettings" settings="true" singleinstance="true">
+    <description>Configuration of DAC usage</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="onchange" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="Disabled" elements="1" name="DACPrimaryUse" type="enum" units="function">
+      <description>The "normal" source of audio from the DAC</description>
+      <options>
+        <option>Disabled</option>
+        <option>FSK1200</option>
+        <option>Annunciators</option>
+      </options>
+    </field>
+  </object>
 </xml>

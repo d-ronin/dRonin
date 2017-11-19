@@ -1,67 +1,102 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="OnScreenDisplaySettings" singleinstance="true" settings="true">
-		<description>On Screen Display Settings</description>
-		<field name="OSDEnabled" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled">
-			<description>Enable / disable the OSD (requires rebooting the flight controller to take effect)</description>
-		</field>
-		<field name="Units" units="" type="enum" elements="1" options="Metric,Imperial" defaultvalue="Metric">
-			<description/>
-		</field>
-		<field name="PALWhite" units="" type="uint8" elements="1" defaultvalue="110">
-			<description>PAL White Level</description>
-		</field>
-		<field name="PALBlack" units="" type="uint8" elements="1" defaultvalue="35">
-			<description>Black level for PAL. Note: setting a too low value can cause sync problems.</description>
-		</field>
-		<field name="NTSCWhite" units="" type="uint8" elements="1" defaultvalue="110">
-			<description>NTSC White Level</description>
-		</field>
-		<field name="NTSCBlack" units="" type="uint8" elements="1" defaultvalue="20">
-			<description>NTSC Black Level</description>
-		</field>
-		<field name="XOffset" units="" type="int8" elements="1" defaultvalue="0" limits="%BE:-40:40">
-			<description>Shift the video horizontally. Note: Large values can cause sync problems.</description>
-		</field>
-		<field name="YOffset" units="" type="int8" elements="1" defaultvalue="0" limits="%BE:-20:20">
-			<description>Shift the video vertically. Note: Large values can cause sync problems.</description>
-		</field>
-		<field name="NumPages" units="" type="int8" elements="1" defaultvalue="2" limits="%BE:1:6">
-			<description>Number of OSD pages (current page is selected by "Page Switch Function")</description>
-		</field>
-		<field name="PageSwitch" units="" type="enum" elements="1" options="Accessory0,Accessory1,Accessory2" defaultvalue="Accessory0">
-			<description>Channel to use to switch between OSD pages. The range of the channel will be split into equal sized chunks between min and max, according to the number of pages configured.</description>
-		</field>
-		<field name="PageConfig" units="" type="enum" elements="6" options="Custom1,Custom2,Custom3,Custom4,Menu,Statistics,Off" defaultvalue="Custom1,Custom1,Custom1,Custom1,Custom1,Custom1">
-			<description/>
-		</field>
-		<field name="DisableMenuWhenArmed" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled">
-			<description>Disables the OSD menu when aircraft is armed. This is recommended, so the menu can't be entered accidentally when flying.</description>
-		</field>
-		<field name="RssiWarnThreshold" units="" type="uint8" elements="1" defaultvalue="50">
-			<description>Threshold below which RSSI value will start blinking</description>
-		</field>
-		<field name="CustomText" units="" type="uint8" elements="10" defaultvalue="100,82,111,110,105,110,0,0,0,0">
-			<description>Text that is displayed in the OSD by the &amp;quot;Custom Text&amp;quot; element.</description>
-		</field>
-		<field name="StatsDisplayDuration" units="" type="enum" elements="1" options="Off,10s,20s,30s" defaultvalue="20s">
-			<description>The time for which flight statistics are displayed for when disarming. Note: The statistics can also be accessed using the page switch or the OSD menu.</description>
-		</field>
-		<field name="PALXScale" units="" type="uint8" elements="1" defaultvalue="7">
-			<description>OSD X scaling for PAL. Not supported by all OSDs.</description>
-		</field>
-		<field name="NTSCXScale" units="" type="uint8" elements="1" defaultvalue="8">
-			<description>OSD X scaling for NTSC. Not supported by all OSDs.</description>
-		</field>
-		<field name="ThreeDMode" units="" type="enum" elements="1" options="Disabled,SBS3D" defaultvalue="Disabled">
-			<description>OSD 3D mode, e.g. side-by-side 3D for use with NerdCam 3D FPV camera. Not supported by all OSDs.</description>
-		</field>
-		<field name="ThreeDRightEyeXShift" units="" type="uint8" elements="1" defaultvalue="30">
-			<description>Offset of the right-eye OSD output when side-by-side 3D mode is enabled.</description>
-		</field>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="OnScreenDisplaySettings" settings="true" singleinstance="true">
+    <description>On Screen Display Settings</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="onchange" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="Enabled" elements="1" name="OSDEnabled" type="enum" units="">
+      <description>Enable / disable the OSD (requires rebooting the flight controller to take effect)</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="Metric" elements="1" name="Units" type="enum" units="">
+      <description/>
+      <options>
+        <option>Metric</option>
+        <option>Imperial</option>
+      </options>
+    </field>
+    <field defaultvalue="110" elements="1" name="PALWhite" type="uint8" units="">
+      <description>PAL White Level</description>
+    </field>
+    <field defaultvalue="35" elements="1" name="PALBlack" type="uint8" units="">
+      <description>Black level for PAL. Note: setting a too low value can cause sync problems.</description>
+    </field>
+    <field defaultvalue="110" elements="1" name="NTSCWhite" type="uint8" units="">
+      <description>NTSC White Level</description>
+    </field>
+    <field defaultvalue="20" elements="1" name="NTSCBlack" type="uint8" units="">
+      <description>NTSC Black Level</description>
+    </field>
+    <field defaultvalue="0" elements="1" name="XOffset" type="int8" units="">
+      <description>Shift the video horizontally. Note: Large values can cause sync problems.</description>
+    </field>
+    <field defaultvalue="0" elements="1" name="YOffset" type="int8" units="">
+      <description>Shift the video vertically. Note: Large values can cause sync problems.</description>
+    </field>
+    <field defaultvalue="2" elements="1" name="NumPages" type="int8" units="">
+      <description>Number of OSD pages (current page is selected by "Page Switch Function")</description>
+    </field>
+    <field defaultvalue="Accessory0" elements="1" name="PageSwitch" type="enum" units="">
+      <description>Channel to use to switch between OSD pages. The range of the channel will be split into equal sized chunks between min and max, according to the number of pages configured.</description>
+      <options>
+        <option>Accessory0</option>
+        <option>Accessory1</option>
+        <option>Accessory2</option>
+      </options>
+    </field>
+    <field defaultvalue="Custom1" elements="6" name="PageConfig" type="enum" units="">
+      <description/>
+      <options>
+        <option>Custom1</option>
+        <option>Custom2</option>
+        <option>Custom3</option>
+        <option>Custom4</option>
+        <option>Menu</option>
+        <option>Statistics</option>
+        <option>Off</option>
+      </options>
+    </field>
+    <field defaultvalue="Enabled" elements="1" name="DisableMenuWhenArmed" type="enum" units="">
+      <description>Disables the OSD menu when aircraft is armed. This is recommended, so the menu can't be entered accidentally when flying.</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="50" elements="1" name="RssiWarnThreshold" type="uint8" units="">
+      <description>Threshold below which RSSI value will start blinking</description>
+    </field>
+    <field defaultvalue="100,82,111,110,105,110,0,0,0,0" elements="10" name="CustomText" type="uint8" units="">
+      <description>Text that is displayed in the OSD by the &amp;quot;Custom Text&amp;quot; element.</description>
+    </field>
+    <field defaultvalue="20s" elements="1" name="StatsDisplayDuration" type="enum" units="">
+      <description>The time for which flight statistics are displayed for when disarming. Note: The statistics can also be accessed using the page switch or the OSD menu.</description>
+      <options>
+        <option>Off</option>
+        <option>10s</option>
+        <option>20s</option>
+        <option>30s</option>
+      </options>
+    </field>
+    <field defaultvalue="7" elements="1" name="PALXScale" type="uint8" units="">
+      <description>OSD X scaling for PAL. Not supported by all OSDs.</description>
+    </field>
+    <field defaultvalue="8" elements="1" name="NTSCXScale" type="uint8" units="">
+      <description>OSD X scaling for NTSC. Not supported by all OSDs.</description>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="ThreeDMode" type="enum" units="">
+      <description>OSD 3D mode, e.g. side-by-side 3D for use with NerdCam 3D FPV camera. Not supported by all OSDs.</description>
+      <options>
+        <option>Disabled</option>
+        <option>SBS3D</option>
+      </options>
+    </field>
+    <field defaultvalue="30" elements="1" name="ThreeDRightEyeXShift" type="uint8" units="">
+      <description>Offset of the right-eye OSD output when side-by-side 3D mode is enabled.</description>
+    </field>
+  </object>
 </xml>

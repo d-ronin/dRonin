@@ -1,13 +1,18 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="ActuatorCommand" singleinstance="true" settings="false">
-		<description>Contains the pulse duration sent to each of the channels.  Set by @ref ActuatorModule</description>
-		<field name="Channel" units="us" type="float" elements="10"/>
-		<field name="UpdateTime" units="ms" type="uint8" elements="1"/>
-		<field name="MaxUpdateTime" units="ms" type="uint16" elements="1"/>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="false" updatemode="manual" period="0"/>
-		<telemetryflight acked="false" updatemode="throttled" period="1000"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="ActuatorCommand" settings="false" singleinstance="true">
+    <description>Contains the pulse duration sent to each of the channels.  Set by @ref ActuatorModule</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="false" updatemode="manual" period="0"/>
+    <telemetryflight acked="false" updatemode="throttled" period="1000"/>
+    <field defaultvalue="0" elements="10" name="Channel" type="float" units="us">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="UpdateTime" type="uint8" units="ms">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="MaxUpdateTime" type="uint16" units="ms">
+      <description/>
+    </field>
+  </object>
 </xml>

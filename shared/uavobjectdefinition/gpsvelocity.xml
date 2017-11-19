@@ -1,14 +1,21 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="GPSVelocity" singleinstance="true" settings="false">
-		<description>Raw GPS data from @ref GPSModule.</description>
-		<field name="North" units="m/s" type="float" elements="1"/>
-		<field name="East" units="m/s" type="float" elements="1"/>
-		<field name="Down" units="m/s" type="float" elements="1"/>
-		<field name="Accuracy" units="m/s" type="float" elements="1"/>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="false" updatemode="manual" period="0"/>
-		<telemetryflight acked="false" updatemode="throttled" period="1000"/>
-		<logging updatemode="periodic" period="1000"/>
-	</object>
+  <object name="GPSVelocity" settings="false" singleinstance="true">
+    <description>Raw GPS data from @ref GPSModule.</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="periodic" period="1000"/>
+    <telemetrygcs acked="false" updatemode="manual" period="0"/>
+    <telemetryflight acked="false" updatemode="throttled" period="1000"/>
+    <field defaultvalue="0" elements="1" name="North" type="float" units="m/s">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="East" type="float" units="m/s">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="Down" type="float" units="m/s">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="Accuracy" type="float" units="m/s">
+      <description/>
+    </field>
+  </object>
 </xml>

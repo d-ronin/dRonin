@@ -1,66 +1,87 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="HwTauLink" singleinstance="true" settings="true" category="HardwareSettings">
-		<description>TauLink configurations options.</description>
-		<!-- select the function for the radio port -->
-		<!--  1. Telem - telemetry connection -->
-		<!--  2. Telem+PPM - telemetry and ppm -->
-		<!--  3. PPM - PPM only (one way connection) -->
-		<field name="Radio" units="" type="enum" elements="1" options="Disabled,Telem,Telem+PPM,PPM" parent="HwShared.RadioPort" defaultvalue="Disabled">
-			<description>Function for the radio port</description>
-		</field>
-		<field name="CoordID" units="" type="uint32" elements="1" defaultvalue="0" display="hex">
-			<description>ID of the coordinator to allow binding to. 0 indicates allow all connections</description>
-		</field>
-		<!-- Function of the main serial port -->
-		<field name="MainPort" units="" type="enum" elements="1" options="Disabled,GPS,Telemetry,ComBridge" parent="HwShared.PortTypes" defaultvalue="Telemetry">
-			<description/>
-		</field>
-		<field name="BTPort" units="" type="enum" elements="1" options="Disabled,Telemetry,ComBridge" defaultvalue="Telemetry">
-			<description/>
-		</field>
-		<!-- Whenever port is on PPM_IN that data will be sent to remote side -->
-		<field name="PPMPort" units="" type="enum" elements="1" options="Disabled,PPM,SPORT,PPM+SPORT" defaultvalue="PPM+SPORT">
-			<description/>
-		</field>
-		<field name="VCPPort" units="" type="enum" elements="1" parent="HwShared.USB_VCPPort" options="USBTelemetry,ComBridge,DebugConsole,Disabled" defaultvalue="Disabled">
-			<description>Virtual COM Port protocol</description>
-		</field>
-		<field name="ComSpeed" units="bps" type="enum" parent="HwShared.SpeedBps" elements="1" defaultvalue="Init HM10">
-			<description>Communication speed</description>
-			<options>
-				<option>1200</option>
-				<option>2400</option>
-				<option>4800</option>
-				<option>9600</option>
-				<option>19200</option>
-				<option>38400</option>
-				<option>57600</option>
-				<option>115200</option>
-				<option>230400</option>
-				<option>Init HC06</option>
-				<option>Init HM10</option>
-			</options>
-		</field>
-		<!-- radio settings -->
-		<field name="MaxRfSpeed" units="bps" type="enum" elements="1" parent="HwShared.MaxRfSpeed" defaultvalue="64000">
-			<description>Maximum radio speed</description>
-		</field>
-		<field name="MaxRfPower" units="mW" type="enum" elements="1" parent="HwShared.MaxRfPower" defaultvalue="3.16">
-			<description>Maximum radio power</description>
-		</field>
-		<field name="RfBand" units="MHz" type="enum" elements="1" parent="HwShared.RfBand" defaultvalue="BoardDefault">
-			<description>Radio frequency to use</description>
-		</field>
-		<field name="MinChannel" units="" type="uint8" elements="1" defaultvalue="0" limits="%BE:0:250">
-			<description>Minimum channel to use</description>
-		</field>
-		<field name="MaxChannel" units="" type="uint8" elements="1" defaultvalue="250" limits="%BE:0:250">
-			<description>Maximum channel to use</description>
-		</field>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="HwTauLink" settings="true" singleinstance="true">
+    <description>TauLink configurations options.</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="onchange" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="Disabled" elements="1" name="Radio" parent="HwShared.RadioPort" type="enum" units="">
+      <description>Function for the radio port</description>
+      <options>
+        <option>Disabled</option>
+        <option>Telem</option>
+        <option>Telem+PPM</option>
+        <option>PPM</option>
+      </options>
+    </field>
+    <field defaultvalue="0" elements="1" name="CoordID" type="uint32" units="">
+      <description>ID of the coordinator to allow binding to. 0 indicates allow all connections</description>
+    </field>
+    <field defaultvalue="Telemetry" elements="1" name="MainPort" parent="HwShared.PortTypes" type="enum" units="">
+      <description/>
+      <options>
+        <option>Disabled</option>
+        <option>GPS</option>
+        <option>Telemetry</option>
+        <option>ComBridge</option>
+      </options>
+    </field>
+    <field defaultvalue="Telemetry" elements="1" name="BTPort" type="enum" units="">
+      <description/>
+      <options>
+        <option>Disabled</option>
+        <option>Telemetry</option>
+        <option>ComBridge</option>
+      </options>
+    </field>
+    <field defaultvalue="PPM+SPORT" elements="1" name="PPMPort" type="enum" units="">
+      <description/>
+      <options>
+        <option>Disabled</option>
+        <option>PPM</option>
+        <option>SPORT</option>
+        <option>PPM+SPORT</option>
+      </options>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="VCPPort" parent="HwShared.USB_VCPPort" type="enum" units="">
+      <description>Virtual COM Port protocol</description>
+      <options>
+        <option>USBTelemetry</option>
+        <option>ComBridge</option>
+        <option>DebugConsole</option>
+        <option>Disabled</option>
+      </options>
+    </field>
+    <field defaultvalue="Init HM10" elements="1" name="ComSpeed" parent="HwShared.SpeedBps" type="enum" units="bps">
+      <description>Communication speed</description>
+      <options>
+        <option>1200</option>
+        <option>2400</option>
+        <option>4800</option>
+        <option>9600</option>
+        <option>19200</option>
+        <option>38400</option>
+        <option>57600</option>
+        <option>115200</option>
+        <option>230400</option>
+        <option>Init HC06</option>
+        <option>Init HM10</option>
+      </options>
+    </field>
+    <field defaultvalue="64000" elements="1" name="MaxRfSpeed" parent="HwShared.MaxRfSpeed" type="enum" units="bps">
+      <description>Maximum radio speed</description>
+    </field>
+    <field defaultvalue="3.16" elements="1" name="MaxRfPower" parent="HwShared.MaxRfPower" type="enum" units="mW">
+      <description>Maximum radio power</description>
+    </field>
+    <field defaultvalue="BoardDefault" elements="1" name="RfBand" parent="HwShared.RfBand" type="enum" units="MHz">
+      <description>Radio frequency to use</description>
+    </field>
+    <field defaultvalue="0" elements="1" name="MinChannel" type="uint8" units="">
+      <description>Minimum channel to use</description>
+    </field>
+    <field defaultvalue="250" elements="1" name="MaxChannel" type="uint8" units="">
+      <description>Maximum channel to use</description>
+    </field>
+  </object>
 </xml>

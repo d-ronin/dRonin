@@ -1,19 +1,46 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="AttitudeSimulated" singleinstance="true" settings="false">
-		<description>The simulated Attitude estimation from @ref Sensors.</description>
-		<field name="q1" units="" type="float" elements="1"/>
-		<field name="q2" units="" type="float" elements="1"/>
-		<field name="q3" units="" type="float" elements="1"/>
-		<field name="q4" units="" type="float" elements="1"/>
-		<field name="Roll" units="degrees" type="float" elements="1"/>
-		<field name="Pitch" units="degrees" type="float" elements="1"/>
-		<field name="Yaw" units="degrees" type="float" elements="1"/>
-		<field name="Velocity" units="m/s" type="float" elementnames="North, East, Down"/>
-		<field name="Position" units="m" type="float" elementnames="North, East, Down"/>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="false" updatemode="manual" period="0"/>
-		<telemetryflight acked="false" updatemode="throttled" period="100"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="AttitudeSimulated" settings="false" singleinstance="true">
+    <description>The simulated Attitude estimation from @ref Sensors.</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="false" updatemode="manual" period="0"/>
+    <telemetryflight acked="false" updatemode="throttled" period="100"/>
+    <field defaultvalue="0" elements="1" name="q1" type="float" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="q2" type="float" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="q3" type="float" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="q4" type="float" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="Roll" type="float" units="degrees">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="Pitch" type="float" units="degrees">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="Yaw" type="float" units="degrees">
+      <description/>
+    </field>
+    <field defaultvalue="0" name="Velocity" type="float" units="m/s">
+      <description/>
+      <elementnames>
+        <elementname>North</elementname>
+        <elementname>East</elementname>
+        <elementname>Down</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="0" name="Position" type="float" units="m">
+      <description/>
+      <elementnames>
+        <elementname>North</elementname>
+        <elementname>East</elementname>
+        <elementname>Down</elementname>
+      </elementnames>
+    </field>
+  </object>
 </xml>

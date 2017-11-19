@@ -1,53 +1,56 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="OpenLRS" singleinstance="true" settings="true">
-		<description>Binding settings for OpenLRS</description>
-		<field name="version" units="" type="uint8" elements="1" defaultvalue="0">
-			<description>Version</description>
-		</field>
-		<field name="serial_baudrate" units="" type="uint32" elements="1" defaultvalue="0">
-			<description>Serial Baudrate</description>
-		</field>
-		<field name="rf_frequency" units="" type="uint32" elements="1" defaultvalue="0">
-			<description>Radio Frequency</description>
-		</field>
-		<field name="rf_magic" units="" type="uint32" elements="1" defaultvalue="0">
-			<description>Radio Magic</description>
-		</field>
-		<field name="rf_power" units="" type="uint8" elements="1" defaultvalue="0">
-			<description>Radio Power</description>
-		</field>
-		<field name="rf_channel_spacing" units="" type="uint8" elements="1" defaultvalue="0">
-			<description>Channel Spacing</description>
-		</field>
-		<field name="hopchannel" units="" type="uint8" elements="24" defaultvalue="0">
-			<description>Hop Channel</description>
-		</field>
-		<field name="modem_params" units="" type="uint8" elements="1" defaultvalue="0">
-			<description>Modem Parameters</description>
-		</field>
-		<field name="flags" units="" type="uint8" elements="1" defaultvalue="0">
-			<description>Flags</description>
-		</field>
-		<!-- beacon options -->
-		<field name="beacon_frequency" units="" type="uint32" elements="1" defaultvalue="462712500">
-			<description>Beacon Frequency</description>
-		</field>
-		<field name="beacon_delay" units="s" type="uint8" elements="1" defaultvalue="30">
-			<description>Beacon Delay</description>
-		</field>
-		<field name="beacon_period" units="s" type="uint8" elements="1" defaultvalue="15">
-			<description>Beacon Period</description>
-		</field>
-		<field name="failsafe_delay" units="ms" type="uint32" elements="1" defaultvalue="1000">
-			<description>Fail-safe Delay</description>
-		</field>
-		<field name="RSSI_Type" units="function" type="enum" elements="1" options="Combined,RSSI,LinkQuality" defaultvalue="Combined">
-			<description>RSSI Type</description>
-		</field>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="OpenLRS" settings="true" singleinstance="true">
+    <description>Binding settings for OpenLRS</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="onchange" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="0" elements="1" name="version" type="uint8" units="">
+      <description>Version</description>
+    </field>
+    <field defaultvalue="0" elements="1" name="serial_baudrate" type="uint32" units="">
+      <description>Serial Baudrate</description>
+    </field>
+    <field defaultvalue="0" elements="1" name="rf_frequency" type="uint32" units="">
+      <description>Radio Frequency</description>
+    </field>
+    <field defaultvalue="0" elements="1" name="rf_magic" type="uint32" units="">
+      <description>Radio Magic</description>
+    </field>
+    <field defaultvalue="0" elements="1" name="rf_power" type="uint8" units="">
+      <description>Radio Power</description>
+    </field>
+    <field defaultvalue="0" elements="1" name="rf_channel_spacing" type="uint8" units="">
+      <description>Channel Spacing</description>
+    </field>
+    <field defaultvalue="0" elements="24" name="hopchannel" type="uint8" units="">
+      <description>Hop Channel</description>
+    </field>
+    <field defaultvalue="0" elements="1" name="modem_params" type="uint8" units="">
+      <description>Modem Parameters</description>
+    </field>
+    <field defaultvalue="0" elements="1" name="flags" type="uint8" units="">
+      <description>Flags</description>
+    </field>
+    <field defaultvalue="462712500" elements="1" name="beacon_frequency" type="uint32" units="">
+      <description>Beacon Frequency</description>
+    </field>
+    <field defaultvalue="30" elements="1" name="beacon_delay" type="uint8" units="s">
+      <description>Beacon Delay</description>
+    </field>
+    <field defaultvalue="15" elements="1" name="beacon_period" type="uint8" units="s">
+      <description>Beacon Period</description>
+    </field>
+    <field defaultvalue="1000" elements="1" name="failsafe_delay" type="uint32" units="ms">
+      <description>Fail-safe Delay</description>
+    </field>
+    <field defaultvalue="Combined" elements="1" name="RSSI_Type" type="enum" units="function">
+      <description>RSSI Type</description>
+      <options>
+        <option>Combined</option>
+        <option>RSSI</option>
+        <option>LinkQuality</option>
+      </options>
+    </field>
+  </object>
 </xml>

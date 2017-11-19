@@ -1,16 +1,27 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="ActuatorDesired" singleinstance="true" settings="false">
-		<description>Desired raw, pitch and yaw actuator settings.  Comes from either @ref StabilizationModule or @ref ManualControlModule depending on FlightMode.</description>
-		<field name="Roll" units="% / 100" type="float" elements="1"/>
-		<field name="Pitch" units="% / 100" type="float" elements="1"/>
-		<field name="Yaw" units="% / 100" type="float" elements="1"/>
-		<field name="Thrust" units="% / 100" type="float" elements="1"/>
-		<field name="UpdateTime" units="ms" type="float" elements="1"/>
-		<field name="SystemIdentCycle" units="samples" type="uint16" elements="1"/>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="false" updatemode="manual" period="0"/>
-		<telemetryflight acked="false" updatemode="throttled" period="1000"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="ActuatorDesired" settings="false" singleinstance="true">
+    <description>Desired raw, pitch and yaw actuator settings.  Comes from either @ref StabilizationModule or @ref ManualControlModule depending on FlightMode.</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="false" updatemode="manual" period="0"/>
+    <telemetryflight acked="false" updatemode="throttled" period="1000"/>
+    <field defaultvalue="0" elements="1" name="Roll" type="float" units="% / 100">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="Pitch" type="float" units="% / 100">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="Yaw" type="float" units="% / 100">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="Thrust" type="float" units="% / 100">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="UpdateTime" type="float" units="ms">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="SystemIdentCycle" type="uint16" units="samples">
+      <description/>
+    </field>
+  </object>
 </xml>

@@ -1,13 +1,18 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="NedAccel" singleinstance="true" settings="false">
-		<description>The projection of acceleration in the NED reference frame used by @ref Guidance.</description>
-		<field name="North" units="m/s^2" type="float" elements="1"/>
-		<field name="East" units="m/s^2" type="float" elements="1"/>
-		<field name="Down" units="m/s^2" type="float" elements="1"/>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="false" updatemode="manual" period="0"/>
-		<telemetryflight acked="false" updatemode="throttled" period="10001"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="NedAccel" settings="false" singleinstance="true">
+    <description>The projection of acceleration in the NED reference frame used by @ref Guidance.</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="false" updatemode="manual" period="0"/>
+    <telemetryflight acked="false" updatemode="throttled" period="10001"/>
+    <field defaultvalue="0" elements="1" name="North" type="float" units="m/s^2">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="East" type="float" units="m/s^2">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="Down" type="float" units="m/s^2">
+      <description/>
+    </field>
+  </object>
 </xml>

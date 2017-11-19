@@ -1,28 +1,120 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="TxPIDSettings" singleinstance="true" settings="true">
-		<description>Settings used by @ref TxPID optional module to tune PID settings using R/C transmitter</description>
-		<field name="UpdateMode" units="option" type="enum" elements="1" options="Never,When Armed,Always" defaultvalue="When Armed">
-			<description>When to update the mode</description>
-		</field>
-		<field name="Inputs" units="channel" type="enum" elementnames="Instance1,Instance2,Instance3" options="Throttle,Accessory0,Accessory1,Accessory2,Accessory3,Accessory4,Accessory5" defaultvalue="Throttle,Accessory0,Accessory1">
-			<description/>
-		</field>
-		<field name="ThrottleRange" units="%" type="float" elements="2" elementnames="Min,Max" defaultvalue="0.20,0.80">
-			<description>Range of throttle</description>
-		</field>
-		<field name="PIDs" units="option" type="enum" elementnames="Instance1,Instance2,Instance3" options="Disabled,             Roll Rate.Kp, Pitch Rate.Kp, Roll+Pitch Rate.Kp, Yaw Rate.Kp,              Roll Rate.Ki, Pitch Rate.Ki, Roll+Pitch Rate.Ki, Yaw Rate.Ki,             Roll Rate.Kd, Pitch Rate.Kd, Roll+Pitch Rate.Kd, Yaw Rate.Kd,             Roll Rate.ILimit, Pitch Rate.ILimit, Roll+Pitch Rate.ILimit, Yaw Rate.ILimit,             Roll Attitude.Kp, Pitch Attitude.Kp, Roll+Pitch Attitude.Kp, Yaw Attitude.Kp,             Roll Attitude.Ki, Pitch Attitude.Ki, Roll+Pitch Attitude.Ki, Yaw Attitude.Ki,             Roll Attitude.ILimit, Pitch Attitude.ILimit, Roll+Pitch Attitude.ILimit, Yaw Attitude.ILimit,             SensorsCutoff,             Roll VbarSensitivity, Pitch VbarSensitivity, Roll+Pitch VbarSensitivity, Yaw VbarSensitivity,             Roll Vbar.Kp, Pitch Vbar.Kp, Roll+Pitch Vbar.Kp, Yaw Vbar.Kp,             Roll Vbar.Ki,Pitch Vbar.Ki, Roll+Pitch Vbar.Ki, Yaw Vbar.Ki,             Roll Vbar.Kd, Pitch Vbar.Kd, Roll+Pitch Vbar.Kd, Yaw Vbar.Kd,             Horizontal Pos.Kp, Horizontal Pos.Ki, Horizontal Pos.ILimit,             Horizontal Vel.Kp, Horizontal Vel.Ki, Horizontal Vel.Kd, CameraTilt" defaultvalue="Disabled">
-			<description/>
-		</field>
-		<field name="MinPID" units="" type="float" elementnames="Instance1,Instance2,Instance3" defaultvalue="0">
-			<description>Minimum PID value</description>
-		</field>
-		<field name="MaxPID" units="" type="float" elementnames="Instance1,Instance2,Instance3" defaultvalue="0">
-			<description>Maximum PID value</description>
-		</field>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="TxPIDSettings" settings="true" singleinstance="true">
+    <description>Settings used by @ref TxPID optional module to tune PID settings using R/C transmitter</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="onchange" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="When Armed" elements="1" name="UpdateMode" type="enum" units="option">
+      <description>When to update the mode</description>
+      <options>
+        <option>Never</option>
+        <option>When Armed</option>
+        <option>Always</option>
+      </options>
+    </field>
+    <field defaultvalue="Throttle,Accessory0,Accessory1" name="Inputs" type="enum" units="channel">
+      <description/>
+      <elementnames>
+        <elementname>Instance1</elementname>
+        <elementname>Instance2</elementname>
+        <elementname>Instance3</elementname>
+      </elementnames>
+      <options>
+        <option>Throttle</option>
+        <option>Accessory0</option>
+        <option>Accessory1</option>
+        <option>Accessory2</option>
+        <option>Accessory3</option>
+        <option>Accessory4</option>
+        <option>Accessory5</option>
+      </options>
+    </field>
+    <field defaultvalue="0.2,0.8" name="ThrottleRange" type="float" units="%">
+      <description>Range of throttle</description>
+      <elementnames>
+        <elementname>Min</elementname>
+        <elementname>Max</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="Disabled" name="PIDs" type="enum" units="option">
+      <description/>
+      <elementnames>
+        <elementname>Instance1</elementname>
+        <elementname>Instance2</elementname>
+        <elementname>Instance3</elementname>
+      </elementnames>
+      <options>
+        <option>Disabled</option>
+        <option>Roll Rate.Kp</option>
+        <option>Pitch Rate.Kp</option>
+        <option>Roll+Pitch Rate.Kp</option>
+        <option>Yaw Rate.Kp</option>
+        <option>Roll Rate.Ki</option>
+        <option>Pitch Rate.Ki</option>
+        <option>Roll+Pitch Rate.Ki</option>
+        <option>Yaw Rate.Ki</option>
+        <option>Roll Rate.Kd</option>
+        <option>Pitch Rate.Kd</option>
+        <option>Roll+Pitch Rate.Kd</option>
+        <option>Yaw Rate.Kd</option>
+        <option>Roll Rate.ILimit</option>
+        <option>Pitch Rate.ILimit</option>
+        <option>Roll+Pitch Rate.ILimit</option>
+        <option>Yaw Rate.ILimit</option>
+        <option>Roll Attitude.Kp</option>
+        <option>Pitch Attitude.Kp</option>
+        <option>Roll+Pitch Attitude.Kp</option>
+        <option>Yaw Attitude.Kp</option>
+        <option>Roll Attitude.Ki</option>
+        <option>Pitch Attitude.Ki</option>
+        <option>Roll+Pitch Attitude.Ki</option>
+        <option>Yaw Attitude.Ki</option>
+        <option>Roll Attitude.ILimit</option>
+        <option>Pitch Attitude.ILimit</option>
+        <option>Roll+Pitch Attitude.ILimit</option>
+        <option>Yaw Attitude.ILimit</option>
+        <option>SensorsCutoff</option>
+        <option>Roll VbarSensitivity</option>
+        <option>Pitch VbarSensitivity</option>
+        <option>Roll+Pitch VbarSensitivity</option>
+        <option>Yaw VbarSensitivity</option>
+        <option>Roll Vbar.Kp</option>
+        <option>Pitch Vbar.Kp</option>
+        <option>Roll+Pitch Vbar.Kp</option>
+        <option>Yaw Vbar.Kp</option>
+        <option>Roll Vbar.Ki</option>
+        <option>Pitch Vbar.Ki</option>
+        <option>Roll+Pitch Vbar.Ki</option>
+        <option>Yaw Vbar.Ki</option>
+        <option>Roll Vbar.Kd</option>
+        <option>Pitch Vbar.Kd</option>
+        <option>Roll+Pitch Vbar.Kd</option>
+        <option>Yaw Vbar.Kd</option>
+        <option>Horizontal Pos.Kp</option>
+        <option>Horizontal Pos.Ki</option>
+        <option>Horizontal Pos.ILimit</option>
+        <option>Horizontal Vel.Kp</option>
+        <option>Horizontal Vel.Ki</option>
+        <option>Horizontal Vel.Kd</option>
+        <option>CameraTilt</option>
+      </options>
+    </field>
+    <field defaultvalue="0.0" name="MinPID" type="float" units="">
+      <description>Minimum PID value</description>
+      <elementnames>
+        <elementname>Instance1</elementname>
+        <elementname>Instance2</elementname>
+        <elementname>Instance3</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="0.0" name="MaxPID" type="float" units="">
+      <description>Maximum PID value</description>
+      <elementnames>
+        <elementname>Instance1</elementname>
+        <elementname>Instance2</elementname>
+        <elementname>Instance3</elementname>
+      </elementnames>
+    </field>
+  </object>
 </xml>

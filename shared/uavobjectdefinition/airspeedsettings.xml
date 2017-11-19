@@ -1,25 +1,42 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="AirspeedSettings" singleinstance="true" settings="true">
-		<description>Settings for the @ref BaroAirspeed module used on CopterControl or Revolution</description>
-		<field name="GPSSamplePeriod_ms" units="ms" type="uint8" elements="1" defaultvalue="100">
-			<description>Interval on which the GPS should be sampled. Range 0 - 255</description>
-		</field>
-		<field name="ZeroPoint" units="raw" type="uint16" elements="1" defaultvalue="0">
-			<description/>
-		</field>
-		<field name="Scale" units="raw" type="float" elements="1" defaultvalue="1.0">
-			<description>Scale factor which is used to scale the airspeed coming from the airspeed sensor</description>
-		</field>
-		<field name="AirspeedSensorType" units="" type="enum" elements="1" options="EagleTreeAirspeedV3,DIYDronesMPXV5004,DIYDronesMPXV7002,GPSOnly" defaultvalue="GPSOnly">
-			<description>The type of airspeed sensor connected</description>
-		</field>
-		<field name="AnalogPin" units="" type="enum" elements="1" options="ADC0,ADC1,ADC2,ADC3,ADC4,ADC5,ADC6,ADC7,ADC8,NONE" defaultvalue="NONE">
-			<description>Pin on which the airspeed sensor is connected</description>
-		</field>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="AirspeedSettings" settings="true" singleinstance="true">
+    <description>Settings for the @ref BaroAirspeed module used on CopterControl or Revolution</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="onchange" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="100" elements="1" name="GPSSamplePeriod_ms" type="uint8" units="ms">
+      <description>Interval on which the GPS should be sampled. Range 0 - 255</description>
+    </field>
+    <field defaultvalue="0" elements="1" name="ZeroPoint" type="uint16" units="raw">
+      <description/>
+    </field>
+    <field defaultvalue="1.0" elements="1" name="Scale" type="float" units="raw">
+      <description>Scale factor which is used to scale the airspeed coming from the airspeed sensor</description>
+    </field>
+    <field defaultvalue="GPSOnly" elements="1" name="AirspeedSensorType" type="enum" units="">
+      <description>The type of airspeed sensor connected</description>
+      <options>
+        <option>EagleTreeAirspeedV3</option>
+        <option>DIYDronesMPXV5004</option>
+        <option>DIYDronesMPXV7002</option>
+        <option>GPSOnly</option>
+      </options>
+    </field>
+    <field defaultvalue="NONE" elements="1" name="AnalogPin" type="enum" units="">
+      <description>Pin on which the airspeed sensor is connected</description>
+      <options>
+        <option>ADC0</option>
+        <option>ADC1</option>
+        <option>ADC2</option>
+        <option>ADC3</option>
+        <option>ADC4</option>
+        <option>ADC5</option>
+        <option>ADC6</option>
+        <option>ADC7</option>
+        <option>ADC8</option>
+        <option>NONE</option>
+      </options>
+    </field>
+  </object>
 </xml>

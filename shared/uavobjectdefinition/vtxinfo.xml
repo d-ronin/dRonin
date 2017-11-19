@@ -1,14 +1,30 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="VTXInfo" singleinstance="true" settings="false">
-		<description>Video transmitter information.</description>
-		<field name="Model" units="" type="enum" elements="1" options="None,TBS Unify Pro 5G8,TBS Unify Pro 5G8 HV"/>
-		<field name="Frequency" units="MHz" type="uint16" elements="1" defaultvalue="0"/>
-		<field name="Power" units="mW" type="uint16" elements="1" defaultvalue="0"/>
-		<field name="State" units="" type="enum" elements="1" options="Disconnected,Connected" defaultvalue="Disconnected"/>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="VTXInfo" settings="false" singleinstance="true">
+    <description>Video transmitter information.</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="onchange" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="None" elements="1" name="Model" type="enum" units="">
+      <description/>
+      <options>
+        <option>None</option>
+        <option>TBS Unify Pro 5G8</option>
+        <option>TBS Unify Pro 5G8 HV</option>
+      </options>
+    </field>
+    <field defaultvalue="0" elements="1" name="Frequency" type="uint16" units="MHz">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="Power" type="uint16" units="mW">
+      <description/>
+    </field>
+    <field defaultvalue="Disconnected" elements="1" name="State" type="enum" units="">
+      <description/>
+      <options>
+        <option>Disconnected</option>
+        <option>Connected</option>
+      </options>
+    </field>
+  </object>
 </xml>

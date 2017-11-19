@@ -1,13 +1,22 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="OpenLRSStatus" singleinstance="true" settings="false">
-		<description>OpenLRS link status.</description>
-		<field name="LastRSSI" units="" type="uint8" elements="1"/>
-		<field name="LinkQuality" units="" type="uint16" elements="1"/>
-		<field name="FailsafeActive" units="function" type="enum" elements="1" options="Inactive,Active" defaultvalue="Inactive"/>
-		<access gcs="readonly" flight="readwrite"/>
-		<telemetrygcs acked="false" updatemode="manual" period="0"/>
-		<telemetryflight acked="false" updatemode="throttled" period="500"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="OpenLRSStatus" settings="false" singleinstance="true">
+    <description>OpenLRS link status.</description>
+    <access gcs="readonly" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="false" updatemode="manual" period="0"/>
+    <telemetryflight acked="false" updatemode="throttled" period="500"/>
+    <field defaultvalue="0" elements="1" name="LastRSSI" type="uint8" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="LinkQuality" type="uint16" units="">
+      <description/>
+    </field>
+    <field defaultvalue="Inactive" elements="1" name="FailsafeActive" type="enum" units="function">
+      <description/>
+      <options>
+        <option>Inactive</option>
+        <option>Active</option>
+      </options>
+    </field>
+  </object>
 </xml>

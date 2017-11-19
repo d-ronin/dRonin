@@ -1,16 +1,32 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="StabilizationDesired" singleinstance="true" settings="false">
-		<description>The desired attitude that @ref StabilizationModule will try and achieve if FlightMode is Stabilized.  Comes from @ref ManaulControlModule.</description>
-		<field name="Roll" units="degrees" type="float" elements="1"/>
-		<field name="Pitch" units="degrees" type="float" elements="1"/>
-		<field name="Yaw" units="degrees" type="float" elements="1"/>
-		<field name="Thrust" units="%" type="float" elements="1"/>
-		<field name="StabilizationMode" parent="SharedDefs.StabilizationMode" type="enum" elementnames="Roll,Pitch,Yaw"/>
-		<field name="ReprojectionMode" parent="SharedDefs.ReprojectionMode" type="enum" elements="1"/>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="false" updatemode="manual" period="0"/>
-		<telemetryflight acked="false" updatemode="throttled" period="1000"/>
-		<logging updatemode="periodic" period="500"/>
-	</object>
+  <object name="StabilizationDesired" settings="false" singleinstance="true">
+    <description>The desired attitude that @ref StabilizationModule will try and achieve if FlightMode is Stabilized.  Comes from @ref ManaulControlModule.</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="periodic" period="500"/>
+    <telemetrygcs acked="false" updatemode="manual" period="0"/>
+    <telemetryflight acked="false" updatemode="throttled" period="1000"/>
+    <field defaultvalue="0" elements="1" name="Roll" type="float" units="degrees">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="Pitch" type="float" units="degrees">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="Yaw" type="float" units="degrees">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="Thrust" type="float" units="%">
+      <description/>
+    </field>
+    <field defaultvalue="Manual" name="StabilizationMode" parent="SharedDefs.StabilizationMode" type="enum">
+      <description/>
+      <elementnames>
+        <elementname>Roll</elementname>
+        <elementname>Pitch</elementname>
+        <elementname>Yaw</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="None" elements="1" name="ReprojectionMode" parent="SharedDefs.ReprojectionMode" type="enum">
+      <description/>
+    </field>
+  </object>
 </xml>

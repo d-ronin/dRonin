@@ -1,20 +1,57 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="VbarSettings" singleinstance="true" settings="true">
-		<description>Settings for the virtualbar flight mode</description>
-
-		<field name="VbarSensitivity" units="frac" type="float" elementnames="Roll,Pitch,Yaw" defaultvalue="0.5,0.5,0.5"/>
-		<field name="VbarRollPID" units="1/(deg/s)" type="float" elementnames="Kp,Ki,Kd" defaultvalue="0.005,0.002,0"/>
-		<field name="VbarPitchPID" units="1/(deg/s)" type="float" elementnames="Kp,Ki,Kd" defaultvalue="0.005,0.002,0"/>
-		<field name="VbarYawPID" units="1/(deg/s)" type="float" elementnames="Kp,Ki,Kd" defaultvalue="0.005,0.002,0"/>
-		<field name="VbarTau" units="sec" type="float" elements="1" defaultvalue="0.5"/>
-		<field name="VbarGyroSuppress" units="%" type="int8" elements="1" defaultvalue="30"/>
-		<field name="VbarPiroComp" units="" type="enum" elements="1" options="FALSE,TRUE" defaultvalue="FALSE"/>
-		<field name="VbarMaxAngle" units="deg" type="uint8" elements="1" defaultvalue="10"/>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="VbarSettings" settings="true" singleinstance="true">
+    <description>Settings for the virtualbar flight mode</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="onchange" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="0.5" name="VbarSensitivity" type="float" units="frac">
+      <description/>
+      <elementnames>
+        <elementname>Roll</elementname>
+        <elementname>Pitch</elementname>
+        <elementname>Yaw</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="0.005,0.002,0.0" name="VbarRollPID" type="float" units="1/(deg/s)">
+      <description/>
+      <elementnames>
+        <elementname>Kp</elementname>
+        <elementname>Ki</elementname>
+        <elementname>Kd</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="0.005,0.002,0.0" name="VbarPitchPID" type="float" units="1/(deg/s)">
+      <description/>
+      <elementnames>
+        <elementname>Kp</elementname>
+        <elementname>Ki</elementname>
+        <elementname>Kd</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="0.005,0.002,0.0" name="VbarYawPID" type="float" units="1/(deg/s)">
+      <description/>
+      <elementnames>
+        <elementname>Kp</elementname>
+        <elementname>Ki</elementname>
+        <elementname>Kd</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="0.5" elements="1" name="VbarTau" type="float" units="sec">
+      <description/>
+    </field>
+    <field defaultvalue="30" elements="1" name="VbarGyroSuppress" type="int8" units="%">
+      <description/>
+    </field>
+    <field defaultvalue="FALSE" elements="1" name="VbarPiroComp" type="enum" units="">
+      <description/>
+      <options>
+        <option>FALSE</option>
+        <option>TRUE</option>
+      </options>
+    </field>
+    <field defaultvalue="10" elements="1" name="VbarMaxAngle" type="uint8" units="deg">
+      <description/>
+    </field>
+  </object>
 </xml>
-

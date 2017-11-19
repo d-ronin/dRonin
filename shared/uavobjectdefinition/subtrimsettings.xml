@@ -1,16 +1,15 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="SubTrimSettings" singleinstance="true" settings="true">
-		<description>The trim angle required for the UAV to fly straight and level.</description>
-		<field name="Roll" units="degrees" type="float" elements="1" defaultvalue="0">
-			<description>Amount of Roll required to fly straight and level</description>
-		</field>
-		<field name="Pitch" units="degrees" type="float" elements="1" defaultvalue="0">
-			<description>Amount of Pitch required to fly straight and level</description>
-		</field>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="SubTrimSettings" settings="true" singleinstance="true">
+    <description>The trim angle required for the UAV to fly straight and level.</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="onchange" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="0.0" elements="1" name="Roll" type="float" units="degrees">
+      <description>Amount of Roll required to fly straight and level</description>
+    </field>
+    <field defaultvalue="0.0" elements="1" name="Pitch" type="float" units="degrees">
+      <description>Amount of Pitch required to fly straight and level</description>
+    </field>
+  </object>
 </xml>

@@ -1,23 +1,53 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="FlightStats" singleinstance="true" settings="false">
-		<description>Statistics of the current flight</description>
-		<field name="DistanceTravelled" units="m" type="float" elements="1"/>
-		<field name="MaxDistanceToHome" units="m" type="float" elements="1"/>
-		<field name="MaxAltitude" units="m" type="uint16" elements="1"/>
-		<field name="MaxClimbRate" units="m/s" type="float" elements="1"/>
-		<field name="MaxDescentRate" units="m/s" type="float" elements="1"/>
-		<field name="MaxGroundSpeed" units="m/s" type="float" elements="1"/>
-		<field name="MaxAirSpeed" units="m/s" type="float" elements="1"/>
-		<field name="MaxRollRate" units="deg/s" type="uint16" elements="1"/>
-		<field name="MaxPitchRate" units="deg/s" type="uint16" elements="1"/>
-		<field name="MaxYawRate" units="deg/s" type="uint16" elements="1"/>
-		<field name="ConsumedEnergy" units="mAh" type="uint16" elements="1"/>
-		<field name="InitialBatteryVoltage" units="mV" type="uint16" elements="1"/>
-		<field name="State" units="" type="enum" elements="1" options="IDLE, RESET, COLLECTING"/>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="false" updatemode="manual" period="0"/>
-		<telemetryflight acked="false" updatemode="periodic" period="5000"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="FlightStats" settings="false" singleinstance="true">
+    <description>Statistics of the current flight</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="false" updatemode="manual" period="0"/>
+    <telemetryflight acked="false" updatemode="periodic" period="5000"/>
+    <field defaultvalue="0" elements="1" name="DistanceTravelled" type="float" units="m">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="MaxDistanceToHome" type="float" units="m">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="MaxAltitude" type="uint16" units="m">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="MaxClimbRate" type="float" units="m/s">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="MaxDescentRate" type="float" units="m/s">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="MaxGroundSpeed" type="float" units="m/s">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="MaxAirSpeed" type="float" units="m/s">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="MaxRollRate" type="uint16" units="deg/s">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="MaxPitchRate" type="uint16" units="deg/s">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="MaxYawRate" type="uint16" units="deg/s">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="ConsumedEnergy" type="uint16" units="mAh">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="InitialBatteryVoltage" type="uint16" units="mV">
+      <description/>
+    </field>
+    <field defaultvalue="IDLE" elements="1" name="State" type="enum" units="">
+      <description/>
+      <options>
+        <option>IDLE</option>
+        <option>RESET</option>
+        <option>COLLECTING</option>
+      </options>
+    </field>
+  </object>
 </xml>

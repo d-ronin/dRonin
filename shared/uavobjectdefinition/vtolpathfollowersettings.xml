@@ -1,85 +1,111 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="VtolPathFollowerSettings" singleinstance="true" settings="true">
-		<description>Settings for the @ref VtolPathFollowerModule</description>
-		<field name="HorizontalVelMax" units="m/s" type="uint16" elements="1" defaultvalue="10">
-			<description>Maximum Horizontal Velocity</description>
-		</field>
-		<field name="HorizontalPosPI" units="(m/s)/m" type="float" elementnames="Kp,Ki,ILimit" defaultvalue="1,0,2">
-			<description/>
-		</field>
-		<field name="HorizontalVelPID" units="deg/(m/s)" type="float" elementnames="Kp,Ki,Kd,ILimit" defaultvalue="2.6,0.4,0,5.0">
-			<description/>
-		</field>
-		<field name="VelocityFeedforward" units="deg/(m/s)" type="float" elements="1" defaultvalue="0">
-			<description>Feedforward Velocity</description>
-		</field>
-		<field name="ThrottleControl" units="" type="enum" elements="1" options="FALSE,TRUE" defaultvalue="FALSE">
-			<description>Enable/Disable Throttle Control</description>
-		</field>
-		<!-- 0.4-0.6 seconds seems like a good value in most cases, this is conservative -->
-		<field name="PositionFeedforward" units="s" type="float" elements="1" defaultvalue="0.45">
-			<description>Feedforward Position</description>
-		</field>
-		<field name="EndpointDeadbandWidth" units="m" type="float" elements="1" defaultvalue="0.45">
-			<description/>
-		</field>
-		<field name="EndpointDeadbandCenterGain" units="" type="float" elements="1" defaultvalue="0.3">
-			<description/>
-		</field>
-		<field name="PathDeadbandWidth" units="m" type="float" elements="1" defaultvalue="1.25">
-			<description/>
-		</field>
-		<field name="PathDeadbandCenterGain" units="" type="float" elements="1" defaultvalue="0.1">
-			<description/>
-		</field>
-		<field name="VelocityChangePrediction" units="" type="enum" elements="1" options="FALSE,TRUE" defaultvalue="FALSE">
-			<description/>
-		</field>
-		<field name="MaxRollPitch" units="deg" type="float" elements="1" defaultvalue="20">
-			<description/>
-		</field>
-		<field name="EndpointRadius" units="m" type="float" elements="1" defaultvalue="2.0">
-			<description>The distance within the endpoint (horizontally) that should be achieved to mark completed</description>
-		</field>
-		<field name="WaypointAltitudeTol" units="m" type="float" elements="1" defaultvalue="2.0">
-			<description>The distance that we can be below a waypoint and still mark it as completed.  Silently ignored if ThrottleControl == false</description>
-		</field>
-		<field name="UpdatePeriod" units="ms" type="int32" elements="1" defaultvalue="50">
-			<description/>
-		</field>
-		<field name="YawMode" units="" type="enum" elements="1" options="Rate,AxisLock,Attitude,Path,POI" defaultvalue="AxisLock">
-			<description/>
-		</field>
-		<field name="LandingRate" units="m/s" type="float" elements="1" defaultvalue="0.5">
-			<description>Landing Speed</description>
-		</field>
-		<!-- Loiter mode configuration -->
-		<field name="LoiterBrakingTimeConstant" units="s" type="float" elements="1" defaultvalue="1.25">
-			<description/>
-		</field>
-		<field name="LoiterErrorDecayConstant" units="s" type="float" elements="1" defaultvalue="0.04">
-			<description/>
-		</field>
-		<field name="LoiterLookaheadTimeConstant" units="s" type="float" elements="1" defaultvalue="1.25">
-			<description/>
-		</field>
-		<field name="LoiterInitialMaxVel" units="m/s" type="float" elements="1" defaultvalue="3.5">
-			<description/>
-		</field>
-		<field name="LoiterAttitudeFeedthrough" units="deg" type="float" elements="1" defaultvalue="15">
-			<description/>
-		</field>
-		<!-- Silently ignored if ThrottleControl is false -->
-		<field name="LoiterAllowAltControl" units="" type="enum" elements="1" options="FALSE,TRUE" defaultvalue="FALSE">
-			<description/>
-		</field>
-		<field name="ReturnToHomeVel" units="m/s" type="float" elements="1" defaultvalue="3.0">
-			<description>Return To Home velocity</description>
-		</field>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="VtolPathFollowerSettings" settings="true" singleinstance="true">
+    <description>Settings for the @ref VtolPathFollowerModule</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="onchange" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="10" elements="1" name="HorizontalVelMax" type="uint16" units="m/s">
+      <description>Maximum Horizontal Velocity</description>
+    </field>
+    <field defaultvalue="1.0,0.0,2.0" name="HorizontalPosPI" type="float" units="(m/s)/m">
+      <description/>
+      <elementnames>
+        <elementname>Kp</elementname>
+        <elementname>Ki</elementname>
+        <elementname>ILimit</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="2.6,0.4,0.0,5.0" name="HorizontalVelPID" type="float" units="deg/(m/s)">
+      <description/>
+      <elementnames>
+        <elementname>Kp</elementname>
+        <elementname>Ki</elementname>
+        <elementname>Kd</elementname>
+        <elementname>ILimit</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="0.0" elements="1" name="VelocityFeedforward" type="float" units="deg/(m/s)">
+      <description>Feedforward Velocity</description>
+    </field>
+    <field defaultvalue="FALSE" elements="1" name="ThrottleControl" type="enum" units="">
+      <description>Enable/Disable Throttle Control</description>
+      <options>
+        <option>FALSE</option>
+        <option>TRUE</option>
+      </options>
+    </field>
+    <field defaultvalue="0.45" elements="1" name="PositionFeedforward" type="float" units="s">
+      <description>Feedforward Position</description>
+    </field>
+    <field defaultvalue="0.45" elements="1" name="EndpointDeadbandWidth" type="float" units="m">
+      <description/>
+    </field>
+    <field defaultvalue="0.3" elements="1" name="EndpointDeadbandCenterGain" type="float" units="">
+      <description/>
+    </field>
+    <field defaultvalue="1.25" elements="1" name="PathDeadbandWidth" type="float" units="m">
+      <description/>
+    </field>
+    <field defaultvalue="0.1" elements="1" name="PathDeadbandCenterGain" type="float" units="">
+      <description/>
+    </field>
+    <field defaultvalue="FALSE" elements="1" name="VelocityChangePrediction" type="enum" units="">
+      <description/>
+      <options>
+        <option>FALSE</option>
+        <option>TRUE</option>
+      </options>
+    </field>
+    <field defaultvalue="20.0" elements="1" name="MaxRollPitch" type="float" units="deg">
+      <description/>
+    </field>
+    <field defaultvalue="2.0" elements="1" name="EndpointRadius" type="float" units="m">
+      <description>The distance within the endpoint (horizontally) that should be achieved to mark completed</description>
+    </field>
+    <field defaultvalue="2.0" elements="1" name="WaypointAltitudeTol" type="float" units="m">
+      <description>The distance that we can be below a waypoint and still mark it as completed.  Silently ignored if ThrottleControl == false</description>
+    </field>
+    <field defaultvalue="50" elements="1" name="UpdatePeriod" type="int32" units="ms">
+      <description/>
+    </field>
+    <field defaultvalue="AxisLock" elements="1" name="YawMode" type="enum" units="">
+      <description/>
+      <options>
+        <option>Rate</option>
+        <option>AxisLock</option>
+        <option>Attitude</option>
+        <option>Path</option>
+        <option>POI</option>
+      </options>
+    </field>
+    <field defaultvalue="0.5" elements="1" name="LandingRate" type="float" units="m/s">
+      <description>Landing Speed</description>
+    </field>
+    <field defaultvalue="1.25" elements="1" name="LoiterBrakingTimeConstant" type="float" units="s">
+      <description/>
+    </field>
+    <field defaultvalue="0.04" elements="1" name="LoiterErrorDecayConstant" type="float" units="s">
+      <description/>
+    </field>
+    <field defaultvalue="1.25" elements="1" name="LoiterLookaheadTimeConstant" type="float" units="s">
+      <description/>
+    </field>
+    <field defaultvalue="3.5" elements="1" name="LoiterInitialMaxVel" type="float" units="m/s">
+      <description/>
+    </field>
+    <field defaultvalue="15.0" elements="1" name="LoiterAttitudeFeedthrough" type="float" units="deg">
+      <description/>
+    </field>
+    <field defaultvalue="FALSE" elements="1" name="LoiterAllowAltControl" type="enum" units="">
+      <description/>
+      <options>
+        <option>FALSE</option>
+        <option>TRUE</option>
+      </options>
+    </field>
+    <field defaultvalue="3.0" elements="1" name="ReturnToHomeVel" type="float" units="m/s">
+      <description>Return To Home velocity</description>
+    </field>
+  </object>
 </xml>

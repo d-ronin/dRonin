@@ -1,16 +1,27 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="VibrationAnalysisOutput" singleinstance="false" settings="false">
-		<description>Output from @VibrationTest module.</description>
-		<field name="x" units="m/s^2" type="int16" elements="16"/>
-		<field name="y" units="m/s^2" type="int16" elements="16"/>
-		<field name="z" units="m/s^2" type="int16" elements="16"/>
-		<field name="scale" units="" type="float" elements="1"/>
-		<field name="samples" units="" type="int16" elements="1"/>
-		<field name="index" units="" type="int16" elements="1"/>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="false" updatemode="onchange" period="0"/>
-		<telemetryflight acked="false" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="VibrationAnalysisOutput" settings="false" singleinstance="false">
+    <description>Output from @VibrationTest module.</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="false" updatemode="onchange" period="0"/>
+    <telemetryflight acked="false" updatemode="onchange" period="0"/>
+    <field defaultvalue="0" elements="16" name="x" type="int16" units="m/s^2">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="16" name="y" type="int16" units="m/s^2">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="16" name="z" type="int16" units="m/s^2">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="scale" type="float" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="samples" type="int16" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="index" type="int16" units="">
+      <description/>
+    </field>
+  </object>
 </xml>

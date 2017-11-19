@@ -1,16 +1,36 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="SystemSettings" singleinstance="true" settings="true">
-		<description>Select airframe type.  Currently used by @ref ActuatorModule to choose mixing from @ref ActuatorDesired to @ref ActuatorCommand</description>
-		<field name="AirframeType" units="" type="enum" elements="1" options="FixedWing,FixedWingElevon,FixedWingVtail,VTOL,HeliCP,QuadX,QuadP,Hexa,Octo,Custom,HexaX,OctoV,OctoCoaxP,OctoCoaxX,HexaCoax,Tri,GroundVehicleCar,GroundVehicleDifferential,GroundVehicleMotorcycle" defaultvalue="QuadX">
-			<description>Airframe Type</description>
-		</field>
-		<field name="AirframeCategorySpecificConfiguration" units="bits" type="uint32" elements="4" defaultvalue="0">
-			<description>Airframe Category Specific Configuration</description>
-		</field>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="SystemSettings" settings="true" singleinstance="true">
+    <description>Select airframe type.  Currently used by @ref ActuatorModule to choose mixing from @ref ActuatorDesired to @ref ActuatorCommand</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="onchange" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="QuadX" elements="1" name="AirframeType" type="enum" units="">
+      <description>Airframe Type</description>
+      <options>
+        <option>FixedWing</option>
+        <option>FixedWingElevon</option>
+        <option>FixedWingVtail</option>
+        <option>VTOL</option>
+        <option>HeliCP</option>
+        <option>QuadX</option>
+        <option>QuadP</option>
+        <option>Hexa</option>
+        <option>Octo</option>
+        <option>Custom</option>
+        <option>HexaX</option>
+        <option>OctoV</option>
+        <option>OctoCoaxP</option>
+        <option>OctoCoaxX</option>
+        <option>HexaCoax</option>
+        <option>Tri</option>
+        <option>GroundVehicleCar</option>
+        <option>GroundVehicleDifferential</option>
+        <option>GroundVehicleMotorcycle</option>
+      </options>
+    </field>
+    <field defaultvalue="0" elements="4" name="AirframeCategorySpecificConfiguration" type="uint32" units="bits">
+      <description>Airframe Category Specific Configuration</description>
+    </field>
+  </object>
 </xml>

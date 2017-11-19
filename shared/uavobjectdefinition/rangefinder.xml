@@ -1,14 +1,29 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="Rangefinder" singleinstance="true" settings="false">
-		<description>The raw data from the rangefinder sensor.</description>
-		<field name="Range" units="m" type="float" elements="1"/>
-		<field name="Velocity" units="m/s" type="float" elements="1"/>
-		<field name="RangingStatus" units="" type="enum" elements="1" options="OutOfRange,InRange" defaultvalue="OutOfRange"/>
-		<field name="VelocityStatus" units="" type="enum" elements="1" options="Invalid,Valid" defaultvalue="Invalid"/>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="false" updatemode="manual" period="0"/>
-		<telemetryflight acked="false" updatemode="throttled" period="1000"/>
-		<logging updatemode="periodic" period="100"/>
-	</object>
+  <object name="Rangefinder" settings="false" singleinstance="true">
+    <description>The raw data from the rangefinder sensor.</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="periodic" period="100"/>
+    <telemetrygcs acked="false" updatemode="manual" period="0"/>
+    <telemetryflight acked="false" updatemode="throttled" period="1000"/>
+    <field defaultvalue="0" elements="1" name="Range" type="float" units="m">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="Velocity" type="float" units="m/s">
+      <description/>
+    </field>
+    <field defaultvalue="OutOfRange" elements="1" name="RangingStatus" type="enum" units="">
+      <description/>
+      <options>
+        <option>OutOfRange</option>
+        <option>InRange</option>
+      </options>
+    </field>
+    <field defaultvalue="Invalid" elements="1" name="VelocityStatus" type="enum" units="">
+      <description/>
+      <options>
+        <option>Invalid</option>
+        <option>Valid</option>
+      </options>
+    </field>
+  </object>
 </xml>

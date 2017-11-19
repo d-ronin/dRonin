@@ -1,13 +1,17 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="PathPlannerSettings" singleinstance="true" settings="true">
-		<description>Settings for the @ref PathPlanner Module</description>
-		<field name="PreprogrammedPath" units="" type="enum" elements="1" options="NONE,10M_BOX,LOGO" defaultvalue="NONE">
-			<description>Preprogrammed path that will be followed</description>
-		</field>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="PathPlannerSettings" settings="true" singleinstance="true">
+    <description>Settings for the @ref PathPlanner Module</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="onchange" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="NONE" elements="1" name="PreprogrammedPath" type="enum" units="">
+      <description>Preprogrammed path that will be followed</description>
+      <options>
+        <option>NONE</option>
+        <option>10M_BOX</option>
+        <option>LOGO</option>
+      </options>
+    </field>
+  </object>
 </xml>

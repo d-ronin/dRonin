@@ -1,66 +1,228 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="StabilizationSettings" singleinstance="true" settings="true">
-		<description>PID settings used by the Stabilization module to combine the @ref AttitudeActual and @ref AttitudeDesired to compute @ref ActuatorDesired</description>
-		<field name="MaxLevelAngle" units="degrees" type="uint8" elements="3" elementnames="Roll,Pitch,Yaw" defaultvalue="55,55,35" limits="%BE:0:180,%BE:0:90,%BE:0:180"/>
-		<field name="RollMax" units="degrees" type="uint8" elements="1" defaultvalue="55" limits="%BE:0:180"/>
-		<field name="PitchMax" units="degrees" type="uint8" elements="1" defaultvalue="55" limits="%BE:0:90"/>
-		<field name="YawMax" units="degrees" type="uint8" elements="1" defaultvalue="35" limits="%BE:0:180"/>
-		<field name="ManualRate" units="degrees/sec" type="float" elementnames="Roll,Pitch,Yaw" defaultvalue="250,250,225" limits="%BE:0:1650,%BE:0:1650,%BE:0:1650">
-			<description>The rate to rotate on this axis at full stick deflection in rate/acro modeis.</description>
-		</field>
-		<field name="AcroDynamicRate" units="degrees/sec" type="float" elementnames="Roll,Pitch,Yaw" defaultvalue="0,0,0" limits="%BE:0:1650,%BE:0:1650,%BE:0:1650">
-			<description>The rate to accelerate towards on this axis under high sustained stick deflection in AcroDyne mode.  0 implies the maximum safe rate, or 1.5 times ManualRate, whichever is lower.</description>
-		</field>
-		<field name="AcroDynamicTransition" units="%" type="uint8" elementnames="Roll,Pitch,Yaw" defaultvalue="70,70,70" limits="%BE:50:85,%BE:50:85,%BE:50:85"/>
-		<field name="AcroDynamicTau" units="seconds" type="float" elements="1" defaultvalue="0.225" limits="%BE:0.1:4.0"/>
-		<field name="AutotuneActuationEffort" units="" type="float" elementnames="Roll,Pitch,Yaw" defaultvalue="0.065,0.065,0.09" limits="%BE:0:0.2,%BE:0:0.2:%BE:0:0.2"/>
-		<field name="MaximumRate" units="degrees/sec" type="float" elementnames="Roll,Pitch,Yaw" defaultvalue="350,350,350" limits="%BE:0:500,%BE:0:500,%BE:0:500"/>
-		<field name="RateExpo" units="%" type="uint8" elementnames="Roll,Pitch,Yaw" defaultvalue="35,35,30" limits="%BE:0:100,%BE:0:100,%BE:0:100"/>
-		<field name="RateExponent" units="*10" type="uint8" elementnames="Roll,Pitch,Yaw" defaultvalue="30,30,30" limits="%BE:20:160,%BE:20:160,%BE:20:160"/>
-		<field name="HorizonExpo" units="%" type="uint8" elementnames="Roll,Pitch,Yaw" defaultvalue="30,30,30" limits="%BE:0:100,%BE:0:100,%BE:0:100"/>
-		<field name="PoiMaximumRate" units="degrees/sec" type="float" elementnames="Roll,Pitch,Yaw" defaultvalue="30,30,30" limits="%BE:0:500,%BE:0:500,%BE:0:500"/>
-		<field name="RollRatePID" units="" type="float" elementnames="Kp,Ki,Kd,ILimit" defaultvalue="0.002,0.0015,0,0.3" limits="%BE:0:0.01,%BE:0:0.05,, "/>
-		<field name="PitchRatePID" units="" type="float" elementnames="Kp,Ki,Kd,ILimit" defaultvalue="0.002,0.0015,0,0.3" limits="%BE:0:0.01,%BE:0:0.05,, "/>
-		<field name="YawRatePID" units="" type="float" elementnames="Kp,Ki,Kd,ILimit" defaultvalue="0.0035,0.0035,0,0.3" limits="%BE:0:0.01,%BE:0:0.05,, "/>
-		<field name="RollPI" units="" type="float" elementnames="Kp,Ki,ILimit" defaultvalue="2.5,0,50" limits="%BE:0:20,%BE:0:20,"/>
-		<field name="PitchPI" units="" type="float" elementnames="Kp,Ki,ILimit" defaultvalue="2.5,0,50" limits="%BE:0:20,%BE:0:20,"/>
-		<field name="YawPI" units="" type="float" elementnames="Kp,Ki,ILimit" defaultvalue="2.5,0,50" limits="%BE:0:20,%BE:0:20,"/>
-		<field name="DerivativeCutoff" units="Hz" type="uint8" elements="1" defaultvalue="20"/>
-		<field name="DerivativeGamma" units="" type="float" elements="1" defaultvalue="0.6"/>
-		<field name="MaxAxisLock" units="deg" type="uint8" elements="1" defaultvalue="15"/>
-		<field name="MaxAxisLockRate" units="deg/s" type="uint8" elements="1" defaultvalue="2"/>
-		<field name="WeakLevelingKp" units="(deg/s)/deg" type="float" elements="1" defaultvalue="0.33"/>
-		<field name="MaxWeakLevelingRate" units="deg/s" type="uint8" elements="1" defaultvalue="45"/>
-		<field name="LowThrottleZeroIntegral" units="" type="enum" elements="1" options="FALSE,TRUE" defaultvalue="TRUE"/>
-		<field name="CoordinatedFlightYawPI" units="" type="float" elementnames="Kp,Ki,ILimit" defaultvalue="0,0.1,0.5" limits="%BE:0:1,%BE:0:1, "/>
-		<field name="AcroInsanityFactor" units="percent" type="float" elements="1" defaultvalue="40" limits="%BE:0:100">
-			<description>Only applicable to Acro+ flight mode. Controls the amount of stick input fed directly to the actuators (AKA "gyro suppression"), 100% results in full manual control at full stick deflection. Note: the rate settings are no longer directly applicable, especially with high insanity factors.</description>
-		</field>
-		<field name="AcroZeroIntegralGyro" units="deg/s" type="float" elements="1" defaultvalue="150">
-			<description>Only applicable to Acro+ flight mode. Rates above this value constitute "aggressive" maneuvers and will reset the integral to zero.</description>
-		</field>
-		<field name="AcroZeroIntegralStick" units="%" type="float" elements="1" defaultvalue="20" limits="%BE:0:100">
-			<description>Only applicable to Acro+ flight mode. Stick deflection above this value constitutes an "aggressive" maneuver and will reset the integral to zero. A value of 100% disables the integral reset.</description>
-		</field>
-		<field name="CameraTilt" units="deg" type="float" elements="1" defaultvalue="0" limits="%BE:-85:85">
-			<description>Only applicable when CameraAngle selected as Reprojection mode in Input settings. This should be the actual tilt angle of your camera. If your camera is tilted upwards, use positive tilt.</description>
-		</field>
-		<field name="DeadbandWidth" units="deg/s" type="uint8" elementnames="Roll,Pitch,Yaw" defaultvalue="0,0,0" limits="%BE:0:20,%BE:0:20,%BE:0:20">
-			<description>Sets the width of the deadband in the PID controller. An axis set to zero disables the relevant deadband.</description>
-		</field>
-		<field name="DeadbandSlope" units="%" type="uint8" elementnames="Roll,Pitch,Yaw" defaultvalue="60,60,50" limits="%BE:0:100,%BE:0:100,%BE:0:100">
-			<description>Sets the slope of the deadband area in the PID controller.</description>
-		</field>
-		<field name="RCControlSmoothing" units="" type="enum" elementnames="Axes,Thrust" options="None,Normal,Extended" defaultvalue="None">
-			<description>Enables different ways of input signal smoothing, to reduce excessive P- and D-term excitation in the PID controller. Normal and Extended modes chamfer the leading edges in combination with some amount of prediction, to avoid delay.</description>
-		</field>
-		<field name="LowPowerStabilizationMaxTime" units="s" type="float" elements="1" defaultvalue="0" limits="%BE:0.0:5.0">
-			<description>Maximum time in seconds to add power when at zero throttle to ensure stabilization.  Choosing 0 prevents adding power at zero throttle.</description>
-		</field>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="StabilizationSettings" settings="true" singleinstance="true">
+    <description>PID settings used by the Stabilization module to combine the @ref AttitudeActual and @ref AttitudeDesired to compute @ref ActuatorDesired</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="onchange" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="55,55,35" name="MaxLevelAngle" type="uint8" units="degrees">
+      <description/>
+      <elementnames>
+        <elementname>Roll</elementname>
+        <elementname>Pitch</elementname>
+        <elementname>Yaw</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="55" elements="1" name="RollMax" type="uint8" units="degrees">
+      <description/>
+    </field>
+    <field defaultvalue="55" elements="1" name="PitchMax" type="uint8" units="degrees">
+      <description/>
+    </field>
+    <field defaultvalue="35" elements="1" name="YawMax" type="uint8" units="degrees">
+      <description/>
+    </field>
+    <field defaultvalue="250.0,250.0,225.0" name="ManualRate" type="float" units="degrees/sec">
+      <description>The rate to rotate on this axis at full stick deflection in rate/acro modeis.</description>
+      <elementnames>
+        <elementname>Roll</elementname>
+        <elementname>Pitch</elementname>
+        <elementname>Yaw</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="0.0" name="AcroDynamicRate" type="float" units="degrees/sec">
+      <description>The rate to accelerate towards on this axis under high sustained stick deflection in AcroDyne mode.  0 implies the maximum safe rate, or 1.5 times ManualRate, whichever is lower.</description>
+      <elementnames>
+        <elementname>Roll</elementname>
+        <elementname>Pitch</elementname>
+        <elementname>Yaw</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="70" name="AcroDynamicTransition" type="uint8" units="%">
+      <description/>
+      <elementnames>
+        <elementname>Roll</elementname>
+        <elementname>Pitch</elementname>
+        <elementname>Yaw</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="0.225" elements="1" name="AcroDynamicTau" type="float" units="seconds">
+      <description/>
+    </field>
+    <field defaultvalue="0.065,0.065,0.09" name="AutotuneActuationEffort" type="float" units="">
+      <description/>
+      <elementnames>
+        <elementname>Roll</elementname>
+        <elementname>Pitch</elementname>
+        <elementname>Yaw</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="350.0" name="MaximumRate" type="float" units="degrees/sec">
+      <description/>
+      <elementnames>
+        <elementname>Roll</elementname>
+        <elementname>Pitch</elementname>
+        <elementname>Yaw</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="35,35,30" name="RateExpo" type="uint8" units="%">
+      <description/>
+      <elementnames>
+        <elementname>Roll</elementname>
+        <elementname>Pitch</elementname>
+        <elementname>Yaw</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="30" name="RateExponent" type="uint8" units="*10">
+      <description/>
+      <elementnames>
+        <elementname>Roll</elementname>
+        <elementname>Pitch</elementname>
+        <elementname>Yaw</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="30" name="HorizonExpo" type="uint8" units="%">
+      <description/>
+      <elementnames>
+        <elementname>Roll</elementname>
+        <elementname>Pitch</elementname>
+        <elementname>Yaw</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="30.0" name="PoiMaximumRate" type="float" units="degrees/sec">
+      <description/>
+      <elementnames>
+        <elementname>Roll</elementname>
+        <elementname>Pitch</elementname>
+        <elementname>Yaw</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="0.002,0.0015,0.0,0.3" name="RollRatePID" type="float" units="">
+      <description/>
+      <elementnames>
+        <elementname>Kp</elementname>
+        <elementname>Ki</elementname>
+        <elementname>Kd</elementname>
+        <elementname>ILimit</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="0.002,0.0015,0.0,0.3" name="PitchRatePID" type="float" units="">
+      <description/>
+      <elementnames>
+        <elementname>Kp</elementname>
+        <elementname>Ki</elementname>
+        <elementname>Kd</elementname>
+        <elementname>ILimit</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="0.0035,0.0035,0.0,0.3" name="YawRatePID" type="float" units="">
+      <description/>
+      <elementnames>
+        <elementname>Kp</elementname>
+        <elementname>Ki</elementname>
+        <elementname>Kd</elementname>
+        <elementname>ILimit</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="2.5,0.0,50.0" name="RollPI" type="float" units="">
+      <description/>
+      <elementnames>
+        <elementname>Kp</elementname>
+        <elementname>Ki</elementname>
+        <elementname>ILimit</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="2.5,0.0,50.0" name="PitchPI" type="float" units="">
+      <description/>
+      <elementnames>
+        <elementname>Kp</elementname>
+        <elementname>Ki</elementname>
+        <elementname>ILimit</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="2.5,0.0,50.0" name="YawPI" type="float" units="">
+      <description/>
+      <elementnames>
+        <elementname>Kp</elementname>
+        <elementname>Ki</elementname>
+        <elementname>ILimit</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="20" elements="1" name="DerivativeCutoff" type="uint8" units="Hz">
+      <description/>
+    </field>
+    <field defaultvalue="0.6" elements="1" name="DerivativeGamma" type="float" units="">
+      <description/>
+    </field>
+    <field defaultvalue="15" elements="1" name="MaxAxisLock" type="uint8" units="deg">
+      <description/>
+    </field>
+    <field defaultvalue="2" elements="1" name="MaxAxisLockRate" type="uint8" units="deg/s">
+      <description/>
+    </field>
+    <field defaultvalue="0.33" elements="1" name="WeakLevelingKp" type="float" units="(deg/s)/deg">
+      <description/>
+    </field>
+    <field defaultvalue="45" elements="1" name="MaxWeakLevelingRate" type="uint8" units="deg/s">
+      <description/>
+    </field>
+    <field defaultvalue="TRUE" elements="1" name="LowThrottleZeroIntegral" type="enum" units="">
+      <description/>
+      <options>
+        <option>FALSE</option>
+        <option>TRUE</option>
+      </options>
+    </field>
+    <field defaultvalue="0.0,0.1,0.5" name="CoordinatedFlightYawPI" type="float" units="">
+      <description/>
+      <elementnames>
+        <elementname>Kp</elementname>
+        <elementname>Ki</elementname>
+        <elementname>ILimit</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="40.0" elements="1" name="AcroInsanityFactor" type="float" units="percent">
+      <description>Only applicable to Acro+ flight mode. Controls the amount of stick input fed directly to the actuators (AKA "gyro suppression"), 100% results in full manual control at full stick deflection. Note: the rate settings are no longer directly applicable, especially with high insanity factors.</description>
+    </field>
+    <field defaultvalue="150.0" elements="1" name="AcroZeroIntegralGyro" type="float" units="deg/s">
+      <description>Only applicable to Acro+ flight mode. Rates above this value constitute "aggressive" maneuvers and will reset the integral to zero.</description>
+    </field>
+    <field defaultvalue="20.0" elements="1" name="AcroZeroIntegralStick" type="float" units="%">
+      <description>Only applicable to Acro+ flight mode. Stick deflection above this value constitutes an "aggressive" maneuver and will reset the integral to zero. A value of 100% disables the integral reset.</description>
+    </field>
+    <field defaultvalue="0.0" elements="1" name="CameraTilt" type="float" units="deg">
+      <description>Only applicable when CameraAngle selected as Reprojection mode in Input settings. This should be the actual tilt angle of your camera. If your camera is tilted upwards, use positive tilt.</description>
+    </field>
+    <field defaultvalue="0" name="DeadbandWidth" type="uint8" units="deg/s">
+      <description>Sets the width of the deadband in the PID controller. An axis set to zero disables the relevant deadband.</description>
+      <elementnames>
+        <elementname>Roll</elementname>
+        <elementname>Pitch</elementname>
+        <elementname>Yaw</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="60,60,50" name="DeadbandSlope" type="uint8" units="%">
+      <description>Sets the slope of the deadband area in the PID controller.</description>
+      <elementnames>
+        <elementname>Roll</elementname>
+        <elementname>Pitch</elementname>
+        <elementname>Yaw</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="None" name="RCControlSmoothing" type="enum" units="">
+      <description>Enables different ways of input signal smoothing, to reduce excessive P- and D-term excitation in the PID controller. Normal and Extended modes chamfer the leading edges in combination with some amount of prediction, to avoid delay.</description>
+      <elementnames>
+        <elementname>Axes</elementname>
+        <elementname>Thrust</elementname>
+      </elementnames>
+      <options>
+        <option>None</option>
+        <option>Normal</option>
+        <option>Extended</option>
+      </options>
+    </field>
+    <field defaultvalue="0.0" elements="1" name="LowPowerStabilizationMaxTime" type="float" units="s">
+      <description>Maximum time in seconds to add power when at zero throttle to ensure stabilization.  Choosing 0 prevents adding power at zero throttle.</description>
+    </field>
+  </object>
 </xml>
