@@ -8,7 +8,7 @@
     <field defaultvalue="20" elements="1" name="SampleRate" type="uint16" units="ms">
       <description>Sampling Rate</description>
     </field>
-    <field defaultvalue="16" elements="1" name="FFTWindowSize" type="enum" units="">
+    <field defaultvalue="16" elements="1" limits="%0901NE:64:256:1024" name="FFTWindowSize" type="enum" units="">
       <description>FFT Windows Size used during the analysis</description>
       <options>
         <option>16</option>

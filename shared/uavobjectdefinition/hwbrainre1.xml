@@ -117,10 +117,10 @@
         <option>Trackmate</option>
       </options>
     </field>
-    <field defaultvalue="0" elements="1" name="IRIDTrackmate" type="uint16" units="">
+    <field defaultvalue="0" elements="1" limits="%BE:0:9999" name="IRIDTrackmate" type="uint16" units="">
       <description/>
     </field>
-    <field defaultvalue="0" elements="1" name="IRIDILap" type="uint32" units="">
+    <field defaultvalue="0" elements="1" limits="%BE:0:9999999" name="IRIDILap" type="uint32" units="">
       <description/>
     </field>
     <field defaultvalue="Disabled" elements="1" name="BuzzerType" type="enum" units="">

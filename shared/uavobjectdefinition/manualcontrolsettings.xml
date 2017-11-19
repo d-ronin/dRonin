@@ -119,10 +119,10 @@
         <elementname>Arming</elementname>
       </elementnames>
     </field>
-    <field defaultvalue="0.0" elements="1" name="Deadband" type="float" units="%">
+    <field defaultvalue="0.0" elements="1" limits="%BE:0:0.1" name="Deadband" type="float" units="%">
       <description>Deadband around neutral value</description>
     </field>
-    <field defaultvalue="0.18" elements="1" name="ThrustDeadband" type="float" units="%">
+    <field defaultvalue="0.18" elements="1" limits="%BE:0:0.5" name="ThrustDeadband" type="float" units="%">
       <description>Deadband around neutral value for throttle channel in 3D mode</description>
     </field>
     <field defaultvalue="Always Disarmed" elements="1" name="Arming" type="enum" units="">
