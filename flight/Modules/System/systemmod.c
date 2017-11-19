@@ -158,6 +158,11 @@ static inline void updateRfm22bStats();
 static inline void updateWDGstats();
 #endif
 
+/* XXX TODO need better home for this */
+#define DSHOT_CMD_BEACON3 (3)
+int actuator_send_dshot_command(uint8_t cmd_id, uint8_t num_to_send,
+                uint16_t channel_mask);
+
 /**
  * Create the module task.
  * \returns 0 on success or -1 if initialization failed
@@ -557,6 +562,15 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 				PIOS_ANNUNCDAC_SetValue(pios_dac_annunciator_id,
 						false, false);
 			}
+		}
+#endif
+
+#ifdef PIOS_INCLUDE_ACTUATOR_ANNUNCIATOR
+		if (should_annunc(&annunciatorSettings, ever_armed,
+				is_manual_control, blink_prio,
+				ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_ACTUATORS)) {
+			actuator_send_dshot_command(DSHOT_CMD_BEACON3,
+					1, 0xffff);
 		}
 #endif
 
