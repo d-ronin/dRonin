@@ -22,16 +22,6 @@
     </widget>
    </item>
    <item>
-    <widget class="QCheckBox" name="cbCategorized">
-     <property name="text">
-      <string>Show Categorized</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
     <widget class="QCheckBox" name="cbScientific">
      <property name="text">
       <string>Show Scientific</string>

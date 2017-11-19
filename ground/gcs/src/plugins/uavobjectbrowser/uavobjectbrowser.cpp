@@ -48,17 +48,16 @@ void UAVObjectBrowser::loadConfiguration(IUAVGadgetConfiguration *config)
     m_widget->setRecentlyUpdatedColor(m->recentlyUpdatedColor());
     m_widget->setManuallyChangedColor(m->manuallyChangedColor());
     m_widget->setOnlyHighlightChangedValues(m->onlyHighlightChangedValues());
-    m_widget->setViewOptions(m->categorizedView(), m->scientificView(), m->showMetaData(),
+    m_widget->setViewOptions(m->scientificView(), m->showMetaData(),
                              m->hideNotPresentOnHw());
     m_widget->setNotPresentOnHwColor(m->notPresentOnHwColor());
     m_widget->initialize();
 }
 
-void UAVObjectBrowser::viewOptionsChangedSlot(bool categorized, bool scientific, bool metadata,
+void UAVObjectBrowser::viewOptionsChangedSlot(bool scientific, bool metadata,
                                               bool hideNotPresent)
 {
     if (m_config) {
-        m_config->setCategorizedView(categorized);
         m_config->setScientificView(scientific);
         m_config->setShowMetaData(metadata);
         m_config->setHideNotPresentOnHw(hideNotPresent);

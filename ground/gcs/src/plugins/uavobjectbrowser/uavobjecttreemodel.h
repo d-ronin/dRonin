@@ -89,7 +89,7 @@ signals:
     void presentOnHardwareChanged();
 public slots:
     void newObject(UAVObject *obj);
-    void initializeModel(bool categorize = true, bool useScientificFloatNotation = true);
+    void initializeModel(bool useScientificFloatNotation = true);
     void instanceRemove(UAVObject *);
 private slots:
     void highlightUpdatedObject(UAVObject *obj);
@@ -97,16 +97,14 @@ private slots:
     void presentOnHardwareChangedCB(UAVDataObject *);
 
 private:
-    void setupModelData(UAVObjectManager *objManager, bool categorize = true,
+    void setupModelData(UAVObjectManager *objManager,
                         bool useScientificFloatNotation = true);
     QModelIndex index(TreeItem *item);
-    void addDataObject(UAVDataObject *obj, bool categorize = true);
+    void addDataObject(UAVDataObject *obj);
     MetaObjectTreeItem *addMetaObject(UAVMetaObject *obj, TreeItem *parent);
     void addArrayField(UAVObjectField *field, TreeItem *parent);
     void addSingleField(int index, UAVObjectField *field, TreeItem *parent);
     void addInstance(UAVObject *obj, TreeItem *parent);
-
-    TreeItem *createCategoryItems(QStringList categoryPath, TreeItem *root);
 
     QString updateMode(quint8 updateMode);
     ObjectTreeItem *findObjectTreeItem(UAVObject *obj);
@@ -126,7 +124,6 @@ private:
     bool m_onlyHighlightChangedValues;
     bool m_useScientificFloatNotation;
     bool m_hideNotPresent;
-    bool m_categorize;
     UAVObjectManager *objManager;
     // Highlight manager to handle highlighting of tree items.
     HighLightManager *m_highlightManager;

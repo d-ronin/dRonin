@@ -112,7 +112,7 @@ public:
         m_onlyHighlightChangedValues = highlight;
         m_model->setOnlyHighlightChangedValues(highlight);
     }
-    void setViewOptions(bool categorized, bool scientific, bool metadata, bool hideNotPresent);
+    void setViewOptions(bool scientific, bool metadata, bool hideNotPresent);
     void initialize();
     void refreshHiddenObjects();
 public slots:
@@ -136,7 +136,7 @@ private slots:
     void searchTextCleared();
 
 signals:
-    void viewOptionsChanged(bool categorized, bool scientific, bool metadata, bool hideNotPresent);
+    void viewOptionsChanged(bool scientific, bool metadata, bool hideNotPresent);
 
 private:
     QPushButton *m_requestUpdate;
