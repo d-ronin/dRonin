@@ -1546,6 +1546,24 @@
                 </property>
                </widget>
               </item>
+              <item row="6" column="0">
+               <widget class="QLabel" name="lblActAnytime">
+                <property name="text">
+                 <string>Actuators (motors):</string>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="1">
+               <widget class="QComboBox" name="cbxActAnytime">
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:AnnunciatorSettings</string>
+                  <string>fieldname:AnnunciateAnytime</string>
+                  <string>element:Actuators</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
              </layout>
             </widget>
            </item>
@@ -1555,6 +1573,16 @@
               <string>After Arming</string>
              </property>
              <layout class="QFormLayout" name="layout_10">
+              <item row="0" column="0" colspan="2">
+               <widget class="QLabel" name="label_30">
+                <property name="text">
+                 <string>This group defines the types of alarms that will be indicated after the vehicle has been armed at least once.</string>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
               <item row="1" column="0">
                <widget class="QLabel" name="lblHeartbeatArmed">
                 <property name="text">
@@ -1598,20 +1626,6 @@
                 </property>
                </widget>
               </item>
-              <item row="4" column="0">
-               <widget class="QLabel" name="lblBuzzerArmed">
-                <property name="text">
-                 <string>Buzzer:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="0">
-               <widget class="QLabel" name="lblDacArmed">
-                <property name="text">
-                 <string>Audio (DAC):</string>
-                </property>
-               </widget>
-              </item>
               <item row="3" column="1">
                <widget class="QComboBox" name="cbxRgbArmed">
                 <property name="objrelation" stdset="0">
@@ -1620,6 +1634,13 @@
                   <string>fieldname:AnnunciateAfterArming</string>
                   <string>element:RGB_LEDs</string>
                  </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="QLabel" name="lblBuzzerArmed">
+                <property name="text">
+                 <string>Buzzer:</string>
                 </property>
                </widget>
               </item>
@@ -1634,6 +1655,13 @@
                 </property>
                </widget>
               </item>
+              <item row="5" column="0">
+               <widget class="QLabel" name="lblDacArmed">
+                <property name="text">
+                 <string>Audio (DAC):</string>
+                </property>
+               </widget>
+              </item>
               <item row="5" column="1">
                <widget class="QComboBox" name="cbxDacArmed">
                 <property name="objrelation" stdset="0">
@@ -1645,13 +1673,21 @@
                 </property>
                </widget>
               </item>
-              <item row="0" column="0" colspan="2">
-               <widget class="QLabel" name="label_30">
+              <item row="6" column="0">
+               <widget class="QLabel" name="lblActAnytime_2">
                 <property name="text">
-                 <string>This group defines the types of alarms that will be indicated after the vehicle has been armed at least once.</string>
+                 <string>Actuators (motors):</string>
                 </property>
-                <property name="wordWrap">
-                 <bool>true</bool>
+               </widget>
+              </item>
+              <item row="6" column="1">
+               <widget class="QComboBox" name="cbxActAnytime_2">
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:AnnunciatorSettings</string>
+                  <string>fieldname:AnnunciateAfterArming</string>
+                  <string>element:Actuators</string>
+                 </stringlist>
                 </property>
                </widget>
               </item>
