@@ -324,7 +324,7 @@ def make_class(collection, xml_file, update_globals=True):
         info = {}
         # process typical attributes
         for attr in ['name', 'units', 'type', 'elements', 'elementnames',
-                     'parent', 'defaultvalue', 'description']:
+                     'parent', 'defaultvalue', 'description', 'limits']:
             info[attr] = field.get(attr)
         if field.get('cloneof'):
             # this is a clone of another field, find its data
