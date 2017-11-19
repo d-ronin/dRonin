@@ -14,7 +14,7 @@
         <option>PPM</option>
       </options>
     </field>
-    <field defaultvalue="0" elements="1" name="CoordID" type="uint32" units="">
+    <field defaultvalue="0" display="hex" elements="1" name="CoordID" type="uint32" units="">
       <description>ID of the coordinator to allow binding to. 0 indicates allow all connections</description>
     </field>
     <field defaultvalue="Telemetry" elements="1" name="MainPort" parent="HwShared.PortTypes" type="enum" units="">

@@ -131,7 +131,7 @@
     <field defaultvalue="Disabled" elements="1" name="Radio" parent="HwShared.RadioPort" type="enum" units="">
       <description>Function for the radio port</description>
     </field>
-    <field defaultvalue="0" elements="1" name="CoordID" type="uint32" units="">
+    <field defaultvalue="0" display="hex" elements="1" name="CoordID" type="uint32" units="">
       <description>ID of the coordinator to allow binding to. 0 indicates allow all connections</description>
     </field>
     <field defaultvalue="64000" elements="1" name="MaxRfSpeed" parent="HwShared.MaxRfSpeed" type="enum" units="bps">

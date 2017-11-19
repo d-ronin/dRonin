@@ -11,13 +11,13 @@
     <field defaultvalue="0" elements="100" name="Description" type="uint8" units="">
       <description/>
     </field>
-    <field defaultvalue="0" elements="12" name="CPUSerial" type="uint8" units="">
+    <field defaultvalue="0" display="hex" elements="12" name="CPUSerial" type="uint8" units="">
       <description/>
     </field>
     <field defaultvalue="0" elements="1" name="BoardRevision" type="uint16" units="">
       <description/>
     </field>
-    <field defaultvalue="0" elements="1" name="BoardType" type="uint8" units="">
+    <field defaultvalue="0" display="hex" elements="1" name="BoardType" type="uint8" units="">
       <description/>
     </field>
     <field defaultvalue="0" elements="1" name="ArmReset" type="uint8" units="">
