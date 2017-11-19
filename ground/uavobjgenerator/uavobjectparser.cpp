@@ -222,7 +222,7 @@ ObjectInfo* UAVObjectParser::getObjectByName(QString& name) {
             return item;
         }
     }
-    
+
     return NULL;
 }
 
@@ -269,7 +269,7 @@ quint32 UAVObjectParser::getObjectID(int objIndex)
  * Get the number of bytes in the data fields of this object
  */
 int UAVObjectParser::getNumBytes(int objIndex)
-{    
+{
     ObjectInfo* info = getObjectByIndex(objIndex);
     if (info == NULL)
         return 0;
@@ -416,7 +416,7 @@ QString UAVObjectParser::parseXML(QString& xml, QString& filename)
             // Get next element
             childNode = childNode.nextSibling();
         }
-        
+
         // Sort all fields according to size (largest to smallest)
         std::stable_sort(info->fields.begin(), info->fields.end(), fieldSizeGreaterThan);
 
@@ -650,7 +650,7 @@ QString UAVObjectParser::processObjectFields(QDomNode& childNode, ObjectInfo* in
     // field that has already been declared
     elemAttr = elemAttributes.namedItem("cloneof");
     if (!elemAttr.isNull()) {
-        QString parentName = elemAttr.nodeValue(); 
+        QString parentName = elemAttr.nodeValue();
         if (!parentName.isEmpty()) {
            foreach(FieldInfo * parent, info->fields) {
                 if (parent->name == parentName) {
@@ -683,7 +683,7 @@ QString UAVObjectParser::processObjectFields(QDomNode& childNode, ObjectInfo* in
     if (index >= 0) {
         field->type = (FieldType)index;
         field->numBytes = fieldTypeNumBytes[index];
-    }  
+    }
     else {
         return QString("Object:field:type attribute value is invalid");
     }
