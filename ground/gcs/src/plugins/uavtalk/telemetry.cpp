@@ -377,12 +377,13 @@ void Telemetry::transactionTimeout(ObjectTransactionInfo *transInfo)
     transInfo->timer->stop();
     // Check if more retries are pending
     if (transInfo->retriesRemaining > 0) {
-        qInfo() << QString("[telemetry.cpp] Transaction timeout:%0 Instance:%1 Retrying")
+        --transInfo->retriesRemaining;
+        qInfo() << QString("[telemetry.cpp] Transaction timeout:%0 Instance:%1 Retrying remaining=%3")
                 .arg(transInfo->obj->getName()
                      + QString(QString(" 0x")
                                + QString::number(transInfo->obj->getObjID(), 16).toUpper()))
-                .arg(transInfo->obj->getInstID());
-        --transInfo->retriesRemaining;
+                .arg(transInfo->obj->getInstID())
+                .arg(transInfo->retriesRemaining);
         processObjectTransaction(transInfo);
         ++txRetries;
     } else {

@@ -73,11 +73,9 @@ public slots:
     void transactionCompleted(UAVObject *obj, bool success);
     void processStatsUpdates();
     void flightStatsUpdated(UAVObject *obj);
-    void checkSessionObjNacked(UAVObject *, bool, bool);
 private slots:
     void sessionObjUnpackedCB(UAVObject *obj);
     void objectRetrieveTimeoutCB();
-    void sessionRetrieveTimeoutCB();
     void sessionInitialRetrieveTimeoutCB();
     void saveSession();
     void newInstanceSlot(UAVObject *);
@@ -110,7 +108,6 @@ private:
     quint16 sessionID;
     quint8 numberOfObjects;
     QTimer *objectRetrieveTimeout;
-    QTimer *sessionRetrieveTimeout;
     QTimer *sessionInitialRetrieveTimeout;
     int retries;
     int requestsInFlight;
