@@ -1,33 +1,94 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="SharedDefs" singleinstance="true" settings="false">
-		<description>Templates for common enums.</description>
-		<field name="FlightMode" units="" type="enum" elements="1" options="Manual,Acro,Leveling,Horizon,AxisLock,VirtualBar,Stabilized1,Stabilized2,Stabilized3,Autotune,AltitudeHold,PositionHold,ReturnToHome,PathPlanner,TabletControl,AcroPlus,Acrodyne,Failsafe"/>
-		<field name="StabilizationMode" units="" type="enum" elements="1" options="Manual,Rate,Attitude,AxisLock,WeakLeveling,VirtualBar,Horizon,SystemIdent,SystemIdentRate,POI,CoordinatedFlight,AcroPlus,Acrodyne,Disabled,Failsafe"/>
-		<!-- Effort -> Emulate direct stick input; ModeSpecific -> Assume values are pre-scaled with some knowledge about given mode, do not scale -->
-		<field name="ReprojectionMode" units="" type="enum" elements="1" options="None,CameraAngle,HeadFree"/>
-		<!-- Effort -> Emulate direct stick input; ModeSpecific -> Assume values are pre-scaled with some knowledge about given mode, do not scale -->
-		<field name="OrientationUnit" units="" type="enum" elements="1" options="Effort,ModeSpecific,Degrees,DegreesPerSec,DegreesPerSec2"/>
-		<field name="PositionUnit" units="" type="enum" elements="1" options="Effort,ModeSpecific,Meters,MetersPerSec,MetersPerSec2"/>
-		<field name="AlarmLevels" units="" type="enum" elements="1" defaultvalue="Uninitialised">
-			<options>
-				<option>Uninitialised</option>
-				<option>OK</option>
-				<option>Warning</option>
-				<option>Error</option>
-				<option>Critical</option>
-				<!-- Following are for annunciator infrastructure.
-				     HairOnFire means only explicit debugging
-				     code that is designed to always "win" -->
-				<option>HairOnFire</option>
-				<!-- If you just want failsafe, this is the
-				     option. -->
-				<option>ManualControlOnly</option>
-			</options>
-		</field>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="false" updatemode="manual" period="0"/>
-		<telemetryflight acked="false" updatemode="periodic" period="0"/>
-		<logging updatemode="periodic" period="0"/>
-	</object>
+  <object name="SharedDefs" settings="false" singleinstance="true">
+    <description>Templates for common enums.</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="periodic" period="0"/>
+    <telemetrygcs acked="false" updatemode="manual" period="0"/>
+    <telemetryflight acked="false" updatemode="periodic" period="0"/>
+    <field defaultvalue="Manual" elements="1" name="FlightMode" type="enum" units="">
+      <description/>
+      <options>
+        <option>Manual</option>
+        <option>Acro</option>
+        <option>Leveling</option>
+        <option>Horizon</option>
+        <option>AxisLock</option>
+        <option>VirtualBar</option>
+        <option>Stabilized1</option>
+        <option>Stabilized2</option>
+        <option>Stabilized3</option>
+        <option>Autotune</option>
+        <option>AltitudeHold</option>
+        <option>PositionHold</option>
+        <option>ReturnToHome</option>
+        <option>PathPlanner</option>
+        <option>TabletControl</option>
+        <option>AcroPlus</option>
+        <option>Acrodyne</option>
+        <option>Failsafe</option>
+      </options>
+    </field>
+    <field defaultvalue="Manual" elements="1" name="StabilizationMode" type="enum" units="">
+      <description/>
+      <options>
+        <option>Manual</option>
+        <option>Rate</option>
+        <option>Attitude</option>
+        <option>AxisLock</option>
+        <option>WeakLeveling</option>
+        <option>VirtualBar</option>
+        <option>Horizon</option>
+        <option>SystemIdent</option>
+        <option>SystemIdentRate</option>
+        <option>POI</option>
+        <option>CoordinatedFlight</option>
+        <option>AcroPlus</option>
+        <option>Acrodyne</option>
+        <option>Disabled</option>
+        <option>Failsafe</option>
+      </options>
+    </field>
+    <field defaultvalue="None" elements="1" name="ReprojectionMode" type="enum" units="">
+      <description/>
+      <options>
+        <option>None</option>
+        <option>CameraAngle</option>
+        <option>HeadFree</option>
+      </options>
+    </field>
+    <field defaultvalue="Effort" elements="1" name="OrientationUnit" type="enum" units="">
+      <description/>
+      <options>
+        <option>Effort</option>
+        <option>ModeSpecific</option>
+        <option>Degrees</option>
+        <option>DegreesPerSec</option>
+        <option>DegreesPerSec2</option>
+      </options>
+    </field>
+    <field defaultvalue="Effort" elements="1" name="PositionUnit" type="enum" units="">
+      <description/>
+      <options>
+        <option>Effort</option>
+        <option>ModeSpecific</option>
+        <option>Meters</option>
+        <option>MetersPerSec</option>
+        <option>MetersPerSec2</option>
+      </options>
+    </field>
+    <field defaultvalue="Uninitialised" elements="1" name="AlarmLevels" type="enum" units="">
+      <description/>
+      <options>
+        <option>Uninitialised</option>
+        <option>OK</option>
+        <option>Warning</option>
+        <option>Error</option>
+        <option>Critical</option>
+        <!-- HairOnFire means things that are set to always emit, e.g. explicit debugging code -->
+        <option>HairOnFire</option>
+        <!-- This is for failsafe / radio disconnect -->
+        <option>ManualControlOnly</option>
+      </options>
+    </field>
+  </object>
 </xml>

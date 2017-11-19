@@ -1,29 +1,37 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="Waypoint" singleinstance="false" settings="false">
-		<description>A waypoint the aircraft can try and hit.  Used by the @ref PathPlanner module</description>
-		<!-- The location of this waypoint -->
-		<field name="Position" units="m" type="float" elementnames="North, East, Down"/>
-		<!-- The velocity to try and have when passing through this waypoint -->
-		<field name="Velocity" units="m/s" type="float" elements="1" default="0"/>
-		<field name="Mode" units="" type="enum" elements="1">
-			<options>
-				<option>Endpoint</option>
-				<option>Vector</option>
-				<option>CircleRight</option>
-				<option>CircleLeft</option>
-				<option>HoldPosition</option>
-				<option>CirclePositionLeft</option>
-				<option>CirclePositionRight</option>
-				<option>Land</option>
-				<option>Invalid</option>
-			</options>
-		</field>
-		<field name="ModeParameters" units="" type="float" elements="1" default="0"/>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="manual" period="0"/>
-		<!-- previously acked.. not anymore.  Way too intrusive to send all waypoints at 4 second intervals and then demand acknowledgements for each -->
-		<telemetryflight acked="false" updatemode="periodic" period="10000"/>
-		<logging updatemode="periodic" period="1000"/>
-	</object>
+  <object name="Waypoint" settings="false" singleinstance="false">
+    <description>A waypoint the aircraft can try and hit.  Used by the @ref PathPlanner module</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="periodic" period="1000"/>
+    <telemetrygcs acked="true" updatemode="manual" period="0"/>
+    <telemetryflight acked="false" updatemode="periodic" period="10000"/>
+    <field defaultvalue="0" name="Position" type="float" units="m">
+      <description>The location of this waypoint, in datum-relative coordinates (NED)</description>
+      <elementnames>
+        <elementname>North</elementname>
+        <elementname>East</elementname>
+        <elementname>Down</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="0" elements="1" name="Velocity" type="float" units="m/s">
+      <description>The velocity to try and have when passing through this waypoint in m/s</description>
+    </field>
+    <field defaultvalue="Endpoint" elements="1" name="Mode" type="enum" units="">
+      <description/>
+      <options>
+        <option>Endpoint</option>
+        <option>Vector</option>
+        <option>CircleRight</option>
+        <option>CircleLeft</option>
+        <option>HoldPosition</option>
+        <option>CirclePositionLeft</option>
+        <option>CirclePositionRight</option>
+        <option>Land</option>
+        <option>Invalid</option>
+      </options>
+    </field>
+    <field defaultvalue="0" elements="1" name="ModeParameters" type="float" units="">
+      <description/>
+    </field>
+  </object>
 </xml>

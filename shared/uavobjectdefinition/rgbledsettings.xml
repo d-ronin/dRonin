@@ -1,75 +1,67 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="RGBLEDSettings" singleinstance="true" settings="true">
-		<description>Settings for RGB LEDs</description>
-		<field name="NumLeds" units="" type="uint8" elements="1" defaultvalue="0">
-			<description>The number of WS2811-style RGB LEDs onboard</description>
-		</field>
-		<field name="AnnunciateRangeBegin" units="" type="uint8" elements="1" defaultvalue="0">
-			<description>The first LED to use for annunciators/alarms.  The LED's normal function is taken over when an alarm is present</description>
-		</field>
-
-		<field name="AnnunciateRangeEnd" units="" type="uint8" elements="1" defaultvalue="255">
-			<description>The last LED to use for annunciators/alarms.  The LED's normal function is taken over when an alarm is present</description>
-		</field>
-		<field name="RangeBegin" units="" type="uint8" elements="1" defaultvalue="0">
-			<description>The beginning of the first range of controlled LEDs</description>
-		</field>
-		<field name="RangeEnd" units="" type="uint8" elements="1" defaultvalue="255">
-			<description>The end of the first range of controlled LEDs</description>
-		</field>
-		<field name="RangeBaseColor" units="brightness" type="uint8" elements="3" defaultvalue="255,0,0">
-			<description>The color to drive the LEDs at baseline.</description>
-		</field>
-		<field name="RangeEndColor" units="brightness" type="uint8" elements="3" defaultvalue="0,0,255">
-			<description>Another color to use as the end to a gradient sequence.</description>
-		</field>
-
-		<field name="RangeColorBlendSource" units="function" elements="1" type="enum" defaultvalue="Throttle">
-			<description>What chooses the mix of basecolor and endcolor to use</description>
-			<options>
-				<option>Always Use BaseColor</option>
-				<option>Throttle</option>
-				<option>Accessory0</option>
-				<option>Accessory1</option>
-				<option>Accessory2</option>
-				<option>Time- Half Second Period</option>
-				<option>Time- Second Period</option>
-				<option>Time- 2 Second Period</option>
-				<option>Time- 4 Second Period</option>
-			</options>
-		</field>
-
-		<field name="RangeColorBlendUnarmedSource" units="function" elements="1" type="enum" defaultvalue="Time- Second Period" parent="RGBLEDSettings.RangeColorBlendSource">
-			<description>What chooses the mix of basecolor and endcolor to use when disarmed</description>
-		</field>
-
-		<field name="RangeColorBlendType" units="function" elements="1" type="enum" defaultvalue="Linear in HSV- backwards hue">
-			<description>How to combine the basecolor and endcolor</description>
-			<options>
-				<option>Linear RGB fade</option>
-				<option>Linear in HSV</option>
-				<option>Linear in HSV- backwards hue</option>
-			</options>
-		</field>
-
-		<field name="RangeColorBlendMode" units="function" elements="1" type="enum" defaultvalue="Sawtooth">
-			<description>Periodicity behavior of blend</description>
-
-			<options>
-				<option>Sawtooth</option>
-				<option>Triangle</option>
-				<option>Sine</option>
-				<option>Square</option>
-			</options>
-		</field>
-
-		<field name="DefaultColor" units="brightness" type="uint8" elements="3" defaultvalue="255,0,0">
-			<description>The color to drive LEDs when they are not in a gradient range.</description>
-		</field>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="RGBLEDSettings" settings="true" singleinstance="true">
+    <description>Settings for RGB LEDs</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="onchange" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="0" elements="1" name="NumLeds" type="uint8" units="">
+      <description>The number of WS2811-style RGB LEDs onboard</description>
+    </field>
+    <field defaultvalue="0" elements="1" name="AnnunciateRangeBegin" type="uint8" units="">
+      <description>The first LED to use for annunciators/alarms.  The LED's normal function is taken over when an alarm is present</description>
+    </field>
+    <field defaultvalue="255" elements="1" name="AnnunciateRangeEnd" type="uint8" units="">
+      <description>The last LED to use for annunciators/alarms.  The LED's normal function is taken over when an alarm is present</description>
+    </field>
+    <field defaultvalue="0" elements="1" name="RangeBegin" type="uint8" units="">
+      <description>The beginning of the first range of controlled LEDs</description>
+    </field>
+    <field defaultvalue="255" elements="1" name="RangeEnd" type="uint8" units="">
+      <description>The end of the first range of controlled LEDs</description>
+    </field>
+    <field defaultvalue="255,0,0" elements="3" name="RangeBaseColor" type="uint8" units="brightness">
+      <description>The color to drive the LEDs at baseline.</description>
+    </field>
+    <field defaultvalue="0,0,255" elements="3" name="RangeEndColor" type="uint8" units="brightness">
+      <description>Another color to use as the end to a gradient sequence.</description>
+    </field>
+    <field defaultvalue="Throttle" elements="1" name="RangeColorBlendSource" type="enum" units="function">
+      <description>What chooses the mix of basecolor and endcolor to use</description>
+      <options>
+        <option>Always Use BaseColor</option>
+        <option>Throttle</option>
+        <option>Accessory0</option>
+        <option>Accessory1</option>
+        <option>Accessory2</option>
+        <option>Time- Half Second Period</option>
+        <option>Time- Second Period</option>
+        <option>Time- 2 Second Period</option>
+        <option>Time- 4 Second Period</option>
+      </options>
+    </field>
+    <field defaultvalue="Time- Second Period" elements="1" name="RangeColorBlendUnarmedSource" parent="RGBLEDSettings.RangeColorBlendSource" type="enum" units="function">
+      <description>What chooses the mix of basecolor and endcolor to use when disarmed</description>
+    </field>
+    <field defaultvalue="Linear in HSV- backwards hue" elements="1" name="RangeColorBlendType" type="enum" units="function">
+      <description>How to combine the basecolor and endcolor</description>
+      <options>
+        <option>Linear RGB fade</option>
+        <option>Linear in HSV</option>
+        <option>Linear in HSV- backwards hue</option>
+      </options>
+    </field>
+    <field defaultvalue="Sawtooth" elements="1" name="RangeColorBlendMode" type="enum" units="function">
+      <description>Periodicity behavior of blend</description>
+      <options>
+        <option>Sawtooth</option>
+        <option>Triangle</option>
+        <option>Sine</option>
+        <option>Square</option>
+      </options>
+    </field>
+    <field defaultvalue="255,0,0" elements="3" name="DefaultColor" type="uint8" units="brightness">
+      <description>The color to drive LEDs when they are not in a gradient range.</description>
+    </field>
+  </object>
 </xml>

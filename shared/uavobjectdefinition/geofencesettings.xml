@@ -1,16 +1,15 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="GeoFenceSettings" singleinstance="true" settings="true">
-		<description>Radius for simple geofence boundaries</description>
-		<field name="WarningRadius" units="m" type="uint16" elements="1" defaultvalue="200">
-			<description>Specifies on which radius a warning should be triggered</description>
-		</field>
-		<field name="ErrorRadius" units="m" type="uint16" elements="1" defaultvalue="250">
-			<description>Specifies on which radius an error should be triggered</description>
-		</field>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="GeoFenceSettings" settings="true" singleinstance="true">
+    <description>Radius for simple geofence boundaries</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="onchange" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="200" elements="1" name="WarningRadius" type="uint16" units="m">
+      <description>Specifies on which radius a warning should be triggered</description>
+    </field>
+    <field defaultvalue="250" elements="1" name="ErrorRadius" type="uint16" units="m">
+      <description>Specifies on which radius an error should be triggered</description>
+    </field>
+  </object>
 </xml>

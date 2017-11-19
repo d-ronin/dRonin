@@ -1,34 +1,37 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="ActuatorSettings" singleinstance="true" settings="true">
-		<description>Settings for the @ref ActuatorModule that controls the channel assignments for the mixer based on AircraftType</description>
-		<field name="TimerUpdateFreq" units="Hz" type="uint16" elements="6" defaultvalue="50">
-			<description>The frequency of the PWM signal output to the actuator. 0 specifies synchronous PWM.</description>
-		</field>
-		<field name="ChannelMax" units="us" type="uint16" elements="10" defaultvalue="0">
-			<description>Maximum output pulse length. Actuator commands will be scaled [-1,1] &gt; [ChannelMin,ChannelMax].</description>
-		</field>
-		<field name="ChannelNeutral" units="us" type="uint16" elements="10" defaultvalue="0">
-			<description>Neutral output pulse length. For motors, should be set to the minimum pulse that causes the motor to start and spin reliably.  For 3D motors, should be the pulse length that results in no spinning.</description>
-		</field>
-		<field name="ChannelMin" units="us" type="uint16" elements="10" defaultvalue="0">
-			<description>Minimum output pulse length. Actuator commands will be scaled from [-1,1] to [ChannelMin,ChannelMax].  For normal motors, should be a value that results in no spinning.  For 3D motors, should be the pulse length that result in maximum reverse spin.</description>
-		</field>
-		<field name="ChannelDeadband" units="us" type="uint16" elements="10" defaultvalue="0">
-			<description>If nonzero, indicates that this is a 3D motor.  For non-dshot modes, indicates the total width of the region around ChannelNeutral.  E.g. if ChannelNeutral is 186, and deadband is 10-- 186us will be sent to not spin, 191us to slowly spin forward, and 181us to slowly spin reverse.  For dshot modes, if this is 1, the motor is 3D.  If it is 2, it is reverse-3D.</description>
-		</field>
-		<field name="MotorsSpinWhileArmed" units="" type="enum" elements="1" options="FALSE,TRUE" defaultvalue="FALSE">
-			<description>When enabled, the motors will spin at the ChannelNeutral command when armed with zero throttle.</description>
-		</field>
-		<field name="LowPowerStabilizationMaxPowerAdd" units="" type="float" elements="1" defaultvalue="0.07" limits="%BE:0.0:0.15">
-			<description>Maximum power to add to ensure stabilization at low power.  Always select a value well under hover power.</description>
-		</field>
-		<field name="MotorInputOutputCurveFit" units="" type="float" elements="1" defaultvalue="0.9">
-			<description>Actuator mapping of input in [-1,1] to output on [-1,1], using power equation of type x^value. This is intended to correct for the non-linear relationship between input command and output power inherent in brushless ESC/motor combinations. A setting below 1.0 will improve high-throttle control stability.</description>
-		</field>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="ActuatorSettings" settings="true" singleinstance="true">
+    <description>Settings for the @ref ActuatorModule that controls the channel assignments for the mixer based on AircraftType</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="onchange" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="50" elements="6" name="TimerUpdateFreq" type="uint16" units="Hz">
+      <description>The frequency of the PWM signal output to the actuator. 0 specifies synchronous PWM.</description>
+    </field>
+    <field defaultvalue="0" elements="10" name="ChannelMax" type="uint16" units="us">
+      <description>Maximum output pulse length. Actuator commands will be scaled [-1,1] &gt; [ChannelMin,ChannelMax].</description>
+    </field>
+    <field defaultvalue="0" elements="10" name="ChannelNeutral" type="uint16" units="us">
+      <description>Neutral output pulse length. For motors, should be set to the minimum pulse that causes the motor to start and spin reliably.  For 3D motors, should be the pulse length that results in no spinning.</description>
+    </field>
+    <field defaultvalue="0" elements="10" name="ChannelMin" type="uint16" units="us">
+      <description>Minimum output pulse length. Actuator commands will be scaled from [-1,1] to [ChannelMin,ChannelMax].  For normal motors, should be a value that results in no spinning.  For 3D motors, should be the pulse length that result in maximum reverse spin.</description>
+    </field>
+    <field defaultvalue="0" elements="10" name="ChannelDeadband" type="uint16" units="us">
+      <description>If nonzero, indicates that this is a 3D motor.  For non-dshot modes, indicates the total width of the region around ChannelNeutral.  E.g. if ChannelNeutral is 186, and deadband is 10-- 186us will be sent to not spin, 191us to slowly spin forward, and 181us to slowly spin reverse.  For dshot modes, if this is 1, the motor is 3D.  If it is 2, it is reverse-3D.</description>
+    </field>
+    <field defaultvalue="FALSE" elements="1" name="MotorsSpinWhileArmed" type="enum" units="">
+      <description>When enabled, the motors will spin at the ChannelNeutral command when armed with zero throttle.</description>
+      <options>
+        <option>FALSE</option>
+        <option>TRUE</option>
+      </options>
+    </field>
+    <field defaultvalue="0.07" elements="1" name="LowPowerStabilizationMaxPowerAdd" type="float" units="">
+      <description>Maximum power to add to ensure stabilization at low power.  Always select a value well under hover power.</description>
+    </field>
+    <field defaultvalue="0.9" elements="1" name="MotorInputOutputCurveFit" type="float" units="">
+      <description>Actuator mapping of input in [-1,1] to output on [-1,1], using power equation of type x^value. This is intended to correct for the non-linear relationship between input command and output power inherent in brushless ESC/motor combinations. A setting below 1.0 will improve high-throttle control stability.</description>
+    </field>
+  </object>
 </xml>

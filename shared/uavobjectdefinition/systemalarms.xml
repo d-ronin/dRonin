@@ -1,92 +1,102 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="SystemAlarms" singleinstance="true" settings="false">
-		<description>Alarms from OpenPilot to indicate failure conditions or warnings.  Set by various modules.</description>
-		<field name="Alarm" units="" type="enum" parent="SharedDefs.AlarmLevels" options="Uninitialised,OK,Warning,Error,Critical" defaultvalue="Uninitialised">
-			<elementnames>
-				<elementname>OutOfMemory</elementname>
-				<elementname>CPUOverload</elementname>
-				<elementname>StackOverflow</elementname>
-				<elementname>SystemConfiguration</elementname>
-				<elementname>EventSystem</elementname>
-				<elementname>Telemetry</elementname>
-				<elementname>ManualControl</elementname>
-				<elementname>Actuator</elementname>
-				<elementname>Attitude</elementname>
-				<elementname>Sensors</elementname>
-				<elementname>Stabilization</elementname>
-				<elementname>Geofence</elementname>
-				<elementname>PathFollower</elementname>
-				<elementname>PathPlanner</elementname>
-				<elementname>Battery</elementname>
-				<elementname>FlightTime</elementname>
-				<elementname>I2C</elementname>
-				<elementname>GPS</elementname>
-				<elementname>AltitudeHold</elementname>
-				<elementname>BootFault</elementname>
-				<elementname>TempBaro</elementname>
-				<elementname>GyroBias</elementname>
-				<elementname>ADC</elementname>
-				<elementname>Gimbal</elementname>
-			</elementnames>
-		</field>
-		<field name="ConfigError" units="" type="enum" elements="1" defaultvalue="None">
-			<options>
-				<option>Stabilization</option>
-				<option>Multirotor</option>
-				<option>AutoTune</option>
-				<option>AltitudeHold</option>
-				<option>PositionHold</option>
-				<option>PathPlanner</option>
-				<option>DuplicatePortCfg</option>
-				<option>NavFilter</option>
-				<!-- the selected filter is not safe for navigation -->
-				<option>UnsafeToArm</option>
-				<option>Undefined</option>
-				<option>None</option>
-			</options>
-		</field>
-		<field name="ManualControl" units="" type="enum" elements="1" defaultvalue="None">
-			<options>
-				<option>Settings</option>
-				<option>NoRx</option>
-				<option>Accessory</option>
-				<option>AltitudeHold</option>
-				<option>PathFollower</option>
-				<option>ChannelConfiguration</option>
-				<option>Undefined</option>
-				<option>None</option>
-			</options>
-		</field>
-		<field name="StateEstimation" units="" type="enum" elements="1" defaultvalue="None">
-			<options>
-				<option>Gyro queue not updating</option>
-				<option>Accelerometer queue not updating</option>
-				<option>No GPS</option>
-				<option>No magnetometer</option>
-				<option>No barometer</option>
-				<option>No home</option>
-				<option>Too few satellites</option>
-				<option>PDOP too high</option>
-				<option>Undefined</option>
-				<option>None</option>
-			</options>
-		</field>
-		<field name="RebootCause" units="" type="enum" elements="1" defaultvalue="Undefined">
-			<options>
-				<option>Brown out</option>
-				<option>Pin reset</option>
-				<option>Power on reset</option>
-				<option>Software reset</option>
-				<option>Independent watchdog</option>
-				<option>Window watchdog</option>
-				<option>Low power</option>
-				<option>Undefined</option>
-			</options>
-		</field>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="false" updatemode="onchange" period="0"/>
-		<telemetryflight acked="false" updatemode="periodic" period="450"/>
-		<logging updatemode="periodic" period="1000"/>
-	</object>
+  <object name="SystemAlarms" settings="false" singleinstance="true">
+    <description>Alarms from OpenPilot to indicate failure conditions or warnings.  Set by various modules.</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="periodic" period="1000"/>
+    <telemetrygcs acked="false" updatemode="onchange" period="0"/>
+    <telemetryflight acked="false" updatemode="periodic" period="450"/>
+    <field defaultvalue="Uninitialised" name="Alarm" parent="SharedDefs.AlarmLevels" type="enum" units="">
+      <description/>
+      <elementnames>
+        <elementname>OutOfMemory</elementname>
+        <elementname>CPUOverload</elementname>
+        <elementname>StackOverflow</elementname>
+        <elementname>SystemConfiguration</elementname>
+        <elementname>EventSystem</elementname>
+        <elementname>Telemetry</elementname>
+        <elementname>ManualControl</elementname>
+        <elementname>Actuator</elementname>
+        <elementname>Attitude</elementname>
+        <elementname>Sensors</elementname>
+        <elementname>Stabilization</elementname>
+        <elementname>Geofence</elementname>
+        <elementname>PathFollower</elementname>
+        <elementname>PathPlanner</elementname>
+        <elementname>Battery</elementname>
+        <elementname>FlightTime</elementname>
+        <elementname>I2C</elementname>
+        <elementname>GPS</elementname>
+        <elementname>AltitudeHold</elementname>
+        <elementname>BootFault</elementname>
+        <elementname>TempBaro</elementname>
+        <elementname>GyroBias</elementname>
+        <elementname>ADC</elementname>
+        <elementname>Gimbal</elementname>
+      </elementnames>
+      <options>
+        <option>Uninitialised</option>
+        <option>OK</option>
+        <option>Warning</option>
+        <option>Error</option>
+        <option>Critical</option>
+      </options>
+    </field>
+    <field defaultvalue="None" elements="1" name="ConfigError" type="enum" units="">
+      <description/>
+      <options>
+        <option>Stabilization</option>
+        <option>Multirotor</option>
+        <option>AutoTune</option>
+        <option>AltitudeHold</option>
+        <option>PositionHold</option>
+        <option>PathPlanner</option>
+        <option>DuplicatePortCfg</option>
+        <option>NavFilter</option>
+        <option>UnsafeToArm</option>
+        <option>Undefined</option>
+        <option>None</option>
+      </options>
+    </field>
+    <field defaultvalue="None" elements="1" name="ManualControl" type="enum" units="">
+      <description/>
+      <options>
+        <option>Settings</option>
+        <option>NoRx</option>
+        <option>Accessory</option>
+        <option>AltitudeHold</option>
+        <option>PathFollower</option>
+        <option>ChannelConfiguration</option>
+        <option>Undefined</option>
+        <option>None</option>
+      </options>
+    </field>
+    <field defaultvalue="None" elements="1" name="StateEstimation" type="enum" units="">
+      <description/>
+      <options>
+        <option>Gyro queue not updating</option>
+        <option>Accelerometer queue not updating</option>
+        <option>No GPS</option>
+        <option>No magnetometer</option>
+        <option>No barometer</option>
+        <option>No home</option>
+        <option>Too few satellites</option>
+        <option>PDOP too high</option>
+        <option>Undefined</option>
+        <option>None</option>
+      </options>
+    </field>
+    <field defaultvalue="Undefined" elements="1" name="RebootCause" type="enum" units="">
+      <description/>
+      <options>
+        <option>Brown out</option>
+        <option>Pin reset</option>
+        <option>Power on reset</option>
+        <option>Software reset</option>
+        <option>Independent watchdog</option>
+        <option>Window watchdog</option>
+        <option>Low power</option>
+        <option>Undefined</option>
+      </options>
+    </field>
+  </object>
 </xml>

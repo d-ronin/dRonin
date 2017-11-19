@@ -1,69 +1,68 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="CharOnScreenDisplaySettings" singleinstance="true" settings="true">
-		<description>Character On Screen Display Settings</description>
-		<field name="VideoStandard" units="enum" type="enum" elements="1" defaultvalue="Autodetect-Prefer PAL">
-			<description>The video standard to use for the OSD</description>
-			<options>
-				<option>Autodetect-Prefer PAL</option>
-				<option>Autodetect-Prefer NTSC</option>
-				<option>Force NTSC</option>
-				<option>Force PAL</option>
-			</options>
-		</field>
-		<field name="CustomText" units="" type="uint8" elements="10" defaultvalue="100,82,111,110,105,110,0,0,0,0">
-			<description>Custom text, ASCII values to show on screen</description>
-		</field>
-		<field name="Font" units="" type="enum" elements="1" defaultvalue="Regular">
-			<description>Typeface to use for text on OSD</description>
-			<options>
-				<option>Regular</option>
-				<option>Thin</option>
-				<option>Small</option>
-			</options>
-		</field>
-		<field name="PanelType" units="Panel" type="enum" defaultvalue="GPS,Latitude,Longitude,ArmedFlag,RSSI,FlightMode,Pitch,Horizon,Throttle,GroundSpeed,Altitude,Roll,FlightTime,HomeDistance,HomeDirection,BatteryVolt,BatteryCurrent,BatteryConsumed,Crosshair,Disabled,Disabled,Disabled,Disabled,Disabled" elements="24">
-			<description>Selection of the elements to put on the OSD</description>
-			<options>
-				<option>Disabled</option>
-				<option>Airspeed</option>
-				<option>Altitude</option>
-				<option>ArmedFlag</option>
-				<option>BatteryVolt</option>
-				<option>BatteryCurrent</option>
-				<option>BatteryConsumed</option>
-				<option>Callsign</option>
-				<option>Climb</option>
-				<option>Compass</option>
-				<option>FlightMode</option>
-				<option>FlightTime</option>
-				<option>GroundSpeed</option>
-				<option>GPS</option>
-				<option>HomeDistance</option>
-				<option>HomeDirection</option>
-				<option>Horizon</option>
-				<option>Latitude</option>
-				<option>Longitude</option>
-				<option>Pitch</option>
-				<option>Roll</option>
-				<option>RSSI</option>
-				<option>RSSIFlag</option>
-				<option>Temperature</option>
-				<option>Throttle</option>
-				<option>Crosshair</option>
-				<option>Alarms</option>
-				<option>Heading</option>
-			</options>
-		</field>
-		<field name="X" units="characters" type="uint8" defaultvalue="1,8,19,3,21,24,1,8,23,1,23,1,1,9,1,8,22,22,14,0,0,0,0,0" elements="24">
-			<description>X coordinates to place the OSD elements at</description>
-		</field>
-		<field name="Y" units="characters" type="uint8" defaultvalue="1,1,1,2,3,2,6,6,6,8,8,10,13,12,14,14,12,13,6,7,0,0,0,0" elements="24">
-			<description>Y coordinates to place the OSD elements at</description>
-		</field>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="CharOnScreenDisplaySettings" settings="true" singleinstance="true">
+    <description>Character On Screen Display Settings</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="onchange" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="Autodetect-Prefer PAL" elements="1" name="VideoStandard" type="enum" units="enum">
+      <description>The video standard to use for the OSD</description>
+      <options>
+        <option>Autodetect-Prefer PAL</option>
+        <option>Autodetect-Prefer NTSC</option>
+        <option>Force NTSC</option>
+        <option>Force PAL</option>
+      </options>
+    </field>
+    <field defaultvalue="100,82,111,110,105,110,0,0,0,0" elements="10" name="CustomText" type="uint8" units="">
+      <description>Custom text, ASCII values to show on screen</description>
+    </field>
+    <field defaultvalue="Regular" elements="1" name="Font" type="enum" units="">
+      <description>Typeface to use for text on OSD</description>
+      <options>
+        <option>Regular</option>
+        <option>Thin</option>
+        <option>Small</option>
+      </options>
+    </field>
+    <field defaultvalue="GPS,Latitude,Longitude,ArmedFlag,RSSI,FlightMode,Pitch,Horizon,Throttle,GroundSpeed,Altitude,Roll,FlightTime,HomeDistance,HomeDirection,BatteryVolt,BatteryCurrent,BatteryConsumed,Crosshair,Disabled,Disabled,Disabled,Disabled,Disabled" elements="24" name="PanelType" type="enum" units="Panel">
+      <description>Selection of the elements to put on the OSD</description>
+      <options>
+        <option>Disabled</option>
+        <option>Airspeed</option>
+        <option>Altitude</option>
+        <option>ArmedFlag</option>
+        <option>BatteryVolt</option>
+        <option>BatteryCurrent</option>
+        <option>BatteryConsumed</option>
+        <option>Callsign</option>
+        <option>Climb</option>
+        <option>Compass</option>
+        <option>FlightMode</option>
+        <option>FlightTime</option>
+        <option>GroundSpeed</option>
+        <option>GPS</option>
+        <option>HomeDistance</option>
+        <option>HomeDirection</option>
+        <option>Horizon</option>
+        <option>Latitude</option>
+        <option>Longitude</option>
+        <option>Pitch</option>
+        <option>Roll</option>
+        <option>RSSI</option>
+        <option>RSSIFlag</option>
+        <option>Temperature</option>
+        <option>Throttle</option>
+        <option>Crosshair</option>
+        <option>Alarms</option>
+        <option>Heading</option>
+      </options>
+    </field>
+    <field defaultvalue="1,8,19,3,21,24,1,8,23,1,23,1,1,9,1,8,22,22,14,0,0,0,0,0" elements="24" name="X" type="uint8" units="characters">
+      <description>X coordinates to place the OSD elements at</description>
+    </field>
+    <field defaultvalue="1,1,1,2,3,2,6,6,6,8,8,10,13,12,14,14,12,13,6,7,0,0,0,0" elements="24" name="Y" type="uint8" units="characters">
+      <description>Y coordinates to place the OSD elements at</description>
+    </field>
+  </object>
 </xml>

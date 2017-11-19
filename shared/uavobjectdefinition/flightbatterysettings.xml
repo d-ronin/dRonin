@@ -1,37 +1,76 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="FlightBatterySettings" singleinstance="true" settings="true">
-		<description>Flight Battery configuration.</description>
-		<field name="CurrentPin" units="" type="enum" elements="1" options="ADC0,ADC1,ADC2,ADC3,ADC4,ADC5,ADC6,ADC7,ADC8,NONE" defaultvalue="ADC0">
-			<description>Pin on which the current sensor is connected</description>
-		</field>
-		<field name="VoltagePin" units="" type="enum" elements="1" options="ADC0,ADC1,ADC2,ADC3,ADC4,ADC5,ADC6,ADC7,ADC8,NONE" defaultvalue="ADC1">
-			<description>Pin on which the battery voltage is connected</description>
-		</field>
-		<field name="NbCells" units="" type="uint8" elements="1" defaultvalue="3">
-			<description>Amount of cells of the battery</description>
-		</field>
-		<field name="MaxCellVoltage" units="V" type="float" elements="1" defaultvalue="4.2">
-			<description>Used for auto-detecting battery voltage. 0 disables the auto-detection. Default value for lipos should be 4.2V</description>
-		</field>
-		<field name="Capacity" units="mAh" type="uint32" elements="1" defaultvalue="2200">
-			<description>Capacity of the battery</description>
-		</field>
-		<field name="CellVoltageThresholds" units="V" type="float" elementnames="Warning, Alarm" defaultvalue="3.5, 3.3">
-			<description>Thresholds to be applied to the cell voltages</description>
-		</field>
-		<field name="SensorCalibrationFactor" units="mV/U" type="float" elementnames="Voltage, Current" defaultvalue="63.69, 36.60">
-			<description>Calibration factor to be applied to the sensor readings</description>
-		</field>
-		<field name="SensorCalibrationOffset" units="" type="float" elementnames="Voltage, Current" defaultvalue="0, 0">
-			<description>Calibration offset to be applied to the sensor readings</description>
-		</field>
-		<field name="FlightTimeThresholds" units="s" type="uint8" elementnames="Warning, Alarm" defaultvalue="120, 30">
-			<description>Thresholds to be applied to the flight time</description>
-		</field>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="FlightBatterySettings" settings="true" singleinstance="true">
+    <description>Flight Battery configuration.</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="onchange" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="ADC0" elements="1" name="CurrentPin" type="enum" units="">
+      <description>Pin on which the current sensor is connected</description>
+      <options>
+        <option>ADC0</option>
+        <option>ADC1</option>
+        <option>ADC2</option>
+        <option>ADC3</option>
+        <option>ADC4</option>
+        <option>ADC5</option>
+        <option>ADC6</option>
+        <option>ADC7</option>
+        <option>ADC8</option>
+        <option>NONE</option>
+      </options>
+    </field>
+    <field defaultvalue="ADC1" elements="1" name="VoltagePin" type="enum" units="">
+      <description>Pin on which the battery voltage is connected</description>
+      <options>
+        <option>ADC0</option>
+        <option>ADC1</option>
+        <option>ADC2</option>
+        <option>ADC3</option>
+        <option>ADC4</option>
+        <option>ADC5</option>
+        <option>ADC6</option>
+        <option>ADC7</option>
+        <option>ADC8</option>
+        <option>NONE</option>
+      </options>
+    </field>
+    <field defaultvalue="3" elements="1" name="NbCells" type="uint8" units="">
+      <description>Amount of cells of the battery</description>
+    </field>
+    <field defaultvalue="4.2" elements="1" name="MaxCellVoltage" type="float" units="V">
+      <description>Used for auto-detecting battery voltage. 0 disables the auto-detection. Default value for lipos should be 4.2V</description>
+    </field>
+    <field defaultvalue="2200" elements="1" name="Capacity" type="uint32" units="mAh">
+      <description>Capacity of the battery</description>
+    </field>
+    <field defaultvalue="3.5,3.3" name="CellVoltageThresholds" type="float" units="V">
+      <description>Thresholds to be applied to the cell voltages</description>
+      <elementnames>
+        <elementname>Warning</elementname>
+        <elementname>Alarm</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="63.69,36.6" name="SensorCalibrationFactor" type="float" units="mV/U">
+      <description>Calibration factor to be applied to the sensor readings</description>
+      <elementnames>
+        <elementname>Voltage</elementname>
+        <elementname>Current</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="0.0" name="SensorCalibrationOffset" type="float" units="">
+      <description>Calibration offset to be applied to the sensor readings</description>
+      <elementnames>
+        <elementname>Voltage</elementname>
+        <elementname>Current</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="120,30" name="FlightTimeThresholds" type="uint8" units="s">
+      <description>Thresholds to be applied to the flight time</description>
+      <elementnames>
+        <elementname>Warning</elementname>
+        <elementname>Alarm</elementname>
+      </elementnames>
+    </field>
+  </object>
 </xml>

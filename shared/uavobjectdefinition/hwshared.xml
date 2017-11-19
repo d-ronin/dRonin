@@ -1,84 +1,168 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="HwShared" singleinstance="true" settings="true" category="HardwareSettings">
-		<description>Templates for common enums.</description>
-		<field name="PortTypes" units="function" type="enum" elements="1" defaultvalue="Disabled">
-			<description>Port types</description>
-			<options>
-				<option>Disabled</option>
-				<option>Telemetry</option>
-				<option>GPS</option>
-				<option>DSM</option>
-				<option>S.Bus</option>
-				<option>S.Bus Non Inverted</option>
-				<option>SRXL</option>
-				<option>IBus</option>
-				<option>DebugConsole</option>
-				<option>ComBridge</option>
-				<option>MavLinkTX</option>
-				<option>MavLinkTX_GPS_RX</option>
-				<option>MSP</option>
-				<option>HoTT SUMD</option>
-				<option>HoTT SUMH</option>
-				<option>HoTT Telemetry</option>
-				<option>FrSKY Sensor Hub</option>
-				<option>FrSKY SPort Telemetry</option>
-				<option>FrSKY SPort Non Inverted</option>
-				<option>LighttelemetryTx</option>
-				<option>OpenLog</option>
-				<option>Storm32Bgc</option>
-				<option>VTX Config TBS SmartAudio</option>
-				<option>TBS Crossfire</option>
-				<!-- These last couple are special cases, really.  le sigh -->
-				<option>I2C</option>
-				<option>PPM</option>
-				<option>PWM</option>
-			</options>
-		</field>
-		<field name="SpeedBps" units="bps" type="enum" elements="1" defaultvalue="115200">
-			<description>Speed options</description>
-			<options>
-				<option>1200</option>
-				<option>2400</option>
-				<option>4800</option>
-				<option>9600</option>
-				<option>19200</option>
-				<option>38400</option>
-				<option>57600</option>
-				<option>115200</option>
-				<option>230400</option>
-				<option>Init HC05</option>
-				<option>Init HC06</option>
-				<option>Init HM10</option>
-			</options>
-		</field>
-		<field name="ExtBaro" units="function" type="enum" elements="1" defaultvalue="None">
-			<options>
-				<option>None</option>
-				<option>BMP280</option>
-				<option>MS5611</option>
-			</options>
-		</field>
-		<field name="Mag" units="function" type="enum" elements="1" defaultvalue="Internal">
-			<options>
-				<option>None</option>
-				<option>Internal</option>
-				<option>External HMC5883</option>
-				<option>External HMC5983</option>
-			</options>
-		</field>
-		<field name="MagOrientation" units="function" type="enum" elements="1" options="Top0degCW,Top90degCW,Top180degCW,Top270degCW,Bottom0degCW,Bottom90degCW,Bottom180degCW,Bottom270degCW" defaultvalue="Top0degCW"/>
-		<field name="USB_HIDPort" units="function" type="enum" elements="1" options="USBTelemetry,Disabled" defaultvalue="USBTelemetry"/>
-		<field name="USB_VCPPort" units="function" type="enum" elements="1" options="USBTelemetry,ComBridge,DebugConsole,MSP,Disabled" defaultvalue="Disabled"/>
-		<field name="RadioPort" units="" type="enum" elements="1" options="Disabled,Telem,Telem+PPM,PPM,OpenLRS" defaultvalue="Disabled"/>
-		<!-- these must match the ordering of options in the rfm22b module -->
-		<field name="MaxRfSpeed" units="bps" type="enum" elements="1" options="9600,19200,32000,64000,100000,192000" defaultvalue="64000"/>
-		<field name="MaxRfPower" units="mW" type="enum" elements="1" options="0,1.25,1.6,3.16,6.3,12.6,25,50,100" defaultvalue="1.25"/>
-		<field name="DSMxMode" units="mode" type="enum" elements="1" options="Autodetect,Force 10-bit,Force 11-bit,Bind 3 pulses,Bind 4 pulses,Bind 5 pulses,Bind 6 pulses,Bind 7 pulses,Bind 8 pulses,Bind 9 pulses,Bind 10 pulses" defaultvalue="Autodetect"/>
-		<field name="RfBand" units="MHz" type="enum" elements="1" options="BoardDefault,433,868,915" defaultvalue="BoardDefault"/>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="HwShared" settings="true" singleinstance="true">
+    <description>Templates for common enums.</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="onchange" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="Disabled" elements="1" name="PortTypes" type="enum" units="function">
+      <description>Port types</description>
+      <options>
+        <option>Disabled</option>
+        <option>Telemetry</option>
+        <option>GPS</option>
+        <option>DSM</option>
+        <option>S.Bus</option>
+        <option>S.Bus Non Inverted</option>
+        <option>SRXL</option>
+        <option>IBus</option>
+        <option>DebugConsole</option>
+        <option>ComBridge</option>
+        <option>MavLinkTX</option>
+        <option>MavLinkTX_GPS_RX</option>
+        <option>MSP</option>
+        <option>HoTT SUMD</option>
+        <option>HoTT SUMH</option>
+        <option>HoTT Telemetry</option>
+        <option>FrSKY Sensor Hub</option>
+        <option>FrSKY SPort Telemetry</option>
+        <option>FrSKY SPort Non Inverted</option>
+        <option>LighttelemetryTx</option>
+        <option>OpenLog</option>
+        <option>Storm32Bgc</option>
+        <option>VTX Config TBS SmartAudio</option>
+        <option>TBS Crossfire</option>
+        <!-- Beyond here are the non-serial, special cases -->
+        <option>I2C</option>
+        <option>PPM</option>
+        <option>PWM</option>
+      </options>
+    </field>
+    <field defaultvalue="115200" elements="1" name="SpeedBps" type="enum" units="bps">
+      <description>Speed options</description>
+      <options>
+        <option>1200</option>
+        <option>2400</option>
+        <option>4800</option>
+        <option>9600</option>
+        <option>19200</option>
+        <option>38400</option>
+        <option>57600</option>
+        <option>115200</option>
+        <option>230400</option>
+        <option>Init HC05</option>
+        <option>Init HC06</option>
+        <option>Init HM10</option>
+      </options>
+    </field>
+    <field defaultvalue="None" elements="1" name="ExtBaro" type="enum" units="function">
+      <description/>
+      <options>
+        <option>None</option>
+        <option>BMP280</option>
+        <option>MS5611</option>
+      </options>
+    </field>
+    <field defaultvalue="Internal" elements="1" name="Mag" type="enum" units="function">
+      <description/>
+      <options>
+        <option>None</option>
+        <option>Internal</option>
+        <option>External HMC5883</option>
+        <option>External HMC5983</option>
+      </options>
+    </field>
+    <field defaultvalue="Top0degCW" elements="1" name="MagOrientation" type="enum" units="function">
+      <description/>
+      <options>
+        <option>Top0degCW</option>
+        <option>Top90degCW</option>
+        <option>Top180degCW</option>
+        <option>Top270degCW</option>
+        <option>Bottom0degCW</option>
+        <option>Bottom90degCW</option>
+        <option>Bottom180degCW</option>
+        <option>Bottom270degCW</option>
+      </options>
+    </field>
+    <field defaultvalue="USBTelemetry" elements="1" name="USB_HIDPort" type="enum" units="function">
+      <description/>
+      <options>
+        <option>USBTelemetry</option>
+        <option>Disabled</option>
+      </options>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="USB_VCPPort" type="enum" units="function">
+      <description/>
+      <options>
+        <option>USBTelemetry</option>
+        <option>ComBridge</option>
+        <option>DebugConsole</option>
+        <option>MSP</option>
+        <option>Disabled</option>
+      </options>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="RadioPort" type="enum" units="">
+      <description/>
+      <options>
+        <option>Disabled</option>
+        <option>Telem</option>
+        <option>Telem+PPM</option>
+        <option>PPM</option>
+        <option>OpenLRS</option>
+      </options>
+    </field>
+    <field defaultvalue="64000" elements="1" name="MaxRfSpeed" type="enum" units="bps">
+      <description>Maximum raw RF data speed in bits per second</description>
+      <options>
+        <!-- Ordering must match the ordering of options in the rfm22b module -->
+        <option>9600</option>
+        <option>19200</option>
+        <option>32000</option>
+        <option>64000</option>
+        <option>100000</option>
+        <option>192000</option>
+      </options>
+    </field>
+    <field defaultvalue="1.25" elements="1" name="MaxRfPower" type="enum" units="mW">
+      <description>Maximum RF power in milliwatts</description>
+      <options>
+        <!-- Ordering must match the ordering of options in the rfm22b module -->
+        <option>0</option>
+        <option>1.25</option>
+        <option>1.6</option>
+        <option>3.16</option>
+        <option>6.3</option>
+        <option>12.6</option>
+        <option>25</option>
+        <option>50</option>
+        <option>100</option>
+      </options>
+    </field>
+    <field defaultvalue="Autodetect" elements="1" name="DSMxMode" type="enum" units="mode">
+      <description/>
+      <options>
+        <option>Autodetect</option>
+        <option>Force 10-bit</option>
+        <option>Force 11-bit</option>
+        <option>Bind 3 pulses</option>
+        <option>Bind 4 pulses</option>
+        <option>Bind 5 pulses</option>
+        <option>Bind 6 pulses</option>
+        <option>Bind 7 pulses</option>
+        <option>Bind 8 pulses</option>
+        <option>Bind 9 pulses</option>
+        <option>Bind 10 pulses</option>
+      </options>
+    </field>
+    <field defaultvalue="BoardDefault" elements="1" name="RfBand" type="enum" units="MHz">
+      <description/>
+      <options>
+        <option>BoardDefault</option>
+        <option>433</option>
+        <option>868</option>
+        <option>915</option>
+      </options>
+    </field>
+  </object>
 </xml>

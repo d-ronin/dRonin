@@ -1,19 +1,36 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="GroundTruth" singleinstance="true" settings="false">
-		<description>Ground truth data output by a simulator.</description>
-		<field name="AccelerationXYZ" units="m/s^2" type="float" elements="3"/>
-		<field name="PositionNED" units="m" type="float" elements="3"/>
-		<field name="VelocityNED" units="m/s" type="float" elements="3"/>
-		<field name="RPY" units="deg" type="float" elements="3"/>
-		<field name="AngularRates" units="deg/s" type="float" elements="3"/>
-		<field name="TrueAirspeed" units="m/s" type="float" elements="1"/>
-		<field name="CalibratedAirspeed" units="m/s" type="float" elements="1"/>
-		<field name="AngleOfAttack" units="deg" type="float" elements="1"/>
-		<field name="AngleOfSlip" units="deg" type="float" elements="1"/>
-		<access gcs="readwrite" flight="readonly"/>
-		<telemetrygcs acked="false" updatemode="periodic" period="50000"/>
-		<telemetryflight acked="false" updatemode="manual" period="50000"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="GroundTruth" settings="false" singleinstance="true">
+    <description>Ground truth data output by a simulator.</description>
+    <access gcs="readwrite" flight="readonly"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="false" updatemode="periodic" period="50000"/>
+    <telemetryflight acked="false" updatemode="manual" period="50000"/>
+    <field defaultvalue="0" elements="3" name="AccelerationXYZ" type="float" units="m/s^2">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="3" name="PositionNED" type="float" units="m">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="3" name="VelocityNED" type="float" units="m/s">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="3" name="RPY" type="float" units="deg">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="3" name="AngularRates" type="float" units="deg/s">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="TrueAirspeed" type="float" units="m/s">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="CalibratedAirspeed" type="float" units="m/s">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="AngleOfAttack" type="float" units="deg">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="AngleOfSlip" type="float" units="deg">
+      <description/>
+    </field>
+  </object>
 </xml>

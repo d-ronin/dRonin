@@ -1,27 +1,66 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="RFM22BStatus" singleinstance="false" settings="false">
-		<description>RFM22B link status.</description>
-		<field name="BoardRevision" units="" type="uint16" elements="1"/>
-		<field name="BoardType" units="" type="uint8" elements="1" display="hex"/>
-		<field name="DeviceID" units="" type="uint32" elements="1" defaultvalue="0" display="hex"/>
-		<field name="HeapRemaining" units="bytes" type="uint16" elements="1"/>
-		<field name="RxGood" units="%" type="uint8" elements="1" defaultvalue="0"/>
-		<field name="RxCorrected" units="%" type="uint8" elements="1" defaultvalue="0"/>
-		<field name="RxErrors" units="%" type="uint8" elements="1" defaultvalue="0"/>
-		<field name="RxSyncMissed" units="%" type="uint8" elements="1" defaultvalue="0"/>
-		<field name="TxMissed" units="%" type="uint8" elements="1" defaultvalue="0"/>
-		<field name="RxFailure" units="%" type="uint8" elements="1" defaultvalue="0"/>
-		<field name="Resets" units="" type="uint8" elements="1" defaultvalue="0"/>
-		<field name="Timeouts" units="" type="uint8" elements="1" defaultvalue="0"/>
-		<field name="RSSI" units="dBm" type="int8" elements="1" defaultvalue="0"/>
-		<field name="LinkQuality" units="" type="uint8" elements="1" defaultvalue="0"/>
-		<field name="TXRate" units="Bps" type="uint16" elements="1" defaultvalue="0"/>
-		<field name="RXRate" units="Bps" type="uint16" elements="1" defaultvalue="0"/>
-		<field name="LinkState" units="function" type="enum" elements="1" options="Disabled,Enabled,Disconnected,Connected" defaultvalue="Disabled"/>
-		<access gcs="readonly" flight="readwrite"/>
-		<telemetrygcs acked="false" updatemode="manual" period="0"/>
-		<telemetryflight acked="false" updatemode="throttled" period="500"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="RFM22BStatus" settings="false" singleinstance="false">
+    <description>RFM22B link status.</description>
+    <access gcs="readonly" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="false" updatemode="manual" period="0"/>
+    <telemetryflight acked="false" updatemode="throttled" period="500"/>
+    <field defaultvalue="0" elements="1" name="BoardRevision" type="uint16" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="BoardType" type="uint8" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="DeviceID" type="uint32" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="HeapRemaining" type="uint16" units="bytes">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="RxGood" type="uint8" units="%">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="RxCorrected" type="uint8" units="%">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="RxErrors" type="uint8" units="%">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="RxSyncMissed" type="uint8" units="%">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="TxMissed" type="uint8" units="%">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="RxFailure" type="uint8" units="%">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="Resets" type="uint8" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="Timeouts" type="uint8" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="RSSI" type="int8" units="dBm">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="LinkQuality" type="uint8" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="TXRate" type="uint16" units="Bps">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="RXRate" type="uint16" units="Bps">
+      <description/>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="LinkState" type="enum" units="function">
+      <description/>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+        <option>Disconnected</option>
+        <option>Connected</option>
+      </options>
+    </field>
+  </object>
 </xml>

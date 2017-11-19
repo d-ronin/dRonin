@@ -1,17 +1,30 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="FirmwareIAPObj" singleinstance="true" settings="false">
-		<description>Queries board for SN, model, revision, and sends reset command</description>
-		<field name="Command" units="" type="uint16" elements="1"/>
-		<field name="Description" units="" type="uint8" elements="100"/>
-		<field name="CPUSerial" units="" type="uint8" elements="12" display="hex"/>
-		<field name="BoardRevision" units="" type="uint16" elements="1"/>
-		<field name="BoardType" units="" type="uint8" elements="1" display="hex"/>
-		<field name="ArmReset" units="" type="uint8" elements="1"/>
-		<field name="crc" units="" type="uint32" elements="1"/>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="manual" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="FirmwareIAPObj" settings="false" singleinstance="true">
+    <description>Queries board for SN, model, revision, and sends reset command</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="manual" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="0" elements="1" name="Command" type="uint16" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="100" name="Description" type="uint8" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="12" name="CPUSerial" type="uint8" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="BoardRevision" type="uint16" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="BoardType" type="uint8" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="ArmReset" type="uint8" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="crc" type="uint32" units="">
+      <description/>
+    </field>
+  </object>
 </xml>

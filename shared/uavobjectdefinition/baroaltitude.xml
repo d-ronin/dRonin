@@ -1,13 +1,18 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="BaroAltitude" singleinstance="true" settings="false">
-		<description>The raw data from the barometric sensor with pressure, temperature and altitude estimate.</description>
-		<field name="Altitude" units="m" type="float" elements="1"/>
-		<field name="Temperature" units="C" type="float" elements="1"/>
-		<field name="Pressure" units="kPa" type="float" elements="1"/>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="false" updatemode="manual" period="0"/>
-		<telemetryflight acked="false" updatemode="throttled" period="1000"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="BaroAltitude" settings="false" singleinstance="true">
+    <description>The raw data from the barometric sensor with pressure, temperature and altitude estimate.</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="false" updatemode="manual" period="0"/>
+    <telemetryflight acked="false" updatemode="throttled" period="1000"/>
+    <field defaultvalue="0" elements="1" name="Altitude" type="float" units="m">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="Temperature" type="float" units="C">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="Pressure" type="float" units="kPa">
+      <description/>
+    </field>
+  </object>
 </xml>

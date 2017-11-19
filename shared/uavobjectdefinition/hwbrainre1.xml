@@ -1,116 +1,151 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="HwBrainRE1" singleinstance="true" settings="true" category="HardwareSettings">
-		<description>Selection of optional hardware configurations.</description>
-		<field name="RxPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
-			<options>
-				<option>Disabled</option>
-				<option>PPM</option>
-				<option>S.Bus</option>
-				<option>S.Bus Non Inverted</option>
-				<option>DSM</option>
-				<option>HoTT SUMD</option>
-				<option>HoTT SUMH</option>
-				<option>SRXL</option>
-				<option>IBus</option>
-				<option>TBS Crossfire</option>
-			</options>
-		</field>
-		<field name="SerialPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
-			<options>
-				<option>Disabled</option>
-				<option>Telemetry</option>
-				<option>GPS</option>
-				<option>DebugConsole</option>
-				<option>ComBridge</option>
-				<option>OpenLog</option>
-				<option>MSP</option>
-				<option>Storm32Bgc</option>
-				<option>HoTT Telemetry</option>
-				<option>LighttelemetryTx</option>
-				<option>MavLinkTX</option>
-				<option>MavLinkTX_GPS_RX</option>
-				<option>VTX Config TBS SmartAudio</option>
-				<option>TBS Crossfire</option>
-			</options>
-		</field>
-		<field name="MultiPortMode" units="function" type="enum" elements="1" defaultvalue="Normal">
-			<options>
-				<option>Normal</option>
-				<option>Dual serial 4 PWM</option>
-			</options>
-		</field>
-		<field name="MultiPortSerial" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
-			<options>
-				<option>Disabled</option>
-				<option>PWM</option>
-				<option>Telemetry</option>
-				<option>GPS</option>
-				<option>DebugConsole</option>
-				<option>ComBridge</option>
-				<option>OpenLog</option>
-				<option>MSP</option>
-				<option>Storm32Bgc</option>
-				<option>HoTT Telemetry</option>
-				<option>LighttelemetryTx</option>
-				<option>MavLinkTX</option>
-				<option>MavLinkTX_GPS_RX</option>
-				<option>FrSKY Sensor Hub</option>
-				<option>FrSKY SPort Telemetry</option>
-				<option>TBS Crossfire</option>
-			</options>
-		</field>
-		<field name="MultiPortSerial2" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
-			<options>
-				<option>Disabled</option>
-				<option>Telemetry</option>
-				<option>GPS</option>
-				<option>DebugConsole</option>
-				<option>ComBridge</option>
-				<option>OpenLog</option>
-				<option>MSP</option>
-				<option>Storm32Bgc</option>
-				<option>HoTT Telemetry</option>
-				<option>LighttelemetryTx</option>
-				<option>MavLinkTX</option>
-				<option>MavLinkTX_GPS_RX</option>
-				<option>VTX Config TBS SmartAudio</option>
-				<option>TBS Crossfire</option>
-			</options>
-		</field>
-		<field name="I2CExtBaro" units="function" type="enum" elements="1" parent="HwShared.ExtBaro" defaultvalue="None"/>
-		<field name="I2CExtMag" units="function" type="enum" elements="1" parent="HwShared.Mag" defaultvalue="None">
-			<options>
-				<option>None</option>
-				<option>External HMC5883</option>
-				<option>External HMC5983</option>
-			</options>
-		</field>
-		<field name="ExtMagOrientation" units="function" type="enum" elements="1" parent="HwShared.MagOrientation" defaultvalue="Top0degCW"/>
-		<field name="DSMxMode" units="mode" type="enum" elements="1" parent="HwShared.DSMxMode" defaultvalue="Autodetect"/>
-		<field name="USB_HIDPort" units="function" type="enum" elements="1" parent="HwShared.USB_HIDPort" defaultvalue="USBTelemetry"/>
-		<field name="USB_VCPPort" units="function" type="enum" elements="1" parent="HwShared.USB_VCPPort" defaultvalue="Disabled"/>
-		<field name="IRProtocol" units="function" type="enum" elements="1" defaultvalue="Disabled">
-			<options>
-				<option>Disabled</option>
-				<option>ILap</option>
-				<option>Trackmate</option>
-			</options>
-		</field>
-		<field name="IRIDTrackmate" units="" type="uint16" elements="1" defaultvalue="0" limits="%BE:0:9999"/>
-		<field name="IRIDILap" units="" type="uint32" elements="1" defaultvalue="0" limits="%BE:0:9999999"/>
-		<field name="BuzzerType" units="" type="enum" elements="1" options="Disabled,DC_Buzzer,4kHz_Buzzer" defaultvalue="Disabled"/>
-		<field name="HWRevision" units="" type="uint8" elements="1" defaultvalue="0"/>
-		<field name="VideoSyncDetectorThreshold" units="" type="uint8" elements="1" defaultvalue="120">
-			<description>Threshold for the video sync pulse detector. It should not be necessary for the user to change this value from the default (120).</description>
-		</field>
-		<field name="BMI160FOC" units="" type="enum" elements="1" options="Disabled,Do_FOC" defaultvalue="Disabled">
-			<description>Peform BMI160 fast offset compensation on next boot. Should not be performed by users. Can only be done a limited number of times.</description>
-		</field>
-		<field name="FlashID" units="" type="uint8" elements="16" defaultvalue="0"/>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="HwBrainRE1" settings="true" singleinstance="true">
+    <description>Selection of optional hardware configurations.</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="onchange" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="Disabled" elements="1" name="RxPort" parent="HwShared.PortTypes" type="enum" units="function">
+      <description/>
+      <options>
+        <option>Disabled</option>
+        <option>PPM</option>
+        <option>S.Bus</option>
+        <option>S.Bus Non Inverted</option>
+        <option>DSM</option>
+        <option>HoTT SUMD</option>
+        <option>HoTT SUMH</option>
+        <option>SRXL</option>
+        <option>IBus</option>
+        <option>TBS Crossfire</option>
+      </options>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="SerialPort" parent="HwShared.PortTypes" type="enum" units="function">
+      <description/>
+      <options>
+        <option>Disabled</option>
+        <option>Telemetry</option>
+        <option>GPS</option>
+        <option>DebugConsole</option>
+        <option>ComBridge</option>
+        <option>OpenLog</option>
+        <option>MSP</option>
+        <option>Storm32Bgc</option>
+        <option>HoTT Telemetry</option>
+        <option>LighttelemetryTx</option>
+        <option>MavLinkTX</option>
+        <option>MavLinkTX_GPS_RX</option>
+        <option>VTX Config TBS SmartAudio</option>
+        <option>TBS Crossfire</option>
+      </options>
+    </field>
+    <field defaultvalue="Normal" elements="1" name="MultiPortMode" type="enum" units="function">
+      <description/>
+      <options>
+        <option>Normal</option>
+        <option>Dual serial 4 PWM</option>
+      </options>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="MultiPortSerial" parent="HwShared.PortTypes" type="enum" units="function">
+      <description/>
+      <options>
+        <option>Disabled</option>
+        <option>PWM</option>
+        <option>Telemetry</option>
+        <option>GPS</option>
+        <option>DebugConsole</option>
+        <option>ComBridge</option>
+        <option>OpenLog</option>
+        <option>MSP</option>
+        <option>Storm32Bgc</option>
+        <option>HoTT Telemetry</option>
+        <option>LighttelemetryTx</option>
+        <option>MavLinkTX</option>
+        <option>MavLinkTX_GPS_RX</option>
+        <option>FrSKY Sensor Hub</option>
+        <option>FrSKY SPort Telemetry</option>
+        <option>TBS Crossfire</option>
+      </options>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="MultiPortSerial2" parent="HwShared.PortTypes" type="enum" units="function">
+      <description/>
+      <options>
+        <option>Disabled</option>
+        <option>Telemetry</option>
+        <option>GPS</option>
+        <option>DebugConsole</option>
+        <option>ComBridge</option>
+        <option>OpenLog</option>
+        <option>MSP</option>
+        <option>Storm32Bgc</option>
+        <option>HoTT Telemetry</option>
+        <option>LighttelemetryTx</option>
+        <option>MavLinkTX</option>
+        <option>MavLinkTX_GPS_RX</option>
+        <option>VTX Config TBS SmartAudio</option>
+        <option>TBS Crossfire</option>
+      </options>
+    </field>
+    <field defaultvalue="None" elements="1" name="I2CExtBaro" parent="HwShared.ExtBaro" type="enum" units="function">
+      <description/>
+    </field>
+    <field defaultvalue="None" elements="1" name="I2CExtMag" parent="HwShared.Mag" type="enum" units="function">
+      <description/>
+      <options>
+        <option>None</option>
+        <option>External HMC5883</option>
+        <option>External HMC5983</option>
+      </options>
+    </field>
+    <field defaultvalue="Top0degCW" elements="1" name="ExtMagOrientation" parent="HwShared.MagOrientation" type="enum" units="function">
+      <description/>
+    </field>
+    <field defaultvalue="Autodetect" elements="1" name="DSMxMode" parent="HwShared.DSMxMode" type="enum" units="mode">
+      <description/>
+    </field>
+    <field defaultvalue="USBTelemetry" elements="1" name="USB_HIDPort" parent="HwShared.USB_HIDPort" type="enum" units="function">
+      <description/>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="USB_VCPPort" parent="HwShared.USB_VCPPort" type="enum" units="function">
+      <description/>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="IRProtocol" type="enum" units="function">
+      <description/>
+      <options>
+        <option>Disabled</option>
+        <option>ILap</option>
+        <option>Trackmate</option>
+      </options>
+    </field>
+    <field defaultvalue="0" elements="1" name="IRIDTrackmate" type="uint16" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="IRIDILap" type="uint32" units="">
+      <description/>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="BuzzerType" type="enum" units="">
+      <description/>
+      <options>
+        <option>Disabled</option>
+        <option>DC_Buzzer</option>
+        <option>4kHz_Buzzer</option>
+      </options>
+    </field>
+    <field defaultvalue="0" elements="1" name="HWRevision" type="uint8" units="">
+      <description/>
+    </field>
+    <field defaultvalue="120" elements="1" name="VideoSyncDetectorThreshold" type="uint8" units="">
+      <description>Threshold for the video sync pulse detector. It should not be necessary for the user to change this value from the default (120).</description>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="BMI160FOC" type="enum" units="">
+      <description>Peform BMI160 fast offset compensation on next boot. Should not be performed by users. Can only be done a limited number of times.</description>
+      <options>
+        <option>Disabled</option>
+        <option>Do_FOC</option>
+      </options>
+    </field>
+    <field defaultvalue="0" elements="16" name="FlashID" type="uint8" units="">
+      <description/>
+    </field>
+  </object>
 </xml>

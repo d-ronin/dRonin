@@ -1,51 +1,88 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="FixedWingPathFollowerSettings" singleinstance="true" settings="true">
-		<description>Settings for the @ref FixedWingPathFollowerModule</description>
-		<field name="HorizontalPosP" units="" type="float" elements="1" defaultvalue="0.6">
-			<description>Proportional coefficient for desired horizontal speed in relation to altitude displacement</description>
-		</field>
-		<field name="VerticalPosP" units="(m/s)/m" type="float" elements="1" defaultvalue="0.05">
-			<description>Proportional coefficient for desired vertical speed in relation to altitude displacement</description>
-		</field>
-		<!-- these coefficients control actual control outputs -->
-		<field name="BearingPI" units="deg/deg" type="float" elements="3" elementnames="Kp,Ki,ILimit" defaultvalue="0.6, 0, 0">
-			<description>Coefficients for desired bank angle in relation to ground bearing error - this controls heading</description>
-		</field>
-		<field name="PowerPI" units="deg / (m/s)" type="float" elements="3" elementnames="Kp,Ki,ILimit" defaultvalue="1.5, .15, 20">
-			<description>Coefficients for desired pitch in relation to relative speed sensor (IASerror/IASactual)</description>
-		</field>
-		<field name="VerticalToPitchCrossFeed" units="deg / ((m/s)/(m/s))" type="float" elementnames="Kp,Max" defaultvalue="5, 10">
-			<description>Coefficients for adjusting desired pitch in relation to "vertical speed error relative to airspeed" (verror/IASactual)</description>
-		</field>
-		<field name="AirspeedToVerticalCrossFeed" units="(m/s) / ((m/s)/(m/s))" type="float" elementnames="Kp,Max" defaultvalue="10, 100">
-			<description>Proportional coefficients for adjusting vertical speed error for power calculation in relation to relative airspeed error (IASerror/IASactual)</description>
-		</field>
-		<field name="SpeedPI" units="1/(m/s)" type="float" elements="3" elementnames="Kp,Ki,ILimit" defaultvalue="0.01,0.01,0.8">
-			<description>Proportional coefficients for desired throttle in relation to vertical speed error (absolute but including crossfeed)</description>
-		</field>
-		<!-- output limits -->
-		<field name="RollLimit" units="deg" type="float" elements="3" elementnames="Min,Neutral,Max" defaultvalue="-35,0,35">
-			<description>Maximum allowed bank angles in navigated flight</description>
-		</field>
-		<field name="PitchLimit" units="deg" type="float" elements="3" elementnames="Min,Neutral,Max" defaultvalue="-10,0,10">
-			<description>Maximum allowed pitch angles and setpoint for neutral pitch</description>
-		</field>
-		<field name="ThrottleLimit" units="" type="float" elements="3" elementnames="Min,Neutral,Max" defaultvalue="0.0,0.5,1.0">
-			<description>Minimum and maximum allowed throttle and setpoint for cruise speed</description>
-		</field>
-		<field name="OrbitRadius" units="m" type="float" elements="1" defaultvalue="50">
-			<description>The default radius to use for PH and RTH</description>
-		</field>
-		<field name="UpdatePeriod" units="ms" type="int16" elements="1" defaultvalue="100">
-			<description/>
-		</field>
-		<field name="PositionFeedforward" units="s" type="float" elements="1" defaultvalue="0.5">
-			<description>The amount of time of the current velocity to feed-forward into position to compensate for turns taking time.</description>
-		</field>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="FixedWingPathFollowerSettings" settings="true" singleinstance="true">
+    <description>Settings for the @ref FixedWingPathFollowerModule</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="onchange" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="0.6" elements="1" name="HorizontalPosP" type="float" units="">
+      <description>Proportional coefficient for desired horizontal speed in relation to altitude displacement</description>
+    </field>
+    <field defaultvalue="0.05" elements="1" name="VerticalPosP" type="float" units="(m/s)/m">
+      <description>Proportional coefficient for desired vertical speed in relation to altitude displacement</description>
+    </field>
+    <!-- The following coeffs control actual control outputs -->
+    <field defaultvalue="0.6,0.0,0.0" name="BearingPI" type="float" units="deg/deg">
+      <description>Coefficients for desired bank angle in relation to ground bearing error - this controls heading</description>
+      <elementnames>
+        <elementname>Kp</elementname>
+        <elementname>Ki</elementname>
+        <elementname>ILimit</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="1.5,0.15,20.0" name="PowerPI" type="float" units="deg / (m/s)">
+      <description>Coefficients for desired pitch in relation to relative speed sensor (IASerror/IASactual)</description>
+      <elementnames>
+        <elementname>Kp</elementname>
+        <elementname>Ki</elementname>
+        <elementname>ILimit</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="5.0,10.0" name="VerticalToPitchCrossFeed" type="float" units="deg / ((m/s)/(m/s))">
+      <description>Coefficients for adjusting desired pitch in relation to "vertical speed error relative to airspeed" (verror/IASactual)</description>
+      <elementnames>
+        <elementname>Kp</elementname>
+        <elementname>Max</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="10.0,100.0" name="AirspeedToVerticalCrossFeed" type="float" units="(m/s) / ((m/s)/(m/s))">
+      <description>Proportional coefficients for adjusting vertical speed error for power calculation in relation to relative airspeed error (IASerror/IASactual)</description>
+      <elementnames>
+        <elementname>Kp</elementname>
+        <elementname>Max</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="0.01,0.01,0.8" name="SpeedPI" type="float" units="1/(m/s)">
+      <description>Proportional coefficients for desired throttle in relation to vertical speed error (absolute but including crossfeed)</description>
+      <elementnames>
+        <elementname>Kp</elementname>
+        <elementname>Ki</elementname>
+        <elementname>ILimit</elementname>
+      </elementnames>
+    </field>
+    <!-- output limits -->
+    <field defaultvalue="-35.0,0.0,35.0" name="RollLimit" type="float" units="deg">
+      <description>Maximum allowed bank angles in navigated flight</description>
+      <elementnames>
+        <elementname>Min</elementname>
+        <elementname>Neutral</elementname>
+        <elementname>Max</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="-10.0,0.0,10.0" name="PitchLimit" type="float" units="deg">
+      <description>Maximum allowed pitch angles and setpoint for neutral pitch</description>
+      <elementnames>
+        <elementname>Min</elementname>
+        <elementname>Neutral</elementname>
+        <elementname>Max</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="0.0,0.5,1.0" name="ThrottleLimit" type="float" units="">
+      <description>Minimum and maximum allowed throttle and setpoint for cruise speed</description>
+      <elementnames>
+        <elementname>Min</elementname>
+        <elementname>Neutral</elementname>
+        <elementname>Max</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="50.0" elements="1" name="OrbitRadius" type="float" units="m">
+      <description>The default radius to use for PH and RTH</description>
+    </field>
+    <field defaultvalue="100" elements="1" name="UpdatePeriod" type="int16" units="ms">
+      <description/>
+    </field>
+    <field defaultvalue="0.5" elements="1" name="PositionFeedforward" type="float" units="s">
+      <description>The amount of time of the current velocity to feed-forward into position to compensate for turns taking time.</description>
+    </field>
+  </object>
 </xml>

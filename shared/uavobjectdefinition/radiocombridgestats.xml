@@ -1,24 +1,51 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="RadioComBridgeStats" singleinstance="true" settings="false">
-		<description>Maintains the telemetry statistics from the OPLM RadioComBridge.</description>
-		<field name="TelemetryTxBytes" units="bytes" type="uint32" elements="1"/>
-		<field name="TelemetryTxFailures" units="count" type="uint32" elements="1"/>
-		<field name="TelemetryTxRetries" units="count" type="uint32" elements="1"/>
-		<field name="TelemetryRxBytes" units="bytes" type="uint32" elements="1"/>
-		<field name="TelemetryRxFailures" units="count" type="uint32" elements="1"/>
-		<field name="TelemetryRxSyncErrors" units="count" type="uint32" elements="1"/>
-		<field name="TelemetryRxCrcErrors" units="count" type="uint32" elements="1"/>
-		<field name="RadioTxBytes" units="bytes" type="uint32" elements="1"/>
-		<field name="RadioTxFailures" units="count" type="uint32" elements="1"/>
-		<field name="RadioTxRetries" units="count" type="uint32" elements="1"/>
-		<field name="RadioRxBytes" units="bytes" type="uint32" elements="1"/>
-		<field name="RadioRxFailures" units="count" type="uint32" elements="1"/>
-		<field name="RadioRxSyncErrors" units="count" type="uint32" elements="1"/>
-		<field name="RadioRxCrcErrors" units="count" type="uint32" elements="1"/>
-		<access gcs="readonly" flight="readwrite"/>
-		<telemetrygcs acked="false" updatemode="manual" period="0"/>
-		<telemetryflight acked="false" updatemode="throttled" period="5000"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="RadioComBridgeStats" settings="false" singleinstance="true">
+    <description>Maintains the telemetry statistics from the OPLM RadioComBridge.</description>
+    <access gcs="readonly" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="false" updatemode="manual" period="0"/>
+    <telemetryflight acked="false" updatemode="throttled" period="5000"/>
+    <field defaultvalue="0" elements="1" name="TelemetryTxBytes" type="uint32" units="bytes">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="TelemetryTxFailures" type="uint32" units="count">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="TelemetryTxRetries" type="uint32" units="count">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="TelemetryRxBytes" type="uint32" units="bytes">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="TelemetryRxFailures" type="uint32" units="count">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="TelemetryRxSyncErrors" type="uint32" units="count">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="TelemetryRxCrcErrors" type="uint32" units="count">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="RadioTxBytes" type="uint32" units="bytes">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="RadioTxFailures" type="uint32" units="count">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="RadioTxRetries" type="uint32" units="count">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="RadioRxBytes" type="uint32" units="bytes">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="RadioRxFailures" type="uint32" units="count">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="RadioRxSyncErrors" type="uint32" units="count">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="RadioRxCrcErrors" type="uint32" units="count">
+      <description/>
+    </field>
+  </object>
 </xml>

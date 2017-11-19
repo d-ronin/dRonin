@@ -1,34 +1,54 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="INSSettings" singleinstance="true" settings="true">
-		<description>Settings for the INS to control the algorithm and what is updated</description>
-		<!-- Sensor noises -->
-		<field name="AccelVar" units="(m/s)^2" type="float" elementnames="X,Y,Z" defaultvalue="0.003">
-			<description/>
-		</field>
-		<field name="GyroVar" units="(deg/s)^2" type="float" elementnames="X,Y,Z" defaultvalue="0.00001,0.00001,0.0001">
-			<description/>
-		</field>
-		<field name="MagVar" units="mGau^2" type="float" elementnames="X,Y,Z" defaultvalue="10,10,100">
-			<description/>
-		</field>
-		<field name="GpsVar" units="m^2" type="float" elementnames="Pos,Vel,VertPos" defaultvalue="0.001,0.01,0.5">
-			<description/>
-		</field>
-		<field name="BaroVar" units="m^2" type="float" elements="1" defaultvalue="0.01">
-			<description/>
-		</field>
-		<!-- Features for the INS -->
-		<field name="ComputeGyroBias" units="" type="enum" elements="1" options="FALSE,TRUE" defaultvalue="FALSE">
-			<description/>
-		</field>
-		<!-- These settings are related to how the sensors are post processed -->
-		<field name="MagBiasNullingRate" units="" type="float" elements="1" defaultvalue="0">
-			<description/>
-		</field>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="INSSettings" settings="true" singleinstance="true">
+    <description>Settings for the INS to control the algorithm and what is updated</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="onchange" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="0.003" name="AccelVar" type="float" units="(m/s)^2">
+      <description/>
+      <elementnames>
+        <elementname>X</elementname>
+        <elementname>Y</elementname>
+        <elementname>Z</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="1e-05,1e-05,0.0001" name="GyroVar" type="float" units="(deg/s)^2">
+      <description>Variances (noise values) for the gyro axes</description>
+      <elementnames>
+        <elementname>X</elementname>
+        <elementname>Y</elementname>
+        <elementname>Z</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="10.0,10.0,100.0" name="MagVar" type="float" units="mGau^2">
+      <description>Variances (noise values) for the magnetometer axes</description>
+      <elementnames>
+        <elementname>X</elementname>
+        <elementname>Y</elementname>
+        <elementname>Z</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="0.001,0.01,0.5" name="GpsVar" type="float" units="m^2">
+      <description>Variances (noise value) for the GPS positions</description>
+      <elementnames>
+        <elementname>Pos</elementname>
+        <elementname>Vel</elementname>
+        <elementname>VertPos</elementname>
+      </elementnames>
+    </field>
+    <field defaultvalue="0.01" elements="1" name="BaroVar" type="float" units="m^2">
+      <description>Variance (noise value) for the barometer altitude</description>
+    </field>
+    <field defaultvalue="FALSE" elements="1" name="ComputeGyroBias" type="enum" units="">
+      <description/>
+      <options>
+        <option>FALSE</option>
+        <option>TRUE</option>
+      </options>
+    </field>
+    <field defaultvalue="0.0" elements="1" name="MagBiasNullingRate" type="float" units="">
+      <description/>
+    </field>
+  </object>
 </xml>

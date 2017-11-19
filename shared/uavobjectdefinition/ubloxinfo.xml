@@ -1,13 +1,18 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="UBloxInfo" singleinstance="true" settings="false">
-		<description>UBlox specific information</description>
-		<field name="swVersion" units="" type="uint32" elements="1"/>
-		<field name="hwVersion" units="" type="uint16" elements="1"/>
-		<field name="ParseErrors" units="" type="uint32" elements="1"/>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="false" updatemode="manual" period="0"/>
-		<telemetryflight acked="false" updatemode="periodic" period="10000"/>
-		<logging updatemode="periodic" period="1000"/>
-	</object>
+  <object name="UBloxInfo" settings="false" singleinstance="true">
+    <description>UBlox specific information</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="periodic" period="1000"/>
+    <telemetrygcs acked="false" updatemode="manual" period="0"/>
+    <telemetryflight acked="false" updatemode="periodic" period="10000"/>
+    <field defaultvalue="0" elements="1" name="swVersion" type="uint32" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="hwVersion" type="uint16" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="ParseErrors" type="uint32" units="">
+      <description/>
+    </field>
+  </object>
 </xml>

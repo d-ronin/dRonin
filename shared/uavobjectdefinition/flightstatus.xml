@@ -1,14 +1,29 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="FlightStatus" singleinstance="true" settings="false">
-		<description>Contains major flight status information for other modules.</description>
-		<field name="Armed" units="" type="enum" elements="1" options="Disarmed,Arming,Armed" defaultvalue="Disarmed"/>
-		<field name="FlightMode" units="" type="enum" elements="1" parent="SharedDefs.FlightMode"/>
-		<!-- Indicate what submodule is in control -->
-		<field name="ControlSource" units="" type="enum" elements="1" options="Geofence,Failsafe,Transmitter,Tablet" defaultvalue="Failsafe"/>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="false" updatemode="manual" period="0"/>
-		<telemetryflight acked="false" updatemode="onchange" period="5000"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="FlightStatus" settings="false" singleinstance="true">
+    <description>Contains major flight status information for other modules.</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="false" updatemode="manual" period="0"/>
+    <telemetryflight acked="false" updatemode="onchange" period="5000"/>
+    <field defaultvalue="Disarmed" elements="1" name="Armed" type="enum" units="">
+      <description>Whether the aircraft is armed or arming</description>
+      <options>
+        <option>Disarmed</option>
+        <option>Arming</option>
+        <option>Armed</option>
+      </options>
+    </field>
+    <field defaultvalue="Manual" elements="1" name="FlightMode" parent="SharedDefs.FlightMode" type="enum" units="">
+      <description/>
+    </field>
+    <field defaultvalue="Failsafe" elements="1" name="ControlSource" type="enum" units="">
+      <description>Indicates which submodule is in control of the aircraft</description>
+      <options>
+        <option>Geofence</option>
+        <option>Failsafe</option>
+        <option>Transmitter</option>
+        <option>Tablet</option>
+      </options>
+    </field>
+  </object>
 </xml>

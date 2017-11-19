@@ -1,18 +1,33 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="FlightBatteryState" singleinstance="true" settings="false">
-		<description>Battery status information.</description>
-		<field name="Voltage" units="V" type="float" elements="1" defaultvalue="0.0"/>
-		<field name="DetectedCellCount" units="" type="uint8" elements="1" defaultvalue="0"/>
-		<field name="Current" units="A" type="float" elements="1" defaultvalue="0.0"/>
-		<field name="BoardSupplyVoltage" units="V" type="float" elements="1" defaultvalue="0.0"/>
-		<field name="PeakCurrent" units="A" type="float" elements="1" defaultvalue="0.0"/>
-		<field name="AvgCurrent" units="A" type="float" elements="1" defaultvalue="0.0"/>
-		<field name="ConsumedEnergy" units="mAh" type="float" elements="1" defaultvalue="0.0"/>
-		<field name="EstimatedFlightTime" units="sec" type="float" elements="1" defaultvalue="0.0"/>
-		<access gcs="readonly" flight="readwrite"/>
-		<telemetrygcs acked="false" updatemode="manual" period="0"/>
-		<telemetryflight acked="false" updatemode="throttled" period="1000"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="FlightBatteryState" settings="false" singleinstance="true">
+    <description>Battery status information.</description>
+    <access gcs="readonly" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="false" updatemode="manual" period="0"/>
+    <telemetryflight acked="false" updatemode="throttled" period="1000"/>
+    <field defaultvalue="0.0" elements="1" name="Voltage" type="float" units="V">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="DetectedCellCount" type="uint8" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0.0" elements="1" name="Current" type="float" units="A">
+      <description/>
+    </field>
+    <field defaultvalue="0.0" elements="1" name="BoardSupplyVoltage" type="float" units="V">
+      <description/>
+    </field>
+    <field defaultvalue="0.0" elements="1" name="PeakCurrent" type="float" units="A">
+      <description/>
+    </field>
+    <field defaultvalue="0.0" elements="1" name="AvgCurrent" type="float" units="A">
+      <description/>
+    </field>
+    <field defaultvalue="0.0" elements="1" name="ConsumedEnergy" type="float" units="mAh">
+      <description/>
+    </field>
+    <field defaultvalue="0.0" elements="1" name="EstimatedFlightTime" type="float" units="sec">
+      <description/>
+    </field>
+  </object>
 </xml>

@@ -1,21 +1,20 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="HwSimulation" singleinstance="true" settings="false" category="HardwareStatus">
-		<description>Simulation status.</description>
-		<field name="LedState" units="" type="enum" elements="2" defaultvalue="Off">
-			<description>Status of the board LEDs</description>
-			<elementnames>
-				<elementname>Heartbeat</elementname>
-				<elementname>Alarm</elementname>
-			</elementnames>
-			<options>
-				<option>Off</option>
-				<option>On</option>
-			</options>
-		</field>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="false" updatemode="onchange" period="0"/>
-		<telemetryflight acked="false" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="HwSimulation" settings="false" singleinstance="true">
+    <description>Simulation status.</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="false" updatemode="onchange" period="0"/>
+    <telemetryflight acked="false" updatemode="onchange" period="0"/>
+    <field defaultvalue="Off" name="LedState" type="enum" units="">
+      <description>Status of the board LEDs</description>
+      <elementnames>
+        <elementname>Heartbeat</elementname>
+        <elementname>Alarm</elementname>
+      </elementnames>
+      <options>
+        <option>Off</option>
+        <option>On</option>
+      </options>
+    </field>
+  </object>
 </xml>

@@ -1,171 +1,188 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="HwSparky2" singleinstance="true" settings="true" category="HardwareSettings">
-		<description>Selection of optional hardware configurations.</description>
-		<field name="RcvrPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
-			<description/>
-			<options>
-				<option>Disabled</option>
-				<option>DSM</option>
-				<option>HoTT SUMD</option>
-				<option>HoTT SUMH</option>
-				<option>PPM</option>
-				<option>S.Bus</option>
-				<option>S.Bus Non Inverted</option>
-				<option>SRXL</option>
-				<option>IBus</option>
-				<option>TBS Crossfire</option>
-			</options>
-		</field>
-		<!-- Note that when either serial port is set to telemetry it will block the radio port -->
-		<field name="MainPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
-			<description>The port labelled "Main Port"</description>
-			<options>
-				<option>Disabled</option>
-				<option>ComBridge</option>
-				<option>DebugConsole</option>
-				<option>DSM</option>
-				<option>FrSKY Sensor Hub</option>
-				<option>FrSKY SPort Telemetry</option>
-				<option>FrSKY SPort Non Inverted</option>
-				<option>GPS</option>
-				<option>SRXL</option>
-				<option>HoTT SUMD</option>
-				<option>HoTT SUMH</option>
-				<option>HoTT Telemetry</option>
-				<option>LighttelemetryTx</option>
-				<option>MavLinkTX</option>
-				<option>MavLinkTX_GPS_RX</option>
-				<option>MSP</option>
-				<option>OpenLog</option>
-				<option>S.Bus Non Inverted</option>
-				<option>Storm32Bgc</option>
-				<option>Telemetry</option>
-				<option>IBus</option>
-				<option>TBS Crossfire</option>
-			</options>
-		</field>
-		<field name="FlexiPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
-			<description>The port labelled "Flexi Port"</description>
-			<options>
-				<option>Disabled</option>
-				<option>ComBridge</option>
-				<option>DebugConsole</option>
-				<option>DSM</option>
-				<option>FrSKY Sensor Hub</option>
-				<option>FrSKY SPort Telemetry</option>
-				<option>FrSKY SPort Non Inverted</option>
-				<option>GPS</option>
-				<option>I2C</option>
-				<option>SRXL</option>
-				<option>HoTT SUMD</option>
-				<option>HoTT SUMH</option>
-				<option>HoTT Telemetry</option>
-				<option>LighttelemetryTx</option>
-				<option>MavLinkTX</option>
-				<option>MavLinkTX_GPS_RX</option>
-				<option>MSP</option>
-				<option>OpenLog</option>
-				<option>S.Bus Non Inverted</option>
-				<option>Storm32Bgc</option>
-				<option>Telemetry</option>
-				<option>IBus</option>
-				<option>TBS Crossfire</option>
-			</options>
-		</field>
-		<field name="USB_HIDPort" units="function" type="enum" elements="1" parent="HwShared.USB_HIDPort" defaultvalue="USBTelemetry">
-			<description/>
-		</field>
-		<field name="USB_VCPPort" units="function" type="enum" elements="1" parent="HwShared.USB_VCPPort" defaultvalue="Disabled">
-			<description>Virtual COM Port protocol</description>
-		</field>
-		<field name="DSMxMode" units="mode" type="enum" elements="1" parent="HwShared.DSMxMode" defaultvalue="Autodetect">
-			<description/>
-		</field>
-		<field name="Radio" units="" type="enum" elements="1" parent="HwShared.RadioPort" defaultvalue="Disabled">
-			<description>Function for the radio port</description>
-		</field>
-		<field name="CoordID" units="" type="uint32" elements="1" defaultvalue="0" display="hex">
-			<description>ID of the coordinator to allow binding to. 0 indicates allow all connections</description>
-		</field>
-		<!-- radio settings -->
-		<field name="MaxRfSpeed" units="bps" type="enum" elements="1" parent="HwShared.MaxRfSpeed" defaultvalue="64000">
-			<description>Maximum radio speed</description>
-		</field>
-		<field name="MaxRfPower" units="mW" type="enum" elements="1" parent="HwShared.MaxRfPower" defaultvalue="1.25">
-			<description>Maximum radio power</description>
-		</field>
-		<field name="RfBand" units="MHz" type="enum" elements="1" parent="HwShared.RfBand" defaultvalue="BoardDefault">
-			<description>Radio frequency to use</description>
-		</field>
-		<field name="MinChannel" units="" type="uint8" elements="1" defaultvalue="0" limits="%BE:0:250">
-			<description>Minimum channel to use</description>
-		</field>
-		<field name="MaxChannel" units="" type="uint8" elements="1" defaultvalue="250" limits="%BE:0:250">
-			<description>Maximum channel to use</description>
-		</field>
-		<field name="GyroRange" units="deg/s" type="enum" elements="1" options="250,500,1000,2000" defaultvalue="2000">
-			<description>Maximum measurement range for the gyros, should never rotate faster than about 85% of this</description>
-		</field>
-		<field name="AccelRange" units="*gravity m/s^2" type="enum" elements="1" options="2G,4G,8G,16G" defaultvalue="8G">
-			<description>The maximum measure range for the accelerometers, should never exceed this</description>
-		</field>
-		<field name="MPU9250GyroLPF" units="Hz" type="enum" elements="1" options="184,92,41,20,10,5" defaultvalue="184">
-			<description>Gyro filter cutoff frequency</description>
-		</field>
-		<field name="VTX_Ch" units="Hz" type="enum" elements="1" defaultvalue="BoscamACh1 (5725)">
-			<description>Video transmitter frequency</description>
-			<options>
-				<option>BoscamACh1 (5725)</option>
-				<option>BoscamACh2 (5745)</option>
-				<option>BoscamACh3 (5765)</option>
-				<option>BoscamACh4 (5785)</option>
-				<option>BoscamACh5 (5805)</option>
-				<option>BoscamACh6 (5825)</option>
-				<option>BoscamACh7 (5845)</option>
-				<option>BoscamACh8 (5865)</option>
-				<option>BoscamBCh1 (5733)</option>
-				<option>BoscamBCh2 (5752)</option>
-				<option>BoscamBCh3 (5771)</option>
-				<option>BoscamBCh4 (5790)</option>
-				<option>BoscamBCh5 (5809)</option>
-				<option>BoscamBCh6 (5828)</option>
-				<option>BoscamBCh7 (5847)</option>
-				<option>BoscamBCh8 (5866)</option>
-				<option>BoscamECh1 (5705)</option>
-				<option>BoscamECh2 (5685)</option>
-				<option>BoscamECh3 (5665)</option>
-				<option>BoscamECh4 (5645)</option>
-				<option>BoscamECh5 (5885)</option>
-				<option>BoscamECh6 (5905)</option>
-				<option>BoscamECh7 (5925)</option>
-				<option>BoscamECh8 (5945)</option>
-				<option>AirwaveCh1 (5740)</option>
-				<option>AirwaveCh2 (5760)</option>
-				<option>AirwaveCh3 (5780)</option>
-				<option>AirwaveCh4 (5800)</option>
-				<option>AirwaveCh5 (5820)</option>
-				<option>AirwaveCh6 (5840)</option>
-				<option>AirwaveCh7 (5860)</option>
-				<option>AirwaveCh8 (5860)</option>
-			</options>
-		</field>
-		<field name="Magnetometer" units="" type="enum" elements="1" parent="HwShared.Mag" defaultvalue="Internal">
-			<description>Which magnetometer to use. If external, must configure a port as I2C, and select it as ExtMagPort.</description>
-		</field>
-		<field name="ExtMagOrientation" units="" type="enum" elements="1" parent="HwShared.MagOrientation" defaultvalue="Top0degCW">
-			<description>Orientation of the external magnetometer</description>
-		</field>
-		<field name="ExtMagPort" units="" type="enum" elements="1" defaultvalue="FlexiPort">
-			<description>Select the port your external magnetometer is connected to. Only used if an external magnetometer option is selected.</description>
-			<options>
-				<option>FlexiPort</option>
-				<option>AuxI2C</option>
-			</options>
-		</field>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="HwSparky2" settings="true" singleinstance="true">
+    <description>Selection of optional hardware configurations.</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="onchange" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="Disabled" elements="1" name="RcvrPort" parent="HwShared.PortTypes" type="enum" units="function">
+      <description/>
+      <options>
+        <option>Disabled</option>
+        <option>DSM</option>
+        <option>HoTT SUMD</option>
+        <option>HoTT SUMH</option>
+        <option>PPM</option>
+        <option>S.Bus</option>
+        <option>S.Bus Non Inverted</option>
+        <option>SRXL</option>
+        <option>IBus</option>
+        <option>TBS Crossfire</option>
+      </options>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="MainPort" parent="HwShared.PortTypes" type="enum" units="function">
+      <description>The port labelled "Main Port"</description>
+      <options>
+        <option>Disabled</option>
+        <option>ComBridge</option>
+        <option>DebugConsole</option>
+        <option>DSM</option>
+        <option>FrSKY Sensor Hub</option>
+        <option>FrSKY SPort Telemetry</option>
+        <option>FrSKY SPort Non Inverted</option>
+        <option>GPS</option>
+        <option>SRXL</option>
+        <option>HoTT SUMD</option>
+        <option>HoTT SUMH</option>
+        <option>HoTT Telemetry</option>
+        <option>LighttelemetryTx</option>
+        <option>MavLinkTX</option>
+        <option>MavLinkTX_GPS_RX</option>
+        <option>MSP</option>
+        <option>OpenLog</option>
+        <option>S.Bus Non Inverted</option>
+        <option>Storm32Bgc</option>
+        <option>Telemetry</option>
+        <option>IBus</option>
+        <option>TBS Crossfire</option>
+      </options>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="FlexiPort" parent="HwShared.PortTypes" type="enum" units="function">
+      <description>The port labelled "Flexi Port"</description>
+      <options>
+        <option>Disabled</option>
+        <option>ComBridge</option>
+        <option>DebugConsole</option>
+        <option>DSM</option>
+        <option>FrSKY Sensor Hub</option>
+        <option>FrSKY SPort Telemetry</option>
+        <option>FrSKY SPort Non Inverted</option>
+        <option>GPS</option>
+        <option>I2C</option>
+        <option>SRXL</option>
+        <option>HoTT SUMD</option>
+        <option>HoTT SUMH</option>
+        <option>HoTT Telemetry</option>
+        <option>LighttelemetryTx</option>
+        <option>MavLinkTX</option>
+        <option>MavLinkTX_GPS_RX</option>
+        <option>MSP</option>
+        <option>OpenLog</option>
+        <option>S.Bus Non Inverted</option>
+        <option>Storm32Bgc</option>
+        <option>Telemetry</option>
+        <option>IBus</option>
+        <option>TBS Crossfire</option>
+      </options>
+    </field>
+    <field defaultvalue="USBTelemetry" elements="1" name="USB_HIDPort" parent="HwShared.USB_HIDPort" type="enum" units="function">
+      <description/>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="USB_VCPPort" parent="HwShared.USB_VCPPort" type="enum" units="function">
+      <description>Virtual COM Port protocol</description>
+    </field>
+    <field defaultvalue="Autodetect" elements="1" name="DSMxMode" parent="HwShared.DSMxMode" type="enum" units="mode">
+      <description/>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="Radio" parent="HwShared.RadioPort" type="enum" units="">
+      <description>Function for the radio port</description>
+    </field>
+    <field defaultvalue="0" elements="1" name="CoordID" type="uint32" units="">
+      <description>ID of the coordinator to allow binding to. 0 indicates allow all connections</description>
+    </field>
+    <field defaultvalue="64000" elements="1" name="MaxRfSpeed" parent="HwShared.MaxRfSpeed" type="enum" units="bps">
+      <description>Maximum radio speed</description>
+    </field>
+    <field defaultvalue="1.25" elements="1" name="MaxRfPower" parent="HwShared.MaxRfPower" type="enum" units="mW">
+      <description>Maximum radio power</description>
+    </field>
+    <field defaultvalue="BoardDefault" elements="1" name="RfBand" parent="HwShared.RfBand" type="enum" units="MHz">
+      <description>Radio frequency to use</description>
+    </field>
+    <field defaultvalue="0" elements="1" name="MinChannel" type="uint8" units="">
+      <description>Minimum channel to use</description>
+    </field>
+    <field defaultvalue="250" elements="1" name="MaxChannel" type="uint8" units="">
+      <description>Maximum channel to use</description>
+    </field>
+    <field defaultvalue="2000" elements="1" name="GyroRange" type="enum" units="deg/s">
+      <description>Maximum measurement range for the gyros, should never rotate faster than about 85% of this</description>
+      <options>
+        <option>250</option>
+        <option>500</option>
+        <option>1000</option>
+        <option>2000</option>
+      </options>
+    </field>
+    <field defaultvalue="8G" elements="1" name="AccelRange" type="enum" units="*gravity m/s^2">
+      <description>The maximum measure range for the accelerometers, should never exceed this</description>
+      <options>
+        <option>2G</option>
+        <option>4G</option>
+        <option>8G</option>
+        <option>16G</option>
+      </options>
+    </field>
+    <field defaultvalue="184" elements="1" name="MPU9250GyroLPF" type="enum" units="Hz">
+      <description>Gyro filter cutoff frequency</description>
+      <options>
+        <option>184</option>
+        <option>92</option>
+        <option>41</option>
+        <option>20</option>
+        <option>10</option>
+        <option>5</option>
+      </options>
+    </field>
+    <field defaultvalue="BoscamACh1 (5725)" elements="1" name="VTX_Ch" type="enum" units="Hz">
+      <description>Video transmitter frequency</description>
+      <options>
+        <option>BoscamACh1 (5725)</option>
+        <option>BoscamACh2 (5745)</option>
+        <option>BoscamACh3 (5765)</option>
+        <option>BoscamACh4 (5785)</option>
+        <option>BoscamACh5 (5805)</option>
+        <option>BoscamACh6 (5825)</option>
+        <option>BoscamACh7 (5845)</option>
+        <option>BoscamACh8 (5865)</option>
+        <option>BoscamBCh1 (5733)</option>
+        <option>BoscamBCh2 (5752)</option>
+        <option>BoscamBCh3 (5771)</option>
+        <option>BoscamBCh4 (5790)</option>
+        <option>BoscamBCh5 (5809)</option>
+        <option>BoscamBCh6 (5828)</option>
+        <option>BoscamBCh7 (5847)</option>
+        <option>BoscamBCh8 (5866)</option>
+        <option>BoscamECh1 (5705)</option>
+        <option>BoscamECh2 (5685)</option>
+        <option>BoscamECh3 (5665)</option>
+        <option>BoscamECh4 (5645)</option>
+        <option>BoscamECh5 (5885)</option>
+        <option>BoscamECh6 (5905)</option>
+        <option>BoscamECh7 (5925)</option>
+        <option>BoscamECh8 (5945)</option>
+        <option>AirwaveCh1 (5740)</option>
+        <option>AirwaveCh2 (5760)</option>
+        <option>AirwaveCh3 (5780)</option>
+        <option>AirwaveCh4 (5800)</option>
+        <option>AirwaveCh5 (5820)</option>
+        <option>AirwaveCh6 (5840)</option>
+        <option>AirwaveCh7 (5860)</option>
+        <option>AirwaveCh8 (5860)</option>
+      </options>
+    </field>
+    <field defaultvalue="Internal" elements="1" name="Magnetometer" parent="HwShared.Mag" type="enum" units="">
+      <description>Which magnetometer to use. If external, must configure a port as I2C, and select it as ExtMagPort.</description>
+    </field>
+    <field defaultvalue="Top0degCW" elements="1" name="ExtMagOrientation" parent="HwShared.MagOrientation" type="enum" units="">
+      <description>Orientation of the external magnetometer</description>
+    </field>
+    <field defaultvalue="FlexiPort" elements="1" name="ExtMagPort" type="enum" units="">
+      <description>Select the port your external magnetometer is connected to. Only used if an external magnetometer option is selected.</description>
+      <options>
+        <option>FlexiPort</option>
+        <option>AuxI2C</option>
+      </options>
+    </field>
+  </object>
 </xml>

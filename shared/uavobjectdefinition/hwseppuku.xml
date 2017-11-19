@@ -1,162 +1,166 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="HwSeppuku" singleinstance="true" settings="true" category="HardwareSettings">
-		<description>Selection of optional hardware configurations.</description>
-		<field name="RcvrPort" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
-			<description/>
-			<options>
-				<option>Disabled</option>
-				<option>DSM</option>
-				<option>SRXL</option>
-				<option>HoTT SUMD</option>
-				<option>HoTT SUMH</option>
-				<option>PPM</option>
-				<option>S.Bus</option>
-				<option>S.Bus Non Inverted</option>
-				<option>IBus</option>
-				<option>TBS Crossfire</option>
-			</options>
-		</field>
-		<field name="Uart1" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
-			<description>The port labelled "Ser 1"</description>
-			<options>
-				<option>Disabled</option>
-				<option>ComBridge</option>
-				<option>DebugConsole</option>
-				<option>DSM</option>
-				<option>FrSKY Sensor Hub</option>
-				<option>FrSKY SPort Telemetry</option>
-				<option>FrSKY SPort Non Inverted</option>
-				<option>GPS</option>
-				<option>SRXL</option>
-				<option>HoTT SUMD</option>
-				<option>HoTT SUMH</option>
-				<option>HoTT Telemetry</option>
-				<option>LighttelemetryTx</option>
-				<option>MavLinkTX</option>
-				<option>MavLinkTX_GPS_RX</option>
-				<option>MSP</option>
-				<option>OpenLog</option>
-				<option>S.Bus Non Inverted</option>
-				<option>Storm32Bgc</option>
-				<option>Telemetry</option>
-				<option>IBus</option>
-				<option>VTX Config TBS SmartAudio</option>
-				<option>TBS Crossfire</option>
-			</options>
-		</field>
-		<field name="Uart6" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
-			<description>The port labelled "Ser 6"</description>
-			<options>
-				<option>Disabled</option>
-				<option>ComBridge</option>
-				<option>DebugConsole</option>
-				<option>DSM</option>
-				<option>FrSKY Sensor Hub</option>
-				<option>FrSKY SPort Telemetry</option>
-				<option>FrSKY SPort Non Inverted</option>
-				<option>GPS</option>
-				<option>SRXL</option>
-				<option>HoTT SUMD</option>
-				<option>HoTT SUMH</option>
-				<option>HoTT Telemetry</option>
-				<option>LighttelemetryTx</option>
-				<option>MavLinkTX</option>
-				<option>MavLinkTX_GPS_RX</option>
-				<option>MSP</option>
-				<option>OpenLog</option>
-				<option>S.Bus Non Inverted</option>
-				<option>Storm32Bgc</option>
-				<option>Telemetry</option>
-				<option>IBus</option>
-				<option>VTX Config TBS SmartAudio</option>
-				<option>TBS Crossfire</option>
-			</options>
-		</field>
-		<field name="Uart3" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
-			<description>The port labelled "Ser 3"</description>
-			<options>
-				<option>Disabled</option>
-				<option>ComBridge</option>
-				<option>DebugConsole</option>
-				<option>DSM</option>
-				<option>FrSKY Sensor Hub</option>
-				<option>FrSKY SPort Telemetry</option>
-				<option>FrSKY SPort Non Inverted</option>
-				<option>GPS</option>
-				<option>SRXL</option>
-				<option>HoTT SUMD</option>
-				<option>HoTT SUMH</option>
-				<option>HoTT Telemetry</option>
-				<option>I2C</option>
-				<option>LighttelemetryTx</option>
-				<option>MavLinkTX</option>
-				<option>MavLinkTX_GPS_RX</option>
-				<option>MSP</option>
-				<option>OpenLog</option>
-				<option>S.Bus Non Inverted</option>
-				<option>Storm32Bgc</option>
-				<option>Telemetry</option>
-				<option>IBus</option>
-				<option>VTX Config TBS SmartAudio</option>
-				<option>TBS Crossfire</option>
-			</options>
-		</field>
-		<field name="OutputConfiguration" units="function" type="enum" elements="1" defaultvalue="EightChannels">
-			<options>
-				<option>EightChannels</option>
-				<option>SixChannels+UART4</option>
-			</options>
-		</field>
-		<field name="Uart4" units="function" type="enum" elements="1" parent="HwShared.PortTypes" defaultvalue="Disabled">
-			<description>What would otherwise be PWM out 7 and 8</description>
-			<options>
-				<option>Disabled</option>
-				<option>ComBridge</option>
-				<option>DebugConsole</option>
-				<option>DSM</option>
-				<option>FrSKY Sensor Hub</option>
-				<option>FrSKY SPort Telemetry</option>
-				<option>FrSKY SPort Non Inverted</option>
-				<option>GPS</option>
-				<option>SRXL</option>
-				<option>HoTT SUMD</option>
-				<option>HoTT SUMH</option>
-				<option>HoTT Telemetry</option>
-				<option>LighttelemetryTx</option>
-				<option>MavLinkTX</option>
-				<option>MavLinkTX_GPS_RX</option>
-				<option>MSP</option>
-				<option>OpenLog</option>
-				<option>S.Bus Non Inverted</option>
-				<option>Storm32Bgc</option>
-				<option>Telemetry</option>
-				<option>IBus</option>
-				<option>VTX Config TBS SmartAudio</option>
-				<option>TBS Crossfire</option>
-			</options>
-		</field>
-		<field name="USB_HIDPort" units="function" type="enum" elements="1" parent="HwShared.USB_HIDPort" defaultvalue="USBTelemetry">
-			<description/>
-		</field>
-		<field name="USB_VCPPort" units="function" type="enum" elements="1" parent="HwShared.USB_VCPPort" defaultvalue="Disabled">
-			<description>Virtual COM Port protocol</description>
-		</field>
-		<field name="DSMxMode" units="mode" type="enum" elements="1" parent="HwShared.DSMxMode" defaultvalue="Autodetect">
-			<description/>
-		</field>
-		<field name="Magnetometer" units="" type="enum" elements="1" parent="HwShared.Mag" defaultvalue="Internal">
-			<description>Which magnetometer to use. If external, must connect to UART3, and configure it as I2C.</description>
-		</field>
-		<field name="BMI160FOC" units="" type="enum" elements="1" options="Disabled,Do_FOC" defaultvalue="Disabled">
-			<description>Peform BMI160 fast offset compensation on next boot. Should not be performed by users. Can only be done a limited number of times.</description>
-		</field>
-		<field name="ExtMagOrientation" units="" type="enum" elements="1" parent="HwShared.MagOrientation" defaultvalue="Top0degCW">
-			<description>Orientation of the external magnetometer</description>
-		</field>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="HwSeppuku" settings="true" singleinstance="true">
+    <description>Selection of optional hardware configurations.</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="onchange" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="Disabled" elements="1" name="RcvrPort" parent="HwShared.PortTypes" type="enum" units="function">
+      <description/>
+      <options>
+        <option>Disabled</option>
+        <option>DSM</option>
+        <option>SRXL</option>
+        <option>HoTT SUMD</option>
+        <option>HoTT SUMH</option>
+        <option>PPM</option>
+        <option>S.Bus</option>
+        <option>S.Bus Non Inverted</option>
+        <option>IBus</option>
+        <option>TBS Crossfire</option>
+      </options>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="Uart1" parent="HwShared.PortTypes" type="enum" units="function">
+      <description>The port labelled "Ser 1"</description>
+      <options>
+        <option>Disabled</option>
+        <option>ComBridge</option>
+        <option>DebugConsole</option>
+        <option>DSM</option>
+        <option>FrSKY Sensor Hub</option>
+        <option>FrSKY SPort Telemetry</option>
+        <option>FrSKY SPort Non Inverted</option>
+        <option>GPS</option>
+        <option>SRXL</option>
+        <option>HoTT SUMD</option>
+        <option>HoTT SUMH</option>
+        <option>HoTT Telemetry</option>
+        <option>LighttelemetryTx</option>
+        <option>MavLinkTX</option>
+        <option>MavLinkTX_GPS_RX</option>
+        <option>MSP</option>
+        <option>OpenLog</option>
+        <option>S.Bus Non Inverted</option>
+        <option>Storm32Bgc</option>
+        <option>Telemetry</option>
+        <option>IBus</option>
+        <option>VTX Config TBS SmartAudio</option>
+        <option>TBS Crossfire</option>
+      </options>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="Uart6" parent="HwShared.PortTypes" type="enum" units="function">
+      <description>The port labelled "Ser 6"</description>
+      <options>
+        <option>Disabled</option>
+        <option>ComBridge</option>
+        <option>DebugConsole</option>
+        <option>DSM</option>
+        <option>FrSKY Sensor Hub</option>
+        <option>FrSKY SPort Telemetry</option>
+        <option>FrSKY SPort Non Inverted</option>
+        <option>GPS</option>
+        <option>SRXL</option>
+        <option>HoTT SUMD</option>
+        <option>HoTT SUMH</option>
+        <option>HoTT Telemetry</option>
+        <option>LighttelemetryTx</option>
+        <option>MavLinkTX</option>
+        <option>MavLinkTX_GPS_RX</option>
+        <option>MSP</option>
+        <option>OpenLog</option>
+        <option>S.Bus Non Inverted</option>
+        <option>Storm32Bgc</option>
+        <option>Telemetry</option>
+        <option>IBus</option>
+        <option>VTX Config TBS SmartAudio</option>
+        <option>TBS Crossfire</option>
+      </options>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="Uart3" parent="HwShared.PortTypes" type="enum" units="function">
+      <description>The port labelled "Ser 3"</description>
+      <options>
+        <option>Disabled</option>
+        <option>ComBridge</option>
+        <option>DebugConsole</option>
+        <option>DSM</option>
+        <option>FrSKY Sensor Hub</option>
+        <option>FrSKY SPort Telemetry</option>
+        <option>FrSKY SPort Non Inverted</option>
+        <option>GPS</option>
+        <option>SRXL</option>
+        <option>HoTT SUMD</option>
+        <option>HoTT SUMH</option>
+        <option>HoTT Telemetry</option>
+        <option>I2C</option>
+        <option>LighttelemetryTx</option>
+        <option>MavLinkTX</option>
+        <option>MavLinkTX_GPS_RX</option>
+        <option>MSP</option>
+        <option>OpenLog</option>
+        <option>S.Bus Non Inverted</option>
+        <option>Storm32Bgc</option>
+        <option>Telemetry</option>
+        <option>IBus</option>
+        <option>VTX Config TBS SmartAudio</option>
+        <option>TBS Crossfire</option>
+      </options>
+    </field>
+    <field defaultvalue="EightChannels" elements="1" name="OutputConfiguration" type="enum" units="function">
+      <description/>
+      <options>
+        <option>EightChannels</option>
+        <option>SixChannels+UART4</option>
+      </options>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="Uart4" parent="HwShared.PortTypes" type="enum" units="function">
+      <description>What would otherwise be PWM out 7 and 8</description>
+      <options>
+        <option>Disabled</option>
+        <option>ComBridge</option>
+        <option>DebugConsole</option>
+        <option>DSM</option>
+        <option>FrSKY Sensor Hub</option>
+        <option>FrSKY SPort Telemetry</option>
+        <option>FrSKY SPort Non Inverted</option>
+        <option>GPS</option>
+        <option>SRXL</option>
+        <option>HoTT SUMD</option>
+        <option>HoTT SUMH</option>
+        <option>HoTT Telemetry</option>
+        <option>LighttelemetryTx</option>
+        <option>MavLinkTX</option>
+        <option>MavLinkTX_GPS_RX</option>
+        <option>MSP</option>
+        <option>OpenLog</option>
+        <option>S.Bus Non Inverted</option>
+        <option>Storm32Bgc</option>
+        <option>Telemetry</option>
+        <option>IBus</option>
+        <option>VTX Config TBS SmartAudio</option>
+        <option>TBS Crossfire</option>
+      </options>
+    </field>
+    <field defaultvalue="USBTelemetry" elements="1" name="USB_HIDPort" parent="HwShared.USB_HIDPort" type="enum" units="function">
+      <description/>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="USB_VCPPort" parent="HwShared.USB_VCPPort" type="enum" units="function">
+      <description>Virtual COM Port protocol</description>
+    </field>
+    <field defaultvalue="Autodetect" elements="1" name="DSMxMode" parent="HwShared.DSMxMode" type="enum" units="mode">
+      <description/>
+    </field>
+    <field defaultvalue="Internal" elements="1" name="Magnetometer" parent="HwShared.Mag" type="enum" units="">
+      <description>Which magnetometer to use. If external, must connect to UART3, and configure it as I2C.</description>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="BMI160FOC" type="enum" units="">
+      <description>Peform BMI160 fast offset compensation on next boot. Should not be performed by users. Can only be done a limited number of times.</description>
+      <options>
+        <option>Disabled</option>
+        <option>Do_FOC</option>
+      </options>
+    </field>
+    <field defaultvalue="Top0degCW" elements="1" name="ExtMagOrientation" parent="HwShared.MagOrientation" type="enum" units="">
+      <description>Orientation of the external magnetometer</description>
+    </field>
+  </object>
 </xml>

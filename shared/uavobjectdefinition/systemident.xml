@@ -1,19 +1,22 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="SystemIdent" singleinstance="true" settings="true">
-		<description>The input to the PID tuning.</description>
-		<field name="NewTune" units="" type="enum" elements="1" options="FALSE,TRUE" defaultvalue="FALSE">
-			<description>Indicates that a new Autotune has finished</description>
-		</field>
-		<field name="NumAfPredicts" units="" type="uint32" elements="1" defaultvalue="0">
-			<description/>
-		</field>
-		<field name="HoverThrottle" units="% / 100" type="float" elements="1" defaultvalue="0">
-			<description>Measurement of the amount of throttle required to hover</description>
-		</field>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="false" updatemode="manual" period="0"/>
-		<telemetryflight acked="false" updatemode="onchange" period="1000"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="SystemIdent" settings="true" singleinstance="true">
+    <description>The input to the PID tuning.</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="false" updatemode="manual" period="0"/>
+    <telemetryflight acked="false" updatemode="onchange" period="1000"/>
+    <field defaultvalue="FALSE" elements="1" name="NewTune" type="enum" units="">
+      <description>Indicates that a new Autotune has finished</description>
+      <options>
+        <option>FALSE</option>
+        <option>TRUE</option>
+      </options>
+    </field>
+    <field defaultvalue="0" elements="1" name="NumAfPredicts" type="uint32" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0.0" elements="1" name="HoverThrottle" type="float" units="% / 100">
+      <description>Measurement of the amount of throttle required to hover</description>
+    </field>
+  </object>
 </xml>

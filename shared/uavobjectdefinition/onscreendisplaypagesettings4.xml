@@ -1,439 +1,823 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="OnScreenDisplayPageSettings4" singleinstance="true" settings="true">
-		<description>On Screen Display Page Settings</description>
-		<field name="Alarm" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled">
-			<description>Enable/Disable Alarm widget</description>
-		</field>
-		<field name="AlarmPosX" units="" type="int16" elements="1" defaultvalue="0">
-			<description>Position X of widget</description>
-		</field>
-		<field name="AlarmPosY" units="" type="int16" elements="1" defaultvalue="214">
-			<description>Position Y of widget</description>
-		</field>
-		<field name="AlarmFont" units="" type="enum" elements="1" options="Small,Normal,Large" defaultvalue="Small">
-			<description>Font size of text within widget</description>
-		</field>
-		<field name="AlarmAlign" units="" type="enum" elements="1" options="Left,Center,Right" defaultvalue="Left">
-			<description>Alignment of text within widget</description>
-		</field>
-		<field name="AltitudeScale" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled">
-			<description>Enable/Disable Altitude - Scale widget</description>
-		</field>
-		<field name="AltitudeScaleAlign" units="" type="enum" elements="1" options="Left,Right" defaultvalue="Right">
-			<description>Alignment of text within widget</description>
-		</field>
-		<field name="AltitudeScalePos" units="" type="int16" elements="1" defaultvalue="350">
-			<description>Position of widget</description>
-		</field>
-		<field name="AltitudeScaleSource" units="" type="enum" elements="1" options="Baro,Nav" defaultvalue="Baro">
-			<description>Source of widget</description>
-		</field>
-		<field name="AltitudeNumeric" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Disabled">
-			<description>Enable/Disable Altitude - Numeric widget</description>
-		</field>
-		<field name="AltitudeNumericAlign" units="" type="enum" elements="1" options="Left,Right" defaultvalue="Left">
-			<description>Alignment of text within widget</description>
-		</field>
-		<field name="AltitudeNumericFont" units="" type="enum" elements="1" options="Small,Normal,Large" defaultvalue="Small">
-			<description>Font size of text within widget</description>
-		</field>
-		<field name="AltitudeNumericPosX" units="" type="int16" elements="1" defaultvalue="280">
-			<description>Position X of widget</description>
-		</field>
-		<field name="AltitudeNumericPosY" units="" type="int16" elements="1" defaultvalue="200">
-			<description>Position Y of widget</description>
-		</field>
-		<field name="AltitudeNumericSource" units="" type="enum" elements="1" options="Baro,Nav" defaultvalue="Baro">
-			<description>Source of widget</description>
-		</field>
-		<field name="ArmStatus" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled">
-			<description>Enable/Disable Arm Status widget</description>
-		</field>
-		<field name="ArmStatusPosX" units="" type="int16" elements="1" defaultvalue="0">
-			<description>Position X of widget</description>
-		</field>
-		<field name="ArmStatusPosY" units="" type="int16" elements="1" defaultvalue="24">
-			<description>Position Y of widget</description>
-		</field>
-		<field name="ArmStatusFont" units="" type="enum" elements="1" options="Small,Normal,Large" defaultvalue="Small">
-			<description>Font size of text within widget</description>
-		</field>
-		<field name="ArmStatusAlign" units="" type="enum" elements="1" options="Left,Center,Right" defaultvalue="Left">
-			<description>Alignment of text within widget</description>
-		</field>
-		<field name="ArtificialHorizon" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled">
-			<description>Enable/Disable Artificial Horizon widget</description>
-		</field>
-		<field name="ArtificialHorizonMaxPitch" units="deg" type="uint8" elements="1" defaultvalue="30">
-			<description>Maximum Pitch of Artificial Horizon</description>
-		</field>
-		<field name="ArtificialHorizonPitchSteps" units="" type="uint8" elements="1" defaultvalue="2">
-			<description>Pitch Steps of Artificial Horizon</description>
-		</field>
-		<field name="BatteryVolt" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled">
-			<description>Enable/Disable Voltage of flight battery widget</description>
-		</field>
-		<field name="BatteryVoltPosX" units="" type="int16" elements="1" defaultvalue="350">
-			<description>Position X of widget</description>
-		</field>
-		<field name="BatteryVoltPosY" units="" type="int16" elements="1" defaultvalue="4">
-			<description>Position Y of widget</description>
-		</field>
-		<field name="BatteryVoltFont" units="" type="enum" elements="1" options="Small,Normal,Large" defaultvalue="Small">
-			<description>Font size of text within widget</description>
-		</field>
-		<field name="BatteryVoltAlign" units="" type="enum" elements="1" options="Left,Center,Right" defaultvalue="Right">
-			<description>Alignment of text within widget</description>
-		</field>
-		<field name="BatteryCurrent" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled">
-			<description>Enable/Disable Current used widget</description>
-		</field>
-		<field name="BatteryCurrentPosX" units="" type="int16" elements="1" defaultvalue="350">
-			<description>Position X of widget</description>
-		</field>
-		<field name="BatteryCurrentPosY" units="" type="int16" elements="1" defaultvalue="14">
-			<description>Position Y of widget</description>
-		</field>
-		<field name="BatteryCurrentFont" units="" type="enum" elements="1" options="Small,Normal,Large" defaultvalue="Small">
-			<description>Font size of text within widget</description>
-		</field>
-		<field name="BatteryCurrentAlign" units="" type="enum" elements="1" options="Left,Center,Right" defaultvalue="Right">
-			<description>Alignment of text within widget</description>
-		</field>
-		<field name="BatteryConsumed" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled">
-			<description>Enable/Disable Capacity Consumed widget</description>
-		</field>
-		<field name="BatteryConsumedPosX" units="" type="int16" elements="1" defaultvalue="350">
-			<description>Position X of widget</description>
-		</field>
-		<field name="BatteryConsumedPosY" units="" type="int16" elements="1" defaultvalue="24">
-			<description>Position Y of widget</description>
-		</field>
-		<field name="BatteryConsumedFont" units="" type="enum" elements="1" options="Small,Normal,Large" defaultvalue="Small">
-			<description>Font size of text within widget</description>
-		</field>
-		<field name="BatteryConsumedAlign" units="" type="enum" elements="1" options="Left,Center,Right" defaultvalue="Right">
-			<description>Alignment of text within widget</description>
-		</field>
-		<field name="BatteryChargeState" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled">
-			<description>Enable/Disable Battery Charged widget</description>
-		</field>
-		<field name="BatteryChargeStatePosX" units="" type="int16" elements="1" defaultvalue="325">
-			<description>Position X of widget</description>
-		</field>
-		<field name="BatteryChargeStatePosY" units="" type="int16" elements="1" defaultvalue="38">
-			<description>Position Y of widget</description>
-		</field>
-		<field name="CenterMark" units="" type="enum" elements="1" options="Disabled,Middle,CameraPitch" defaultvalue="Middle">
-			<description>Enable/Disable Center Mark widget</description>
-		</field>
-		<field name="ClimbRate" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled">
-			<description>Enable/Disable Climb Rate widget</description>
-		</field>
-		<field name="ClimbRatePosX" units="" type="int16" elements="1" defaultvalue="350">
-			<description>Position X of widget</description>
-		</field>
-		<field name="ClimbRatePosY" units="" type="int16" elements="1" defaultvalue="200">
-			<description>Position Y of widget</description>
-		</field>
-		<field name="ClimbRateFont" units="" type="enum" elements="1" options="Small,Normal,Large" defaultvalue="Small">
-			<description>Font size of text within widget</description>
-		</field>
-		<field name="ClimbRateAlign" units="" type="enum" elements="1" options="Left,Center,Right" defaultvalue="Right">
-			<description>Alignment of text within widget</description>
-		</field>
-		<field name="Compass" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled">
-			<description>Enable/Disable Compass widget</description>
-		</field>
-		<field name="CompassPos" units="" type="int16" elements="1" defaultvalue="15">
-			<description>Position of widget</description>
-		</field>
-		<field name="CompassHomeDir" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled">
-			<description>Enable/Disable Home Direction</description>
-		</field>
-		<field name="Cpu" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Disabled">
-			<description>Enable/Disable CPU widget</description>
-		</field>
-		<field name="CpuPosX" units="" type="int16" elements="1" defaultvalue="0">
-			<description>Position X of widget</description>
-		</field>
-		<field name="CpuPosY" units="" type="int16" elements="1" defaultvalue="204">
-			<description>Position Y of widget</description>
-		</field>
-		<field name="CpuFont" units="" type="enum" elements="1" options="Small,Normal,Large" defaultvalue="Small">
-			<description>Font size of text within widget</description>
-		</field>
-		<field name="CpuAlign" units="" type="enum" elements="1" options="Left,Center,Right" defaultvalue="Left">
-			<description>Alignment of text within widget</description>
-		</field>
-		<field name="CustomText" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Disabled">
-			<description>Enable/Disable Custom Text widget</description>
-		</field>
-		<field name="CustomTextPosX" units="" type="int16" elements="1" defaultvalue="60">
-			<description>Position X of widget</description>
-		</field>
-		<field name="CustomTextPosY" units="" type="int16" elements="1" defaultvalue="190">
-			<description>Position Y of widget</description>
-		</field>
-		<field name="CustomTextFont" units="" type="enum" elements="1" options="Small,Normal,Large" defaultvalue="Small">
-			<description>Font size of text within widget</description>
-		</field>
-		<field name="CustomTextAlign" units="" type="enum" elements="1" options="Left,Right" defaultvalue="Left">
-			<description>Alignment of text within widget</description>
-		</field>
-		<field name="FlightMode" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled">
-			<description>Enable/Disable Flight Mode widget</description>
-		</field>
-		<field name="FlightModePosX" units="" type="int16" elements="1" defaultvalue="0">
-			<description>Position X of widget</description>
-		</field>
-		<field name="FlightModePosY" units="" type="int16" elements="1" defaultvalue="4">
-			<description>Position Y of widget</description>
-		</field>
-		<field name="FlightModeFont" units="" type="enum" elements="1" options="Small,Normal,Large" defaultvalue="Small">
-			<description>Font size of text within widget</description>
-		</field>
-		<field name="FlightModeAlign" units="" type="enum" elements="1" options="Left,Center,Right" defaultvalue="Left">
-			<description>Alignment of text within widget</description>
-		</field>
-		<field name="GForce" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled">
-			<description>Enable/Disable GForce widget</description>
-		</field>
-		<field name="GForcePosX" units="" type="int16" elements="1" defaultvalue="10">
-			<description>Position X of widget</description>
-		</field>
-		<field name="GForcePosY" units="" type="int16" elements="1" defaultvalue="40">
-			<description>Position Y of widget</description>
-		</field>
-		<field name="GForceFont" units="" type="enum" elements="1" options="Small,Normal,Large" defaultvalue="Small">
-			<description>Font size of text within widget</description>
-		</field>
-		<field name="GForceAlign" units="" type="enum" elements="1" options="Left,Center,Right" defaultvalue="Left">
-			<description>Alignment of text within widget</description>
-		</field>
-		<field name="GpsStatus" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled">
-			<description>Enable/Disable GPS Status widget</description>
-		</field>
-		<field name="GpsStatusPosX" units="" type="int16" elements="1" defaultvalue="0">
-			<description>Position X of widget</description>
-		</field>
-		<field name="GpsStatusPosY" units="" type="int16" elements="1" defaultvalue="230">
-			<description>Position Y of widget</description>
-		</field>
-		<field name="GpsStatusFont" units="" type="enum" elements="1" options="Small,Normal,Large" defaultvalue="Small">
-			<description>Font size of text within widget</description>
-		</field>
-		<field name="GpsLat" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled">
-			<description>Enable/Disable GPS Latitude widget</description>
-		</field>
-		<field name="GpsLatPosX" units="" type="int16" elements="1" defaultvalue="200">
-			<description>Position X of widget</description>
-		</field>
-		<field name="GpsLatPosY" units="" type="int16" elements="1" defaultvalue="230">
-			<description>Position Y of widget</description>
-		</field>
-		<field name="GpsLatFont" units="" type="enum" elements="1" options="Small,Normal,Large" defaultvalue="Small">
-			<description>Font size of text within widget</description>
-		</field>
-		<field name="GpsLatAlign" units="" type="enum" elements="1" options="Left,Center,Right" defaultvalue="Left">
-			<description>Alignment of text within widget</description>
-		</field>
-		<field name="GpsLon" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled">
-			<description>Enable/Disable GPS Longitude widget</description>
-		</field>
-		<field name="GpsLonPosX" units="" type="int16" elements="1" defaultvalue="350">
-			<description>Position X of widget</description>
-		</field>
-		<field name="GpsLonPosY" units="" type="int16" elements="1" defaultvalue="230">
-			<description>Position Y of widget</description>
-		</field>
-		<field name="GpsLonFont" units="" type="enum" elements="1" options="Small,Normal,Large" defaultvalue="Small">
-			<description>Font size of text within widget</description>
-		</field>
-		<field name="GpsLonAlign" units="" type="enum" elements="1" options="Left,Center,Right" defaultvalue="Right">
-			<description>Alignment of text within widget</description>
-		</field>
-		<field name="GpsMgrs" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Disabled">
-			<description/>
-		</field>
-		<field name="GpsMgrsPosX" units="" type="int16" elements="1" defaultvalue="350">
-			<description>Position X of widget</description>
-		</field>
-		<field name="GpsMgrsPosY" units="" type="int16" elements="1" defaultvalue="230">
-			<description>Position Y of widget</description>
-		</field>
-		<field name="GpsMgrsFont" units="" type="enum" elements="1" options="Small,Normal,Large" defaultvalue="Small">
-			<description>Font size of text within widget</description>
-		</field>
-		<field name="GpsMgrsAlign" units="" type="enum" elements="1" options="Left,Center,Right" defaultvalue="Right">
-			<description>Alignment of text within widget</description>
-		</field>
-		<field name="HomeDistance" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled">
-			<description>Enable/Disable Distance To Home widget</description>
-		</field>
-		<field name="HomeDistancePosX" units="" type="int16" elements="1" defaultvalue="180">
-			<description>Position X of widget</description>
-		</field>
-		<field name="HomeDistancePosY" units="" type="int16" elements="1" defaultvalue="195">
-			<description>Position Y of widget</description>
-		</field>
-		<field name="HomeDistanceFont" units="" type="enum" elements="1" options="Small,Normal,Large" defaultvalue="Small">
-			<description>Font size of text within widget</description>
-		</field>
-		<field name="HomeDistanceShowIcon" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled">
-			<description>Enable/Disable Distance To Home icon</description>
-		</field>
-		<field name="HomeArrow" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled">
-			<description>Enable/Disable Home Arrow widget</description>
-		</field>
-		<field name="HomeArrowPosX" units="" type="int16" elements="1" defaultvalue="240">
-			<description>Position X of widget</description>
-		</field>
-		<field name="HomeArrowPosY" units="" type="int16" elements="1" defaultvalue="195">
-			<description>Position Y of widget</description>
-		</field>
-		<field name="Map" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Disabled">
-			<description>Enable/Disable Map widget</description>
-		</field>
-		<field name="MapCenterMode" units="" type="enum" elements="1" options="UAV,Home" defaultvalue="UAV">
-			<description>Center of map</description>
-		</field>
-		<field name="MapShowWp" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Disabled">
-			<description>Enable/Disable showing waypints</description>
-		</field>
-		<field name="MapShowUavHome" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled">
-			<description>Enable/Disable showing UAV home</description>
-		</field>
-		<field name="MapShowTablet" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Disabled">
-			<description/>
-		</field>
-		<field name="MapWidthMeters" units="" type="int16" elements="1" defaultvalue="2000">
-			<description>Width of map in meters</description>
-		</field>
-		<field name="MapWidthPixels" units="" type="int16" elements="1" defaultvalue="180">
-			<description>Width of map in pixels</description>
-		</field>
-		<field name="MapHeightMeters" units="" type="int16" elements="1" defaultvalue="2000">
-			<description>Height of map in meters</description>
-		</field>
-		<field name="MapHeightPixels" units="" type="int16" elements="1" defaultvalue="140">
-			<description>Height of map in pixels</description>
-		</field>
-		<field name="Rssi" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled">
-			<description>Enable/Disable RSSI widget</description>
-		</field>
-		<field name="RssiPosX" units="" type="int16" elements="1" defaultvalue="130">
-			<description>Position X of widget</description>
-		</field>
-		<field name="RssiPosY" units="" type="int16" elements="1" defaultvalue="195">
-			<description>Position Y of widget</description>
-		</field>
-		<field name="RssiFont" units="" type="enum" elements="1" options="Small,Normal,Large" defaultvalue="Small">
-			<description>Font size of text within widget</description>
-		</field>
-		<field name="RssiShowIcon" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled">
-			<description>Enable/Disable RSSI icon</description>
-		</field>
-		<field name="SpeedScale" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled">
-			<description>Enable/Disable Speed - Scale widget</description>
-		</field>
-		<field name="SpeedScaleAlign" units="" type="enum" elements="1" options="Left,Right" defaultvalue="Left">
-			<description>Alignment of text within widget</description>
-		</field>
-		<field name="SpeedScalePos" units="" type="int16" elements="1" defaultvalue="0">
-			<description>Position of widget</description>
-		</field>
-		<field name="SpeedScaleSource" units="" type="enum" elements="1" options="GPS,Nav,Airspeed" defaultvalue="GPS">
-			<description>Source of widget</description>
-		</field>
-		<field name="SpeedNumeric" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled">
-			<description>Enable/Disable Speed - Numeric widget</description>
-		</field>
-		<field name="SpeedNumericFont" units="" type="enum" elements="1" options="Small,Normal,Large" defaultvalue="Small">
-			<description>Font size of text within widget</description>
-		</field>
-		<field name="SpeedNumericAlign" units="" type="enum" elements="1" options="Left,Right" defaultvalue="Left">
-			<description>Alignment of text within widget</description>
-		</field>
-		<field name="SpeedNumericPosX" units="" type="int16" elements="1" defaultvalue="50">
-			<description>Position X of widget</description>
-		</field>
-		<field name="SpeedNumericPosY" units="" type="int16" elements="1" defaultvalue="200">
-			<description>Position Y of widget</description>
-		</field>
-		<field name="SpeedNumericSource" units="" type="enum" elements="1" options="GPS,Nav,Airspeed" defaultvalue="GPS">
-			<description>Source of widget</description>
-		</field>
-		<field name="Time" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled">
-			<description>Enable/Disable Time widget</description>
-		</field>
-		<field name="TimePosX" units="" type="int16" elements="1" defaultvalue="350">
-			<description>Position X of widget</description>
-		</field>
-		<field name="TimePosY" units="" type="int16" elements="1" defaultvalue="220">
-			<description>Position Y of widget</description>
-		</field>
-		<field name="TimeFont" units="" type="enum" elements="1" options="Small,Normal,Large" defaultvalue="Small">
-			<description>Font size of text within widget</description>
-		</field>
-		<field name="TimeAlign" units="" type="enum" elements="1" options="Left,Center,Right" defaultvalue="Right">
-			<description>Alignment of text within widget</description>
-		</field>
-		<field name="Throttle" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Disabled">
-			<description>Enable/Disable Throttle widget</description>
-		</field>
-		<field name="ThrottlePosX" units="" type="int16" elements="1" defaultvalue="300">
-			<description>Position X of widget</description>
-		</field>
-		<field name="ThrottlePosY" units="" type="int16" elements="1" defaultvalue="220">
-			<description>Position Y of widget</description>
-		</field>
-		<field name="ThrottleFont" units="" type="enum" elements="1" options="Small,Normal,Large" defaultvalue="Small">
-			<description>Font size of text within widget</description>
-		</field>
-		<field name="ThrottleAlign" units="" type="enum" elements="1" options="Left,Center,Right" defaultvalue="Right">
-			<description>Alignment of text within widget</description>
-		</field>
-		<field name="VTXFreq" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled">
-			<description>Enable/Disable VTX Frequency widget</description>
-		</field>
-		<field name="VTXFreqPosX" units="" type="int16" elements="1" defaultvalue="220">
-			<description>Position X of widget</description>
-		</field>
-		<field name="VTXFreqPosY" units="" type="int16" elements="1" defaultvalue="220">
-			<description>Position Y of widget</description>
-		</field>
-		<field name="VTXFreqFont" units="" type="enum" elements="1" options="Small,Normal,Large" defaultvalue="Small">
-			<description>Font size of text within widget</description>
-		</field>
-		<field name="VTXFreqAlign" units="" type="enum" elements="1" options="Left,Center,Right" defaultvalue="Right">
-			<description>Alignment of text within widget</description>
-		</field>
-		<field name="VTXFreqShowUnit" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled">
-			<description>Enable/Disable show unit</description>
-		</field>
-		<field name="VTXPower" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled">
-			<description>Enable/Disable VTX Power widget</description>
-		</field>
-		<field name="VTXPowerPosX" units="" type="int16" elements="1" defaultvalue="280">
-			<description>Position X of widget</description>
-		</field>
-		<field name="VTXPowerPosY" units="" type="int16" elements="1" defaultvalue="220">
-			<description>Position Y of widget</description>
-		</field>
-		<field name="VTXPowerFont" units="" type="enum" elements="1" options="Small,Normal,Large" defaultvalue="Small">
-			<description>Font size of text within widget</description>
-		</field>
-		<field name="VTXPowerAlign" units="" type="enum" elements="1" options="Left,Center,Right" defaultvalue="Right">
-			<description>Alignment of text within widget</description>
-		</field>
-		<field name="VTXPowerShowUnit" units="" type="enum" elements="1" options="Disabled,Enabled" defaultvalue="Enabled">
-			<description>Enable/Disable show unit</description>
-		</field>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="OnScreenDisplayPageSettings4" settings="true" singleinstance="true">
+    <description>On Screen Display Page Settings</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="onchange" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="Enabled" elements="1" name="Alarm" type="enum" units="">
+      <description>Enable/Disable Alarm widget</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="0" elements="1" name="AlarmPosX" type="int16" units="">
+      <description>Position X of widget</description>
+    </field>
+    <field defaultvalue="214" elements="1" name="AlarmPosY" type="int16" units="">
+      <description>Position Y of widget</description>
+    </field>
+    <field defaultvalue="Small" elements="1" name="AlarmFont" type="enum" units="">
+      <description>Font size of text within widget</description>
+      <options>
+        <option>Small</option>
+        <option>Normal</option>
+        <option>Large</option>
+      </options>
+    </field>
+    <field defaultvalue="Left" elements="1" name="AlarmAlign" type="enum" units="">
+      <description>Alignment of text within widget</description>
+      <options>
+        <option>Left</option>
+        <option>Center</option>
+        <option>Right</option>
+      </options>
+    </field>
+    <field defaultvalue="Enabled" elements="1" name="AltitudeScale" type="enum" units="">
+      <description>Enable/Disable Altitude - Scale widget</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="Right" elements="1" name="AltitudeScaleAlign" type="enum" units="">
+      <description>Alignment of text within widget</description>
+      <options>
+        <option>Left</option>
+        <option>Right</option>
+      </options>
+    </field>
+    <field defaultvalue="350" elements="1" name="AltitudeScalePos" type="int16" units="">
+      <description>Position of widget</description>
+    </field>
+    <field defaultvalue="Baro" elements="1" name="AltitudeScaleSource" type="enum" units="">
+      <description>Source of widget</description>
+      <options>
+        <option>Baro</option>
+        <option>Nav</option>
+      </options>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="AltitudeNumeric" type="enum" units="">
+      <description>Enable/Disable Altitude - Numeric widget</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="Left" elements="1" name="AltitudeNumericAlign" type="enum" units="">
+      <description>Alignment of text within widget</description>
+      <options>
+        <option>Left</option>
+        <option>Right</option>
+      </options>
+    </field>
+    <field defaultvalue="Small" elements="1" name="AltitudeNumericFont" type="enum" units="">
+      <description>Font size of text within widget</description>
+      <options>
+        <option>Small</option>
+        <option>Normal</option>
+        <option>Large</option>
+      </options>
+    </field>
+    <field defaultvalue="280" elements="1" name="AltitudeNumericPosX" type="int16" units="">
+      <description>Position X of widget</description>
+    </field>
+    <field defaultvalue="200" elements="1" name="AltitudeNumericPosY" type="int16" units="">
+      <description>Position Y of widget</description>
+    </field>
+    <field defaultvalue="Baro" elements="1" name="AltitudeNumericSource" type="enum" units="">
+      <description>Source of widget</description>
+      <options>
+        <option>Baro</option>
+        <option>Nav</option>
+      </options>
+    </field>
+    <field defaultvalue="Enabled" elements="1" name="ArmStatus" type="enum" units="">
+      <description>Enable/Disable Arm Status widget</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="0" elements="1" name="ArmStatusPosX" type="int16" units="">
+      <description>Position X of widget</description>
+    </field>
+    <field defaultvalue="24" elements="1" name="ArmStatusPosY" type="int16" units="">
+      <description>Position Y of widget</description>
+    </field>
+    <field defaultvalue="Small" elements="1" name="ArmStatusFont" type="enum" units="">
+      <description>Font size of text within widget</description>
+      <options>
+        <option>Small</option>
+        <option>Normal</option>
+        <option>Large</option>
+      </options>
+    </field>
+    <field defaultvalue="Left" elements="1" name="ArmStatusAlign" type="enum" units="">
+      <description>Alignment of text within widget</description>
+      <options>
+        <option>Left</option>
+        <option>Center</option>
+        <option>Right</option>
+      </options>
+    </field>
+    <field defaultvalue="Enabled" elements="1" name="ArtificialHorizon" type="enum" units="">
+      <description>Enable/Disable Artificial Horizon widget</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="30" elements="1" name="ArtificialHorizonMaxPitch" type="uint8" units="deg">
+      <description>Maximum Pitch of Artificial Horizon</description>
+    </field>
+    <field defaultvalue="2" elements="1" name="ArtificialHorizonPitchSteps" type="uint8" units="">
+      <description>Pitch Steps of Artificial Horizon</description>
+    </field>
+    <field defaultvalue="Enabled" elements="1" name="BatteryVolt" type="enum" units="">
+      <description>Enable/Disable Voltage of flight battery widget</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="350" elements="1" name="BatteryVoltPosX" type="int16" units="">
+      <description>Position X of widget</description>
+    </field>
+    <field defaultvalue="4" elements="1" name="BatteryVoltPosY" type="int16" units="">
+      <description>Position Y of widget</description>
+    </field>
+    <field defaultvalue="Small" elements="1" name="BatteryVoltFont" type="enum" units="">
+      <description>Font size of text within widget</description>
+      <options>
+        <option>Small</option>
+        <option>Normal</option>
+        <option>Large</option>
+      </options>
+    </field>
+    <field defaultvalue="Right" elements="1" name="BatteryVoltAlign" type="enum" units="">
+      <description>Alignment of text within widget</description>
+      <options>
+        <option>Left</option>
+        <option>Center</option>
+        <option>Right</option>
+      </options>
+    </field>
+    <field defaultvalue="Enabled" elements="1" name="BatteryCurrent" type="enum" units="">
+      <description>Enable/Disable Current used widget</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="350" elements="1" name="BatteryCurrentPosX" type="int16" units="">
+      <description>Position X of widget</description>
+    </field>
+    <field defaultvalue="14" elements="1" name="BatteryCurrentPosY" type="int16" units="">
+      <description>Position Y of widget</description>
+    </field>
+    <field defaultvalue="Small" elements="1" name="BatteryCurrentFont" type="enum" units="">
+      <description>Font size of text within widget</description>
+      <options>
+        <option>Small</option>
+        <option>Normal</option>
+        <option>Large</option>
+      </options>
+    </field>
+    <field defaultvalue="Right" elements="1" name="BatteryCurrentAlign" type="enum" units="">
+      <description>Alignment of text within widget</description>
+      <options>
+        <option>Left</option>
+        <option>Center</option>
+        <option>Right</option>
+      </options>
+    </field>
+    <field defaultvalue="Enabled" elements="1" name="BatteryConsumed" type="enum" units="">
+      <description>Enable/Disable Capacity Consumed widget</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="350" elements="1" name="BatteryConsumedPosX" type="int16" units="">
+      <description>Position X of widget</description>
+    </field>
+    <field defaultvalue="24" elements="1" name="BatteryConsumedPosY" type="int16" units="">
+      <description>Position Y of widget</description>
+    </field>
+    <field defaultvalue="Small" elements="1" name="BatteryConsumedFont" type="enum" units="">
+      <description>Font size of text within widget</description>
+      <options>
+        <option>Small</option>
+        <option>Normal</option>
+        <option>Large</option>
+      </options>
+    </field>
+    <field defaultvalue="Right" elements="1" name="BatteryConsumedAlign" type="enum" units="">
+      <description>Alignment of text within widget</description>
+      <options>
+        <option>Left</option>
+        <option>Center</option>
+        <option>Right</option>
+      </options>
+    </field>
+    <field defaultvalue="Enabled" elements="1" name="BatteryChargeState" type="enum" units="">
+      <description>Enable/Disable Battery Charged widget</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="325" elements="1" name="BatteryChargeStatePosX" type="int16" units="">
+      <description>Position X of widget</description>
+    </field>
+    <field defaultvalue="38" elements="1" name="BatteryChargeStatePosY" type="int16" units="">
+      <description>Position Y of widget</description>
+    </field>
+    <field defaultvalue="Middle" elements="1" name="CenterMark" type="enum" units="">
+      <description>Enable/Disable Center Mark widget</description>
+      <options>
+        <option>Disabled</option>
+        <option>Middle</option>
+        <option>CameraPitch</option>
+      </options>
+    </field>
+    <field defaultvalue="Enabled" elements="1" name="ClimbRate" type="enum" units="">
+      <description>Enable/Disable Climb Rate widget</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="350" elements="1" name="ClimbRatePosX" type="int16" units="">
+      <description>Position X of widget</description>
+    </field>
+    <field defaultvalue="200" elements="1" name="ClimbRatePosY" type="int16" units="">
+      <description>Position Y of widget</description>
+    </field>
+    <field defaultvalue="Small" elements="1" name="ClimbRateFont" type="enum" units="">
+      <description>Font size of text within widget</description>
+      <options>
+        <option>Small</option>
+        <option>Normal</option>
+        <option>Large</option>
+      </options>
+    </field>
+    <field defaultvalue="Right" elements="1" name="ClimbRateAlign" type="enum" units="">
+      <description>Alignment of text within widget</description>
+      <options>
+        <option>Left</option>
+        <option>Center</option>
+        <option>Right</option>
+      </options>
+    </field>
+    <field defaultvalue="Enabled" elements="1" name="Compass" type="enum" units="">
+      <description>Enable/Disable Compass widget</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="15" elements="1" name="CompassPos" type="int16" units="">
+      <description>Position of widget</description>
+    </field>
+    <field defaultvalue="Enabled" elements="1" name="CompassHomeDir" type="enum" units="">
+      <description>Enable/Disable Home Direction</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="Cpu" type="enum" units="">
+      <description>Enable/Disable CPU widget</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="0" elements="1" name="CpuPosX" type="int16" units="">
+      <description>Position X of widget</description>
+    </field>
+    <field defaultvalue="204" elements="1" name="CpuPosY" type="int16" units="">
+      <description>Position Y of widget</description>
+    </field>
+    <field defaultvalue="Small" elements="1" name="CpuFont" type="enum" units="">
+      <description>Font size of text within widget</description>
+      <options>
+        <option>Small</option>
+        <option>Normal</option>
+        <option>Large</option>
+      </options>
+    </field>
+    <field defaultvalue="Left" elements="1" name="CpuAlign" type="enum" units="">
+      <description>Alignment of text within widget</description>
+      <options>
+        <option>Left</option>
+        <option>Center</option>
+        <option>Right</option>
+      </options>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="CustomText" type="enum" units="">
+      <description>Enable/Disable Custom Text widget</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="60" elements="1" name="CustomTextPosX" type="int16" units="">
+      <description>Position X of widget</description>
+    </field>
+    <field defaultvalue="190" elements="1" name="CustomTextPosY" type="int16" units="">
+      <description>Position Y of widget</description>
+    </field>
+    <field defaultvalue="Small" elements="1" name="CustomTextFont" type="enum" units="">
+      <description>Font size of text within widget</description>
+      <options>
+        <option>Small</option>
+        <option>Normal</option>
+        <option>Large</option>
+      </options>
+    </field>
+    <field defaultvalue="Left" elements="1" name="CustomTextAlign" type="enum" units="">
+      <description>Alignment of text within widget</description>
+      <options>
+        <option>Left</option>
+        <option>Right</option>
+      </options>
+    </field>
+    <field defaultvalue="Enabled" elements="1" name="FlightMode" type="enum" units="">
+      <description>Enable/Disable Flight Mode widget</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="0" elements="1" name="FlightModePosX" type="int16" units="">
+      <description>Position X of widget</description>
+    </field>
+    <field defaultvalue="4" elements="1" name="FlightModePosY" type="int16" units="">
+      <description>Position Y of widget</description>
+    </field>
+    <field defaultvalue="Small" elements="1" name="FlightModeFont" type="enum" units="">
+      <description>Font size of text within widget</description>
+      <options>
+        <option>Small</option>
+        <option>Normal</option>
+        <option>Large</option>
+      </options>
+    </field>
+    <field defaultvalue="Left" elements="1" name="FlightModeAlign" type="enum" units="">
+      <description>Alignment of text within widget</description>
+      <options>
+        <option>Left</option>
+        <option>Center</option>
+        <option>Right</option>
+      </options>
+    </field>
+    <field defaultvalue="Enabled" elements="1" name="GForce" type="enum" units="">
+      <description>Enable/Disable GForce widget</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="10" elements="1" name="GForcePosX" type="int16" units="">
+      <description>Position X of widget</description>
+    </field>
+    <field defaultvalue="40" elements="1" name="GForcePosY" type="int16" units="">
+      <description>Position Y of widget</description>
+    </field>
+    <field defaultvalue="Small" elements="1" name="GForceFont" type="enum" units="">
+      <description>Font size of text within widget</description>
+      <options>
+        <option>Small</option>
+        <option>Normal</option>
+        <option>Large</option>
+      </options>
+    </field>
+    <field defaultvalue="Left" elements="1" name="GForceAlign" type="enum" units="">
+      <description>Alignment of text within widget</description>
+      <options>
+        <option>Left</option>
+        <option>Center</option>
+        <option>Right</option>
+      </options>
+    </field>
+    <field defaultvalue="Enabled" elements="1" name="GpsStatus" type="enum" units="">
+      <description>Enable/Disable GPS Status widget</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="0" elements="1" name="GpsStatusPosX" type="int16" units="">
+      <description>Position X of widget</description>
+    </field>
+    <field defaultvalue="230" elements="1" name="GpsStatusPosY" type="int16" units="">
+      <description>Position Y of widget</description>
+    </field>
+    <field defaultvalue="Small" elements="1" name="GpsStatusFont" type="enum" units="">
+      <description>Font size of text within widget</description>
+      <options>
+        <option>Small</option>
+        <option>Normal</option>
+        <option>Large</option>
+      </options>
+    </field>
+    <field defaultvalue="Enabled" elements="1" name="GpsLat" type="enum" units="">
+      <description>Enable/Disable GPS Latitude widget</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="200" elements="1" name="GpsLatPosX" type="int16" units="">
+      <description>Position X of widget</description>
+    </field>
+    <field defaultvalue="230" elements="1" name="GpsLatPosY" type="int16" units="">
+      <description>Position Y of widget</description>
+    </field>
+    <field defaultvalue="Small" elements="1" name="GpsLatFont" type="enum" units="">
+      <description>Font size of text within widget</description>
+      <options>
+        <option>Small</option>
+        <option>Normal</option>
+        <option>Large</option>
+      </options>
+    </field>
+    <field defaultvalue="Left" elements="1" name="GpsLatAlign" type="enum" units="">
+      <description>Alignment of text within widget</description>
+      <options>
+        <option>Left</option>
+        <option>Center</option>
+        <option>Right</option>
+      </options>
+    </field>
+    <field defaultvalue="Enabled" elements="1" name="GpsLon" type="enum" units="">
+      <description>Enable/Disable GPS Longitude widget</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="350" elements="1" name="GpsLonPosX" type="int16" units="">
+      <description>Position X of widget</description>
+    </field>
+    <field defaultvalue="230" elements="1" name="GpsLonPosY" type="int16" units="">
+      <description>Position Y of widget</description>
+    </field>
+    <field defaultvalue="Small" elements="1" name="GpsLonFont" type="enum" units="">
+      <description>Font size of text within widget</description>
+      <options>
+        <option>Small</option>
+        <option>Normal</option>
+        <option>Large</option>
+      </options>
+    </field>
+    <field defaultvalue="Right" elements="1" name="GpsLonAlign" type="enum" units="">
+      <description>Alignment of text within widget</description>
+      <options>
+        <option>Left</option>
+        <option>Center</option>
+        <option>Right</option>
+      </options>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="GpsMgrs" type="enum" units="">
+      <description/>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="350" elements="1" name="GpsMgrsPosX" type="int16" units="">
+      <description>Position X of widget</description>
+    </field>
+    <field defaultvalue="230" elements="1" name="GpsMgrsPosY" type="int16" units="">
+      <description>Position Y of widget</description>
+    </field>
+    <field defaultvalue="Small" elements="1" name="GpsMgrsFont" type="enum" units="">
+      <description>Font size of text within widget</description>
+      <options>
+        <option>Small</option>
+        <option>Normal</option>
+        <option>Large</option>
+      </options>
+    </field>
+    <field defaultvalue="Right" elements="1" name="GpsMgrsAlign" type="enum" units="">
+      <description>Alignment of text within widget</description>
+      <options>
+        <option>Left</option>
+        <option>Center</option>
+        <option>Right</option>
+      </options>
+    </field>
+    <field defaultvalue="Enabled" elements="1" name="HomeDistance" type="enum" units="">
+      <description>Enable/Disable Distance To Home widget</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="180" elements="1" name="HomeDistancePosX" type="int16" units="">
+      <description>Position X of widget</description>
+    </field>
+    <field defaultvalue="195" elements="1" name="HomeDistancePosY" type="int16" units="">
+      <description>Position Y of widget</description>
+    </field>
+    <field defaultvalue="Small" elements="1" name="HomeDistanceFont" type="enum" units="">
+      <description>Font size of text within widget</description>
+      <options>
+        <option>Small</option>
+        <option>Normal</option>
+        <option>Large</option>
+      </options>
+    </field>
+    <field defaultvalue="Enabled" elements="1" name="HomeDistanceShowIcon" type="enum" units="">
+      <description>Enable/Disable Distance To Home icon</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="Enabled" elements="1" name="HomeArrow" type="enum" units="">
+      <description>Enable/Disable Home Arrow widget</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="240" elements="1" name="HomeArrowPosX" type="int16" units="">
+      <description>Position X of widget</description>
+    </field>
+    <field defaultvalue="195" elements="1" name="HomeArrowPosY" type="int16" units="">
+      <description>Position Y of widget</description>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="Map" type="enum" units="">
+      <description>Enable/Disable Map widget</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="UAV" elements="1" name="MapCenterMode" type="enum" units="">
+      <description>Center of map</description>
+      <options>
+        <option>UAV</option>
+        <option>Home</option>
+      </options>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="MapShowWp" type="enum" units="">
+      <description>Enable/Disable showing waypints</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="Enabled" elements="1" name="MapShowUavHome" type="enum" units="">
+      <description>Enable/Disable showing UAV home</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="MapShowTablet" type="enum" units="">
+      <description/>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="2000" elements="1" name="MapWidthMeters" type="int16" units="">
+      <description>Width of map in meters</description>
+    </field>
+    <field defaultvalue="180" elements="1" name="MapWidthPixels" type="int16" units="">
+      <description>Width of map in pixels</description>
+    </field>
+    <field defaultvalue="2000" elements="1" name="MapHeightMeters" type="int16" units="">
+      <description>Height of map in meters</description>
+    </field>
+    <field defaultvalue="140" elements="1" name="MapHeightPixels" type="int16" units="">
+      <description>Height of map in pixels</description>
+    </field>
+    <field defaultvalue="Enabled" elements="1" name="Rssi" type="enum" units="">
+      <description>Enable/Disable RSSI widget</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="130" elements="1" name="RssiPosX" type="int16" units="">
+      <description>Position X of widget</description>
+    </field>
+    <field defaultvalue="195" elements="1" name="RssiPosY" type="int16" units="">
+      <description>Position Y of widget</description>
+    </field>
+    <field defaultvalue="Small" elements="1" name="RssiFont" type="enum" units="">
+      <description>Font size of text within widget</description>
+      <options>
+        <option>Small</option>
+        <option>Normal</option>
+        <option>Large</option>
+      </options>
+    </field>
+    <field defaultvalue="Enabled" elements="1" name="RssiShowIcon" type="enum" units="">
+      <description>Enable/Disable RSSI icon</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="Enabled" elements="1" name="SpeedScale" type="enum" units="">
+      <description>Enable/Disable Speed - Scale widget</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="Left" elements="1" name="SpeedScaleAlign" type="enum" units="">
+      <description>Alignment of text within widget</description>
+      <options>
+        <option>Left</option>
+        <option>Right</option>
+      </options>
+    </field>
+    <field defaultvalue="0" elements="1" name="SpeedScalePos" type="int16" units="">
+      <description>Position of widget</description>
+    </field>
+    <field defaultvalue="GPS" elements="1" name="SpeedScaleSource" type="enum" units="">
+      <description>Source of widget</description>
+      <options>
+        <option>GPS</option>
+        <option>Nav</option>
+        <option>Airspeed</option>
+      </options>
+    </field>
+    <field defaultvalue="Enabled" elements="1" name="SpeedNumeric" type="enum" units="">
+      <description>Enable/Disable Speed - Numeric widget</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="Small" elements="1" name="SpeedNumericFont" type="enum" units="">
+      <description>Font size of text within widget</description>
+      <options>
+        <option>Small</option>
+        <option>Normal</option>
+        <option>Large</option>
+      </options>
+    </field>
+    <field defaultvalue="Left" elements="1" name="SpeedNumericAlign" type="enum" units="">
+      <description>Alignment of text within widget</description>
+      <options>
+        <option>Left</option>
+        <option>Right</option>
+      </options>
+    </field>
+    <field defaultvalue="50" elements="1" name="SpeedNumericPosX" type="int16" units="">
+      <description>Position X of widget</description>
+    </field>
+    <field defaultvalue="200" elements="1" name="SpeedNumericPosY" type="int16" units="">
+      <description>Position Y of widget</description>
+    </field>
+    <field defaultvalue="GPS" elements="1" name="SpeedNumericSource" type="enum" units="">
+      <description>Source of widget</description>
+      <options>
+        <option>GPS</option>
+        <option>Nav</option>
+        <option>Airspeed</option>
+      </options>
+    </field>
+    <field defaultvalue="Enabled" elements="1" name="Time" type="enum" units="">
+      <description>Enable/Disable Time widget</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="350" elements="1" name="TimePosX" type="int16" units="">
+      <description>Position X of widget</description>
+    </field>
+    <field defaultvalue="220" elements="1" name="TimePosY" type="int16" units="">
+      <description>Position Y of widget</description>
+    </field>
+    <field defaultvalue="Small" elements="1" name="TimeFont" type="enum" units="">
+      <description>Font size of text within widget</description>
+      <options>
+        <option>Small</option>
+        <option>Normal</option>
+        <option>Large</option>
+      </options>
+    </field>
+    <field defaultvalue="Right" elements="1" name="TimeAlign" type="enum" units="">
+      <description>Alignment of text within widget</description>
+      <options>
+        <option>Left</option>
+        <option>Center</option>
+        <option>Right</option>
+      </options>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="Throttle" type="enum" units="">
+      <description>Enable/Disable Throttle widget</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="300" elements="1" name="ThrottlePosX" type="int16" units="">
+      <description>Position X of widget</description>
+    </field>
+    <field defaultvalue="220" elements="1" name="ThrottlePosY" type="int16" units="">
+      <description>Position Y of widget</description>
+    </field>
+    <field defaultvalue="Small" elements="1" name="ThrottleFont" type="enum" units="">
+      <description>Font size of text within widget</description>
+      <options>
+        <option>Small</option>
+        <option>Normal</option>
+        <option>Large</option>
+      </options>
+    </field>
+    <field defaultvalue="Right" elements="1" name="ThrottleAlign" type="enum" units="">
+      <description>Alignment of text within widget</description>
+      <options>
+        <option>Left</option>
+        <option>Center</option>
+        <option>Right</option>
+      </options>
+    </field>
+    <field defaultvalue="Enabled" elements="1" name="VTXFreq" type="enum" units="">
+      <description>Enable/Disable VTX Frequency widget</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="220" elements="1" name="VTXFreqPosX" type="int16" units="">
+      <description>Position X of widget</description>
+    </field>
+    <field defaultvalue="220" elements="1" name="VTXFreqPosY" type="int16" units="">
+      <description>Position Y of widget</description>
+    </field>
+    <field defaultvalue="Small" elements="1" name="VTXFreqFont" type="enum" units="">
+      <description>Font size of text within widget</description>
+      <options>
+        <option>Small</option>
+        <option>Normal</option>
+        <option>Large</option>
+      </options>
+    </field>
+    <field defaultvalue="Right" elements="1" name="VTXFreqAlign" type="enum" units="">
+      <description>Alignment of text within widget</description>
+      <options>
+        <option>Left</option>
+        <option>Center</option>
+        <option>Right</option>
+      </options>
+    </field>
+    <field defaultvalue="Enabled" elements="1" name="VTXFreqShowUnit" type="enum" units="">
+      <description>Enable/Disable show unit</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="Enabled" elements="1" name="VTXPower" type="enum" units="">
+      <description>Enable/Disable VTX Power widget</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="280" elements="1" name="VTXPowerPosX" type="int16" units="">
+      <description>Position X of widget</description>
+    </field>
+    <field defaultvalue="220" elements="1" name="VTXPowerPosY" type="int16" units="">
+      <description>Position Y of widget</description>
+    </field>
+    <field defaultvalue="Small" elements="1" name="VTXPowerFont" type="enum" units="">
+      <description>Font size of text within widget</description>
+      <options>
+        <option>Small</option>
+        <option>Normal</option>
+        <option>Large</option>
+      </options>
+    </field>
+    <field defaultvalue="Right" elements="1" name="VTXPowerAlign" type="enum" units="">
+      <description>Alignment of text within widget</description>
+      <options>
+        <option>Left</option>
+        <option>Center</option>
+        <option>Right</option>
+      </options>
+    </field>
+    <field defaultvalue="Enabled" elements="1" name="VTXPowerShowUnit" type="enum" units="">
+      <description>Enable/Disable show unit</description>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+  </object>
 </xml>

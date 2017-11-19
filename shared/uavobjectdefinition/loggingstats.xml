@@ -1,17 +1,39 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="LoggingStats" singleinstance="true" settings="false">
-		<description>Information about logging</description>
-		<field name="BytesLogged" units="bytes" type="uint32" elements="1"/>
-		<field name="MinFileId" units="" type="uint16" elements="1"/>
-		<field name="MaxFileId" units="" type="uint16" elements="1"/>
-		<field name="Operation" units="" type="enum" elements="1" options="INITIALIZING, LOGGING, IDLE, DOWNLOAD, COMPLETE, FORMAT, ERROR"/>
-		<field name="FileRequest" units="" type="uint16" elements="1"/>
-		<field name="FileSectorNum" units="" type="uint16" elements="1"/>
-		<field name="FileSector" units="" type="uint8" elements="128"/>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="false" updatemode="manual" period="0"/>
-		<telemetryflight acked="false" updatemode="manual" period="1000"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="LoggingStats" settings="false" singleinstance="true">
+    <description>Information about logging</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="false" updatemode="manual" period="0"/>
+    <telemetryflight acked="false" updatemode="manual" period="1000"/>
+    <field defaultvalue="0" elements="1" name="BytesLogged" type="uint32" units="bytes">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="MinFileId" type="uint16" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="MaxFileId" type="uint16" units="">
+      <description/>
+    </field>
+    <field defaultvalue="INITIALIZING" elements="1" name="Operation" type="enum" units="">
+      <description/>
+      <options>
+        <option>INITIALIZING</option>
+        <option>LOGGING</option>
+        <option>IDLE</option>
+        <option>DOWNLOAD</option>
+        <option>COMPLETE</option>
+        <option>FORMAT</option>
+        <option>ERROR</option>
+      </options>
+    </field>
+    <field defaultvalue="0" elements="1" name="FileRequest" type="uint16" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="FileSectorNum" type="uint16" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="128" name="FileSector" type="uint8" units="">
+      <description/>
+    </field>
+  </object>
 </xml>

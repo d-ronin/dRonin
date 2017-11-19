@@ -1,15 +1,24 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="SessionManaging" singleinstance="true" settings="false">
-		<description>Provides session managing to uavtalk</description>
-		<field name="SessionID" units="" type="uint16" elements="1"/>
-		<field name="ObjectID" units="" type="uint32" elements="1"/>
-		<field name="ObjectInstances" units="" type="uint8" elements="1"/>
-		<field name="NumberOfObjects" units="" type="uint8" elements="1"/>
-		<field name="ObjectOfInterestIndex" units="" type="uint8" elements="1"/>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="manual" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="SessionManaging" settings="false" singleinstance="true">
+    <description>Provides session managing to uavtalk</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="manual" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="0" elements="1" name="SessionID" type="uint16" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="ObjectID" type="uint32" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="ObjectInstances" type="uint8" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="NumberOfObjects" type="uint8" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="ObjectOfInterestIndex" type="uint8" units="">
+      <description/>
+    </field>
+  </object>
 </xml>

@@ -1,13 +1,16 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="FlightStatsSettings" singleinstance="true" settings="true">
-		<description>Settings for the FlightStats module</description>
-		<field name="StatsBehavior" units="" type="enum" options="ResetOnArm,ResetOnBoot" elements="1" defaultvalue="ResetOnArm">
-			<description>Specifies when the statistics should be reset</description>
-		</field>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="FlightStatsSettings" settings="true" singleinstance="true">
+    <description>Settings for the FlightStats module</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="onchange" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="ResetOnArm" elements="1" name="StatsBehavior" type="enum" units="">
+      <description>Specifies when the statistics should be reset</description>
+      <options>
+        <option>ResetOnArm</option>
+        <option>ResetOnBoot</option>
+      </options>
+    </field>
+  </object>
 </xml>

@@ -1,19 +1,28 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="VibrationAnalysisSettings" singleinstance="true" settings="true">
-		<description>Settings for the @ref VibrationTest Module</description>
-		<field name="SampleRate" units="ms" type="uint16" elements="1" defaultvalue="20">
-			<description>Sampling Rate</description>
-		</field>
-		<field name="FFTWindowSize" units="" type="enum" elements="1" options="16,64,256,1024" defaultvalue="16" limits="%0901NE:64:256:1024">
-			<description>FFT Windows Size used during the analysis</description>
-		</field>
-		<field name="TestingStatus" units="" type="enum" elements="1" options="Off,On" defaultvalue="Off">
-			<description>Testing Status</description>
-		</field>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="1000"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="VibrationAnalysisSettings" settings="true" singleinstance="true">
+    <description>Settings for the @ref VibrationTest Module</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="onchange" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="1000"/>
+    <field defaultvalue="20" elements="1" name="SampleRate" type="uint16" units="ms">
+      <description>Sampling Rate</description>
+    </field>
+    <field defaultvalue="16" elements="1" name="FFTWindowSize" type="enum" units="">
+      <description>FFT Windows Size used during the analysis</description>
+      <options>
+        <option>16</option>
+        <option>64</option>
+        <option>256</option>
+        <option>1024</option>
+      </options>
+    </field>
+    <field defaultvalue="Off" elements="1" name="TestingStatus" type="enum" units="">
+      <description>Testing Status</description>
+      <options>
+        <option>Off</option>
+        <option>On</option>
+      </options>
+    </field>
+  </object>
 </xml>

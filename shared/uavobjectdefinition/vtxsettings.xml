@@ -1,81 +1,100 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="VTXSettings" singleinstance="true" settings="true">
-		<description>Video transmitter settings.</description>
-		<field name="Mode" units="" type="enum" elements="1" options="Active,Passive" defaultvalue="Active" description="Passive just monitors the VTx state while active modifies settings"/>
-		<field name="Power" units="mW" type="enum" elements="1" options="25,200,500,800" defaultvalue="25"/>
-		<field name="Band" units="" type="enum" elements="1" defaultvalue="Band 5G8 A">
-			<options>
-				<option>Band 5G8 A</option>
-				<option>Band 5G8 B</option>
-				<option>Band 5G8 E</option>
-				<option>Airwave</option>
-				<option>Raceband</option>
-			</options>
-		</field>
-		<field name="Band_5G8_A_Frequency" units="" type="enum" elements="1" defaultvalue="CH 1 5865">
-			<options>
-				<option>CH 1 5865</option>
-				<option>CH 2 5845</option>
-				<option>CH 3 5825</option>
-				<option>CH 4 5805</option>
-				<option>CH 5 5785</option>
-				<option>CH 6 5765</option>
-				<option>CH 7 5745</option>
-				<option>CH 8 5725</option>
-			</options>
-		</field>
-		<field name="Band_5G8_B_Frequency" units="" type="enum" elements="1" defaultvalue="CH 1 5733">
-			<options>
-				<option>CH 1 5733</option>
-				<option>CH 2 5752</option>
-				<option>CH 3 5771</option>
-				<option>CH 4 5790</option>
-				<option>CH 5 5809</option>
-				<option>CH 6 5828</option>
-				<option>CH 7 5847</option>
-				<option>CH 8 5866</option>
-			</options>
-		</field>
-		<field name="Band_5G8_E_Frequency" units="" type="enum" elements="1" defaultvalue="CH 1 5705">
-			<options>
-				<option>CH 1 5705</option>
-				<option>CH 2 5685</option>
-				<option>CH 3 5665</option>
-				<option>CH 4 5645</option>
-				<option>CH 5 5885</option>
-				<option>CH 6 5905</option>
-				<option>CH 7 5925</option>
-				<option>CH 8 5945</option>
-			</options>
-		</field>
-		<field name="Airwave_Frequency" units="" type="enum" elements="1" defaultvalue="CH 1 5740">
-			<options>
-				<option>CH 1 5740</option>
-				<option>CH 2 5760</option>
-				<option>CH 3 5780</option>
-				<option>CH 4 5800</option>
-				<option>CH 5 5820</option>
-				<option>CH 6 5840</option>
-				<option>CH 7 5860</option>
-				<option>CH 8 5880</option>
-			</options>
-		</field>
-		<field name="Raceband_Frequency" units="" type="enum" elements="1" defaultvalue="CH 1 5658">
-			<options>
-				<option>CH 1 5658</option>
-				<option>CH 2 5696</option>
-				<option>CH 3 5732</option>
-				<option>CH 4 5769</option>
-				<option>CH 5 5806</option>
-				<option>CH 6 5843</option>
-				<option>CH 7 5880</option>
-				<option>CH 8 5917</option>
-			</options>
-		</field>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
-		<telemetryflight acked="true" updatemode="onchange" period="0"/>
-		<logging updatemode="manual" period="0"/>
-	</object>
+  <object name="VTXSettings" settings="true" singleinstance="true">
+    <description>Video transmitter settings.</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="onchange" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="Active" elements="1" name="Mode" type="enum" units="">
+      <description>Passive just monitors the VTx state while active modifies settings</description>
+      <options>
+        <option>Active</option>
+        <option>Passive</option>
+      </options>
+    </field>
+    <field defaultvalue="25" elements="1" name="Power" type="enum" units="mW">
+      <description/>
+      <options>
+        <option>25</option>
+        <option>200</option>
+        <option>500</option>
+        <option>800</option>
+      </options>
+    </field>
+    <field defaultvalue="Band 5G8 A" elements="1" name="Band" type="enum" units="">
+      <description/>
+      <options>
+        <option>Band 5G8 A</option>
+        <option>Band 5G8 B</option>
+        <option>Band 5G8 E</option>
+        <option>Airwave</option>
+        <option>Raceband</option>
+      </options>
+    </field>
+    <field defaultvalue="CH 1 5865" elements="1" name="Band_5G8_A_Frequency" type="enum" units="">
+      <description/>
+      <options>
+        <option>CH 1 5865</option>
+        <option>CH 2 5845</option>
+        <option>CH 3 5825</option>
+        <option>CH 4 5805</option>
+        <option>CH 5 5785</option>
+        <option>CH 6 5765</option>
+        <option>CH 7 5745</option>
+        <option>CH 8 5725</option>
+      </options>
+    </field>
+    <field defaultvalue="CH 1 5733" elements="1" name="Band_5G8_B_Frequency" type="enum" units="">
+      <description/>
+      <options>
+        <option>CH 1 5733</option>
+        <option>CH 2 5752</option>
+        <option>CH 3 5771</option>
+        <option>CH 4 5790</option>
+        <option>CH 5 5809</option>
+        <option>CH 6 5828</option>
+        <option>CH 7 5847</option>
+        <option>CH 8 5866</option>
+      </options>
+    </field>
+    <field defaultvalue="CH 1 5705" elements="1" name="Band_5G8_E_Frequency" type="enum" units="">
+      <description/>
+      <options>
+        <option>CH 1 5705</option>
+        <option>CH 2 5685</option>
+        <option>CH 3 5665</option>
+        <option>CH 4 5645</option>
+        <option>CH 5 5885</option>
+        <option>CH 6 5905</option>
+        <option>CH 7 5925</option>
+        <option>CH 8 5945</option>
+      </options>
+    </field>
+    <field defaultvalue="CH 1 5740" elements="1" name="Airwave_Frequency" type="enum" units="">
+      <description/>
+      <options>
+        <option>CH 1 5740</option>
+        <option>CH 2 5760</option>
+        <option>CH 3 5780</option>
+        <option>CH 4 5800</option>
+        <option>CH 5 5820</option>
+        <option>CH 6 5840</option>
+        <option>CH 7 5860</option>
+        <option>CH 8 5880</option>
+      </options>
+    </field>
+    <field defaultvalue="CH 1 5658" elements="1" name="Raceband_Frequency" type="enum" units="">
+      <description/>
+      <options>
+        <option>CH 1 5658</option>
+        <option>CH 2 5696</option>
+        <option>CH 3 5732</option>
+        <option>CH 4 5769</option>
+        <option>CH 5 5806</option>
+        <option>CH 6 5843</option>
+        <option>CH 7 5880</option>
+        <option>CH 8 5917</option>
+      </options>
+    </field>
+  </object>
 </xml>

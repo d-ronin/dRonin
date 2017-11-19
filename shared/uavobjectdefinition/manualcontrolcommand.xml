@@ -1,35 +1,63 @@
-<?xml version="1.0"?>
 <xml>
-	<object name="ManualControlCommand" singleinstance="true" settings="false">
-		<description>The output from the @ref ManualControlModule which decodes the receiver inputs.</description>
-		<field name="Connected" units="" type="enum" elements="1" options="False,True"/>
-		<field name="Throttle" units="%" type="float" elements="1"/>
-		<field name="Roll" units="%" type="float" elements="1"/>
-		<field name="Pitch" units="%" type="float" elements="1"/>
-		<field name="Yaw" units="%" type="float" elements="1"/>
-		<field name="Accessory" units="%" type="float" elements="3"/>
-		<field name="Rssi" units="%" type="int16" elements="1"/>
-		<field name="RawRssi" units="" type="uint32" elements="1"/>
-		<field name="Collective" units="%" type="float" elements="1"/>
-		<field name="ArmSwitch" units="" type="enum" elements="1" options="Disarmed,Armed" defaultvalue="Disarmed"/>
-		<field name="Channel" units="us" type="uint16">
-			<!-- Must match order in ManualControlSettings.ChannelGroups -->
-			<elementnames>
-				<elementname>Throttle</elementname>
-				<elementname>Roll</elementname>
-				<elementname>Pitch</elementname>
-				<elementname>Yaw</elementname>
-				<elementname>FlightMode</elementname>
-				<elementname>Collective</elementname>
-				<elementname>Accessory0</elementname>
-				<elementname>Accessory1</elementname>
-				<elementname>Accessory2</elementname>
-				<elementname>Arming</elementname>
-			</elementnames>
-		</field>
-		<access gcs="readwrite" flight="readwrite"/>
-		<telemetrygcs acked="false" updatemode="manual" period="0"/>
-		<telemetryflight acked="false" updatemode="throttled" period="166"/>
-		<logging updatemode="periodic" period="1000"/>
-	</object>
+  <object name="ManualControlCommand" settings="false" singleinstance="true">
+    <description>The output from the @ref ManualControlModule which decodes the receiver inputs.</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="periodic" period="1000"/>
+    <telemetrygcs acked="false" updatemode="manual" period="0"/>
+    <telemetryflight acked="false" updatemode="throttled" period="166"/>
+    <field defaultvalue="False" elements="1" name="Connected" type="enum" units="">
+      <description/>
+      <options>
+        <option>False</option>
+        <option>True</option>
+      </options>
+    </field>
+    <field defaultvalue="0" elements="1" name="Throttle" type="float" units="%">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="Roll" type="float" units="%">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="Pitch" type="float" units="%">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="Yaw" type="float" units="%">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="3" name="Accessory" type="float" units="%">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="Rssi" type="int16" units="%">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="RawRssi" type="uint32" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="1" name="Collective" type="float" units="%">
+      <description/>
+    </field>
+    <field defaultvalue="Disarmed" elements="1" name="ArmSwitch" type="enum" units="">
+      <description/>
+      <options>
+        <option>Disarmed</option>
+        <option>Armed</option>
+      </options>
+    </field>
+    <field defaultvalue="0" name="Channel" type="uint16" units="us">
+      <!-- Must match order in ManualControlSettings.ChannelGroups -->
+      <description/>
+      <elementnames>
+        <elementname>Throttle</elementname>
+        <elementname>Roll</elementname>
+        <elementname>Pitch</elementname>
+        <elementname>Yaw</elementname>
+        <elementname>FlightMode</elementname>
+        <elementname>Collective</elementname>
+        <elementname>Accessory0</elementname>
+        <elementname>Accessory1</elementname>
+        <elementname>Accessory2</elementname>
+        <elementname>Arming</elementname>
+      </elementnames>
+    </field>
+  </object>
 </xml>
