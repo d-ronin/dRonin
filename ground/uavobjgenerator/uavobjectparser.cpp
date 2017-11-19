@@ -759,28 +759,18 @@ QString UAVObjectParser::processObjectFields(QDomNode& childNode, ObjectInfo* in
             field->parentName = elemAttr.nodeValue().trimmed();
         }
 
-        // Look for options attribute
-        elemAttr = elemAttributes.namedItem("options");
-        if (!elemAttr.isNull()) {
-            QStringList options = elemAttr.nodeValue().split(",", QString::SkipEmptyParts);
-            for (int n = 0; n < options.length(); ++n) {
-                options[n] = options[n].trimmed();
-            }
-            field->options = options;
-        }
-        else {
-            // Look for a list of child 'option' nodes
-            QDomNode listNode = childNode.firstChildElement("options");
-            if (!listNode.isNull()) {
-                for (QDomElement node = listNode.firstChildElement("option");
-                     !node.isNull(); node = node.nextSiblingElement("option")) {
-                    QDomNode name = node.firstChild();
-                        if (!name.isNull() && name.isText() && !name.nodeValue().isEmpty()) {
-                        field->options.append(name.nodeValue());
-                    }
+        // Look for a list of child 'option' nodes
+        QDomNode listNode = childNode.firstChildElement("options");
+        if (!listNode.isNull()) {
+            for (QDomElement node = listNode.firstChildElement("option");
+                 !node.isNull(); node = node.nextSiblingElement("option")) {
+                QDomNode name = node.firstChild();
+                    if (!name.isNull() && name.isText() && !name.nodeValue().isEmpty()) {
+                    field->options.append(name.nodeValue());
                 }
             }
         }
+
         if ((field->options.isEmpty()) && (field->parentName.isEmpty())) {
             return QString("Object:field:options attribute/element is missing");
         }
