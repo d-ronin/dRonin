@@ -40,7 +40,6 @@
 
 const QString $(NAME)::NAME = QString("$(NAME)");
 const QString $(NAME)::DESCRIPTION = QString("$(DESCRIPTION)");
-const QString $(NAME)::CATEGORY = QString("$(CATEGORY)");
 const QHash<QString, QString> $(NAME)::FIELD_DESCRIPTIONS{
 $(FIELDDESCRIPTIONS_STRINGS)};
 
@@ -58,9 +57,6 @@ $(FIELDSINIT)
     setDefaultFieldValues();
     // Set the object description
     setDescription(DESCRIPTION);
-
-    // Set the Category of this object type
-    setCategory(CATEGORY);
 
     connect(this, &$(NAME)::objectUpdated, this, &$(NAME)::emitNotifications);
 }

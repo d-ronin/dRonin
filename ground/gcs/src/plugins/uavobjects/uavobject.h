@@ -123,7 +123,6 @@ public:
     quint32 getInstID();
     bool isSingleInstance();
     QString getName();
-    QString getCategory();
     QString getDescription();
     quint32 getNumBytes();
     qint32 pack(quint8 *dataOut);
@@ -254,7 +253,6 @@ protected:
     QList<UAVObjectField *> fields;
     void initializeFields(QList<UAVObjectField *> &fields, quint8 *data, quint32 numBytes);
     void setDescription(const QString &description);
-    void setCategory(const QString &category);
 };
 
 #endif // UAVOBJECT_H
