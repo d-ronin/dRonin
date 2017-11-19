@@ -146,7 +146,7 @@
     <field defaultvalue="0" elements="1" name="MinChannel" type="uint8" units="">
       <description>Minimum channel to use</description>
     </field>
-    <field defaultvalue="250" elements="1" name="MaxChannel" type="uint8" units="">
+    <field defaultvalue="250" elements="1" limits="%BE:0:250" name="MaxChannel" type="uint8" units="">
       <description>Maximum channel to use</description>
     </field>
     <field defaultvalue="1000" elements="1" name="GyroRange" type="enum" units="deg/s">

@@ -31,13 +31,13 @@
     <field defaultvalue="20" elements="1" name="NTSCBlack" type="uint8" units="">
       <description>NTSC Black Level</description>
     </field>
-    <field defaultvalue="0" elements="1" name="XOffset" type="int8" units="">
+    <field defaultvalue="0" elements="1" limits="%BE:-40:40" name="XOffset" type="int8" units="">
       <description>Shift the video horizontally. Note: Large values can cause sync problems.</description>
     </field>
-    <field defaultvalue="0" elements="1" name="YOffset" type="int8" units="">
+    <field defaultvalue="0" elements="1" limits="%BE:-20:20" name="YOffset" type="int8" units="">
       <description>Shift the video vertically. Note: Large values can cause sync problems.</description>
     </field>
-    <field defaultvalue="2" elements="1" name="NumPages" type="int8" units="">
+    <field defaultvalue="2" elements="1" limits="%BE:1:6" name="NumPages" type="int8" units="">
       <description>Number of OSD pages (current page is selected by "Page Switch Function")</description>
     </field>
     <field defaultvalue="Accessory0" elements="1" name="PageSwitch" type="enum" units="">
