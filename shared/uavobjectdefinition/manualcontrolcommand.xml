@@ -44,6 +44,7 @@
       </options>
     </field>
     <field defaultvalue="0" name="Channel" type="uint16" units="us">
+      <!-- Must match order in ManualControlSettings.ChannelGroups -->
       <description/>
       <elementnames>
         <elementname>Throttle</elementname>

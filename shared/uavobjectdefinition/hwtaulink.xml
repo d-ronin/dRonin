@@ -37,6 +37,7 @@
     <field defaultvalue="PPM+SPORT" elements="1" name="PPMPort" type="enum" units="">
       <description/>
       <options>
+        <!-- Whenever port is enabled to PPM that data will be sent to other side -->
         <option>Disabled</option>
         <option>PPM</option>
         <option>SPORT</option>

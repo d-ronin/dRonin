@@ -31,10 +31,12 @@
       <description/>
     </field>
     <field defaultvalue="Endpoint" elements="1" name="Mode" type="enum" units="">
-      <description/>
       <options>
+        <!-- Move directly towards endpoint, speed proportional to error -->
         <option>Endpoint</option>
+        <!-- Try to move along a line smoothly -->
         <option>Vector</option>
+        <!-- Trace arcs as commanded -->
         <option>CircleRight</option>
         <option>CircleLeft</option>
         <option>HoldPosition</option>
@@ -44,7 +46,7 @@
       </options>
     </field>
     <field defaultvalue="0" elements="1" name="ModeParameters" type="float" units="">
-      <description/>
+      <description>For CircleRight / CircleLeft, this is the radius in meters</description>
     </field>
   </object>
 </xml>

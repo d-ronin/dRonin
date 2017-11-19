@@ -6,7 +6,7 @@
     <telemetrygcs acked="true" updatemode="manual" period="0"/>
     <telemetryflight acked="false" updatemode="periodic" period="10000"/>
     <field defaultvalue="0" name="Position" type="float" units="m">
-      <description/>
+      <description>The location of this waypoint, in datum-relative coordinates (NED)</description>
       <elementnames>
         <elementname>North</elementname>
         <elementname>East</elementname>
@@ -14,7 +14,7 @@
       </elementnames>
     </field>
     <field defaultvalue="0" elements="1" name="Velocity" type="float" units="m/s">
-      <description/>
+      <description>The velocity to try and have when passing through this waypoint in m/s</description>
     </field>
     <field defaultvalue="Endpoint" elements="1" name="Mode" type="enum" units="">
       <description/>

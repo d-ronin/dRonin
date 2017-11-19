@@ -84,7 +84,9 @@
         <option>Warning</option>
         <option>Error</option>
         <option>Critical</option>
+        <!-- HairOnFire means things that are set to always emit, e.g. explicit debugging code -->
         <option>HairOnFire</option>
+        <!-- This is for failsafe / radio disconnect -->
         <option>ManualControlOnly</option>
       </options>
     </field>

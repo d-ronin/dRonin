@@ -32,6 +32,7 @@
         <option>Storm32Bgc</option>
         <option>VTX Config TBS SmartAudio</option>
         <option>TBS Crossfire</option>
+        <!-- Beyond here are the non-serial, special cases -->
         <option>I2C</option>
         <option>PPM</option>
         <option>PWM</option>
@@ -112,8 +113,9 @@
       </options>
     </field>
     <field defaultvalue="64000" elements="1" name="MaxRfSpeed" type="enum" units="bps">
-      <description/>
+      <description>Maximum raw RF data speed in bits per second</description>
       <options>
+        <!-- Ordering must match the ordering of options in the rfm22b module -->
         <option>9600</option>
         <option>19200</option>
         <option>32000</option>
@@ -123,8 +125,9 @@
       </options>
     </field>
     <field defaultvalue="1.25" elements="1" name="MaxRfPower" type="enum" units="mW">
-      <description/>
+      <description>Maximum RF power in milliwatts</description>
       <options>
+        <!-- Ordering must match the ordering of options in the rfm22b module -->
         <option>0</option>
         <option>1.25</option>
         <option>1.6</option>

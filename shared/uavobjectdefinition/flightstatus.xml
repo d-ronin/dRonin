@@ -6,7 +6,7 @@
     <telemetrygcs acked="false" updatemode="manual" period="0"/>
     <telemetryflight acked="false" updatemode="onchange" period="5000"/>
     <field defaultvalue="Disarmed" elements="1" name="Armed" type="enum" units="">
-      <description/>
+      <description>Whether the aircraft is armed or arming</description>
       <options>
         <option>Disarmed</option>
         <option>Arming</option>
@@ -17,7 +17,7 @@
       <description/>
     </field>
     <field defaultvalue="Failsafe" elements="1" name="ControlSource" type="enum" units="">
-      <description/>
+      <description>Indicates which submodule is in control of the aircraft</description>
       <options>
         <option>Geofence</option>
         <option>Failsafe</option>

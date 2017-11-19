@@ -34,7 +34,7 @@
       </options>
     </field>
     <field defaultvalue="False" elements="1" name="POI" type="enum" units="">
-      <description/>
+      <description>If true, the tablet would like to be the POI</description>
       <options>
         <option>False</option>
         <option>True</option>

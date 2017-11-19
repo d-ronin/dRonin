@@ -19,6 +19,7 @@
         <elementname>Accessory2</elementname>
         <elementname>Arming</elementname>
       </elementnames>
+      <!-- ReceiverActivity inhereits from here.  It would be nice to have some degree of common ground with the HwShared.PortTypes.  Or alternatively, to start using port names for this, to save a little memory/complexity and allow more than instance of a receiver type.  -->
       <options>
         <option>PWM</option>
         <option>PPM</option>
@@ -133,6 +134,7 @@
         <option>Yaw Left+Throttle</option>
         <option>Yaw Right+Throttle</option>
         <option>Corners+Throttle</option>
+        <!-- All switch options must occur at the end, at or below Switch because of code in transmittercontrol.c -->
         <option>Switch</option>
         <option>Switch+Throttle</option>
       </options>

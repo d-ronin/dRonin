@@ -11,6 +11,7 @@
     <field defaultvalue="0.05" elements="1" name="VerticalPosP" type="float" units="(m/s)/m">
       <description>Proportional coefficient for desired vertical speed in relation to altitude displacement</description>
     </field>
+    <!-- The following coeffs control actual control outputs -->
     <field defaultvalue="0.6,0.0,0.0" name="BearingPI" type="float" units="deg/deg">
       <description>Coefficients for desired bank angle in relation to ground bearing error - this controls heading</description>
       <elementnames>
@@ -49,6 +50,7 @@
         <elementname>ILimit</elementname>
       </elementnames>
     </field>
+    <!-- output limits -->
     <field defaultvalue="-35.0,0.0,35.0" name="RollLimit" type="float" units="deg">
       <description>Maximum allowed bank angles in navigated flight</description>
       <elementnames>

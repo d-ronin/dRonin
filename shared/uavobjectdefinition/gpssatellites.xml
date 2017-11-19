@@ -6,19 +6,19 @@
     <telemetrygcs acked="false" updatemode="manual" period="0"/>
     <telemetryflight acked="false" updatemode="periodic" period="10000"/>
     <field defaultvalue="0" elements="1" name="SatsInView" type="uint8" units="">
-      <description/>
+      <description>Number of satellites presently in view</description>
     </field>
     <field defaultvalue="0" elements="30" name="PRN" type="uint8" units="">
-      <description/>
+      <description>The individual satellite IDs being tracked</description>
     </field>
     <field defaultvalue="0" elements="30" name="Elevation" type="int8" units="degrees">
-      <description/>
+      <description>The elevation for each satellite above the horizon</description>
     </field>
     <field defaultvalue="0" elements="30" name="Azimuth" type="int16" units="degrees">
-      <description/>
+      <description>The azimuth to each satellite</description>
     </field>
     <field defaultvalue="0" elements="30" name="SNR" type="int8" units="dB-Hz">
-      <description/>
+      <description>A figure of merit for signal strength.  Generally this is C/N0 (dB-Hz) and not a conventional SNR.</description>
     </field>
   </object>
 </xml>
