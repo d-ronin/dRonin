@@ -158,11 +158,6 @@ static inline void updateRfm22bStats();
 static inline void updateWDGstats();
 #endif
 
-/* XXX TODO need better home for this */
-#define DSHOT_CMD_BEACON3 (3)
-int actuator_send_dshot_command(uint8_t cmd_id, uint8_t num_to_send,
-                uint16_t channel_mask);
-
 /**
  * Create the module task.
  * \returns 0 on success or -1 if initialization failed
