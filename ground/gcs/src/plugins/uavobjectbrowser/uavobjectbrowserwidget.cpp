@@ -248,14 +248,12 @@ UAVObjectBrowserWidget::~UAVObjectBrowserWidget()
 
 /**
  * @brief UAVObjectBrowserWidget::setViewOptions Sets the viewing options
- * @param categorized true turns on categorized view
  * @param scientific true turns on scientific notation view
  * @param metadata true turns on metadata view
  */
-void UAVObjectBrowserWidget::setViewOptions(bool categorized, bool scientific, bool metadata,
+void UAVObjectBrowserWidget::setViewOptions(bool scientific, bool metadata,
                                             bool hideNotPresent)
 {
-    m_viewoptions->cbCategorized->setChecked(categorized);
     m_viewoptions->cbMetaData->setChecked(metadata);
     m_viewoptions->cbScientific->setChecked(scientific);
     m_viewoptions->cbHideNotPresent->setChecked(hideNotPresent);
@@ -267,8 +265,7 @@ void UAVObjectBrowserWidget::setViewOptions(bool categorized, bool scientific, b
  */
 void UAVObjectBrowserWidget::initialize()
 {
-    m_model->initializeModel(m_viewoptions->cbCategorized->isChecked(),
-                             m_viewoptions->cbScientific->isChecked());
+    m_model->initializeModel(m_viewoptions->cbScientific->isChecked());
 
     // Create and configure the proxy model
     proxyModel = new TreeSortFilterProxyModel(this);
@@ -290,8 +287,6 @@ void UAVObjectBrowserWidget::initialize()
     showMetaData(m_viewoptions->cbMetaData->isChecked());
     refreshHiddenObjects();
     connect(m_viewoptions->cbScientific, &QAbstractButton::toggled, this,
-            &UAVObjectBrowserWidget::viewOptionsChangedSlot);
-    connect(m_viewoptions->cbCategorized, &QAbstractButton::toggled, this,
             &UAVObjectBrowserWidget::viewOptionsChangedSlot);
     connect(m_viewoptions->cbHideNotPresent, &QAbstractButton::toggled, this,
             &UAVObjectBrowserWidget::showNotPresent);
@@ -340,7 +335,7 @@ void UAVObjectBrowserWidget::showMetaData(bool show)
 void UAVObjectBrowserWidget::refreshViewOptions()
 {
     emit viewOptionsChanged(
-        m_viewoptions->cbCategorized->isChecked(), m_viewoptions->cbScientific->isChecked(),
+        m_viewoptions->cbScientific->isChecked(),
         m_viewoptions->cbMetaData->isChecked(), m_viewoptions->cbHideNotPresent->isChecked());
 }
 
@@ -540,7 +535,6 @@ void UAVObjectBrowserWidget::toggleUAVOButtons(const QModelIndex &currentProxyIn
     TreeItem *item = static_cast<TreeItem *>(currentIndex.internalPointer());
     TopTreeItem *top = dynamic_cast<TopTreeItem *>(item);
     ObjectTreeItem *data = dynamic_cast<ObjectTreeItem *>(item);
-    CategoryTreeItem *category = dynamic_cast<CategoryTreeItem *>(item);
 
     bool enableState = true;
 
@@ -550,10 +544,6 @@ void UAVObjectBrowserWidget::toggleUAVOButtons(const QModelIndex &currentProxyIn
 
     // Check if current tree index is the top tree item
     if (top || (data && !data->object()))
-        enableState = false;
-
-    // Check if category selected
-    if (category)
         enableState = false;
 
     enableUAVOBrowserButtons(enableState);
@@ -581,10 +571,9 @@ void UAVObjectBrowserWidget::viewSlot()
 void UAVObjectBrowserWidget::viewOptionsChangedSlot()
 {
     emit viewOptionsChanged(
-        m_viewoptions->cbCategorized->isChecked(), m_viewoptions->cbScientific->isChecked(),
+        m_viewoptions->cbScientific->isChecked(),
         m_viewoptions->cbMetaData->isChecked(), m_viewoptions->cbHideNotPresent);
-    m_model->initializeModel(m_viewoptions->cbCategorized->isChecked(),
-                             m_viewoptions->cbScientific->isChecked());
+    m_model->initializeModel(m_viewoptions->cbScientific->isChecked());
 
     // Reset proxy model
     disconnect(treeView->selectionModel(), &QItemSelectionModel::currentChanged, this,

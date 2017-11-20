@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
 
     if ((arguments_stringlist.removeAll("-h")>0)||(arguments_stringlist.removeAll("-h")>0)) {
       usage();
-      return RETURN_OK; 
+      return RETURN_OK;
     }
 
     bool verbose=(arguments_stringlist.removeAll("-v")>0);
@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
     QFileInfoList xmlList = xmlPath.entryInfoList();
 
     // Read in each XML file and parse object(s) in them
-    
+
     for (int n = 0; n < xmlList.length(); ++n) {
         QFileInfo fileinfo = xmlList[n];
         if (!do_allObjects) {
@@ -215,13 +215,12 @@ int main(int argc, char *argv[])
     // done parsing and checking
     cout << "Done: processed " << xmlList.length() << " XML files and generated "
          << objIDList.length() << " objects with no ID collisions. Total size of the data fields is " << numBytesTotal << " bytes.  Id hash is " << idHashStr.toStdString() << "." << endl;
-    
 
-    if (verbose) 
+    if (verbose)
         cout << "used units: " << parser->all_units.join(",").toStdString() << endl;
 
     if (do_none)
-      return RETURN_OK;     
+      return RETURN_OK;
 
     // generate flight code if wanted
     if (do_flight|do_all) {

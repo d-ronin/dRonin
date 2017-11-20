@@ -417,17 +417,4 @@ public:
     virtual bool isDefaultValue() const override { return childrenAreDefaultValue(); }
 };
 
-class CategoryTreeItem : public TreeItem
-{
-    Q_OBJECT
-public:
-    CategoryTreeItem(const QList<QVariant> &data, TreeItem *parent = 0)
-        : TreeItem(data, parent)
-    {
-    }
-    CategoryTreeItem(const QVariant &data, TreeItem *parent = 0)
-        : TreeItem(data, parent)
-    {
-    }
-};
 #endif // TREEITEM_H

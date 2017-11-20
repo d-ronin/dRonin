@@ -222,7 +222,7 @@ ObjectInfo* UAVObjectParser::getObjectByName(QString& name) {
             return item;
         }
     }
-    
+
     return NULL;
 }
 
@@ -269,7 +269,7 @@ quint32 UAVObjectParser::getObjectID(int objIndex)
  * Get the number of bytes in the data fields of this object
  */
 int UAVObjectParser::getNumBytes(int objIndex)
-{    
+{
     ObjectInfo* info = getObjectByIndex(objIndex);
     if (info == NULL)
         return 0;
@@ -416,7 +416,7 @@ QString UAVObjectParser::parseXML(QString& xml, QString& filename)
             // Get next element
             childNode = childNode.nextSibling();
         }
-        
+
         // Sort all fields according to size (largest to smallest)
         std::stable_sort(info->fields.begin(), info->fields.end(), fieldSizeGreaterThan);
 
@@ -650,7 +650,7 @@ QString UAVObjectParser::processObjectFields(QDomNode& childNode, ObjectInfo* in
     // field that has already been declared
     elemAttr = elemAttributes.namedItem("cloneof");
     if (!elemAttr.isNull()) {
-        QString parentName = elemAttr.nodeValue(); 
+        QString parentName = elemAttr.nodeValue();
         if (!parentName.isEmpty()) {
            foreach(FieldInfo * parent, info->fields) {
                 if (parent->name == parentName) {
@@ -683,7 +683,7 @@ QString UAVObjectParser::processObjectFields(QDomNode& childNode, ObjectInfo* in
     if (index >= 0) {
         field->type = (FieldType)index;
         field->numBytes = fieldTypeNumBytes[index];
-    }  
+    }
     else {
         return QString("Object:field:type attribute value is invalid");
     }
@@ -759,28 +759,18 @@ QString UAVObjectParser::processObjectFields(QDomNode& childNode, ObjectInfo* in
             field->parentName = elemAttr.nodeValue().trimmed();
         }
 
-        // Look for options attribute
-        elemAttr = elemAttributes.namedItem("options");
-        if (!elemAttr.isNull()) {
-            QStringList options = elemAttr.nodeValue().split(",", QString::SkipEmptyParts);
-            for (int n = 0; n < options.length(); ++n) {
-                options[n] = options[n].trimmed();
-            }
-            field->options = options;
-        }
-        else {
-            // Look for a list of child 'option' nodes
-            QDomNode listNode = childNode.firstChildElement("options");
-            if (!listNode.isNull()) {
-                for (QDomElement node = listNode.firstChildElement("option");
-                     !node.isNull(); node = node.nextSiblingElement("option")) {
-                    QDomNode name = node.firstChild();
-                        if (!name.isNull() && name.isText() && !name.nodeValue().isEmpty()) {
-                        field->options.append(name.nodeValue());
-                    }
+        // Look for a list of child 'option' nodes
+        QDomNode listNode = childNode.firstChildElement("options");
+        if (!listNode.isNull()) {
+            for (QDomElement node = listNode.firstChildElement("option");
+                 !node.isNull(); node = node.nextSiblingElement("option")) {
+                QDomNode name = node.firstChild();
+                    if (!name.isNull() && name.isText() && !name.nodeValue().isEmpty()) {
+                    field->options.append(name.nodeValue());
                 }
             }
         }
+
         if ((field->options.isEmpty()) && (field->parentName.isEmpty())) {
             return QString("Object:field:options attribute/element is missing");
         }
@@ -856,13 +846,6 @@ QString UAVObjectParser::processObjectAttributes(QDomNode& node, ObjectInfo* inf
 
     info->name = attr.nodeValue();
     info->namelc = attr.nodeValue().toLower();
-
-    // Get category attribute if present
-    attr = attributes.namedItem("category");
-    if ( !attr.isNull() )
-    {
-        info->category = attr.nodeValue();
-    }
 
     // Get singleinstance attribute
     attr = attributes.namedItem("singleinstance");

@@ -35,7 +35,6 @@ UAVObjectBrowserConfiguration::UAVObjectBrowserConfiguration(QString classId, QS
     , m_notPresentOnHwColor(QColor(170, 170, 170))
     , m_recentlyUpdatedTimeout(500)
     , m_onlyHighlightChangedValues(false)
-    , m_useCategorizedView(false)
     , m_useScientificView(false)
     , m_showMetaData(false)
     , m_hideNotPresentOnHw(false)
@@ -49,7 +48,6 @@ UAVObjectBrowserConfiguration::UAVObjectBrowserConfiguration(QString classId, QS
         int timeout = qSettings->value("recentlyUpdatedTimeout").toInt();
         bool highlight = qSettings->value("onlyHighlightChangedValues").toBool();
 
-        m_useCategorizedView = qSettings->value("CategorizedView").toBool();
         m_useScientificView = qSettings->value("ScientificView").toBool();
         m_showMetaData = qSettings->value("showMetaData").toBool();
         m_hideNotPresentOnHw = qSettings->value("hideNotPresentOnHw", false).toBool();
@@ -69,7 +67,6 @@ IUAVGadgetConfiguration *UAVObjectBrowserConfiguration::clone()
     m->m_notPresentOnHwColor = m_notPresentOnHwColor;
     m->m_recentlyUpdatedTimeout = m_recentlyUpdatedTimeout;
     m->m_onlyHighlightChangedValues = m_onlyHighlightChangedValues;
-    m->m_useCategorizedView = m_useCategorizedView;
     m->m_useScientificView = m_useScientificView;
     m->m_showMetaData = m_showMetaData;
     m->m_hideNotPresentOnHw = m_hideNotPresentOnHw;
@@ -87,7 +84,6 @@ void UAVObjectBrowserConfiguration::saveConfig(QSettings *qSettings) const
     qSettings->setValue("notPresentOnHwColor", m_notPresentOnHwColor);
     qSettings->setValue("recentlyUpdatedTimeout", m_recentlyUpdatedTimeout);
     qSettings->setValue("onlyHighlightChangedValues", m_onlyHighlightChangedValues);
-    qSettings->setValue("CategorizedView", m_useCategorizedView);
     qSettings->setValue("ScientificView", m_useScientificView);
     qSettings->setValue("showMetaData", m_showMetaData);
     qSettings->setValue("hideNotPresentOnHw", m_hideNotPresentOnHw);

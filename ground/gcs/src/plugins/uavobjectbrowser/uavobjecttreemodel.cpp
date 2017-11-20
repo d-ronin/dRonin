@@ -57,7 +57,6 @@ UAVObjectTreeModel::UAVObjectTreeModel(QObject *parent, bool useScientificNotati
     , m_notPresentOnHwColor(QColor(174, 207, 250, 255))
     , m_useScientificFloatNotation(useScientificNotation)
     , m_hideNotPresent(false)
-    , m_categorize(true)
     , m_highlightManager(NULL)
     , isInitialized(false)
 {
@@ -79,16 +78,14 @@ UAVObjectTreeModel::~UAVObjectTreeModel()
 /**
  * @brief sets the data model for the uavo browser according to some options
  * @param objManager pointer to the object manager
- * @param categorize set to true to show a object grouped by category (set on xml definition
  * ex:sensors)
  * @param useScientificFloatNotation set to true if the model is going to use scientific notation
  * for floats
  */
-void UAVObjectTreeModel::setupModelData(UAVObjectManager *objManager, bool categorize,
+void UAVObjectTreeModel::setupModelData(UAVObjectManager *objManager,
                                         bool useScientificFloatNotation)
 {
     m_useScientificFloatNotation = useScientificFloatNotation;
-    m_categorize = categorize;
     // root
     if (m_rootItem) {
         disconnect(objManager, &UAVObjectManager::newObject, this, &UAVObjectTreeModel::newObject);
@@ -125,7 +122,7 @@ void UAVObjectTreeModel::setupModelData(UAVObjectManager *objManager, bool categ
     QVector<QVector<UAVDataObject *>> objList = objManager->getDataObjectsVector();
     foreach (QVector<UAVDataObject *> list, objList) {
         foreach (UAVDataObject *obj, list) {
-            addDataObject(obj, m_categorize);
+            addDataObject(obj);
         }
     }
     connect(objManager, &UAVObjectManager::newObject, this, &UAVObjectTreeModel::newObject,
@@ -144,9 +141,9 @@ void UAVObjectTreeModel::newObject(UAVObject *obj)
     }
 }
 
-void UAVObjectTreeModel::initializeModel(bool categorize, bool useScientificFloatNotation)
+void UAVObjectTreeModel::initializeModel(bool useScientificFloatNotation)
 {
-    setupModelData(objManager, categorize, useScientificFloatNotation);
+    setupModelData(objManager, useScientificFloatNotation);
 }
 
 void UAVObjectTreeModel::instanceRemove(UAVObject *obj)
@@ -170,17 +167,12 @@ void UAVObjectTreeModel::instanceRemove(UAVObject *obj)
     }
 }
 
-void UAVObjectTreeModel::addDataObject(UAVDataObject *obj, bool categorize)
+void UAVObjectTreeModel::addDataObject(UAVDataObject *obj)
 {
     // Determine if the root tree is the settings or dynamic data tree
     TopTreeItem *root = obj->isSettings() ? m_settingsTree : m_nonSettingsTree;
 
     TreeItem *parent = root;
-
-    if (categorize && obj->getCategory() != 0 && !obj->getCategory().isEmpty()) {
-        QStringList categoryPath = obj->getCategory().split('/');
-        parent = createCategoryItems(categoryPath, root);
-    }
 
     ObjectTreeItem *existing = root->findDataObjectTreeItemByObjectId(obj->getObjID());
     if (existing) {
@@ -196,23 +188,6 @@ void UAVObjectTreeModel::addDataObject(UAVDataObject *obj, bool categorize)
         root->addMetaObjectTreeItem(meta->getObjID(), metaTreeItem);
         addInstance(obj, dataTreeItem);
     }
-}
-
-TreeItem *UAVObjectTreeModel::createCategoryItems(QStringList categoryPath, TreeItem *root)
-{
-    TreeItem *parent = root;
-    foreach (QString category, categoryPath) {
-        TreeItem *existing = parent->findChildByName(category);
-        if (!existing) {
-            TreeItem *categoryItem = new CategoryTreeItem(category);
-            categoryItem->setHighlightManager(m_highlightManager);
-            parent->insertChild(categoryItem);
-            parent = categoryItem;
-        } else {
-            parent = existing;
-        }
-    }
-    return parent;
 }
 
 MetaObjectTreeItem *UAVObjectTreeModel::addMetaObject(UAVMetaObject *obj, TreeItem *parent)
