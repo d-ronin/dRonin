@@ -46,7 +46,7 @@
 #define SESSION_OBJ_RETRIEVE_RETRIES 3
 // Timeout for the object fetching fase, the system will stop fetching objects and emit connected
 // after this
-#define OBJECT_RETRIEVE_TIMEOUT 5000
+#define OBJECT_RETRIEVE_TIMEOUT 7000
 // IAP object is very important, retry if not able to get it the first time
 #define IAP_OBJECT_RETRIES 3
 
@@ -83,15 +83,11 @@ TelemetryMonitor::TelemetryMonitor(UAVObjectManager *objMngr, Telemetry *tel,
 
     // Start update timer
     statsTimer = new QTimer(this);
-    sessionRetrieveTimeout = new QTimer(this);
-    sessionRetrieveTimeout->setSingleShot(true);
     objectRetrieveTimeout = new QTimer(this);
     objectRetrieveTimeout->setSingleShot(true);
     sessionInitialRetrieveTimeout = new QTimer(this);
     sessionInitialRetrieveTimeout->setSingleShot(true);
     connect(statsTimer, &QTimer::timeout, this, &TelemetryMonitor::processStatsUpdates);
-    connect(sessionRetrieveTimeout, &QTimer::timeout, this,
-            &TelemetryMonitor::sessionRetrieveTimeoutCB);
     connect(sessionInitialRetrieveTimeout, &QTimer::timeout, this,
             &TelemetryMonitor::sessionInitialRetrieveTimeoutCB);
     connect(objectRetrieveTimeout, &QTimer::timeout, this,
@@ -265,11 +261,13 @@ void TelemetryMonitor::retrieveNextObject()
         }
         delayedUpdate.clear();
         emit connected();
-        sessionRetrieveTimeout->stop();
         sessionInitialRetrieveTimeout->stop();
         objectRetrieveTimeout->stop();
         return;
     }
+
+    objectRetrieveTimeout->stop();
+    objectRetrieveTimeout->start(OBJECT_RETRIEVE_TIMEOUT);
 
     while (requestsInFlight < MAX_REQUESTS_IN_FLIGHT) {
         if (queue.isEmpty()) {
@@ -329,7 +327,6 @@ void TelemetryMonitor::transactionCompleted(UAVObject *obj, bool success)
                 .arg(Q_FUNC_INFO));
         queue.clear();
         objectRetrieveTimeout->stop();
-        sessionRetrieveTimeout->stop();
         sessionInitialRetrieveTimeout->stop();
         connectionStatus = CON_DISCONNECTED;
     }
@@ -348,25 +345,6 @@ void TelemetryMonitor::flightStatsUpdated(UAVObject *obj)
     if (gcsStats.Status != GCSTelemetryStats::STATUS_CONNECTED
         || flightStats.Status != FlightTelemetryStats::STATUS_CONNECTED) {
         processStatsUpdates();
-    }
-}
-
-void TelemetryMonitor::checkSessionObjNacked(UAVObject *obj, bool success, bool nacked)
-{
-    Q_UNUSED(obj);
-    Q_UNUSED(success);
-    disconnect(sessionObj, QOverload<UAVObject *, bool, bool>::of(&UAVObject::transactionCompleted),
-               this, &TelemetryMonitor::checkSessionObjNacked);
-    if (!nacked)
-        return;
-    if (connectionStatus == CON_INITIALIZING) {
-        TELEMETRYMONITOR_QXTLOG_DEBUG(
-            QString("%0 received a sessionmanagement object nack, going to fallback")
-                .arg(Q_FUNC_INFO));
-        sessionInitialRetrieveTimeout->stop();
-        sessionFallback();
-    } else {
-        Q_ASSERT(false); // this should never happen
     }
 }
 
@@ -467,15 +445,6 @@ void TelemetryMonitor::sessionInitialRetrieveTimeoutCB()
     }
 }
 
-void TelemetryMonitor::sessionRetrieveTimeoutCB()
-{
-    if (connectionStatus == CON_SESSION_INITIALIZING) {
-        TELEMETRYMONITOR_QXTLOG_DEBUG(
-            QString("%0 session retrieve timeout, going to fallback").arg(Q_FUNC_INFO));
-        sessionFallback();
-    }
-}
-
 void TelemetryMonitor::saveSession()
 {
     if (isManaged) {
@@ -512,7 +481,6 @@ void TelemetryMonitor::startSessionRetrieving(UAVObject *session)
     static int objectCount = 0;
     static int sessionNegotiationRetries = 0;
     if (session == NULL) {
-        sessionRetrieveTimeout->start(SESSION_RETRIEVE_TIMEOUT);
         TELEMETRYMONITOR_QXTLOG_DEBUG(QString("%0 NULL new session start").arg(Q_FUNC_INFO));
         foreach (UAVObjectManager::ObjectMap map, objMngr->getObjects()) {
             foreach (UAVObject *obj, map.values()) {
@@ -551,13 +519,6 @@ void TelemetryMonitor::startSessionRetrieving(UAVObject *session)
                 ++sessionNegotiationRetries;
                 sessionObj->updated();
                 return;
-            } else {
-                TELEMETRYMONITOR_QXTLOG_DEBUG(
-                    QString("%0 EXCEEDED SESSION OBJECT FETCHING RETRIES, GOING INTO FALLBACK "
-                            "currentIndex was:%1")
-                        .arg(Q_FUNC_INFO)
-                        .arg(currentIndex));
-                sessionFallback();
             }
         } else {
             sessionNegotiationRetries = 0;
@@ -588,20 +549,6 @@ void TelemetryMonitor::startSessionRetrieving(UAVObject *session)
             startRetrievingObjects();
         }
     }
-}
-
-void TelemetryMonitor::sessionFallback()
-{
-    isManaged = false;
-    TELEMETRYMONITOR_QXTLOG_DEBUG(QString("%0 SESSION FALLBACK").arg(Q_FUNC_INFO));
-    foreach (UAVObjectManager::ObjectMap map, objMngr->getObjects().values()) {
-        foreach (UAVObject *obj, map) {
-            UAVDataObject *dobj = dynamic_cast<UAVDataObject *>(obj);
-            if (dobj)
-                dobj->setIsPresentOnHardware(true);
-        }
-    }
-    startRetrievingObjects();
 }
 
 /**
@@ -664,20 +611,10 @@ void TelemetryMonitor::processStatsUpdates()
     if (gcsStats.Status == GCSTelemetryStats::STATUS_CONNECTED && gcsStats.Status != oldStatus) {
         statsTimer->setInterval(STATS_UPDATE_PERIOD_MS);
         qDebug() << "Connection with the autopilot established";
-        ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-        Core::Internal::GeneralSettings *settings =
-            pm->getObject<Core::Internal::GeneralSettings>();
-        if (!settings->useSessionManaging()) {
-            sessionFallback();
-        } else {
-            connectionStatus = CON_INITIALIZING;
-            sessionInitialRetrieveTimeout->start(SESSION_INITIAL_RETRIEVE_TIMEOUT);
-            connect(sessionObj,
-                    QOverload<UAVObject *, bool, bool>::of(&UAVObject::transactionCompleted), this,
-                    &TelemetryMonitor::checkSessionObjNacked, Qt::UniqueConnection);
-            sessionObj->requestUpdate();
-            isManaged = true;
-        }
+        connectionStatus = CON_INITIALIZING;
+        sessionInitialRetrieveTimeout->start(SESSION_INITIAL_RETRIEVE_TIMEOUT);
+        sessionObj->requestUpdate();
+        isManaged = true;
     }
     if (gcsStats.Status == GCSTelemetryStats::STATUS_DISCONNECTED && gcsStats.Status != oldStatus) {
         statsTimer->setInterval(STATS_CONNECT_PERIOD_MS);
