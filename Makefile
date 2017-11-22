@@ -494,7 +494,12 @@ $$(UAVO_COLLECTION_DIR)/$(1)/uavo-xml: $$(UAVO_COLLECTION_DIR)/$(1)/uavo-xml.tar
 	$$(V1) rm -rf $$@
 	$$(V1) mkdir -p $$@
 	$$(V1) tar -C $$(call toprel, $$@) -xf $$(call toprel, $$<) || rm -rf $$@
+	$$(V1) python/dronin-canonicalize $$(call toprel, $$@)/shared/uavobjectdefinition
+	$$(V1) rm -f $$(call toprel, $$@)/shared/uavobjectdefinition/vtxconfig.xml
+
+# Last two statements are a hack for old UAVOs using mish-mash formats
 endef
+
 
 # Map the current working directory into the set of UAVO collections
 $(UAVO_COLLECTION_DIR)/srctree:
