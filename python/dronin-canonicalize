@@ -2,8 +2,14 @@
 
 from dronin import uavo_collection
 
+from sys import argv, exit
+
+if len(argv) != 2:
+    print("usage: %s path"%argv[0])
+    exit(1)
+
 uavo_defs = uavo_collection.UAVOCollection()
 
-uavo_defs.from_uavo_xml_path('../shared/uavobjectdefinition')
+uavo_defs.from_uavo_xml_path(argv[1])
 
-uavo_defs.emit_canonical_xml('outxml')
+uavo_defs.emit_canonical_xml(argv[1])
