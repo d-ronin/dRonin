@@ -30,10 +30,7 @@
 #include "pios_sensors.h"
 #include <stddef.h>
 
-//! The list of queue handles
-typedef bool (*PIOS_SENSOR_Callback_t)(void *ctx, void *output,
-		int ms_to_wait, int *next_call);
-
+//! The list of queue handles / callbacks
 static struct PIOS_Sensor {
 	PIOS_SENSOR_Callback_t getdata_cb;
 	void *getdata_ctx;
