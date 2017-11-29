@@ -61,6 +61,13 @@ enum actuator_interlock {
 
 extern volatile enum actuator_interlock actuator_interlock;
 
+/* Ideally would have a better home for this constant */
+#define DSHOT_CMD_BEACON3 (3)
+
+extern int actuator_send_dshot_command(uint8_t cmd_id, uint8_t num_to_send,
+                uint16_t channel_mask);
+
+
 #endif // PIOS_MODULES_H_
 
 /**

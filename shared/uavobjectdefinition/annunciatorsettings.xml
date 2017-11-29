@@ -5,7 +5,7 @@
     <logging updatemode="manual" period="0"/>
     <telemetrygcs acked="true" updatemode="onchange" period="0"/>
     <telemetryflight acked="true" updatemode="onchange" period="0"/>
-    <field defaultvalue="OK,Warning,HairOnFire,Warning,Warning" name="AnnunciateAnytime" parent="SharedDefs.AlarmLevels" type="enum" units="">
+    <field defaultvalue="OK,Warning,HairOnFire,Warning,Warning,HairOnFire" name="AnnunciateAnytime" parent="SharedDefs.AlarmLevels" type="enum" units="">
       <description>Thresholds for the various annunciator devices.  If an alarm severity is equal to or worse than the threshold for a given annunciator, that annunciator will sound the alarm.</description>
       <elementnames>
         <elementname>LED_Heartbeat</elementname>
@@ -13,9 +13,10 @@
         <elementname>Buzzer</elementname>
         <elementname>RGB_LEDs</elementname>
         <elementname>DAC</elementname>
+        <elementname>Actuators</elementname>
       </elementnames>
     </field>
-    <field defaultvalue="HairOnFire,HairOnFire,ManualControlOnly,HairOnFire,HairOnFire" name="AnnunciateAfterArming" parent="SharedDefs.AlarmLevels" type="enum" units="">
+    <field defaultvalue="HairOnFire,HairOnFire,ManualControlOnly,HairOnFire,HairOnFire,ManualControlOnly" name="AnnunciateAfterArming" parent="SharedDefs.AlarmLevels" type="enum" units="">
       <description>These fields are annunciator thresholds; they allow one to set lower thresholds after arming has taken place.</description>
       <elementnames>
         <elementname>LED_Heartbeat</elementname>
@@ -23,6 +24,7 @@
         <elementname>Buzzer</elementname>
         <elementname>RGB_LEDs</elementname>
         <elementname>DAC</elementname>
+        <elementname>Actuators</elementname>
       </elementnames>
     </field>
     <field defaultvalue="Disabled" elements="1" name="ManualBuzzer" type="enum" units="">

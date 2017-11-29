@@ -560,6 +560,15 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 		}
 #endif
 
+#ifdef PIOS_INCLUDE_ACTUATOR_ANNUNCIATOR
+		if (should_annunc(&annunciatorSettings, ever_armed,
+				is_manual_control, blink_prio,
+				ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_ACTUATORS)) {
+			actuator_send_dshot_command(DSHOT_CMD_BEACON3,
+					1, 0xffff);
+		}
+#endif
+
 #ifdef SYSTEMMOD_RGBLED_SUPPORT
 		led_override = should_annunc(&annunciatorSettings,
 				ever_armed, is_manual_control, blink_prio,
