@@ -57,7 +57,7 @@ struct __attribute__((packed)) fw_version_info {
 	uint8_t reserved[12];
 };
 
-#ifndef SIM_POSIX
+#ifndef FLIGHT_POSIX
 #define FW_VERS_SECTION __attribute__((__section__(".fw_version_blob")))
 #else
 #define FW_VERS_SECTION

@@ -31,7 +31,7 @@
 #ifndef PIOS_H
 #define PIOS_H
 
-#ifdef SIM_POSIX
+#ifdef FLIGHT_POSIX
 #include <pios_posix.h>
 #endif
 
@@ -70,7 +70,7 @@
 #include <stm32f0xx.h>
 #elif defined(STM32F10X_MD)
 #include <stm32f10x.h>
-#elif !defined(SIM_POSIX) && !defined(PIOS_NO_HW)
+#elif !defined(FLIGHT_POSIX) && !defined(PIOS_NO_HW)
 #error Must define a hardware type or PIOS_NO_HW
 #endif
 
@@ -106,11 +106,11 @@
 #endif
 #include <pios_wdg.h>
 
-#if !defined(SIM_POSIX) && !defined(PIOS_NO_HW)
+#if !defined(FLIGHT_POSIX) && !defined(PIOS_NO_HW)
 #include <pios_exti.h>
 #include <pios_usart.h>
 #include <pios_srxl.h>
-#endif  // !SIM_POSIX && ! PIOS_NO_HW
+#endif  // !FLIGHT_POSIX && ! PIOS_NO_HW
 
 /* PIOS Hardware Includes (Common) */
 #include <pios_debug.h>

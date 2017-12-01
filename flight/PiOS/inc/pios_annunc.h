@@ -34,7 +34,7 @@ extern void PIOS_ANNUNC_On(uint32_t annunc_id);
 extern void PIOS_ANNUNC_Off(uint32_t annunc_id);
 extern void PIOS_ANNUNC_Toggle(uint32_t annunc_id);
 
-#ifdef SIM_POSIX
+#ifdef FLIGHT_POSIX
 extern bool PIOS_ANNUNC_GetStatus(uint32_t annunc_id); // Currently sim only
 #endif
 

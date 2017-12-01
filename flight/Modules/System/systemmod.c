@@ -828,9 +828,9 @@ static void updateSystemAlarms()
 	}
 
 	// Check CPU load
-#ifdef SIM_POSIX
+#ifdef FLIGHT_POSIX
 	// XXX do something meaningful here in the future.
-	// Right now CPU monitoring on simulator is worthless.
+	// Right now CPU monitoring on posix is worthless.
 	AlarmsClear(SYSTEMALARMS_ALARM_CPUOVERLOAD);
 #else
 	if (stats.CPULoad > CPULOAD_LIMIT_CRITICAL) {

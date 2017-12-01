@@ -1,12 +1,9 @@
 #####
-# Project: Simulation
-#
-#
-# Makefile for simulation
+# Makefile for host flight target (flightd)
 #
 # The OpenPilot Team, http://www.openpilot.org, Copyright (C) 2009.
 # Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
-# dRonin, http://dronin.org Copyright (C) 2015-2016
+# dRonin, http://dronin.org Copyright (C) 2015-2017
 #
 #
 # This program is free software; you can redistribute it and/or modify
@@ -37,7 +34,7 @@ TCHAIN_PREFIX =
 
 include $(MAKE_INC_DIR)/firmware-defs.mk
 
-ifeq ($(CROSS_SIM),pi)
+ifeq ($(CROSS_FLIGHTD),pi)
 
 TCHAIN_PREFIX = arm-linux-gnueabihf-
 LDFLAGS += -static
@@ -61,7 +58,7 @@ CFLAGS += -DRATEDESIRED_DIAGNOSTICS
 CFLAGS += -DWDG_STATS_DIAGNOSTICS
 CFLAGS += -DDIAG_TASKS
 
-# Since we are simulating all this firmware the code needs to know what the BL would
+# Since we are running all this firmware the code needs to know what the BL would
 # normally contain
 BLONLY_CDEFS += -DBOARD_TYPE=$(BOARD_TYPE)
 BLONLY_CDEFS += -DBOARD_REVISION=$(BOARD_REVISION)
@@ -262,7 +259,7 @@ CFLAGS += $(ARCHFLAGS)
 CFLAGS += $(UAVOBJDEFINE)
 
 # configure CMSIS DSP Library
-CDEFS += -DARM_MATH_SIM
+CDEFS += -DARM_MATH_FLIGHT
 CDEFS += -DARM_MATH_MATRIX_CHECK
 CDEFS += -DARM_MATH_ROUNDING
 
@@ -281,7 +278,7 @@ CDEFS += -DUSE_STDPERIPH_DRIVER
 CDEFS += -DUSE_$(BOARD)
 
 # Make sure the build knows we're building a sim version
-CDEFS += -DSIM_POSIX
+CDEFS += -DFLIGHT_POSIX
 
 # Declare all non-optional modules as built-in to force inclusion
 get_mod_name = $(shell echo $(1) | sed "s/\/[^\/]*$///")
@@ -342,10 +339,6 @@ ifdef WINDOWS
 LDFLAGS += -lws2_32
 endif
 
-# To include simulation model
-LDFLAGS += -L$(OUTDIR)
-#LDFLAGS += -lsimmodel
-
 # Define programs and commands.
 REMOVE  = rm -f
 
@@ -363,7 +356,10 @@ $(OUTDIR)/sim_firmwareinfo.c: $(ROOT_DIR)/make/templates/firmwareinfotemplate.c
 SRC       += $(OUTDIR)/sim_firmwareinfo.c
 
 .PHONY: elf
-elf: $(OUTDIR)/$(TARGET).elf
+elf: $(OUTDIR)/$(TARGET)
+
+$(OUTDIR)/$(TARGET): $(OUTDIR)/$(TARGET).elf
+	mv $< $@
 
 result = ${shell echo "test"}
 ifeq (${result}, test)

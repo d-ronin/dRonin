@@ -3,7 +3,7 @@ BOARD_REVISION      := 0x02
 HW_TYPE             := 0x00
 
 CHIP                := native
-BOARD               := SIMULATION
+BOARD               := FLIGHTD
 MODEL               := 
 MODEL_SUFFIX        := 
 
