@@ -256,9 +256,11 @@ int main()
 
 		if (!inited) {
 			// Distinctive "ready" blip when host is not controlling
-			// LED.
-			if ((i == 0xc000) || (i == 0) || (i==0x18000)) {
-				PIOS_ANNUNC_Toggle(PIOS_LED_HEARTBEAT);
+			// LED.  On most of the time, which 3 quick flashes off.
+			if ((i == 0) || (i == 0x8000) || (i == 0x10000)) {
+				PIOS_ANNUNC_Off(PIOS_LED_HEARTBEAT);
+			} else if ((i == 0x4000) || (i == 0xc000) || (i == 0x14000)) {
+				PIOS_ANNUNC_On(PIOS_LED_HEARTBEAT);
 			}
 		}
 	}
