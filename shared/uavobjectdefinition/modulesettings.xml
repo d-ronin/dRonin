@@ -22,6 +22,7 @@
         <elementname>Geofence</elementname>
         <elementname>Logging</elementname>
         <elementname>FlightStats</elementname>
+        <elementname>Loadable</elementname>
       </elementnames>
       <options>
         <option>Disabled</option>
