@@ -138,6 +138,7 @@ static struct pios_thread *systemTaskHandle;
 static struct pios_queue *objectPersistenceQueue;
 
 static volatile bool config_check_needed;
+static const char * volatile custom_blink_string;
 
 // Private functions
 static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len);
@@ -397,6 +398,11 @@ static inline void consider_annunc(AnnunciatorSettingsData *annunciatorSettings,
 }
 #endif
 
+void system_annunc_custom_string(const char *string)
+{
+	custom_blink_string = string;
+}
+
 static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len) {
 	(void) ev; (void) ctx; (void) obj_data; (void) len;
 
@@ -463,13 +469,23 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 		const char *candidate_blink;
 		uint8_t candidate_prio;
 
-		candidate_prio = indicate_error(&candidate_blink);
+		if (custom_blink_string) {
+			candidate_prio = ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_HAIRONFIRE;
+
+			candidate_blink = custom_blink_string;
+		} else {
+			candidate_prio = indicate_error(&candidate_blink);
+		}
 
 		if (candidate_prio > blink_prio) {
 			// Preempt!
 			blink_state = 0;
 			blink_string = candidate_blink;
 			blink_prio = candidate_prio;
+
+			if (blink_prio == ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_HAIRONFIRE) {
+				custom_blink_string = NULL;
+			}
 
 			if (blink_string &&
 					!strcmp(blink_string, BLINK_STRING_RADIO)) {

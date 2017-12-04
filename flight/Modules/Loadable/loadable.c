@@ -42,6 +42,7 @@
 #define CALL_PIOS_THREAD_CREATE 0xdf000003
 #define CALL_PIOS_THREAD_SLEEP  0xdf000005
 #define CALL_DO_DUMB_REGTASK    0xdf000007
+#define CALL_ANNUNC_CUSTOM      0xdf000009
 
 static bool module_enabled;
 
@@ -273,22 +274,21 @@ static void do_dumb_test_delay(int cycles) {
 void MemManageHandler_C(uint32_t *exception_stack) {
 	uintptr_t pc = exception_stack[EXCEPTION_STACK_PC_OFFSET];
 
-	switch (pc) {
-		case CALL_DO_DUMB_TEST_DELAY-1:
+	switch ((pc & 0xfffffffe) | 1) {
 		case CALL_DO_DUMB_TEST_DELAY:
-			pc = (uint32_t) do_dumb_test_delay;
+			pc = (uintptr_t) do_dumb_test_delay;
 			break;
-		case CALL_PIOS_THREAD_CREATE-1:
 		case CALL_PIOS_THREAD_CREATE:
-			pc = (uint32_t) PIOS_Thread_Create;
+			pc = (uintptr_t) PIOS_Thread_Create;
 			break;
-		case CALL_PIOS_THREAD_SLEEP-1:
 		case CALL_PIOS_THREAD_SLEEP:
-			pc = (uint32_t) PIOS_Thread_Sleep;
+			pc = (uintptr_t) PIOS_Thread_Sleep;
 			break;
-		case CALL_DO_DUMB_REGTASK-1:
 		case CALL_DO_DUMB_REGTASK:
-			pc = (uint32_t) do_dumb_regtask;
+			pc = (uintptr_t) do_dumb_regtask;
+			break;
+		case CALL_ANNUNC_CUSTOM:
+			pc = (uintptr_t) system_annunc_custom_string;
 			break;
 		default:
 			while (1);
