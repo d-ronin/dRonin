@@ -34,8 +34,7 @@ include $(MAKE_INC_DIR)/firmware-defs.mk
 DEBUG ?= NO
 
 # List of modules to include
-MODULES = Sensors
-MODULES += Attitude
+MODULES = Attitude
 MODULES += Actuator
 MODULES += ManualControl
 MODULES += Stabilization

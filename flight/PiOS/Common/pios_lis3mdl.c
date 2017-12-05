@@ -1,7 +1,7 @@
 /**
  ******************************************************************************
  * @file       lis3mdl.c
- * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2016-2017
  * @addtogroup PIOS PIOS Core hardware abstraction layer
  * @{
  * @addtogroup PIOS_LIS3MDL
@@ -40,15 +40,8 @@
 
 #include "pios_lis3mdl_priv.h"
 
-#define PIOS_LIS_TASK_PRIORITY   PIOS_THREAD_PRIO_HIGHEST
-
-#define PIOS_LIS_TASK_STACK      640
-
-#define PIOS_LIS_QUEUE_LEN       2
-
 #define PIOS_LIS_SPI_SPEED       9400000	/* 10MHz max per datasheet.
 						 * probably results 9.33MHz */
-
 
 /**
  * Magic byte sequence used to validate the device state struct.
@@ -66,10 +59,6 @@ struct lis3mdl_dev {
 	const struct pios_lis3mdl_cfg *cfg; /**< Device configuration structure */
 	pios_spi_t spi_id;                  /**< Handle to the communication driver */
 	uint32_t spi_slave_mag;             /**< The slave number (SPI) */
-
-	struct pios_queue *mag_queue;
-
-	struct pios_thread *task_handle;
 };
 
 //! Private functions
@@ -84,7 +73,8 @@ static struct lis3mdl_dev *PIOS_LIS_Alloc(const struct pios_lis3mdl_cfg *cfg);
  */
 static int32_t PIOS_LIS_Validate(struct lis3mdl_dev *dev);
 
-static void PIOS_LIS_Task(void *parameters);
+static bool PIOS_LIS_Callback(void *ctx, void *output,
+		int ms_to_wait, int *next_call);
 
 /**
  * @brief Claim the SPI bus for the communications and select this chip
@@ -112,12 +102,6 @@ static struct lis3mdl_dev *PIOS_LIS_Alloc(const struct pios_lis3mdl_cfg *cfg)
 		return NULL;
 
 	dev->magic = PIOS_LIS_DEV_MAGIC;
-
-	dev->mag_queue = PIOS_Queue_Create(PIOS_LIS_QUEUE_LEN, sizeof(struct pios_sensor_mag_data));
-	if (dev->mag_queue == NULL) {
-		PIOS_free(dev);
-		return NULL;
-	}
 
 	return dev;
 }
@@ -227,11 +211,8 @@ int32_t PIOS_LIS3MDL_SPI_Init(lis3mdl_dev_t *dev, pios_spi_t spi_id,
 		return ret;
 	}
 
-	lis_dev->task_handle = PIOS_Thread_Create(
-			PIOS_LIS_Task, "pios_lis", PIOS_LIS_TASK_STACK,
-			lis_dev, PIOS_LIS_TASK_PRIORITY);
-
-	PIOS_SENSORS_Register(PIOS_SENSOR_MAG, lis_dev->mag_queue);
+	PIOS_SENSORS_RegisterCallback(PIOS_SENSOR_MAG, 
+			PIOS_LIS_Callback, lis_dev);
 
 	return 0;
 }
@@ -298,117 +279,112 @@ static int32_t PIOS_LIS_WriteReg(lis3mdl_dev_t lis_dev,
 	return 0;
 }
 
-static void PIOS_LIS_Task(void *parameters)
+static bool PIOS_LIS_Callback(void *ctx, void *output,
+		int ms_to_wait, int *next_call)
 {
-	lis3mdl_dev_t lis_dev = (lis3mdl_dev_t) parameters;
+	lis3mdl_dev_t lis_dev = (lis3mdl_dev_t) ctx;
 
 	PIOS_Assert(!PIOS_LIS_Validate(lis_dev));
 
-	while (true) {
-		/* Output rate of 80 implies 12.5ms between samples.
-		 * We sleep 2 at the top of loop, and 9 at the bottom so
-		 * that we poll twice before the sample typically
-		 */
-		PIOS_Thread_Sleep(2);
+	/* Wait 2ms if we don't have the data */
+	*next_call = 2;
 
-		uint8_t status;
+	uint8_t status;
+	if (PIOS_LIS_ReadReg(lis_dev, LIS_REG_MAG_STATUS, &status))
+		return false;
 
-		if (PIOS_LIS_ReadReg(lis_dev, LIS_REG_MAG_STATUS, &status))
-			continue;
+	if (!(status & LIS_STATUS_ZYXDA))
+		return false;
 
-		/* Go back, sleep 2 more if we have no new data */
-		if (!(status & LIS_STATUS_ZYXDA))
-			continue;
+	if (PIOS_LIS_ClaimBus(lis_dev) != 0)
+		return false;
 
-		if (PIOS_LIS_ClaimBus(lis_dev) != 0)
-			continue;
+	// TODO: Consider temperature in future
+	int16_t sensor_buf[
+		(LIS_REG_MAG_OUTZ_H - LIS_REG_MAG_OUTX_L + 1) / 2];
 
-		// TODO: Consider temperature in future
-		int16_t sensor_buf[
-			(LIS_REG_MAG_OUTZ_H - LIS_REG_MAG_OUTX_L + 1) / 2];
+	PIOS_SPI_TransferByte(lis_dev->spi_id,
+			LIS_ADDRESS_READ | LIS_ADDRESS_AUTOINCREMENT |
+			LIS_REG_MAG_OUTX_L);
 
-		PIOS_SPI_TransferByte(lis_dev->spi_id,
-				LIS_ADDRESS_READ | LIS_ADDRESS_AUTOINCREMENT |
-				LIS_REG_MAG_OUTX_L);
-
-		if (PIOS_SPI_TransferBlock(lis_dev->spi_id, NULL,
-					(uint8_t *) sensor_buf,
-					sizeof(sensor_buf)) < 0) {
-			PIOS_LIS_ReleaseBus(lis_dev);
-			continue;
-		}
-
+	if (PIOS_SPI_TransferBlock(lis_dev->spi_id, NULL,
+				(uint8_t *) sensor_buf,
+				sizeof(sensor_buf)) < 0) {
 		PIOS_LIS_ReleaseBus(lis_dev);
+		return false;
+	}
+
+	PIOS_LIS_ReleaseBus(lis_dev);
 
 #define GET_SB_FROM_REGNO(x) \
 		(sensor_buf[ ((x) - LIS_REG_MAG_OUTX_L) / 2])
 
-		float mag_x = GET_SB_FROM_REGNO(LIS_REG_MAG_OUTX_L);
-		float mag_y = GET_SB_FROM_REGNO(LIS_REG_MAG_OUTY_L);
-		float mag_z = GET_SB_FROM_REGNO(LIS_REG_MAG_OUTZ_L);
+	float mag_x = GET_SB_FROM_REGNO(LIS_REG_MAG_OUTX_L);
+	float mag_y = GET_SB_FROM_REGNO(LIS_REG_MAG_OUTY_L);
+	float mag_z = GET_SB_FROM_REGNO(LIS_REG_MAG_OUTZ_L);
 
-		struct pios_sensor_mag_data mag_data;
+	struct pios_sensor_mag_data *mag_data = output;
 
-		/*
-		 * Vehicle axes = x front, y right, z down
-		 * LIS3MDL axes = x left, y rear, z up
-		 * See flight/Doc/imu_orientation.md
-		 */
-		switch (lis_dev->cfg->orientation) {
-			case PIOS_LIS_TOP_0DEG:
-				mag_data.y  = -mag_x;
-				mag_data.x  = -mag_y;
-				mag_data.z  = -mag_z;
-				break;
-			case PIOS_LIS_TOP_90DEG:
-				mag_data.y  = -mag_y;
-				mag_data.x  =  mag_x;
-				mag_data.z  = -mag_z;
-				break;
-			case PIOS_LIS_TOP_180DEG:
-				mag_data.y  =  mag_x;
-				mag_data.x  =  mag_y;
-				mag_data.z  = -mag_z;
-				break;
-			case PIOS_LIS_TOP_270DEG:
-				mag_data.y  =  mag_y;
-				mag_data.x  = -mag_x;
-				mag_data.z  = -mag_z;
-				break;
-			case PIOS_LIS_BOTTOM_0DEG:
-				mag_data.y  =  mag_x;
-				mag_data.x  = -mag_y;
-				mag_data.z  =  mag_z;
-				break;
-			case PIOS_LIS_BOTTOM_90DEG:
-				mag_data.y  = -mag_y;
-				mag_data.x  = -mag_x;
-				mag_data.z  =  mag_z;
-				break;
-			case PIOS_LIS_BOTTOM_180DEG:
-				mag_data.y  = -mag_x;
-				mag_data.x  =  mag_y;
-				mag_data.z  =  mag_z;
-				break;
-			case PIOS_LIS_BOTTOM_270DEG:
-				mag_data.y  =  mag_y;
-				mag_data.x  =  mag_x;
-				mag_data.z  =  mag_z;
-				break;
-		}
+	/* Adjust from 2's comp integer value to appropriate
+	 * range */
+	float mag_scale = LIS_RANGE_12GAU_COUNTS_PER_MGAU;
 
-		/* Adjust from 2's comp integer value to appropriate
-		 * range */
-	 	float mag_scale = LIS_RANGE_12GAU_COUNTS_PER_MGAU;
-
-		mag_data.x *= mag_scale;
-		mag_data.y *= mag_scale;
-		mag_data.z *= mag_scale;
-
-		PIOS_Queue_Send(lis_dev->mag_queue, &mag_data, 0);
-
-		PIOS_Thread_Sleep(9);
+	/*
+	 * Vehicle axes = x front, y right, z down
+	 * LIS3MDL axes = x left, y rear, z up
+	 * See flight/Doc/imu_orientation.md
+	 */
+	switch (lis_dev->cfg->orientation) {
+		case PIOS_LIS_TOP_0DEG:
+			mag_data->y  = -mag_x * mag_scale;
+			mag_data->x  = -mag_y * mag_scale;
+			mag_data->z  = -mag_z * mag_scale;
+			break;
+		case PIOS_LIS_TOP_90DEG:
+			mag_data->y  = -mag_y * mag_scale;
+			mag_data->x  =  mag_x * mag_scale;
+			mag_data->z  = -mag_z * mag_scale;
+			break;
+		case PIOS_LIS_TOP_180DEG:
+			mag_data->y  =  mag_x * mag_scale;
+			mag_data->x  =  mag_y * mag_scale;
+			mag_data->z  = -mag_z * mag_scale;
+			break;
+		case PIOS_LIS_TOP_270DEG:
+			mag_data->y  =  mag_y * mag_scale;
+			mag_data->x  = -mag_x * mag_scale;
+			mag_data->z  = -mag_z * mag_scale;
+			break;
+		case PIOS_LIS_BOTTOM_0DEG:
+			mag_data->y  =  mag_x * mag_scale;
+			mag_data->x  = -mag_y * mag_scale;
+			mag_data->z  =  mag_z * mag_scale;
+			break;
+		case PIOS_LIS_BOTTOM_90DEG:
+			mag_data->y  = -mag_y * mag_scale;
+			mag_data->x  = -mag_x * mag_scale;
+			mag_data->z  =  mag_z * mag_scale;
+			break;
+		case PIOS_LIS_BOTTOM_180DEG:
+			mag_data->y  = -mag_x * mag_scale;
+			mag_data->x  =  mag_y * mag_scale;
+			mag_data->z  =  mag_z * mag_scale;
+			break;
+		case PIOS_LIS_BOTTOM_270DEG:
+			mag_data->y  =  mag_y * mag_scale;
+			mag_data->x  =  mag_x * mag_scale;
+			mag_data->z  =  mag_z * mag_scale;
+			break;
 	}
+
+	/* Output rate of 80 implies 12.5ms between samples.
+	 * We sleep 11ms before first try, and then 2ms between subsequent
+	 * subsequent tries.  This means we normally get the data on our
+	 * second try.
+	 */
+	*next_call = 11;
+
+	return true;
 }
 
 #endif // PIOS_INCLUDE_LIS3MDL

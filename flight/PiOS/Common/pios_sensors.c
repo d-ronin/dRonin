@@ -29,11 +29,14 @@
 
 #include "pios_sensors.h"
 #include <stddef.h>
+#include <pios_thread.h>
 
 //! The list of queue handles / callbacks
 static struct PIOS_Sensor {
 	PIOS_SENSOR_Callback_t getdata_cb;
 	void *getdata_ctx;
+
+	uint32_t next_time;
 
 	uint16_t sample_rate;
 	uint16_t missing : 1;
@@ -105,14 +108,37 @@ bool PIOS_SENSORS_GetData(enum pios_sensor_type type, void *buf, int ms_to_wait)
 		return false;
 	}
 
+	if (sensor->next_time) {
+		uint32_t now = PIOS_Thread_Systime();
+		int32_t time_until = sensor->next_time - now;
+
+		if (time_until > ms_to_wait) {
+			return false;
+		}
+
+		if (time_until > 0) {
+			PIOS_Thread_Sleep(time_until);
+		}
+
+		/* TODO: could use elapsed time to properly adjust */
+		ms_to_wait -= time_until;
+	}
+
 	int next_time;
 
 	bool ret = sensor->getdata_cb(sensor->getdata_ctx, buf, ms_to_wait,
 			&next_time);
 
-	/* TODO: keep track of next time it *could* have data to use in
-	 * scheduling.
+	/* Keep track of next time it *could* have data.  Ensure we
+	 * don't call before then.
 	 */
+	if (next_time) {
+		uint32_t now = PIOS_Thread_Systime();
+
+		sensor->next_time = now + next_time;
+	} else {
+		sensor->next_time = 0;
+	}
 
 	return ret;
 }

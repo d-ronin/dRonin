@@ -31,8 +31,7 @@ DEBUG ?= NO
 ERASE_FLASH ?= NO
 
 # List of modules to include
-MODULES = Sensors
-MODULES += Attitude
+MODULES = Attitude
 MODULES += Actuator
 MODULES += ManualControl
 MODULES += Stabilization
