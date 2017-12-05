@@ -33,8 +33,6 @@
  * of this source file; otherwise redistribution is prohibited.
  */
 
-
-
 /* Project Includes */
 #if !defined(_GNU_SOURCE)
 #define _GNU_SOURCE
@@ -123,7 +121,7 @@ static void Usage(char *cmdName) {
 		"\t\t\tAvailable drivers: gps msp lighttelemetry telemetry omnip\n"
 #endif
 #ifdef PIOS_INCLUDE_SPI
-		"\t-g gpionum\tSpecifies the gyro interrupt is on gpionum\n"
+		"\t-G gpionum\tSpecifies the gyro interrupt is on gpionum\n"
 		"\t-s spibase\tConfigures a SPI interface on the base path\n"
 		"\t-d drvname:bus:id\tStarts driver drvname on bus/id\n"
 		"\t\t\tAvailable drivers: bmm150 bmx055 flyingpio ms5611\n"
@@ -471,7 +469,7 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 
 	bool first_arg = true;
 
-	while ((opt = getopt(argc, argv, "yfrx:g:l:s:d:S:I:i:m:")) != -1) {
+	while ((opt = getopt(argc, argv, "yfrxG:g:l:s:d:S:I:i:m:")) != -1) {
 		switch (opt) {
 #ifdef PIOS_INCLUDE_SIMSENSORS_YASIM
 			case 'y':
@@ -559,7 +557,7 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 				break;
 #endif
 #ifdef PIOS_INCLUDE_SPI
-			case 'g':
+			case 'G':
 			{
 				if (!first_arg) {
 					printf("Gyro int must be before hw\n");
@@ -588,6 +586,7 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 					exit(1);
 				}
 				break;
+
 			case 's':
 			{
 				struct pios_spi_cfg *spi_cfg;
