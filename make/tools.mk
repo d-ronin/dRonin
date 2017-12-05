@@ -104,7 +104,7 @@ OPENOCD_FTDI ?= yes
 # $1 URL
 # $2 save dir
 # $3 save filename
-define DOWNLOAD_template =
+define DOWNLOAD_template
   $(V1) (\
     if [ -e "$(2)/$(3)" ]; then \
       curl -z "$(2)/$(3)" -L -k -o "$(2)/$(3)" "$(1)"; \
