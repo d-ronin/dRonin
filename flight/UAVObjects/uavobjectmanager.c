@@ -1676,7 +1676,7 @@ static void realInvokeCallback(struct ObjectEventEntry *event,
 	event->cb(msg, event->cbInfo.cbCtx, obj_data, len);
 }
 
-#if (!defined(SIM_POSIX)) && defined(__arm__)
+#if (!defined(FLIGHT_POSIX)) && defined(__arm__)
 static void invokeCallback(struct ObjectEventEntry *event, UAVObjEvent *msg,
 		void *obj_data, int len) {
 	/* If we're inlined, we need to force these to the right parameter

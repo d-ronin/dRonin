@@ -198,16 +198,15 @@ endif
 	@echo "     ut_<test>_tap        - Run test and capture TAP output into a file"
 	@echo "     ut_<test>_run        - Run test and dump TAP output to console"
 	@echo
-	@echo "   [Simulation]"
-	@echo "     simulation           - Build host simulation firmware"
-	@echo "     simulation_clean     - Delete all build output for the simulation"
+	@echo "   [Firmware on host]"
+	@echo "     flightd              - Build host flight firmware"
+	@echo "     flightd_clean        - Delete all build output for the flightd"
 	@echo
 	@echo "   [GCS]"
 	@echo "     gcs                  - Build the Ground Control System (GCS) application"
 	@echo "        GCS_QMAKE_OPTS=     - Optional build flags with the following arguments:"
 	@echo "           \"CONFIG+=LIGHTWEIGHT_GCS\"  - Build a lightweight GCS suitable for low-powered platforms"
 	@echo "           \"CONFIG+=SDL\"              - Enable joystick and gamepad support"
-	@echo "           \"CONFIG+=OSG\"              - Enable OpenSceneGraph support"
 	@echo "           \"CONFIG+=KML\"              - Enable KML file support"
 	@echo "     gcs_clean            - Remove the Ground Control System (GCS) application"
 	@echo "     gcs_clazy            - Perform checks on GCS code using KDE's clazy"
@@ -620,31 +619,36 @@ export OPUAVSYNTHDIR := $(BUILD_DIR)/uavobject-synthetics/flight
 # $(1) = Canonical board name all in lower case (e.g. coptercontrol)
 # $(2) = Unused
 # $(3) = Short name for board (e.g. CC)
-# $(4) = Host sim variant (e.g. posix)
+# $(4) = Host variant (e.g. posix)
 # $(5) = Build output type (e.g. elf, exe)
 
-.PHONY: simulation
-simulation: sim
+.PHONY: simulation sim
+simulation: flightd
+sim: flightd
 
 ifneq ($(PI_CROSS_SIM)x,x)
-export CROSS_SIM=pi
+export CROSS_FLIGHTD=pi
 endif
 
-ifeq ($(CROSS_SIM),pi)
-SIMSUFFIX=-pi
-else ifeq ($(CROSS_SIM),32)
-SIMSUFFIX=-32
-else ifneq ($(CROSS_SIM)x,x)
-$(error Invalid value of CROSS_SIM)
+ifneq ($(PI_CROSS)x,x)
+export CROSS_FLIGHTD=pi
 endif
 
-define SIM_TEMPLATE
+ifeq ($(CROSS_FLIGHTD),pi)
+FLIGHTDSUFFIX=-pi
+else ifeq ($(CROSS_FLIGHTD),32)
+FLIGHTDSUFFIX=-32
+else ifneq ($(CROSS_FLIGHTD)x,x)
+$(error Invalid value of CROSS_FLIGHTD)
+endif
 
-.PHONY: sim
-sim: TARGET=sim
-sim: OUTDIR=$(BUILD_DIR)/$$(TARGET)
-sim: BOARD_ROOT_DIR=$(ROOT_DIR)/flight/targets/$(1)
-sim: $(UAVOBJECT_MARKER)
+define FLIGHTD_TEMPLATE
+
+.PHONY: flightd
+flightd: TARGET=flightd
+flightd: OUTDIR=$(BUILD_DIR)/$$(TARGET)
+flightd: BOARD_ROOT_DIR=$(ROOT_DIR)/flight/targets/$(1)
+flightd: $(UAVOBJECT_MARKER)
 	$(V1) mkdir -p $$(OUTDIR)/dep
 	$(V1) cd $$(BOARD_ROOT_DIR)/fw && \
 		$$(MAKE) --no-print-directory \
@@ -657,14 +661,14 @@ sim: $(UAVOBJECT_MARKER)
 		BOARD_ROOT_DIR=$$(BOARD_ROOT_DIR) \
 		BOARD_INFO_DIR=$$(BOARD_ROOT_DIR)/board-info \
 		TARGET=$$(TARGET) \
-		OUTDIR=$$(OUTDIR)$(SIMSUFFIX) \
+		OUTDIR=$$(OUTDIR)$(FLIGHTDSUFFIX) \
 		\
 		$$*
 
-.PHONY: sim_clean
-sim_clean: TARGET=sim
-sim_clean: OUTDIR=$(BUILD_DIR)/$$(TARGET)
-sim_clean:
+.PHONY: flightd_clean
+flightd_clean: TARGET=flightd
+flightd_clean: OUTDIR=$(BUILD_DIR)/$$(TARGET)
+flightd_clean:
 	$(V0) @echo " CLEAN      $$@"
 	$(V1) [ ! -d "$$(OUTDIR)" ] || $(RM) -rf "$$(OUTDIR)"
 endef
@@ -965,7 +969,7 @@ BL_BOARDS      := $(filter-out $(NOBL_BOARDS), $(ALL_BOARDS))
 BU_BOARDS      := $(BL_BOARDS)
 EF_BOARDS      := $(ALL_BOARDS)
 
-SIM_BOARDS := sim
+FLIGHTD_BOARDS := flightd
 
 # Generate the targets for whatever boards are left in each list
 FW_TARGETS := $(addprefix fw_, $(FW_BOARDS))
@@ -989,13 +993,13 @@ all_bu_clean:  $(addsuffix _clean, $(BU_TARGETS))
 all_ef:        $(EF_TARGETS)
 all_ef_clean:  $(addsuffix _clean, $(EF_TARGETS))
 
-.PHONY: all_sim all_sim_clean
-all_sim: $(SIM_BOARDS)
-all_sim_clean: $(addsuffix _clean, $(SIM_BOARDS))
+.PHONY: all_flightd all_flightd_clean
+all_flightd: $(FLIGHTD_BOARDS)
+all_flightd_clean: $(addsuffix _clean, $(FLIGHTD_BOARDS))
 
 .PHONY: all_flight all_flight_clean
-all_flight:       all_fw all_bl all_bu all_ef all_sim
-all_flight_clean: all_fw_clean all_bl_clean all_bu_clean all_ef_clean all_sim_clean
+all_flight:       all_fw all_bl all_bu all_ef all_flightd
+all_flight_clean: all_fw_clean all_bl_clean all_bu_clean all_ef_clean all_flightd_clean
 
 # Expand the groups of targets for each board
 $(foreach board, $(ALL_BOARDS), $(eval $(call BOARD_PHONY_TEMPLATE,$(board))))
@@ -1026,8 +1030,8 @@ bu_playuavosd_px4: bu_playuavosd_tlfw
 
 FW_FILES += $(BUILD_DIR)/bu_playuavosd/bu_playuavosd.px4
 
-# Expand the available simulator rules
-$(eval $(call SIM_TEMPLATE,simulation,Simulation,'sim '))
+# Expand the available flightd-on-host rules
+$(eval $(call FLIGHTD_TEMPLATE,flightd,flightd,'fltd'))
 
 ##############################
 #

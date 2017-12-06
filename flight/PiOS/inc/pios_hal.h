@@ -68,7 +68,7 @@ extern uintptr_t pios_rcvr_group_map[];
 #error Options defined that require PIOS_INCLUDE_COM!
 #endif
 
-#if !defined(PIOS_INCLUDE_USART) && !defined(SIM_POSIX)
+#if !defined(PIOS_INCLUDE_USART) && !defined(FLIGHT_POSIX)
 #error Options defined that require PIOS_INCLUDE_USART!
 #endif
 

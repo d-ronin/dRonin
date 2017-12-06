@@ -5,8 +5,8 @@
  * the posix env now.
  */
 
-#if !defined(SIM_POSIX) && !defined(PIOS_NO_HW)
-#error Device-agnostic PIOS_DIO is only for sim or libs.
+#if !defined(FLIGHT_POSIX) && !defined(PIOS_NO_HW)
+#error Device-agnostic PIOS_DIO is only for posix  or libs.
 #endif
 
 typedef void * dio_tag_t;

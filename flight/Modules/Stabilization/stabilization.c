@@ -497,7 +497,7 @@ static void stabilizationTask(void* parameters)
 			if ((dT_measured > dT_expected * 1.15f) || 
 					(dT_measured < dT_expected * 0.85f)) {
 				frequency_wrong = true;
-#ifdef SIM_POSIX
+#ifdef FLIGHT_POSIX
 				printf("Stabilization: frequency wrong.  dT_measured=%f, expected=%f\n", dT_measured, dT_expected);
 #endif
 			}

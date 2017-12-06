@@ -2,4 +2,4 @@
 #ALL_BOARDS += simulation
 
 # Should be exactly 4 characters long.
-simulation_short := 'sim '
+flightd_short := 'fltd'
