@@ -34,6 +34,7 @@
  */
 
 #include <unistd.h>
+#include <assert.h>
 
 #include "pios.h"
 #include "openpilot.h"
@@ -251,6 +252,10 @@ static void simsensors_scale_controls(float *rpy, float *thrust_out,
 static void simsensors_gyro_set(float *rpy, float noise_scale,
 		float temperature)
 {
+	assert(isfinite(rpy[0]));
+	assert(isfinite(rpy[1]));
+	assert(isfinite(rpy[2]));
+
 	struct pios_sensor_gyro_data gyro_data = {
 		.x = rpy[0] + rand_gauss() * noise_scale +
 			(temperature - 20) * 1 + powf(temperature - 20,2) * 0.11,
@@ -274,6 +279,10 @@ static void simsensors_accels_set(float *xyz, float *accel_bias,
 		.temperature = temperature,
 	};
 
+	assert(isfinite(accel_data.x));
+	assert(isfinite(accel_data.y));
+	assert(isfinite(accel_data.z));
+
 	PIOS_Queue_Send(accel_queue, &accel_data, 0);
 }
 
@@ -287,6 +296,38 @@ static void simsensors_accels_setfromned(double *ned_accel,
 	xyz[2] = ned_accel[0] * (*Rbe)[2][0] + ned_accel[1] * (*Rbe)[2][1] + ned_accel[2] * (*Rbe)[2][2];
 
 	simsensors_accels_set(xyz, accel_bias, temperature);
+}
+
+static void simsensors_quat_timestep(float *q, float *qdot) {
+	assert(isfinite(qdot[0]));
+	assert(isfinite(qdot[1]));
+	assert(isfinite(qdot[2]));
+	assert(isfinite(qdot[3]));
+
+	// Take a time step
+	q[0] = q[0] + qdot[0];
+	q[1] = q[1] + qdot[1];
+	q[2] = q[2] + qdot[2];
+	q[3] = q[3] + qdot[3];
+
+	float qmag = sqrtf(q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3]);
+
+	if (qmag < 0.001f) {
+		q[0] = 1;
+		q[1] = 0;
+		q[2] = 0;
+		q[3] = 0;
+	} else {
+		q[0] = q[0] / qmag;
+		q[1] = q[1] / qmag;
+		q[2] = q[2] / qmag;
+		q[3] = q[3] / qmag;
+	}
+
+	assert(isfinite(q[0]));
+	assert(isfinite(q[1]));
+	assert(isfinite(q[2]));
+	assert(isfinite(q[3]));
 }
 
 static void simsensors_baro_set(float down, float baro_offset) {
@@ -578,17 +619,7 @@ static void simulateModelQuadcopter()
 	qdot[2] = (q[3] * rpy[0] + q[0] * rpy[1] - q[1] * rpy[2]) * dT * DEG2RAD / 2;
 	qdot[3] = (-q[2] * rpy[0] + q[1] * rpy[1] + q[0] * rpy[2]) * dT * DEG2RAD / 2;
 
-	// Take a time step
-	q[0] = q[0] + qdot[0];
-	q[1] = q[1] + qdot[1];
-	q[2] = q[2] + qdot[2];
-	q[3] = q[3] + qdot[3];
-
-	float qmag = sqrtf(q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3]);
-	q[0] = q[0] / qmag;
-	q[1] = q[1] / qmag;
-	q[2] = q[2] / qmag;
-	q[3] = q[3] / qmag;
+	simsensors_quat_timestep(q, qdot);
 
 	static float wind[3] = {0,0,0};
 	wind[0] = wind[0] * 0.95 + rand_gauss() / 10.0;
@@ -772,17 +803,7 @@ static void simulateModelAirplane()
 	qdot[2] = (q[3] * rpy[0] + q[0] * rpy[1] - q[1] * rpy[2]) * dT * DEG2RAD / 2;
 	qdot[3] = (-q[2] * rpy[0] + q[1] * rpy[1] + q[0] * rpy[2]) * dT * DEG2RAD / 2;
 
-	// Take a time step
-	q[0] = q[0] + qdot[0];
-	q[1] = q[1] + qdot[1];
-	q[2] = q[2] + qdot[2];
-	q[3] = q[3] + qdot[3];
-
-	float qmag = sqrtf(q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3]);
-	q[0] = q[0] / qmag;
-	q[1] = q[1] / qmag;
-	q[2] = q[2] / qmag;
-	q[3] = q[3] / qmag;
+	simsensors_quat_timestep(q, qdot);
 
 	/**** 2. Update position based on velocity ****/
 	static float wind[3] = {0,0,0};
@@ -801,6 +822,10 @@ static void simulateModelAirplane()
 	double forwardAirspeed = Rbe[0][0] * airspeed[0] + Rbe[0][1] * airspeed[1] + Rbe[0][2] * airspeed[2];
 	double sidewaysAirspeed = Rbe[1][0] * airspeed[0] + Rbe[1][1] * airspeed[1] + Rbe[1][2] * airspeed[2];
 	double downwardAirspeed = Rbe[2][0] * airspeed[0] + Rbe[2][1] * airspeed[1] + Rbe[2][2] * airspeed[2];
+
+	assert(isfinite(forwardAirspeed));
+	assert(isfinite(sidewaysAirspeed));
+	assert(isfinite(downwardAirspeed));
 
 	AirspeedActualData airspeedObj;
 	airspeedObj.CalibratedAirspeed = forwardAirspeed;
@@ -835,10 +860,18 @@ static void simulateModelAirplane()
 	vel[1] = vel[1] + ned_accel[1] * dT;
 	vel[2] = vel[2] + ned_accel[2] * dT;
 
+	assert(isfinite(vel[0]));
+	assert(isfinite(vel[1]));
+	assert(isfinite(vel[2]));
+
 	// Predict the position forward in time
 	pos[0] = pos[0] + vel[0] * dT;
 	pos[1] = pos[1] + vel[1] * dT;
 	pos[2] = pos[2] + vel[2] * dT;
+
+	assert(isfinite(pos[0]));
+	assert(isfinite(pos[1]));
+	assert(isfinite(pos[2]));
 
 	// Simulate hitting ground
 	if(pos[2] > 0) {
@@ -1002,17 +1035,7 @@ static void simulateModelCar()
 	qdot[2] = (q[3] * rpy[0] + q[0] * rpy[1] - q[1] * rpy[2]) * dT * DEG2RAD / 2;
 	qdot[3] = (-q[2] * rpy[0] + q[1] * rpy[1] + q[0] * rpy[2]) * dT * DEG2RAD / 2;
 
-	// Take a time step
-	q[0] = q[0] + qdot[0];
-	q[1] = q[1] + qdot[1];
-	q[2] = q[2] + qdot[2];
-	q[3] = q[3] + qdot[3];
-
-	float qmag = sqrtf(q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3]);
-	q[0] = q[0] / qmag;
-	q[1] = q[1] / qmag;
-	q[2] = q[2] / qmag;
-	q[3] = q[3] / qmag;
+	simsensors_quat_timestep(q, qdot);
 
 	/**** 2. Update position based on velocity ****/
 	// Rbe takes a vector from body to earth.  If we take (1,0,0)^T through this and then dot with airspeed
