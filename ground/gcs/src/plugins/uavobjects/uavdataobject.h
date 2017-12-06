@@ -37,7 +37,7 @@
 class UAVOBJECTS_EXPORT UAVDataObject : public UAVObject
 {
     Q_OBJECT
-
+    Q_PROPERTY(bool isPresentOnHardware READ getIsPresentOnHardware WRITE setIsPresentOnHardware NOTIFY presentOnHardwareChanged)
 public:
     UAVDataObject(quint32 objID, bool isSingleInst, bool isSet, const QString &name);
     void initialize(quint32 instID, UAVMetaObject *mobj);
