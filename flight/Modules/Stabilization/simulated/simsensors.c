@@ -377,6 +377,7 @@ static void simulateYasim()
 	const float GYRO_NOISE_SCALE = 1.0f;
 	const float MAG_PERIOD = 1.0 / 75.0;
 	const float BARO_PERIOD = 1.0 / 20.0;
+	const float GPS_PERIOD = 1.0 / 10.0;
 
 	struct command {
 	    uint32_t magic;
@@ -570,21 +571,69 @@ static void simulateYasim()
 		last_baro_time = PIOS_DELAY_GetRaw();
 	}
 
+	// Update GPS periodically
+	static uint32_t last_gps_time = 0;
+	static float gps_vel_drift[3] = {0,0,0};
+	if(PIOS_DELAY_DiffuS(last_gps_time) / 1.0e6 > GPS_PERIOD) {
+		// Use double precision here as simulating what GPS produces
+		double T[3];
+		T[0] = homeLocation.Altitude+6.378137E6f * DEG2RAD;
+		T[1] = cosf(homeLocation.Latitude / 10e6 * DEG2RAD)*(homeLocation.Altitude+6.378137E6) * DEG2RAD;
+		T[2] = -1.0;
+
+		static float gps_drift[3] = {0,0,0};
+		gps_drift[0] = gps_drift[0] * 0.95 + rand_gauss() / 10.0;
+		gps_drift[1] = gps_drift[1] * 0.95 + rand_gauss() / 10.0;
+		gps_drift[2] = gps_drift[2] * 0.95 + rand_gauss() / 10.0;
+
+		GPSPositionData gpsPosition;
+		GPSPositionGet(&gpsPosition);
+		gpsPosition.Latitude =  (status.lat + gps_drift[0] / T[0]) * 10.0e6;
+		gpsPosition.Longitude = (status.lon + gps_drift[1] / T[1]) * 10.0e6;
+		gpsPosition.Altitude =  (status.alt + gps_drift[2]) / T[2];
+		gpsPosition.Groundspeed = sqrtf(pow(status.vel[0] + gps_vel_drift[0],2) + pow(status.vel[1] + gps_vel_drift[1],2));
+		gpsPosition.Heading = 180 / M_PI * atan2f(status.vel[1] + gps_vel_drift[1], status.vel[0] + gps_vel_drift[0]);
+		gpsPosition.Satellites = 7;
+		gpsPosition.PDOP = 1;
+		gpsPosition.Accuracy = 3.0;
+		gpsPosition.Status = GPSPOSITION_STATUS_FIX3D;
+		GPSPositionSet(&gpsPosition);
+		last_gps_time = PIOS_DELAY_GetRaw();
+	}
+
+	// Update GPS Velocity measurements
+	static uint32_t last_gps_vel_time = 1000; // Delay by a millisecond
+	if(PIOS_DELAY_DiffuS(last_gps_vel_time) / 1.0e6 > GPS_PERIOD) {
+		gps_vel_drift[0] = gps_vel_drift[0] * 0.65 + rand_gauss() / 5.0;
+		gps_vel_drift[1] = gps_vel_drift[1] * 0.65 + rand_gauss() / 5.0;
+		gps_vel_drift[2] = gps_vel_drift[2] * 0.65 + rand_gauss() / 5.0;
+
+		GPSVelocityData gpsVelocity;
+		GPSVelocityGet(&gpsVelocity);
+		gpsVelocity.North = status.vel[0] + gps_vel_drift[0];
+		gpsVelocity.East = status.vel[1] + gps_vel_drift[1];
+		gpsVelocity.Down = status.vel[2] + gps_vel_drift[2];
+		gpsVelocity.Accuracy = 0.75;
+		GPSVelocitySet(&gpsVelocity);
+		last_gps_vel_time = PIOS_DELAY_GetRaw();
+	}
+
 	AttitudeSimulatedData attitudeSimulated;
 	AttitudeSimulatedGet(&attitudeSimulated);
 	attitudeSimulated.q1 = q[0];
 	attitudeSimulated.q2 = q[1];
 	attitudeSimulated.q3 = q[2];
 	attitudeSimulated.q4 = q[3];
-	Quaternion2RPY(q,&attitudeSimulated.Roll);
-#if 0
-	attitudeSimulated.Position[0] = pos[0];
-	attitudeSimulated.Position[1] = pos[1];
-	attitudeSimulated.Position[2] = pos[2];
-	attitudeSimulated.Velocity[0] = vel[0];
-	attitudeSimulated.Velocity[1] = vel[1];
-	attitudeSimulated.Velocity[2] = vel[2];
-#endif
+	Quaternion2RPY(q, &attitudeSimulated.Roll);
+
+	attitudeSimulated.Position[0] = status.lat;
+	attitudeSimulated.Position[1] = status.lon;
+	attitudeSimulated.Position[2] = status.alt;
+
+	attitudeSimulated.Velocity[0] = status.vel[0];
+	attitudeSimulated.Velocity[1] = status.vel[1];
+	attitudeSimulated.Velocity[2] = status.vel[2];
+
 	AttitudeSimulatedSet(&attitudeSimulated);
 }
 #endif /* PIOS_INCLUDE_SIMSENSORS_YASIM */
