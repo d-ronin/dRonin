@@ -433,7 +433,7 @@ static void PIOS_MS5611_Task(void *parameters)
 		PIOS_MS5611_ClaimDevice();
 		PIOS_MS5611_StartADC(PRESSURE_CONV);
 		PIOS_Thread_Sleep(PIOS_MS5611_GetDelay());
-		PIOS_MS5611_ReadADC();
+		read_adc_result = PIOS_MS5611_ReadADC();
 		PIOS_MS5611_ReleaseDevice();
 
 		// Compute the altitude from the pressure and temperature and send it out
