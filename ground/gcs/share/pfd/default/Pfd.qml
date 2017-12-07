@@ -51,9 +51,13 @@ Rectangle {
             property real fovY_D: 90 // In units of [deg]
 
             Loader {
-                id: worldLoader
                 anchors.fill: parent
-                source: qmlWidget.terrainEnabled ? "PfdTerrainView.qml" : "PfdWorldView.qml"
+                source: "PfdWorldView.qml"
+            }
+
+            Loader {
+                anchors.fill: parent
+                source: "PfdAttitudeLine.qml"
             }
 
             SvgElementImage {
