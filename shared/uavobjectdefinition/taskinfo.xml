@@ -29,7 +29,6 @@
         <elementname>ModemRx</elementname>
         <elementname>ModemTx</elementname>
         <elementname>ModemStat</elementname>
-        <elementname>Autotune</elementname>
         <elementname>EventDispatcher</elementname>
         <elementname>GenericI2CSensor</elementname>
         <elementname>UAVOMavlinkBridge</elementname>
@@ -75,7 +74,6 @@
         <elementname>ModemRx</elementname>
         <elementname>ModemTx</elementname>
         <elementname>ModemStat</elementname>
-        <elementname>Autotune</elementname>
         <elementname>EventDispatcher</elementname>
         <elementname>GenericI2CSensor</elementname>
         <elementname>UAVOMavlinkBridge</elementname>
@@ -125,7 +123,6 @@
         <elementname>ModemRx</elementname>
         <elementname>ModemTx</elementname>
         <elementname>ModemStat</elementname>
-        <elementname>Autotune</elementname>
         <elementname>EventDispatcher</elementname>
         <elementname>GenericI2CSensor</elementname>
         <elementname>UAVOMavlinkBridge</elementname>

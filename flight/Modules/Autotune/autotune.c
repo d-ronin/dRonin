@@ -47,14 +47,13 @@
 #include "stabilizationsettings.h"
 #include "systemident.h"
 #include <pios_board_info.h>
-#include "pios_thread.h"
+#include <eventdispatcher.h>
 #include "systemsettings.h"
 
 #include "misc_math.h"
 
 // Private constants
-#define STACK_SIZE_BYTES 640
-#define TASK_PRIORITY PIOS_THREAD_PRIO_NORMAL
+#define AUTOTUNE_STATE_PERIOD_MS 100
 
 #ifndef AUTOTUNE_AVERAGING_DECIMATION
 #define AUTOTUNE_AVERAGING_DECIMATION 1
@@ -82,7 +81,6 @@ struct at_measurement {
 static struct at_measurement *at_averages;
 
 // Private variables
-static struct pios_thread *taskHandle;
 static bool module_enabled;
 
 static volatile uint32_t throttle_accumulator;
@@ -90,10 +88,12 @@ static volatile uint32_t update_counter = 0;
 static volatile bool tune_running = false;
 extern uint16_t ident_wiggle_points;
 
-uint16_t decim_wiggle_points;
+static enum autotune_state state = AT_INIT;
+static bool save_needed = false;
+static uint16_t decim_wiggle_points;
 
 // Private functions
-static void AutotuneTask(void *parameters);
+static void autotune_step(UAVObjEvent* ev, void *ctx, void *obj, int len);
 
 /**
  * Initialise the module, called on startup
@@ -118,13 +118,6 @@ int32_t AutotuneInitialize(void)
 		module_enabled = false;
 #endif
 
-	if (module_enabled) {
-		if (SystemIdentInitialize() == -1) {
-			module_enabled = false;
-			return -1;
-		}
-	}
-
 	return 0;
 }
 
@@ -135,11 +128,15 @@ int32_t AutotuneInitialize(void)
 int32_t AutotuneStart(void)
 {
 	// Start main task if it is enabled
-	if(module_enabled) {
-		// Start main task
-		taskHandle = PIOS_Thread_Create(AutotuneTask, "Autotune", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
-
-		TaskMonitorAdd(TASKINFO_RUNNING_AUTOTUNE, taskHandle);
+	if (module_enabled) {
+		// Schedule periodic task to check position
+		UAVObjEvent ev = {
+			.obj = SystemIdentHandle(),
+			.instId = 0,
+			.event = 0,
+		};
+		EventPeriodicCallbackCreate(&ev, autotune_step,
+				AUTOTUNE_STATE_PERIOD_MS);
 	}
 	return 0;
 }
@@ -258,95 +255,93 @@ static int autotune_save_averaging() {
 }
 
 /**
- * Module thread, should not return.
+ * Module periodic task.
  */
-static void AutotuneTask(void *parameters)
+static void autotune_step(UAVObjEvent* ev, void *ctx, void *obj, int len)
 {
-	const uint32_t YIELD_MS = 100;
+	(void) ev; (void) ctx; (void) obj; (void) len;
 
 	/* Wait for stabilization module to complete startup and tell us
 	 * its dT, etc.
 	 */
-	while (!ident_wiggle_points) {
-		PIOS_Thread_Sleep(25);
+	if (!ident_wiggle_points) {
+		return;
 	}
 
-	decim_wiggle_points = ident_wiggle_points / AUTOTUNE_AVERAGING_DECIMATION;
+	if (!decim_wiggle_points) {
+		decim_wiggle_points =
+			ident_wiggle_points / AUTOTUNE_AVERAGING_DECIMATION;
 
-	uint16_t buf_size = sizeof(*at_averages) * decim_wiggle_points;
-	at_averages = PIOS_malloc(buf_size);
+		uint16_t buf_size = sizeof(*at_averages) * decim_wiggle_points;
+		at_averages = PIOS_malloc(buf_size);
 
-	while (!at_averages) {
-		/* Infinite loop because we couldn't get our buffer */
+		if (at_averages) {
+			ActuatorDesiredConnectCallback(at_new_actuators);
+			PIOS_Modules_Enable(PIOS_MODULE_AUTOTUNE);
+		}
+	}
+
+	if (!at_averages) {
+		/* Do nothing because we couldn't get our buffer */
 		/* Assert alarm XXX? */
-		PIOS_Thread_Sleep(2500);
+		return;
 	}
 
-	ActuatorDesiredConnectCallback(at_new_actuators);
+	uint8_t armed;
 
-	bool save_needed = false;
-	enum autotune_state state = AT_INIT;
+	FlightStatusArmedGet(&armed);
 
-	while(1) {
-		uint8_t armed;
-
-		FlightStatusArmedGet(&armed);
-
-		if (save_needed) {
-			if (armed == FLIGHTSTATUS_ARMED_DISARMED) {
-				if (autotune_save_averaging()) {
-					// Try again in a second, I guess.
-					PIOS_Thread_Sleep(1000);
-					continue;
-				}
-
-				float hover_throttle = ((float) (throttle_accumulator / update_counter)) / 10000.0f;
-
-				UpdateSystemIdent(update_counter, hover_throttle,
-						true);
-
-				// Save the UAVO locally.
-				UAVObjSave(SystemIdentHandle(), 0);
-				state = AT_INIT;
-
-				save_needed = false;
+	if (save_needed) {
+		if (armed == FLIGHTSTATUS_ARMED_DISARMED) {
+			if (autotune_save_averaging()) {
+				// Try again next time, I guess.
+				return;
 			}
 
+			float hover_throttle = ((float) (throttle_accumulator / update_counter)) / 10000.0f;
+
+			UpdateSystemIdent(update_counter, hover_throttle,
+					true);
+
+			// Save the UAVO locally.
+			UAVObjSave(SystemIdentHandle(), 0);
+			state = AT_INIT;
+
+			save_needed = false;
 		}
 
-		switch(state) {
-			default:
-			case AT_INIT:
-				if (tune_running) {
-					// Reset save status; only save if this
-					// tune completes.
-					save_needed = false;
-					state = AT_RUN;
+	}
+
+	switch(state) {
+		default:
+		case AT_INIT:
+			if (tune_running) {
+				// Reset save status; only save if this
+				// tune completes.
+				save_needed = false;
+				state = AT_RUN;
+			}
+
+			break;
+
+		case AT_RUN:
+			(void) 0;
+
+			float hover_throttle = ((float) (throttle_accumulator / update_counter)) / 10000.0f;
+
+			UpdateSystemIdent(update_counter, hover_throttle,
+					false);
+
+			if (!tune_running) {
+				/* Threshold: 24 seconds of data @ 500Hz */
+				if (update_counter > 12000) {
+					save_needed = true;
 				}
 
-				break;
+				state = AT_INIT;
+			}
 
-			case AT_RUN:
-				(void) 0;
-
-				float hover_throttle = ((float) (throttle_accumulator / update_counter)) / 10000.0f;
-
-				UpdateSystemIdent(update_counter, hover_throttle,
-						false);
-
-				if (!tune_running) {
-					/* Threshold: 24 seconds of data @ 500Hz */
-					if (update_counter > 12000) {
-						save_needed = true;
-					}
-
-					state = AT_INIT;
-				}
-
-				break;
-		}
-
-		PIOS_Thread_Sleep(YIELD_MS);
+			break;
 	}
 }
 
