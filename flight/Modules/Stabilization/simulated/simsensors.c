@@ -72,18 +72,20 @@
 // Private types
 
 // Private variables
-static struct pios_thread *sensorsTaskHandle;
-
 static float accel_bias[3];
 
 static float rand_gauss();
 
-static bool use_real_sensors;
 static int sens_rate = 500;
 
 enum sensor_sim_type {MODEL_YASIM, MODEL_QUADCOPTER, MODEL_AIRPLANE, MODEL_CAR} sensor_sim_type;
 
-static struct pios_queue *accel_queue, *gyro_queue, *mag_queue, *baro_queue;
+static bool have_gyro_data, have_accel_data, have_mag_data, have_baro_data;
+
+static struct pios_sensor_gyro_data gyro_data;
+static struct pios_sensor_accel_data accel_data;
+static struct pios_sensor_mag_data mag_data;
+static struct pios_sensor_baro_data baro_data;
 
 #ifdef PIOS_INCLUDE_SIMSENSORS_YASIM
 extern bool use_yasim;
@@ -91,10 +93,76 @@ static void simulateYasim();
 #endif
 
 // Private functions
-static void simsensors_task(void *parameters);
+static void simsensors_step();
 static void simulateModelQuadcopter();
 static void simulateModelAirplane();
 static void simulateModelCar();
+
+static bool simsensors_callback_gyro(void *ctx, void *output,
+		int ms_to_wait, int *next_call)
+{
+	*next_call = 1000 / sens_rate;
+
+	simsensors_step();
+
+	if (have_gyro_data) {
+		have_gyro_data = false;
+
+		memcpy(output, &gyro_data, sizeof(gyro_data));
+
+		return true;
+	}
+
+	return false;
+}
+
+static bool simsensors_callback_accel(void *ctx, void *output,
+		int ms_to_wait, int *next_call)
+{
+	*next_call = 0;
+
+	if (have_accel_data) {
+		have_accel_data = false;
+
+		memcpy(output, &accel_data, sizeof(accel_data));
+
+		return true;
+	}
+
+	return false;
+}
+
+static bool simsensors_callback_mag(void *ctx, void *output,
+		int ms_to_wait, int *next_call)
+{
+	*next_call = 0;
+
+	if (have_mag_data) {
+		have_mag_data = false;
+
+		memcpy(output, &mag_data, sizeof(mag_data));
+
+		return true;
+	}
+
+	return false;
+}
+
+static bool simsensors_callback_baro(void *ctx, void *output,
+		int ms_to_wait, int *next_call)
+{
+	*next_call = 0;
+
+	if (have_baro_data) {
+		have_baro_data = false;
+
+		memcpy(output, &baro_data, sizeof(baro_data));
+
+		return true;
+	}
+
+	return false;
+}
 
 /**
  * Initialise the module.  Called before the start function
@@ -103,25 +171,20 @@ static void simulateModelCar();
 int32_t simsensors_init(void)
 {
 	if (PIOS_SENSORS_IsRegistered(PIOS_SENSOR_GYRO)) {
-		use_real_sensors = true;
-	}
-
-	if (use_real_sensors) {
 		printf("SimSensorsInitialize: Declining to do anything, real sensors!\n");
 		return -1;
 	}
 
 	printf("SimSensorsInitialize: Using simulated sensors.\n");
 
-	gyro_queue = PIOS_Queue_Create(2, sizeof(struct pios_sensor_gyro_data));
-	accel_queue = PIOS_Queue_Create(2, sizeof(struct pios_sensor_accel_data));
-	mag_queue = PIOS_Queue_Create(2, sizeof(struct pios_sensor_mag_data));
-	baro_queue = PIOS_Queue_Create(2, sizeof(struct pios_sensor_baro_data));
-
-	PIOS_SENSORS_Register(PIOS_SENSOR_GYRO, gyro_queue);
-	PIOS_SENSORS_Register(PIOS_SENSOR_ACCEL, accel_queue);
-	PIOS_SENSORS_Register(PIOS_SENSOR_MAG, mag_queue);
-	PIOS_SENSORS_Register(PIOS_SENSOR_BARO, baro_queue);
+	PIOS_SENSORS_RegisterCallback(PIOS_SENSOR_GYRO,
+		       simsensors_callback_gyro, NULL);
+	PIOS_SENSORS_RegisterCallback(PIOS_SENSOR_ACCEL,
+		       simsensors_callback_accel, NULL);
+	PIOS_SENSORS_RegisterCallback(PIOS_SENSOR_MAG,
+		       simsensors_callback_mag, NULL);
+	PIOS_SENSORS_RegisterCallback(PIOS_SENSOR_BARO,
+		       simsensors_callback_baro, NULL);
 
 #ifdef PIOS_INCLUDE_SIMSENSORS_YASIM
 	if (use_yasim) {
@@ -146,10 +209,11 @@ int32_t simsensors_init(void)
 	GPSPositionInitialize();
 	GPSVelocityInitialize();
 
-	printf("SimSensorsInitialize: starting SIMULATED sensor task\n");
+	AlarmsClear(SYSTEMALARMS_ALARM_SENSORS);
 
-	// Start main task
-	sensorsTaskHandle = PIOS_Thread_Create(simsensors_task, "simsensors", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
+	PIOS_SENSORS_SetMaxGyro(1000);
+
+	printf("SimSensorsInitialize: starting SIMULATED sensors\n");
 
 	return 0;
 }
@@ -158,64 +222,54 @@ int32_t simsensors_init(void)
  * Simulated sensor task.  Run a model of the airframe and produce sensor values
  */
 int sensors_count;
-static void simsensors_task(void *parameters)
+static void simsensors_step()
 {
-	AlarmsClear(SYSTEMALARMS_ALARM_SENSORS);
+	SystemSettingsData systemSettings;
+	SystemSettingsGet(&systemSettings);
 
-	PIOS_SENSORS_SetMaxGyro(500);
-	// Main task loop
-	while (1) {
-		SystemSettingsData systemSettings;
-		SystemSettingsGet(&systemSettings);
-
-		switch(systemSettings.AirframeType) {
-			case SYSTEMSETTINGS_AIRFRAMETYPE_FIXEDWING:
-			case SYSTEMSETTINGS_AIRFRAMETYPE_FIXEDWINGELEVON:
-			case SYSTEMSETTINGS_AIRFRAMETYPE_FIXEDWINGVTAIL:
-				sensor_sim_type = MODEL_AIRPLANE;
-				break;
-			case SYSTEMSETTINGS_AIRFRAMETYPE_QUADX:
-			case SYSTEMSETTINGS_AIRFRAMETYPE_QUADP:
-			case SYSTEMSETTINGS_AIRFRAMETYPE_VTOL:
-			case SYSTEMSETTINGS_AIRFRAMETYPE_HEXA:
-			case SYSTEMSETTINGS_AIRFRAMETYPE_OCTO:
-			default:
-				sensor_sim_type = MODEL_QUADCOPTER;
-				break;
-			case SYSTEMSETTINGS_AIRFRAMETYPE_GROUNDVEHICLECAR:
-				sensor_sim_type = MODEL_CAR;
-				break;
-		}
+	switch(systemSettings.AirframeType) {
+		case SYSTEMSETTINGS_AIRFRAMETYPE_FIXEDWING:
+		case SYSTEMSETTINGS_AIRFRAMETYPE_FIXEDWINGELEVON:
+		case SYSTEMSETTINGS_AIRFRAMETYPE_FIXEDWINGVTAIL:
+			sensor_sim_type = MODEL_AIRPLANE;
+			break;
+		case SYSTEMSETTINGS_AIRFRAMETYPE_QUADX:
+		case SYSTEMSETTINGS_AIRFRAMETYPE_QUADP:
+		case SYSTEMSETTINGS_AIRFRAMETYPE_VTOL:
+		case SYSTEMSETTINGS_AIRFRAMETYPE_HEXA:
+		case SYSTEMSETTINGS_AIRFRAMETYPE_OCTO:
+		default:
+			sensor_sim_type = MODEL_QUADCOPTER;
+			break;
+		case SYSTEMSETTINGS_AIRFRAMETYPE_GROUNDVEHICLECAR:
+			sensor_sim_type = MODEL_CAR;
+			break;
+	}
 
 #ifdef PIOS_INCLUDE_SIMSENSORS_YASIM
-		if (use_yasim) {
-			sensor_sim_type = MODEL_YASIM;
-		}
+	if (use_yasim) {
+		sensor_sim_type = MODEL_YASIM;
+	}
 #endif
 
-		sensors_count++;
+	sensors_count++;
 
-		switch(sensor_sim_type) {
-			case MODEL_QUADCOPTER:
-			default:
-				simulateModelQuadcopter();
-				break;
-			case MODEL_AIRPLANE:
-				simulateModelAirplane();
-				break;
-			case MODEL_CAR:
-				simulateModelCar();
-				break;
+	switch(sensor_sim_type) {
+		case MODEL_QUADCOPTER:
+		default:
+			simulateModelQuadcopter();
+			break;
+		case MODEL_AIRPLANE:
+			simulateModelAirplane();
+			break;
+		case MODEL_CAR:
+			simulateModelCar();
+			break;
 #ifdef PIOS_INCLUDE_SIMSENSORS_YASIM
-			case MODEL_YASIM:
-				simulateYasim();
-				break;
+		case MODEL_YASIM:
+			simulateYasim();
+			break;
 #endif
-		}
-
-		static uint32_t tm = 0;
-
-		PIOS_Thread_Sleep_Until(&tm, 1000 / sens_rate);
 	}
 }
 
@@ -256,7 +310,7 @@ static void simsensors_gyro_set(float *rpy, float noise_scale,
 	assert(isfinite(rpy[1]));
 	assert(isfinite(rpy[2]));
 
-	struct pios_sensor_gyro_data gyro_data = {
+	gyro_data = (struct pios_sensor_gyro_data) {
 		.x = rpy[0] + rand_gauss() * noise_scale +
 			(temperature - 20) * 1 + powf(temperature - 20,2) * 0.11,
 		.y = rpy[1] + rand_gauss() * noise_scale +
@@ -266,13 +320,13 @@ static void simsensors_gyro_set(float *rpy, float noise_scale,
 		.temperature = temperature,
 	};
 
-	PIOS_Queue_Send(gyro_queue, &gyro_data, 0);
+	have_gyro_data = true;
 }
 
 static void simsensors_accels_set(float *xyz, float *accel_bias,
 		float temperature)
 {
-	struct pios_sensor_accel_data accel_data = {
+	accel_data = (struct pios_sensor_accel_data) {
 		.x = xyz[0] + accel_bias[0],
 		.y = xyz[1] + accel_bias[1],
 		.z = xyz[2] + accel_bias[2],
@@ -283,7 +337,7 @@ static void simsensors_accels_set(float *xyz, float *accel_bias,
 	assert(isfinite(accel_data.y));
 	assert(isfinite(accel_data.z));
 
-	PIOS_Queue_Send(accel_queue, &accel_data, 0);
+	have_accel_data = true;
 }
 
 static void simsensors_accels_setfromned(double *ned_accel,
@@ -331,13 +385,13 @@ static void simsensors_quat_timestep(float *q, float *qdot) {
 }
 
 static void simsensors_baro_set(float down, float baro_offset) {
-	struct pios_sensor_baro_data baro_data = {
+	baro_data = (struct pios_sensor_baro_data) {
 		.temperature = 33,
 		.pressure = 123,	/* XXX */
 		.altitude = -down + baro_offset,
 	};
 
-	PIOS_Queue_Send(baro_queue, &baro_data, 0);
+	have_baro_data = true;
 }
 
 static void simsensors_baro_drift(float *baro_offset)
@@ -353,7 +407,7 @@ static void simsensors_baro_drift(float *baro_offset)
 
 static void simsensors_mag_set(float *be, float (*Rbe)[3][3])
 {
-	struct pios_sensor_mag_data mag_data = {
+	mag_data = (struct pios_sensor_mag_data) {
 		.x = 100 +
 			be[0] * (*Rbe)[0][0] +
 			be[1] * (*Rbe)[0][1] +
@@ -368,7 +422,7 @@ static void simsensors_mag_set(float *be, float (*Rbe)[3][3])
 			be[2] * (*Rbe)[2][2],
 	};
 
-	PIOS_Queue_Send(mag_queue, &mag_data, 0);
+	have_mag_data = true;
 }
 
 #ifdef PIOS_INCLUDE_SIMSENSORS_YASIM
