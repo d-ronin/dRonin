@@ -131,8 +131,9 @@ int32_t configuration_check()
 				error_code = (error_code == SYSTEMALARMS_CONFIGERROR_NONE) ? check_stabilization_settings(3, multirotor) : error_code;
 				break;
 			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_AUTOTUNE:
-				if (!TaskMonitorQueryRunning(TASKINFO_RUNNING_AUTOTUNE))
+				if (!PIOS_Modules_IsEnabled(PIOS_MODULE_AUTOTUNE)) {
 					error_code = SYSTEMALARMS_CONFIGERROR_AUTOTUNE;
+				}
 				break;
 			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_ALTITUDEHOLD:
 				if ( !TaskMonitorQueryRunning(TASKINFO_RUNNING_ALTITUDEHOLD) )
@@ -213,7 +214,7 @@ static int32_t check_stabilization_settings(int index, bool multirotor)
 			// running then set an alarm now that aututune module initializes the
 			// appropriate objects
 			if ((modes[i] == MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_SYSTEMIDENT) &&
-				(!TaskMonitorQueryRunning(TASKINFO_RUNNING_AUTOTUNE)))
+				(!PIOS_Modules_IsEnabled(PIOS_MODULE_AUTOTUNE)))
 				return SYSTEMALARMS_CONFIGERROR_AUTOTUNE;
 		}
 	}
