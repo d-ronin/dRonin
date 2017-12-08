@@ -43,9 +43,9 @@ static int32_t fault_initialize(void)
 #ifdef MODULE_Fault_BUILTIN
 	module_enabled = true;
 #else
-	uint8_t module_state[MODULESETTINGS_STATE_NUMELEM];
-	ModuleSettingsEnabledGet(module_state);
-	if (module_state[MODULESETTINGS_STATE_FAULT] == MODULESETTINGS_STATE_ENABLED) {
+	uint8_t module_state[MODULESETTINGS_ADMINSTATE_NUMELEM];
+	ModuleSettingsAdminStateGet(module_state);
+	if (module_state[MODULESETTINGS_ADMINSTATE_FAULT] == MODULESETTINGS_ADMINSTATE_ENABLED) {
 		module_enabled = true;
 	} else {
 		module_enabled = false;
@@ -99,6 +99,8 @@ static int32_t fault_start(void)
 		case FAULTSETTINGS_ACTIVATEFAULT_RUNAWAYTASK:
 		case FAULTSETTINGS_ACTIVATEFAULT_TASKOUTOFMEMORY:
 			fault_task_handle = PIOS_Thread_Create(fault_task, "Fault", PIOS_THREAD_STACK_SIZE_MIN, NULL, PIOS_THREAD_PRIO_HIGHEST);
+			(void) fault_task_handle;
+
 			return 0;
 			break;
 		}

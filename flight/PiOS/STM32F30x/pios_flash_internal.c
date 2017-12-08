@@ -189,6 +189,15 @@ static int32_t PIOS_Flash_Internal_WriteData(uintptr_t chip_id, uint32_t chip_of
 	return 0;
 }
 
+static void * PIOS_Flash_Internal_GetPointer(uintptr_t chip_id, uint32_t chip_offset)
+{
+	struct pios_internal_flash_dev *flash_dev = (struct pios_internal_flash_dev *)chip_id;
+
+	PIOS_Assert(PIOS_Flash_Internal_Validate(flash_dev));
+
+	return (void *)(FLASH_BASE + chip_offset);
+}
+
 /* Provide a flash driver to external drivers */
 const struct pios_flash_driver pios_internal_flash_driver = {
 	.start_transaction = PIOS_Flash_Internal_StartTransaction,
@@ -196,6 +205,7 @@ const struct pios_flash_driver pios_internal_flash_driver = {
 	.erase_sector      = PIOS_Flash_Internal_EraseSector,
 	.write_data        = PIOS_Flash_Internal_WriteData,
 	.read_data         = PIOS_Flash_Internal_ReadData,
+	.get_pointer       = PIOS_Flash_Internal_GetPointer,
 };
 
 #endif	/* defined(PIOS_INCLUDE_FLASH_INTERNAL) */

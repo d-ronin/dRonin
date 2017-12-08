@@ -290,12 +290,33 @@ int32_t PIOS_FLASH_get_partition_size(uintptr_t partition_id, uint32_t *partitio
 
 	struct pios_flash_partition *partition = (struct pios_flash_partition *)partition_id;
 
-	if (!PIOS_FLASH_validate_partition(partition))
-		return -20;
+	PIOS_Assert(PIOS_FLASH_validate_partition(partition));
 
 	*partition_size = partition->size;
 
 	return 0;
+}
+
+/**
+ * @brief Gets the address of a memory-mapped partition
+ * @param[in] partition_id opaque handle for a specific partition
+ * @param[out] partition_size size of the partition in bytes
+ * @return pointer to the partition, or NULL on error.
+ */
+void *PIOS_FLASH_get_address(uintptr_t partition_id, uint32_t *partition_size) {
+	struct pios_flash_partition *partition = (struct pios_flash_partition *)partition_id;
+
+	PIOS_Assert(PIOS_FLASH_validate_partition(partition));
+
+	if (partition_size) {
+		*partition_size = partition->size;
+	}
+
+	if (!partition->chip_desc->driver->get_pointer) {
+		return NULL;
+	}
+
+	return partition->chip_desc->driver->get_pointer(*partition->chip_desc->chip_id, partition->chip_offset);
 }
 
 /**
@@ -309,8 +330,7 @@ int32_t PIOS_FLASH_start_transaction(uintptr_t partition_id)
 {
 	struct pios_flash_partition *partition = (struct pios_flash_partition *)partition_id;
 
-	if (!PIOS_FLASH_validate_partition(partition))
-		return -20;
+	PIOS_Assert(PIOS_FLASH_validate_partition(partition));
 
 	if (partition->chip_desc->driver->start_transaction)
 		return partition->chip_desc->driver->start_transaction(*partition->chip_desc->chip_id);
@@ -359,8 +379,7 @@ int32_t PIOS_FLASH_erase_range(uintptr_t partition_id, uint32_t start_offset, ui
 {
 	struct pios_flash_partition *partition = (struct pios_flash_partition *)partition_id;
 
-	if (!PIOS_FLASH_validate_partition(partition))
-		return -20;
+	PIOS_Assert(PIOS_FLASH_validate_partition(partition));
 
 	if (!partition->chip_desc->driver->erase_sector)
 		return -21;
@@ -418,13 +437,13 @@ int32_t PIOS_FLASH_erase_partition(uintptr_t partition_id)
 {
 	struct pios_flash_partition *partition = (struct pios_flash_partition *)partition_id;
 
-	if (!PIOS_FLASH_validate_partition(partition))
-		return -20;
+	PIOS_Assert(PIOS_FLASH_validate_partition(partition));
 
 	if (!partition->chip_desc->driver->erase_sector)
 		return -21;
 
 	struct pios_flash_sector_desc sector_desc;
+
 	if (!pios_flash_get_partition_first_sector(partition, &sector_desc))
 		return -22;
 
@@ -458,8 +477,7 @@ int32_t PIOS_FLASH_write_data(uintptr_t partition_id, uint32_t partition_offset,
 {
 	struct pios_flash_partition *partition = (struct pios_flash_partition *)partition_id;
 
-	if (!PIOS_FLASH_validate_partition(partition))
-		return -20;
+	PIOS_Assert(PIOS_FLASH_validate_partition(partition));
 
 	if (!partition->chip_desc->driver->write_data)
 		return -21;
@@ -509,8 +527,7 @@ int32_t PIOS_FLASH_read_data(uintptr_t partition_id, uint32_t partition_offset, 
 {
 	struct pios_flash_partition *partition = (struct pios_flash_partition *)partition_id;
 
-	if (!PIOS_FLASH_validate_partition(partition))
-		return -20;
+	PIOS_Assert(PIOS_FLASH_validate_partition(partition));
 
 	if (!partition->chip_desc->driver->read_data)
 		return -21;

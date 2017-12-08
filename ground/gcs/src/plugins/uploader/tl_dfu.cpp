@@ -444,7 +444,6 @@ device DFUObject::findCapabilities()
                 TL_DFU_QXTLOG_DEBUG(QString("Partition %0 Size %1")
                                         .arg(partition)
                                         .arg(currentDevice.PartitionSizes.at(partition)));
-            currentDevice.PartitionSizes.resize(currentDevice.PartitionSizes.indexOf(0));
         } else {
             TL_DFU_QXTLOG_DEBUG("No partition found, probably using old bootloader");
         }
@@ -812,6 +811,9 @@ QString DFUObject::partitionStringFromLabel(dfu_partition_label label)
         break;
     case DFU_PARTITION_LOG:
         return QString(tr("log"));
+        break;
+    case DFU_PARTITION_LOADABLE_EXTENSION:
+        return QString(tr("extension"));
         break;
     default:
         return QString::number(label);

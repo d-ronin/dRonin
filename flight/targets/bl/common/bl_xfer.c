@@ -123,6 +123,11 @@ bool bl_xfer_read_start(struct xfer_state * xfer, const struct msg_xfer_start *x
 		PIOS_FLASH_get_partition_size(xfer->partition_id, &xfer->partition_size);
 		xfer->original_partition_offset = 0;
 		break;
+	case DFU_PARTITION_LOADABLE_EXTENSION:
+		PIOS_FLASH_find_partition_id(FLASH_PARTITION_LABEL_LOADABLE_EXTENSION, &xfer->partition_id);
+		PIOS_FLASH_get_partition_size(xfer->partition_id, &xfer->partition_size);
+		xfer->original_partition_offset = 0;
+		break;
 	default:
 		return false;
 	}
@@ -228,6 +233,10 @@ bool bl_xfer_write_start(struct xfer_state * xfer, const struct msg_xfer_start *
 		PIOS_FLASH_find_partition_id(FLASH_PARTITION_LABEL_LOG, &xfer->partition_id);
 		PIOS_FLASH_get_partition_size(xfer->partition_id, &xfer->partition_size);
 		break;
+	case DFU_PARTITION_LOADABLE_EXTENSION:
+		PIOS_FLASH_find_partition_id(FLASH_PARTITION_LABEL_LOADABLE_EXTENSION, &xfer->partition_id);
+		PIOS_FLASH_get_partition_size(xfer->partition_id, &xfer->partition_size);
+		break;
 	default:
 		return false;
 	}
@@ -324,6 +333,9 @@ bool bl_xfer_wipe_partition(const struct msg_wipe_partition *wipe_partition)
 	case DFU_PARTITION_LOG:
 		flash_label = FLASH_PARTITION_LABEL_LOG;
 		break;
+	case DFU_PARTITION_LOADABLE_EXTENSION:
+		flash_label = FLASH_PARTITION_LABEL_LOADABLE_EXTENSION;
+		break;
 	default:
 		return false;
 	}
@@ -406,6 +418,13 @@ bool bl_xfer_send_capabilities_self(void)
 		msg.v.cap_rep_specific.partition_sizes[DFU_PARTITION_LOG] = CPU_TO_BE32(partition_size);
 	} else {
 		msg.v.cap_rep_specific.partition_sizes[DFU_PARTITION_LOG] = 0;
+	}
+
+	if (PIOS_FLASH_find_partition_id(FLASH_PARTITION_LABEL_LOADABLE_EXTENSION, &partition_id) == 0) {
+		PIOS_FLASH_get_partition_size(partition_id, &partition_size);
+		msg.v.cap_rep_specific.partition_sizes[DFU_PARTITION_LOADABLE_EXTENSION] = CPU_TO_BE32(partition_size);
+	} else {
+		msg.v.cap_rep_specific.partition_sizes[DFU_PARTITION_LOADABLE_EXTENSION] = 0;
 	}
 #endif	/* BL_INCLUDE_CAP_EXTENSIONS */
 

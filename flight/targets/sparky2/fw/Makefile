@@ -63,6 +63,7 @@ OPTMODULES += Logging
 OPTMODULES += FlightStats
 OPTMODULES += Storm32Bgc
 OPTMODULES += UAVOCrossfireTelemetry
+OPTMODULES += Loadable
 
 # Paths
 OPUAVOBJINC = $(OPUAVOBJ)/inc

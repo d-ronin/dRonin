@@ -37,6 +37,11 @@ static struct pios_mutex *lock;
 static struct pios_thread *handles[TASKINFO_RUNNING_NUMELEM];
 static uint32_t lastMonitorTime;
 
+DONT_BUILD_IF(TASKINFO_RUNNING_NUMELEM != TASKINFO_STACKREMAINING_NUMELEM,
+		taskelems1);
+DONT_BUILD_IF(TASKINFO_RUNNING_NUMELEM != TASKINFO_RUNNINGTIME_NUMELEM,
+		taskelems2);
+
 // Private functions
 
 /**

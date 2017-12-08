@@ -47,12 +47,12 @@ enum pios_thread_prio_e
 	PIOS_THREAD_PRIO_HIGHEST = HIGHPRIO,
 };
 
-#define PIOS_THREAD_STACK_SIZE_MIN THD_WA_SIZE(4096 + PORT_INT_REQUIRED_STACK)
+#define PIOS_THREAD_STACK_SIZE_MIN THD_WA_SIZE(256 + PORT_INT_REQUIRED_STACK)
 
 #else
 
-/* Posix or targets without threading */
-#define PIOS_THREAD_STACK_SIZE_MIN (32768)
+/* Posix or targets without threading or default for extensions */
+#define PIOS_THREAD_STACK_SIZE_MIN (4096)
 
 enum pios_thread_prio_e
 {
