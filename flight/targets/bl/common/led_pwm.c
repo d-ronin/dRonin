@@ -122,8 +122,8 @@ bool led_pwm_update_leds(struct led_pwm_state *leds)
 	if ((leds->uptime_us - leds->last_ws2811_us) >= WS2811_UPDATE_INTERVAL) {
 		leds->last_ws2811_us = leds->uptime_us;
 
-		PIOS_WS2811_set_all(pios_ws2811, led1_fraction,
-			led2_fraction / 2, 0);
+		PIOS_WS2811_set_all(pios_ws2811, led1_fraction / 2,
+			led2_fraction / 3, 0);
 		PIOS_WS2811_trigger_update(pios_ws2811);
 	}
 #endif
