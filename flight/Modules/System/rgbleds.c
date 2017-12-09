@@ -465,15 +465,15 @@ void systemmod_process_rgb_leds(bool led_override, bool led_override_active,
 	}
 
 	if (force_dim) {
-		range_color[0] /= 2;
-		range_color[1] /= 2;
-		range_color[2] /= 2;
-		alarm_color[0] /= 2;
-		alarm_color[1] /= 2;
-		alarm_color[2] /= 2;
-		rgbSettings.DefaultColor[0] /= 2;
-		rgbSettings.DefaultColor[1] /= 2;
-		rgbSettings.DefaultColor[2] /= 2;
+		range_color[0] = (range_color[0] + 2) / 3;
+		range_color[1] = (range_color[1] + 2) / 3;
+		range_color[2] = (range_color[2] + 2) / 3;
+		alarm_color[0] = (alarm_color[0] + 2) / 3;
+		alarm_color[1] = (alarm_color[1] + 2) / 3;
+		alarm_color[2] = (alarm_color[2] + 2) / 3;
+		rgbSettings.DefaultColor[0] = (rgbSettings.DefaultColor[0] + 2) / 3;
+		rgbSettings.DefaultColor[1] = (rgbSettings.DefaultColor[1] + 2) / 3;
+		rgbSettings.DefaultColor[2] = (rgbSettings.DefaultColor[2] + 2) / 3;
 	}
 
 	for (int i = 0; i < num_leds; i++) {
