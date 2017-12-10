@@ -114,6 +114,7 @@ SRC += pios_bmp280.c
 SRC += pios_hmc5883.c
 SRC += pios_hmc5983_i2c.c
 SRC += pios_max7456.c
+SRC += pios_usbhook.c
 
 # List C++ source files here.
 # use file-extension .cpp for C++-files (not .C)

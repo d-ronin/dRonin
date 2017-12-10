@@ -114,6 +114,7 @@ SRC += pios_usb_desc_hid_only.c
 SRC += pios_usb_util.c
 
 ## PIOS Hardware (Common)
+SRC += pios_usbhook.c
 SRC += pios_delay.c
 SRC += pios_crc.c
 SRC += pios_com.c

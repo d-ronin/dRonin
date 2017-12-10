@@ -111,6 +111,7 @@ include $(PIOS)/STM32F30x/library_chibios.mk
 include $(PIOS)/pios_flight_library.mk
 
 SRC += pios_mpu.c
+SRC += pios_usbhook.c
 
 # List C++ source files here.
 # use file-extension .cpp for C++-files (not .C)
