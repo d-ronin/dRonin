@@ -36,3 +36,4 @@ SRC += pios_wdg.c
 SRC += pios_reset.c
 SRC += pios_annunc.c
 SRC += pios_crossfire.c
+SRC += pios_i2c.c
