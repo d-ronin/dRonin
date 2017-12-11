@@ -136,7 +136,7 @@ static uint16_t desired_3d_mask;
 #define DSHOT_COMMAND_NO3DMODE 9
 #define DSHOT_COMMAND_3DMODE   10
 
-#define DSHOT_COUNT_EXCESSIVE 12
+#define DSHOT_COUNT_EXCESSIVE 24
 
 static bool actuator_get_dshot_command(bool armed) {
 	/* Finish off any current command. */
