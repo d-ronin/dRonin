@@ -318,6 +318,14 @@ void systemmod_process_rgb_leds(bool led_override, bool led_override_active,
 	RGBLEDSettingsRangeColorBlendModeOptions blend_mode =
 		rgbSettings.RangeColorBlendMode;
 
+#ifdef PIOS_INCLUDE_USB
+	if (rgbSettings.DimWhenUSB == RGBLEDSETTINGS_DIMWHENUSB_TRUE) {
+		if (PIOS_USB_CableConnected(0)) {
+			force_dim = true;
+		}
+	}
+#endif
+
 	if (!is_armed) {
 		blend_source = rgbSettings.RangeColorBlendUnarmedSource;
 	}
@@ -436,12 +444,6 @@ void systemmod_process_rgb_leds(bool led_override, bool led_override_active,
 			break;
 	}
 
-	if (force_dim) {
-		range_color[0] /= 2;
-		range_color[1] /= 2;
-		range_color[2] /= 2;
-	}
-
 	uint8_t alarm_color[3] = { 0, 0, 0 };
 
 	if (led_override && led_override_active) {
@@ -460,6 +462,18 @@ void systemmod_process_rgb_leds(bool led_override, bool led_override_active,
 			alarm_color[1] = 200;
 			alarm_color[2] = 32;
 		}
+	}
+
+	if (force_dim) {
+		range_color[0] = (range_color[0] + 2) / 3;
+		range_color[1] = (range_color[1] + 2) / 3;
+		range_color[2] = (range_color[2] + 2) / 3;
+		alarm_color[0] = (alarm_color[0] + 2) / 3;
+		alarm_color[1] = (alarm_color[1] + 2) / 3;
+		alarm_color[2] = (alarm_color[2] + 2) / 3;
+		rgbSettings.DefaultColor[0] = (rgbSettings.DefaultColor[0] + 2) / 3;
+		rgbSettings.DefaultColor[1] = (rgbSettings.DefaultColor[1] + 2) / 3;
+		rgbSettings.DefaultColor[2] = (rgbSettings.DefaultColor[2] + 2) / 3;
 	}
 
 	for (int i = 0; i < num_leds; i++) {
