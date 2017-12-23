@@ -44,6 +44,23 @@ static void initTask(void *parameters);
 
 static struct pios_thread *initTaskHandle;
 
+__attribute__((naked)) void ledcrap()
+{
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
+
+	GPIO_InitTypeDef GPIO_InitStruct;
+
+	GPIO_InitStruct.GPIO_Pin = GPIO_Pin_12 | GPIO_Pin_5 | GPIO_Pin_4; // we want to configure all LED GPIO pins
+	GPIO_InitStruct.GPIO_Mode = GPIO_Mode_OUT; 		// we want the pins to be an output
+	GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz; 	// this sets the GPIO modules clock speed
+	GPIO_InitStruct.GPIO_OType = GPIO_OType_PP; 	// this sets the pin type to push / pull (as opposed to open drain)
+	GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_UP; 	// this sets the pullup / pulldown resistors to be inactive
+	GPIO_Init(GPIOB, &GPIO_InitStruct); 		
+
+	GPIO_ResetBits(GPIOB, GPIO_Pin_12 | GPIO_Pin_5 | GPIO_Pin_4);
+	while(1);
+}
+
 /**
  * @brief   Early initialization code.
  * @details This initialization must be performed just after stack setup
@@ -52,6 +69,7 @@ static struct pios_thread *initTaskHandle;
 void __early_init(void) {
 
   stm32_clock_init();
+
 }
 
 /**
