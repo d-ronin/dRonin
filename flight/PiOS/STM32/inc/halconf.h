@@ -1,5 +1,5 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -15,31 +15,24 @@
 */
 
 /**
- * @addtogroup PIOS PIOS Core hardware abstraction layer
- * @{
- * @addtogroup ChibiOS ChibiOS Interface
- * @{ 
- *
- * @file       PiOS/inc/halconf.h
+ * @file    templates/halconf.h
  * @brief   HAL configuration header.
- * @details HAL configuration file, for flight targets.
+ * @details HAL configuration file, this file allows to enable or disable the
+ *          various device drivers from your application. You may also use
+ *          this file in order to override the device drivers default settings.
  *
  * @addtogroup HAL_CONF
  * @{
  */
 
-#ifndef _HALCONF_H_
-#define _HALCONF_H_
+#ifndef HALCONF_H
+#define HALCONF_H
 
 #include "mcuconf.h"
 
 /**
- * @brief   Enables the TM subsystem.
+ * @name    Drivers enable switches
  */
-#if !defined(HAL_USE_TM) || defined(__DOXYGEN__)
-#define HAL_USE_TM                  FALSE
-#endif
-
 /**
  * @brief   Enables the PAL subsystem.
  */
@@ -62,6 +55,13 @@
 #endif
 
 /**
+ * @brief   Enables the DAC subsystem.
+ */
+#if !defined(HAL_USE_DAC) || defined(__DOXYGEN__)
+#define HAL_USE_DAC                 FALSE
+#endif
+
+/**
  * @brief   Enables the EXT subsystem.
  */
 #if !defined(HAL_USE_EXT) || defined(__DOXYGEN__)
@@ -80,6 +80,13 @@
  */
 #if !defined(HAL_USE_I2C) || defined(__DOXYGEN__)
 #define HAL_USE_I2C                 FALSE
+#endif
+
+/**
+ * @brief   Enables the I2S subsystem.
+ */
+#if !defined(HAL_USE_I2S) || defined(__DOXYGEN__)
+#define HAL_USE_I2S                 FALSE
 #endif
 
 /**
@@ -108,6 +115,13 @@
  */
 #if !defined(HAL_USE_PWM) || defined(__DOXYGEN__)
 #define HAL_USE_PWM                 FALSE
+#endif
+
+/**
+ * @brief   Enables the QSPI subsystem.
+ */
+#if !defined(HAL_USE_QSPI) || defined(__DOXYGEN__)
+#define HAL_USE_QSPI                FALSE
 #endif
 
 /**
@@ -159,8 +173,19 @@
 #define HAL_USE_USB                 FALSE
 #endif
 
+/**
+ * @brief   Enables the WDG subsystem.
+ */
+#if !defined(HAL_USE_WDG) || defined(__DOXYGEN__)
+#define HAL_USE_WDG                 FALSE
+#endif
+/** @} */
+
 /*===========================================================================*/
-/* ADC driver related settings.                                              */
+/**
+ * @name ADC driver related setting
+ * @{
+ */
 /*===========================================================================*/
 
 /**
@@ -178,9 +203,13 @@
 #if !defined(ADC_USE_MUTUAL_EXCLUSION) || defined(__DOXYGEN__)
 #define ADC_USE_MUTUAL_EXCLUSION    TRUE
 #endif
+/** @} */
 
 /*===========================================================================*/
-/* CAN driver related settings.                                              */
+/**
+ * @name CAN driver related setting
+ * @{
+ */
 /*===========================================================================*/
 
 /**
@@ -189,9 +218,13 @@
 #if !defined(CAN_USE_SLEEP_MODE) || defined(__DOXYGEN__)
 #define CAN_USE_SLEEP_MODE          TRUE
 #endif
+/** @} */
 
 /*===========================================================================*/
-/* I2C driver related settings.                                              */
+/**
+ * @name I2C driver related setting
+ * @{
+ */
 /*===========================================================================*/
 
 /**
@@ -200,16 +233,20 @@
 #if !defined(I2C_USE_MUTUAL_EXCLUSION) || defined(__DOXYGEN__)
 #define I2C_USE_MUTUAL_EXCLUSION    TRUE
 #endif
+/** @} */
 
 /*===========================================================================*/
-/* MAC driver related settings.                                              */
+/**
+ * @name MAC driver related setting
+ * @{
+ */
 /*===========================================================================*/
 
 /**
  * @brief   Enables an event sources for incoming packets.
  */
 #if !defined(MAC_USE_ZERO_COPY) || defined(__DOXYGEN__)
-#define MAC_USE_ZERO_COPY           FALSE
+#define MAC_USE_ZERO_COPY           TRUE
 #endif
 
 /**
@@ -218,9 +255,13 @@
 #if !defined(MAC_USE_EVENTS) || defined(__DOXYGEN__)
 #define MAC_USE_EVENTS              TRUE
 #endif
+/** @} */
 
 /*===========================================================================*/
-/* MMC_SPI driver related settings.                                          */
+/**
+ * @name MMC_SPI driver related setting
+ * @{
+ */
 /*===========================================================================*/
 
 /**
@@ -234,9 +275,13 @@
 #if !defined(MMC_NICE_WAITING) || defined(__DOXYGEN__)
 #define MMC_NICE_WAITING            TRUE
 #endif
+/** @} */
 
 /*===========================================================================*/
-/* SDC driver related settings.                                              */
+/**
+ * @name SDC driver related setting
+ * @{
+ */
 /*===========================================================================*/
 
 /**
@@ -253,7 +298,7 @@
  *          at @p FALSE.
  */
 #if !defined(SDC_MMC_SUPPORT) || defined(__DOXYGEN__)
-#define SDC_MMC_SUPPORT             FALSE
+#define SDC_MMC_SUPPORT             TRUE
 #endif
 
 /**
@@ -265,9 +310,13 @@
 #if !defined(SDC_NICE_WAITING) || defined(__DOXYGEN__)
 #define SDC_NICE_WAITING            TRUE
 #endif
+/** @} */
 
 /*===========================================================================*/
-/* SERIAL driver related settings.                                           */
+/**
+ * @name SERIAL driver related setting
+ * @{
+ */
 /*===========================================================================*/
 
 /**
@@ -283,15 +332,46 @@
  * @brief   Serial buffers size.
  * @details Configuration parameter, you can change the depth of the queue
  *          buffers depending on the requirements of your application.
- * @note    The default is 64 bytes for both the transmission and receive
+ * @note    The default is 16 bytes for both the transmission and receive
  *          buffers.
  */
 #if !defined(SERIAL_BUFFERS_SIZE) || defined(__DOXYGEN__)
 #define SERIAL_BUFFERS_SIZE         16
 #endif
+/** @} */
 
 /*===========================================================================*/
-/* SPI driver related settings.                                              */
+/**
+ * @name SERIAL_USB driver related setting
+ * @{
+ */
+/*===========================================================================*/
+
+/**
+ * @brief   Serial over USB buffers size.
+ * @details Configuration parameter, the buffer size must be a multiple of
+ *          the USB data endpoint maximum packet size.
+ * @note    The default is 256 bytes for both the transmission and receive
+ *          buffers.
+ */
+#if !defined(SERIAL_USB_BUFFERS_SIZE) || defined(__DOXYGEN__)
+#define SERIAL_USB_BUFFERS_SIZE     256
+#endif
+
+/**
+ * @brief   Serial over USB number of buffers.
+ * @note    The default is 2 buffers.
+ */
+#if !defined(SERIAL_USB_BUFFERS_NUMBER) || defined(__DOXYGEN__)
+#define SERIAL_USB_BUFFERS_NUMBER   2
+#endif
+/** @} */
+
+/*===========================================================================*/
+/**
+ * @name SPI driver related setting
+ * @{
+ */
 /*===========================================================================*/
 
 /**
@@ -309,12 +389,48 @@
 #if !defined(SPI_USE_MUTUAL_EXCLUSION) || defined(__DOXYGEN__)
 #define SPI_USE_MUTUAL_EXCLUSION    TRUE
 #endif
-
-#endif /* _HALCONF_H_ */
-
 /** @} */
 
+/*===========================================================================*/
 /**
- * @}
- * @}
+ * @name UART driver related setting
+ * @{
  */
+/*===========================================================================*/
+
+/**
+ * @brief   Enables synchronous APIs.
+ * @note    Disabling this option saves both code and data space.
+ */
+#if !defined(UART_USE_WAIT) || defined(__DOXYGEN__)
+#define UART_USE_WAIT               TRUE
+#endif
+
+/**
+ * @brief   Enables the @p uartAcquireBus() and @p uartReleaseBus() APIs.
+ * @note    Disabling this option saves both code and data space.
+ */
+#if !defined(UART_USE_MUTUAL_EXCLUSION) || defined(__DOXYGEN__)
+#define UART_USE_MUTUAL_EXCLUSION   TRUE
+#endif
+/** @} */
+
+/*===========================================================================*/
+/**
+ * @name USB driver related setting
+ * @{
+ */
+/*===========================================================================*/
+
+/**
+ * @brief   Enables synchronous APIs.
+ * @note    Disabling this option saves both code and data space.
+ */
+#if !defined(USB_USE_WAIT) || defined(__DOXYGEN__)
+#define USB_USE_WAIT                TRUE
+#endif
+/** @} */
+
+#endif /* HALCONF_H */
+
+/** @} */
