@@ -111,16 +111,19 @@ DEFS      := $(DDEFS) $(UDEFS)
 ADEFS 	  := $(DADEFS) $(UADEFS)
 
 # Libs
-LIBS      := $(DLIBS) $(ULIBS)
+LIBS      += $(DLIBS) $(ULIBS)
 
 # Various settings
 MCFLAGS   := -mcpu=$(MCU)
 ODFLAGS	  = -x --syms
-ASFLAGS   = $(MCFLAGS) $(OPT) -Wa,-amhls=$(LSTDIR)/$(notdir $(<:.s=.lst)) $(ADEFS)
+# Damn you ChibiOS, don't overwrite my flags >:[
+ASFLAGS   += $(MCFLAGS) $(OPT) -Wa,-amhls=$(LSTDIR)/$(notdir $(<:.s=.lst)) $(ADEFS)
 ASXFLAGS  = $(MCFLAGS) $(OPT) -Wa,-amhls=$(LSTDIR)/$(notdir $(<:.S=.lst)) $(ADEFS)
-CFLAGS    = $(MCFLAGS) $(OPT) $(COPT) $(CWARN) -Wa,-alms=$(LSTDIR)/$(notdir $(<:.c=.lst)) $(DEFS)
+# Damn you ChibiOS, don't overwrite my flags >:[
+CFLAGS    += $(MCFLAGS) $(OPT) $(COPT) $(CWARN) -Wa,-alms=$(LSTDIR)/$(notdir $(<:.c=.lst)) $(DEFS)
 CPPFLAGS  = $(MCFLAGS) $(OPT) $(CPPOPT) $(CPPWARN) -Wa,-alms=$(LSTDIR)/$(notdir $(<:.cpp=.lst)) $(DEFS)
-LDFLAGS   = $(MCFLAGS) $(OPT) -nostartfiles $(LLIBDIR) -Wl,-Map=$(BUILDDIR)/$(PROJECT).map,--cref,--no-warn-mismatch,--library-path=$(RULESPATH)/ld,--script=$(LDSCRIPT)$(LDOPT)
+# Damn you ChibiOS, don't overwrite my flags >:[
+LDFLAGS   += $(MCFLAGS) $(OPT) -nostartfiles $(LLIBDIR) -Wl,-Map=$(BUILDDIR)/$(PROJECT).map,--cref,--no-warn-mismatch,--library-path=$(RULESPATH)/ld,--script=$(LDSCRIPT)$(LDOPT)
 
 # Thumb interwork enabled only if needed because it kills performance.
 ifneq ($(strip $(TSRC)),)
@@ -258,13 +261,14 @@ else
 	@$(HEX) $< $@
 endif
 
-%.bin: %.elf
-ifeq ($(USE_VERBOSE_COMPILE),yes)
-	$(BIN) $< $@
-else
-	@echo Creating $@
-	@$(BIN) $< $@
-endif
+# Glowtape
+#%.bin: %.elf
+#ifeq ($(USE_VERBOSE_COMPILE),yes)
+#	$(BIN) $< $@
+#else
+#	@echo Creating $@
+#	@$(BIN) $< $@
+#endif
 
 %.srec: %.elf
 ifdef SREC

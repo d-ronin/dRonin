@@ -120,7 +120,7 @@
  * @brief   RAM areas initialization switch.
  */
 #if !defined(CRT0_INIT_RAM_AREAS) || defined(__DOXYGEN__)
-#define CRT0_INIT_RAM_AREAS                 TRUE
+#define CRT0_INIT_RAM_AREAS                 FALSE
 #endif
 
 /**
