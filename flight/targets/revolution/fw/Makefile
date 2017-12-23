@@ -89,6 +89,7 @@ OPUAVOBJINC = $(OPUAVOBJ)/inc
 MAVLINKINC = $(FLIGHTLIB)/mavlink/v1.0/common
 
 SRC =
+
 # optional component libraries
 include $(APPLIBDIR)/ChibiOS/library.mk
 
@@ -245,7 +246,7 @@ CDEFS += -DUSE_$(BOARD)
 ifeq ($(ENABLE_DEBUG_CONSOLE), YES)
 CDEFS += -DPIOS_INCLUDE_DEBUG_CONSOLE
 endif
-CDEFS += -DSTM32F40_41xxx
+CDEFS += -DSTM32F40_41xxx -DSTM32F405xx
 CDEFS += '-DCORTEX_VTOR_INIT=($(FW_BANK_BASE)-$(EF_BANK_BASE))'
 
 # Declare all non-optional modules as built-in to force inclusion
