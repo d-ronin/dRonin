@@ -666,7 +666,7 @@ void AutotuneSlidersPage::compute()
         tuneState->outerKi = 0;
     }
 
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < 3; i++) {
         double beta = exp(tuneState->beta[i]);
 
         double ki;
@@ -682,19 +682,7 @@ void AutotuneSlidersPage::compute()
         tuneState->kd[i] = kd;
     }
 
-    if (doYaw) {
-        // Don't take yaw beta completely seriously.  Why?
-        // 1) It's got two different time constants and magnitudes of
-        // effect (reaction wheel vs. drag).  Don't want to overcontrol.
-        // 2) Far better to be undertuned on yaw than to get into weird
-        // scenarios from coupling between axes.  If yaw is far less
-        // powerful than other axes, even a small amount of nonlinearity
-        // or cross-axis coupling will excite pitch and roll.
-        double scale = exp(0.6 * (tuneState->beta[0] - tuneState->beta[2]));
-        tuneState->kp[2] = tuneState->kp[0] * scale;
-        tuneState->ki[2] = 0.8 * tuneState->ki[0] * scale;
-        tuneState->kd[2] = 0.8 * tuneState->kd[0] * scale;
-    } else {
+    if (!doYaw) {
         tuneState->kp[2] = -1;
         tuneState->ki[2] = -1;
         tuneState->kd[2] = -1;
