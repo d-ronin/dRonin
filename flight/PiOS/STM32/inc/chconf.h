@@ -504,6 +504,8 @@
  */
 #define CH_CFG_SYSTEM_TICK_HOOK() {                                         \
   /* System tick event code here.*/                                         \
+  extern void system_tick_led();\
+  system_tick_led();\
 }
 
 /**

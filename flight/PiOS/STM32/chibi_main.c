@@ -44,10 +44,8 @@ static void initTask(void *parameters);
 
 static struct pios_thread *initTaskHandle;
 
-void ledcrap()
+void ledinit()
 {
-	__disable_irq();
-
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
 
 	GPIO_InitTypeDef GPIO_InitStruct;
@@ -58,6 +56,25 @@ void ledcrap()
 	GPIO_InitStruct.GPIO_OType = GPIO_OType_PP; 	// this sets the pin type to push / pull (as opposed to open drain)
 	GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_UP; 	// this sets the pullup / pulldown resistors to be inactive
 	GPIO_Init(GPIOB, &GPIO_InitStruct); 		
+
+	GPIO_SetBits(GPIOB, GPIO_Pin_12 | GPIO_Pin_5 | GPIO_Pin_4);
+}
+
+const int cyc = 50;
+int cnt = 0;
+void system_tick_led()
+{
+		if (cnt < cyc)
+			GPIO_ResetBits(GPIOB, GPIO_Pin_12 | GPIO_Pin_5 | GPIO_Pin_4);
+		else
+			GPIO_SetBits(GPIOB, GPIO_Pin_12 | GPIO_Pin_5 | GPIO_Pin_4);
+		cnt++;
+		if(cnt > (cyc*2)) cnt = 0;
+}
+
+void ledcrap()
+{
+	ledinit();
 
 	const int cycles = 5000000;
 	int c = 0;
@@ -113,7 +130,9 @@ int main()
 	
 	/* For Sparky2 we use an RTOS task to bring up the system so we can */
 	/* always rely on an RTOS primitive */	
-	// ledcrap();
+	ledinit();
+	//while(1);
+
 	initTaskHandle = PIOS_Thread_Create(initTask, "init", INIT_TASK_STACK, NULL, INIT_TASK_PRIORITY);
 	PIOS_Assert(initTaskHandle != NULL);
 
@@ -161,7 +180,7 @@ void check_bor()
  */
 void initTask(void *parameters)
 {
-	ledcrap(); // Blink Revo LED if we get here.
+	// ledcrap(); // Blink Revo LED if we get here.
 
 	/* Ensure BOR is programmed sane */
 	check_bor();
