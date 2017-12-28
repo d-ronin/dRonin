@@ -44,8 +44,10 @@ static void initTask(void *parameters);
 
 static struct pios_thread *initTaskHandle;
 
-__attribute__((naked)) void ledcrap()
+void ledcrap()
 {
+	__disable_irq();
+
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
 
 	GPIO_InitTypeDef GPIO_InitStruct;
@@ -111,7 +113,7 @@ int main()
 	
 	/* For Sparky2 we use an RTOS task to bring up the system so we can */
 	/* always rely on an RTOS primitive */	
-	ledcrap();
+	// ledcrap();
 	initTaskHandle = PIOS_Thread_Create(initTask, "init", INIT_TASK_STACK, NULL, INIT_TASK_PRIORITY);
 	PIOS_Assert(initTaskHandle != NULL);
 
@@ -159,6 +161,8 @@ void check_bor()
  */
 void initTask(void *parameters)
 {
+	ledcrap(); // Blink Revo LED if we get here.
+
 	/* Ensure BOR is programmed sane */
 	check_bor();
 
