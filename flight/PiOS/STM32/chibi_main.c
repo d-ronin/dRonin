@@ -57,8 +57,17 @@ __attribute__((naked)) void ledcrap()
 	GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_UP; 	// this sets the pullup / pulldown resistors to be inactive
 	GPIO_Init(GPIOB, &GPIO_InitStruct); 		
 
-	GPIO_ResetBits(GPIOB, GPIO_Pin_12 | GPIO_Pin_5 | GPIO_Pin_4);
-	while(1);
+	const int cycles = 5000000;
+	int c = 0;
+	while(1)
+	{
+		if (c < cycles)
+			GPIO_ResetBits(GPIOB, GPIO_Pin_12 | GPIO_Pin_5 | GPIO_Pin_4);
+		else
+			GPIO_SetBits(GPIOB, GPIO_Pin_12 | GPIO_Pin_5 | GPIO_Pin_4);
+		c++;
+		if(c > (cycles*2)) c = 0;
+	}
 }
 
 /**
@@ -102,6 +111,7 @@ int main()
 	
 	/* For Sparky2 we use an RTOS task to bring up the system so we can */
 	/* always rely on an RTOS primitive */	
+	ledcrap();
 	initTaskHandle = PIOS_Thread_Create(initTask, "init", INIT_TASK_STACK, NULL, INIT_TASK_PRIORITY);
 	PIOS_Assert(initTaskHandle != NULL);
 
