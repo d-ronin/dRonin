@@ -28,7 +28,6 @@
 
 include $(MAKE_INC_DIR)/firmware-defs.mk
 
-
 # Set developer code and compile options
 # Set to YES for debugging
 DEBUG ?= NO
@@ -93,6 +92,7 @@ SRC += chibi_main.c
 SRC += pios_board.c
 SRC += pios_usb_board_data.c
 SRC += $(OPUAVOBJ)/uavobjectmanager.c
+SRC += printf-stdarg.c
 
 ifeq ($(DEBUG),YES)
 SRC += $(DEBUG_CM3_DIR)/dcc_stdio.c

@@ -90,6 +90,7 @@ SRC += ${OPMODULEDIR}/System/rgbleds.c
 SRC += chibi_main.c
 SRC += pios_board.c
 SRC += $(OPUAVOBJ)/uavobjectmanager.c
+SRC += printf-stdarg.c
 
 ## PIOS Hardware (STM32F10x)
 SRC += pios_sys.c
