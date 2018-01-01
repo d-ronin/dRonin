@@ -85,7 +85,14 @@ void PIOS_USBHOOK_Deactivate(void)
 {
 }
 
+#if defined(STM32F10X_MD)
 #include "stm32f10x.h"		/* __IO */
+#elif defined(STM32F30X)
+#include "stm32f30x.h"		/* __IO */
+#else
+#error UnsupportedArch
+#endif
+
 __IO uint8_t EXTI_Enable;
 
 uint32_t ProtocolValue;
