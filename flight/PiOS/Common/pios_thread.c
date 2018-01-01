@@ -33,11 +33,11 @@
 #if defined(PIOS_INCLUDE_CHIBIOS)
 struct pios_thread
 {
-	Thread *threadp;
+	thread_t *threadp;
 };
 
-#define CVT_MS2ST(msec) ((systime_t)(((((uint32_t)(msec)) * ((uint64_t)CH_FREQUENCY) - 1UL) / 1000UL) + 1UL))
-#define CVT_ST2MS(n) (((((n) - 1ULL) * 1000ULL) / ((uint64_t)CH_FREQUENCY)) + 1UL)
+#define CVT_MS2ST(msec) ((systime_t)(((((uint32_t)(msec)) * ((uint64_t)CH_CFG_ST_FREQUENCY ) - 1UL) / 1000UL) + 1UL))
+#define CVT_ST2MS(n) (((((n) - 1ULL) * 1000ULL) / ((uint64_t)CH_CFG_ST_FREQUENCY )) + 1UL)
 
 /**
  * Compute size that is at rounded up to the nearest
@@ -98,7 +98,7 @@ struct pios_thread *PIOS_Thread_Create(void (*fp)(void *), const char *namep, si
 		return NULL;
 	}
 
-	thread->threadp = chThdCreateStatic(wap, stack_bytes, prio, (msg_t (*)(void *))fp, argp);
+	thread->threadp = chThdCreateStatic(wap, stack_bytes, prio, (tfunc_t)fp, argp);
 	if (thread->threadp == NULL)
 	{
 		PIOS_free(thread);
@@ -106,14 +106,14 @@ struct pios_thread *PIOS_Thread_Create(void (*fp)(void *), const char *namep, si
 		return NULL;
 	}
 
-#if CH_USE_REGISTRY
-	thread->threadp->p_name = namep;
-#endif /* CH_USE_REGISTRY */
+#if CH_CFG_USE_REGISTRY
+	thread->threadp->name = namep;
+#endif /* CH_CFG_USE_REGISTRY */
 
 	return thread;
 }
 
-#if (CH_USE_WAITEXIT == TRUE)
+#if (CH_CFG_USE_WAITEXIT == TRUE)
 /**
  *
  * @brief   Destroys an instance of @p struct pios_thread.
@@ -135,7 +135,7 @@ void PIOS_Thread_Delete(struct pios_thread *threadp)
 }
 #else
 #error "PIOS_Thread_Delete requires CH_USE_WAITEXIT to be defined TRUE"
-#endif /* (CH_USE_WAITEXIT == TRUE) */
+#endif /* (CH_CFG_USE_WAITEXIT == TRUE) */
 
 /**
  *
@@ -146,7 +146,7 @@ void PIOS_Thread_Delete(struct pios_thread *threadp)
  */
 uint32_t PIOS_Thread_Systime(void)
 {
-	return (uint32_t)CVT_ST2MS(chTimeNow());
+	return (uint32_t)CVT_ST2MS(chVTGetSystemTime());
 }
 
 /**
@@ -183,7 +183,7 @@ void PIOS_Thread_Sleep_Until(uint32_t *previous_ms, uint32_t increment_ms)
 
 	chSysLock();
 
-	systime_t now = chTimeNow();
+	systime_t now = chVTGetSystemTime();
 	systime_t sleep_time = future - now;
 
 	if (sleep_time > increment_st) {
@@ -210,7 +210,7 @@ void PIOS_Thread_Sleep_Until(uint32_t *previous_ms, uint32_t increment_ms)
 bool PIOS_Thread_Period_Elapsed(const uint32_t prev_systime, const uint32_t increment_ms)
 {
 	/* TODO: make PIOS_Thread_Systime return opaque type to avoid ms conversion */
-	return CVT_MS2ST(increment_ms) <= chTimeElapsedSince(CVT_MS2ST(prev_systime));
+	return CVT_MS2ST(increment_ms) <= chVTTimeElapsedSinceX(CVT_MS2ST(prev_systime));
 }
 
 /**
@@ -227,10 +227,10 @@ uint32_t PIOS_Thread_Get_Stack_Usage(struct pios_thread *threadp)
 	uint32_t *stack = (uint32_t*)((size_t)threadp->threadp + sizeof(*threadp->threadp));
 	uint32_t *stklimit = stack;
 	while (*stack ==
-			((CH_STACK_FILL_VALUE << 24) |
-			(CH_STACK_FILL_VALUE << 16) |
-			(CH_STACK_FILL_VALUE << 8) |
-			(CH_STACK_FILL_VALUE << 0)))
+			((CH_DBG_STACK_FILL_VALUE << 24) |
+			(CH_DBG_STACK_FILL_VALUE << 16) |
+			(CH_DBG_STACK_FILL_VALUE << 8) |
+			(CH_DBG_STACK_FILL_VALUE << 0)))
 		++stack;
 	return (stack - stklimit) * 4;
 #else
@@ -251,8 +251,8 @@ uint32_t PIOS_Thread_Get_Stack_Usage(struct pios_thread *threadp)
 {
 	chSysLock();
 
-	uint32_t result = threadp->threadp->ticks_total;
-	threadp->threadp->ticks_total = 0;
+	uint32_t result = threadp->threadp->time;
+	threadp->threadp->time = 0;
 
 	chSysUnlock();
 

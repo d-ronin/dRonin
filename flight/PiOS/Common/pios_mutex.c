@@ -33,12 +33,12 @@
 #if defined(PIOS_INCLUDE_CHIBIOS)
 struct pios_mutex
 {
-	Mutex mtx;
+	mutex_t mtx;
 };
 
 struct pios_recursive_mutex
 {
-	Mutex mtx;
+	mutex_t mtx;
 	uint32_t count;
 };
 
@@ -56,7 +56,7 @@ struct pios_mutex *PIOS_Mutex_Create(void)
 	if (mtx == NULL)
 		return NULL;
 
-	chMtxInit(&mtx->mtx);
+	chMtxObjectInit(&mtx->mtx);
 
 	return mtx;
 }
@@ -93,7 +93,9 @@ bool PIOS_Mutex_Unlock(struct pios_mutex *mtx)
 {
 	PIOS_Assert(mtx != NULL);
 
-	chMtxUnlock();
+	mutex_t *next = chMtxGetNextMutexS();
+	if (next) chMtxUnlock(next);
+	// chMtxUnlock(&mtx->mtx);
 
 	return true;
 }
@@ -112,7 +114,7 @@ struct pios_recursive_mutex *PIOS_Recursive_Mutex_Create(void)
 	if (mtx == NULL)
 		return NULL;
 
-	chMtxInit(&mtx->mtx);
+	chMtxObjectInit(&mtx->mtx);
 	mtx->count = 0;
 
 	return mtx;
@@ -134,7 +136,7 @@ bool PIOS_Recursive_Mutex_Lock(struct pios_recursive_mutex *mtx, uint32_t timeou
 
 	chSysLock();
 
-	if (chThdSelf() != mtx->mtx.m_owner)
+	if (chThdGetSelfX() != mtx->mtx.owner)
 		chMtxLockS(&mtx->mtx);
 
 	++mtx->count;
@@ -161,8 +163,11 @@ bool PIOS_Recursive_Mutex_Unlock(struct pios_recursive_mutex *mtx)
 
 	--mtx->count;
 
-	if (mtx->count == 0)
-		chMtxUnlockS();
+	if (mtx->count == 0) {
+		mutex_t *next = chMtxGetNextMutexS();
+		if (next) chMtxUnlock(next);
+		// chMtxUnlockS(&mtx->mtx);
+	}
 
 	chSysUnlock();
 
