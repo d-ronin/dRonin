@@ -94,6 +94,7 @@ SRC += chibi_main.c
 SRC += pios_board.c
 SRC += pios_usb_board_data.c
 SRC += $(OPUAVOBJ)/uavobjectmanager.c
+SRC += printf-stdarg.c
 
 ifeq ($(DEBUG),YES)
 SRC += $(DEBUG_CM3_DIR)/dcc_stdio.c
