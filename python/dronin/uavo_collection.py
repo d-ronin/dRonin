@@ -9,9 +9,6 @@ Licensed under the GNU LGPL version 2.1 or any later version (see COPYING.LESSER
 
 from . import uavo
 
-import operator
-import os.path as op
-
 GITHASH_OF_LAST_RESORT = 'Release-20160120.3'
 
 class UAVOCollection(dict):
@@ -29,6 +26,8 @@ class UAVOCollection(dict):
         return None
 
     def get_settings_objects(self):
+        import operator
+
         objs = [ u for u in self.values() if u._is_settings ]
         objs.sort(key=operator.attrgetter('_name'))
 
@@ -64,7 +63,7 @@ class UAVOCollection(dict):
                     self.update([('{0:08x}'.format(u._id), u)])
 
                     some_processed = True
-                except Exception, e:
+                except Exception:
                     unprocessed.append(contents)
 
             content_list = unprocessed
@@ -111,6 +110,7 @@ class UAVOCollection(dict):
                 # the provided hash
                 #
                 import subprocess
+                import os.path as op
 
                 # Get the directory where the code is located
                 src_dir = op.join(op.dirname(__file__), "..", "..")
