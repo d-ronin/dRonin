@@ -173,7 +173,7 @@ namespace mapcontrol
         * @param config pointer to configuration classed to be used
         * @return
         */
-        TLMapWidget(QWidget *parent=0,Configuration *config=new Configuration);
+        TLMapWidget(QWidget *parent=nullptr,Configuration *config=new Configuration);
         ~TLMapWidget();
         /**
         * @brief Returns true if map is showing gridlines

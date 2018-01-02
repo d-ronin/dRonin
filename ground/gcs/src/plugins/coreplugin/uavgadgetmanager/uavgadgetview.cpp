@@ -185,18 +185,18 @@ void UAVGadgetView::removeGadget()
         return;
     tl->removeWidget(m_uavGadget->widget());
 
-    m_uavGadget->setParent(0);
-    m_uavGadget->widget()->setParent(0);
+    m_uavGadget->setParent(nullptr);
+    m_uavGadget->widget()->setParent(nullptr);
     QWidget *toolBar = m_uavGadget->toolBar();
-    if (toolBar != 0) {
+    if (toolBar != nullptr) {
         if (m_activeToolBar == toolBar) {
             m_activeToolBar = m_defaultToolBar;
             m_activeToolBar->setVisible(true);
         }
         m_toolBar->layout()->removeWidget(toolBar);
-        toolBar->setParent(0);
+        toolBar->setParent(nullptr);
     }
-    m_uavGadget = 0;
+    m_uavGadget = nullptr;
 }
 
 IUAVGadget *UAVGadgetView::gadget() const

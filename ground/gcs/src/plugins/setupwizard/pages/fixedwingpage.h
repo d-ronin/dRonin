@@ -39,7 +39,7 @@ class FixedWingPage : public AbstractWizardPage
     Q_OBJECT
 
 public:
-    explicit FixedWingPage(SetupWizard *wizard, QWidget *parent = 0);
+    explicit FixedWingPage(SetupWizard *wizard, QWidget *parent = nullptr);
     ~FixedWingPage();
 
 private:

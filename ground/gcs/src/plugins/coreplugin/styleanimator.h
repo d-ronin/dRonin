@@ -90,7 +90,7 @@ class StyleAnimator : public QObject
     Q_OBJECT
 
 public:
-    StyleAnimator(QObject *parent = 0)
+    StyleAnimator(QObject *parent = nullptr)
         : QObject(parent)
     {
     }

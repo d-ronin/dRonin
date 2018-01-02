@@ -30,7 +30,7 @@
 
 using namespace Core;
 
-UniqueIDManager *UniqueIDManager::m_instance = 0;
+UniqueIDManager *UniqueIDManager::m_instance = nullptr;
 
 UniqueIDManager::UniqueIDManager()
 {
@@ -40,7 +40,7 @@ UniqueIDManager::UniqueIDManager()
 
 UniqueIDManager::~UniqueIDManager()
 {
-    m_instance = 0;
+    m_instance = nullptr;
 }
 
 bool UniqueIDManager::hasUniqueIdentifier(const QString &id) const

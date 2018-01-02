@@ -58,7 +58,7 @@ bool CorePlugin::initialize(const QStringList &arguments, QString *errorMessage)
 {
     if (arguments.contains("crashme")) {
         if ((arguments.length() > 1) && (arguments.at(arguments.indexOf("crashme") + 1) == "yes")) {
-            QString *s = 0;
+            QString *s = nullptr;
             s->append("crash");
         }
     }

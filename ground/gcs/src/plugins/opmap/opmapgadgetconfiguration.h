@@ -51,8 +51,8 @@ class OPMapGadgetConfiguration : public IUAVGadgetConfiguration
     Q_PROPERTY(qreal overlayOpacity READ opacity WRITE setOpacity)
 
 public:
-    explicit OPMapGadgetConfiguration(QString classId, QSettings *qSettings = 0,
-                                      QObject *parent = 0);
+    explicit OPMapGadgetConfiguration(QString classId, QSettings *qSettings = nullptr,
+                                      QObject *parent = nullptr);
 
     void saveConfig(QSettings *settings) const;
     IUAVGadgetConfiguration *clone();

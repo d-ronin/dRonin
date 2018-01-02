@@ -18,7 +18,7 @@ class importSettings : public QDialog
     };
 
 public:
-    explicit importSettings(QWidget *parent = 0);
+    explicit importSettings(QWidget *parent = nullptr);
     ~importSettings();
 
     void loadFiles(QString path);

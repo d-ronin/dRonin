@@ -39,7 +39,7 @@ class SurfacePage : public AbstractWizardPage
     Q_OBJECT
 
 public:
-    explicit SurfacePage(SetupWizard *wizard, QWidget *parent = 0);
+    explicit SurfacePage(SetupWizard *wizard, QWidget *parent = nullptr);
     ~SurfacePage();
 
 private:

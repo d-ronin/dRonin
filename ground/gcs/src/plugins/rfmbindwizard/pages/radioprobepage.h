@@ -41,7 +41,7 @@ class RadioProbePage : public AbstractWizardPage
 {
     Q_OBJECT
 public:
-    explicit RadioProbePage(RfmBindWizard *wizard, QWidget *parent = 0);
+    explicit RadioProbePage(RfmBindWizard *wizard, QWidget *parent = nullptr);
 
 private:
     //! Set the board device for probed radio board

@@ -40,7 +40,7 @@ class QTCREATOR_UTILS_EXPORT LongLongSpinBox : public QAbstractSpinBox
     Q_OBJECT
 
 public:
-    explicit LongLongSpinBox(QWidget *parent = Q_NULLPTR);
+    explicit LongLongSpinBox(QWidget *parent = nullptr);
     ~LongLongSpinBox();
 
     qint64 value() const;
@@ -77,7 +77,7 @@ protected:
     virtual QString textFromValue(qint64 val) const;
     void fixup(QString &str) const override;
     void updateEdit();
-    QString stripped(const QString &text, int *pos = Q_NULLPTR) const;
+    QString stripped(const QString &text, int *pos = nullptr) const;
     qint64 validateAndInterpret(QString &input, int &pos, QValidator::State &state) const;
     virtual StepEnabled stepEnabled() const override;
     virtual void stepBy(int steps) override;

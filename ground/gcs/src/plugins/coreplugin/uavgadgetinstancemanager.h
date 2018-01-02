@@ -56,7 +56,7 @@ class CORE_EXPORT UAVGadgetInstanceManager : public QObject
 
     Q_OBJECT
 public:
-    explicit UAVGadgetInstanceManager(QObject *parent = 0);
+    explicit UAVGadgetInstanceManager(QObject *parent = nullptr);
     ~UAVGadgetInstanceManager();
     void readSettings(QSettings *qs);
     void saveSettings(QSettings *qs);

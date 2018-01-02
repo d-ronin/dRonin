@@ -46,7 +46,7 @@ class CORE_EXPORT IUAVGadget : public IContext
 {
     Q_OBJECT
 public:
-    IUAVGadget(QString classId, QObject *parent = 0)
+    IUAVGadget(QString classId, QObject *parent = nullptr)
         : IContext(parent)
         , m_classId(classId)
     {
@@ -57,11 +57,11 @@ public:
     QList<int> context() const { return m_context; }
     void setContext(QList<int> context) { m_context = context; }
     virtual QWidget *widget() = 0;
-    virtual QComboBox *toolBar() { return 0; }
+    virtual QComboBox *toolBar() { return nullptr; }
     virtual QString contextHelpId() const { return QString(); }
     QString classId() const { return m_classId; }
 
-    virtual IUAVGadgetConfiguration *activeConfiguration() { return 0; }
+    virtual IUAVGadgetConfiguration *activeConfiguration() { return nullptr; }
     virtual void loadConfiguration(IUAVGadgetConfiguration *) {}
     virtual void saveState(QSettings * /*qSettings*/) {}
     virtual void restoreState(QByteArray) {}

@@ -41,7 +41,7 @@ class ConfigStabilizationWidget : public ConfigTaskWidget
     Q_OBJECT
 
 public:
-    ConfigStabilizationWidget(QWidget *parent = 0);
+    ConfigStabilizationWidget(QWidget *parent = nullptr);
     ~ConfigStabilizationWidget();
 
 private:

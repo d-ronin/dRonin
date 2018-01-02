@@ -108,7 +108,7 @@ QWidget *ShortcutSettings::createPage(QWidget *parent)
 
     new Utils::TreeWidgetColumnStretcher(m_page->commandList, 1);
 
-    commandChanged(0);
+    commandChanged(nullptr);
 
     return w;
 }
@@ -245,7 +245,7 @@ void ShortcutSettings::initialize()
         if (c->action() && c->action()->isSeparator())
             continue;
 
-        QTreeWidgetItem *item = 0;
+        QTreeWidgetItem *item = nullptr;
         ShortcutItem *s = new ShortcutItem;
         m_scitems << s;
         item = new QTreeWidgetItem(m_page->commandList);

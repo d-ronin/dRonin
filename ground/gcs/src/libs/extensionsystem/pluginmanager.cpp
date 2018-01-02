@@ -164,7 +164,7 @@ static bool lessThanByPluginName(const PluginSpec *one, const PluginSpec *two)
     return one->name() < two->name();
 }
 
-PluginManager *PluginManager::m_instance = 0;
+PluginManager *PluginManager::m_instance = nullptr;
 
 /*!
     \fn PluginManager *PluginManager::instance()
@@ -192,7 +192,7 @@ PluginManager::PluginManager()
 PluginManager::~PluginManager()
 {
     delete d;
-    d = 0;
+    d = nullptr;
 }
 
 /*!
@@ -506,7 +506,7 @@ void PluginManagerPrivate::addObject(QObject *obj)
 {
     {
         QWriteLocker lock(&(q->m_lock));
-        if (obj == 0) {
+        if (obj == nullptr) {
             qWarning() << "PluginManagerPrivate::addObject(): trying to add null object";
             return;
         }
@@ -529,7 +529,7 @@ void PluginManagerPrivate::addObject(QObject *obj)
 */
 void PluginManagerPrivate::removeObject(QObject *obj)
 {
-    if (obj == 0) {
+    if (obj == nullptr) {
         qWarning() << "PluginManagerPrivate::removeObject(): trying to remove null object";
         return;
     }
@@ -737,7 +737,7 @@ PluginSpec *PluginManagerPrivate::pluginForOption(const QString &option, bool *r
             }
         }
     }
-    return 0;
+    return nullptr;
 }
 
 PluginSpec *PluginManagerPrivate::pluginByName(const QString &name) const
@@ -745,5 +745,5 @@ PluginSpec *PluginManagerPrivate::pluginByName(const QString &name) const
     foreach (PluginSpec *spec, pluginSpecs)
         if (spec->name() == name)
             return spec;
-    return 0;
+    return nullptr;
 }

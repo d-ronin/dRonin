@@ -35,7 +35,7 @@
 
 ConfigGadgetFactory::ConfigGadgetFactory(QObject *parent)
     : IUAVGadgetFactory(QString("ConfigGadget"), tr("Config Gadget"), parent)
-    , gadgetWidget(0)
+    , gadgetWidget(nullptr)
 {
 }
 

@@ -47,7 +47,7 @@
 using namespace Welcome::Internal;
 
 WelcomePlugin::WelcomePlugin()
-    : m_welcomeMode(0)
+    : m_welcomeMode(nullptr)
 {
 }
 

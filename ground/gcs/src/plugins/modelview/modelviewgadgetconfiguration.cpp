@@ -35,7 +35,7 @@ ModelViewGadgetConfiguration::ModelViewGadgetConfiguration(QString classId, QSet
     , m_enableVbo(false)
 {
     // if a saved configuration exists load it
-    if (qSettings != 0) {
+    if (qSettings != nullptr) {
         QString modelFile = qSettings->value("acFilename").toString();
         QString bgFile = qSettings->value("bgFilename").toString();
         m_enableVbo = qSettings->value("enableVbo").toBool();

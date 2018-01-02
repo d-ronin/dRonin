@@ -40,7 +40,7 @@ class LoggingGadgetWidget : public QLabel
     Q_OBJECT
 
 public:
-    LoggingGadgetWidget(QWidget *parent = 0);
+    LoggingGadgetWidget(QWidget *parent = nullptr);
     ~LoggingGadgetWidget();
     void setPlugin(LoggingPlugin *p);
 

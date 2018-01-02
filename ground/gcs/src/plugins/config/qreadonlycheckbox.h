@@ -36,7 +36,7 @@ class QReadOnlyCheckBox : public QCheckBox
 {
     Q_OBJECT
 public:
-    QReadOnlyCheckBox(QWidget *parent = 0)
+    QReadOnlyCheckBox(QWidget *parent = nullptr)
         : QCheckBox(parent)
         , readOnly(true)
     {

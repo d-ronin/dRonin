@@ -48,7 +48,7 @@ const float VehicleConfigurationHelper::DEFAULT_ENABLED_ACCEL_TAU = 0.1;
 
 VehicleConfigurationHelper::VehicleConfigurationHelper(VehicleConfigurationSource *configSource)
     : m_configSource(configSource)
-    , m_uavoManager(0)
+    , m_uavoManager(nullptr)
     , m_transactionOK(false)
     , m_transactionTimeout(false)
     , m_currentTransactionObjectID(-1)

@@ -34,7 +34,7 @@ class ConfigTxPIDWidget : public ConfigTaskWidget
     Q_OBJECT
 
 public:
-    ConfigTxPIDWidget(QWidget *parent = 0);
+    ConfigTxPIDWidget(QWidget *parent = nullptr);
     ~ConfigTxPIDWidget();
 
 private:

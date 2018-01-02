@@ -41,7 +41,7 @@ class SystemHealthGadget : public Core::IUAVGadget
 {
     Q_OBJECT
 public:
-    SystemHealthGadget(QString classId, SystemHealthGadgetWidget *widget, QWidget *parent = 0);
+    SystemHealthGadget(QString classId, SystemHealthGadgetWidget *widget, QWidget *parent = nullptr);
     ~SystemHealthGadget();
 
     QWidget *widget() { return m_widget; }

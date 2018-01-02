@@ -39,7 +39,7 @@ class opmap_zoom_slider_widget : public QWidget
     Q_OBJECT
 
 public:
-    explicit opmap_zoom_slider_widget(QWidget *parent = 0);
+    explicit opmap_zoom_slider_widget(QWidget *parent = nullptr);
     ~opmap_zoom_slider_widget();
 
 private:

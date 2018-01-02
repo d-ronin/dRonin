@@ -44,7 +44,7 @@
 ScopeGadgetOptionsPage::ScopeGadgetOptionsPage(ScopeGadgetConfiguration *config, QObject *parent)
     : IOptionsPage(parent)
     , m_config(config)
-    , selectedItem(0)
+    , selectedItem(nullptr)
 {
     // nothing to do here...
 }
@@ -348,7 +348,7 @@ void ScopeGadgetOptionsPage::set2dYAxisWidgetFromDataSource()
     bool parseOK = false;
     QListWidgetItem *listItem = options_page->lst2dCurves->currentItem();
 
-    if (listItem == 0)
+    if (listItem == nullptr)
         return;
 
     // Fetch data from teh listItem. The data is stored by user role + offset
@@ -687,7 +687,7 @@ void ScopeGadgetOptionsPage::on_lst2dItem_clicked(QListWidgetItem *listItem)
     if (listItem == selectedItem) {
         listItem->setSelected(false);
         options_page->lst2dCurves->setCurrentRow(-1);
-        selectedItem = 0;
+        selectedItem = nullptr;
     } else {
         selectedItem = listItem;
     }

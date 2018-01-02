@@ -39,7 +39,7 @@ public:
     virtual void processInputStream(char c);
 
 protected:
-    GPSParser(QObject *parent = 0);
+    GPSParser(QObject *parent = nullptr);
 
 signals:
     void sv(int); // Satellites in view

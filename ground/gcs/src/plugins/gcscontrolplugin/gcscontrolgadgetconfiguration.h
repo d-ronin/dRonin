@@ -49,8 +49,8 @@ class GCSControlGadgetConfiguration : public IUAVGadgetConfiguration
 {
     Q_OBJECT
 public:
-    explicit GCSControlGadgetConfiguration(QString classId, QSettings *qSettings = 0,
-                                           QObject *parent = 0);
+    explicit GCSControlGadgetConfiguration(QString classId, QSettings *qSettings = nullptr,
+                                           QObject *parent = nullptr);
 
     void setControlsMode(int mode) { controlsMode = mode; }
     void setRPYTchannels(int roll, int pitch, int yaw, int throttle);

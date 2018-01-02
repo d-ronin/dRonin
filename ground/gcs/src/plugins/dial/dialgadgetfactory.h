@@ -41,7 +41,7 @@ class DialGadgetFactory : public IUAVGadgetFactory
 {
     Q_OBJECT
 public:
-    DialGadgetFactory(QObject *parent = 0);
+    DialGadgetFactory(QObject *parent = nullptr);
     ~DialGadgetFactory();
 
     Core::IUAVGadget *createGadget(QWidget *parent);

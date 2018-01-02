@@ -41,8 +41,8 @@ namespace mapcontrol
         this->altitude = altitude;
         description = "";
 
-        text=0;
-        numberI=0;
+        text=nullptr;
+        numberI=nullptr;
         isMagic=false;
         picture.load(QString::fromUtf8(":/markers/images/marker.png"));
         number=WayPointItem::snumber;
@@ -95,8 +95,8 @@ namespace mapcontrol
             number=WayPointItem::snumber;
             ++WayPointItem::snumber;
         }
-        text=0;
-        numberI=0;
+        text=nullptr;
+        numberI=nullptr;
         this->setFlag(QGraphicsItem::ItemIsMovable,true);
         this->setFlag(QGraphicsItem::ItemIgnoresTransformations,true);
         this->setFlag(QGraphicsItem::ItemIsSelectable,true);
@@ -134,8 +134,8 @@ namespace mapcontrol
         this->altitude = altitude;
         this->description = description;
 
-        text=0;
-        numberI=0;
+        text=nullptr;
+        numberI=nullptr;
         isMagic=false;
         picture.load(QString::fromUtf8(":/markers/images/marker.png"));
         number=WayPointItem::snumber;
@@ -189,8 +189,8 @@ namespace mapcontrol
             coord=map->Projection()->translate(myHome->Coord(),relativeCoord.distance,relativeCoord.bearing);
         }
         myType=relative;
-        text=0;
-        numberI=0;
+        text=nullptr;
+        numberI=nullptr;
         isMagic=false;
         picture.load(QString::fromUtf8(":/markers/images/marker.png"));
         number=WayPointItem::snumber;
@@ -402,7 +402,7 @@ namespace mapcontrol
     void WayPointItem::SetShowNumber(const bool &value)
     {
         shownumber=value;
-        if((numberI==0) && value)
+        if((numberI==nullptr) && value)
         {
             numberI=new QGraphicsSimpleTextItem(this);
             numberIBG=new QGraphicsRectItem(this);

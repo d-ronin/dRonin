@@ -40,7 +40,7 @@ class SeppukuConfiguration : public ConfigTaskWidget
 {
     Q_OBJECT
 public:
-    SeppukuConfiguration(QWidget *parent = 0);
+    SeppukuConfiguration(QWidget *parent = nullptr);
     ~SeppukuConfiguration();
 
 private:

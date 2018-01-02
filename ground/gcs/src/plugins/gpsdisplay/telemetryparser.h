@@ -39,7 +39,7 @@ class TelemetryParser : public GPSParser
     Q_OBJECT
 
 public:
-    TelemetryParser(QObject *parent = 0);
+    TelemetryParser(QObject *parent = nullptr);
     ~TelemetryParser();
 
 public slots:

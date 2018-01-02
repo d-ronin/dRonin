@@ -34,7 +34,7 @@ class EmptyGadgetWidget : public QLabel
     Q_OBJECT
 
 public:
-    EmptyGadgetWidget(QWidget *parent = 0);
+    EmptyGadgetWidget(QWidget *parent = nullptr);
     ~EmptyGadgetWidget();
 
 private:

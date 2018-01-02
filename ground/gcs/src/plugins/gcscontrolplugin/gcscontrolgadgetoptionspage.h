@@ -57,7 +57,7 @@ class GCSControlGadgetOptionsPage : public IOptionsPage
     Q_OBJECT
 public:
     explicit GCSControlGadgetOptionsPage(GCSControlGadgetConfiguration *config,
-                                         QObject *parent = 0);
+                                         QObject *parent = nullptr);
     ~GCSControlGadgetOptionsPage();
 
     QWidget *createPage(QWidget *parent);

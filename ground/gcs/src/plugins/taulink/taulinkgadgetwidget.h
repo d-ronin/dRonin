@@ -35,7 +35,7 @@ class TauLinkGadgetWidget : public ConfigTaskWidget
     Q_OBJECT
 
 public:
-    TauLinkGadgetWidget(QWidget *parent = 0);
+    TauLinkGadgetWidget(QWidget *parent = nullptr);
     ~TauLinkGadgetWidget();
 
 private:

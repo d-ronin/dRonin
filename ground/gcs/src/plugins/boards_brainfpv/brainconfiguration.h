@@ -40,7 +40,7 @@ class BrainConfiguration : public ConfigTaskWidget
     Q_OBJECT
 
 public:
-    explicit BrainConfiguration(QWidget *parent = 0);
+    explicit BrainConfiguration(QWidget *parent = nullptr);
     ~BrainConfiguration();
 
 private:

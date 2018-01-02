@@ -194,7 +194,7 @@ class ConfigAutotuneWidget : public ConfigTaskWidget
 {
     Q_OBJECT
 public:
-    explicit ConfigAutotuneWidget(ConfigGadgetWidget *parent = 0);
+    explicit ConfigAutotuneWidget(ConfigGadgetWidget *parent = nullptr);
 
 private:
     Ui_AutotuneWidget *m_autotune;

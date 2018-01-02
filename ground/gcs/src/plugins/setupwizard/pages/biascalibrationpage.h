@@ -41,7 +41,7 @@ class BiasCalibrationPage : public AbstractWizardPage
     Q_OBJECT
 
 public:
-    explicit BiasCalibrationPage(SetupWizard *wizard, QWidget *parent = 0);
+    explicit BiasCalibrationPage(SetupWizard *wizard, QWidget *parent = nullptr);
     ~BiasCalibrationPage();
     bool validatePage();
     bool isComplete() const;

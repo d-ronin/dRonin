@@ -39,7 +39,7 @@ UAVGadgetDecorator::UAVGadgetDecorator(IUAVGadget *gadget,
     : IUAVGadget(gadget->classId(), gadget->parent())
     , m_gadget(gadget)
     , m_toolbar(new QComboBox)
-    , m_activeConfiguration(0)
+    , m_activeConfiguration(nullptr)
     , m_configurations(configurations)
 {
     m_gadget->setParent(this);

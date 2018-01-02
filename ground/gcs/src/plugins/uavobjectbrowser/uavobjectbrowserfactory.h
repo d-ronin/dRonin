@@ -40,7 +40,7 @@ class UAVObjectBrowserFactory : public Core::IUAVGadgetFactory
 {
     Q_OBJECT
 public:
-    UAVObjectBrowserFactory(QObject *parent = 0);
+    UAVObjectBrowserFactory(QObject *parent = nullptr);
     ~UAVObjectBrowserFactory();
 
     Core::IUAVGadget *createGadget(QWidget *parent);

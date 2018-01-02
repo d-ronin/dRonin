@@ -47,7 +47,7 @@ class ConfigGadgetWidget : public QWidget
     int chunk;
 
 public:
-    ConfigGadgetWidget(QWidget *parent = 0);
+    ConfigGadgetWidget(QWidget *parent = nullptr);
     ~ConfigGadgetWidget();
     enum widgetTabs {
         hardware = 0,

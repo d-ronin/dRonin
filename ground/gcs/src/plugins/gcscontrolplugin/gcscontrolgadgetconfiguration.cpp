@@ -46,7 +46,7 @@ GCSControlGadgetConfiguration::GCSControlGadgetConfiguration(QString classId, QS
         channelReverse[i] = 0;
     }
     // if a saved configuration exists load it
-    if (qSettings != 0) {
+    if (qSettings != nullptr) {
         controlsMode = qSettings->value("controlsMode").toInt();
         rollChannel = qSettings->value("rollChannel").toInt();
         pitchChannel = qSettings->value("pitchChannel").toInt();

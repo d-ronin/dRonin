@@ -18,9 +18,9 @@ class UAVOBJECTWIDGETUTILS_EXPORT PopupWidget : public QDialog
 {
     Q_OBJECT
 public:
-    explicit PopupWidget(QWidget *parent = 0);
+    explicit PopupWidget(QWidget *parent = nullptr);
 
-    void popUp(QWidget *widget = 0);
+    void popUp(QWidget *widget = nullptr);
     void setWidget(QWidget *widget);
     QWidget *getWidget() { return m_widget; }
     QHBoxLayout *getLayout() { return m_layout; }

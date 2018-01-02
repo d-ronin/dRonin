@@ -106,7 +106,7 @@ PluginView::~PluginView()
 PluginSpec *PluginView::currentPlugin() const
 {
     if (!m_ui->pluginWidget->currentItem())
-        return 0;
+        return nullptr;
     return m_ui->pluginWidget->currentItem()->data(0, Qt::UserRole).value<PluginSpec *>();
 }
 
@@ -115,7 +115,7 @@ void PluginView::updateList()
     static QIcon okIcon(":/extensionsystem/images/ok.png");
     static QIcon errorIcon(":/extensionsystem/images/error.png");
     QList<QTreeWidgetItem *> items;
-    QTreeWidgetItem *currentItem = 0;
+    QTreeWidgetItem *currentItem = nullptr;
     PluginSpec *currPlugin = currentPlugin();
     foreach (PluginSpec *spec, p->manager->plugins()) {
         QTreeWidgetItem *item = new QTreeWidgetItem(QStringList()
@@ -143,7 +143,7 @@ void PluginView::updateList()
 void PluginView::selectPlugin(QTreeWidgetItem *current)
 {
     if (!current)
-        emit currentPluginChanged(0);
+        emit currentPluginChanged(nullptr);
     else
         emit currentPluginChanged(current->data(0, Qt::UserRole).value<PluginSpec *>());
 }

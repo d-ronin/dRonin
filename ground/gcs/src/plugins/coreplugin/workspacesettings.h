@@ -49,7 +49,7 @@ namespace Internal {
     {
         Q_OBJECT
     public:
-        WorkspaceSettings(QObject *parent = 0);
+        WorkspaceSettings(QObject *parent = nullptr);
         ~WorkspaceSettings();
 
         // IOptionsPage

@@ -38,7 +38,7 @@ class NotYetImplementedPage : public AbstractWizardPage
     Q_OBJECT
 
 public:
-    explicit NotYetImplementedPage(SetupWizard *wizard, QWidget *parent = 0);
+    explicit NotYetImplementedPage(SetupWizard *wizard, QWidget *parent = nullptr);
     ~NotYetImplementedPage();
 
 private:

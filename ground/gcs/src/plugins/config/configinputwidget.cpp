@@ -96,7 +96,7 @@ ConfigInputWidget::ConfigInputWidget(QWidget *parent)
     , transmitterType(heli)
     , loop(NULL)
     , skipflag(false)
-    , cbArmingOption(Q_NULLPTR)
+    , cbArmingOption(nullptr)
     , lastArmingMethod(ARM_INVALID)
     , armingConfigUpdating(false)
 {

@@ -54,10 +54,10 @@ class CORE_EXPORT UAVConfigInfo : public QObject
 {
     Q_OBJECT
 public:
-    explicit UAVConfigInfo(QObject *parent = 0);
-    explicit UAVConfigInfo(QSettings *qs, QObject *parent = 0);
-    explicit UAVConfigInfo(IUAVGadgetConfiguration *config, QObject *parent = 0);
-    UAVConfigInfo(UAVConfigVersion version, QString nameOfConfigurable, QObject *parent = 0);
+    explicit UAVConfigInfo(QObject *parent = nullptr);
+    explicit UAVConfigInfo(QSettings *qs, QObject *parent = nullptr);
+    explicit UAVConfigInfo(IUAVGadgetConfiguration *config, QObject *parent = nullptr);
+    UAVConfigInfo(UAVConfigVersion version, QString nameOfConfigurable, QObject *parent = nullptr);
 
     enum Compatibility {
         FullyCompatible,

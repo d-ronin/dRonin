@@ -36,7 +36,7 @@ class GpsConstellationWidget : public QGraphicsView
     Q_OBJECT
 
 public:
-    explicit GpsConstellationWidget(QWidget *parent = 0);
+    explicit GpsConstellationWidget(QWidget *parent = nullptr);
     ~GpsConstellationWidget();
 
 public slots:

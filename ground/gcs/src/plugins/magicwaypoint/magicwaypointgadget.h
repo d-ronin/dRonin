@@ -42,7 +42,7 @@ class MagicWaypointGadget : public Core::IUAVGadget
 {
     Q_OBJECT
 public:
-    MagicWaypointGadget(QString classId, MagicWaypointGadgetWidget *widget, QWidget *parent = 0);
+    MagicWaypointGadget(QString classId, MagicWaypointGadgetWidget *widget, QWidget *parent = nullptr);
     ~MagicWaypointGadget();
 
     QList<int> context() const { return m_context; }

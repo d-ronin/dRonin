@@ -41,7 +41,7 @@ class ModelViewGadget : public Core::IUAVGadget
 {
     Q_OBJECT
 public:
-    ModelViewGadget(QString classId, ModelViewGadgetWidget *widget, QWidget *parent = 0);
+    ModelViewGadget(QString classId, ModelViewGadgetWidget *widget, QWidget *parent = nullptr);
     ~ModelViewGadget();
 
     QWidget *widget() { return m_widget; }

@@ -37,7 +37,7 @@ QmlViewGadgetConfiguration::QmlViewGadgetConfiguration(QString classId, QSetting
     , m_defaultDial("Unknown")
 {
     // if a saved configuration exists load it
-    if (qSettings != 0) {
+    if (qSettings != nullptr) {
         QString dialFile = qSettings->value("dialFile").toString();
         m_defaultDial = Utils::PathUtils().InsertDataPath(dialFile);
     }

@@ -84,7 +84,7 @@ class ScopeGadgetWidget : public QwtPlot
     Q_OBJECT
 
 public:
-    ScopeGadgetWidget(QWidget *parent = 0);
+    ScopeGadgetWidget(QWidget *parent = nullptr);
     ~ScopeGadgetWidget();
 
     QString getUavObjectFieldUnits(QString uavObjectName, QString uavObjectFieldName);

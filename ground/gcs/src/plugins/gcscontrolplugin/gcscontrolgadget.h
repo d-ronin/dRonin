@@ -54,8 +54,8 @@ class GCSControlGadget : public Core::IUAVGadget
 {
     Q_OBJECT
 public:
-    GCSControlGadget(QString classId, GCSControlGadgetWidget *widget, QWidget *parent = 0,
-                     QObject *plugin = 0);
+    GCSControlGadget(QString classId, GCSControlGadgetWidget *widget, QWidget *parent = nullptr,
+                     QObject *plugin = nullptr);
     ~GCSControlGadget();
 
     QList<int> context() const { return m_context; }

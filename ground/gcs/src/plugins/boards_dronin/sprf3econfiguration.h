@@ -40,7 +40,7 @@ class Sprf3eConfiguration : public ConfigTaskWidget
 {
     Q_OBJECT
 public:
-    Sprf3eConfiguration(QWidget *parent = 0);
+    Sprf3eConfiguration(QWidget *parent = nullptr);
     ~Sprf3eConfiguration();
 private:
     Ui::Sprf3eConfiguration *ui;

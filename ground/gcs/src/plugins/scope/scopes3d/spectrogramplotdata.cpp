@@ -53,9 +53,9 @@
 SpectrogramData::SpectrogramData(QString uavObject, QString uavField, double samplingFrequency,
                                  unsigned int windowWidth, double timeHorizon)
     : Plot3dData(uavObject, uavField)
-    , spectrogram(0)
-    , rasterData(0)
-    , fft_object(0)
+    , spectrogram(nullptr)
+    , rasterData(nullptr)
+    , fft_object(nullptr)
 {
     this->samplingFrequency = samplingFrequency;
     this->timeHorizon = timeHorizon;

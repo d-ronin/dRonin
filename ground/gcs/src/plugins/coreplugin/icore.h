@@ -66,13 +66,13 @@ public:
     static ICore *instance();
 
     virtual bool showOptionsDialog(const QString &group = QString(),
-                                   const QString &page = QString(), QWidget *parent = 0) = 0;
+                                   const QString &page = QString(), QWidget *parent = nullptr) = 0;
 
     virtual bool showWarningWithOptions(const QString &title, const QString &text,
                                         const QString &details = QString(),
                                         const QString &settingsCategory = QString(),
                                         const QString &settingsId = QString(),
-                                        QWidget *parent = 0) = 0;
+                                        QWidget *parent = nullptr) = 0;
 
     virtual ActionManager *actionManager() const = 0;
     virtual UniqueIDManager *uniqueIDManager() const = 0;
@@ -85,8 +85,8 @@ public:
     virtual QSettings *settings(QSettings::Scope scope = QSettings::UserScope) const = 0;
     virtual void readMainSettings(QSettings *qs, bool workspaceDiffOnly = false) = 0;
     virtual void saveMainSettings(QSettings *qs) = 0;
-    virtual void readSettings(IConfigurablePlugin *plugin, QSettings *qs = 0) = 0;
-    virtual void saveSettings(IConfigurablePlugin *plugin, QSettings *qs = 0) = 0;
+    virtual void readSettings(IConfigurablePlugin *plugin, QSettings *qs = nullptr) = 0;
+    virtual void saveSettings(IConfigurablePlugin *plugin, QSettings *qs = nullptr) = 0;
     virtual void deleteSettings() = 0;
 
     virtual QString resourcePath() const = 0;

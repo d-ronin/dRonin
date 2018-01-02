@@ -30,7 +30,7 @@ class PfdQmlGadget : public Core::IUAVGadget
 {
     Q_OBJECT
 public:
-    PfdQmlGadget(QString classId, PfdQmlGadgetWidget *widget, QWidget *parent = 0);
+    PfdQmlGadget(QString classId, PfdQmlGadgetWidget *widget, QWidget *parent = nullptr);
     ~PfdQmlGadget();
 
     QWidget *widget()

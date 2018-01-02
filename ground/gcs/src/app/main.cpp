@@ -394,7 +394,7 @@ int main(int argc, char **argv)
         return 1;
     }
     const PluginSpecSet plugins = pluginManager.plugins();
-    ExtensionSystem::PluginSpec *coreplugin = 0;
+    ExtensionSystem::PluginSpec *coreplugin = nullptr;
     foreach (ExtensionSystem::PluginSpec *spec, plugins) {
         if (spec->name() == QLatin1String(corePluginNameC)) {
             coreplugin = spec;

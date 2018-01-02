@@ -36,7 +36,7 @@ class DebugGadgetWidget : public QLabel
     Q_OBJECT
 
 public:
-    DebugGadgetWidget(QWidget *parent = 0);
+    DebugGadgetWidget(QWidget *parent = nullptr);
     ~DebugGadgetWidget();
 
 private:

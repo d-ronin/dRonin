@@ -34,7 +34,7 @@ GpsSnrWidget::GpsSnrWidget(QWidget *parent)
 GpsSnrWidget::~GpsSnrWidget()
 {
     delete scene;
-    scene = 0;
+    scene = nullptr;
 }
 
 void GpsSnrWidget::showEvent(QShowEvent *event)

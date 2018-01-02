@@ -40,7 +40,7 @@ class ConfigCameraStabilizationWidget : public ConfigTaskWidget
     Q_OBJECT
 
 public:
-    ConfigCameraStabilizationWidget(QWidget *parent = 0);
+    ConfigCameraStabilizationWidget(QWidget *parent = nullptr);
     ~ConfigCameraStabilizationWidget();
 
 private:

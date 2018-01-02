@@ -8,7 +8,7 @@ class GpsSnrWidget : public QGraphicsView
 {
     Q_OBJECT
 public:
-    explicit GpsSnrWidget(QWidget *parent = 0);
+    explicit GpsSnrWidget(QWidget *parent = nullptr);
     ~GpsSnrWidget();
 
 signals:

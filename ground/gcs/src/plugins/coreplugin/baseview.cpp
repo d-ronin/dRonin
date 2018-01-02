@@ -34,7 +34,7 @@ using namespace Core;
 BaseView::BaseView(QObject *parent)
     : IView(parent)
     , m_viewName("")
-    , m_widget(0)
+    , m_widget(nullptr)
     , m_context(QList<int>())
     , m_defaultPosition(IView::First)
 {

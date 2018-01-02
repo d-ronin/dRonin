@@ -40,7 +40,7 @@ class RfmBindWizard : public QWizard
     Q_OBJECT
 
 public:
-    RfmBindWizard(QWidget *parent = 0);
+    RfmBindWizard(QWidget *parent = nullptr);
     int nextId() const;
 
     // gettor and accessor for coordinator ID

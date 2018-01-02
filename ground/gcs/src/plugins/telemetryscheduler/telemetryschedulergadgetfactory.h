@@ -40,7 +40,7 @@ class TELEMETRYSCHEDULER_EXPORT TelemetrySchedulerGadgetFactory : public IUAVGad
 {
     Q_OBJECT
 public:
-    TelemetrySchedulerGadgetFactory(QObject *parent = 0);
+    TelemetrySchedulerGadgetFactory(QObject *parent = nullptr);
     ~TelemetrySchedulerGadgetFactory();
 
     IUAVGadget *createGadget(QWidget *parent);

@@ -42,7 +42,7 @@ class LoggingGadget : public Core::IUAVGadget
 {
     Q_OBJECT
 public:
-    LoggingGadget(QString classId, LoggingGadgetWidget *widget, QWidget *parent = 0);
+    LoggingGadget(QString classId, LoggingGadgetWidget *widget, QWidget *parent = nullptr);
     ~LoggingGadget();
 
     QList<int> context() const { return m_context; }

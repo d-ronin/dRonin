@@ -39,7 +39,7 @@ class TauLinkGadgetFactory : public IUAVGadgetFactory
 {
     Q_OBJECT
 public:
-    TauLinkGadgetFactory(QObject *parent = 0);
+    TauLinkGadgetFactory(QObject *parent = nullptr);
     ~TauLinkGadgetFactory();
 
     IUAVGadget *createGadget(QWidget *parent);

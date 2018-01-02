@@ -48,7 +48,7 @@
 ConnectionDiagram::ConnectionDiagram(QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::ConnectionDiagram)
-    , m_background(0)
+    , m_background(nullptr)
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     utilMngr = pm->getObject<UAVObjectUtilManager>();

@@ -41,7 +41,7 @@ class QTCREATOR_UTILS_EXPORT MyTabWidget : public QTabWidget
     Q_OBJECT
 
 public:
-    MyTabWidget(QWidget *parent = 0);
+    MyTabWidget(QWidget *parent = nullptr);
     void moveTab(int from, int to);
 
 private slots:

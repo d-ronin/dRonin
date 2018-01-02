@@ -55,7 +55,7 @@
 using namespace Core;
 using namespace Core::Internal;
 
-ModeManager *ModeManager::m_instance = 0;
+ModeManager *ModeManager::m_instance = nullptr;
 
 ModeManager::ModeManager(Internal::MainWindow *mainWindow, MyTabWidget *modeStack)
     : m_mainWindow(mainWindow)
@@ -97,7 +97,7 @@ IMode *ModeManager::currentMode() const
         return m_modes.at(m_modeStack->currentIndex());
     else
         m_modeStack->setCurrentIndex(0); // Fix illegal Index.
-    return 0;
+    return nullptr;
 }
 
 int ModeManager::indexOf(const QString &id) const
@@ -115,7 +115,7 @@ IMode *ModeManager::mode(const QString &id) const
     const int index = indexOf(id);
     if (index >= 0)
         return m_modes.at(index);
-    return 0;
+    return nullptr;
 }
 
 void ModeManager::activateMode(const QString &id)

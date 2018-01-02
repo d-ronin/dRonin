@@ -28,7 +28,7 @@
 namespace mapcontrol
 {
 
-MapRipper::MapRipper(internals::Core * core, const internals::RectLatLng & rect):sleep(100),cancel(false),progressForm(0),core(core),yesToAll(false)
+MapRipper::MapRipper(internals::Core * core, const internals::RectLatLng & rect):sleep(100),cancel(false),progressForm(nullptr),core(core),yesToAll(false)
     {
         if(!rect.IsEmpty())
         {

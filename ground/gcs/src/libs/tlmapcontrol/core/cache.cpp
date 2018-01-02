@@ -29,7 +29,7 @@
 #include <QSettings>
 
 namespace core {
-    Cache* Cache::m_pInstance=0;
+    Cache* Cache::m_pInstance=nullptr;
 
     Cache* Cache::Instance()
     {

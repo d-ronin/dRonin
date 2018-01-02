@@ -37,7 +37,7 @@ class AbstractWizardPage : public QWizardPage
 {
     Q_OBJECT
 protected:
-    explicit AbstractWizardPage(SetupWizard *wizard, QWidget *parent = 0);
+    explicit AbstractWizardPage(SetupWizard *wizard, QWidget *parent = nullptr);
 
 private:
     SetupWizard *m_wizard;

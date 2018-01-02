@@ -42,7 +42,7 @@ class FlightLogDownload : public QDialog
     Q_OBJECT
 
 public:
-    explicit FlightLogDownload(QWidget *parent = 0);
+    explicit FlightLogDownload(QWidget *parent = nullptr);
     ~FlightLogDownload();
 
 private slots:

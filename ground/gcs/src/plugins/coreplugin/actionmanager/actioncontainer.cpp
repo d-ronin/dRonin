@@ -219,17 +219,17 @@ int ActionContainerPrivate::id() const
 
 QMenu *ActionContainerPrivate::menu() const
 {
-    return 0;
+    return nullptr;
 }
 
 QMenuBar *ActionContainerPrivate::menuBar() const
 {
-    return 0;
+    return nullptr;
 }
 
 bool ActionContainerPrivate::canAddAction(Command *action) const
 {
-    return (action->action() != 0);
+    return (action->action() != nullptr);
 }
 
 void ActionContainerPrivate::addAction(Command *action, int pos, bool setpos)
@@ -293,7 +293,7 @@ QAction *ActionContainerPrivate::beforeAction(int pos, int *prevKey) const
     }
 
     if (baId == -1)
-        return 0;
+        return nullptr;
 
     if (Command *cmd = am->command(baId))
         return cmd->action();
@@ -301,7 +301,7 @@ QAction *ActionContainerPrivate::beforeAction(int pos, int *prevKey) const
         if (QMenu *menu = container->menu())
             return menu->menuAction();
 
-    return 0;
+    return nullptr;
 }
 
 int ActionContainerPrivate::calcPosition(int pos, int prevKey) const
@@ -327,7 +327,7 @@ int ActionContainerPrivate::calcPosition(int pos, int prevKey) const
 
 MenuActionContainer::MenuActionContainer(int id)
     : ActionContainerPrivate(id)
-    , m_menu(0)
+    , m_menu(nullptr)
 {
     setEmptyAction(EA_Disable);
 }
@@ -416,7 +416,7 @@ bool MenuActionContainer::canBeAddedToMenu() const
 
 MenuBarActionContainer::MenuBarActionContainer(int id)
     : ActionContainerPrivate(id)
-    , m_menuBar(0)
+    , m_menuBar(nullptr)
 {
     setEmptyAction(EA_None);
 }

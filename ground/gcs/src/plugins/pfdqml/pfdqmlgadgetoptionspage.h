@@ -37,7 +37,7 @@ class PfdQmlGadgetOptionsPage : public IOptionsPage
 {
     Q_OBJECT
 public:
-    explicit PfdQmlGadgetOptionsPage(PfdQmlGadgetConfiguration *config, QObject *parent = 0);
+    explicit PfdQmlGadgetOptionsPage(PfdQmlGadgetConfiguration *config, QObject *parent = nullptr);
 
     QWidget *createPage(QWidget *parent);
     void apply();

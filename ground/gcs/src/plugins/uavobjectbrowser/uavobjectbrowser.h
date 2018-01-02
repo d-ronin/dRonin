@@ -43,7 +43,7 @@ class UAVObjectBrowser : public Core::IUAVGadget
 {
     Q_OBJECT
 public:
-    UAVObjectBrowser(QString classId, UAVObjectBrowserWidget *widget, QWidget *parent = 0);
+    UAVObjectBrowser(QString classId, UAVObjectBrowserWidget *widget, QWidget *parent = nullptr);
     ~UAVObjectBrowser();
 
     QWidget *widget() { return m_widget; }

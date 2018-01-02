@@ -37,7 +37,7 @@ RfmBindWizard::RfmBindWizard(QWidget *parent)
     : QWizard(parent)
     , m_ppm(false)
     , m_maxBps(64000)
-    , m_connectionManager(0)
+    , m_connectionManager(nullptr)
 {
     setWindowTitle(tr("RFM22b Binding Wizard"));
     setOption(QWizard::IndependentPages, false);

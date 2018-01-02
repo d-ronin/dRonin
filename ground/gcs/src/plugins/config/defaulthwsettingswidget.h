@@ -39,7 +39,7 @@ class DefaultHwSettingsWidget : public ConfigTaskWidget
     Q_OBJECT
 
 public:
-    explicit DefaultHwSettingsWidget(UAVObject *settingsObj, QWidget *parent = 0);
+    explicit DefaultHwSettingsWidget(UAVObject *settingsObj, QWidget *parent = nullptr);
     ~DefaultHwSettingsWidget();
 
 private:

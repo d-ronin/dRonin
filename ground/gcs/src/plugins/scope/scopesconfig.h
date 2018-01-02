@@ -93,7 +93,7 @@ protected:
 
         // Get the units
         QString units = field->getUnits();
-        if (units == 0)
+        if (units == nullptr)
             units = QString();
 
         return units;

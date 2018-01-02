@@ -45,7 +45,7 @@ public:
     ScatterplotData(QString uavObject, QString uavField)
         : Plot2dData(uavObject, uavField)
     {
-        curve = 0;
+        curve = nullptr;
     }
     ~ScatterplotData() {}
 

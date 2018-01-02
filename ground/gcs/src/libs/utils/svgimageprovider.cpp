@@ -56,7 +56,7 @@ QSvgRenderer *SvgImageProvider::loadRenderer(const QString &svgFile)
         if(!QFileInfo::exists(fn)) {
             //it's really missing this time
             qWarning() << "[SvgImageProvider::loadRenderer]SVG file not found:" << svgFile;
-            return 0;
+            return nullptr;
         }
 
         renderer = new QSvgRenderer(fn);
@@ -64,7 +64,7 @@ QSvgRenderer *SvgImageProvider::loadRenderer(const QString &svgFile)
         if (!renderer->isValid()) {
             qWarning() << "[SvgImageProvider::loadRenderer]Failed to load svg file:" << svgFile;
             delete renderer;
-            return 0;
+            return nullptr;
         }
 
         m_renderers.insert(svgFile, renderer);

@@ -57,7 +57,7 @@ class ConfigInputWidget : public ConfigTaskWidget
 {
     Q_OBJECT
 public:
-    ConfigInputWidget(QWidget *parent = 0);
+    ConfigInputWidget(QWidget *parent = nullptr);
     ~ConfigInputWidget();
     enum wizardSteps {
         wizardWelcome,

@@ -38,7 +38,7 @@ class LuxConfiguration : public ConfigTaskWidget
     Q_OBJECT
 
 public:
-    explicit LuxConfiguration(QWidget *parent = 0);
+    explicit LuxConfiguration(QWidget *parent = nullptr);
     ~LuxConfiguration();
 
 private:

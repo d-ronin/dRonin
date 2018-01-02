@@ -57,7 +57,7 @@ namespace Utils {
 class PathValidatingLineEdit : public BaseValidatingLineEdit
 {
 public:
-    explicit PathValidatingLineEdit(PathChooser *chooser, QWidget *parent = 0);
+    explicit PathValidatingLineEdit(PathChooser *chooser, QWidget *parent = nullptr);
 
 protected:
     virtual bool validate(const QString &value, QString *errorMessage) const;

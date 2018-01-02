@@ -66,7 +66,7 @@ ConfigGadgetWidget::ConfigGadgetWidget(QWidget *parent)
     layout->addWidget(ftw);
     setLayout(layout);
 
-    help = 0;
+    help = nullptr;
     chunk = 0;
     lastTabIndex = ConfigGadgetWidget::hardware;
 

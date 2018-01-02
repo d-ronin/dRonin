@@ -45,7 +45,7 @@ class UsageStatsOptionPage : public IOptionsPage
 {
     Q_OBJECT
 public:
-    UsageStatsOptionPage(QObject *parent = 0);
+    UsageStatsOptionPage(QObject *parent = nullptr);
     virtual ~UsageStatsOptionPage();
 
     QString id() const { return QLatin1String("settings"); }

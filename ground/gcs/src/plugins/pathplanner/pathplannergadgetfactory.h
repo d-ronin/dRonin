@@ -40,7 +40,7 @@ class PathPlannerGadgetFactory : public IUAVGadgetFactory
 {
     Q_OBJECT
 public:
-    PathPlannerGadgetFactory(QObject *parent = 0);
+    PathPlannerGadgetFactory(QObject *parent = nullptr);
     ~PathPlannerGadgetFactory();
 
     IUAVGadget *createGadget(QWidget *parent);

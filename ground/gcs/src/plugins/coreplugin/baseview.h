@@ -39,7 +39,7 @@ class CORE_EXPORT BaseView : public IView
     Q_OBJECT
 
 public:
-    BaseView(QObject *parent = 0);
+    BaseView(QObject *parent = nullptr);
     ~BaseView();
 
     QList<int> context() const;

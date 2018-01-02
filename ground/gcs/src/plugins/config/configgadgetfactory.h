@@ -41,7 +41,7 @@ class CONFIG_EXPORT ConfigGadgetFactory : public Core::IUAVGadgetFactory
 {
     Q_OBJECT
 public:
-    ConfigGadgetFactory(QObject *parent = 0);
+    ConfigGadgetFactory(QObject *parent = nullptr);
     ~ConfigGadgetFactory();
 
     IUAVGadget *createGadget(QWidget *parent);

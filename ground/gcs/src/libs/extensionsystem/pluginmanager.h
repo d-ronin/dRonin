@@ -82,9 +82,9 @@ public:
     {
         QReadLocker lock(&m_lock);
         QList<QObject *> all = allObjects();
-        T *result = 0;
+        T *result = nullptr;
         foreach (QObject *obj, all) {
-            if ((result = Aggregation::query<T>(obj)) != 0)
+            if ((result = Aggregation::query<T>(obj)) != nullptr)
                 break;
         }
         return result;

@@ -50,7 +50,7 @@ class ConfigGadget : public Core::IUAVGadget
 {
     Q_OBJECT
 public:
-    ConfigGadget(QString classId, ConfigGadgetWidget *widget, QWidget *parent = 0);
+    ConfigGadget(QString classId, ConfigGadgetWidget *widget, QWidget *parent = nullptr);
     ~ConfigGadget();
 
     QWidget *widget() { return (QWidget *)m_widget; }

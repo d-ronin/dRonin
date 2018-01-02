@@ -137,7 +137,7 @@ void UAVGadgetInstanceManager::readConfigs_1_2_0(QSettings *qs)
 
         // In case no configuration settings were found, try to create a default configuration
         if (configs.count() == 0) {
-            IUAVGadgetConfiguration *config = f->createConfiguration(0, 0);
+            IUAVGadgetConfiguration *config = f->createConfiguration(nullptr, nullptr);
             // It is not mandatory for uavgadgets to have a configuration (e.g. settings),
             // therefore we have to check that "config" exists.
             if (config) {
@@ -183,7 +183,7 @@ void UAVGadgetInstanceManager::readConfigs_1_1_0(QSettings *qs)
         }
 
         if (configs.count() == 0) {
-            IUAVGadgetConfiguration *config = f->createConfiguration(0, 0);
+            IUAVGadgetConfiguration *config = f->createConfiguration(nullptr, nullptr);
             // it is not mandatory for uavgadgets to have any configurations (settings)
             // and therefore we have to check for that
             if (config) {
@@ -279,7 +279,7 @@ IUAVGadget *UAVGadgetInstanceManager::createGadget(QString classId, QWidget *par
                 SLOT(configurationToBeDeleted(IUAVGadgetConfiguration *)));
         return gadget;
     }
-    return 0;
+    return nullptr;
 }
 
 void UAVGadgetInstanceManager::removeGadget(IUAVGadget *gadget)
@@ -287,7 +287,7 @@ void UAVGadgetInstanceManager::removeGadget(IUAVGadget *gadget)
     if (m_gadgetInstances.contains(gadget)) {
         m_gadgetInstances.removeOne(gadget);
         delete gadget;
-        gadget = 0;
+        gadget = nullptr;
     }
 }
 
@@ -467,7 +467,7 @@ void UAVGadgetInstanceManager::settingsDialogRemoved()
     m_provisionalOptionsPages.clear(); // TODO delete
     foreach (IUAVGadgetConfiguration *config, m_configurations)
         config->setProvisionalName(config->name());
-    m_settingsDialog = 0;
+    m_settingsDialog = nullptr;
 }
 
 QStringList UAVGadgetInstanceManager::configurationNames(QString classId) const
@@ -496,7 +496,7 @@ IUAVGadgetFactory *UAVGadgetInstanceManager::factory(QString classId) const
         if (f->classId() == classId)
             return f;
     }
-    return 0;
+    return nullptr;
 }
 
 QList<IUAVGadgetConfiguration *> *UAVGadgetInstanceManager::configurations(QString classId) const

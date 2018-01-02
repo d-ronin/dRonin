@@ -44,7 +44,7 @@ class UPLOADER_EXPORT UploaderGadget : public Core::IUAVGadget
 {
     Q_OBJECT
 public:
-    UploaderGadget(QString classId, UploaderGadgetWidget *widget, QWidget *parent = 0);
+    UploaderGadget(QString classId, UploaderGadgetWidget *widget, QWidget *parent = nullptr);
     ~UploaderGadget();
 
     QWidget *widget() { return m_widget; }

@@ -45,7 +45,7 @@ class CORE_EXPORT IUAVGadgetConfiguration : public QObject
 {
     Q_OBJECT
 public:
-    explicit IUAVGadgetConfiguration(QString classId, QObject *parent = 0);
+    explicit IUAVGadgetConfiguration(QString classId, QObject *parent = nullptr);
     QString classId() { return m_classId; }
     QString name() { return m_name; }
     void setName(QString name) { m_name = name; }

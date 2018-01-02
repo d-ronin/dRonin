@@ -50,7 +50,7 @@ class SerialPluginOptionsPage : public IOptionsPage
 {
     Q_OBJECT
 public:
-    explicit SerialPluginOptionsPage(SerialPluginConfiguration *config, QObject *parent = 0);
+    explicit SerialPluginOptionsPage(SerialPluginConfiguration *config, QObject *parent = nullptr);
 
     QString id() const { return QLatin1String("settings"); }
     QString trName() const { return tr("settings"); }

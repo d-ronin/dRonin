@@ -49,7 +49,7 @@ class SetupWizard : public QWizard, public VehicleConfigurationSource
     Q_OBJECT
 
 public:
-    explicit SetupWizard(bool autoLaunched = false, QWidget *parent = Q_NULLPTR);
+    explicit SetupWizard(bool autoLaunched = false, QWidget *parent = nullptr);
     int nextId() const;
 
     void setControllerType(Core::IBoardType *type) { m_controllerType = type; }

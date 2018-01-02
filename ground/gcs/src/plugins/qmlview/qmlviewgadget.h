@@ -41,7 +41,7 @@ class QmlViewGadget : public Core::IUAVGadget
 {
     Q_OBJECT
 public:
-    QmlViewGadget(QString classId, QmlViewGadgetWidget *widget, QWidget *parent = 0);
+    QmlViewGadget(QString classId, QmlViewGadgetWidget *widget, QWidget *parent = nullptr);
     ~QmlViewGadget();
 
     QWidget *widget()

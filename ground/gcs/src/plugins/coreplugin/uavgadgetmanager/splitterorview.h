@@ -41,22 +41,22 @@ namespace Internal {
     {
         Q_OBJECT
     public:
-        SplitterOrView(UAVGadgetManager *uavGadgetManager, Core::IUAVGadget *uavGadget = 0,
+        SplitterOrView(UAVGadgetManager *uavGadgetManager, Core::IUAVGadget *uavGadget = nullptr,
                        bool restoring = false);
         ~SplitterOrView();
 
         void split(Qt::Orientation orientation, bool restoring = false);
         void unsplit();
 
-        inline bool isView() const { return m_view != 0; }
+        inline bool isView() const { return m_view != nullptr; }
 
-        inline bool isSplitter() const { return m_splitter != 0; }
-        inline Core::IUAVGadget *gadget() const { return m_view ? m_view->gadget() : 0; }
+        inline bool isSplitter() const { return m_splitter != nullptr; }
+        inline Core::IUAVGadget *gadget() const { return m_view ? m_view->gadget() : nullptr; }
         inline bool hasGadget(Core::IUAVGadget *uavGadget) const
         {
             return m_view && m_view->hasGadget(uavGadget);
         }
-        inline bool hasGadget() const { return m_view && (m_view->gadget() != 0); }
+        inline bool hasGadget() const { return m_view && (m_view->gadget() != nullptr); }
         inline UAVGadgetView *view() const { return m_view; }
         inline QSplitter *splitter() const { return m_splitter; }
         QList<Core::IUAVGadget *> gadgets();

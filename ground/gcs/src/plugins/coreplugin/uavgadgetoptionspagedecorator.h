@@ -44,7 +44,7 @@ class CORE_EXPORT UAVGadgetOptionsPageDecorator : public Core::IOptionsPage
 public:
     explicit UAVGadgetOptionsPageDecorator(IOptionsPage *page, IUAVGadgetConfiguration *config,
                                            bool isSingleConfigurationGadget = false,
-                                           QObject *parent = 0);
+                                           QObject *parent = nullptr);
 
     QString id() const { return m_id; }
     QString trName() const { return m_id; }

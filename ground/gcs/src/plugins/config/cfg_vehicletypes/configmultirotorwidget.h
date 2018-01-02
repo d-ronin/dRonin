@@ -45,7 +45,7 @@ class ConfigMultiRotorWidget : public VehicleConfig
     Q_OBJECT
 
 public:
-    ConfigMultiRotorWidget(Ui_AircraftWidget *aircraft = 0, QWidget *parent = 0);
+    ConfigMultiRotorWidget(Ui_AircraftWidget *aircraft = nullptr, QWidget *parent = nullptr);
     ~ConfigMultiRotorWidget();
 
     friend class ConfigVehicleTypeWidget;

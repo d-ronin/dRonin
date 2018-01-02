@@ -375,7 +375,7 @@ namespace mapcontrol
 
                             // render tile
                             //lock(t.Overlays)
-                            if(t!=0)
+                            if(t!=nullptr)
                             {
                                 foreach(QByteArray img,t->Overlays)
                                 {

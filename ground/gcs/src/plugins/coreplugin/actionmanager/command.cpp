@@ -223,12 +223,12 @@ int CommandPrivate::id() const
 
 QAction *CommandPrivate::action() const
 {
-    return 0;
+    return nullptr;
 }
 
 QShortcut *CommandPrivate::shortcut() const
 {
-    return 0;
+    return nullptr;
 }
 
 void CommandPrivate::setAttribute(CommandAttribute attr)
@@ -262,7 +262,7 @@ QString CommandPrivate::stringWithAppendedShortcut(const QString &str) const
 
 Shortcut::Shortcut(int id)
     : CommandPrivate(id)
-    , m_shortcut(0)
+    , m_shortcut(nullptr)
 {
 }
 
@@ -347,7 +347,7 @@ bool Shortcut::isActive() const
 */
 Action::Action(int id)
     : CommandPrivate(id)
-    , m_action(0)
+    , m_action(nullptr)
 {
 }
 
@@ -419,7 +419,7 @@ QKeySequence Action::keySequence() const
 
 OverrideableAction::OverrideableAction(int id)
     : Action(id)
-    , m_currentAction(0)
+    , m_currentAction(nullptr)
     , m_active(false)
     , m_contextInitialized(false)
 {
@@ -435,9 +435,9 @@ bool OverrideableAction::setCurrentContext(const QList<int> &context)
     m_context = context;
 
     QAction *oldAction = m_currentAction;
-    m_currentAction = 0;
+    m_currentAction = nullptr;
     for (int i = 0; i < m_context.size(); ++i) {
-        if (QAction *a = m_contextActionMap.value(m_context.at(i), 0)) {
+        if (QAction *a = m_contextActionMap.value(m_context.at(i), nullptr)) {
             m_currentAction = a;
             break;
         }

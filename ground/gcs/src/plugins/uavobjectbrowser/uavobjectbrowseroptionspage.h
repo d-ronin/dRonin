@@ -50,7 +50,7 @@ class UAVObjectBrowserOptionsPage : public IOptionsPage
     Q_OBJECT
 public:
     explicit UAVObjectBrowserOptionsPage(UAVObjectBrowserConfiguration *config,
-                                         QObject *parent = 0);
+                                         QObject *parent = nullptr);
 
     QWidget *createPage(QWidget *parent);
     void apply();

@@ -43,7 +43,7 @@ class OPMapGadget : public Core::IUAVGadget
 {
     Q_OBJECT
 public:
-    OPMapGadget(QString classId, OPMapGadgetWidget *widget, QWidget *parent = 0);
+    OPMapGadget(QString classId, OPMapGadgetWidget *widget, QWidget *parent = nullptr);
     ~OPMapGadget();
 
     QWidget *widget() { return m_widget; }

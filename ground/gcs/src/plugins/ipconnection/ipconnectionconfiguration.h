@@ -40,8 +40,8 @@ class IPConnectionConfiguration : public IUAVGadgetConfiguration
     Q_OBJECT
 
 public:
-    explicit IPConnectionConfiguration(QString classId, QSettings *qSettings = 0,
-                                       QObject *parent = 0);
+    explicit IPConnectionConfiguration(QString classId, QSettings *qSettings = nullptr,
+                                       QObject *parent = nullptr);
 
     virtual ~IPConnectionConfiguration();
     void saveConfig() const;

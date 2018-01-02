@@ -41,7 +41,7 @@ using namespace Core::Internal;
 SplitterOrView::SplitterOrView(Core::UAVGadgetManager *uavGadgetManager,
                                Core::IUAVGadget *uavGadget, bool restoring)
     : m_uavGadgetManager(uavGadgetManager)
-    , m_splitter(0)
+    , m_splitter(nullptr)
 {
     m_view = new UAVGadgetView(m_uavGadgetManager, uavGadget, this, restoring);
     m_layout = new QStackedLayout(this);
@@ -52,11 +52,11 @@ SplitterOrView::~SplitterOrView()
 {
     if (m_view) {
         delete m_view;
-        m_view = 0;
+        m_view = nullptr;
     }
     if (m_splitter) {
         delete m_splitter;
-        m_splitter = 0;
+        m_splitter = nullptr;
     }
 }
 
@@ -82,7 +82,7 @@ SplitterOrView *SplitterOrView::findFirstView()
                 if (SplitterOrView *result = splitterOrView->findFirstView())
                     return result;
         }
-        return 0;
+        return nullptr;
     }
     return this;
 }
@@ -102,7 +102,7 @@ SplitterOrView *SplitterOrView::findView(Core::IUAVGadget *uavGadget)
                     return result;
         }
     }
-    return 0;
+    return nullptr;
 }
 
 /* Contract: return SplitterOrView that has 'view', or 0 if not found.
@@ -120,7 +120,7 @@ SplitterOrView *SplitterOrView::findView(UAVGadgetView *view)
                     return result;
         }
     }
-    return 0;
+    return nullptr;
 }
 
 /* Contract: return SplitterOrView that is splitter that has as child SplitterOrView containing
@@ -141,7 +141,7 @@ SplitterOrView *SplitterOrView::findSplitter(Core::IUAVGadget *uavGadget)
             }
         }
     }
-    return 0;
+    return nullptr;
 }
 
 /* Contract: return SplitterOrView that is splitter that has as child SplitterOrView 'child',
@@ -161,7 +161,7 @@ SplitterOrView *SplitterOrView::findSplitter(SplitterOrView *child)
             }
         }
     }
-    return 0;
+    return nullptr;
 }
 
 /* Contract: return SplitterOrView that follows SplitterOrView 'view' in tree structure,
@@ -182,7 +182,7 @@ SplitterOrView *SplitterOrView::findNextView_helper(SplitterOrView *view, bool *
 
     if (this == view) {
         *found = true;
-        return 0;
+        return nullptr;
     }
 
     if (m_splitter) {
@@ -194,7 +194,7 @@ SplitterOrView *SplitterOrView::findNextView_helper(SplitterOrView *view, bool *
             }
         }
     }
-    return 0;
+    return nullptr;
 }
 
 QSize SplitterOrView::minimumSizeHint() const
@@ -209,7 +209,7 @@ QSplitter *SplitterOrView::takeSplitter()
     QSplitter *oldSplitter = m_splitter;
     if (m_splitter)
         m_layout->removeWidget(m_splitter);
-    m_splitter = 0;
+    m_splitter = nullptr;
     return oldSplitter;
 }
 
@@ -218,7 +218,7 @@ UAVGadgetView *SplitterOrView::takeView()
     UAVGadgetView *oldView = m_view;
     if (m_view)
         m_layout->removeWidget(m_view);
-    m_view = 0;
+    m_view = nullptr;
     return oldView;
 }
 
@@ -253,10 +253,10 @@ void SplitterOrView::split(Qt::Orientation orientation, bool restoring)
         // Give our gadget to the new left or top SplitterOrView.
         m_view->removeGadget();
         m_splitter->addWidget(new SplitterOrView(m_uavGadgetManager, ourGadget));
-        m_splitter->addWidget(new SplitterOrView(m_uavGadgetManager, 0, restoring));
+        m_splitter->addWidget(new SplitterOrView(m_uavGadgetManager, nullptr, restoring));
     } else {
-        m_splitter->addWidget(new SplitterOrView(m_uavGadgetManager, 0, restoring));
-        m_splitter->addWidget(new SplitterOrView(m_uavGadgetManager, 0, restoring));
+        m_splitter->addWidget(new SplitterOrView(m_uavGadgetManager, nullptr, restoring));
+        m_splitter->addWidget(new SplitterOrView(m_uavGadgetManager, nullptr, restoring));
     }
 
     m_layout->setCurrentWidget(m_splitter);
@@ -264,7 +264,7 @@ void SplitterOrView::split(Qt::Orientation orientation, bool restoring)
     if (m_view) {
         m_uavGadgetManager->emptyView(m_view);
         delete m_view;
-        m_view = 0;
+        m_view = nullptr;
     }
 }
 
@@ -284,7 +284,7 @@ void SplitterOrView::unsplitAll(IUAVGadget *currentGadget)
     m_layout->removeWidget(m_splitter); // workaround Qt bug
     unsplitAll_helper();
     delete m_splitter;
-    m_splitter = 0;
+    m_splitter = nullptr;
 
     m_view = new UAVGadgetView(m_uavGadgetManager, currentGadget, this);
     m_layout->addWidget(m_view);
@@ -312,10 +312,10 @@ void SplitterOrView::unsplit()
     Q_ASSERT(m_splitter->count() == 1);
     SplitterOrView *childSplitterOrView = qobject_cast<SplitterOrView *>(m_splitter->widget(0));
     QSplitter *oldSplitter = m_splitter;
-    m_splitter = 0;
+    m_splitter = nullptr;
 
     if (childSplitterOrView->isSplitter()) {
-        Q_ASSERT(childSplitterOrView->view() == 0);
+        Q_ASSERT(childSplitterOrView->view() == nullptr);
         m_splitter = childSplitterOrView->takeSplitter();
         m_layout->addWidget(m_splitter);
         m_layout->setCurrentWidget(m_splitter);

@@ -58,7 +58,7 @@ private:
     };
 
 public:
-    ConfigVehicleTypeWidget(QWidget *parent = 0);
+    ConfigVehicleTypeWidget(QWidget *parent = nullptr);
     ~ConfigVehicleTypeWidget();
 
     static QStringList getChannelDescriptions();
@@ -115,7 +115,7 @@ class SpinBoxDelegate : public QItemDelegate
     Q_OBJECT
 
 public:
-    SpinBoxDelegate(QObject *parent = 0);
+    SpinBoxDelegate(QObject *parent = nullptr);
 
     QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
                           const QModelIndex &index) const;

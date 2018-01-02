@@ -64,7 +64,7 @@ public:
     IMode *currentMode() const;
     IMode *mode(const QString &id) const;
 
-    void addAction(Command *command, int priority, QMenu *menu = 0);
+    void addAction(Command *command, int priority, QMenu *menu = nullptr);
     void addWidget(QWidget *widget);
     void updateModeNameIcon(IMode *mode, const QIcon &icon, const QString &label);
     QVector<IMode *> modes() const { return m_modes; }

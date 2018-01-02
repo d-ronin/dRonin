@@ -52,7 +52,7 @@ class DialGadgetOptionsPage : public IOptionsPage
 {
     Q_OBJECT
 public:
-    explicit DialGadgetOptionsPage(DialGadgetConfiguration *config, QObject *parent = 0);
+    explicit DialGadgetOptionsPage(DialGadgetConfiguration *config, QObject *parent = nullptr);
 
     QWidget *createPage(QWidget *parent);
     void apply();

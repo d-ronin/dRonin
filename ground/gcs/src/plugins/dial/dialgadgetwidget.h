@@ -44,7 +44,7 @@ class DialGadgetWidget : public QGraphicsView
     Q_OBJECT
 
 public:
-    DialGadgetWidget(QWidget *parent = 0);
+    DialGadgetWidget(QWidget *parent = nullptr);
     ~DialGadgetWidget();
     void enableSmoothUpdates(bool flag) { beSmooth = flag; }
     void setDialFile(QString dfn, QString bg, QString fg, QString n1, QString n2, QString n3,

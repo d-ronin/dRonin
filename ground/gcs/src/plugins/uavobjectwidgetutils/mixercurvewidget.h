@@ -44,7 +44,7 @@ class UAVOBJECTWIDGETUTILS_EXPORT MixerCurveWidget : public QGraphicsView
     Q_OBJECT
 
 public:
-    MixerCurveWidget(QWidget *parent = 0);
+    MixerCurveWidget(QWidget *parent = nullptr);
     ~MixerCurveWidget();
 
     friend class MixerCurve;

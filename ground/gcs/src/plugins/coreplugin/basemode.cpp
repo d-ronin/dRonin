@@ -71,7 +71,7 @@ using namespace Core;
 BaseMode::BaseMode(QObject *parent)
     : IMode(parent)
     , m_priority(0)
-    , m_widget(0)
+    , m_widget(nullptr)
 {
 }
 

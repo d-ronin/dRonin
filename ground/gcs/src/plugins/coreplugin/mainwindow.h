@@ -91,10 +91,10 @@ namespace Internal {
         void addContextObject(IContext *contex);
         void removeContextObject(IContext *contex);
         void resetContext();
-        void readSettings(QSettings *qs = 0, bool workspaceDiffOnly = false);
-        void saveSettings(QSettings *qs = 0);
-        void readSettings(IConfigurablePlugin *plugin, QSettings *qs = 0);
-        void saveSettings(IConfigurablePlugin *plugin, QSettings *qs = 0);
+        void readSettings(QSettings *qs = nullptr, bool workspaceDiffOnly = false);
+        void saveSettings(QSettings *qs = nullptr);
+        void readSettings(IConfigurablePlugin *plugin, QSettings *qs = nullptr);
+        void saveSettings(IConfigurablePlugin *plugin, QSettings *qs = nullptr);
         void deleteSettings();
         void openFiles(const QStringList &fileNames);
 
@@ -131,12 +131,12 @@ namespace Internal {
         void setFullScreen(bool on);
 
         bool showOptionsDialog(const QString &category = QString(), const QString &page = QString(),
-                               QWidget *parent = 0);
+                               QWidget *parent = nullptr);
 
         bool showWarningWithOptions(const QString &title, const QString &text,
                                     const QString &details = QString(),
                                     const QString &settingsCategory = QString(),
-                                    const QString &settingsId = QString(), QWidget *parent = 0);
+                                    const QString &settingsId = QString(), QWidget *parent = nullptr);
 
     protected:
         virtual void changeEvent(QEvent *e);

@@ -48,7 +48,7 @@ class CORE_EXPORT ActionManager : public QObject
 {
     Q_OBJECT
 public:
-    ActionManager(QObject *parent = 0)
+    ActionManager(QObject *parent = nullptr)
         : QObject(parent)
     {
     }

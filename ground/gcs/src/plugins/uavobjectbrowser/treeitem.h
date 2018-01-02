@@ -100,8 +100,8 @@ protected:
     bool isPresentOnHardware;
 
 public:
-    TreeItem(const QList<QVariant> &data, TreeItem *parent = 0);
-    TreeItem(const QVariant &data, TreeItem *parent = 0);
+    TreeItem(const QList<QVariant> &data, TreeItem *parent = nullptr);
+    TreeItem(const QVariant &data, TreeItem *parent = nullptr);
     virtual ~TreeItem();
 
     virtual void appendChild(TreeItem *child);
@@ -171,7 +171,7 @@ public:
                 return child;
             }
         }
-        return 0;
+        return nullptr;
     }
 
     virtual bool isDefaultValue() const { return true; }
@@ -209,11 +209,11 @@ class TopTreeItem : public TreeItem
 {
     Q_OBJECT
 public:
-    TopTreeItem(const QList<QVariant> &data, TreeItem *parent = 0)
+    TopTreeItem(const QList<QVariant> &data, TreeItem *parent = nullptr)
         : TreeItem(data, parent)
     {
     }
-    TopTreeItem(const QVariant &data, TreeItem *parent = 0)
+    TopTreeItem(const QVariant &data, TreeItem *parent = nullptr)
         : TreeItem(data, parent)
     {
     }
@@ -253,14 +253,14 @@ class ObjectTreeItem : public TreeItem
 {
     Q_OBJECT
 public:
-    ObjectTreeItem(const QList<QVariant> &data, TreeItem *parent = 0)
+    ObjectTreeItem(const QList<QVariant> &data, TreeItem *parent = nullptr)
         : TreeItem(data, parent)
-        , m_obj(0)
+        , m_obj(nullptr)
     {
     }
-    ObjectTreeItem(const QVariant &data, TreeItem *parent = 0)
+    ObjectTreeItem(const QVariant &data, TreeItem *parent = nullptr)
         : TreeItem(data, parent)
-        , m_obj(0)
+        , m_obj(nullptr)
     {
     }
     virtual void setObject(UAVObject *obj)
@@ -278,12 +278,12 @@ class MetaObjectTreeItem : public ObjectTreeItem
 {
     Q_OBJECT
 public:
-    MetaObjectTreeItem(UAVObject *obj, const QList<QVariant> &data, TreeItem *parent = 0)
+    MetaObjectTreeItem(UAVObject *obj, const QList<QVariant> &data, TreeItem *parent = nullptr)
         : ObjectTreeItem(data, parent)
     {
         setObject(obj);
     }
-    MetaObjectTreeItem(UAVObject *obj, const QVariant &data, TreeItem *parent = 0)
+    MetaObjectTreeItem(UAVObject *obj, const QVariant &data, TreeItem *parent = nullptr)
         : ObjectTreeItem(data, parent)
     {
         setObject(obj);
@@ -294,11 +294,11 @@ class DataObjectTreeItem : public ObjectTreeItem
 {
     Q_OBJECT
 public:
-    DataObjectTreeItem(const QList<QVariant> &data, TreeItem *parent = 0)
+    DataObjectTreeItem(const QList<QVariant> &data, TreeItem *parent = nullptr)
         : ObjectTreeItem(data, parent)
     {
     }
-    DataObjectTreeItem(const QVariant &data, TreeItem *parent = 0)
+    DataObjectTreeItem(const QVariant &data, TreeItem *parent = nullptr)
         : ObjectTreeItem(data, parent)
     {
     }
@@ -366,12 +366,12 @@ class InstanceTreeItem : public DataObjectTreeItem
 {
     Q_OBJECT
 public:
-    InstanceTreeItem(UAVObject *obj, const QList<QVariant> &data, TreeItem *parent = 0)
+    InstanceTreeItem(UAVObject *obj, const QList<QVariant> &data, TreeItem *parent = nullptr)
         : DataObjectTreeItem(data, parent)
     {
         setObject(obj);
     }
-    InstanceTreeItem(UAVObject *obj, const QVariant &data, TreeItem *parent = 0)
+    InstanceTreeItem(UAVObject *obj, const QVariant &data, TreeItem *parent = nullptr)
         : DataObjectTreeItem(data, parent)
     {
         setObject(obj);
@@ -405,11 +405,11 @@ class ArrayFieldTreeItem : public TreeItem
 {
     Q_OBJECT
 public:
-    ArrayFieldTreeItem(const QList<QVariant> &data, TreeItem *parent = 0)
+    ArrayFieldTreeItem(const QList<QVariant> &data, TreeItem *parent = nullptr)
         : TreeItem(data, parent)
     {
     }
-    ArrayFieldTreeItem(const QVariant &data, TreeItem *parent = 0)
+    ArrayFieldTreeItem(const QVariant &data, TreeItem *parent = nullptr)
         : TreeItem(data, parent)
     {
     }

@@ -42,7 +42,7 @@ class GCSControlGadgetFactory : public IUAVGadgetFactory
 {
     Q_OBJECT
 public:
-    GCSControlGadgetFactory(QObject *parent = 0);
+    GCSControlGadgetFactory(QObject *parent = nullptr);
     ~GCSControlGadgetFactory();
 
     IUAVGadget *createGadget(QWidget *parent);

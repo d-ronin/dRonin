@@ -14,7 +14,7 @@ class inputChannelForm : public ConfigTaskWidget
 public:
     typedef enum { CHANNELFUNC_RC, CHANNELFUNC_RSSI } ChannelFunc;
 
-    explicit inputChannelForm(QWidget *parent = 0, bool showlegend = false, bool showSlider = true,
+    explicit inputChannelForm(QWidget *parent = nullptr, bool showlegend = false, bool showSlider = true,
                               ChannelFunc chanType = CHANNELFUNC_RC);
     ~inputChannelForm();
     friend class ConfigInputWidget;

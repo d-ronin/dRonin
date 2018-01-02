@@ -270,7 +270,7 @@ IPlugin::~IPlugin()
     qDeleteAll(d->addedObjectsInReverseOrder);
     d->addedObjectsInReverseOrder.clear();
     delete d;
-    d = 0;
+    d = nullptr;
 }
 
 /*!

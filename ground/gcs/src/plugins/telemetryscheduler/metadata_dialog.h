@@ -35,7 +35,7 @@ class MetadataDialog : public QDialog
     Q_OBJECT
 
 public:
-    MetadataDialog(UAVObject::Metadata mdata, QWidget *parent = 0);
+    MetadataDialog(UAVObject::Metadata mdata, QWidget *parent = nullptr);
     ~MetadataDialog();
 
     UAVObject::Metadata getMetadata() { return *m_mdata; }

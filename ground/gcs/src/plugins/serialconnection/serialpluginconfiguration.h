@@ -39,8 +39,8 @@ class SerialPluginConfiguration : public IUAVGadgetConfiguration
 {
     Q_OBJECT
 public:
-    explicit SerialPluginConfiguration(QString classId, QSettings *qSettings = 0,
-                                       QObject *parent = 0);
+    explicit SerialPluginConfiguration(QString classId, QSettings *qSettings = nullptr,
+                                       QObject *parent = nullptr);
     QString speed() { return m_speed; }
     bool reconnect() { return m_reconnect; }
     void saveConfig(QSettings *settings) const;

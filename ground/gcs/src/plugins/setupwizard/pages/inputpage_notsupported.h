@@ -43,7 +43,7 @@ class InputPageNotSupported : public AbstractWizardPage
     Q_OBJECT
 
 public:
-    explicit InputPageNotSupported(SetupWizard *wizard, QWidget *parent = 0);
+    explicit InputPageNotSupported(SetupWizard *wizard, QWidget *parent = nullptr);
     ~InputPageNotSupported();
     bool validatePage();
 

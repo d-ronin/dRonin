@@ -41,7 +41,7 @@ class DebugGadgetFactory : public IUAVGadgetFactory
 {
     Q_OBJECT
 public:
-    DebugGadgetFactory(QObject *parent = 0);
+    DebugGadgetFactory(QObject *parent = nullptr);
     ~DebugGadgetFactory();
 
     IUAVGadget *createGadget(QWidget *parent);

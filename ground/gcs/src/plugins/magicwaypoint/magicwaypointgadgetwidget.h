@@ -38,7 +38,7 @@ class MagicWaypointGadgetWidget : public QLabel
     Q_OBJECT
 
 public:
-    MagicWaypointGadgetWidget(QWidget *parent = 0);
+    MagicWaypointGadgetWidget(QWidget *parent = nullptr);
     ~MagicWaypointGadgetWidget();
 
 signals:

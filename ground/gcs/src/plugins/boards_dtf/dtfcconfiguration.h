@@ -42,7 +42,7 @@ class DtfcConfiguration : public ConfigTaskWidget
     Q_OBJECT
 
 public:
-    explicit DtfcConfiguration(QWidget *parent = 0);
+    explicit DtfcConfiguration(QWidget *parent = nullptr);
     ~DtfcConfiguration();
 
 private:

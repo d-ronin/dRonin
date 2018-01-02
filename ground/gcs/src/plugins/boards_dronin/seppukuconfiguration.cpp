@@ -34,7 +34,7 @@
 SeppukuConfiguration::SeppukuConfiguration(QWidget *parent)
     : ConfigTaskWidget(parent)
     , ui(new Ui::Seppuku)
-    , m_background(Q_NULLPTR)
+    , m_background(nullptr)
 {
     ui->setupUi(this);
 
@@ -102,7 +102,7 @@ QGraphicsSvgItem *SeppukuConfiguration::addGraphicsElement(const QString &elemen
 {
     QGraphicsSvgItem *item = new QGraphicsSvgItem();
     if (!item)
-        return Q_NULLPTR;
+        return nullptr;
     item->setSharedRenderer(m_renderer);
     item->setElementId(elementId);
     item->setOpacity(1.0);

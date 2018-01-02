@@ -97,7 +97,7 @@ void HighLightManager::checkItemsExpired()
 }
 
 TreeItem::TreeItem(const QList<QVariant> &data, TreeItem *parent)
-    : QObject(0)
+    : QObject(nullptr)
     , isPresentOnHardware(true)
     , m_data(data)
     , m_parent(parent)
@@ -108,7 +108,7 @@ TreeItem::TreeItem(const QList<QVariant> &data, TreeItem *parent)
 }
 
 TreeItem::TreeItem(const QVariant &data, TreeItem *parent)
-    : QObject(0)
+    : QObject(nullptr)
     , isPresentOnHardware(true)
     , m_parent(parent)
     , m_highlight(false)

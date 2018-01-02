@@ -46,7 +46,7 @@ class CoordinatedPage : public RadioProbePage
     Q_OBJECT
 
 public:
-    explicit CoordinatedPage(RfmBindWizard *wizard, QWidget *parent = 0);
+    explicit CoordinatedPage(RfmBindWizard *wizard, QWidget *parent = nullptr);
     ~CoordinatedPage();
     void initializePage();
     bool isComplete() const;

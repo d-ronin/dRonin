@@ -63,8 +63,8 @@ namespace Internal {
         Q_OBJECT
 
     public:
-        UAVGadgetView(UAVGadgetManager *uavGadgetManager, IUAVGadget *uavGadget = 0,
-                      QWidget *parent = 0, bool restoring = false);
+        UAVGadgetView(UAVGadgetManager *uavGadgetManager, IUAVGadget *uavGadget = nullptr,
+                      QWidget *parent = nullptr, bool restoring = false);
         virtual ~UAVGadgetView();
         void selectionActivated(int index, bool forceLoadConfiguration);
         void removeGadget();

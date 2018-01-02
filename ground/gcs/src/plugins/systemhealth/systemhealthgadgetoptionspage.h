@@ -49,7 +49,7 @@ class SystemHealthGadgetOptionsPage : public IOptionsPage
     Q_OBJECT
 public:
     explicit SystemHealthGadgetOptionsPage(SystemHealthGadgetConfiguration *config,
-                                           QObject *parent = 0);
+                                           QObject *parent = nullptr);
 
     QWidget *createPage(QWidget *parent);
     void apply();

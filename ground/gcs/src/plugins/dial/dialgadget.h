@@ -42,7 +42,7 @@ class DialGadget : public Core::IUAVGadget
 {
     Q_OBJECT
 public:
-    DialGadget(QString classId, DialGadgetWidget *widget, QWidget *parent = 0);
+    DialGadget(QString classId, DialGadgetWidget *widget, QWidget *parent = nullptr);
     ~DialGadget();
 
     QWidget *widget() { return m_widget; }
