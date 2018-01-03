@@ -55,6 +55,7 @@
 static const struct pios_servo_cfg *servo_cfg;
 
 static uint32_t channel_mask = 0;
+static uint32_t telemetry_request = 0;
 
 //! The counter rate for the channel, used to calculate compare values.
 
@@ -696,7 +697,7 @@ static int DSHOT_Update()
 			case SYNC_DSHOT_DMA:
 #if defined(PIOS_INCLUDE_DMASHOT)
 				PIOS_DMAShot_WriteValue(&servo_cfg->channels[i],
-						info->value);
+						info->value, telemetry_request & (1 << i));
 				continue;
 #endif
 			default:
@@ -720,7 +721,7 @@ static int DSHOT_Update()
 		uint16_t message = info->value << 5;
 
 		/* Set telem bit on commands */
-		if ((info->value > 0) && (info->value < 48)) {
+		if ( ((info->value > 0) && (info->value < 48)) ||  (telemetry_request & (1 << i)) ) {
 			message |= 16;
 		}
 
@@ -894,6 +895,9 @@ void PIOS_Servo_Update(void)
 			dshot_in_use = false;
 		}
 	}
+
+	/* Clear any ongoing requests. */
+	telemetry_request = 0;
 }
 
 /**
@@ -972,6 +976,27 @@ static uint32_t max_timer_clock(TIM_TypeDef *timer)
 		return apb_clock;
 	else
 		return apb_clock * 2;
+}
+
+/**
+ * @brief Requests telemetry from a servo. Can only request from one servo at a time.
+ * @param[in] servo Which servo.
+ * @retval Zero on success, -1 if there's an ongoing request, -2 is telemetry isn't supported on the servo.
+ */
+int PIOS_Servo_RequestTelemetry(uint8_t servo)
+{
+	if (servo >= servo_cfg->num_channels || output_channels[servo].mode < SYNC_DSHOT_300) {
+		/* Currently only DShot supported. */
+		return -2;
+	}
+
+	if (telemetry_request) {
+		/* There's already a request going. */
+		return -1;
+	}
+
+	telemetry_request = 1 << servo;
+	return 0;
 }
 
 /*
