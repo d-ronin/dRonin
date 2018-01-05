@@ -294,6 +294,16 @@ bloop:
                 itt     lo
                 strlo   r0, [r1], #4
                 blo     bloop
+
+                /* Also initialize the CCM RAM. */
+                movs    r0, #0
+                ldr     r1, =_cmm_start
+                ldr     r2, =_cmm_end
+cloop:
+                cmp     r1, r2
+                itt     lo
+                strlo   r0, [r1], #4
+                blo     cloop
 #endif
 
 #if CRT0_INIT_RAM_AREAS == TRUE
