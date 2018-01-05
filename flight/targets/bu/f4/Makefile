@@ -86,6 +86,9 @@ PAYLOAD_FILE = $(ROOT_DIR)/build/bl_$(BOARD_NAME)/bl_$(BOARD_NAME).bin
 # Place project-specific -D (define) and/or 
 # -U options for C here.
 CDEFS += -D$(STM32_TYPE)
+ifneq ($(STM32_SUBTYPE),)
+CDEFS += -D$(STM32_SUBTYPE)
+endif
 CDEFS += -DSYSCLK_FREQ=$(SYSCLK_FREQ)
 CDEFS += -DMEM_SIZE=$(FW_BANK_SIZE)
 CDEFS += -DUSE_$(BOARD)
@@ -155,7 +158,7 @@ LDFLAGS += -Wl,--warn-common
 LDFLAGS += -Wl,--fatal-warnings
 
 # Linker scripts
-ifneq "$(findstring STM32F40_41xxx,$(STM32_TYPE))" ""
+ifneq "$(findstring STM32F405xx,$(STM32_TYPE))" ""
 LINKER_SCRIPTS_APP	 =	$(PIOS_DEVLIB)/link_STM32F4xx_OP_memory.ld \
                         $(PIOS_DEVLIB)/link_STM32F4xx_sections.ld
 else ifneq "$(findstring STM32F446xx,$(STM32_TYPE))" ""
