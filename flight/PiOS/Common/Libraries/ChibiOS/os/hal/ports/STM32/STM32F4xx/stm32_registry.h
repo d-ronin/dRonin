@@ -56,7 +56,9 @@
 
 #elif defined(STM32F405xx) || defined(STM32F415xx) ||                       \
       defined(STM32F407xx) || defined(STM32F417xx)
+#if !defined(STM32F40_41xxx)
 #define STM32F40_41xxx
+#endif
 #define STM32F4XX
 
 #elif defined(STM32F401xC) || defined(STM32F401xE)
