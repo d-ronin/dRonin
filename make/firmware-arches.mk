@@ -11,7 +11,8 @@ else ifneq "$(findstring STM32F40,$(CHIP))" ""
 OPENOCD_JTAG_CONFIG ?= stlink-v2.cfg
 OPENOCD_CONFIG      := stm32f4x.cfg
 MCU                 := cortex-m4
-STM32_TYPE          := STM32F40_41xxx
+STM32_TYPE          := STM32F405xx
+STM32_SUBTYPE       := STM32F40_41xxx
 ARCH_TYPES          := STM32F4xx STM32
 else ifneq "$(findstring STM32F30,$(CHIP))" ""
 OPENOCD_JTAG_CONFIG ?= stlink-v2.cfg

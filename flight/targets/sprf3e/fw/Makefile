@@ -180,7 +180,10 @@ CDEFS += -DUNALIGNED_SUPPORT_DISABLE
 
 # This is not the best place for these.  Really should abstract out
 # to the board file or something
-CFLAGS += -DSTM32F30X
+CFLAGS += -D$(STM32_TYPE)
+ifneq ($(STM32_SUBTYPE),)
+CFLAGS += -D$(STM32_SUBTYPE)
+endif
 CFLAGS += -DMEM_SIZE=$(FW_BANK_SIZE)
 
 # Debugging format.
