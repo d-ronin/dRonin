@@ -297,9 +297,9 @@ void MemManageHandler_C(uint32_t *exception_stack) {
 	exception_stack[EXCEPTION_STACK_PC_OFFSET] = pc;
 }
 
-void MemManageVector(void) __attribute__((naked));
+void MemManage_Handler(void) __attribute__((naked));
 
-void MemManageVector(void)
+void MemManage_Handler(void)
 {
 	/* Stores the exception stack pointer into an argument, and invokes
 	 * the real handler (without linkage-- the BX LR at completion of
