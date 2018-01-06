@@ -46,6 +46,9 @@
 #elif defined(STM32F105xC) || defined(STM32F107xC)
 #define STM32F10X_CL
 
+#elif defined(STM32F10X_MD)
+/* Fix for dRonin */
+
 #else
 #error "unsupported or unrecognized STM32F1xx member"
 #endif
