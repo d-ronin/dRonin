@@ -1643,7 +1643,9 @@
  * PLLI2S VCO frequency range check.
  */
 #if (STM32_PLLI2SVCO < STM32_PLLVCO_MIN) ||                                 \
-    (STM32_PLLI2SVCO > STM32_PLLVCO_MAX)
+    (STM32_PLLI2SVCO > STM32_PLLVCO_MAX) && !defined(STM32F446xx)
+/* dRonin: Exclude F446 from that check. ChibiOS 2.6.6 didn't implement this check
+           and the 16MHz HSECLK from RE1 that triggers this worked fine before. */
 #error "STM32_PLLI2SVCO outside acceptable range (STM32_PLLVCO_MIN...STM32_PLLVCO_MAX)"
 #endif
 
@@ -1768,7 +1770,9 @@
  * PLLSAI VCO frequency range check.
  */
 #if (STM32_PLLSAIVCO < STM32_PLLVCO_MIN) ||                                 \
-    (STM32_PLLSAIVCO > STM32_PLLVCO_MAX)
+    (STM32_PLLSAIVCO > STM32_PLLVCO_MAX) && !defined(STM32F446xx)
+/* dRonin: Exclude F446 from that check. ChibiOS 2.6.6 didn't implement this check
+           and the 16MHz HSECLK from RE1 that triggers this worked fine before. */
 #error "STM32_PLLSAIVCO outside acceptable range (STM32_PLLVCO_MIN...STM32_PLLVCO_MAX)"
 #endif
 
