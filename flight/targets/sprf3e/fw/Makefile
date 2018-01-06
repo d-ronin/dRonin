@@ -168,8 +168,8 @@ endif
 
 # common architecture-specific flags from the device-specific library makefile
 CFLAGS += $(ARCHFLAGS)
-CFLAGS += -DDIAGNOSTICS
-CFLAGS += -DDIAG_TASKS
+#CFLAGS += -DDIAGNOSTICS
+#CFLAGS += -DDIAG_TASKS
 
 # configure CMSIS DSP Library
 CDEFS += -DARM_MATH_CM4
