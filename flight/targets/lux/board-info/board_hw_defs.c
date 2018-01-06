@@ -810,7 +810,11 @@ static const struct pios_internal_adc_cfg internal_adc_cfg = {
 static const struct pios_usb_cfg pios_usb_main_cfg = {
 	.irq = {
 		.init    = {
+#if STM32_HAS_USB
+			.NVIC_IRQChannel                   = USB_LP_IRQn,
+#else
 			.NVIC_IRQChannel                   = USB_LP_CAN1_RX0_IRQn,
+#endif
 			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_LOW,
 			.NVIC_IRQChannelSubPriority        = 0,
 			.NVIC_IRQChannelCmd                = ENABLE,
