@@ -46,7 +46,7 @@ class OPMapGadgetOptionsPage : public IOptionsPage
 {
     Q_OBJECT
 public:
-    explicit OPMapGadgetOptionsPage(OPMapGadgetConfiguration *config, QObject *parent = 0);
+    explicit OPMapGadgetOptionsPage(OPMapGadgetConfiguration *config, QObject *parent = nullptr);
 
     QWidget *createPage(QWidget *parent);
     void apply();

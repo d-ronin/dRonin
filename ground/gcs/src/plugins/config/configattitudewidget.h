@@ -53,7 +53,7 @@ class ConfigAttitudeWidget : public ConfigTaskWidget
     Q_OBJECT
 
 public:
-    ConfigAttitudeWidget(QWidget *parent = 0);
+    ConfigAttitudeWidget(QWidget *parent = nullptr);
     ~ConfigAttitudeWidget();
 
 protected:

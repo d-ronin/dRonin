@@ -36,7 +36,7 @@ class BrowserItemDelegate : public QStyledItemDelegate
 {
     Q_OBJECT
 public:
-    explicit BrowserItemDelegate(TreeSortFilterProxyModel *proxyModel, QObject *parent = 0);
+    explicit BrowserItemDelegate(TreeSortFilterProxyModel *proxyModel, QObject *parent = nullptr);
 
     QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
                           const QModelIndex &index) const;

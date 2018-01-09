@@ -44,7 +44,7 @@ class QmlViewGadgetWidget : public QQuickView
     Q_OBJECT
 
 public:
-    QmlViewGadgetWidget(QWindow *parent = 0);
+    QmlViewGadgetWidget(QWindow *parent = nullptr);
     ~QmlViewGadgetWidget();
     void setQmlFile(QString fn);
 

@@ -99,7 +99,7 @@ void UrlFactory::TryCorrectGoogleVersions()
     QMutexLocker locker(&mutex);
     if(CorrectGoogleVersions && !IsCorrectGoogleVersions())
     {
-        QNetworkReply *reply = 0;
+        QNetworkReply *reply = nullptr;
         QNetworkRequest qheader;
         QNetworkAccessManager network;
         QEventLoop q;

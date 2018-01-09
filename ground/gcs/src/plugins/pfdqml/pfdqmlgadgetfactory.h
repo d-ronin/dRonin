@@ -29,7 +29,7 @@ class PfdQmlGadgetFactory : public IUAVGadgetFactory
 {
     Q_OBJECT
 public:
-    PfdQmlGadgetFactory(QObject *parent = 0);
+    PfdQmlGadgetFactory(QObject *parent = nullptr);
     ~PfdQmlGadgetFactory();
 
     Core::IUAVGadget *createGadget(QWidget *parent);

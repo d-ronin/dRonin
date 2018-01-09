@@ -48,10 +48,10 @@
 HistogramData::HistogramData(QString uavObject, QString uavField, double binWidth,
                              uint numberOfBins)
     : Plot2dData(uavObject, uavField)
-    , histogram(0)
-    , histogramBins(0)
-    , histogramInterval(0)
-    , intervalSeriesData(0)
+    , histogram(nullptr)
+    , histogramBins(nullptr)
+    , histogramInterval(nullptr)
+    , intervalSeriesData(nullptr)
 {
     this->binWidth = binWidth;
     this->numberOfBins = numberOfBins;

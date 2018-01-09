@@ -41,7 +41,7 @@ class GCSControlGadgetWidget : public QLabel
     Q_OBJECT
 
 public:
-    GCSControlGadgetWidget(QWidget *parent = 0);
+    GCSControlGadgetWidget(QWidget *parent = nullptr);
 
     void allowGcsControl(bool allow);
     void setGCSControl(bool newState);

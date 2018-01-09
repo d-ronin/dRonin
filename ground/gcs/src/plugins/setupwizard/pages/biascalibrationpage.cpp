@@ -35,7 +35,7 @@
 BiasCalibrationPage::BiasCalibrationPage(SetupWizard *wizard, QWidget *parent)
     : AbstractWizardPage(wizard, parent)
     , ui(new Ui::BiasCalibrationPage)
-    , m_calibrationUtil(0)
+    , m_calibrationUtil(nullptr)
 {
     ui->setupUi(this);
     connect(ui->levelButton, &QAbstractButton::clicked, this,

@@ -65,7 +65,7 @@ namespace Internal {
         Q_OBJECT
 
     public:
-        ShortcutSettings(QObject *parent = 0);
+        ShortcutSettings(QObject *parent = nullptr);
         ~ShortcutSettings();
 
         // IOptionsPage

@@ -102,7 +102,7 @@ namespace internals {
                 {
                     Tile* m = Matrix.TileAt(task.Pos);
 
-                    if(m==0 || m->Overlays.count() == 0)
+                    if(m==nullptr || m->Overlays.count() == 0)
                     {
 #ifdef DEBUG_CORE
                         qDebug()<<"Fill empty TileMatrix: " + task.ToString()<<" ID="<<debug;;
@@ -178,7 +178,7 @@ namespace internals {
                             // emit OnTilesStillToLoad(tilesToload);
 
                             delete t;
-                            t = 0;
+                            t = nullptr;
                             emit OnNeedInvalidation();
                         }
 
@@ -381,8 +381,8 @@ namespace internals {
             }
             unsigned int bitsWithZoom = numBits + (quint8)maxzoom;
             //Ensure that no matter what the zoom can never exceed the number of bits required to display it
-            if (bitsWithZoom > sizeof(((core::Point *) 0)->X())*8 - 1){ //Remove one because of the sign bit.
-                maxzoom = sizeof(((core::Point *) 0)->X())*8 - 1 - numBits;
+            if (bitsWithZoom > sizeof(((core::Point *) nullptr)->X())*8 - 1){ //Remove one because of the sign bit.
+                maxzoom = sizeof(((core::Point *) nullptr)->X())*8 - 1 - numBits;
             }
 			
             minOfTiles = Projection()->GetTileMatrixMinXY(Zoom());

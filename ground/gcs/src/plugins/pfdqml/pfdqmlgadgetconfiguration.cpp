@@ -26,7 +26,7 @@ PfdQmlGadgetConfiguration::PfdQmlGadgetConfiguration(QString classId, QSettings 
     , m_qmlFile("Unknown")
 {
     // if a saved configuration exists load it
-    if (qSettings != 0) {
+    if (qSettings != nullptr) {
         m_qmlFile = qSettings->value("qmlFile").toString();
         m_qmlFile = Utils::PathUtils().InsertDataPath(m_qmlFile);
 

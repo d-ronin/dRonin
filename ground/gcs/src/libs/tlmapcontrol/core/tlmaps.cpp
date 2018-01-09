@@ -35,7 +35,7 @@
 using namespace projections;
 
 namespace core {
-    TLMaps* TLMaps::m_pInstance=0;
+    TLMaps* TLMaps::m_pInstance=nullptr;
 
     TLMaps* TLMaps::Instance()
     {

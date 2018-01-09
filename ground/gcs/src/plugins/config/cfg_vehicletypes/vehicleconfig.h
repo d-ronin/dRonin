@@ -118,7 +118,7 @@ class VehicleConfig : public ConfigTaskWidget
     Q_OBJECT
 
 public:
-    VehicleConfig(QWidget *parent = 0);
+    VehicleConfig(QWidget *parent = nullptr);
     ~VehicleConfig();
 
     static GUIConfigDataUnion GetConfigData();

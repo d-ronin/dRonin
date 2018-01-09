@@ -43,7 +43,7 @@ class NotifyTableModel : public QAbstractTableModel
     enum { eColumnCount = 4 };
 
 public:
-    NotifyTableModel(QList<NotificationItem *> &parentList, QObject *parent = 0);
+    NotifyTableModel(QList<NotificationItem *> &parentList, QObject *parent = nullptr);
     int rowCount(const QModelIndex &parent = QModelIndex()) const
     {
         Q_UNUSED(parent);

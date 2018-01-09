@@ -39,7 +39,7 @@ class SavePage : public AbstractWizardPage
     Q_OBJECT
 
 public:
-    explicit SavePage(SetupWizard *wizard, QWidget *parent = 0);
+    explicit SavePage(SetupWizard *wizard, QWidget *parent = nullptr);
     ~SavePage();
     bool validatePage();
     bool isComplete() const;

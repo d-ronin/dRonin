@@ -51,7 +51,7 @@ class UAVOBJECTWIDGETUTILS_EXPORT ConnectionDiagram : public QDialog
     Q_OBJECT
 
 public:
-    explicit ConnectionDiagram(QWidget *parent = Q_NULLPTR);
+    explicit ConnectionDiagram(QWidget *parent = nullptr);
     ~ConnectionDiagram();
 
 protected:

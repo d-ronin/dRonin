@@ -40,7 +40,7 @@ class WaypointDelegate : public QStyledItemDelegate
     Q_OBJECT
 
 public:
-    WaypointDelegate(QObject *parent = 0);
+    WaypointDelegate(QObject *parent = nullptr);
 
     //! Create the QComboxBox for the mode or pass to the default implementation
     QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,

@@ -60,7 +60,7 @@ class CORE_EXPORT ICoreListener : public QObject
 {
     Q_OBJECT
 public:
-    ICoreListener(QObject *parent = 0)
+    ICoreListener(QObject *parent = nullptr)
         : QObject(parent)
     {
     }

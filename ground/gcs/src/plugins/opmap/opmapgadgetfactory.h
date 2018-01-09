@@ -42,7 +42,7 @@ class OPMapGadgetFactory : public Core::IUAVGadgetFactory
     Q_OBJECT
 
 public:
-    OPMapGadgetFactory(QObject *parent = 0);
+    OPMapGadgetFactory(QObject *parent = nullptr);
     ~OPMapGadgetFactory();
 
     Core::IUAVGadget *createGadget(QWidget *parent);

@@ -47,7 +47,7 @@ class TelemetrySchedulerGadgetWidget : public QWidget
     Q_OBJECT
 
 public:
-    TelemetrySchedulerGadgetWidget(QWidget *parent = 0);
+    TelemetrySchedulerGadgetWidget(QWidget *parent = nullptr);
     ~TelemetrySchedulerGadgetWidget();
 
 signals:
@@ -105,7 +105,7 @@ private:
 class SchedulerModel : public QStandardItemModel
 {
 public:
-    SchedulerModel(int rows, int cols, QObject *parent = 0)
+    SchedulerModel(int rows, int cols, QObject *parent = nullptr)
         : QStandardItemModel(rows, cols, parent)
     {
     }
@@ -116,7 +116,7 @@ public:
     Qt::ItemFlags flags(const QModelIndex &index) const
     {
         if (index.column() == 0 || index.column() == 1)
-            return 0;
+            return nullptr;
         else
             return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable;
     }
@@ -170,7 +170,7 @@ class SpinBoxDelegate : public QItemDelegate
     Q_OBJECT
 
 public:
-    SpinBoxDelegate(QObject *parent = 0);
+    SpinBoxDelegate(QObject *parent = nullptr);
 
     QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
                           const QModelIndex &index) const;

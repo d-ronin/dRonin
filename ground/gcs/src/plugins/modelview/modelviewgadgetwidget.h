@@ -45,7 +45,7 @@ class ModelViewGadgetWidget : public QGLWidget
     Q_OBJECT
 
 public:
-    ModelViewGadgetWidget(QWidget *parent = 0);
+    ModelViewGadgetWidget(QWidget *parent = nullptr);
     ~ModelViewGadgetWidget();
     void setAcFilename(QString acf);
 

@@ -42,7 +42,7 @@ class SCOPE_EXPORT ScopeGadgetFactory : public IUAVGadgetFactory
 {
     Q_OBJECT
 public:
-    ScopeGadgetFactory(QObject *parent = 0);
+    ScopeGadgetFactory(QObject *parent = nullptr);
     ~ScopeGadgetFactory();
 
     Core::IUAVGadget *createGadget(QWidget *parent);

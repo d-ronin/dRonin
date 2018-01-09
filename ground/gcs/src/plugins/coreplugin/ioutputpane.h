@@ -44,7 +44,7 @@ class CORE_EXPORT IOutputPane : public QObject
 {
     Q_OBJECT
 public:
-    IOutputPane(QObject *parent = 0)
+    IOutputPane(QObject *parent = nullptr)
         : QObject(parent)
     {
     }

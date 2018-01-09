@@ -47,7 +47,7 @@ class ExpoCurve : public QwtPlot
 {
     Q_OBJECT
 public:
-    explicit ExpoCurve(QWidget *parent = 0);
+    explicit ExpoCurve(QWidget *parent = nullptr);
 
     typedef struct ExpoPlotElements
     {

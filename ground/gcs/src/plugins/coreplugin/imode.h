@@ -42,7 +42,7 @@ class CORE_EXPORT IMode : public IContext
 {
     Q_OBJECT
 public:
-    IMode(QObject *parent = 0)
+    IMode(QObject *parent = nullptr)
         : IContext(parent)
     {
     }

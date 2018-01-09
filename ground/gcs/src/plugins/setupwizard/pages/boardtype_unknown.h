@@ -48,7 +48,7 @@ public:
         UNKNOWN_FIRMWARE,
     };
 
-    explicit BoardtypeUnknown(SetupWizard *wizard, QWidget *parent = 0);
+    explicit BoardtypeUnknown(SetupWizard *wizard, QWidget *parent = nullptr);
     ~BoardtypeUnknown();
     bool validatePage();
     void setFailureType(FailureType type);

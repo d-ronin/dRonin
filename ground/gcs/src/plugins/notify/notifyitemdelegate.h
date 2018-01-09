@@ -38,7 +38,7 @@ class NotifyItemDelegate : public QItemDelegate
     Q_OBJECT
 
 public:
-    NotifyItemDelegate(QObject *parent = 0);
+    NotifyItemDelegate(QObject *parent = nullptr);
     QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &,
                           const QModelIndex &index) const;
     void setEditorData(QWidget *editor, const QModelIndex &index) const;

@@ -319,7 +319,7 @@ QModelIndex UAVObjectTreeModel::index(int row, int column, const QModelIndex &pa
 
 QModelIndex UAVObjectTreeModel::index(TreeItem *item)
 {
-    if (item->parent() == 0)
+    if (item->parent() == nullptr)
         return QModelIndex();
 
     QModelIndex root = index(item->parent());
@@ -474,7 +474,7 @@ bool UAVObjectTreeModel::setData(const QModelIndex &index, const QVariant &value
 Qt::ItemFlags UAVObjectTreeModel::flags(const QModelIndex &index) const
 {
     if (!index.isValid())
-        return 0;
+        return nullptr;
 
     if (index.column() == TreeItem::dataColumn) {
         TreeItem *item = static_cast<TreeItem *>(index.internalPointer());
@@ -519,7 +519,7 @@ ObjectTreeItem *UAVObjectTreeModel::findObjectTreeItem(UAVObject *object)
     } else {
         return findMetaObjectTreeItem(metaObject);
     }
-    return 0;
+    return nullptr;
 }
 
 DataObjectTreeItem *UAVObjectTreeModel::findDataObjectTreeItem(UAVDataObject *obj)

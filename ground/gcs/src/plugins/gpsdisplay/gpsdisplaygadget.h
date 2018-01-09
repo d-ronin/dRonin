@@ -44,7 +44,7 @@ class GpsDisplayGadget : public Core::IUAVGadget
 {
     Q_OBJECT
 public:
-    GpsDisplayGadget(QString classId, GpsDisplayWidget *widget, QWidget *parent = 0);
+    GpsDisplayGadget(QString classId, GpsDisplayWidget *widget, QWidget *parent = nullptr);
     ~GpsDisplayGadget();
 
     QWidget *widget() { return m_widget; }

@@ -43,7 +43,7 @@ class LineardialGadgetWidget : public QGraphicsView
     Q_OBJECT
 
 public:
-    LineardialGadgetWidget(QWidget *parent = 0);
+    LineardialGadgetWidget(QWidget *parent = nullptr);
     ~LineardialGadgetWidget();
     void setDialFile(QString dfn);
     void paint();

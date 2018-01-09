@@ -43,7 +43,7 @@
 
 #include <QDebug>
 
-IPConnection *connection = 0;
+IPConnection *connection = nullptr;
 
 IPConnection::IPConnection()
 {

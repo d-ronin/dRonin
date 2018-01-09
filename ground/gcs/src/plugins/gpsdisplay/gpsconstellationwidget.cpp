@@ -83,7 +83,7 @@ GpsConstellationWidget::GpsConstellationWidget(QWidget *parent)
 GpsConstellationWidget::~GpsConstellationWidget()
 {
     delete scene;
-    scene = 0;
+    scene = nullptr;
 
     // delete renderer;
     // renderer = 0;

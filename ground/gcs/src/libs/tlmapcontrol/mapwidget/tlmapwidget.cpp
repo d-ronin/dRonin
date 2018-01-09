@@ -39,10 +39,10 @@ namespace mapcontrol
 {
 
     TLMapWidget::TLMapWidget(QWidget *parent, Configuration *config) : QGraphicsView(parent),
-        configuration(config),UAV(0),GPS(0),Home(0),followmouse(true),
-        compassRose(0),windCompass(0),showuav(false),showhome(false),
-        diagTimer(0),diagGraphItem(0),showDiag(false),overlayOpacity(1),
-        windspeedTxt(0)
+        configuration(config),UAV(nullptr),GPS(nullptr),Home(nullptr),followmouse(true),
+        compassRose(nullptr),windCompass(nullptr),showuav(false),showhome(false),
+        diagTimer(nullptr),diagGraphItem(nullptr),showDiag(false),overlayOpacity(1),
+        windspeedTxt(nullptr)
     {
         setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
         this->setScene(new QGraphicsScene(this));
@@ -82,21 +82,21 @@ namespace mapcontrol
         showDiag=value;
         if(!showDiag)
         {
-            if(diagGraphItem!=0)
+            if(diagGraphItem!=nullptr)
             {
                 delete diagGraphItem;
-                diagGraphItem=0;
+                diagGraphItem=nullptr;
             }
-            if(diagTimer!=0)
+            if(diagTimer!=nullptr)
             {
                 delete diagTimer;
-                diagTimer=0;
+                diagTimer=nullptr;
             }
 
-            if(GPS!=0)
+            if(GPS!=nullptr)
             {
                 delete GPS;
-                GPS=0;
+                GPS=nullptr;
             }
         }
         else
@@ -104,7 +104,7 @@ namespace mapcontrol
             diagTimer=new QTimer();
             connect(diagTimer,SIGNAL(timeout()),this,SLOT(diagRefresh()));
             diagTimer->start(500);
-            if(GPS==0)
+            if(GPS==nullptr)
             {
                 GPS=new GPSItem(map,this);
                 GPS->setParentItem(map);
@@ -116,9 +116,9 @@ namespace mapcontrol
 
     void TLMapWidget::SetUavPic(QString UAVPic)
     {
-        if(UAV!=0)
+        if(UAV!=nullptr)
             UAV->SetUavPic(UAVPic);
-        if(GPS!=0)
+        if(GPS!=nullptr)
             GPS->SetUavPic(UAVPic);
     }
 
@@ -178,7 +178,7 @@ namespace mapcontrol
 
     void TLMapWidget::SetShowUAV(const bool &value)
     {
-        if(value && UAV==0)
+        if(value && UAV==nullptr)
         {
             UAV=new UAVItem(map,this);
             UAV->setParentItem(map);
@@ -188,7 +188,7 @@ namespace mapcontrol
         }
         else if(!value)
         {
-            if(UAV!=0)
+            if(UAV!=nullptr)
             {
                 delete UAV;
                 UAV=NULL;
@@ -524,7 +524,7 @@ namespace mapcontrol
     {
         if(showDiag)
         {
-            if(diagGraphItem==0)
+            if(diagGraphItem==nullptr)
             {
                 diagGraphItem=new QGraphicsTextItem();
                 scene()->addItem(diagGraphItem);
@@ -536,10 +536,10 @@ namespace mapcontrol
             diagGraphItem->setPlainText(core->GetDiagnostics().toString());
         }
         else
-            if(diagGraphItem!=0)
+            if(diagGraphItem!=nullptr)
             {
             delete diagGraphItem;
-            diagGraphItem=0;
+            diagGraphItem=nullptr;
         }
     }
 
@@ -565,7 +565,7 @@ namespace mapcontrol
         if(!value && compassRose)
         {
             delete compassRose;
-            compassRose=0;
+            compassRose=nullptr;
         }
     }
 
@@ -602,7 +602,7 @@ namespace mapcontrol
         if (!value && windCompass) {
             delete windspeedTxt;
             delete windCompass;
-            windCompass=0;
+            windCompass=nullptr;
         }
     }
 

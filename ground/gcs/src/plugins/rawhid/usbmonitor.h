@@ -95,7 +95,7 @@ public:
 
     static USBMonitor *instance();
 
-    USBMonitor(QObject *parent = 0);
+    USBMonitor(QObject *parent = nullptr);
     ~USBMonitor();
     QList<USBPortInfo> availableDevices();
     QList<USBPortInfo> availableDevices(int vid, int pid, int boardModel, int runState);

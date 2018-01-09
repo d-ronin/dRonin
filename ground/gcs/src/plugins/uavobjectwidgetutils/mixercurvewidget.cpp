@@ -369,7 +369,7 @@ void MixerCurveWidget::initNodes(int numPoints)
     }
 
     // Create the nodes and edges
-    MixerNode *prevNode = 0;
+    MixerNode *prevNode = nullptr;
     for (int i = 0; i < numPoints; i++) {
 
         MixerNode *node = getNode(i);
@@ -569,7 +569,7 @@ double MixerCurveWidget::setRange(double min, double max)
 
 MixerNode *MixerCurveWidget::getCmdNode(const QString &name)
 {
-    MixerNode *node = 0;
+    MixerNode *node = nullptr;
     for (int i = 0; i < cmdNodePool.count(); i++) {
         MixerNode *n = cmdNodePool.at(i);
         if (n->getName() == name)

@@ -46,7 +46,7 @@ class CoordinatorPage : public RadioProbePage
     Q_OBJECT
 
 public:
-    explicit CoordinatorPage(RfmBindWizard *wizard, QWidget *parent = 0);
+    explicit CoordinatorPage(RfmBindWizard *wizard, QWidget *parent = nullptr);
     ~CoordinatorPage();
     void initializePage();
     bool isComplete() const;

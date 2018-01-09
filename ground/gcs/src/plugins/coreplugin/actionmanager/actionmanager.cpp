@@ -207,7 +207,7 @@ enum { warnAboutFindFailures = 0 };
 using namespace Core;
 using namespace Core::Internal;
 
-ActionManagerPrivate *ActionManagerPrivate::m_instance = 0;
+ActionManagerPrivate *ActionManagerPrivate::m_instance = nullptr;
 
 /*!
     \class ActionManagerPrivate
@@ -320,7 +320,7 @@ ActionContainer *ActionManagerPrivate::createMenuBar(const QString &id)
 Command *ActionManagerPrivate::registerAction(QAction *action, const QString &id,
                                               const QList<int> &context)
 {
-    OverrideableAction *a = 0;
+    OverrideableAction *a = nullptr;
     Command *c = registerOverridableAction(action, id, false);
     a = static_cast<OverrideableAction *>(c);
     if (a)
@@ -331,7 +331,7 @@ Command *ActionManagerPrivate::registerAction(QAction *action, const QString &id
 Command *ActionManagerPrivate::registerOverridableAction(QAction *action, const QString &id,
                                                          bool checkUnique)
 {
-    OverrideableAction *a = 0;
+    OverrideableAction *a = nullptr;
     const int uid = UniqueIDManager::instance()->uniqueIdentifier(id);
     if (CommandPrivate *c = m_idCmdMap.value(uid, 0)) {
         a = qobject_cast<OverrideableAction *>(c);
@@ -377,7 +377,7 @@ Command *ActionManagerPrivate::registerOverridableAction(QAction *action, const 
 Command *ActionManagerPrivate::registerShortcut(QShortcut *shortcut, const QString &id,
                                                 const QList<int> &context)
 {
-    Shortcut *sc = 0;
+    Shortcut *sc = nullptr;
     int uid = UniqueIDManager::instance()->uniqueIdentifier(id);
     if (CommandPrivate *c = m_idCmdMap.value(uid, 0)) {
         sc = qobject_cast<Shortcut *>(c);
@@ -420,7 +420,7 @@ Command *ActionManagerPrivate::command(const QString &id) const
     if (it == m_idCmdMap.constEnd()) {
         if (warnAboutFindFailures)
             qWarning() << "ActionManagerPrivate::command(): failed to find :" << id << '/' << uid;
-        return 0;
+        return nullptr;
     }
     return it.value();
 }
@@ -433,7 +433,7 @@ ActionContainer *ActionManagerPrivate::actionContainer(const QString &id) const
         if (warnAboutFindFailures)
             qWarning() << "ActionManagerPrivate::actionContainer(): failed to find :" << id << '/'
                        << uid;
-        return 0;
+        return nullptr;
     }
     return it.value();
 }
@@ -445,7 +445,7 @@ Command *ActionManagerPrivate::command(int uid) const
         if (warnAboutFindFailures)
             qWarning() << "ActionManagerPrivate::command(): failed to find :"
                        << UniqueIDManager::instance()->stringForUniqueIdentifier(uid) << '/' << uid;
-        return 0;
+        return nullptr;
     }
     return it.value();
 }
@@ -457,7 +457,7 @@ ActionContainer *ActionManagerPrivate::actionContainer(int uid) const
         if (warnAboutFindFailures)
             qWarning() << "ActionManagerPrivate::actionContainer(): failed to find :"
                        << UniqueIDManager::instance()->stringForUniqueIdentifier(uid) << uid;
-        return 0;
+        return nullptr;
     }
     return it.value();
 }

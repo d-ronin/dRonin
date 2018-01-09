@@ -310,7 +310,7 @@ UAVObjectField *UAVObjectManager::getField(const QString &objName, const QString
     UAVObject *uavo = getObject(objName, instId);
     Q_ASSERT(uavo);
     if (!uavo)
-        return Q_NULLPTR;
+        return nullptr;
     UAVObjectField *field = uavo->getField(fieldName);
     Q_ASSERT(field);
     return field;

@@ -42,7 +42,7 @@ class CORE_EXPORT BaseMode : public IMode
     Q_OBJECT
 
 public:
-    BaseMode(QObject *parent = 0);
+    BaseMode(QObject *parent = nullptr);
     ~BaseMode();
 
     // IMode

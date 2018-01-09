@@ -39,7 +39,7 @@ class HeliPage : public AbstractWizardPage
     Q_OBJECT
 
 public:
-    explicit HeliPage(SetupWizard *wizard, QWidget *parent = 0);
+    explicit HeliPage(SetupWizard *wizard, QWidget *parent = nullptr);
     ~HeliPage();
 
 private:

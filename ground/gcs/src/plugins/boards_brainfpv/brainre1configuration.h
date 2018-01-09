@@ -41,7 +41,7 @@ class BrainRE1Configuration : public ConfigTaskWidget
     Q_OBJECT
 
 public:
-    explicit BrainRE1Configuration(QWidget *parent = 0);
+    explicit BrainRE1Configuration(QWidget *parent = nullptr);
     ~BrainRE1Configuration();
 
 private slots:

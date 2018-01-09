@@ -39,7 +39,7 @@ class TLEndPage : public AbstractWizardPage
     Q_OBJECT
 
 public:
-    explicit TLEndPage(RfmBindWizard *wizard, QWidget *parent = 0);
+    explicit TLEndPage(RfmBindWizard *wizard, QWidget *parent = nullptr);
     ~TLEndPage();
 
 private:

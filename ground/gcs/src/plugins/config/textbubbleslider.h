@@ -34,8 +34,8 @@ class TextBubbleSlider : public QSlider
     Q_OBJECT
 
 public:
-    explicit TextBubbleSlider(QWidget *parent = 0);
-    explicit TextBubbleSlider(QSlider *, QWidget *parent = 0);
+    explicit TextBubbleSlider(QWidget *parent = nullptr);
+    explicit TextBubbleSlider(QSlider *, QWidget *parent = nullptr);
     void construct();
     ~TextBubbleSlider();
 

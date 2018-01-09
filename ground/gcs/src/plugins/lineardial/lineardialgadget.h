@@ -41,7 +41,7 @@ class LineardialGadget : public Core::IUAVGadget
 {
     Q_OBJECT
 public:
-    LineardialGadget(QString classId, LineardialGadgetWidget *widget, QWidget *parent = 0);
+    LineardialGadget(QString classId, LineardialGadgetWidget *widget, QWidget *parent = nullptr);
     ~LineardialGadget();
 
     QWidget *widget() { return m_widget; }

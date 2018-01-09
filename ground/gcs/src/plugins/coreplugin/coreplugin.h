@@ -47,7 +47,7 @@ namespace Internal {
         CorePlugin();
         ~CorePlugin();
 
-        virtual bool initialize(const QStringList &arguments, QString *errorMessage = 0);
+        virtual bool initialize(const QStringList &arguments, QString *errorMessage = nullptr);
         virtual void extensionsInitialized();
         virtual void shutdown();
 

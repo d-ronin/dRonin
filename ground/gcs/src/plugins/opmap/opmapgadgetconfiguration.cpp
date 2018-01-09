@@ -49,7 +49,7 @@ OPMapGadgetConfiguration::OPMapGadgetConfiguration(QString classId, QSettings *q
 {
 
     // if a saved configuration exists load it
-    if (qSettings != 0) {
+    if (qSettings != nullptr) {
 
         QString mapProvider = qSettings->value("mapProvider").toString();
         int zoom = qSettings->value("defaultZoom").toInt();

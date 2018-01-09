@@ -7,7 +7,7 @@
 PopupWidget::PopupWidget(QWidget *parent)
     : QDialog(parent)
 {
-    m_widget = 0;
+    m_widget = nullptr;
 
     QVBoxLayout *mainLayout = new QVBoxLayout();
 

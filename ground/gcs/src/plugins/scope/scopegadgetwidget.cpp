@@ -62,13 +62,13 @@
 #include <QClipboard>
 #include <QApplication>
 
-QTimer *ScopeGadgetWidget::replotTimer = 0;
+QTimer *ScopeGadgetWidget::replotTimer = nullptr;
 
 ScopeGadgetWidget::ScopeGadgetWidget(QWidget *parent)
     : QwtPlot(parent)
     , m_refreshInterval(50)
     , // Arbitrary 50ms refresh timer
-    m_scope(0)
+    m_scope(nullptr)
     , m_xWindowSize(60) // This is an arbitrary 1 minute window
 {
     m_grid = new QwtPlotGrid;
@@ -414,7 +414,7 @@ QString ScopeGadgetWidget::getUavObjectFieldUnits(QString uavObjectName, QString
 
     // Get the units
     QString units = field->getUnits();
-    if (units == 0)
+    if (units == nullptr)
         units = QString();
 
     return units;

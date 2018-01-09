@@ -39,7 +39,7 @@ class OutputCalibrationUtil : public QObject
 {
     Q_OBJECT
 public:
-    explicit OutputCalibrationUtil(QObject *parent = 0);
+    explicit OutputCalibrationUtil(QObject *parent = nullptr);
     ~OutputCalibrationUtil();
 
 signals:

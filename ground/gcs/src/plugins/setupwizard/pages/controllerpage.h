@@ -45,7 +45,7 @@ class ControllerPage : public AbstractWizardPage
     Q_OBJECT
 
 public:
-    explicit ControllerPage(SetupWizard *wizard, QWidget *parent = 0);
+    explicit ControllerPage(SetupWizard *wizard, QWidget *parent = nullptr);
     ~ControllerPage();
     void initializePage();
     bool isComplete() const;

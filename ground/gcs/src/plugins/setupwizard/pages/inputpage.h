@@ -39,7 +39,7 @@ class InputPage : public AbstractWizardPage
     Q_OBJECT
 
 public:
-    explicit InputPage(SetupWizard *wizard, QWidget *parent = 0);
+    explicit InputPage(SetupWizard *wizard, QWidget *parent = nullptr);
     ~InputPage();
     bool validatePage();
 

@@ -41,7 +41,7 @@ class homeEditor : public QDialog
     Q_OBJECT
 
 public:
-    explicit homeEditor(HomeItem *home, QWidget *parent = 0);
+    explicit homeEditor(HomeItem *home, QWidget *parent = nullptr);
     ~homeEditor();
 
 private slots:

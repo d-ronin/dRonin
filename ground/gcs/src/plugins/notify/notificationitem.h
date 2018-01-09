@@ -60,7 +60,7 @@ public:
         repeat1minute
     };
 
-    explicit NotificationItem(QObject *parent = 0);
+    explicit NotificationItem(QObject *parent = nullptr);
 
     void copyTo(NotificationItem *) const;
 

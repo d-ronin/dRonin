@@ -42,7 +42,7 @@ class DebugGadget : public Core::IUAVGadget
 {
     Q_OBJECT
 public:
-    DebugGadget(QString classId, DebugGadgetWidget *widget, QWidget *parent = 0);
+    DebugGadget(QString classId, DebugGadgetWidget *widget, QWidget *parent = nullptr);
     ~DebugGadget();
 
     QList<int> context() const { return m_context; }

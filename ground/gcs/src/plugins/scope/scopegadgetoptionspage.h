@@ -56,7 +56,7 @@ class ScopeGadgetOptionsPage : public IOptionsPage
 public:
     enum userRoleShift { UR_UAVOBJECT, UR_UAVFIELD, UR_SCALE, UR_COLOR, UR_MEAN, UR_MATHFUNCTION };
 
-    explicit ScopeGadgetOptionsPage(ScopeGadgetConfiguration *config, QObject *parent = 0);
+    explicit ScopeGadgetOptionsPage(ScopeGadgetConfiguration *config, QObject *parent = nullptr);
 
     QWidget *createPage(QWidget *parent);
     void apply();

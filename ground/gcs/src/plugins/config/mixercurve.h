@@ -46,7 +46,7 @@ class MixerCurve : public QFrame
     Q_OBJECT
 
 public:
-    explicit MixerCurve(QWidget *parent = 0);
+    explicit MixerCurve(QWidget *parent = nullptr);
     ~MixerCurve();
 
     /* Enumeration options for ThrottleCurves */
@@ -82,7 +82,7 @@ public slots:
     void UpdateSettingsTable();
 
 private slots:
-    void CommandActivated(MixerNode *node = 0);
+    void CommandActivated(MixerNode *node = nullptr);
     void SettingsTableChanged();
     void CurveTypeChanged();
     void CurveMinChanged(double value);

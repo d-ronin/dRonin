@@ -38,7 +38,7 @@ class MapRipForm : public QWidget
     Q_OBJECT
 
 public:
-    explicit MapRipForm(QWidget *parent = 0);
+    explicit MapRipForm(QWidget *parent = nullptr);
     ~MapRipForm();
 public slots:
     void SetPercentage(int const& perc);

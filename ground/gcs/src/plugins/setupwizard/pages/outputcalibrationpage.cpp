@@ -33,9 +33,9 @@
 OutputCalibrationPage::OutputCalibrationPage(SetupWizard *wizard, QWidget *parent)
     : AbstractWizardPage(wizard, parent)
     , ui(new Ui::OutputCalibrationPage)
-    , m_vehicleBoundsItem(0)
+    , m_vehicleBoundsItem(nullptr)
     , m_currentWizardIndex(-1)
-    , m_calibrationUtil(0)
+    , m_calibrationUtil(nullptr)
 {
     ui->setupUi(this);
 
@@ -52,7 +52,7 @@ OutputCalibrationPage::~OutputCalibrationPage()
 {
     if (m_calibrationUtil) {
         delete m_calibrationUtil;
-        m_calibrationUtil = 0;
+        m_calibrationUtil = nullptr;
     }
     delete ui;
 }
@@ -152,7 +152,7 @@ void OutputCalibrationPage::setupVehicle()
 
     if (m_calibrationUtil) {
         delete m_calibrationUtil;
-        m_calibrationUtil = 0;
+        m_calibrationUtil = nullptr;
     }
     m_calibrationUtil = new OutputCalibrationUtil();
 

@@ -103,29 +103,29 @@ MainWindow::MainWindow()
     , m_additionalContexts(m_globalContext)
     , m_dontSaveSettings(false)
     , m_actionManager(new ActionManagerPrivate(this))
-    , m_modeManager(0)
-    , m_connectionManager(0)
-    , m_boardManager(0)
-    , m_versionDialog(0)
-    , m_authorsDialog(0)
-    , m_activeContext(0)
+    , m_modeManager(nullptr)
+    , m_connectionManager(nullptr)
+    , m_boardManager(nullptr)
+    , m_versionDialog(nullptr)
+    , m_authorsDialog(nullptr)
+    , m_activeContext(nullptr)
     , m_generalSettings(new GeneralSettings)
     , m_shortcutSettings(new ShortcutSettings)
     , m_workspaceSettings(new WorkspaceSettings)
-    , m_focusToEditor(0)
-    , m_newAction(0)
-    , m_openAction(0)
-    , m_openWithAction(0)
-    , m_saveAllAction(0)
-    , m_exitAction(0)
-    , m_optionsAction(0)
+    , m_focusToEditor(nullptr)
+    , m_newAction(nullptr)
+    , m_openAction(nullptr)
+    , m_openWithAction(nullptr)
+    , m_saveAllAction(nullptr)
+    , m_exitAction(nullptr)
+    , m_optionsAction(nullptr)
     ,
 #ifdef Q_OS_MAC
     m_minimizeAction(0)
     , m_zoomAction(0)
     ,
 #endif /* Q_OS_MAC */
-    m_toggleFullScreenAction(0)
+    m_toggleFullScreenAction(nullptr)
 {
     // keep this in sync with main() in app/main.cpp
     m_settings = new QSettings(QDir::tempPath() + QDir::separator() + GCS_PROJECT_BRANDING
@@ -252,13 +252,13 @@ MainWindow::~MainWindow()
     pm->removeObject(m_generalSettings);
     pm->removeObject(m_workspaceSettings);
     delete m_globalMessaging;
-    m_globalMessaging = 0;
+    m_globalMessaging = nullptr;
     delete m_shortcutSettings;
-    m_shortcutSettings = 0;
+    m_shortcutSettings = nullptr;
     delete m_generalSettings;
-    m_generalSettings = 0;
+    m_generalSettings = nullptr;
     delete m_workspaceSettings;
-    m_workspaceSettings = 0;
+    m_workspaceSettings = nullptr;
 
     // Copy working settings back to original settings file. Do this in scope so that
     // we are guaranteed that the originalSettings file is closed. This minimizes the risk
@@ -281,16 +281,16 @@ MainWindow::~MainWindow()
     }
 
     delete m_settings;
-    m_settings = 0;
+    m_settings = nullptr;
     delete m_uniqueIDManager;
-    m_uniqueIDManager = 0;
+    m_uniqueIDManager = nullptr;
 
     pm->removeObject(m_coreImpl);
     delete m_coreImpl;
-    m_coreImpl = 0;
+    m_coreImpl = nullptr;
 
     delete m_modeManager;
-    m_modeManager = 0;
+    m_modeManager = nullptr;
 }
 
 bool MainWindow::init(QString *errorMessage)
@@ -475,7 +475,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 // Check for desktop file manager file drop events
 
-static bool isDesktopFileManagerDrop(const QMimeData *d, QStringList *files = 0)
+static bool isDesktopFileManagerDrop(const QMimeData *d, QStringList *files = nullptr)
 {
     if (files)
         files->clear();
@@ -1003,7 +1003,7 @@ void MainWindow::removeContextObject(IContext *context)
 
     m_contextWidgets.remove(widget);
     if (m_activeContext == context)
-        updateContextObject(0);
+        updateContextObject(nullptr);
 }
 
 void MainWindow::changeEvent(QEvent *e)
@@ -1037,9 +1037,9 @@ void MainWindow::updateFocusWidget(QWidget *old, QWidget *now)
     if (qobject_cast<QMenuBar *>(now))
         return;
 
-    IContext *newContext = 0;
+    IContext *newContext = nullptr;
     if (focusWidget()) {
-        IContext *context = 0;
+        IContext *context = nullptr;
         QWidget *p = focusWidget();
         while (p) {
             context = m_contextWidgets.value(p);
@@ -1063,22 +1063,22 @@ void MainWindow::updateContextObject(IContext *context)
         emit m_coreImpl->contextAboutToChange(context);
         updateContext();
         if (debugMainWindow)
-            qDebug() << "new context object =" << context << (context ? context->widget() : 0)
-                     << (context ? context->widget()->metaObject()->className() : 0);
+            qDebug() << "new context object =" << context << (context ? context->widget() : nullptr)
+                     << (context ? context->widget()->metaObject()->className() : nullptr);
         emit m_coreImpl->contextChanged(context);
     }
 }
 
 void MainWindow::resetContext()
 {
-    updateContextObject(0);
+    updateContextObject(nullptr);
 }
 
 void MainWindow::shutdown()
 {
     disconnect(QApplication::instance(), SIGNAL(focusChanged(QWidget *, QWidget *)), this,
                SLOT(updateFocusWidget(QWidget *, QWidget *)));
-    m_activeContext = 0;
+    m_activeContext = nullptr;
 
     // We have to remove all the existing gagdets at his point, not
     // later!
@@ -1406,7 +1406,7 @@ void MainWindow::destroyVersionDialog()
 {
     if (m_versionDialog) {
         m_versionDialog->deleteLater();
-        m_versionDialog = 0;
+        m_versionDialog = nullptr;
     }
 }
 
@@ -1423,7 +1423,7 @@ void MainWindow::destroyAuthorsDialog()
 {
     if (m_authorsDialog) {
         m_authorsDialog->deleteLater();
-        m_authorsDialog = 0;
+        m_authorsDialog = nullptr;
     }
 }
 
@@ -1456,12 +1456,12 @@ bool MainWindow::showWarningWithOptions(const QString &title, const QString &tex
                                         const QString &details, const QString &settingsCategory,
                                         const QString &settingsId, QWidget *parent)
 {
-    if (parent == 0)
+    if (parent == nullptr)
         parent = this;
     QMessageBox msgBox(QMessageBox::Warning, title, text, QMessageBox::Ok, parent);
     if (details.isEmpty())
         msgBox.setDetailedText(details);
-    QAbstractButton *settingsButton = 0;
+    QAbstractButton *settingsButton = nullptr;
     if (!settingsId.isEmpty() || !settingsCategory.isEmpty())
         settingsButton = msgBox.addButton(tr("Settings..."), QMessageBox::AcceptRole);
     msgBox.exec();

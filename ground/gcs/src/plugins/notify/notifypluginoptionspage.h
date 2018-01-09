@@ -60,7 +60,7 @@ class NotifyPluginOptionsPage : public IOptionsPage
 
 public:
     enum { equal, bigger, smaller, inrange };
-    explicit NotifyPluginOptionsPage(QObject *parent = 0);
+    explicit NotifyPluginOptionsPage(QObject *parent = nullptr);
     ~NotifyPluginOptionsPage();
     QString id() const { return QLatin1String("settings"); }
     QString trName() const { return tr("settings"); }

@@ -43,7 +43,7 @@ class CORE_EXPORT IWizard : public QObject
 public:
     enum Kind { FileWizard, ClassWizard, ProjectWizard };
 
-    IWizard(QObject *parent = 0)
+    IWizard(QObject *parent = nullptr)
         : QObject(parent)
     {
     }

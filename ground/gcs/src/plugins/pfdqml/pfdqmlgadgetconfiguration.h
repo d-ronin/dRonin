@@ -24,8 +24,8 @@ class PfdQmlGadgetConfiguration : public IUAVGadgetConfiguration
 {
     Q_OBJECT
 public:
-    explicit PfdQmlGadgetConfiguration(QString classId, QSettings *qSettings = 0,
-                                       QObject *parent = 0);
+    explicit PfdQmlGadgetConfiguration(QString classId, QSettings *qSettings = nullptr,
+                                       QObject *parent = nullptr);
 
     void setQmlFile(const QString &fileName) { m_qmlFile = fileName; }
 

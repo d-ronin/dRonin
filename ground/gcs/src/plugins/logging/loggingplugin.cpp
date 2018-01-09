@@ -410,7 +410,7 @@ void LoggingPlugin::startLogging(QString file)
 void LoggingPlugin::stopLogging()
 {
     emit stopLoggingSignal();
-    disconnect(this, SIGNAL(stopLoggingSignal()), 0, 0);
+    disconnect(this, SIGNAL(stopLoggingSignal()), nullptr, nullptr);
 }
 
 /**

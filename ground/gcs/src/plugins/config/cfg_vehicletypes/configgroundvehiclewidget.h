@@ -43,7 +43,7 @@ class ConfigGroundVehicleWidget : public VehicleConfig
     Q_OBJECT
 
 public:
-    ConfigGroundVehicleWidget(Ui_AircraftWidget *aircraft = 0, QWidget *parent = 0);
+    ConfigGroundVehicleWidget(Ui_AircraftWidget *aircraft = nullptr, QWidget *parent = nullptr);
     ~ConfigGroundVehicleWidget();
 
     friend class ConfigVehicleTypeWidget;

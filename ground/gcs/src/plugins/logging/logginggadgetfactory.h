@@ -41,7 +41,7 @@ class LoggingGadgetFactory : public IUAVGadgetFactory
 {
     Q_OBJECT
 public:
-    LoggingGadgetFactory(QObject *parent = 0);
+    LoggingGadgetFactory(QObject *parent = nullptr);
     ~LoggingGadgetFactory();
 
     void setPlugin(LoggingPlugin *p) { loggingPlugin = p; };

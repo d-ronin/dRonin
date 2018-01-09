@@ -136,7 +136,7 @@ SettingsDialog::SettingsDialog(QWidget *parent, const QString &categoryId, const
 
     int index = 0;
     bool firstUavGadgetOptionsPageFound = false;
-    QTreeWidgetItem *initialItem = 0;
+    QTreeWidgetItem *initialItem = nullptr;
     foreach (IOptionsPage *page, pages) {
         PageData pageData;
         pageData.index = index;
@@ -292,7 +292,7 @@ void SettingsDialog::insertPage(IOptionsPage *page)
     pageData.category = page->category();
     pageData.id = page->id();
 
-    QTreeWidgetItem *categoryItem = 0;
+    QTreeWidgetItem *categoryItem = nullptr;
     for (int i = 0; i < pageTree->topLevelItemCount(); ++i) {
         QTreeWidgetItem *tw = pageTree->topLevelItem(i);
         PageData data = tw->data(0, Qt::UserRole).value<PageData>();

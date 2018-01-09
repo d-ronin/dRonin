@@ -24,7 +24,7 @@ class IMPORTEXPORT_EXPORT ImportExportGadgetWidget : public QWidget
 {
     Q_OBJECT
 public:
-    ImportExportGadgetWidget(QWidget *parent = 0);
+    ImportExportGadgetWidget(QWidget *parent = nullptr);
     ~ImportExportGadgetWidget();
 
 signals:

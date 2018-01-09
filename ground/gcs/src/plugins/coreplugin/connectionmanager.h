@@ -108,7 +108,7 @@ public:
 
     QLinkedList<DevListItem> getAvailableDevices() { return m_devList; }
 
-    bool isConnected() { return m_ioDev != 0; }
+    bool isConnected() { return m_ioDev != nullptr; }
 
     bool connectDevice(DevListItem device);
     bool disconnectDevice();

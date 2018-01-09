@@ -33,7 +33,7 @@ class PATHPLANNER_EXPORT PathFillet : public IPathAlgorithm
     Q_OBJECT
 
 public:
-    explicit PathFillet(QObject *parent = 0);
+    explicit PathFillet(QObject *parent = nullptr);
 
     /**
      * Verify the path is valid to run through this algorithm
@@ -55,7 +55,7 @@ public:
      * @param callingUi the QWidget that called this algorithm
      * @return true for success, false for failure
      */
-    virtual bool configure(QWidget *callingUi = 0);
+    virtual bool configure(QWidget *callingUi = nullptr);
 
 private:
     //! Fileting radius to use

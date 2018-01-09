@@ -49,7 +49,7 @@ class ModelViewGadgetOptionsPage : public IOptionsPage
 {
     Q_OBJECT
 public:
-    explicit ModelViewGadgetOptionsPage(ModelViewGadgetConfiguration *config, QObject *parent = 0);
+    explicit ModelViewGadgetOptionsPage(ModelViewGadgetConfiguration *config, QObject *parent = nullptr);
     QString id() const { return ""; }
     QString trName() const { return ""; }
     QString category() const { return ""; }

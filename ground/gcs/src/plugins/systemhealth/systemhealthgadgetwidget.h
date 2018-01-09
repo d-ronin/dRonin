@@ -43,7 +43,7 @@ class SystemHealthGadgetWidget : public QGraphicsView
     Q_OBJECT
 
 public:
-    SystemHealthGadgetWidget(QWidget *parent = 0);
+    SystemHealthGadgetWidget(QWidget *parent = nullptr);
     ~SystemHealthGadgetWidget();
     void setSystemFile(QString dfn);
     void setIndicator(QString indicator);

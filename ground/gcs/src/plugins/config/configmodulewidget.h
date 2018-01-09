@@ -41,7 +41,7 @@ class ConfigModuleWidget : public ConfigTaskWidget
     Q_OBJECT
 
 public:
-    ConfigModuleWidget(QWidget *parent = 0);
+    ConfigModuleWidget(QWidget *parent = nullptr);
     ~ConfigModuleWidget();
 
 private slots:

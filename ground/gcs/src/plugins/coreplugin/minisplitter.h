@@ -42,7 +42,7 @@ namespace Core {
 class CORE_EXPORT MiniSplitter : public QSplitter
 {
 public:
-    MiniSplitter(QWidget *parent = 0);
+    MiniSplitter(QWidget *parent = nullptr);
     MiniSplitter(Qt::Orientation orientation);
 
 protected:

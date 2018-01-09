@@ -44,7 +44,7 @@ class UPLOADER_EXPORT UploaderGadgetFactory : public Core::IUAVGadgetFactory
 {
     Q_OBJECT
 public:
-    UploaderGadgetFactory(QObject *parent = 0);
+    UploaderGadgetFactory(QObject *parent = nullptr);
     ~UploaderGadgetFactory();
 
     Core::IUAVGadget *createGadget(QWidget *parent);

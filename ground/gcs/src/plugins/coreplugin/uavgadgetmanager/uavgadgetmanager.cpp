@@ -75,8 +75,8 @@ enum { debugUAVGadgetManager = 0 };
 UAVGadgetManager::UAVGadgetManager(ICore *core, QString name, QIcon icon, int priority,
                                    QString uniqueName, QWidget *parent)
     : m_showToolbars(true)
-    , m_splitterOrView(0)
-    , m_currentGadget(0)
+    , m_splitterOrView(nullptr)
+    , m_currentGadget(nullptr)
     , m_core(core)
     , m_name(name)
     , m_icon(icon)
@@ -103,13 +103,13 @@ UAVGadgetManager::UAVGadgetManager(ICore *core, QString name, QIcon icon, int pr
             SLOT(modeChanged(Core::IMode *)));
 
     // other setup
-    m_splitterOrView = new SplitterOrView(this, 0, true);
+    m_splitterOrView = new SplitterOrView(this, nullptr, true);
 
     // SplitterOrView with 0 as gadget calls our setCurrentGadget, which relies on
     // currentSplitterOrView(),
     // which needs our m_splitterorView to be set, which isn't set yet at that time.
     // So directly set our currentGadget to 0, and do it again.
-    m_currentGadget = 0;
+    m_currentGadget = nullptr;
     setCurrentGadget(m_splitterOrView->view()->gadget());
 
     QHBoxLayout *layout = new QHBoxLayout(m_widget);
@@ -183,8 +183,8 @@ void UAVGadgetManager::setCurrentGadget(IUAVGadget *uavGadget)
 Core::Internal::SplitterOrView *UAVGadgetManager::currentSplitterOrView() const
 {
     if (!m_splitterOrView) // this is only for startup
-        return 0;
-    SplitterOrView *view = m_currentGadget ? m_splitterOrView->findView(m_currentGadget) : 0;
+        return nullptr;
+    SplitterOrView *view = m_currentGadget ? m_splitterOrView->findView(m_currentGadget) : nullptr;
     return view;
 }
 
@@ -414,7 +414,7 @@ void UAVGadgetManager::removeAllSplits()
     m_splitterOrView->unsplitAll(currentGadget);
 
     // Zeroing the current gadget means setCurrentGadget will do something when we call it.
-    m_currentGadget = 0;
+    m_currentGadget = nullptr;
     setCurrentGadget(currentGadget);
 
     // Remove all other gadgets from the instance manager.

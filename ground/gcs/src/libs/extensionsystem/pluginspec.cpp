@@ -148,7 +148,7 @@ PluginSpec::PluginSpec()
 PluginSpec::~PluginSpec()
 {
     delete d;
-    d = 0;
+    d = nullptr;
 }
 
 /*!
@@ -381,7 +381,7 @@ namespace {
     \internal
 */
 PluginSpecPrivate::PluginSpecPrivate(PluginSpec *spec)
-    : plugin(0),
+    : plugin(nullptr),
     state(PluginSpec::Invalid),
     hasError(false),
     q(spec)
@@ -721,7 +721,7 @@ bool PluginSpecPrivate::resolveDependencies(const QList<PluginSpec *> &specs)
     }
     QList<PluginSpec *> resolvedDependencies;
     foreach (const PluginDependency &dependency, dependencies) {
-        PluginSpec *found = 0;
+        PluginSpec *found = nullptr;
         foreach (PluginSpec *spec, specs) {
             if (spec->provides(dependency.name, dependency.version)) {
                 found = spec;
@@ -877,7 +877,7 @@ void PluginSpecPrivate::kill()
     if (!plugin)
         return;
     delete plugin;
-    plugin = 0;
+    plugin = nullptr;
     state = PluginSpec::Deleted;
 }
 

@@ -39,7 +39,7 @@ class VehiclePage : public AbstractWizardPage
     Q_OBJECT
 
 public:
-    explicit VehiclePage(SetupWizard *wizard, QWidget *parent = 0);
+    explicit VehiclePage(SetupWizard *wizard, QWidget *parent = nullptr);
     ~VehiclePage();
     bool validatePage();
 

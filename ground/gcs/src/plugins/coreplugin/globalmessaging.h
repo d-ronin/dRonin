@@ -39,8 +39,8 @@ class CORE_EXPORT GlobalMessage : public QObject
     Q_OBJECT
 public:
     explicit GlobalMessage(QString brief, QString description, MessageType type,
-                           QObject *parent = 0);
-    explicit GlobalMessage(MessageType = ERROR, QObject *parent = 0);
+                           QObject *parent = nullptr);
+    explicit GlobalMessage(MessageType = ERROR, QObject *parent = nullptr);
     void setActive(bool value);
     bool isActive() { return m_active; }
     void setText(QString brief, QString description)
@@ -76,7 +76,7 @@ class CORE_EXPORT GlobalMessaging : public QObject
 {
     Q_OBJECT
 public:
-    explicit GlobalMessaging(QObject *parent = 0);
+    explicit GlobalMessaging(QObject *parent = nullptr);
     GlobalMessage *addErrorMessage(QString brief, QString description);
     GlobalMessage *addWarningMessage(QString brief, QString description);
     GlobalMessage *addInfoMessage(QString brief, QString description);

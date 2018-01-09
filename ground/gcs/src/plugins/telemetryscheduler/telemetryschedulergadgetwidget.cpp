@@ -301,7 +301,7 @@ void TelemetrySchedulerGadgetWidget::saveTelemetryToFile()
 {
     QString file = filename;
     QString filter = tr("Telemetry Scheduler file (*.xml)");
-    file = QFileDialog::getSaveFileName(0, tr("Save Telemetry Schedule to file .."),
+    file = QFileDialog::getSaveFileName(nullptr, tr("Save Telemetry Schedule to file .."),
                                         QFileInfo(file).absoluteFilePath(), filter, &filter)
                .trimmed();
     if (file.isEmpty()) {
@@ -371,7 +371,7 @@ void TelemetrySchedulerGadgetWidget::saveTelemetryToFile()
         if (file.open(QIODevice::WriteOnly) && (file.write(xml.toLatin1()) != -1)) {
             file.close();
         } else {
-            QMessageBox::critical(0, tr("UAV Data Export"), tr("Unable to save data: ") + filename,
+            QMessageBox::critical(nullptr, tr("UAV Data Export"), tr("Unable to save data: ") + filename,
                                   QMessageBox::Ok);
             return;
         }
@@ -523,7 +523,7 @@ void TelemetrySchedulerGadgetWidget::loadTelemetryFromFile()
     // ask for file name
     QString file = filename;
     QString filter = tr("Telemetry Scheduler file (*.xml)");
-    file = QFileDialog::getOpenFileName(0, tr("Load Telemetry Schedule from file .."),
+    file = QFileDialog::getOpenFileName(nullptr, tr("Load Telemetry Schedule from file .."),
                                         QFileInfo(file).absoluteFilePath(), filter)
                .trimmed();
     if (file.isEmpty()) {

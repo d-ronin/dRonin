@@ -41,7 +41,7 @@ class GpsDisplayWidget : public QWidget, public Ui_GpsDisplayWidget
     Q_OBJECT
 
 public:
-    GpsDisplayWidget(QWidget *parent = 0);
+    GpsDisplayWidget(QWidget *parent = nullptr);
     ~GpsDisplayWidget();
 
 private slots:

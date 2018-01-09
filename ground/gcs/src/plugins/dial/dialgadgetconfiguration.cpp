@@ -56,7 +56,7 @@ DialGadgetConfiguration::DialGadgetConfiguration(QString classId, QSettings *qSe
     , beSmooth(true)
 {
     // if a saved configuration exists load it
-    if (qSettings != 0) {
+    if (qSettings != nullptr) {
         QString dialFile = qSettings->value("dialFile").toString();
 
         m_defaultDial = Utils::PathUtils().InsertDataPath(dialFile);

@@ -93,7 +93,7 @@ class OPMapGadgetWidget : public QFrame
     Q_OBJECT
 
 public:
-    OPMapGadgetWidget(QWidget *parent = 0);
+    OPMapGadgetWidget(QWidget *parent = nullptr);
     ~OPMapGadgetWidget();
 
     /**

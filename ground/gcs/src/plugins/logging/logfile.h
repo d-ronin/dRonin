@@ -40,7 +40,7 @@ class LogFile : public QIODevice
 {
     Q_OBJECT
 public:
-    explicit LogFile(QObject *parent = 0);
+    explicit LogFile(QObject *parent = nullptr);
     qint64 bytesAvailable() const;
     qint64 bytesToWrite() const { return file.bytesToWrite(); }
     bool open(OpenMode mode);

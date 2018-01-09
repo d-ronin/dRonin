@@ -32,7 +32,7 @@ class IPathAlgorithm : public QObject
 {
     Q_OBJECT
 public:
-    explicit IPathAlgorithm(QObject *parent = 0);
+    explicit IPathAlgorithm(QObject *parent = nullptr);
 
     /**
      * Verify the path is valid to run through this algorithm
@@ -54,7 +54,7 @@ public:
      * @param callingUi the QWidget that called this algorithm
      * @return true for success, false for failure
      */
-    virtual bool configure(QWidget *callingUi = 0) = 0;
+    virtual bool configure(QWidget *callingUi = nullptr) = 0;
 
 signals:
 

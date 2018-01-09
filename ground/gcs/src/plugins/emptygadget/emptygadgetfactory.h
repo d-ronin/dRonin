@@ -40,7 +40,7 @@ class EmptyGadgetFactory : public IUAVGadgetFactory
 {
     Q_OBJECT
 public:
-    EmptyGadgetFactory(QObject *parent = 0);
+    EmptyGadgetFactory(QObject *parent = nullptr);
     ~EmptyGadgetFactory();
 
     IUAVGadget *createGadget(QWidget *parent);

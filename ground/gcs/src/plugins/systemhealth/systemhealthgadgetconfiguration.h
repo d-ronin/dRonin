@@ -38,8 +38,8 @@ class SystemHealthGadgetConfiguration : public IUAVGadgetConfiguration
 {
     Q_OBJECT
 public:
-    explicit SystemHealthGadgetConfiguration(QString classId, QSettings *qSettings = 0,
-                                             QObject *parent = 0);
+    explicit SystemHealthGadgetConfiguration(QString classId, QSettings *qSettings = nullptr,
+                                             QObject *parent = nullptr);
 
     // set system health configuration functions
     void setSystemFile(QString filename) { systemFile = filename; }

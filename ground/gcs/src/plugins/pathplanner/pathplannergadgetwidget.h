@@ -39,7 +39,7 @@ class PATHPLANNER_EXPORT PathPlannerGadgetWidget : public QLabel
     Q_OBJECT
 
 public:
-    PathPlannerGadgetWidget(QWidget *parent = 0);
+    PathPlannerGadgetWidget(QWidget *parent = nullptr);
     ~PathPlannerGadgetWidget();
 
     void setModel(FlightDataModel *model, QItemSelectionModel *selection);

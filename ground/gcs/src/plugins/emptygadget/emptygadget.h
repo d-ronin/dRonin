@@ -42,7 +42,7 @@ class EmptyGadget : public Core::IUAVGadget
 {
     Q_OBJECT
 public:
-    EmptyGadget(QString classId, EmptyGadgetWidget *widget, QWidget *parent = 0);
+    EmptyGadget(QString classId, EmptyGadgetWidget *widget, QWidget *parent = nullptr);
     ~EmptyGadget();
 
     QList<int> context() const { return m_context; }

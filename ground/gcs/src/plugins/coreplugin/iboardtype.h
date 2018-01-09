@@ -147,7 +147,7 @@ public:
     int getBoardType() { return boardType; }
 
     //! Return a custom configuration widget, if one is provided
-    virtual QWidget *getBoardConfiguration(QWidget * /*parent*/ = 0, bool /*connected*/ = true)
+    virtual QWidget *getBoardConfiguration(QWidget * /*parent*/ = nullptr, bool /*connected*/ = true)
     {
         return NULL;
     }

@@ -40,7 +40,7 @@ UAVObjectBrowserConfiguration::UAVObjectBrowserConfiguration(QString classId, QS
     , m_hideNotPresentOnHw(false)
 {
     // if a saved configuration exists load it
-    if (qSettings != 0) {
+    if (qSettings != nullptr) {
         QColor recent = qSettings->value("recentlyUpdatedColor").value<QColor>();
         QColor manual = qSettings->value("manuallyChangedColor").value<QColor>();
         QColor present =

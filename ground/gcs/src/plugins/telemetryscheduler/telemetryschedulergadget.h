@@ -40,7 +40,7 @@ class TelemetrySchedulerGadget : public Core::IUAVGadget
     Q_OBJECT
 public:
     TelemetrySchedulerGadget(QString classId, TelemetrySchedulerGadgetWidget *widget,
-                             QWidget *parent = 0);
+                             QWidget *parent = nullptr);
     ~TelemetrySchedulerGadget();
 
     QList<int> context() const { return m_context; }

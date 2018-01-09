@@ -42,7 +42,7 @@ class SimulationConfiguration : public ConfigTaskWidget
     Q_OBJECT
 
 public:
-    explicit SimulationConfiguration(QWidget *parent = 0);
+    explicit SimulationConfiguration(QWidget *parent = nullptr);
     ~SimulationConfiguration();
 
 private slots:

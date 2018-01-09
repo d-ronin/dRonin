@@ -40,7 +40,7 @@ class GpsDisplayGadgetFactory : public IUAVGadgetFactory
 {
     Q_OBJECT
 public:
-    GpsDisplayGadgetFactory(QObject *parent = 0);
+    GpsDisplayGadgetFactory(QObject *parent = nullptr);
     ~GpsDisplayGadgetFactory();
 
     Core::IUAVGadget *createGadget(QWidget *parent);

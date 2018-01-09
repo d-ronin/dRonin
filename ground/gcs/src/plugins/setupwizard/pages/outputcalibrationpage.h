@@ -43,7 +43,7 @@ class OutputCalibrationPage : public AbstractWizardPage
     Q_OBJECT
 
 public:
-    explicit OutputCalibrationPage(SetupWizard *wizard, QWidget *parent = 0);
+    explicit OutputCalibrationPage(SetupWizard *wizard, QWidget *parent = nullptr);
     ~OutputCalibrationPage();
     void initializePage();
     bool validatePage();

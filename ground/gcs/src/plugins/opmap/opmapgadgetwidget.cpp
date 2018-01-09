@@ -312,7 +312,7 @@ OPMapGadgetWidget::OPMapGadgetWidget(QWidget *parent)
 OPMapGadgetWidget::~OPMapGadgetWidget()
 {
     if (m_map) {
-        disconnect(m_map, 0, 0, 0);
+        disconnect(m_map, nullptr, nullptr, nullptr);
         m_map->SetShowHome(false); // doing this appears to stop the map lib crashing on exit
         m_map->SetShowUAV(false); //   "          "
     }

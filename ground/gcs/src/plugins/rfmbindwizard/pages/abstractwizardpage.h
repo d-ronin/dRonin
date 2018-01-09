@@ -35,7 +35,7 @@ class AbstractWizardPage : public QWizardPage
 {
     Q_OBJECT
 protected:
-    explicit AbstractWizardPage(RfmBindWizard *wizard, QWidget *parent = 0);
+    explicit AbstractWizardPage(RfmBindWizard *wizard, QWidget *parent = nullptr);
 
 private:
     RfmBindWizard *m_wizard;

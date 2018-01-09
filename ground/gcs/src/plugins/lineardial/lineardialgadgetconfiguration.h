@@ -38,8 +38,8 @@ class LineardialGadgetConfiguration : public IUAVGadgetConfiguration
 {
     Q_OBJECT
 public:
-    explicit LineardialGadgetConfiguration(QString classId, QSettings *qSettings = 0,
-                                           QObject *parent = 0);
+    explicit LineardialGadgetConfiguration(QString classId, QSettings *qSettings = nullptr,
+                                           QObject *parent = nullptr);
 
     // set dial configuration functions
     void setDialFile(QString filename) { dialFile = filename; }

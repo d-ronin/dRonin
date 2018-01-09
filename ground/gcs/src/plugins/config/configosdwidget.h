@@ -52,7 +52,7 @@ class ConfigOsdWidget : public ConfigTaskWidget
     Q_OBJECT
 
 public:
-    ConfigOsdWidget(QWidget *parent = 0);
+    ConfigOsdWidget(QWidget *parent = nullptr);
     ~ConfigOsdWidget();
 
 private slots:

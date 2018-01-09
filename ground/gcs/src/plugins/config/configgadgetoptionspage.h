@@ -40,7 +40,7 @@ class ConfigGadgetOptionsPage : public IOptionsPage
 public:
     Q_OBJECT
 public:
-    explicit ConfigGadgetOptionsPage(ConfigGadgetConfiguration *config, QObject *parent = 0);
+    explicit ConfigGadgetOptionsPage(ConfigGadgetConfiguration *config, QObject *parent = nullptr);
     QWidget *createPage(QWidget *parent);
     void apply();
     void finish();

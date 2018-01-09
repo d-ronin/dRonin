@@ -114,7 +114,7 @@ public:
         QList<int> buttonGroup;
     };
 
-    ConfigTaskWidget(QWidget *parent = 0);
+    ConfigTaskWidget(QWidget *parent = nullptr);
     virtual ~ConfigTaskWidget();
 
     void disableMouseWheelEvents();
@@ -148,7 +148,7 @@ public:
      */
     void addUAVObjectToWidgetRelation(QString object, QString field, QWidget *widget, int index = 0,
                                       double scale = 1, bool isLimited = false,
-                                      bool useUnits = false, QList<int> *defaultReloadGroups = 0,
+                                      bool useUnits = false, QList<int> *defaultReloadGroups = nullptr,
                                       quint32 instID = 0, bool oneWayBind = false);
 
     /**
@@ -282,7 +282,7 @@ private:
      */
     void addUAVObjectToWidgetRelation(QString object, QString field, QWidget *widget,
                                       QString element, double scale, bool isLimited = false,
-                                      bool useUnits = false, QList<int> *defaultReloadGroups = 0,
+                                      bool useUnits = false, QList<int> *defaultReloadGroups = nullptr,
                                       quint32 instID = 0, bool oneWayBind = false);
 
 

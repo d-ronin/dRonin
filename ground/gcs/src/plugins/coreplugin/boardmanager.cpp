@@ -122,7 +122,7 @@ IBoardType *BoardManager::getBoard(int type)
             return board;
         }
     }
-    return Q_NULLPTR;
+    return nullptr;
 }
 
 QList<IBoardType::USBInfo> BoardManager::getKnownFirmwareUSBInfo()

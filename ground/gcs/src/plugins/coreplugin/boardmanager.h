@@ -77,7 +77,7 @@ public:
 
     /**
      * @brief Find a board from it's type
-     * @return IBoardType* on success, Q_NULLPTR on failure
+     * @return IBoardType* on success, nullptr on failure
      */
     IBoardType *getBoard(int type);
 

@@ -39,7 +39,7 @@ class OutputPage : public AbstractWizardPage
     Q_OBJECT
 
 public:
-    explicit OutputPage(SetupWizard *wizard, QWidget *parent = 0);
+    explicit OutputPage(SetupWizard *wizard, QWidget *parent = nullptr);
     ~OutputPage();
     bool validatePage();
 

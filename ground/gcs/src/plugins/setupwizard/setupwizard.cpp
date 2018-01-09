@@ -61,7 +61,7 @@ SetupWizard::SetupWizard(bool autoLaunched, QWidget *parent)
     , m_calibrationPerformed(false)
     , m_restartNeeded(false)
     , m_autoLaunched(autoLaunched)
-    , m_connectionManager(0)
+    , m_connectionManager(nullptr)
 {
     connect(this, &QWizard::rejected, this, &SetupWizard::boardIgnorePrompt);
     setWindowTitle(tr("dRonin Setup Wizard"));

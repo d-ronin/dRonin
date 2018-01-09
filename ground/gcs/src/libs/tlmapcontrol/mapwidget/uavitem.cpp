@@ -320,7 +320,7 @@ namespace mapcontrol
                     }
                 }
             }
-            if(mapwidget->Home!=0)
+            if(mapwidget->Home!=nullptr)
             {
                 //verify if the UAV is inside the safety cylinder
                 if(DistanceToPoint_2D(mapwidget->Home->Coord()) > mapwidget->Home->SafeArea())

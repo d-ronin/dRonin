@@ -56,7 +56,7 @@ class ConfigCcpmWidget : public VehicleConfig
     Q_OBJECT
 
 public:
-    ConfigCcpmWidget(QWidget *parent = 0);
+    ConfigCcpmWidget(QWidget *parent = nullptr);
     ~ConfigCcpmWidget();
 
     friend class ConfigVehicleTypeWidget;

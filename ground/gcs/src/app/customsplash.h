@@ -34,7 +34,7 @@ class CustomSplash : public QSplashScreen
 {
     Q_OBJECT
 public:
-    explicit CustomSplash(const QPixmap &pixmap = QPixmap(), Qt::WindowFlags f = 0);
+    explicit CustomSplash(const QPixmap &pixmap = QPixmap(), Qt::WindowFlags f = nullptr);
     int m_progress;
     QPixmap m_pixmap;
     QColor m_progress_bar_color;

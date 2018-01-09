@@ -43,11 +43,11 @@ namespace Internal {
         ~CoreImpl() {}
 
         bool showOptionsDialog(const QString &group = QString(), const QString &page = QString(),
-                               QWidget *parent = 0);
+                               QWidget *parent = nullptr);
         bool showWarningWithOptions(const QString &title, const QString &text,
                                     const QString &details = QString(),
                                     const QString &settingsCategory = QString(),
-                                    const QString &settingsId = QString(), QWidget *parent = 0);
+                                    const QString &settingsId = QString(), QWidget *parent = nullptr);
 
         ActionManager *actionManager() const;
         UniqueIDManager *uniqueIDManager() const;
@@ -60,8 +60,8 @@ namespace Internal {
         QSettings *settings(QSettings::Scope scope = QSettings::UserScope) const;
         void readMainSettings(QSettings *qs, bool workspaceDiffOnly);
         void saveMainSettings(QSettings *qs);
-        void readSettings(IConfigurablePlugin *plugin, QSettings *qs = 0);
-        void saveSettings(IConfigurablePlugin *plugin, QSettings *qs = 0);
+        void readSettings(IConfigurablePlugin *plugin, QSettings *qs = nullptr);
+        void saveSettings(IConfigurablePlugin *plugin, QSettings *qs = nullptr);
         void deleteSettings();
 
         QString resourcePath() const;

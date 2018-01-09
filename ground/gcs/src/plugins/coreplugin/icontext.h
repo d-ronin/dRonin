@@ -41,7 +41,7 @@ class CORE_EXPORT IContext : public QObject
 {
     Q_OBJECT
 public:
-    IContext(QObject *parent = 0)
+    IContext(QObject *parent = nullptr)
         : QObject(parent)
     {
     }
@@ -55,7 +55,7 @@ public:
 class BaseContext : public Core::IContext
 {
 public:
-    BaseContext(QWidget *widget, const QList<int> &context, QObject *parent = 0)
+    BaseContext(QWidget *widget, const QList<int> &context, QObject *parent = nullptr)
         : Core::IContext(parent)
         , m_widget(widget)
         , m_context(context)

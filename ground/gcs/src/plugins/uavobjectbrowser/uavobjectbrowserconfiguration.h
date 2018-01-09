@@ -48,8 +48,8 @@ class UAVObjectBrowserConfiguration : public IUAVGadgetConfiguration
     Q_PROPERTY(bool m_hideNotPresentOnHw READ hideNotPresentOnHw WRITE setHideNotPresentOnHw)
 
 public:
-    explicit UAVObjectBrowserConfiguration(QString classId, QSettings *qSettings = 0,
-                                           QObject *parent = 0);
+    explicit UAVObjectBrowserConfiguration(QString classId, QSettings *qSettings = nullptr,
+                                           QObject *parent = nullptr);
 
     void saveConfig(QSettings *settings) const;
     IUAVGadgetConfiguration *clone();

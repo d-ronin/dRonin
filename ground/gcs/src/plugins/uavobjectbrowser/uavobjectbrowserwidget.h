@@ -90,7 +90,7 @@ class UAVObjectBrowserWidget : public QWidget
     Q_OBJECT
 
 public:
-    UAVObjectBrowserWidget(QWidget *parent = 0);
+    UAVObjectBrowserWidget(QWidget *parent = nullptr);
     ~UAVObjectBrowserWidget();
     void setRecentlyUpdatedColor(QColor color)
     {

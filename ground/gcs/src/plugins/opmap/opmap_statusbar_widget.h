@@ -39,7 +39,7 @@ class opmap_statusbar_widget : public QWidget
     Q_OBJECT
 
 public:
-    explicit opmap_statusbar_widget(QWidget *parent = 0);
+    explicit opmap_statusbar_widget(QWidget *parent = nullptr);
     ~opmap_statusbar_widget();
 
 private:

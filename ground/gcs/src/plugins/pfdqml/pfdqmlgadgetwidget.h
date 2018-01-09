@@ -26,7 +26,7 @@ class PfdQmlGadgetWidget : public QQuickView
     Q_OBJECT
 
 public:
-    PfdQmlGadgetWidget(QWindow *parent = 0);
+    PfdQmlGadgetWidget(QWindow *parent = nullptr);
     ~PfdQmlGadgetWidget();
     void setQmlFile(QString fn);
 

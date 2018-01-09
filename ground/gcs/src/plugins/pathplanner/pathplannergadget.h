@@ -41,7 +41,7 @@ class PathPlannerGadget : public Core::IUAVGadget
 {
     Q_OBJECT
 public:
-    PathPlannerGadget(QString classId, PathPlannerGadgetWidget *widget, QWidget *parent = 0);
+    PathPlannerGadget(QString classId, PathPlannerGadgetWidget *widget, QWidget *parent = nullptr);
     ~PathPlannerGadget();
 
     QList<int> context() const { return m_context; }

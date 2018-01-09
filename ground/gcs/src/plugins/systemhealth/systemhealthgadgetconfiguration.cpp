@@ -38,7 +38,7 @@ SystemHealthGadgetConfiguration::SystemHealthGadgetConfiguration(QString classId
     , systemFile("Unknown")
 {
     // if a saved configuration exists load it
-    if (qSettings != 0) {
+    if (qSettings != nullptr) {
         QString diagram = qSettings->value("diagram").toString();
         systemFile = Utils::PathUtils().InsertDataPath(diagram);
     }

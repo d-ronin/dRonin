@@ -42,7 +42,7 @@ class ConfigurePage : public AbstractWizardPage
     Q_OBJECT
 
 public:
-    explicit ConfigurePage(RfmBindWizard *wizard, QWidget *parent = 0);
+    explicit ConfigurePage(RfmBindWizard *wizard, QWidget *parent = nullptr);
     ~ConfigurePage();
     void initializePage();
     bool isComplete() const;

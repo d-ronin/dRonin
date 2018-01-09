@@ -44,7 +44,7 @@ class ConfigOutputWidget : public ConfigTaskWidget
     Q_OBJECT
 
 public:
-    ConfigOutputWidget(QWidget *parent = 0);
+    ConfigOutputWidget(QWidget *parent = nullptr);
     ~ConfigOutputWidget();
 
 private:

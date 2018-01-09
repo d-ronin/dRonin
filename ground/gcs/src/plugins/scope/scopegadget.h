@@ -43,7 +43,7 @@ class ScopeGadget : public Core::IUAVGadget
 {
     Q_OBJECT
 public:
-    ScopeGadget(QString classId, ScopeGadgetWidget *widget, QWidget *parent = 0);
+    ScopeGadget(QString classId, ScopeGadgetWidget *widget, QWidget *parent = nullptr);
     ~ScopeGadget();
 
     void loadConfiguration(IUAVGadgetConfiguration *config);

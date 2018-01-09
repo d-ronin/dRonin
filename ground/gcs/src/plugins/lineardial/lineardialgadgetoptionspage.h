@@ -50,7 +50,7 @@ class LineardialGadgetOptionsPage : public IOptionsPage
     Q_OBJECT
 public:
     explicit LineardialGadgetOptionsPage(LineardialGadgetConfiguration *config,
-                                         QObject *parent = 0);
+                                         QObject *parent = nullptr);
 
     QWidget *createPage(QWidget *parent);
     void apply();

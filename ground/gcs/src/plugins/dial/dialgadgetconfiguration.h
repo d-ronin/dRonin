@@ -39,8 +39,8 @@ class DialGadgetConfiguration : public IUAVGadgetConfiguration
 {
     Q_OBJECT
 public:
-    explicit DialGadgetConfiguration(QString classId, QSettings *qSettings = 0,
-                                     QObject *parent = 0);
+    explicit DialGadgetConfiguration(QString classId, QSettings *qSettings = nullptr,
+                                     QObject *parent = nullptr);
 
     // set dial configuration functions
     void setDialFile(QString dialFile) { m_defaultDial = dialFile; }

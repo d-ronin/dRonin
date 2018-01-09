@@ -45,7 +45,7 @@ public:
      * @param parent Parent widget
      * @param f Has the same meaning as for QLabel
      */
-    explicit ScaledPixmapLabel(QWidget *parent = Q_NULLPTR, Qt::WindowFlags f = Qt::WindowFlags());
+    explicit ScaledPixmapLabel(QWidget *parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
 
     /**
      * @brief heightForWidth Given a desired width, return the desired height

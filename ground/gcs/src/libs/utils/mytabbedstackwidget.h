@@ -47,7 +47,7 @@ class QTCREATOR_UTILS_EXPORT MyTabbedStackWidget : public QWidget
     Q_OBJECT
 
 public:
-    MyTabbedStackWidget(QWidget *parent = 0, bool isVertical = false, bool iconAbove = true);
+    MyTabbedStackWidget(QWidget *parent = nullptr, bool isVertical = false, bool iconAbove = true);
 
     void insertTab(int index, QWidget *tab, const QIcon &icon, const QString &label);
     void removeTab(int index);

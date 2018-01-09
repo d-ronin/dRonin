@@ -48,7 +48,7 @@ class QmlViewGadgetOptionsPage : public IOptionsPage
 {
     Q_OBJECT
 public:
-    explicit QmlViewGadgetOptionsPage(QmlViewGadgetConfiguration *config, QObject *parent = 0);
+    explicit QmlViewGadgetOptionsPage(QmlViewGadgetConfiguration *config, QObject *parent = nullptr);
 
     QWidget *createPage(QWidget *parent);
     void apply();

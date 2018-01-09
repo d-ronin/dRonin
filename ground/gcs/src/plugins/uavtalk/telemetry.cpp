@@ -772,12 +772,12 @@ void Telemetry::newInstance(UAVObject *obj)
 ObjectTransactionInfo::ObjectTransactionInfo(QObject *parent)
     : QObject(parent)
 {
-    obj = 0;
+    obj = nullptr;
     allInstances = false;
     objRequest = false;
     retriesRemaining = 0;
     acked = false;
-    telem = 0;
+    telem = nullptr;
     // Setup transaction timer
     timer = new QTimer(this);
     timer->stop();
@@ -786,7 +786,7 @@ ObjectTransactionInfo::ObjectTransactionInfo(QObject *parent)
 
 ObjectTransactionInfo::~ObjectTransactionInfo()
 {
-    telem = 0;
+    telem = nullptr;
     timer->stop();
     timer->deleteLater();
 }

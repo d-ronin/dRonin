@@ -39,7 +39,7 @@ class TelemetryMonitorWidget : public QGraphicsView
 {
     Q_OBJECT
 public:
-    explicit TelemetryMonitorWidget(QWidget *parent = 0);
+    explicit TelemetryMonitorWidget(QWidget *parent = nullptr);
     ~TelemetryMonitorWidget();
 
     void setMin(double min) { minValue = min; }

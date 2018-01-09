@@ -45,8 +45,8 @@ namespace Core {
 
 ConnectionManager::ConnectionManager(Internal::MainWindow *mainWindow, QTabWidget *modeStack)
     : QWidget(mainWindow)
-    , m_availableDevList(0)
-    , m_connectBtn(0)
+    , m_availableDevList(nullptr)
+    , m_connectBtn(nullptr)
     , m_ioDev(NULL)
     , polling(true)
     , m_mainWindow(mainWindow)

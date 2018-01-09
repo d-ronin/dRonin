@@ -51,7 +51,7 @@ class IPConnectionOptionsPage : public IOptionsPage
 {
     Q_OBJECT
 public:
-    explicit IPConnectionOptionsPage(IPConnectionConfiguration *config, QObject *parent = 0);
+    explicit IPConnectionOptionsPage(IPConnectionConfiguration *config, QObject *parent = nullptr);
     virtual ~IPConnectionOptionsPage();
 
     QString id() const { return QLatin1String("settings"); }

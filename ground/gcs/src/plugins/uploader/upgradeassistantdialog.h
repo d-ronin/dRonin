@@ -58,7 +58,7 @@ public:
         STEP_NUM = STEP_DONE // STEP_DONE is not a real step with a label
     } UpgradeAssistantStep;
 
-    explicit UpgradeAssistantDialog(QWidget *parent = 0);
+    explicit UpgradeAssistantDialog(QWidget *parent = nullptr);
     ~UpgradeAssistantDialog();
 
     void setOperatingMode(bool upgradingBootloader, bool blankFC);

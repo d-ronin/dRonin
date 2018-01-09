@@ -410,7 +410,7 @@ ObjectTreeItem *UAVObjectBrowserWidget::findCurrentObjectTreeItem()
 {
     QModelIndex current = proxyModel->mapToSource(treeView->currentIndex());
     TreeItem *item = static_cast<TreeItem *>(current.internalPointer());
-    ObjectTreeItem *objItem = 0;
+    ObjectTreeItem *objItem = nullptr;
 
     // Recursively iterate over child branches until the parent UAVO branch is found
     while (item) {

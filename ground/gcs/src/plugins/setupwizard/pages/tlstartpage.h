@@ -38,7 +38,7 @@ class TLStartPage : public AbstractWizardPage
     Q_OBJECT
 
 public:
-    explicit TLStartPage(SetupWizard *wizard, QWidget *parent = 0);
+    explicit TLStartPage(SetupWizard *wizard, QWidget *parent = nullptr);
     ~TLStartPage();
 
 private:

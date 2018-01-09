@@ -39,7 +39,7 @@ class TauLinkGadget : public Core::IUAVGadget
 {
     Q_OBJECT
 public:
-    TauLinkGadget(QString classId, TauLinkGadgetWidget *widget, QWidget *parent = 0);
+    TauLinkGadget(QString classId, TauLinkGadgetWidget *widget, QWidget *parent = nullptr);
     ~TauLinkGadget();
 
     QList<int> context() const { return m_context; }

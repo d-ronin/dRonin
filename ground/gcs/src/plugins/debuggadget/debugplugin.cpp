@@ -55,5 +55,5 @@ void DebugPlugin::extensionsInitialized()
 
 void DebugPlugin::shutdown()
 {
-    qInstallMessageHandler(0);
+    qInstallMessageHandler(nullptr);
 }

@@ -40,7 +40,7 @@ class LineardialGadgetFactory : public IUAVGadgetFactory
 {
     Q_OBJECT
 public:
-    LineardialGadgetFactory(QObject *parent = 0);
+    LineardialGadgetFactory(QObject *parent = nullptr);
     ~LineardialGadgetFactory();
 
     Core::IUAVGadget *createGadget(QWidget *parent);

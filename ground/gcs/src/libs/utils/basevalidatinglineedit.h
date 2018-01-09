@@ -57,7 +57,7 @@ class QTCREATOR_UTILS_EXPORT BaseValidatingLineEdit : public QLineEdit
 public:
     enum State { Invalid, DisplayingInitialText, Valid };
 
-    explicit BaseValidatingLineEdit(QWidget *parent = 0);
+    explicit BaseValidatingLineEdit(QWidget *parent = nullptr);
     virtual ~BaseValidatingLineEdit();
 
 

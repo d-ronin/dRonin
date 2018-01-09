@@ -40,7 +40,7 @@
  * @param p_uavFieldName The plotted UAVO field name
  */
 Plot2dData::Plot2dData(QString p_uavObject, QString p_uavFieldName)
-    : yDataHistory(0)
+    : yDataHistory(nullptr)
     , dataUpdated(false)
 {
     uavObjectName = p_uavObject;

@@ -49,7 +49,7 @@ LineardialGadgetConfiguration::LineardialGadgetConfiguration(QString classId, QS
     , decimalPlaces(0)
 {
     // if a saved configuration exists load it
-    if (qSettings != 0) {
+    if (qSettings != nullptr) {
         QString dFile = qSettings->value("dFile").toString();
         dialFile = Utils::PathUtils().InsertDataPath(dFile);
         sourceDataObject = qSettings->value("sourceDataObject").toString();

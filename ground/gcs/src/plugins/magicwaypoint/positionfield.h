@@ -41,7 +41,7 @@ class PositionField : public QGraphicsView
     Q_OBJECT
 
 public:
-    explicit PositionField(QWidget *parent = 0);
+    explicit PositionField(QWidget *parent = nullptr);
     ~PositionField();
     void paint();
 

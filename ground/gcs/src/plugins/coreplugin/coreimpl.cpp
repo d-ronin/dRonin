@@ -35,7 +35,7 @@ namespace Core {
 namespace Internal {
 
     // The Core Singleton
-    static CoreImpl *m_instance = 0;
+    static CoreImpl *m_instance = nullptr;
 
 } // namespace Internal
 } // namespace Core

@@ -42,7 +42,7 @@ class JoystickControl : public QGraphicsView
     Q_OBJECT
 
 public:
-    explicit JoystickControl(QWidget *parent = 0);
+    explicit JoystickControl(QWidget *parent = nullptr);
     ~JoystickControl();
     void paint();
 

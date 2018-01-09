@@ -41,7 +41,7 @@ class UAVSETTINGSIMPORTEXPORT_EXPORT UAVSettingsImportExportManager : public QOb
     Q_OBJECT
 
 public:
-    UAVSettingsImportExportManager(QObject *parent = 0);
+    UAVSettingsImportExportManager(QObject *parent = nullptr);
     ~UAVSettingsImportExportManager();
 
     static bool updateObject(UAVObject *obj, QDomNode *node);

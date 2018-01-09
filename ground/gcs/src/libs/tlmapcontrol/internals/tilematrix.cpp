@@ -37,7 +37,7 @@ void TileMatrix::Clear()
     foreach(Tile* t,matrix.values())
     {
         delete t;
-        t=0;
+        t=nullptr;
     }
     matrix.clear();
     mutex.unlock();
@@ -112,11 +112,11 @@ void TileMatrix::ClearPointsNotIn(QList<Point>list)
     foreach(Point p,removals)
     {
         Tile* t=TileAt(p);
-        if(t!=0)
+        if(t!=nullptr)
         {
             mutex.lock();
             delete t;
-            t=0;
+            t=nullptr;
             matrix.remove(p);
             mutex.unlock();
         }
@@ -140,7 +140,7 @@ void TileMatrix::SetTileAt(const Point &p, Tile* tile)
 {
     mutex.lock();
     Tile* t=matrix.value(p,0);
-    if(t!=0)
+    if(t!=nullptr)
         delete t;
     matrix.insert(p,tile);
     mutex.unlock();

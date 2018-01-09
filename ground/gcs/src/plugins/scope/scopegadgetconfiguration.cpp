@@ -39,13 +39,13 @@
 ScopeGadgetConfiguration::ScopeGadgetConfiguration(QString classId, QSettings *qSettings,
                                                    QObject *parent)
     : IUAVGadgetConfiguration(classId, parent)
-    , m_scope(0)
+    , m_scope(nullptr)
 {
     // Default for scopes
     int refreshInterval = 50;
 
     // if a saved configuration exists load it
-    if (qSettings != 0) {
+    if (qSettings != nullptr) {
 
         PlotDimensions plotDimensions = (PlotDimensions)qSettings->value("plotDimensions").toInt();
 

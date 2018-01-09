@@ -45,7 +45,7 @@ class ImportSummaryDialog : public QDialog
     Q_OBJECT
 
 public:
-    ImportSummaryDialog(QWidget *parent = 0, bool quiet = false);
+    ImportSummaryDialog(QWidget *parent = nullptr, bool quiet = false);
     ~ImportSummaryDialog();
     void addLine(QString objectName, QString text, bool status);
     void setUAVOSettings(UAVObjectManager *obj);

@@ -52,13 +52,13 @@ class FieldTreeItem : public TreeItem
 {
     Q_OBJECT
 public:
-    FieldTreeItem(int index, const QList<QVariant> &data, TreeItem *parent = 0)
+    FieldTreeItem(int index, const QList<QVariant> &data, TreeItem *parent = nullptr)
         : TreeItem(data, parent)
         , m_index(index)
         , m_defaultValue(true)
     {
     }
-    FieldTreeItem(int index, const QVariant &data, TreeItem *parent = 0)
+    FieldTreeItem(int index, const QVariant &data, TreeItem *parent = nullptr)
         : TreeItem(data, parent)
         , m_index(index)
         , m_defaultValue(true)
@@ -81,13 +81,13 @@ class EnumFieldTreeItem : public FieldTreeItem
     Q_OBJECT
 public:
     EnumFieldTreeItem(UAVObjectField *field, int index, const QList<QVariant> &data,
-                      TreeItem *parent = 0)
+                      TreeItem *parent = nullptr)
         : FieldTreeItem(index, data, parent)
         , m_enumOptions(field->getOptions())
         , m_field(field)
     {
     }
-    EnumFieldTreeItem(UAVObjectField *field, int index, const QVariant &data, TreeItem *parent = 0)
+    EnumFieldTreeItem(UAVObjectField *field, int index, const QVariant &data, TreeItem *parent = nullptr)
         : FieldTreeItem(index, data, parent)
         , m_enumOptions(field->getOptions())
         , m_field(field)
@@ -164,13 +164,13 @@ class IntFieldTreeItem : public FieldTreeItem
     Q_OBJECT
 public:
     IntFieldTreeItem(UAVObjectField *field, int index, const QList<QVariant> &data,
-                     TreeItem *parent = 0)
+                     TreeItem *parent = nullptr)
         : FieldTreeItem(index, data, parent)
         , m_field(field)
     {
         setMinMaxValues();
     }
-    IntFieldTreeItem(UAVObjectField *field, int index, const QVariant &data, TreeItem *parent = 0)
+    IntFieldTreeItem(UAVObjectField *field, int index, const QVariant &data, TreeItem *parent = nullptr)
         : FieldTreeItem(index, data, parent)
         , m_field(field)
     {
@@ -358,14 +358,14 @@ class FloatFieldTreeItem : public FieldTreeItem
     Q_OBJECT
 public:
     FloatFieldTreeItem(UAVObjectField *field, int index, const QList<QVariant> &data,
-                       bool scientific = false, TreeItem *parent = 0)
+                       bool scientific = false, TreeItem *parent = nullptr)
         : FieldTreeItem(index, data, parent)
         , m_field(field)
         , m_useScientificNotation(scientific)
     {
     }
     FloatFieldTreeItem(UAVObjectField *field, int index, const QVariant &data,
-                       bool scientific = false, TreeItem *parent = 0)
+                       bool scientific = false, TreeItem *parent = nullptr)
         : FieldTreeItem(index, data, parent)
         , m_field(field)
         , m_useScientificNotation(scientific)

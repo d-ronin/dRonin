@@ -40,7 +40,7 @@ class MagicWaypointGadgetFactory : public IUAVGadgetFactory
 {
     Q_OBJECT
 public:
-    MagicWaypointGadgetFactory(QObject *parent = 0);
+    MagicWaypointGadgetFactory(QObject *parent = nullptr);
     ~MagicWaypointGadgetFactory();
 
     IUAVGadget *createGadget(QWidget *parent);

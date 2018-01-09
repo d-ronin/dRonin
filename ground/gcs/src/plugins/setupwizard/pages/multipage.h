@@ -43,7 +43,7 @@ class MultiPage : public AbstractWizardPage
     Q_OBJECT
 
 public:
-    explicit MultiPage(SetupWizard *wizard, QWidget *parent = 0);
+    explicit MultiPage(SetupWizard *wizard, QWidget *parent = nullptr);
     ~MultiPage();
 
     void initializePage();

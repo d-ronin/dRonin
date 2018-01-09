@@ -40,7 +40,7 @@ class QmlViewGadgetFactory : public IUAVGadgetFactory
 {
     Q_OBJECT
 public:
-    QmlViewGadgetFactory(QObject *parent = 0);
+    QmlViewGadgetFactory(QObject *parent = nullptr);
     ~QmlViewGadgetFactory();
 
     Core::IUAVGadget *createGadget(QWidget *parent);

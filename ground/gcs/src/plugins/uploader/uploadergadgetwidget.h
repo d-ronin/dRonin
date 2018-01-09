@@ -57,7 +57,7 @@ class UPLOADER_EXPORT UploaderGadgetWidget : public QWidget
     Q_OBJECT
 
 public:
-    UploaderGadgetWidget(QWidget *parent = 0);
+    UploaderGadgetWidget(QWidget *parent = nullptr);
     ~UploaderGadgetWidget();
 
     /**

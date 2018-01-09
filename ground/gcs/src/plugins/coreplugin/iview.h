@@ -40,7 +40,7 @@ class CORE_EXPORT IView : public IContext
 public:
     enum ViewPosition { First = 0, Second = 1, Third = 2 };
 
-    IView(QObject *parent = 0)
+    IView(QObject *parent = nullptr)
         : IContext(parent)
     {
     }

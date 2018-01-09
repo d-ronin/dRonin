@@ -40,7 +40,7 @@ class TLEndPage : public AbstractWizardPage
     Q_OBJECT
 
 public:
-    explicit TLEndPage(SetupWizard *wizard, QWidget *parent = 0);
+    explicit TLEndPage(SetupWizard *wizard, QWidget *parent = nullptr);
     ~TLEndPage();
 
 private slots:

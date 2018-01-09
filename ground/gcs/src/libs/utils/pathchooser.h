@@ -53,7 +53,7 @@ class QTCREATOR_UTILS_EXPORT PathChooser : public QWidget
 public:
     static const char * const browseButtonLabel;
 
-    explicit PathChooser(QWidget *parent = 0);
+    explicit PathChooser(QWidget *parent = nullptr);
     virtual ~PathChooser();
 
     enum Kind {
@@ -83,7 +83,7 @@ public:
     /** Returns the suggested label title when used in a form layout. */
     static QString label();
 
-    virtual bool validatePath(const QString &path, QString *errorMessage = 0);
+    virtual bool validatePath(const QString &path, QString *errorMessage = nullptr);
 
     /** Return the home directory, which needs some fixing under Windows. */
     static QString homePath();

@@ -39,7 +39,7 @@ class SummaryPage : public AbstractWizardPage
     Q_OBJECT
 
 public:
-    explicit SummaryPage(SetupWizard *wizard, QWidget *parent = 0);
+    explicit SummaryPage(SetupWizard *wizard, QWidget *parent = nullptr);
     ~SummaryPage();
     bool validatePage();
     void initializePage();

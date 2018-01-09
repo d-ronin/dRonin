@@ -40,7 +40,7 @@ class SystemHealthGadgetFactory : public IUAVGadgetFactory
 {
     Q_OBJECT
 public:
-    SystemHealthGadgetFactory(QObject *parent = 0);
+    SystemHealthGadgetFactory(QObject *parent = nullptr);
     ~SystemHealthGadgetFactory();
 
     Core::IUAVGadget *createGadget(QWidget *parent);
