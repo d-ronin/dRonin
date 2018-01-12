@@ -44,9 +44,9 @@
 #define SESSION_RETRIEVE_TIMEOUT 20000
 // Number of retries for the session object fetching during negotiation
 #define SESSION_OBJ_RETRIEVE_RETRIES 3
-// Timeout for the object fetching fase, the system will stop fetching objects and emit connected
+// Timeout for the object fetching phase, the system will stop fetching objects and emit connected
 // after this
-#define OBJECT_RETRIEVE_TIMEOUT 7000
+#define OBJECT_RETRIEVE_TIMEOUT 20000
 // IAP object is very important, retry if not able to get it the first time
 #define IAP_OBJECT_RETRIES 3
 
@@ -251,7 +251,7 @@ void TelemetryMonitor::retrieveNextObject()
             connectionStatus = CON_CONNECTED_MANAGED;
         } else {
             TELEMETRYMONITOR_QXTLOG_DEBUG(
-                QString("%0 connectionStatus set to CON_CONNECTED_MANAGED( %1 )")
+                QString("%0 connectionStatus set to CON_CONNECTED_UNMANAGED( %1 )")
                     .arg(Q_FUNC_INFO)
                     .arg(connectionStatus));
             connectionStatus = CON_CONNECTED_UNMANAGED;
@@ -322,9 +322,9 @@ void TelemetryMonitor::transactionCompleted(UAVObject *obj, bool success)
 
         retrieveNextObject();
     } else {
-        TELEMETRYMONITOR_QXTLOG_DEBUG(
+        qInfo() <<
             QString("%0 connection lost while retrieving objects, stopped object retrievel")
-                .arg(Q_FUNC_INFO));
+                .arg(Q_FUNC_INFO);
         queue.clear();
         objectRetrieveTimeout->stop();
         sessionInitialRetrieveTimeout->stop();
@@ -427,6 +427,9 @@ void TelemetryMonitor::sessionObjUnpackedCB(UAVObject *obj)
 
 void TelemetryMonitor::objectRetrieveTimeoutCB()
 {
+    qInfo() <<
+        QString("%0 reached timeout for object retrieval, clearing queue")
+        .arg(Q_FUNC_INFO);
     queue.clear();
 }
 
