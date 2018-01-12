@@ -144,7 +144,7 @@ uintptr_t pios_com_debug_id;
 #endif
 
 #ifndef PIOS_COM_TELEM_USB_RX_BUF_LEN
-#define PIOS_COM_TELEM_USB_RX_BUF_LEN 65
+#define PIOS_COM_TELEM_USB_RX_BUF_LEN 129
 #endif
 
 #ifndef PIOS_COM_TELEM_USB_TX_BUF_LEN
