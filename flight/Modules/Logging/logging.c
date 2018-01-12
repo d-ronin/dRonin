@@ -181,7 +181,8 @@ int32_t LoggingInitialize(void)
 	}
 
 	// Initialise UAVTalk
-	uavTalkCon = UAVTalkInitialize(NULL, &send_data_nonblock, NULL, NULL);
+	uavTalkCon = UAVTalkInitialize(NULL, &send_data_nonblock,
+			NULL, NULL, NULL);
 
 	if (!uavTalkCon) {
 		module_enabled = false;

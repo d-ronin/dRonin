@@ -98,6 +98,7 @@ typedef struct {
 
 	UAVTalkOutputCb outCb;
 	UAVTalkAckCb ackCb;
+	UAVTalkReqCb reqCb;
 	UAVTalkFileCb fileCb;
 	void *cbCtx;
 } UAVTalkConnectionData;
