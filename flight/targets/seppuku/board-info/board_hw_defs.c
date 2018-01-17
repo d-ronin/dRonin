@@ -661,6 +661,60 @@ static const struct pios_usart_cfg pios_uart4_cfg = {
 	},
 };
 
+/*
+	USART6 DMA config.
+*/
+static struct pios_usart_dma_cfg pios_usart6_dma_rx_cfg = {
+	.stream = DMA2_Stream2,
+	.tcif = DMA_FLAG_TCIF2,
+	.init = {
+		/* Could probably thin out some of these, that are defined to zero anyway. */
+		.DMA_Channel = DMA_Channel_5,
+		.DMA_PeripheralBaseAddr = (uint32_t)&USART6->DR,
+		.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte,
+		.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte,
+		.DMA_MemoryInc = DMA_MemoryInc_Enable,
+		.DMA_PeripheralInc =  DMA_PeripheralInc_Disable,
+		.DMA_DIR = DMA_DIR_PeripheralToMemory,
+		.DMA_Mode = DMA_Mode_Normal,
+		.DMA_Priority = DMA_Priority_High,
+		.DMA_MemoryBurst = DMA_MemoryBurst_Single,
+		.DMA_PeripheralBurst = DMA_PeripheralBurst_Single,
+		.DMA_FIFOMode = DMA_FIFOMode_Disable,
+	},
+	.irq = {
+		.NVIC_IRQChannel = DMA2_Stream2_IRQn,
+		.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_LOW,
+		.NVIC_IRQChannelSubPriority = 0,
+		.NVIC_IRQChannelCmd = ENABLE,
+	}
+};
+static struct pios_usart_dma_cfg pios_usart6_dma_tx_cfg = {
+	.stream = DMA2_Stream7,
+	.tcif = DMA_FLAG_TCIF7,
+	.init = {
+		/* Could probably thin out some of these, that are defined to zero anyway. */
+		.DMA_Channel = DMA_Channel_5,
+		.DMA_PeripheralBaseAddr = (uint32_t)&USART6->DR,
+		.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte,
+		.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte,
+		.DMA_MemoryInc = DMA_MemoryInc_Enable,
+		.DMA_PeripheralInc =  DMA_PeripheralInc_Disable,
+		.DMA_DIR = DMA_DIR_MemoryToPeripheral,
+		.DMA_Mode = DMA_Mode_Normal,
+		.DMA_Priority = DMA_Priority_High,
+		.DMA_MemoryBurst = DMA_MemoryBurst_Single,
+		.DMA_PeripheralBurst = DMA_PeripheralBurst_Single,
+		.DMA_FIFOMode = DMA_FIFOMode_Disable,
+	},
+	.irq = {
+		.NVIC_IRQChannel = DMA2_Stream7_IRQn,
+		.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_LOW,
+		.NVIC_IRQChannelSubPriority = 0,
+		.NVIC_IRQChannelCmd = ENABLE,
+	}
+};
+
 static const struct pios_usart_cfg pios_usart6_cfg = {
 	.regs  = USART6,
 	.remap = GPIO_AF_USART6,
@@ -694,7 +748,18 @@ static const struct pios_usart_cfg pios_usart6_cfg = {
 		},
 		.pin_source = GPIO_PinSource6,
 	},
+	.dma_recv = &pios_usart6_dma_rx_cfg,
+	.dma_send = &pios_usart6_dma_tx_cfg
 };
+
+void DMA2_Stream2_IRQHandler(void)
+{
+	PIOS_USART_dma_irq_rx_handler(&pios_usart6_cfg);
+}
+void DMA2_Stream7_IRQHandler(void)
+{
+	PIOS_USART_dma_irq_tx_handler(&pios_usart6_cfg);
+}
 
 #endif  /* PIOS_INCLUDE_USART */
 
