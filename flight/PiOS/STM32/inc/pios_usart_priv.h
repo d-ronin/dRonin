@@ -36,12 +36,25 @@
 
 extern const struct pios_com_driver pios_usart_com_driver;
 
+#if defined(STM32F4XX)
+struct pios_usart_dma_cfg {
+	DMA_Stream_TypeDef *stream;
+	DMA_InitTypeDef init;
+	uint32_t tcif;
+	NVIC_InitTypeDef irq;
+};
+#endif
+
 struct pios_usart_cfg {
 	USART_TypeDef *regs;
 	uint32_t remap;		/* GPIO_Remap_* */
 	struct stm32_gpio rx;
 	struct stm32_gpio tx;
 	struct stm32_irq irq;
+#if defined(STM32F4XX)
+	struct pios_usart_dma_cfg *dma_send;
+	struct pios_usart_dma_cfg *dma_recv;
+#endif
 };
 
 struct pios_usart_params {
@@ -54,6 +67,11 @@ struct pios_usart_params {
 
 extern int32_t PIOS_USART_Init(uintptr_t * usart_id, const struct pios_usart_cfg * cfg, struct pios_usart_params * params);
 extern const struct pios_usart_cfg * PIOS_USART_GetConfig(uintptr_t usart_id);
+
+#if defined(STM32F4XX)
+extern void PIOS_USART_dma_irq_tx_handler(const struct pios_usart_cfg *cfg);
+extern void PIOS_USART_dma_irq_rx_handler(const struct pios_usart_cfg *cfg);
+#endif
 
 #endif /* PIOS_USART_PRIV_H */
 

@@ -39,6 +39,10 @@
 
 #include <pios_usart_priv.h>
 
+/* DMA buffer sizes. */
+#define PIOS_USART_DMA_SEND_BUFFER_SZ	64
+#define PIOS_USART_DMA_RECV_BUFFER_SZ	64
+
 /* Provide a COM driver */
 static void PIOS_USART_ChangeBaud(uintptr_t usart_id, uint32_t baud);
 static void PIOS_USART_RegisterRxCallback(uintptr_t usart_id, pios_com_callback rx_in_cb, uintptr_t context);
@@ -66,6 +70,8 @@ struct pios_usart_dev {
 	uintptr_t rx_in_context;
 	pios_com_callback tx_out_cb;
 	uintptr_t tx_out_context;
+	uint32_t dma_send_buffer;
+	uint32_t dma_recv_buffer;
 };
 
 static bool PIOS_USART_validate(struct pios_usart_dev * usart_dev)
@@ -215,13 +221,50 @@ int32_t PIOS_USART_Init(uintptr_t * usart_id, const struct pios_usart_cfg * cfg,
 		break;
 	}
 	NVIC_Init((NVIC_InitTypeDef *)&(usart_dev->cfg->irq.init));
-	USART_ITConfig(usart_dev->cfg->regs, USART_IT_RXNE, ENABLE);
-	USART_ITConfig(usart_dev->cfg->regs, USART_IT_TXE,  ENABLE);
 
 	// FIXME XXX Clear / reset uart here - sends NUL char else
 
+	/* Check DMA transmit configuration and prepare DMA. */
+	if (cfg->dma_send) {
+		usart_dev->dma_send_buffer = (uint32_t)PIOS_malloc(PIOS_USART_DMA_SEND_BUFFER_SZ);
+
+		if (usart_dev->dma_send_buffer) {
+			DMA_DeInit(cfg->dma_send->stream);
+			DMA_Init(cfg->dma_send->stream, &cfg->dma_send->init);
+			NVIC_Init(&cfg->dma_send->irq);
+		}
+	}
+
+	/* Check DMA receive configuration, and setup and start DMA. */
+	if (cfg->dma_recv) {
+		usart_dev->dma_recv_buffer = (uint32_t)PIOS_malloc(PIOS_USART_DMA_RECV_BUFFER_SZ);
+
+		if (usart_dev->dma_recv_buffer) {
+			DMA_DeInit(cfg->dma_recv->stream);
+			DMA_Init(cfg->dma_recv->stream, &cfg->dma_recv->init);
+			NVIC_Init(&cfg->dma_recv->irq);
+
+			USART_ITConfig(cfg->regs, USART_IT_IDLE, ENABLE);
+
+			/* Start DMA here already. */
+			DMA_ITConfig(cfg->dma_recv->stream, DMA_IT_TC, ENABLE);
+			DMA_MemoryTargetConfig(cfg->dma_recv->stream, usart_dev->dma_recv_buffer, DMA_Memory_0);
+			DMA_SetCurrDataCounter(cfg->dma_recv->stream, PIOS_USART_DMA_RECV_BUFFER_SZ);
+
+			USART_DMACmd(cfg->regs, USART_DMAReq_Rx, ENABLE);
+			DMA_Cmd(cfg->dma_recv->stream, ENABLE);
+		}
+	}
+
+	if (!usart_dev->dma_recv_buffer) {
+		/* If DMA isn't in-use or we failed to allocate the buffer, use RXNE interrupt for data. */
+		USART_ITConfig(cfg->regs, USART_IT_RXNE, ENABLE);
+	}
+
+	USART_ITConfig(cfg->regs, USART_IT_TXE,  ENABLE);
+
 	/* Enable USART */
-	USART_Cmd(usart_dev->cfg->regs, ENABLE);
+	USART_Cmd(cfg->regs, ENABLE);
 
 	return(0);
 
@@ -244,8 +287,10 @@ static void PIOS_USART_TxStart(uintptr_t usart_id, uint16_t tx_bytes_avail)
 	
 	bool valid = PIOS_USART_validate(usart_dev);
 	PIOS_Assert(valid);
-	
-	USART_ITConfig(usart_dev->cfg->regs, USART_IT_TXE, ENABLE);
+
+	if (!usart_dev->dma_send_buffer || DMA_GetCmdStatus(usart_dev->cfg->dma_send->stream) == DISABLE) {
+		USART_ITConfig(usart_dev->cfg->regs, USART_IT_TXE, ENABLE);
+	}
 }
 
 /**
@@ -325,28 +370,161 @@ static void PIOS_USART_generic_irq_handler(uintptr_t usart_id)
 			(void) (usart_dev->rx_in_cb)(usart_dev->rx_in_context, &byte, 1, NULL, &rx_need_yield);
 		}
 	}
+
+	if (sr & USART_SR_IDLE) {
+		/* If line goes idle, trigger DMA IRQ for data processing. */
+		DMA_Cmd(usart_dev->cfg->dma_recv->stream, DISABLE);
+		while (DMA_GetCmdStatus(usart_dev->cfg->dma_recv->stream) == ENABLE) ;
+	}
 	
 	/* Check if TXE flag is set */
 	bool tx_need_yield = false;
 	if (sr & USART_SR_TXE) {
 		if (usart_dev->tx_out_cb) {
-			uint8_t b;
-			uint16_t bytes_to_send;
-			
-			bytes_to_send = (usart_dev->tx_out_cb)(usart_dev->tx_out_context, &b, 1, NULL, &tx_need_yield);
-			
-			if (bytes_to_send > 0) {
-				/* Send the byte we've been given */
-				usart_dev->cfg->regs->DR = b;
+
+			if (usart_dev->dma_send_buffer) {
+				/* Here's how it goes:
+
+				   TXE interrupt triggers, because USART has nothing to do. If there's more than 1 byte to send,
+				   the TXE IRQ gets disabled and a single DMA transfer gets triggered. When that transfer is done,
+				   it'll reenable TXE IRQ, to repeat this whole thing. */
+
+				if (DMA_GetCmdStatus(usart_dev->cfg->dma_send->stream) == ENABLE) {
+					/* If we get here while DMA is enabled, for whatever reason, GTFO.
+					   Also, re-disable TXE. */
+					USART_ITConfig(usart_dev->cfg->regs, USART_IT_TXE, DISABLE);
+					return;
+				}
+
+				uint16_t bytes_to_send = (usart_dev->tx_out_cb)(usart_dev->tx_out_context, (uint8_t*)usart_dev->dma_send_buffer,
+						PIOS_USART_DMA_SEND_BUFFER_SZ, NULL, &tx_need_yield);
+
+				if (bytes_to_send > 1) {
+					USART_ITConfig(usart_dev->cfg->regs, USART_IT_TXE, DISABLE);
+
+					DMA_MemoryTargetConfig(usart_dev->cfg->dma_send->stream, usart_dev->dma_send_buffer, DMA_Memory_0);
+					DMA_SetCurrDataCounter(usart_dev->cfg->dma_send->stream, bytes_to_send);
+					DMA_ITConfig(usart_dev->cfg->dma_send->stream, DMA_IT_TC, ENABLE);
+
+					USART_DMACmd(usart_dev->cfg->regs, USART_DMAReq_Tx, ENABLE);
+					DMA_Cmd(usart_dev->cfg->dma_send->stream, ENABLE);
+				} else if (bytes_to_send == 1) {
+					/* Don't use DMA for single byte. */
+					usart_dev->cfg->regs->DR = *((uint8_t*)usart_dev->dma_send_buffer);
+				} else {
+					USART_ITConfig(usart_dev->cfg->regs, USART_IT_TXE, DISABLE);
+				}
 			} else {
-				/* No bytes to send, disable TXE interrupt */
-				USART_ITConfig(usart_dev->cfg->regs, USART_IT_TXE, DISABLE);
+				/* Send byte-by-byte. */
+				uint8_t byte;
+				uint16_t bytes_to_send = (usart_dev->tx_out_cb)(usart_dev->tx_out_context, &byte, 1, NULL, &tx_need_yield);
+
+				if (bytes_to_send > 0) {
+					/* Send the byte we've been given */
+					usart_dev->cfg->regs->DR = byte;
+				} else {
+					/* No bytes to send, disable TXE interrupt */
+					USART_ITConfig(usart_dev->cfg->regs, USART_IT_TXE, DISABLE);
+				}
 			}
+		/* if (usart_dev->dma_send_buffer) */
 		} else {
 			/* No bytes to send, disable TXE interrupt */
 			USART_ITConfig(usart_dev->cfg->regs, USART_IT_TXE, DISABLE);
 		}
 	}
+}
+
+static uintptr_t PIOS_USART_GetDevice(const struct pios_usart_cfg *cfg)
+{
+	PIOS_Assert(cfg);
+
+	switch((uint32_t)cfg->regs) {
+		case (uint32_t)USART1:
+			return PIOS_USART_1_id;
+		case (uint32_t)USART2:
+			return PIOS_USART_2_id;
+		case (uint32_t)USART3:
+			return PIOS_USART_3_id;
+		case (uint32_t)UART4:
+			return PIOS_USART_4_id;
+		case (uint32_t)UART5:
+			return PIOS_USART_5_id;
+		case (uint32_t)USART6:
+			return PIOS_USART_6_id;
+		default:
+			return 0;
+	}
+}
+
+void PIOS_USART_dma_irq_tx_handler(const struct pios_usart_cfg *cfg)
+{
+	PIOS_IRQ_Prologue();
+
+	struct pios_usart_dev *usart_dev = (struct pios_usart_dev*)PIOS_USART_GetDevice(cfg);
+	if (!usart_dev)
+		goto get_out;
+
+	struct pios_usart_dma_cfg *dmacfg = usart_dev->cfg->dma_send;
+	PIOS_Assert(dmacfg);
+
+	if (DMA_GetFlagStatus(dmacfg->stream, dmacfg->tcif) == SET) {
+		/* TX handler*/
+		USART_DMACmd(usart_dev->cfg->regs, USART_DMAReq_Tx, DISABLE);
+
+		DMA_Cmd(dmacfg->stream, DISABLE);
+		while (DMA_GetCmdStatus(dmacfg->stream) == ENABLE) ;
+
+		DMA_ITConfig(dmacfg->stream, DMA_IT_TC, DISABLE);
+		DMA_ClearITPendingBit(dmacfg->stream, dmacfg->tcif);
+		DMA_ClearFlag(dmacfg->stream, dmacfg->tcif);
+
+		/* Re-enable TXE interrupt, which kicks off the next data transfer, if there's stuff. */
+		USART_ITConfig(usart_dev->cfg->regs, USART_IT_TXE, ENABLE);
+	}
+
+get_out:
+	PIOS_IRQ_Epilogue();
+}
+
+void PIOS_USART_dma_irq_rx_handler(const struct pios_usart_cfg *cfg)
+{
+	PIOS_IRQ_Prologue();
+
+	struct pios_usart_dev *usart_dev = (struct pios_usart_dev*)PIOS_USART_GetDevice(cfg);
+	if (!usart_dev)
+		goto get_out;
+
+	struct pios_usart_dma_cfg *dmacfg = usart_dev->cfg->dma_recv;
+	PIOS_Assert(dmacfg);
+
+	/* RX handler*/
+	if (DMA_GetFlagStatus(dmacfg->stream, dmacfg->tcif) == SET) {
+
+		DMA_Cmd(dmacfg->stream, DISABLE);
+		while (DMA_GetCmdStatus(dmacfg->stream) == ENABLE) ;
+
+		/* Need to figure out how much data was captured either way, because USART idle stops the DMA
+		   causing this to trigger, too.*/
+		uint32_t data_read = PIOS_USART_DMA_RECV_BUFFER_SZ - DMA_GetCurrDataCounter(dmacfg->stream);
+
+		if (usart_dev->rx_in_cb && data_read > 0) {
+			bool rx_need_yield = false;
+			(usart_dev->rx_in_cb)(usart_dev->rx_in_context, (uint8_t*)usart_dev->dma_recv_buffer, data_read,
+				NULL, &rx_need_yield);
+		}
+
+		DMA_ClearITPendingBit(dmacfg->stream, dmacfg->tcif);
+		DMA_ClearFlag(dmacfg->stream, dmacfg->tcif);
+
+		/* Restart DMA. */
+		DMA_MemoryTargetConfig(dmacfg->stream, usart_dev->dma_recv_buffer, DMA_Memory_0);
+		DMA_SetCurrDataCounter(dmacfg->stream, PIOS_USART_DMA_RECV_BUFFER_SZ);
+		DMA_Cmd(dmacfg->stream, ENABLE);
+	}
+
+get_out:
+	PIOS_IRQ_Epilogue();
 }
 
 #endif
