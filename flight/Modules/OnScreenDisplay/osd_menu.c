@@ -36,6 +36,8 @@
 #include "onscreendisplay.h"
 
 #include "flightstatus.h"
+#include "flightbatterystate.h"
+#include "flightbatterysettings.h"
 #include "homelocation.h"
 #include "manualcontrolcommand.h"
 #include "manualcontrolsettings.h"
@@ -140,9 +142,9 @@ enum menu_fsm_state {
 	FSM_STATE_MAIN_STICKLIMITS, /*!< Stick Range and Limits */
 	FSM_STATE_MAIN_VTX,         /*!< Video Transmitter */
 	FSM_STATE_MAIN_STATS,       /*!< Flight Stats */
+	FSM_STATE_MAIN_BATTERY,     /*!< battery menu */
 /*------------------------------------------------------------------------------------------*/
 #if defined(USE_STM32F4xx_BRAINFPVRE1)
-	FSM_STATE_RE1_IDLE,           /*!< Dummy state with nothing selected */
 	FSM_STATE_RE1_IR_PROTOCOL,    /*!< IR transponder protocol */
 	FSM_STATE_RE1_IR_IDILAP,      /*!< I-Lap ID */
 	FSM_STATE_RE1_IR_IDTRACKMATE, /*!< Trackmate ID */
@@ -150,20 +152,17 @@ enum menu_fsm_state {
 	FSM_STATE_RE1_EXIT,           /*!< Exit */
 #endif
 /*------------------------------------------------------------------------------------------*/
-	FSM_STATE_RGB_IDLE,            /*!< Dummy state with nothing selected */
 	FSM_STATE_RGB_DEFAULTCOLOR,    /*!< RGB LED default color */
 	FSM_STATE_RGB_RANGECOLOR_BASE, /*!< Range base color */
 	FSM_STATE_RGB_RANGECOLOR_END,  /*!< Range end color */
 	FSM_STATE_RGB_SAVEEXIT,        /*!< Save & Exit */
 	FSM_STATE_RGB_EXIT,            /*!< Exit */
 /*------------------------------------------------------------------------------------------*/
-	FSM_STATE_FILTER_IDLE,     /*!< Dummy state with nothing selected */
 	FSM_STATE_FILTER_ATT,      /*!< Attitude Filter */
 	FSM_STATE_FILTER_NAV,      /*!< Navigation Filter */
 	FSM_STATE_FILTER_SAVEEXIT, /*!< Save & Exit */
 	FSM_STATE_FILTER_EXIT,     /*!< Exit */
 /*------------------------------------------------------------------------------------------*/
-	FSM_STATE_FMODE_IDLE,      /*!< Dummy state with nothing selected */
 	FSM_STATE_FMODE_1,         /*!< Flight Mode Position 1 */
 	FSM_STATE_FMODE_2,         /*!< Flight Mode Position 2 */
 	FSM_STATE_FMODE_3,         /*!< Flight Mode Position 3 */
@@ -173,11 +172,9 @@ enum menu_fsm_state {
 	FSM_STATE_FMODE_SAVEEXIT,  /*!< Save & Exit */
 	FSM_STATE_FMODE_EXIT,      /*!< Exit */
 /*------------------------------------------------------------------------------------------*/
-	FSM_STATE_HOMELOC_IDLE,    /*!< Dummy state with nothing selected */
 	FSM_STATE_HOMELOC_SET,     /*!< Set home location */
 	FSM_STATE_HOMELOC_EXIT,    /*!< Exit */
 /*------------------------------------------------------------------------------------------*/
-	FSM_STATE_PIDRATE_IDLE,       /*!< Dummy state with nothing selected */
 	FSM_STATE_PIDRATE_ROLLP,      /*!< Roll P Gain */
 	FSM_STATE_PIDRATE_ROLLI,      /*!< Roll I Gain */
 	FSM_STATE_PIDRATE_ROLLD,      /*!< Roll D Gain */
@@ -193,7 +190,6 @@ enum menu_fsm_state {
 	FSM_STATE_PIDRATE_SAVEEXIT,   /*!< Save & Exit */
 	FSM_STATE_PIDRATE_EXIT,       /*!< Exit */
 /*------------------------------------------------------------------------------------------*/
-	FSM_STATE_PIDATT_IDLE,       /*!< Dummy state with nothing selected */
 	FSM_STATE_PIDATT_ROLLP,      /*!< Roll P Gain */
 	FSM_STATE_PIDATT_ROLLI,      /*!< Roll I Gain */
 	FSM_STATE_PIDATT_ROLLILIMIT, /*!< Roll I Limit */
@@ -206,7 +202,6 @@ enum menu_fsm_state {
 	FSM_STATE_PIDATT_SAVEEXIT,   /*!< Save & Exit */
 	FSM_STATE_PIDATT_EXIT,       /*!< Exit */
 /*------------------------------------------------------------------------------------------*/
-	FSM_STATE_STICKLIMITS_IDLE,     /*!< Dummy state with nothing selected */
 	FSM_STATE_STICKLIMITS_ROLLA,    /*!< Roll full stick angle */
 	FSM_STATE_STICKLIMITS_PITCHA,   /*!< Pitch full stick angle */
 	FSM_STATE_STICKLIMITS_YAWA,     /*!< Yaw full stick angle */
@@ -223,7 +218,6 @@ enum menu_fsm_state {
 	FSM_STATE_STICKLIMITS_SAVEEXIT, /*!< Save & Exit */
 	FSM_STATE_STICKLIMITS_EXIT,     /*!< Exit */
 /*------------------------------------------------------------------------------------------*/
-	FSM_STATE_VTX_IDLE,             /*!< Dummy state with nothing selected */
 	FSM_STATE_VTX_BAND,             /*!< Set Band */
 	FSM_STATE_VTX_CH,               /*!< Set Channel */
 	FSM_STATE_VTX_POWER,            /*!< Set Power */
@@ -231,9 +225,18 @@ enum menu_fsm_state {
 	FSM_STATE_VTX_SAVEEXIT,         /*!< Save & Exit */
 	FSM_STATE_VTX_EXIT,             /*!< Exit */
 /*------------------------------------------------------------------------------------------*/
-	FSM_STATE_STATS_IDLE,           /*!< Dummy state with nothing selected */
 	FSM_STATE_STATS_EXIT,           /*!< Exit */
 /*------------------------------------------------------------------------------------------*/
+        FSM_STATE_BATTERY_CAPACITY,    /*!< Battery capacity setting */
+        FSM_STATE_BATTERY_CELLCOUNT,   /*!< Battery cell count setting */
+        FSM_STATE_BATTERY_WARNING,     /*!< Low cell warning setting */
+        FSM_STATE_BATTERY_ALARM,       /*!< Low cell alarm setting */
+        FSM_STATE_BATTERY_WARN_TIME,   /*!< Low cell warning setting */
+        FSM_STATE_BATTERY_ALARM_TIME,  /*!< Low cell alarm setting */
+        FSM_STATE_BATTERY_SAVEEXIT,    /*!< Save & Exit */
+        FSM_STATE_BATTERY_EXIT,        /*!< Exit */
+/*------------------------------------------------------------------------------------------*/
+
 	FSM_STATE_NUM_STATES
 };
 
@@ -266,6 +269,8 @@ static void pidatt_menu(void);
 static void sticklimits_menu(void);
 static void vtx_menu();
 static void stats_menu(void);
+static void battery_menu(void);
+
 
 
 // The Menu FSM
@@ -274,9 +279,9 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 	[FSM_STATE_MAIN_RE1] = {
 		.menu_fn = main_menu,
 		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_MAIN_STATS,
+			[FSM_EVENT_UP] = FSM_STATE_MAIN_BATTERY,
 			[FSM_EVENT_DOWN] = FSM_STATE_MAIN_RGBLEDS,
-			[FSM_EVENT_RIGHT] = FSM_STATE_RE1_IDLE,
+			[FSM_EVENT_RIGHT] = FSM_STATE_RE1_IR_PROTOCOL,
 		},
 	},
 #endif
@@ -286,10 +291,10 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 		#if defined(USE_STM32F4xx_BRAINFPVRE1)
 					[FSM_EVENT_UP] = FSM_STATE_MAIN_RE1,
 		#else
-					[FSM_EVENT_UP] = FSM_STATE_MAIN_STATS,
+					[FSM_EVENT_UP] = FSM_STATE_MAIN_BATTERY,
 		#endif
 			[FSM_EVENT_DOWN] = FSM_STATE_MAIN_FILTER,
-			[FSM_EVENT_RIGHT] = FSM_STATE_RGB_IDLE,
+			[FSM_EVENT_RIGHT] = FSM_STATE_RGB_DEFAULTCOLOR,
 		},
 	},
 	[FSM_STATE_MAIN_FILTER] = {
@@ -297,7 +302,7 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 		.next_state = {
 			[FSM_EVENT_UP] = FSM_STATE_MAIN_RGBLEDS,
 			[FSM_EVENT_DOWN] = FSM_STATE_MAIN_FMODE,
-			[FSM_EVENT_RIGHT] = FSM_STATE_FILTER_IDLE,
+			[FSM_EVENT_RIGHT] = FSM_STATE_FILTER_ATT,
 		},
 	},
 	[FSM_STATE_MAIN_FMODE] = {
@@ -305,7 +310,7 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 		.next_state = {
 			[FSM_EVENT_UP] = FSM_STATE_MAIN_FILTER,
 			[FSM_EVENT_DOWN] = FSM_STATE_MAIN_HOMELOC,
-			[FSM_EVENT_RIGHT] = FSM_STATE_FMODE_IDLE,
+			[FSM_EVENT_RIGHT] = FSM_STATE_FMODE_1,
 		},
 	},
 	[FSM_STATE_MAIN_HOMELOC] = {
@@ -313,7 +318,7 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 		.next_state = {
 			[FSM_EVENT_UP] = FSM_STATE_MAIN_FMODE,
 			[FSM_EVENT_DOWN] = FSM_STATE_MAIN_PIDRATE,
-			[FSM_EVENT_RIGHT] = FSM_STATE_HOMELOC_IDLE,
+			[FSM_EVENT_RIGHT] = FSM_STATE_HOMELOC_SET,
 		},
 	},
 	[FSM_STATE_MAIN_PIDRATE] = {
@@ -321,7 +326,7 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 		.next_state = {
 			[FSM_EVENT_UP] = FSM_STATE_MAIN_HOMELOC,
 			[FSM_EVENT_DOWN] = FSM_STATE_MAIN_PIDATT,
-			[FSM_EVENT_RIGHT] = FSM_STATE_PIDRATE_IDLE,
+			[FSM_EVENT_RIGHT] = FSM_STATE_PIDRATE_ROLLP,
 		},
 	},
 	[FSM_STATE_MAIN_PIDATT] = {
@@ -329,7 +334,7 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 		.next_state = {
 			[FSM_EVENT_UP] = FSM_STATE_MAIN_PIDRATE,
 			[FSM_EVENT_DOWN] = FSM_STATE_MAIN_STICKLIMITS,
-			[FSM_EVENT_RIGHT] = FSM_STATE_PIDATT_IDLE,
+			[FSM_EVENT_RIGHT] = FSM_STATE_PIDATT_ROLLP,
 		},
 	},
 	[FSM_STATE_MAIN_STICKLIMITS] = {
@@ -337,7 +342,7 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 		.next_state = {
 			[FSM_EVENT_UP] = FSM_STATE_MAIN_PIDATT,
 			[FSM_EVENT_DOWN] = FSM_STATE_MAIN_VTX,
-			[FSM_EVENT_RIGHT] = FSM_STATE_STICKLIMITS_IDLE,
+			[FSM_EVENT_RIGHT] = FSM_STATE_STICKLIMITS_ROLLA,
 		},
 	},
 	[FSM_STATE_MAIN_VTX] = {
@@ -345,26 +350,27 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 		.next_state = {
 			[FSM_EVENT_UP] = FSM_STATE_MAIN_STICKLIMITS,
 			[FSM_EVENT_DOWN] = FSM_STATE_MAIN_STATS,
-			[FSM_EVENT_RIGHT] = FSM_STATE_VTX_IDLE,
+			[FSM_EVENT_RIGHT] = FSM_STATE_VTX_BAND,
 		},
 	},
 	[FSM_STATE_MAIN_STATS] = {
 		.menu_fn = main_menu,
 		.next_state = {
 			[FSM_EVENT_UP] = FSM_STATE_MAIN_VTX,
-			[FSM_EVENT_DOWN] = FSM_STATE_TOP,
-			[FSM_EVENT_RIGHT] = FSM_STATE_STATS_IDLE,
+			[FSM_EVENT_DOWN] = FSM_STATE_MAIN_BATTERY,
+			[FSM_EVENT_RIGHT] = FSM_STATE_STATS_EXIT,
 		},
 	},
+        [FSM_STATE_MAIN_BATTERY] = {
+                .menu_fn = main_menu,
+                .next_state = {
+                        [FSM_EVENT_UP] = FSM_STATE_MAIN_STATS,
+                        [FSM_EVENT_DOWN] = FSM_STATE_TOP,
+                        [FSM_EVENT_RIGHT] = FSM_STATE_BATTERY_CAPACITY,
+                },
+        },
 /*------------------------------------------------------------------------------------------*/
 #if defined(USE_STM32F4xx_BRAINFPVRE1)
-	[FSM_STATE_RE1_IDLE] = {
-		.menu_fn = brainre1_menu,
-		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_RE1_EXIT,
-			[FSM_EVENT_DOWN] = FSM_STATE_RE1_IR_PROTOCOL,
-		},
-	},
 	[FSM_STATE_RE1_IR_PROTOCOL] = {
 		.menu_fn = brainre1_menu,
 		.next_state = {
@@ -404,13 +410,6 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 	},
 #endif /* defined(USE_STM32F4xx_BRAINFPVRE1) */
 /*------------------------------------------------------------------------------------------*/
-	[FSM_STATE_RGB_IDLE] = {
-		.menu_fn = rgbled_menu,
-		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_RGB_EXIT,
-			[FSM_EVENT_DOWN] = FSM_STATE_RGB_DEFAULTCOLOR,
-		},
-	},
 	[FSM_STATE_RGB_DEFAULTCOLOR] = {
 		.menu_fn = rgbled_menu,
 		.next_state = {
@@ -449,13 +448,6 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 		},
 	},
 /*------------------------------------------------------------------------------------------*/
-	[FSM_STATE_FILTER_IDLE] = {
-		.menu_fn = filter_menu,
-		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_FILTER_EXIT,
-			[FSM_EVENT_DOWN] = FSM_STATE_FILTER_ATT,
-		},
-	},
 	[FSM_STATE_FILTER_ATT] = {
 		.menu_fn = filter_menu,
 		.next_state = {
@@ -487,13 +479,6 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 		},
 	},
 /*------------------------------------------------------------------------------------------*/
-	[FSM_STATE_FMODE_IDLE] = {
-		.menu_fn = flightmode_menu,
-		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_FMODE_EXIT,
-			[FSM_EVENT_DOWN] = FSM_STATE_FMODE_1,
-		},
-	},
 	[FSM_STATE_FMODE_1] = {
 		.menu_fn = flightmode_menu,
 		.next_state = {
@@ -553,13 +538,6 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 		},
 	},
 /*------------------------------------------------------------------------------------------*/
-	[FSM_STATE_HOMELOC_IDLE] = {
-		.menu_fn = homeloc_menu,
-		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_HOMELOC_EXIT,
-			[FSM_EVENT_DOWN] = FSM_STATE_HOMELOC_SET,
-		},
-	},
 	[FSM_STATE_HOMELOC_SET] = {
 		.menu_fn = homeloc_menu,
 		.next_state = {
@@ -576,13 +554,6 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 		},
 	},
 /*------------------------------------------------------------------------------------------*/
-	[FSM_STATE_PIDRATE_IDLE] = {
-		.menu_fn = pidrate_menu,
-		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_PIDRATE_EXIT,
-			[FSM_EVENT_DOWN] = FSM_STATE_PIDRATE_ROLLP,
-		},
-	},
 	[FSM_STATE_PIDRATE_ROLLP] = {
 		.menu_fn = pidrate_menu,
 		.next_state = {
@@ -684,13 +655,6 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 		},
 	},
 /*------------------------------------------------------------------------------------------*/
-	[FSM_STATE_PIDATT_IDLE] = {
-		.menu_fn = pidatt_menu,
-		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_PIDATT_EXIT,
-			[FSM_EVENT_DOWN] = FSM_STATE_PIDATT_ROLLP,
-		},
-	},
 	[FSM_STATE_PIDATT_ROLLP] = {
 		.menu_fn = pidatt_menu,
 		.next_state = {
@@ -771,13 +735,6 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 		},
 	},
 /*------------------------------------------------------------------------------------------*/
-	[FSM_STATE_STICKLIMITS_IDLE] = {
-		.menu_fn = sticklimits_menu,
-		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_STICKLIMITS_EXIT,
-			[FSM_EVENT_DOWN] = FSM_STATE_STICKLIMITS_ROLLA,
-		},
-	},
 	[FSM_STATE_STICKLIMITS_ROLLA] = {
 		.menu_fn = sticklimits_menu,
 		.next_state = {
@@ -886,13 +843,6 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 		},
 	},
 /*------------------------------------------------------------------------------------------*/
-	[FSM_STATE_VTX_IDLE] = {
-		.menu_fn = vtx_menu,
-		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_VTX_EXIT,
-			[FSM_EVENT_DOWN] = FSM_STATE_VTX_BAND,
-		},
-	},
 	[FSM_STATE_VTX_BAND] = {
 		.menu_fn = vtx_menu,
 		.next_state = {
@@ -938,13 +888,6 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 		},
 	},
 /*------------------------------------------------------------------------------------------*/
-	[FSM_STATE_STATS_IDLE] = {
-		.menu_fn = stats_menu,
-		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_STATS_EXIT,
-			[FSM_EVENT_DOWN] = FSM_STATE_STATS_EXIT,
-		},
-	},
 	[FSM_STATE_STATS_EXIT] = {
 		.menu_fn = stats_menu,
 		.next_state = {
@@ -953,7 +896,65 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 			[FSM_EVENT_RIGHT] = FSM_STATE_MAIN_STATS,
 		},
 	},
-	/*------------------------------------------------------------------------------------------*/
+/*------------------------------------------------------------------------------------------*/
+        [FSM_STATE_BATTERY_CAPACITY] = {
+                .menu_fn = battery_menu,
+                .next_state = {
+                        [FSM_EVENT_UP] = FSM_STATE_BATTERY_EXIT,
+                        [FSM_EVENT_DOWN] = FSM_STATE_BATTERY_CELLCOUNT,
+                },
+        },
+        [FSM_STATE_BATTERY_CELLCOUNT] = {
+                .menu_fn = battery_menu,
+                .next_state = {
+                        [FSM_EVENT_UP] = FSM_STATE_BATTERY_CAPACITY,
+                        [FSM_EVENT_DOWN] = FSM_STATE_BATTERY_WARNING,
+                },
+        },
+        [FSM_STATE_BATTERY_WARNING] = {
+                .menu_fn = battery_menu,
+                .next_state = {
+                        [FSM_EVENT_UP] = FSM_STATE_BATTERY_CELLCOUNT,
+                        [FSM_EVENT_DOWN] = FSM_STATE_BATTERY_ALARM,
+                },
+        },
+        [FSM_STATE_BATTERY_ALARM] = {
+                .menu_fn = battery_menu,
+                .next_state = {
+                        [FSM_EVENT_UP] = FSM_STATE_BATTERY_WARNING,
+                        [FSM_EVENT_DOWN] = FSM_STATE_BATTERY_WARN_TIME,
+                },
+        },
+        [FSM_STATE_BATTERY_WARN_TIME] = {
+                .menu_fn = battery_menu,
+                .next_state = {
+                        [FSM_EVENT_UP] = FSM_STATE_BATTERY_ALARM,
+                        [FSM_EVENT_DOWN] = FSM_STATE_BATTERY_ALARM_TIME,
+                },
+        },
+        [FSM_STATE_BATTERY_ALARM_TIME] = {
+                .menu_fn = battery_menu,
+                .next_state = {
+                        [FSM_EVENT_UP] = FSM_STATE_BATTERY_WARN_TIME,
+                        [FSM_EVENT_DOWN] = FSM_STATE_BATTERY_SAVEEXIT,
+                },
+        },
+        [FSM_STATE_BATTERY_SAVEEXIT] = {
+                .menu_fn = battery_menu,
+                .next_state = {
+                        [FSM_EVENT_UP] = FSM_STATE_BATTERY_ALARM,
+                        [FSM_EVENT_DOWN] = FSM_STATE_BATTERY_EXIT,
+                        [FSM_EVENT_RIGHT] = FSM_STATE_MAIN_BATTERY,
+                },
+        },
+        [FSM_STATE_BATTERY_EXIT] = {
+                .menu_fn = battery_menu,
+                .next_state = {
+                        [FSM_EVENT_UP] = FSM_STATE_BATTERY_SAVEEXIT,
+                        [FSM_EVENT_DOWN] = FSM_STATE_BATTERY_CAPACITY,
+                        [FSM_EVENT_RIGHT] = FSM_STATE_MAIN_BATTERY,
+                },
+        },
 
 };
 
@@ -972,8 +973,6 @@ enum menu_fsm_event get_controller_event()
 		return FSM_EVENT_DOWN;
 	if (roll < -1 * INPUT_THRESHOLD)
 		return FSM_EVENT_LEFT;
-	if (roll > INPUT_THRESHOLD)
-		return FSM_EVENT_RIGHT;
 	if (roll > INPUT_THRESHOLD)
 		return FSM_EVENT_RIGHT;
 
@@ -1005,8 +1004,9 @@ void render_osd_menu()
 	if (menu_fsm[current_state].menu_fn)
 		menu_fsm[current_state].menu_fn();
 
-	// transition to the next state
-	if (menu_fsm[current_state].next_state[current_event])
+	// transition to the next state, but if it's the first right event (effectively
+	// debounces the exit from sub-menu to main menu transition)
+	if ((!event_repeats || current_event != FSM_EVENT_RIGHT) && menu_fsm[current_state].next_state[current_event])
 		current_state = menu_fsm[current_state].next_state[current_event];
 
 	ManualControlSettingsArmingGet(&tmp);
@@ -1046,7 +1046,7 @@ void main_menu(void)
 
 	draw_menu_title("Main Menu");
 
-	for (enum menu_fsm_state s=FSM_STATE_TOP; s <= FSM_STATE_MAIN_STATS; s++) {
+	for (enum menu_fsm_state s=FSM_STATE_TOP; s <= FSM_STATE_MAIN_BATTERY; s++) {
 		if (s == current_state) {
 			draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
 		}
@@ -1083,6 +1083,9 @@ void main_menu(void)
 			case FSM_STATE_MAIN_STATS:
 				write_string("Flight Statistics", MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
 				break;
+			case FSM_STATE_MAIN_BATTERY:
+                                write_string("Battery Settings", MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+                                break;
 			default:
 				break;
 		}
@@ -1661,8 +1664,8 @@ const char * pid_strings[] = {"P    ",
 
 void pidrate_menu(void)
 {
-	const float limits_high[] = {.01f, .02f, .01f, 1.f};
-	const float increments[] = {1e-4f, 1e-4f, 1e-6f, 1e-2f};
+	const float limits_high[] = {.01f, .05f, .01f, 1.f};
+	const float increments[] = {1e-4f, 1e-4f, 1e-4f, 1e-2f};
 	
 	float pid_arr[STABILIZATIONSETTINGS_ROLLRATEPID_NUMELEM];
 	int y_pos = MENU_LINE_Y;
@@ -1956,7 +1959,7 @@ void sticklimits_menu(void)
 			float factor;
 			StabilizationSettingsAcroInsanityFactorGet(&factor);
 			data_changed = false;
-			sprintf(tmp_str, "Acro Insanity Factor: %0.6f", (double)factor);
+			sprintf(tmp_str, "Acro Insanity Factor: %d", (int)factor);
 			write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
 			draw_hscale(225, GRAPHICS_RIGHT - 5, y_pos + 2, 0, 100, factor);
 			if (my_state == current_state) {
@@ -2009,6 +2012,7 @@ void vtx_menu()
 
 	// this is a special case, we need a local copy as the user has to use "apply" to set the new settings
 	static VTXSettingsData settings;
+	static bool settings_read = false;
 
 	draw_menu_title("Video Transmitter");
 	int y_pos = MENU_LINE_Y;
@@ -2023,8 +2027,9 @@ void vtx_menu()
 		VTXInfoGet(&vtxInfo);
 		char tmp_str[100] = {0};
 
-		if (current_state == FSM_STATE_VTX_IDLE) {
+		if (!settings_read) {
 			VTXSettingsGet(&settings);
+			settings_read = true;
 		}
 
 		y_pos += MENU_LINE_SPACING;
@@ -2168,6 +2173,7 @@ void vtx_menu()
 		if (current_event == FSM_EVENT_RIGHT) {
 			VTXSettingsSet(&settings);
 			UAVObjSave(VTXSettingsHandle(), 0);
+			settings_read = false;
 		}
 	}
 
@@ -2175,6 +2181,10 @@ void vtx_menu()
 	write_string("Exit", MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
 	if (current_state == FSM_STATE_VTX_EXIT) {
 		draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
+
+		if (current_event == FSM_EVENT_RIGHT)
+			settings_read = false;
+		
 	}
 
 }
@@ -2186,6 +2196,151 @@ void stats_menu()
 	write_string("Exit", MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
 	if (current_state == FSM_STATE_STATS_EXIT) {
 		draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
+	}
+}
+
+void battery_menu(void)
+{
+	int y_pos = MENU_LINE_Y;
+	bool settings_changed = false;
+	char tmp_str[100] = {0};
+	static FlightBatterySettingsData batterySettings;
+	static bool settings_read = false;
+
+
+	draw_menu_title("Battery Settings");
+
+	if (FlightBatterySettingsHandle()) {
+		if (!settings_read) {
+			FlightBatterySettingsGet(&batterySettings);
+			settings_read = true;
+		}
+
+		sprintf(tmp_str, "Capacity (mAh): %d", (int)batterySettings.Capacity );
+		write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+		draw_hscale(225, GRAPHICS_RIGHT - 5, y_pos + 2, 0, 15000, batterySettings.Capacity);
+		if (current_state == FSM_STATE_BATTERY_CAPACITY) {
+			draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
+			if (current_event == FSM_EVENT_RIGHT) {
+				batterySettings.Capacity = MIN(15000, batterySettings.Capacity + 50);
+				settings_changed = true;
+			}
+			else if (current_event == FSM_EVENT_LEFT) {
+				batterySettings.Capacity = MAX(500, batterySettings.Capacity - 50);
+				settings_changed = true;
+			}
+		}
+
+		y_pos += MENU_LINE_SPACING;
+		sprintf(tmp_str, "Cell Count : %d", (int)batterySettings.NbCells );
+		write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+		draw_hscale(225, GRAPHICS_RIGHT - 5, y_pos + 2, 1, 10, batterySettings.NbCells);
+		if (current_state == FSM_STATE_BATTERY_CELLCOUNT) {
+			draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
+			if (current_event == FSM_EVENT_RIGHT) {
+				batterySettings.NbCells = MIN(10, batterySettings.NbCells + 1);
+				settings_changed = true;
+			}
+			else if (current_event == FSM_EVENT_LEFT) {
+				batterySettings.NbCells = MAX(1, batterySettings.NbCells - 1);
+				settings_changed = true;
+			}
+		}
+	
+		y_pos += MENU_LINE_SPACING;
+		sprintf(tmp_str, "Low Cell Warn V: %1.1f", (double) batterySettings.CellVoltageThresholds[FLIGHTBATTERYSETTINGS_CELLVOLTAGETHRESHOLDS_WARNING] );
+		write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+		draw_hscale(225, GRAPHICS_RIGHT - 5, y_pos + 2, 0.0f, 4.5f, batterySettings.CellVoltageThresholds[FLIGHTBATTERYSETTINGS_CELLVOLTAGETHRESHOLDS_WARNING]);
+		if (current_state == FSM_STATE_BATTERY_WARNING) {
+			draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
+			if (current_event == FSM_EVENT_RIGHT) {
+				batterySettings.CellVoltageThresholds[FLIGHTBATTERYSETTINGS_CELLVOLTAGETHRESHOLDS_WARNING] = MIN(4.5f, batterySettings.CellVoltageThresholds[FLIGHTBATTERYSETTINGS_CELLVOLTAGETHRESHOLDS_WARNING] + 0.1f);
+				settings_changed = true;
+			}
+			else if (current_event == FSM_EVENT_LEFT) {
+				batterySettings.CellVoltageThresholds[FLIGHTBATTERYSETTINGS_CELLVOLTAGETHRESHOLDS_WARNING] = MAX(3.0f, batterySettings.CellVoltageThresholds[FLIGHTBATTERYSETTINGS_CELLVOLTAGETHRESHOLDS_WARNING] - 0.1f);
+				settings_changed = true;
+			}
+		}
+	
+	
+		y_pos += MENU_LINE_SPACING;
+		sprintf(tmp_str, "Low Cell Alarm V: %1.1f", (double) batterySettings.CellVoltageThresholds[FLIGHTBATTERYSETTINGS_CELLVOLTAGETHRESHOLDS_ALARM] );
+		write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+		draw_hscale(225, GRAPHICS_RIGHT - 5, y_pos + 2, 0.0f, 4.5f, batterySettings.CellVoltageThresholds[FLIGHTBATTERYSETTINGS_CELLVOLTAGETHRESHOLDS_ALARM]);
+		if (current_state == FSM_STATE_BATTERY_ALARM) {
+			draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
+			if (current_event == FSM_EVENT_RIGHT) {
+				batterySettings.CellVoltageThresholds[FLIGHTBATTERYSETTINGS_CELLVOLTAGETHRESHOLDS_ALARM] = MIN(4.5f, batterySettings.CellVoltageThresholds[FLIGHTBATTERYSETTINGS_CELLVOLTAGETHRESHOLDS_ALARM] + 0.1f);
+				settings_changed = true;
+			}
+			else if (current_event == FSM_EVENT_LEFT) {
+				batterySettings.CellVoltageThresholds[FLIGHTBATTERYSETTINGS_CELLVOLTAGETHRESHOLDS_ALARM] = MAX(3.0f, batterySettings.CellVoltageThresholds[FLIGHTBATTERYSETTINGS_CELLVOLTAGETHRESHOLDS_ALARM] - 0.1f);
+				settings_changed = true;
+			}
+		}
+	
+	
+		y_pos += MENU_LINE_SPACING;
+		sprintf(tmp_str, "Flight Warn Time : %d", batterySettings.FlightTimeThresholds[FLIGHTBATTERYSETTINGS_CELLVOLTAGETHRESHOLDS_WARNING] );
+		write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+		draw_hscale(225, GRAPHICS_RIGHT - 5, y_pos + 2, 0, 300, batterySettings.FlightTimeThresholds[FLIGHTBATTERYSETTINGS_CELLVOLTAGETHRESHOLDS_WARNING]);
+		if (current_state == FSM_STATE_BATTERY_WARN_TIME) {
+			draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
+			if (current_event == FSM_EVENT_RIGHT) {
+				batterySettings.FlightTimeThresholds[FLIGHTBATTERYSETTINGS_CELLVOLTAGETHRESHOLDS_WARNING] = MIN(4.5f, batterySettings.FlightTimeThresholds[FLIGHTBATTERYSETTINGS_CELLVOLTAGETHRESHOLDS_WARNING] + 1);
+				settings_changed = true;
+			}
+			else if (current_event == FSM_EVENT_LEFT) {
+				batterySettings.FlightTimeThresholds[FLIGHTBATTERYSETTINGS_CELLVOLTAGETHRESHOLDS_WARNING] = MIN(4.5f, batterySettings.FlightTimeThresholds[FLIGHTBATTERYSETTINGS_CELLVOLTAGETHRESHOLDS_WARNING] - 1);
+				settings_changed = true;
+			}
+		}
+	
+	
+		y_pos += MENU_LINE_SPACING;
+		sprintf(tmp_str, "Flight Alarm Time : %d", batterySettings.FlightTimeThresholds[FLIGHTBATTERYSETTINGS_CELLVOLTAGETHRESHOLDS_ALARM] );
+		write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+		draw_hscale(225, GRAPHICS_RIGHT - 5, y_pos + 2, 0, 300, batterySettings.FlightTimeThresholds[FLIGHTBATTERYSETTINGS_CELLVOLTAGETHRESHOLDS_ALARM]);
+		if (current_state == FSM_STATE_BATTERY_ALARM_TIME) {
+			draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
+			if (current_event == FSM_EVENT_RIGHT) {
+				batterySettings.FlightTimeThresholds[FLIGHTBATTERYSETTINGS_CELLVOLTAGETHRESHOLDS_ALARM] = MIN(4.5f, batterySettings.FlightTimeThresholds[FLIGHTBATTERYSETTINGS_CELLVOLTAGETHRESHOLDS_ALARM] + 1);
+				settings_changed = true;
+			}
+			else if (current_event == FSM_EVENT_LEFT) {
+				batterySettings.FlightTimeThresholds[FLIGHTBATTERYSETTINGS_CELLVOLTAGETHRESHOLDS_ALARM] = MIN(4.5f, batterySettings.FlightTimeThresholds[FLIGHTBATTERYSETTINGS_CELLVOLTAGETHRESHOLDS_ALARM] - 1);
+				settings_changed = true;
+			}
+		}
+
+		if (settings_changed)
+			FlightBatterySettingsSet(&batterySettings);
+
+	
+		y_pos += MENU_LINE_SPACING;
+		write_string("Save and Exit", MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+		if (current_state == FSM_STATE_BATTERY_SAVEEXIT) {
+			draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
+
+			if (current_event == FSM_EVENT_RIGHT ) {
+				UAVObjSave(FlightBatterySettingsHandle(), 0);
+				settings_read = false;
+			}
+		}
+		
+		y_pos += MENU_LINE_SPACING;
+		write_string("Exit", MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+		if (current_state == FSM_STATE_BATTERY_EXIT) {
+			draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
+
+			if (current_event == FSM_EVENT_RIGHT)
+				settings_read = false;
+		}
+	}
+	else {
+		write_string("Battery module not running", MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
+		current_state = FSM_STATE_BATTERY_EXIT;
 	}
 }
 
