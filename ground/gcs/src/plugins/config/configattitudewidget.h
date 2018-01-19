@@ -45,6 +45,7 @@
 #include <QGraphicsSvgItem>
 #include <QList>
 #include <QTimer>
+#include <memory>
 
 class Ui_Widget;
 
@@ -63,7 +64,7 @@ protected:
     Calibration calibration;
 
 private:
-    Ui_AttitudeWidget *m_ui;
+    std::unique_ptr<Ui_AttitudeWidget> m_ui;
     QGraphicsSvgItem *paperplane;
 
     int phaseCounter;
