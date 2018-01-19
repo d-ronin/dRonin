@@ -70,6 +70,7 @@
 #define USB_ACTIVITY_TIMEOUT_MS 6000
 
 #define MAX_ACKS_PENDING 3
+#define MAX_REQS_PENDING 5
 #define ACK_TIMEOUT_MS 250
 
 // Private types
@@ -84,6 +85,12 @@ struct pending_ack {
 	uint8_t retry_count;
 };
 
+struct pending_req {
+	uint32_t obj_id;
+	uint16_t inst_id;
+	char valid;
+};
+
 struct telemetry_state {
 	struct pios_queue *queue;
 
@@ -92,8 +99,9 @@ struct telemetry_state {
 	uint32_t time_of_last_update;
 
 	struct pending_ack acks[MAX_ACKS_PENDING];
+	struct pending_req reqs[MAX_REQS_PENDING];
 
-	struct pios_mutex *ack_mutex;
+	struct pios_mutex *reqack_mutex;
 
 	UAVTalkConnection uavTalkCon;
 };
@@ -113,6 +121,7 @@ static void telemetryRxTask(void *parameters);
 static int32_t transmitData(void *ctx, uint8_t *data, int32_t length);
 static void addAckPending(telem_t telem, UAVObjHandle obj, uint16_t inst_id);
 static void ackCallback(void *ctx, uint32_t obj_id, uint16_t inst_id);
+static void reqCallback(void *ctx, uint32_t obj_id, uint16_t inst_id);
 
 static void registerObject(telem_t telem, UAVObjHandle obj);
 static void updateObject(telem_t telem, UAVObjHandle obj, int32_t eventType);
@@ -180,9 +189,9 @@ int32_t TelemetryInitialize(void)
 		return -1;
 	}
 
-	telem_state.ack_mutex = PIOS_Mutex_Create();
+	telem_state.reqack_mutex = PIOS_Mutex_Create();
 
-	if (!telem_state.ack_mutex) {
+	if (!telem_state.reqack_mutex) {
 		return -1;
 	}
 
@@ -193,8 +202,8 @@ int32_t TelemetryInitialize(void)
 	telem_state.queue = PIOS_Queue_Create(MAX_QUEUE_SIZE, sizeof(UAVObjEvent));
 
 	// Initialise UAVTalk
-	telem_state.uavTalkCon = UAVTalkInitialize(&telem_state, &transmitData,
-			&ackCallback, fileReqCallback);
+	telem_state.uavTalkCon = UAVTalkInitialize(&telem_state, transmitData,
+			ackCallback, reqCallback, fileReqCallback);
 
 	SessionManagingConnectCallback(session_managing_updated);
 
@@ -330,12 +339,12 @@ static void ackResendOrTimeout(telem_t telem, int idx)
 		 * of lock ordering issues (though the lock should be
 		 * severely squashed in uavtalk.c
 		 */
-		PIOS_Mutex_Unlock(telem->ack_mutex);
+		PIOS_Mutex_Unlock(telem->reqack_mutex);
 		success = UAVTalkSendObject(telem->uavTalkCon,
 				telem->acks[idx].obj,
 				telem->acks[idx].inst_id,
 				true);
-		PIOS_Mutex_Lock(telem->ack_mutex, PIOS_MUTEX_TIMEOUT_MAX);
+		PIOS_Mutex_Lock(telem->reqack_mutex, PIOS_MUTEX_TIMEOUT_MAX);
 
 		telem->tx_retries++;
 
@@ -378,7 +387,7 @@ static void addAckPending(telem_t telem, UAVObjHandle obj, uint16_t inst_id)
 			inst_id);
 
 	while (true) {
-		PIOS_Mutex_Lock(telem->ack_mutex, PIOS_MUTEX_TIMEOUT_MAX);
+		PIOS_Mutex_Lock(telem->reqack_mutex, PIOS_MUTEX_TIMEOUT_MAX);
 		ackHousekeeping(telem);
 
 		/* There's a slight race here, if we're --already-- waiting
@@ -398,7 +407,7 @@ static void addAckPending(telem_t telem, UAVObjHandle obj, uint16_t inst_id)
 
 				telem->acks[i].retry_count = 0;
 
-				PIOS_Mutex_Unlock(telem->ack_mutex);
+				PIOS_Mutex_Unlock(telem->reqack_mutex);
 				return;
 			}
 		}
@@ -409,7 +418,7 @@ static void addAckPending(telem_t telem, UAVObjHandle obj, uint16_t inst_id)
 		 * needing ack in flight.
 		 */
 
-		PIOS_Mutex_Unlock(telem->ack_mutex);
+		PIOS_Mutex_Unlock(telem->reqack_mutex);
 
 		/* TODO: Consider nicer wakeup mechanism here. */
 		PIOS_Thread_Sleep(3);
@@ -471,6 +480,36 @@ static int32_t fileReqCallback(void *ctx, uint8_t *buf,
 }
 
 /**
+ * Callback for when a telemetry session requests data
+ *
+ * \param[in] ctx Callback context (telemetry subsystem handle)
+ * \param[in] obj_id The object ID that we got a req for.
+ * \param[in] inst_id The instance ID that we got a req for.
+ */
+static void reqCallback(void *ctx, uint32_t obj_id, uint16_t inst_id)
+{
+	telem_t telem = ctx;
+
+	PIOS_Mutex_Lock(telem->reqack_mutex,
+			PIOS_MUTEX_TIMEOUT_MAX);
+
+	int i;
+
+	for (i = 0; i < MAX_REQS_PENDING - 1; i++) {
+		if (!telem->reqs[i].valid) {
+			break;
+		}
+	}
+
+	telem->reqs[i].valid = 1;
+	telem->reqs[i].obj_id = obj_id;
+	telem->reqs[i].inst_id = inst_id;
+
+	// Unlock, to ensure new requests can come in OK.
+	PIOS_Mutex_Unlock(telem->reqack_mutex);
+}
+
+/**
  * Callback for when we receive an ack.
  *
  * \param[in] ctx Callback context (telemetry subsystem handle)
@@ -481,7 +520,7 @@ static void ackCallback(void *ctx, uint32_t obj_id, uint16_t inst_id)
 {
 	telem_t telem = ctx;
 
-	PIOS_Mutex_Lock(telem->ack_mutex, PIOS_MUTEX_TIMEOUT_MAX);
+	PIOS_Mutex_Lock(telem->reqack_mutex, PIOS_MUTEX_TIMEOUT_MAX);
 
 	for (int i = 0; i < MAX_ACKS_PENDING; i++) {
 		if (!telem->acks[i].obj) {
@@ -501,11 +540,11 @@ static void ackCallback(void *ctx, uint32_t obj_id, uint16_t inst_id)
 		telem->acks[i].obj = NULL;
 
 		DEBUG_PRINTF(3, "telem: Got ack for %d/%d\n", obj_id, inst_id);
-		PIOS_Mutex_Unlock(telem->ack_mutex);
+		PIOS_Mutex_Unlock(telem->reqack_mutex);
 		return;
 	}
 
-	PIOS_Mutex_Unlock(telem->ack_mutex);
+	PIOS_Mutex_Unlock(telem->reqack_mutex);
 
 	DEBUG_PRINTF(3, "telem: Got UNEXPECTED ack for %d/%d\n", obj_id, inst_id);
 }
@@ -547,7 +586,8 @@ static void processObjEvent(telem_t telem, UAVObjEvent * ev)
 			}
 		} 
 
-		// If this is a metaobject then make necessary telemetry updates
+		// If this is a metaobject then make necessary
+		// telemetry updates
 		if (UAVObjIsMetaobject(ev->obj)) {
 			// linked object will be the actual object the
 			// metadata are for
@@ -557,8 +597,48 @@ static void processObjEvent(telem_t telem, UAVObjEvent * ev)
 	}
 }
 
+static void sendRequestedObjs(telem_t telem)
+{
+	// Must be called with the reqack mutex.
+
+	while (telem->reqs[0].valid) {
+		struct pending_req preq = telem->reqs[0];
+
+		/* Expensive, but for as little as this comes up,
+		 * who cares.
+		 */
+		int i;
+
+		for (i = 1; i < MAX_REQS_PENDING; i++) {
+			if (!telem->reqs[i].valid) {
+				break;
+			}
+			telem->reqs[i-1] = telem->reqs[i];
+		}
+
+		telem->reqs[i-1].valid = 0;
+
+		// Unlock, to ensure new requests can come in OK.
+		PIOS_Mutex_Unlock(telem->reqack_mutex);
+
+		// handle request
+		UAVObjHandle obj = UAVObjGetByID(preq.obj_id);
+
+		// Send requested object if message is of type OBJ_REQ
+		if (!obj)
+			UAVTalkSendNack(telem->uavTalkCon, preq.obj_id);
+		else
+			UAVTalkSendObject(telem->uavTalkCon,
+					obj, preq.inst_id,
+					false);
+
+		PIOS_Mutex_Lock(telem->reqack_mutex,
+				PIOS_MUTEX_TIMEOUT_MAX);
+	}
+}
+
 /**
- * Telemetry transmit task, regular priority
+ * Telemetry transmit task
  */
 static void telemetryTxTask(void *parameters)
 {
@@ -571,16 +651,24 @@ static void telemetryTxTask(void *parameters)
 	while (1) {
 		UAVObjEvent ev;
 
-		// Wait for queue message
-		if (PIOS_Queue_Receive(telem->queue,&ev,
-					PIOS_QUEUE_TIMEOUT_MAX) == true) {
+		bool retval;
+
+		// Wait for queue message or short timeout
+		retval = PIOS_Queue_Receive(telem->queue, &ev, 50);
+
+		PIOS_Mutex_Lock(telem->reqack_mutex,
+				PIOS_MUTEX_TIMEOUT_MAX);
+
+		sendRequestedObjs(telem);
+		ackHousekeeping(telem);
+
+		PIOS_Mutex_Unlock(telem->reqack_mutex);
+
+		if (retval == true) {
 			// Process event
 			processObjEvent(telem, &ev);
-
-			PIOS_Mutex_Lock(telem->ack_mutex, PIOS_MUTEX_TIMEOUT_MAX);
-			ackHousekeeping(telem);
-			PIOS_Mutex_Unlock(telem->ack_mutex);
 		}
+
 	}
 }
 

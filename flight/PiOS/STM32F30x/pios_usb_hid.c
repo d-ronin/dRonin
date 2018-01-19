@@ -306,7 +306,7 @@ static void PIOS_USB_HID_EP_OUT_Callback(void)
 #ifdef PIOS_USB_BOARD_BL_HID_HAS_NO_LENGTH_BYTE
 	(usb_hid_dev->rx_in_cb)(usb_hid_dev->rx_in_context,
 				&usb_hid_dev->rx_packet_buffer[1],
-				sizeof(usb_hid_dev->rx_packet_buffer)-1,
+				DataLength-1,
 				&headroom,
 				&need_yield);
 #else

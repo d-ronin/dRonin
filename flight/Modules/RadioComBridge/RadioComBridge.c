@@ -111,6 +111,9 @@ static void radioRxTask(void *parameters);
 static void PPMInputTask(void *parameters);
 static int32_t UAVTalkSendHandler(void *ctx, uint8_t * buf, int32_t length);
 static int32_t RadioSendHandler(void *ctx, uint8_t * buf, int32_t length);
+
+static void TelemetryReqCallback(void *ctx, uint32_t obj_id, uint16_t inst_id);
+
 static void ProcessTelemetryStream(UAVTalkConnection inConnectionHandle,
 				   UAVTalkConnection outConnectionHandle,
 				   uint8_t rxbyte);
@@ -219,10 +222,10 @@ static int32_t RadioComBridgeInitialize(void)
 	}
 
 	// Initialise UAVTalk
-	data->telemUAVTalkCon = UAVTalkInitialize(NULL, &UAVTalkSendHandler,
-			NULL, NULL);
+	data->telemUAVTalkCon = UAVTalkInitialize(data, &UAVTalkSendHandler,
+			NULL, TelemetryReqCallback, NULL);
 	data->radioUAVTalkCon = UAVTalkInitialize(NULL, &RadioSendHandler,
-			NULL, NULL);
+			NULL, NULL, NULL);
 	if (data->telemUAVTalkCon == 0 || data->radioUAVTalkCon == 0) {
 		return -1;
 	}
@@ -759,4 +762,18 @@ static void objectPersistenceUpdatedCb(UAVObjEvent * objEv, void *ctx,
 			ObjectPersistenceSet(&obj_per);
 		}
 	}
+}
+
+static void TelemetryReqCallback(void *ctx, uint32_t obj_id, uint16_t inst_id)
+{
+	// handle request
+	UAVObjHandle obj = UAVObjGetByID(obj_id);
+
+	RadioComBridgeData *data = ctx;
+
+	// Send requested object if message is of type OBJ_REQ
+	if (!obj)
+		UAVTalkSendNack(data->telemUAVTalkCon, obj_id);
+	else
+		UAVTalkSendObject(data->telemUAVTalkCon, obj, inst_id, false);
 }

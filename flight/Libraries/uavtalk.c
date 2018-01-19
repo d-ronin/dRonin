@@ -44,9 +44,9 @@
 static int32_t objectTransaction(UAVTalkConnectionData *connection, UAVObjHandle objectId, uint16_t instId, uint8_t type);
 static int32_t sendObject(UAVTalkConnectionData *connection, UAVObjHandle obj, uint16_t instId, uint8_t type);
 static int32_t sendSingleObject(UAVTalkConnectionData *connection, UAVObjHandle obj, uint16_t instId, uint8_t type);
-static int32_t sendNack(UAVTalkConnectionData *connection, uint32_t objId);
 static int32_t receiveObject(UAVTalkConnectionData *connection);
 static int32_t sendBuf(UAVTalkConnection connectionHandle, uint8_t *buf, uint16_t len);
+static int32_t sendNack(UAVTalkConnectionData *connection, uint32_t objId);
 
 /**
  * Initialize the UAVTalk library
@@ -58,7 +58,8 @@ static int32_t sendBuf(UAVTalkConnection connectionHandle, uint8_t *buf, uint16_
  * \return -1 Failure
  */
 UAVTalkConnection UAVTalkInitialize(void *ctx, UAVTalkOutputCb outputStream,
-		UAVTalkAckCb ackCallback, UAVTalkFileCb fileCallback)
+		UAVTalkAckCb ackCallback, UAVTalkReqCb reqCallback,
+		UAVTalkFileCb fileCallback)
 {
 	// allocate object
 	UAVTalkConnectionData * connection = PIOS_malloc_no_dma(sizeof(UAVTalkConnectionData));
@@ -70,6 +71,7 @@ UAVTalkConnection UAVTalkInitialize(void *ctx, UAVTalkOutputCb outputStream,
 		.cbCtx = ctx,
 		.outCb = outputStream,
 		.ackCb = ackCallback,
+		.reqCb = reqCallback,
 		.fileCb = fileCallback,
 	};
 
@@ -779,6 +781,13 @@ static int32_t receiveObject(UAVTalkConnectionData *connection)
 		}
 
 		return 0;
+	} else if ((type == UAVTALK_TYPE_OBJ_REQ)) {
+		if (connection->reqCb) {
+			connection->reqCb(connection->cbCtx, objId, instId);
+			return 0;
+		}
+
+		return -1;
 	}
 
 	/* File request data is a special case. */
@@ -816,13 +825,6 @@ static int32_t receiveObject(UAVTalkConnectionData *connection)
 			sendNack(connection, objId);
 			ret = -1;
 		}
-		break;
-	case UAVTALK_TYPE_OBJ_REQ:
-		// Send requested object if message is of type OBJ_REQ
-		if (obj == 0)
-			sendNack(connection, objId);
-		else
-			sendObject(connection, obj, instId, UAVTALK_TYPE_OBJ);
 		break;
 	default:
 		ret = -1;
@@ -980,6 +982,14 @@ static int32_t sendSingleObject(UAVTalkConnectionData *connection, UAVObjHandle 
  * \return 0 Success
  * \return -1 Failure
  */
+int32_t UAVTalkSendNack(UAVTalkConnection connectionHandle, uint32_t objId)
+{
+	UAVTalkConnectionData *connection;
+	CHECKCONHANDLE(connectionHandle, connection, return -1);
+
+	return sendNack(connection, objId);
+}
+
 static int32_t sendNack(UAVTalkConnectionData *connection, uint32_t objId)
 {
 	int32_t dataOffset;
