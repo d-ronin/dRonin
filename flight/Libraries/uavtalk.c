@@ -775,13 +775,14 @@ static int32_t receiveObject(UAVTalkConnectionData *connection)
 	 * that we don't start blocking the telemetry session for an ACK that
 	 * will never come.
 	 */
+
 	if ((type == UAVTALK_TYPE_NACK) || (type == UAVTALK_TYPE_ACK)) {
 		if (connection->ackCb) {
 			connection->ackCb(connection->cbCtx, objId, instId);
 		}
 
 		return 0;
-	} else if ((type == UAVTALK_TYPE_OBJ_REQ)) {
+	} else if (type == UAVTALK_TYPE_OBJ_REQ) {
 		if (connection->reqCb) {
 			connection->reqCb(connection->cbCtx, objId, instId);
 			return 0;
