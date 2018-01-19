@@ -33,16 +33,10 @@
 #include "systemmod.h"
 #include "pios_thread.h"
 
-/* Local Variables */
-#define INIT_TASK_PRIORITY	PIOS_THREAD_PRIO_HIGHEST
-#define INIT_TASK_STACK		1024
-
 /* Function Prototypes */
 extern void PIOS_Board_Init(void);
 extern void Stack_Change(void);
-static void initTask(void *parameters);
-
-static struct pios_thread *initTaskHandle;
+static void initTask(void);
 
 /**
  * @brief   Early initialization code.
@@ -82,10 +76,7 @@ int main()
 	/* Brings up System using CMSIS functions, enables the LEDs. */
 	PIOS_SYS_Init();
 	
-	/* For Sparky2 we use an RTOS task to bring up the system so we can */
-	/* always rely on an RTOS primitive */	
-	initTaskHandle = PIOS_Thread_Create(initTask, "init", INIT_TASK_STACK, NULL, INIT_TASK_PRIORITY);
-	PIOS_Assert(initTaskHandle != NULL);
+	initTask();
 
 	while(1)
 		PIOS_Thread_Sleep(PIOS_THREAD_TIMEOUT_MAX);
@@ -129,7 +120,7 @@ void check_bor()
  *
  * Runs board and module initialisation, then terminates.
  */
-void initTask(void *parameters)
+void initTask(void)
 {
 	/* Ensure BOR is programmed sane */
 	check_bor();
@@ -156,9 +147,6 @@ void initTask(void *parameters)
 
 	/* create all modules thread */
 	MODULE_TASKCREATE_ALL;
-
-	/* terminate this task */
-	PIOS_Thread_Delete(NULL);
 }
 
 /**
