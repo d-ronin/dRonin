@@ -74,8 +74,6 @@
 const QVector<ConfigInputWidget::ArmingMethod> ConfigInputWidget::armingMethods = {
     { ConfigInputWidget::ARM_ALWAYS_DISARMED, "always disarmed", "always disarmed",
       "always disarmed", "Always Disarmed", false, false, true },
-    { ConfigInputWidget::ARM_ALWAYS_ARMED, "always armed", "always armed", "always armed",
-      "Always Armed", false, false, true },
     { ConfigInputWidget::ARM_SWITCH, "switch", "a switch", "a switch", "Switch", true, false,
       false },
     { ConfigInputWidget::ARM_ROLL_LEFT, "roll left", "roll left", "roll right",
@@ -1983,10 +1981,6 @@ void ConfigInputWidget::checkArmingConfig()
         addWarning(
             m_config->gbWarnings, m_config->frThrottleTimeout,
             tr("Your vehicle will remain armed indefinitely while throttle is low, be careful!"));
-
-    if (arming.method == ARM_ALWAYS_ARMED)
-        addWarning(m_config->gbWarnings, m_config->frArmMethod,
-                   tr("CAUTION: the vehicle will ALWAYS be armed!"));
 
     // re-add stylesheet to force it to be recompiled and applied
     m_config->saArmingSettings->setStyleSheet(m_config->saArmingSettings->styleSheet());

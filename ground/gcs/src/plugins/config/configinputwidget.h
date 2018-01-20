@@ -96,7 +96,6 @@ protected:
     enum ArmingMethodType {
         ARM_INVALID,
         ARM_ALWAYS_DISARMED,
-        ARM_ALWAYS_ARMED,
         ARM_SWITCH,
         ARM_ROLL_LEFT,
         ARM_ROLL_RIGHT,
