@@ -45,6 +45,7 @@
 #include <QGraphicsSvgItem>
 #include <QList>
 #include <QTimer>
+#include <memory>
 
 class Ui_Widget;
 
@@ -63,7 +64,7 @@ protected:
     Calibration calibration;
 
 private:
-    Ui_AttitudeWidget *m_ui;
+    std::unique_ptr<Ui_AttitudeWidget> m_ui;
     QGraphicsSvgItem *paperplane;
 
     int phaseCounter;
@@ -74,12 +75,9 @@ private:
 
     QMap<QString, UAVObject::Metadata> originalMetaData;
 
-    bool board_has_accelerometer;
-    bool board_has_magnetometer;
-
 private slots:
     //! Overriden method from the configTaskWidget to update UI
-    virtual void refreshWidgetsValues(UAVObject *obj = NULL);
+    virtual void refreshWidgetsValues(UAVObject *obj = nullptr);
 
     //! Display the plane in various positions
     void displayPlane(int i);
@@ -88,6 +86,7 @@ private slots:
     void do_SetDirty();
     void configureSixPoint();
     void onCalibrationBusy(bool busy);
+    void updateCalibrationEnabled();
 };
 
 #endif // CONFIGATTITUDEWIDGET_H

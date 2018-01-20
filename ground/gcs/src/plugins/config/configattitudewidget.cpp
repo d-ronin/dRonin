@@ -75,8 +75,6 @@ public:
 ConfigAttitudeWidget::ConfigAttitudeWidget(QWidget *parent)
     : ConfigTaskWidget(parent)
     , m_ui(new Ui_AttitudeWidget())
-    , board_has_accelerometer(false)
-    , board_has_magnetometer(false)
 {
     m_ui->setupUi(this);
 
@@ -90,39 +88,34 @@ ConfigAttitudeWidget::ConfigAttitudeWidget(QWidget *parent)
     m_ui->sixPointHelp->scene()->addItem(paperplane);
     m_ui->sixPointHelp->setSceneRect(paperplane->boundingRect());
 
-    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    UAVObjectUtilManager *utilMngr = pm->getObject<UAVObjectUtilManager>();
-    Q_ASSERT(utilMngr);
-    if (utilMngr != NULL) {
-        Core::IBoardType *board = utilMngr->getBoardType();
-        if (board != NULL) {
-            board_has_accelerometer =
-                board->queryCapabilities(Core::IBoardType::BOARD_CAPABILITIES_ACCELS);
-            board_has_magnetometer =
-                board->queryCapabilities(Core::IBoardType::BOARD_CAPABILITIES_MAGS);
+    // keep calibration selection in sync with board
+    connect(this, &ConfigTaskWidget::autoPilotConnected,
+            this, &ConfigAttitudeWidget::updateCalibrationEnabled);
+    if (Q_LIKELY(utilMngr)) {
+        auto uavoMan = utilMngr->getObjectManager();
+        if (Q_LIKELY(uavoMan)) {
+            auto mag = uavoMan->getObject(QStringLiteral("Magnetometer"));
+            if (mag) {
+                connect(mag, &UAVObject::objectUnpacked,
+                        this, &ConfigAttitudeWidget::updateCalibrationEnabled);
+            }
         }
     }
+    updateCalibrationEnabled();
 
     // Must set up the UI (above) before setting up the UAVO mappings or refreshWidgetValues
     // will be dealing with some null pointers
     addUAVObject("AttitudeSettings");
     addUAVObject("SensorSettings");
-    if (board_has_magnetometer) {
-        addUAVObject("INSSettings");
-    }
+    addUAVObject("INSSettings");
+    setNotMandatory("INSSettings");
     autoLoadWidgets();
 
     // Configure the calibration object
-    calibration.initialize(board_has_accelerometer, board_has_magnetometer);
+    calibration.initialize(false, false);
 
-    // Configure the calibration UI
-    m_ui->cbCalibrateAccels->setChecked(board_has_accelerometer);
-    m_ui->cbCalibrateMags->setChecked(board_has_magnetometer);
-    if (!board_has_accelerometer
-        || !board_has_magnetometer) { // If both are not available, don't provide any choices.
-        m_ui->cbCalibrateAccels->setEnabled(false);
-        m_ui->cbCalibrateMags->setEnabled(false);
-    }
+    // Configure the calibration selection
+    updateCalibrationEnabled();
 
     // Must connect the graphs to the calibration object to see the calibration results
     calibration.configureTempCurves(m_ui->xGyroTemp, m_ui->yGyroTemp, m_ui->zGyroTemp);
@@ -285,11 +278,12 @@ void ConfigAttitudeWidget::configureSixPoint()
         QMessageBox::information(this, "No sensors chosen", "At least one of the sensors must be "
                                                             "chosen. \n\nResetting six-point "
                                                             "sensor calibration selection.");
-        m_ui->cbCalibrateAccels->setChecked(true && board_has_accelerometer);
-        m_ui->cbCalibrateMags->setChecked(true && board_has_magnetometer);
+        // set checkboxes to default state
+        updateCalibrationEnabled();
+    } else {
+        calibration.initialize(m_ui->cbCalibrateAccels->isChecked(),
+                               m_ui->cbCalibrateMags->isChecked());
     }
-    calibration.initialize(m_ui->cbCalibrateAccels->isChecked(),
-                           m_ui->cbCalibrateMags->isChecked());
 }
 
 void ConfigAttitudeWidget::onCalibrationBusy(bool busy)
@@ -299,6 +293,45 @@ void ConfigAttitudeWidget::onCalibrationBusy(bool busy)
         QApplication::setOverrideCursor(Qt::WaitCursor);
     else
         QApplication::restoreOverrideCursor();
+}
+
+void ConfigAttitudeWidget::updateCalibrationEnabled()
+{
+    bool have_mag = false, have_accel = false;
+
+    if (Q_LIKELY(utilMngr)) {
+        Core::IBoardType *board = utilMngr->getBoardType();
+        if (board) {
+            have_accel = board->queryCapabilities(Core::IBoardType::BOARD_CAPABILITIES_ACCELS);
+            // some boards don't have this capability, but can still have an external mag
+            have_mag = board->queryCapabilities(Core::IBoardType::BOARD_CAPABILITIES_MAGS);
+        }
+
+        auto uavoMan = utilMngr->getObjectManager();
+        if (Q_LIKELY(uavoMan)) {
+            auto mag = qobject_cast<UAVDataObject *>(
+                        uavoMan->getObject(QStringLiteral("Magnetometer")));
+            if (mag && mag->getIsPresentOnHardware()) {
+                // if any of the fields have data, the mag must be present
+                const auto fields = mag->getFields();
+                for (const auto f : fields) {
+                    if (f->getValue() != f->getDefaultValue())
+                        have_mag = true;
+                }
+            }
+        }
+    }
+
+    m_ui->cbCalibrateAccels->setEnabled(have_accel);
+    m_ui->cbCalibrateMags->setEnabled(have_mag);
+    if (!have_accel)
+        m_ui->cbCalibrateAccels->setChecked(false);
+    if (!have_mag)
+        m_ui->cbCalibrateMags->setChecked(false);
+    if (!m_ui->cbCalibrateAccels->isChecked() && !m_ui->cbCalibrateMags->isChecked()) {
+        m_ui->cbCalibrateAccels->setChecked(have_accel);
+        m_ui->cbCalibrateMags->setChecked(have_mag);
+    }
 }
 
 /**
