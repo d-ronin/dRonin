@@ -11,6 +11,7 @@
 			</description>
       <options>
         <option>Complementary</option>
+        <option>Complementary+VelCompass</option>
         <option>INSIndoor</option>
         <option>INSOutdoor</option>
       </options>
