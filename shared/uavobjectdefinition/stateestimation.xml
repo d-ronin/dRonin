@@ -7,7 +7,7 @@
     <telemetryflight acked="true" updatemode="onchange" period="0"/>
     <field defaultvalue="Complementary" elements="1" name="AttitudeFilter" type="enum" units="">
       <description>
-				Algorithm used for sensor fusion. Complementary is good for general purpose use, and INSOutdoor is recommended for navigation. INSIndoor should only be used for testing (and will not allow you to fly).
+				Algorithm used for sensor fusion. Complementary is good for general purpose use, and INSOutdoor is recommended for navigation. INSIndoor should only be used for testing (and will not allow you to fly).   The VelCompass mode is an extension for vehicles that point the way they're going (e.g. fixed wing), that bypasses the magnetometer and instead uses the GPS-measured course for heading information.
 			</description>
       <options>
         <option>Complementary</option>
