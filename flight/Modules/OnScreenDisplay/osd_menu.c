@@ -1650,7 +1650,7 @@ void draw_hscale(int x1, int x2, int y, float val_min, float val_max, float val)
 	int width = x2 - x1;
 	int width2;
 	write_filled_rectangle_lm(x1, y, width, 6, 0, 1);
-	width2 = LIMIT((float)(width - 2) * val / (val_max - val_min), 0, width - 2);
+	width2 = LIMIT((float)(width - 2) * (val - val_min) / (val_max - val_min), 0, width - 2);
 	write_filled_rectangle_lm(x1 + 1, y + 1, width2, 4, 1, 1);
 }
 
