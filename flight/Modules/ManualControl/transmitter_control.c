@@ -265,6 +265,8 @@ int32_t transmitter_control_update()
 	float scaledChannel[MANUALCONTROLSETTINGS_CHANNELGROUPS_NUMELEM];
 	bool validChannel[MANUALCONTROLSETTINGS_CHANNELGROUPS_NUMELEM];
 
+	static float filter_rssi;
+
 	if (settings_updated) {
 		perform_tc_settings_update();
 
@@ -332,19 +334,30 @@ int32_t transmitter_control_update()
 			break;
 		}
 
+		float rssi;
+
 		if (value < settings.RssiMin) {
-			cmd.Rssi = 0;
+			rssi = 0;
 		} else if (settings.RssiMax == settings.RssiMin) {
-			cmd.Rssi = 0;
+			rssi = 0;
 		} else if (value > settings.RssiMax) {
 			if (value > (settings.RssiMax + settings.RssiMax/4)) {
-				cmd.Rssi = 0;
+				rssi = 0;
 			} else {
-				cmd.Rssi = 100;
+				rssi = 1;
 			}
 		} else {
-			cmd.Rssi = ((float)(value - settings.RssiMin)/((float)settings.RssiMax-settings.RssiMin)) * 100;
+			rssi = ((float)(value - settings.RssiMin)/((float)settings.RssiMax-settings.RssiMin));
 		}
+
+		/* Runs at least every 20ms.  Takes 4 updates to go halfway
+		 * to value, so makes RSSI on OSD a fair bit less frenetic.
+		 * Still gets 90% there in 300ms with slow updates, and
+		 * 99% there in 600ms.
+		 */
+		filter_rssi = ((filter_rssi * 6) + rssi) / 7;
+
+		cmd.Rssi = filter_rssi * 100;
 
 		cmd.RawRssi = value;
 	}
