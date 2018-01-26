@@ -103,8 +103,8 @@ float pid_apply_antiwindup(struct pid *pid, const float err,
 		dterm = pid->lastDer +  dT / ( dT + deriv_tau) * ((diff * pid->d / dT) - pid->lastDer);
 		pid->lastDer = dterm;            //   ^ set constant to 1/(2*pi*f_cutoff)
 	}	                                 //   7.9577e-3  means 20 Hz f_cutoff
- 
- 	// Compute how much (if at all) the output is saturating
+
+	// Compute how much (if at all) the output is saturating
 	float ideal_output = ((err * pid->p) + pid->iAccumulator + dterm);
 	float saturation = 0;
 	if (ideal_output > max_bound) {
@@ -114,6 +114,7 @@ float pid_apply_antiwindup(struct pid *pid, const float err,
 		saturation = min_bound - ideal_output;
 		ideal_output = min_bound;
 	}
+
 	// Use Kt 10x Ki
 	pid->iAccumulator += saturation * (pid->i * 10.0f * dT);
 	pid->iAccumulator = bound_sym(pid->iAccumulator, pid->iLim);
@@ -166,6 +167,62 @@ float pid_apply_setpoint(struct pid *pid, struct pid_deadband *deadband, const f
 	}	                                 //   7.9577e-3  means 20 Hz f_cutoff
  
 	return ((err * pid->p) + pid->iAccumulator + dterm);
+}
+
+float pid_apply_setpoint_antiwindup(struct pid *pid,
+		struct pid_deadband *deadband, const float setpoint,
+		const float measured, float min_bound, float max_bound)
+{
+	float dT = pid->dT;
+
+	float err = setpoint - measured;
+	float err_d = (deriv_gamma * setpoint - measured);
+
+	if(deadband && deadband->width > 0)
+	{
+		err = cubic_deadband(err, deadband->width, deadband->slope, deadband->cubic_weight,
+			deadband->integrated_response);
+		err_d = cubic_deadband(err_d, deadband->width, deadband->slope, deadband->cubic_weight,
+			deadband->integrated_response);
+	}
+
+	if (pid->i == 0) {
+		// If Ki is zero, do not change the integrator. We do not reset to zero
+		// because sometimes the accumulator term is set externally
+	} else {
+		pid->iAccumulator += err * (pid->i * dT);
+		pid->iAccumulator = bound_sym(pid->iAccumulator, pid->iLim);
+	}
+
+	// Calculate DT1 term,
+	float dterm = 0;
+	float diff = (err_d - pid->lastErr);
+	pid->lastErr = err_d;
+	if(pid->d && dT)
+	{
+		dterm = pid->lastDer +  dT / ( dT + deriv_tau) * ((diff * pid->d / dT) - pid->lastDer);
+		pid->lastDer = dterm;            //   ^ set constant to 1/(2*pi*f_cutoff)
+	}	                                 //   7.9577e-3  means 20 Hz f_cutoff
+
+	// Compute how much (if at all) the output is saturating
+	float ideal_output = ((err * pid->p) + pid->iAccumulator + dterm);
+	float saturation = 0;
+	if (ideal_output > max_bound) {
+		saturation = max_bound - ideal_output;
+		ideal_output = max_bound;
+	} else if (ideal_output < min_bound) {
+		saturation = min_bound - ideal_output;
+		ideal_output = min_bound;
+	}
+
+	if (pid->i == 0) {
+		// If Ki is zero, do not change the integrator.
+	} else {
+		pid->iAccumulator += saturation * (pid->i * dT);
+		pid->iAccumulator = bound_sym(pid->iAccumulator, pid->iLim);
+	}
+
+	return ideal_output;
 }
 
 /**

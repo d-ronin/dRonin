@@ -660,8 +660,7 @@ static void stabilizationTask(void* parameters)
 					rateDesiredAxis[i] = bound_sym(raw_input[i], settings.ManualRate[i]);
 
 					// Compute the inner loop
-					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], get_deadband(i),  rateDesiredAxis[i],  gyro_filtered[i]);
-					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
+					actuatorDesiredAxis[i] = pid_apply_setpoint_antiwindup(&pids[PID_GROUP_RATE + i], get_deadband(i),  rateDesiredAxis[i],  gyro_filtered[i], -1.0f, 1.0f);
 
 					break;
 
@@ -705,8 +704,7 @@ static void stabilizationTask(void* parameters)
 					rateDesiredAxis[i] = bound_sym(curve_cmd * max_rate_filtered[i], max_rate_filtered[i]);
 
 					// Compute the inner loop
-					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], get_deadband(i), rateDesiredAxis[i], gyro_filtered[i]);
-					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i], 1.0f);
+					actuatorDesiredAxis[i] = pid_apply_setpoint_antiwindup(&pids[PID_GROUP_RATE + i], get_deadband(i),  rateDesiredAxis[i],  gyro_filtered[i], -1.0f, 1.0f);
 
 					break;
 
@@ -730,7 +728,7 @@ static void stabilizationTask(void* parameters)
 							}
 
 					// Compute the inner loop
-					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], get_deadband(i), rateDesiredAxis[i], gyro_filtered[i]);
+					actuatorDesiredAxis[i] = pid_apply_setpoint_antiwindup(&pids[PID_GROUP_RATE + i], get_deadband(i),  rateDesiredAxis[i],  gyro_filtered[i], -1.0f, 1.0f);
 					actuatorDesiredAxis[i] = factor * raw_input[i] + (1.0f - factor) * actuatorDesiredAxis[i];
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i], 1.0f);
 
@@ -747,7 +745,7 @@ static void stabilizationTask(void* parameters)
 					rateDesiredAxis[i] = bound_sym(rateDesiredAxis[i], settings.MaximumRate[i]);
 
 					// Compute the inner loop
-					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], get_deadband(i),  rateDesiredAxis[i],  gyro_filtered[i]);
+					actuatorDesiredAxis[i] = pid_apply_setpoint_antiwindup(&pids[PID_GROUP_RATE + i], get_deadband(i),  rateDesiredAxis[i],  gyro_filtered[i], -1.0f, 1.0f);
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 
 					break;
@@ -772,8 +770,7 @@ static void stabilizationTask(void* parameters)
 
 					// Compute desired rate as input biased towards leveling
 					rateDesiredAxis[i] = raw_input[i] + weak_leveling;
-					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], get_deadband(i),  rateDesiredAxis[i],  gyro_filtered[i]);
-					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
+					actuatorDesiredAxis[i] = pid_apply_setpoint_antiwindup(&pids[PID_GROUP_RATE + i], get_deadband(i),  rateDesiredAxis[i],  gyro_filtered[i], -1.0f, 1.0f);
 
 					break;
 				}
@@ -798,8 +795,7 @@ static void stabilizationTask(void* parameters)
 						rateDesiredAxis[i] = bound_sym(tmpRateDesired, settings.MaximumRate[i]);
 					}
 
-					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], get_deadband(i),  rateDesiredAxis[i],  gyro_filtered[i]);
-					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
+					actuatorDesiredAxis[i] = pid_apply_setpoint_antiwindup(&pids[PID_GROUP_RATE + i], get_deadband(i),  rateDesiredAxis[i],  gyro_filtered[i], -1.0f, 1.0f);
 
 					break;
 
@@ -824,7 +820,7 @@ static void stabilizationTask(void* parameters)
 					rateDesiredAxis[i] = bound_sym(rateDesiredAxis[i], settings.ManualRate[i]);
 
 					// Compute the inner loop
-					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], get_deadband(i),  rateDesiredAxis[i],  gyro_filtered[i]);
+					actuatorDesiredAxis[i] = pid_apply_setpoint_antiwindup(&pids[PID_GROUP_RATE + i], get_deadband(i),  rateDesiredAxis[i],  gyro_filtered[i], -1.0f, 1.0f);
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
 
 					break;
@@ -874,13 +870,13 @@ static void stabilizationTask(void* parameters)
 						rateDesiredAxis[i] = bound_sym(rateDesiredAxis[i], settings.MaximumRate[i]);
 
 						// Compute the inner loop
-						actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], get_deadband(i), rateDesiredAxis[i],  gyro_filtered[i]);
+						actuatorDesiredAxis[i] = pid_apply_setpoint_antiwindup(&pids[PID_GROUP_RATE + i], get_deadband(i),  rateDesiredAxis[i],  gyro_filtered[i], -1.0f, 1.0f);
 					} else {
 						// Get the desired rate. yaw is always in rate mode in system ident.
 						rateDesiredAxis[i] = bound_sym(raw_input[i], settings.ManualRate[i]);
 
 						// Compute the inner loop only for yaw
-						actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], get_deadband(i), rateDesiredAxis[i],  gyro_filtered[i]);
+						actuatorDesiredAxis[i] = pid_apply_setpoint_antiwindup(&pids[PID_GROUP_RATE + i], get_deadband(i),  rateDesiredAxis[i],  gyro_filtered[i], -1.0f, 1.0f);
 					}
 
 					const float scale = settings.AutotuneActuationEffort[i];
@@ -1056,8 +1052,7 @@ static void stabilizationTask(void* parameters)
 					rateDesiredAxis[i] = bound_sym(rateDesiredAxis[i], settings.PoiMaximumRate[i]);
 
 					// Compute the inner loop
-					actuatorDesiredAxis[i] = pid_apply_setpoint(&pids[PID_GROUP_RATE + i], get_deadband(i), rateDesiredAxis[i], gyro_filtered[i]);
-					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i],1.0f);
+					actuatorDesiredAxis[i] = pid_apply_setpoint_antiwindup(&pids[PID_GROUP_RATE + i], get_deadband(i),  rateDesiredAxis[i],  gyro_filtered[i], -1.0f, 1.0f);
 
 					break;
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_DISABLED:
