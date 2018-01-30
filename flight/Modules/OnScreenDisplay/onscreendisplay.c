@@ -1220,14 +1220,26 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 	}
 
 	// Compass
-	if (page->Compass && has_mag) {
-		AttitudeActualYawGet(&tmp);
-		if (tmp < 0)
-			tmp += 360;
-		if (page->CompassHomeDir) {
-			hud_draw_linear_compass(tmp, home_dir, 120, 180, GRAPHICS_X_MIDDLE, (int)page->CompassPos, 15, 30, 5, 8, 0);
-		} else {
-			hud_draw_linear_compass(tmp, -1, 120, 180, GRAPHICS_X_MIDDLE, (int)page->CompassPos, 15, 30, 5, 8, 0);
+	if (page->Compass) {
+		bool do_compass = has_mag;
+
+		if (!do_compass) {
+			StateEstimationAttitudeFilterGet(&tmp_uint8);
+
+			if (tmp_uint8 == STATEESTIMATION_ATTITUDEFILTER_COMPLEMENTARYVELCOMPASS) {
+				do_compass = true;
+			}
+		}
+
+		if (do_compass) {
+			AttitudeActualYawGet(&tmp);
+			if (tmp < 0)
+				tmp += 360;
+			if (page->CompassHomeDir) {
+				hud_draw_linear_compass(tmp, home_dir, 120, 180, GRAPHICS_X_MIDDLE, (int)page->CompassPos, 15, 30, 5, 8, 0);
+			} else {
+				hud_draw_linear_compass(tmp, -1, 120, 180, GRAPHICS_X_MIDDLE, (int)page->CompassPos, 15, 30, 5, 8, 0);
+			}
 		}
 	}
 

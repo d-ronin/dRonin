@@ -1428,8 +1428,9 @@ void filter_menu(void)
 	int tmp;
 	char tmp_str[100] = {0};
 	bool data_changed = false;
-	const char * att_filter_strings[3] = {
+	const char * att_filter_strings[4] = {
 		[STATEESTIMATION_ATTITUDEFILTER_COMPLEMENTARY] = "Complementary",
+		[STATEESTIMATION_ATTITUDEFILTER_COMPLEMENTARYVELCOMPASS] = "Comp+Velcomp",
 		[STATEESTIMATION_ATTITUDEFILTER_INSINDOOR] = "INSIndoor",
 		[STATEESTIMATION_ATTITUDEFILTER_INSOUTDOOR] = "INSOutdoor",
 	};

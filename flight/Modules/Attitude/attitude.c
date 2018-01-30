@@ -170,7 +170,7 @@ static int32_t setNavigationRaw();
 static int32_t setNavigationNone();
 
 //! Update the complementary filter attitude estimate
-static int32_t updateAttitudeComplementary(float dT, bool first_run, bool secondary, bool raw_gps);
+static int32_t updateAttitudeComplementary(float dT, bool first_run, bool secondary, bool raw_gps, bool vel_compass);
 //! Set the @ref AttitudeActual to the complementary filter estimate
 static int32_t setAttitudeComplementary();
 
@@ -421,7 +421,8 @@ static void AttitudeTask(void *parameters)
 		                (stateEstimation.NavigationFilter == STATEESTIMATION_NAVIGATIONFILTER_INS);
 
 		// Complementary filter only needed when used for attitude
-		bool complementary = stateEstimation.AttitudeFilter == STATEESTIMATION_ATTITUDEFILTER_COMPLEMENTARY;
+		bool complementary = (stateEstimation.AttitudeFilter == STATEESTIMATION_ATTITUDEFILTER_COMPLEMENTARY) ||
+			(stateEstimation.AttitudeFilter == STATEESTIMATION_ATTITUDEFILTER_COMPLEMENTARYVELCOMPASS);
 
 		// Update one or both filters
 		if (ins) {
@@ -430,12 +431,15 @@ static void AttitudeTask(void *parameters)
 				updateAttitudeComplementary(dT_expected,
 						first_run || complementary != last_complementary,
 						true,     // the secondary filter
-						false);   // no raw gps is used
+						false,    // no raw gps is used
+						stateEstimation.AttitudeFilter == STATEESTIMATION_ATTITUDEFILTER_COMPLEMENTARYVELCOMPASS);
+						
 		} else {
 			ret_val = updateAttitudeComplementary(dT_expected,
 					first_run,
 					false,
-					stateEstimation.NavigationFilter == STATEESTIMATION_NAVIGATIONFILTER_RAW);
+					stateEstimation.NavigationFilter == STATEESTIMATION_NAVIGATIONFILTER_RAW,
+					stateEstimation.AttitudeFilter == STATEESTIMATION_ATTITUDEFILTER_COMPLEMENTARYVELCOMPASS);
 		}
 
 		last_complementary = complementary;
@@ -444,6 +448,7 @@ static void AttitudeTask(void *parameters)
 		// This  function blocks on data queue
 		switch (stateEstimation.AttitudeFilter ) {
 		case STATEESTIMATION_ATTITUDEFILTER_COMPLEMENTARY:
+		case STATEESTIMATION_ATTITUDEFILTER_COMPLEMENTARYVELCOMPASS:
 			setAttitudeComplementary();
 			break;
 		case STATEESTIMATION_ATTITUDEFILTER_INSOUTDOOR:
@@ -485,7 +490,7 @@ static float cf_q[4];
  * @param[in] first_run indicates the filter was just selected
  * @param[in] secondary indicates the EKF is running as well
  */
-static int32_t updateAttitudeComplementary(float dT, bool first_run, bool secondary, bool raw_gps)
+static int32_t updateAttitudeComplementary(float dT, bool first_run, bool secondary, bool raw_gps, bool vel_compass)
 {
 	UAVObjEvent ev;
 	GyrosData gyrosData;
@@ -521,7 +526,7 @@ static int32_t updateAttitudeComplementary(float dT, bool first_run, bool second
 		magData.z = 0;
 
 		// Wait for a mag reading if a magnetometer was registered
-		if (PIOS_SENSORS_IsRegistered(PIOS_SENSOR_MAG)) {
+		if (!vel_compass && PIOS_SENSORS_IsRegistered(PIOS_SENSOR_MAG)) {
 			if (!secondary && PIOS_Queue_Receive(magQueue, &ev, 20) != true) {
 				return -1;
 			}
@@ -695,8 +700,7 @@ static int32_t updateAttitudeComplementary(float dT, bool first_run, bool second
 	}
 
 	float mag_err[3];
-	if (secondary || PIOS_Queue_Receive(magQueue, &ev, 0) == true)
-	{
+	if ((!vel_compass) && (secondary || PIOS_Queue_Receive(magQueue, &ev, 0) == true)) {
 		MagnetometerData mag;
 		MagnetometerGet(&mag);
 
@@ -734,8 +738,30 @@ static int32_t updateAttitudeComplementary(float dT, bool first_run, bool second
 
 			if (mag_err[2] != mag_err[2])
 				mag_err[2] = 0;
-		} else
+		} else {
 			mag_err[2] = 0;
+		}
+	} else if (vel_compass) {
+		GPSPositionData GpsPosition;
+		GPSPositionGet(&GpsPosition);
+
+		if ((GpsPosition.Status == GPSPOSITION_STATUS_FIX3D) &&
+				(GpsPosition.Groundspeed > 3.0f)) {
+			float rpy[3];
+
+			Quaternion2RPY(cf_q, rpy);
+
+			/* The 0.008 is chosen to put things in a somewhat similar scale
+			 * to the cross product.  A 45 degree heading error will become
+			 * a 7 deg/sec correction, so it neither takes forever to
+			 * correct nor does a second of bad heading data screw us up
+			 * too badly.
+			 */
+			mag_err[2] = circular_modulus_deg(GpsPosition.Heading - rpy[2])
+				* 0.008f;
+		} else {
+			mag_err[2] = 0;
+		}
 	} else {
 		mag_err[2] = 0;
 	}
