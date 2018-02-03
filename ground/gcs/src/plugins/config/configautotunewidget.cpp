@@ -635,7 +635,7 @@ void AutotuneSlidersPage::compute()
     // Set the real pole position. The first pole is quite slow, which
     // prevents the integral being too snappy and driving too much
     // overshoot.
-    const double a = ((tau + tau_d) / tau / tau_d - 2 * damp * wn) / 20.0;
+    const double a = ((tau + tau_d) / tau / tau_d - 2 * damp * wn) / 25.0;
     const double b = ((tau + tau_d) / tau / tau_d - 2 * damp * wn - a);
 
     CONF_ATUNE_QXTLOG_DEBUG("ghf: ", ghf);
@@ -647,16 +647,6 @@ void AutotuneSlidersPage::compute()
     // critically damped;
     const double zeta_o = 1.3;
     tuneState->outerKp = 1 / 4.0 / (zeta_o * zeta_o) / (1 / wn);
-
-    // Except, if this is very high, we may be slew rate limited and pick
-    // up oscillation that way.  Fix it with very soft clamping.
-    // MaximumRate defaults to 350, 6.5 corresponds to where we begin
-    // clamping rate ourselves.  ESCs, etc, it depends upon gains
-    // and any pre-emphasis they do.   Still give ourselves partial credit
-    // for inner loop bandwidth.
-    if (tuneState->outerKp > 6.5) {
-        tuneState->outerKp = 6.5 - sqrt(6.5) + sqrt(tuneState->outerKp);
-    }
 
     if (doOuterKi) {
         tuneState->outerKp *= 0.95f; // Pick up some margin.
