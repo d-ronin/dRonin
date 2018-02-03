@@ -39,5 +39,14 @@
     <field defaultvalue="1.0" elements="1" limits="%BE:0.50:1.0" name="MotorInputOutputGain" type="float" units="">
       <description>Actuator mapping of input to reduce the maximum values sent to motors.  Provides "virtual KV" functionality; e.g. you can use 0.67 to drive 4S motors from 6S.  This setting is applied after the motor curve fit.</description>
     </field>
+    <field name="SmithPredictorDelay" elements="1" defaultvalue="3.2" type="float" units="ms">
+      <description>By how much milliseconds to delay the actuator commands fed into the predictor.</description>
+    </field>
+    <field name="SmithPredictorIIR" elements="1" defaultvalue="0.5" type="float" units="">
+      <description>IIR coefficient for smoothing.</description>
+    </field>
+    <field name="SmithPredictorMix" elements="1" defaultvalue="0.5" type="float" units="">
+      <description>Amount of contribution by the smith predictor to the control signal.</description>
+    </field>
   </object>
 </xml>
