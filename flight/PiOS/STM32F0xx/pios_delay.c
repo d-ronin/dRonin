@@ -32,9 +32,9 @@
 /* Project Includes */
 #include <pios.h>
 
-/* This will result in a value like 39062 -- about 16 bits */
-#define SYSTICK_HZ 1024
-#define RTC_DIVIDER 4	/* Must be power of 2; this results in 256Hz "RTC" */
+/* This will result in a value of 32000 -- about 15 bits */
+#define SYSTICK_HZ 1250
+#define RTC_DIVIDER 2	/* Must be power of 2; this results in 625Hz "RTC" */
 
 #define PIOS_RTC_MAX_CALLBACKS 3
 
