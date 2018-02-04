@@ -17,7 +17,7 @@ from scipy import signal
 at_flash_header_fmt = struct.Struct('<QHHHH')
 at_measurement_fmt = struct.Struct('<ffffff')
 
-def process_autotune_lump(contents, filter_freq=55, filter_order=1):
+def process_autotune_lump(contents, filter_freq=55, filter_order=0):
     """ Given a block of autotune data, return a time-series panda dataseries """
     hdr_tup = at_flash_header_fmt.unpack_from(contents)
 
