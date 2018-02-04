@@ -61,7 +61,6 @@
 
 /*!
  * \brief	PIOS_IAP_Init - performs required initializations for iap module.
- * \param   none.
  * \return	none.
  * \retval	none.
  *

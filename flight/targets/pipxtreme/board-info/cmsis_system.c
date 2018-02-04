@@ -214,7 +214,6 @@ uint32_t hse_value = 8000000;
   *         Initialize the Embedded Flash Interface, the PLL and update the
   *         SystemCoreClock variable.
   * @note   This function should be used only after reset.
-  * @param  None
   * @retval None
   */
 void SystemInit (void)
@@ -308,7 +307,6 @@ void SystemInit (void)
   *
   *         - The result of this function could be not correct when using fractional
   *           value for HSE crystal.
-  * @param  None
   * @retval None
   */
 void SystemCoreClockUpdate (void)
@@ -421,7 +419,6 @@ void SystemCoreClockUpdate (void)
 
 /**
   * @brief  Configures the System clock frequency, HCLK, PCLK2 and PCLK1 prescalers.
-  * @param  None
   * @retval None
   */
 static void SetSysClock(void)
@@ -447,7 +444,6 @@ static void SetSysClock(void)
 /**
   * @brief  Setup the external memory controller. Called in startup_stm32f10x.s
   *          before jump to __main
-  * @param  None
   * @retval None
   */
 #ifdef DATA_IN_ExtSRAM
@@ -457,7 +453,6 @@ static void SetSysClock(void)
   * 	      This function configures the external SRAM mounted on STM3210E-EVAL
   *         board (STM32 High density devices). This SRAM will be used as program
   *         data memory (including heap and stack).
-  * @param  None
   * @retval None
   */
 void SystemInit_ExtMemCtl(void)
@@ -502,7 +497,6 @@ void SystemInit_ExtMemCtl(void)
   * @brief  Selects HSE as System clock source and configure HCLK, PCLK2
   *         and PCLK1 prescalers.
   * @note   This function should be used only after reset.
-  * @param  None
   * @retval None
   */
 static void SetSysClockToHSE(void)
@@ -586,7 +580,6 @@ static void SetSysClockToHSE(void)
   * @brief  Sets System clock frequency to 24MHz and configure HCLK, PCLK2
   *         and PCLK1 prescalers.
   * @note   This function should be used only after reset.
-  * @param  None
   * @retval None
   */
 static void SetSysClockTo24(void)
@@ -695,7 +688,6 @@ static void SetSysClockTo24(void)
   * @brief  Sets System clock frequency to 36MHz and configure HCLK, PCLK2
   *         and PCLK1 prescalers.
   * @note   This function should be used only after reset.
-  * @param  None
   * @retval None
   */
 static void SetSysClockTo36(void)
@@ -801,7 +793,6 @@ static void SetSysClockTo36(void)
   * @brief  Sets System clock frequency to 48MHz and configure HCLK, PCLK2
   *         and PCLK1 prescalers.
   * @note   This function should be used only after reset.
-  * @param  None
   * @retval None
   */
 static void SetSysClockTo48(void)
@@ -907,7 +898,6 @@ static void SetSysClockTo48(void)
   * @brief  Sets System clock frequency to 56MHz and configure HCLK, PCLK2
   *         and PCLK1 prescalers.
   * @note   This function should be used only after reset.
-  * @param  None
   * @retval None
   */
 static void SetSysClockTo56(void)
@@ -1014,7 +1004,6 @@ static void SetSysClockTo56(void)
   * @brief  Sets System clock frequency to 72MHz and configure HCLK, PCLK2
   *         and PCLK1 prescalers.
   * @note   This function should be used only after reset.
-  * @param  None
   * @retval None
   */
 static void SetSysClockTo72(void)

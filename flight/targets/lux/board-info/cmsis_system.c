@@ -167,7 +167,6 @@ static void SetSysClock(void);
   * @brief  Setup the microcontroller system
   *         Initialize the Embedded Flash Interface, the PLL and update the
   *         SystemFrequency variable.
-  * @param  None
   * @retval None
   */
 void SystemInit(void)
@@ -246,7 +245,6 @@ void SystemInit(void)
   *         - The result of this function could be not correct when using fractional
   *           value for HSE crystal.
   *
-  * @param  None
   * @retval None
   */
 void SystemCoreClockUpdate (void)
@@ -298,7 +296,6 @@ void SystemCoreClockUpdate (void)
   *               AHB/APBx prescalers and Flash settings
   * @note   This function should be called only once the RCC clock configuration
   *         is reset to the default reset state (done in SystemInit() function).
-  * @param  None
   * @retval None
   */
 static void SetSysClock(void)

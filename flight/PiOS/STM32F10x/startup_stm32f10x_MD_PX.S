@@ -56,7 +56,6 @@ defined in linker script */
  *          starts execution following a reset event. Only the absolutely
  *          necessary set is performed, after which the application
  *          supplied main() routine is called. 
- * @param  None
  * @retval : None
 */
 
@@ -142,7 +141,6 @@ LoopFillZerobss:
 /**
  * @brief  This is the code that swaps stack (from end of heap to irq_stack).
  *         Also reclaim the heap that was used as a stack.
- * @param  None
  * @retval : None
 */
   .section  .text.Stack_Change
@@ -172,7 +170,6 @@ Heap_Reclaim:
  *         unexpected interrupt.  This simply enters an infinite loop, preserving
  *         the system state for examination by a debugger.
  *
- * @param  None
  * @retval : None
 */
     .section  .text.Default_Handler,"ax",%progbits
