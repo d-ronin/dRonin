@@ -7,7 +7,7 @@ TCHAIN_PREFIX  = $(ARM_SDK_PREFIX)
 CC             = $(TCHAIN_PREFIX)gcc
 OBJCOPY        = $(TCHAIN_PREFIX)objcopy
 
-SRC=modtest.c
+SRC = loadabletest.c
 
 MCU = cortex-m4
 
