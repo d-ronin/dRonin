@@ -153,7 +153,7 @@ void TelemetryMonitor::startRetrievingObjects()
                 continue;
             }
             queue.enqueue(dobj->getMetaObject());
-            if (dobj->isSettings()) {
+            if (dobj->isSettings() || (dobj->getObjID() == FirmwareIAPObj::OBJID)) {
                 TELEMETRYMONITOR_QXTLOG_DEBUG(
                     QString("%0 queing settings object %1").arg(Q_FUNC_INFO).arg(dobj->getName()));
                 queue.enqueue(obj);
