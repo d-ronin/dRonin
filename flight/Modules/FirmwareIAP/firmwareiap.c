@@ -84,7 +84,6 @@ static void resetTask(UAVObjEvent * ev, void *ctx, void *obj, int len);
 
 /*!
  * \brief   Performs object initialization functions.
- * \param   None.
  * \return  0 - under all cases
  *
  * \note
@@ -218,7 +217,6 @@ static void FirmwareIAPCallback(UAVObjEvent* ev, void *ctx, void *obj, int len)
 
 /*!
  * \brief   Returns number of milliseconds from the start of the kernel
- * \param   None.
  * \return  number of milliseconds from the start of the kernel.
  *
  * \note
