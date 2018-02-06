@@ -648,6 +648,19 @@ void AutotuneSlidersPage::compute()
     const double zeta_o = 1.3;
     tuneState->outerKp = 1 / 4.0 / (zeta_o * zeta_o) / (1 / wn);
 
+    // Except, if this is very high, we may be slew rate limited and pick
+    // up oscillation that way.  Fix it with very soft clamping.
+    //
+    // When we come up with outer KP's of less than 10, things seem safe
+    // no matter what.  So beyond 7, start to fade our response.
+    //
+    // Chosen to have derivative of 1 at 7, and .5 at 10, and never to have
+    // derivative change sign.
+    if (tuneState->outerKp > 7.0) {
+        tuneState->outerKp = 3 * log(tuneState->outerKp - 4) +
+            7.0 - 3 * log(3);
+    }
+
     if (doOuterKi) {
         tuneState->outerKp *= 0.95f; // Pick up some margin.
         // Add a zero at 1/15th the innermost bandwidth.
