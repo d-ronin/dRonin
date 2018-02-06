@@ -18,6 +18,7 @@
         <option>S.Bus Non Inverted</option>
         <option>IBus</option>
         <option>TBS Crossfire</option>
+        <option>DShot ESC Telemetry</option>
       </options>
     </field>
     <field defaultvalue="Disabled" elements="1" name="Uart1" parent="HwShared.PortTypes" type="enum" units="function">
@@ -46,6 +47,7 @@
         <option>IBus</option>
         <option>VTX Config TBS SmartAudio</option>
         <option>TBS Crossfire</option>
+        <option>DShot ESC Telemetry</option>
       </options>
     </field>
     <field defaultvalue="Disabled" elements="1" name="Uart6" parent="HwShared.PortTypes" type="enum" units="function">
@@ -74,6 +76,7 @@
         <option>IBus</option>
         <option>VTX Config TBS SmartAudio</option>
         <option>TBS Crossfire</option>
+        <option>DShot ESC Telemetry</option>
       </options>
     </field>
     <field defaultvalue="Disabled" elements="1" name="Uart3" parent="HwShared.PortTypes" type="enum" units="function">
@@ -103,6 +106,7 @@
         <option>IBus</option>
         <option>VTX Config TBS SmartAudio</option>
         <option>TBS Crossfire</option>
+        <option>DShot ESC Telemetry</option>
       </options>
     </field>
     <field defaultvalue="EightChannels" elements="1" name="OutputConfiguration" type="enum" units="function">
@@ -138,6 +142,7 @@
         <option>IBus</option>
         <option>VTX Config TBS SmartAudio</option>
         <option>TBS Crossfire</option>
+        <option>DShot ESC Telemetry</option>
       </options>
     </field>
     <field defaultvalue="USBTelemetry" elements="1" name="USB_HIDPort" parent="HwShared.USB_HIDPort" type="enum" units="function">
