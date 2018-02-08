@@ -1223,7 +1223,7 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 	if (page->Compass) {
 		bool do_compass = has_mag;
 
-		if (!do_compass) {
+		if (!do_compass && has_nav) {
 			StateEstimationAttitudeFilterGet(&tmp_uint8);
 
 			if (tmp_uint8 == STATEESTIMATION_ATTITUDEFILTER_COMPLEMENTARYVELCOMPASS) {
