@@ -55,10 +55,6 @@
 #include "pios_openlrs.h"
 #endif /* PIOS_INCLUDE_OPENLRS_RCVR */
 
-#if defined(PIOS_INCLUDE_FRSKY_RSSI)
-#include "pios_frsky_rssi.h"
-#endif /* PIOS_INCLUDE_FRSKY_RSSI */
-
 // This is how far "left" you have to deflect for "yaw left" arming, etc.
 #define ARMED_THRESHOLD    0.50f
 
@@ -310,11 +306,6 @@ int32_t transmitter_control_update()
 #if defined(PIOS_INCLUDE_OPENLRS_RCVR)
 			value = PIOS_OpenLRS_RSSI_Get();
 #endif /* PIOS_INCLUDE_OPENLRS_RCVR */
-			break;
-		case MANUALCONTROLSETTINGS_RSSITYPE_FRSKYPWM:
-#if defined(PIOS_INCLUDE_FRSKY_RSSI)
-			value = PIOS_FrSkyRssi_Get();
-#endif /* PIOS_INCLUDE_FRSKY_RSSI */
 			break;
 		case MANUALCONTROLSETTINGS_RSSITYPE_RFM22B:
 #if defined(PIOS_INCLUDE_RFM22B)

@@ -237,7 +237,6 @@ Core::IBoardType::InputType Brain::getInputType()
     case HwBrain::RXPORT_PPMOUTPUTS:
     case HwBrain::RXPORT_PPMUART:
     case HwBrain::RXPORT_PPMUARTOUTPUTS:
-    case HwBrain::RXPORT_PPMFRSKY:
         return INPUT_TYPE_PPM;
     case HwBrain::RXPORT_PWM:
         return INPUT_TYPE_PWM;

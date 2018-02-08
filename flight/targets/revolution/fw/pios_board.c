@@ -305,20 +305,6 @@ void PIOS_Board_Init(void) {
 				NULL);                                  // sbus_cfg
 		break;
 
-	case HWREVOLUTION_RXPORT_PPMFRSKY:
-		// special mode that enables PPM, FrSky RSSI, and Sensor Hub
-		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_FRSKYSENSORHUB,  // port type protocol
-				&pios_rxportusart_cfg,                             // usart_port_cfg
-				&pios_usart_com_driver,                            // com_driver
-				NULL,                                              // i2c_id
-				NULL,                                              // i2c_cfg
-				NULL,                                              // ppm_cfg
-				NULL,                                              // pwm_cfg
-				PIOS_LED_HEARTBEAT,                                    // led_id
-				NULL,                                              // dsm_cfg
-				0,                                                 // dsm_mode
-				NULL);                                             // sbus_cfg
-
 	case HWREVOLUTION_RXPORT_PPM:
 	case HWREVOLUTION_RXPORT_PPMOUTPUTS:
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PPM,  // port type protocol
@@ -400,14 +386,6 @@ void PIOS_Board_Init(void) {
 #ifdef PIOS_INCLUDE_SERVO
 		PIOS_Servo_Init(&pios_servo_rcvr_ppm_cfg);
 #endif
-		break;
-	case HWREVOLUTION_RXPORT_PPMFRSKY:
-#ifdef PIOS_INCLUDE_SERVO
-		PIOS_Servo_Init(&pios_servo_cfg);
-#endif
-#if defined(PIOS_INCLUDE_FRSKY_RSSI)
-		PIOS_FrSkyRssi_Init(&pios_frsky_rssi_cfg);
-#endif /* PIOS_INCLUDE_FRSKY_RSSI */
 		break;
 	case HWREVOLUTION_RXPORT_OUTPUTS:
 #ifdef PIOS_INCLUDE_SERVO

@@ -58,11 +58,6 @@
 
 #include "pios_ir_transponder.h"
 
-
-#if defined(PIOS_INCLUDE_FRSKY_RSSI)
-#include "pios_frsky_rssi_priv.h"
-#endif /* PIOS_INCLUDE_FRSKY_RSSI */
-
 uintptr_t pios_com_logging_id;
 uintptr_t pios_com_openlog_logging_id;
 uintptr_t pios_internal_adc_id;
@@ -361,18 +356,12 @@ void PIOS_Board_Init(void) {
 			break;
 	}
 
-	// Enable / disable RE1 specific hardware inverters and FrSky RSSI support
+	// Enable / disable RE1 specific hardware inverters
 	switch (hw_mp_serial) {
 		case HWBRAINRE1_MULTIPORTSERIAL_FRSKYSENSORHUB:
 			PIOS_RE1FPGA_MPTxPinMode(false, true);
-#if defined(PIOS_INCLUDE_FRSKY_RSSI)
-			PIOS_FrSkyRssi_Init(&pios_frsky_rssi_cfg);
-#endif /* PIOS_INCLUDE_FRSKY_RSSI */
 			break;
 		case HWBRAINRE1_MULTIPORTSERIAL_FRSKYSPORTTELEMETRY:
-#if defined(PIOS_INCLUDE_FRSKY_RSSI)
-			PIOS_FrSkyRssi_Init(&pios_frsky_rssi_cfg);
-#endif /* PIOS_INCLUDE_FRSKY_RSSI */
 			PIOS_RE1FPGA_MPTxPinMode(true, true);
 			PIOS_RE1FPGA_MPTxPinPullUpDown(true, false);
 			break;
