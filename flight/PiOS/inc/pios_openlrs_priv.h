@@ -195,8 +195,6 @@ struct pios_openlrs_dev {
 	uint32_t beacon_rssi_avg;
 };
 
-bool PIOS_OpenLRS_EXT_Int(void);
-
 #endif /* PIOS_INCLUDE_OPENLRS */
 
 #endif /* PIOS_OPENLRS_PRIV_H */

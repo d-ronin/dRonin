@@ -235,11 +235,14 @@ static void rescaleChannels(int16_t PPM[])
 
 static uint8_t countSetBits(uint16_t x)
 {
+	return __builtin_popcount(x);
+#if 0
 	x  = x - ((x >> 1) & 0x5555);
 	x  = (x & 0x3333) + ((x >> 2) & 0x3333);
 	x  = x + (x >> 4);
 	x &= 0x0F0F;
 	return (x * 0x0101) >> 8;
+#endif
 }
 
 static uint32_t micros()
@@ -251,9 +254,9 @@ static uint32_t millis()
 {
 	return PIOS_Thread_Systime();
 }
+
 static void delay(uint32_t time)
 {
-	// TODO: confirm this is in ms
 	PIOS_Thread_Sleep(time);
 }
 
@@ -574,7 +577,8 @@ static uint8_t beaconGetRSSI(struct pios_openlrs_dev *openlrs_dev)
 	uint16_t rssiSUM = 0;
 
 	rfmSetCarrierFrequency(openlrs_dev, openlrs_dev->beacon_frequency);
-	rfm22_write_claim(openlrs_dev, RFM22_frequency_hopping_channel_select, 0); // ch 0 to avoid offset
+	rfm22_write_claim(openlrs_dev, RFM22_frequency_hopping_channel_select, 0);
+
 	delay(1);
 	rssiSUM += rfmGetRSSI(openlrs_dev);
 	delay(1);
@@ -653,15 +657,13 @@ static void beacon_send(struct pios_openlrs_dev *openlrs_dev, bool static_tone)
 		delay(10);
 		beacon_tone(openlrs_dev, 261, 2);
 	}
+
 	rfm22_write_claim(openlrs_dev, 0x07, RF22B_PWRSTATE_READY);
 }
 
 /*****************************************************************************
-* High level OpenLRS functions
-*****************************************************************************/
-
-// TODO: these should move into device structure, or deleted
-// if not useful to be reported via GCS
+ * High level OpenLRS functions
+ *****************************************************************************/
 
 static uint8_t pios_openlrs_bind_receive(struct pios_openlrs_dev *openlrs_dev, uint32_t timeout)
 {
@@ -753,6 +755,7 @@ static uint8_t pios_openlrs_bind_receive(struct pios_openlrs_dev *openlrs_dev, u
 					OpenLRSSet(&binding);
 					UAVObjSave(OpenLRSHandle(), 0);
 
+					DEBUG_PRINTF(2, "Saved bind data\r\n");
 #if defined(PIOS_LED_LINK)
 					PIOS_ANNUNC_Toggle(PIOS_LED_LINK);
 #endif /* PIOS_LED_LINK */
@@ -802,10 +805,7 @@ static void pios_openlrs_setup(struct pios_openlrs_dev *openlrs_dev, bool bind)
 #endif
 
 	if (bind) {
-		if (pios_openlrs_bind_receive(openlrs_dev, 0)) {
-			// TODO: save binding settings bindWriteEeprom();
-			DEBUG_PRINTF(2,"Saved bind data to EEPROM (not really yet -- TODO)\r\n");
-		}
+		pios_openlrs_bind_receive(openlrs_dev, 0);
 	}
 
 	DEBUG_PRINTF(2,"Entering normal mode\r\n");
@@ -830,7 +830,7 @@ static void pios_openlrs_setup(struct pios_openlrs_dev *openlrs_dev, bool bind)
 	DEBUG_PRINTF(2,"OpenLRSng RX setup complete\r\n");
 }
 
-static void pios_openlrs_rx_loop(struct pios_openlrs_dev *openlrs_dev)
+static void pios_openlrs_rx_step(struct pios_openlrs_dev *openlrs_dev)
 {
 	uint32_t timeUs, timeMs;
 
@@ -1066,28 +1066,25 @@ uint8_t PIOS_OpenLRS_RSSI_Get(void)
 		if (OpenLRSHandle() == NULL)
 			return 0;
 
-		OpenLRSData openlrs_data;
-		OpenLRSGet(&openlrs_data);
+		uint8_t rssi_type;
+		OpenLRSRSSI_TypeGet(&rssi_type);
 
-		uint16_t LQ = openlrs_status.LinkQuality & 0x7fff;
-		// count number of 1s in LinkQuality
-		LQ  = LQ - ((LQ >> 1) & 0x5555);
-		LQ  = (LQ & 0x3333) + ((LQ >> 2) & 0x3333);
-		LQ  = LQ + (LQ >> 4);
-		LQ &= 0x0F0F;
-		LQ = (LQ * 0x0101) >> 8;
+		uint16_t LQ = countSetBits(openlrs_status.LinkQuality & 0x7fff);
 
-		switch (openlrs_data.RSSI_Type) {
+		switch (rssi_type) {
 		case OPENLRS_RSSI_TYPE_COMBINED:
-			if ((uint8_t)LQ == 15) {
-				return (uint8_t)((openlrs_status.LastRSSI >> 1)+128);
+			if (LQ == 15) {
+				return (openlrs_status.LastRSSI >> 1)+128;
+			} else if (LQ == 0) {
+				return 0;
 			} else {
-				return LQ * 9;
+				return LQ * 9 +
+					(openlrs_status.LastRSSI >> 5);
 			}
 		case OPENLRS_RSSI_TYPE_RSSI:
 			return openlrs_status.LastRSSI;
 		case OPENLRS_RSSI_TYPE_LINKQUALITY:
-			return (uint8_t)(LQ << 4);
+			return LQ << 4;
 		default:
 			return 0;
 		}
@@ -1104,14 +1101,10 @@ uint8_t PIOS_OpenLRS_RSSI_Get(void)
  * @param[in] rfm22b_dev     The RFM22B device ID.
  * @param[in] rfm22b_rcvr_id The receiver device to inform of PPM packets
  */
-void PIOS_OpenLRS_RegisterRcvr(uintptr_t openlrs_id, uintptr_t openlrs_rcvr_id)
+void PIOS_OpenLRS_RegisterRcvr(pios_openlrs_t openlrs_dev,
+		uintptr_t openlrs_rcvr_id)
 {
-	struct pios_openlrs_dev *openlrs_dev =
-			(struct pios_openlrs_dev *)openlrs_id;
-
-	if (!pios_openlrs_validate(openlrs_dev)) {
-		return;
-	}
+	PIOS_Assert(pios_openlrs_validate(openlrs_dev));
 
 	openlrs_dev->openlrs_rcvr_id = openlrs_rcvr_id;
 }
@@ -1120,10 +1113,7 @@ void PIOS_OpenLRS_RegisterRcvr(uintptr_t openlrs_id, uintptr_t openlrs_rcvr_id)
 * Task and device setup
 *****************************************************************************/
 
-static void pios_openlrs_task(void *parameters);
-
-//! Global device handle, required for IRQ handler
-static struct pios_openlrs_dev *g_openlrs_dev;
+static void pios_openlrs_rx_task(void *parameters);
 
 /**
  * Initialise an RFM22B device
@@ -1133,7 +1123,7 @@ static struct pios_openlrs_dev *g_openlrs_dev;
  * @param[in] slave_num  The SPI bus slave number.
  * @param[in] cfg  The device configuration.
  */
-int32_t PIOS_OpenLRS_Init(uintptr_t *openlrs_id,
+int32_t PIOS_OpenLRS_Init(pios_openlrs_t *openlrs_id,
 		pios_spi_t spi_id, uint32_t slave_num,
 		const struct pios_openlrs_cfg *cfg,
 		HwSharedRfBandOptions rf_band)
@@ -1142,12 +1132,11 @@ int32_t PIOS_OpenLRS_Init(uintptr_t *openlrs_id,
 	PIOS_DEBUG_Assert(cfg);
 
 	// Allocate the device structure.
-	struct pios_openlrs_dev *openlrs_dev = pios_openlrs_alloc();
+	pios_openlrs_t openlrs_dev = pios_openlrs_alloc();
 	if (!openlrs_dev) {
 		return -1;
 	}
-	*openlrs_id = (uint32_t) openlrs_dev;
-	g_openlrs_dev = openlrs_dev;
+	*openlrs_id = openlrs_dev;
 
 	// Store the SPI handle
 	openlrs_dev->slave_num = slave_num;
@@ -1172,6 +1161,7 @@ int32_t PIOS_OpenLRS_Init(uintptr_t *openlrs_id,
 	OpenLRSStatusInitialize();
 	OpenLRSData binding;
 	OpenLRSGet(&binding);
+
 	if (binding.version == BINDING_VERSION) {
 		openlrs_dev->bind_data.version = binding.version;
 		openlrs_dev->bind_data.serial_baudrate = binding.serial_baudrate;
@@ -1195,17 +1185,23 @@ int32_t PIOS_OpenLRS_Init(uintptr_t *openlrs_id,
 	// Bind the configuration to the device instance
 	openlrs_dev->cfg = *cfg;
 
+	return 0;
+}
+
+int32_t PIOS_OpenLRS_Start(pios_openlrs_t openlrs_dev)
+{
 	// Initialize the external interrupt.
-	PIOS_EXTI_Init(cfg->exti_cfg);
+	PIOS_EXTI_Init(openlrs_dev->cfg.exti_cfg);
 
 	// Register the watchdog timer for the radio driver task
 #if defined(PIOS_INCLUDE_WDG) && defined(PIOS_WDG_RFM22B)
 	PIOS_WDG_RegisterFlag(PIOS_WDG_RFM22B);
 #endif /* PIOS_WDG_RFM22B */
 
-	// Start the driver task.  This task controls the radio state machine and removed all of the IO from the IRQ handler.
-	openlrs_dev->taskHandle = PIOS_Thread_Create(pios_openlrs_task, "PIOS_OpenLRS_Task", STACK_SIZE_BYTES, (void *)openlrs_dev,
-					TASK_PRIORITY);
+	// Start the receiver task.
+	openlrs_dev->taskHandle = PIOS_Thread_Create(pios_openlrs_rx_task,
+			"PIOS_OpenLRS_Task", STACK_SIZE_BYTES,
+			(void *)openlrs_dev, TASK_PRIORITY);
 	TaskMonitorAdd(TASKINFO_RUNNING_MODEMRX, openlrs_dev->taskHandle);
 
 	return 0;
@@ -1216,7 +1212,7 @@ int32_t PIOS_OpenLRS_Init(uintptr_t *openlrs_id,
  *
  * @param[in] paramters  The task parameters.
  */
-static void pios_openlrs_task(void *parameters)
+static void pios_openlrs_rx_task(void *parameters)
 {
 	struct pios_openlrs_dev *openlrs_dev = (struct pios_openlrs_dev *)parameters;
 
@@ -1238,63 +1234,90 @@ static void pios_openlrs_task(void *parameters)
 		PIOS_WDG_UpdateFlag(PIOS_WDG_RFM22B);
 #endif /* PIOS_WDG_RFM22B */
 
-		/* This block of code determines the timing of when to call the loop method. It reaches a bit into
-		 * the internal state of that method to get the optimal timings. This is to keep the loop method as
-		 * similar as possible to the openLRSng implementation (for easier maintenance of compatibility)
+		/* This block of code determines the timing of when to call
+		 * the loop method. It reaches a bit into the internal state
+		 * of that method to get the optimal timings. This is to keep
+		 * the loop method as similar as possible to the openLRSng
+		 * implementation (for easier maintenance of compatibility)
 		 * while minimizing overhead spinning in a while loop.
 		 *
 		 * There are three reasons to go into loop:
 		 *  1. the ISR was triggered (packet was received)
-		 *  2. a little before the expected packet (to sample the RSSI while receiving packet)
-		 *  3. a little after expected packet (to channel hop when a packet was missing)
+		 *  2. a little before the expected packet (to sample the
+		 *     RSSI while receiving packet)
+		 *  3. a little after expected packet (to channel hop when
+		 *     a packet was missing)
 		 */
 
 		uint32_t delay_ms = 0;
 
 		uint32_t time_since_packet_us = PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs);
 
+		uint32_t delay_us;
+
 		if (!rssi_sampled) {
-			// If we had not sampled RSSI yet, schedule a bit early to try and catch while "packet is in the air"
-			uint32_t time_till_measure_rssi_us  = (getInterval(&openlrs_dev->bind_data) - packet_advance_time_us) -
-					time_since_packet_us;
-			delay_ms = (time_till_measure_rssi_us + 999) / 1000;
-			DEBUG_PRINTF(3, "T1: %d\r\n", delay_ms);
+			// If we had not sampled RSSI yet, schedule a bit
+			// early to try and catch while "packet is in the air"
+			delay_us = getInterval(&openlrs_dev->bind_data) -
+				packet_advance_time_us -
+				time_since_packet_us;
+
+			DEBUG_PRINTF(3, "T1: %d\r\n", delay_us);
 		} else {
 			// If we have sampled RSSI we want to schedule to hop when a packet has been missed
-			uint32_t time_till_timeout_us  = (getInterval(&openlrs_dev->bind_data) + packet_timeout_us) - time_since_packet_us;
-			delay_ms = (time_till_timeout_us + 999) / 1000;
-			DEBUG_PRINTF(3, "T2: %d %d\r\n", time_till_timeout_us,delay_ms, time_since_packet_us);
+			delay_us = getInterval(&openlrs_dev->bind_data) +
+				packet_timeout_us -
+				time_since_packet_us;
+			DEBUG_PRINTF(3, "T2: %d %d\r\n", delay_us,
+					time_since_packet_us);
 		}
 
+		/* XXX: should this be +500 */
+		delay_ms = (delay_us + 999) / 1000;
+
 		// Maximum delay based on packet time
-		const uint32_t max_delay = (getInterval(&openlrs_dev->bind_data) + packet_timeout_us) / 1000;
+		const uint32_t max_delay =
+			(getInterval(&openlrs_dev->bind_data) + packet_timeout_us) / 1000;
 		if (delay_ms > max_delay) delay_ms = max_delay;
 
 		if (PIOS_Semaphore_Take(openlrs_dev->sema_isr, delay_ms) == false) {
 			if (!rssi_sampled) {
-				// We timed out to sample RSSI
+				// We hit the timeout where it's time to
+				// sample RSSI.  (Only apply if we're not
+				// likely to be out of sync).
 				if (openlrs_dev->numberOfLostPackets < 2) {
+					openlrs_dev->lastRSSITimeUs =
+						openlrs_dev->lastPacketTimeUs;
+					openlrs_status.LastRSSI =
+						rfmGetRSSI(openlrs_dev);
 
-					openlrs_dev->lastRSSITimeUs = openlrs_dev->lastPacketTimeUs;
-					openlrs_status.LastRSSI = rfmGetRSSI(openlrs_dev); // Read the RSSI value
-
-					DEBUG_PRINTF(3, "Sampled RSSI: %d %d\r\n", openlrs_status.LastRSSI, delay);
+					DEBUG_PRINTF(3,
+						"Sampled RSSI: %d %d\r\n",
+						openlrs_status.LastRSSI,
+						delay);
 				}
 			} else {
 				// We timed out because packet was missed
-				DEBUG_PRINTF(3, "ISR Timeout. Missed packet: %d %d %d\r\n", delay, getInterval(
-							&openlrs_dev->bind_data), time_since_packet_us);
-				pios_openlrs_rx_loop(openlrs_dev);
+				DEBUG_PRINTF(3,
+					"ISR Timeout. Missed packet: %d %d %d\r\n",
+					delay,
+					getInterval(&openlrs_dev->bind_data),
+					time_since_packet_us);
+
+				pios_openlrs_rx_step(openlrs_dev);
 			}
 
 			rssi_sampled = true;
 		} else {
-			DEBUG_PRINTF(3, "ISR %d %d %d\r\n", delay, getInterval(&openlrs_dev->bind_data), time_since_packet_us);
+			DEBUG_PRINTF(3, "ISR %d %d %d\r\n", delay,
+					getInterval(&openlrs_dev->bind_data),
+					time_since_packet_us);
 
 			// Process incoming data
-			pios_openlrs_rx_loop(openlrs_dev);
+			pios_openlrs_rx_step(openlrs_dev);
 
-			// When a packet has been received (processed below) indicate we need to sample a new RSSI
+			// When a packet has been received (processed below)
+			// indicate we need to sample a new RSSI
 			rssi_sampled = false;
 		}
 
@@ -1302,9 +1325,9 @@ static void pios_openlrs_task(void *parameters)
 	}
 }
 
-bool PIOS_OpenLRS_EXT_Int(void)
+bool PIOS_OpenLRS_EXT_Int(pios_openlrs_t openlrs_dev)
 {
-	struct pios_openlrs_dev *openlrs_dev = g_openlrs_dev;
+	PIOS_Assert(pios_openlrs_validate(openlrs_dev));
 	if (!pios_openlrs_validate(openlrs_dev))
 		return false;
 
@@ -1369,10 +1392,8 @@ static bool pios_openlrs_validate(struct pios_openlrs_dev *openlrs_dev)
 static void rfm22_assertCs(struct pios_openlrs_dev *openlrs_dev)
 {
 	PIOS_DELAY_WaituS(1);
-	if (openlrs_dev->spi_id != 0) {
-		PIOS_SPI_RC_PinSet(openlrs_dev->spi_id,
-				openlrs_dev->slave_num, 0);
-	}
+	PIOS_SPI_RC_PinSet(openlrs_dev->spi_id,
+			openlrs_dev->slave_num, 0);
 }
 
 /**
@@ -1382,10 +1403,8 @@ static void rfm22_assertCs(struct pios_openlrs_dev *openlrs_dev)
  */
 static void rfm22_deassertCs(struct pios_openlrs_dev *openlrs_dev)
 {
-	if (openlrs_dev->spi_id != 0) {
-		PIOS_SPI_RC_PinSet(openlrs_dev->spi_id,
-				openlrs_dev->slave_num, 1);
-	}
+	PIOS_SPI_RC_PinSet(openlrs_dev->spi_id,
+			openlrs_dev->slave_num, 1);
 }
 
 /**
@@ -1395,9 +1414,7 @@ static void rfm22_deassertCs(struct pios_openlrs_dev *openlrs_dev)
  */
 static void rfm22_claimBus(struct pios_openlrs_dev *openlrs_dev)
 {
-	if (openlrs_dev->spi_id != 0) {
-		PIOS_SPI_ClaimBus(openlrs_dev->spi_id);
-	}
+	PIOS_SPI_ClaimBus(openlrs_dev->spi_id);
 }
 
 /**
@@ -1407,48 +1424,7 @@ static void rfm22_claimBus(struct pios_openlrs_dev *openlrs_dev)
  */
 static void rfm22_releaseBus(struct pios_openlrs_dev *openlrs_dev)
 {
-	if (openlrs_dev->spi_id != 0) {
-		PIOS_SPI_ReleaseBus(openlrs_dev->spi_id);
-	}
-}
-
-/**
- * Claim the semaphore and write a byte to a register
- *
- * @param[in] rfm22b_dev  The RFM22B device.
- * @param[in] addr The address to write to
- * @param[in] data The datat to write to that address
- */
-static void rfm22_write_claim(struct pios_openlrs_dev *openlrs_dev,
-		uint8_t addr, uint8_t data)
-{
-	rfm22_claimBus(openlrs_dev);
-	rfm22_assertCs(openlrs_dev);
-	uint8_t buf[2] = { addr | 0x80, data };
-	PIOS_SPI_TransferBlock(openlrs_dev->spi_id, buf, NULL, sizeof(buf));
-	rfm22_deassertCs(openlrs_dev);
-	rfm22_releaseBus(openlrs_dev);
-}
-
-/**
- * Claim the semaphore and write a byte to a register
- *
- * @param[in] rfm22b_dev  The RFM22B device.
- * @param[in] addr The address to write to
- * @param[in] data The datat to write to that address
- */
-static uint8_t rfm22_read_claim(struct pios_openlrs_dev *openlrs_dev,
-		uint8_t addr)
-{
-	uint8_t out[2] = { addr &0x7F, 0xFF };
-	uint8_t in[2];
-
-	rfm22_claimBus(openlrs_dev);
-	rfm22_assertCs(openlrs_dev);
-	PIOS_SPI_TransferBlock(openlrs_dev->spi_id, out, in, sizeof(out));
-	rfm22_deassertCs(openlrs_dev);
-	rfm22_releaseBus(openlrs_dev);
-	return in[1];
+	PIOS_SPI_ReleaseBus(openlrs_dev->spi_id);
 }
 
 /**
@@ -1476,13 +1452,46 @@ static void rfm22_write(struct pios_openlrs_dev *openlrs_dev, uint8_t addr,
  */
 static uint8_t rfm22_read(struct pios_openlrs_dev *openlrs_dev, uint8_t addr)
 {
-	uint8_t out[2] = { addr &0x7F, 0xFF };
+	uint8_t out[2] = { addr & 0x7F, 0xFF };
 	uint8_t in[2];
 
 	rfm22_assertCs(openlrs_dev);
 	PIOS_SPI_TransferBlock(openlrs_dev->spi_id, out, in, sizeof(out));
 	rfm22_deassertCs(openlrs_dev);
 	return in[1];
+}
+/**
+ * Claim the semaphore and write a byte to a register
+ *
+ * @param[in] rfm22b_dev  The RFM22B device.
+ * @param[in] addr The address to write to
+ * @param[in] data The datat to write to that address
+ */
+static void rfm22_write_claim(struct pios_openlrs_dev *openlrs_dev,
+		uint8_t addr, uint8_t data)
+{
+	rfm22_claimBus(openlrs_dev);
+	rfm22_write(openlrs_dev, addr, data);
+	rfm22_releaseBus(openlrs_dev);
+}
+
+/**
+ * Claim the semaphore and write a byte to a register
+ *
+ * @param[in] rfm22b_dev  The RFM22B device.
+ * @param[in] addr The address to write to
+ * @param[in] data The datat to write to that address
+ */
+static uint8_t rfm22_read_claim(struct pios_openlrs_dev *openlrs_dev,
+		uint8_t addr)
+{
+	uint8_t ret;
+
+	rfm22_claimBus(openlrs_dev);
+	ret = rfm22_read(openlrs_dev, addr);
+	rfm22_releaseBus(openlrs_dev);
+
+	return ret;
 }
 
 #endif /* PIOS_INCLUDE_OPENLRS */

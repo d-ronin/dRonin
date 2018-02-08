@@ -83,7 +83,8 @@ static struct pios_openlrs_rcvr_dev *PIOS_OpenLRS_Rcvr_alloc(void)
 	return openlrs_rcvr_dev;
 }
 
-extern int32_t PIOS_OpenLRS_Rcvr_Init(uintptr_t *openlrs_rcvr_id, uintptr_t openlrs_id)
+extern int32_t PIOS_OpenLRS_Rcvr_Init(uintptr_t *openlrs_rcvr_id,
+		pios_openlrs_t openlrs_id)
 {
 	struct pios_openlrs_rcvr_dev *openlrs_rcvr_dev;
 

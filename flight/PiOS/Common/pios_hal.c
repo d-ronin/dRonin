@@ -1060,27 +1060,34 @@ void PIOS_HAL_ConfigureRFM22B(HwSharedRadioPortOptions radio_type,
 		pios_spi_t spi_dev,
 		uint8_t board_type, uint8_t board_rev,
 		HwSharedRfBandOptions rf_band,
-		const struct pios_openlrs_cfg *openlrs_cfg)
+		const struct pios_openlrs_cfg *openlrs_cfg,
+		pios_openlrs_t *handle)
 {
 #if defined(PIOS_INCLUDE_OPENLRS_RCVR)
 	OpenLRSInitialize();
 #endif
 
+	/* XXX power limit here */
+
 	if (radio_type == HWSHARED_RADIOPORT_OPENLRS) {
 #if defined(PIOS_INCLUDE_OPENLRS_RCVR)
-		uintptr_t openlrs_id;
+		pios_openlrs_t openlrs_id;
+		uintptr_t rfm22brcvr_id;
+		uintptr_t rfm22brcvr_rcvr_id;
 
 		PIOS_OpenLRS_Init(&openlrs_id, spi_dev, 0, openlrs_cfg, rf_band);
 
-		{
-			uintptr_t rfm22brcvr_id;
-			PIOS_OpenLRS_Rcvr_Init(&rfm22brcvr_id, openlrs_id);
-			uintptr_t rfm22brcvr_rcvr_id;
-			if (PIOS_RCVR_Init(&rfm22brcvr_rcvr_id, &pios_openlrs_rcvr_driver, rfm22brcvr_id)) {
-				PIOS_Assert(0);
-			}
-			PIOS_HAL_SetReceiver(MANUALCONTROLSETTINGS_CHANNELGROUPS_OPENLRS, rfm22brcvr_rcvr_id);
+		*handle = openlrs_id;
+
+		PIOS_OpenLRS_Start(openlrs_id);
+
+		PIOS_OpenLRS_Rcvr_Init(&rfm22brcvr_id, openlrs_id);
+
+		if (PIOS_RCVR_Init(&rfm22brcvr_rcvr_id, &pios_openlrs_rcvr_driver, rfm22brcvr_id)) {
+			PIOS_Assert(0);
 		}
+
+		PIOS_HAL_SetReceiver(MANUALCONTROLSETTINGS_CHANNELGROUPS_OPENLRS, rfm22brcvr_rcvr_id);
 #endif /* PIOS_INCLUDE_OPENLRS_RCVR */
 	} else  {
 		// XXX NULL INIT OPENLRS

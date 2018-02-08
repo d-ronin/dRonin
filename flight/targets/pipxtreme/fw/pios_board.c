@@ -167,7 +167,7 @@ void PIOS_Board_Init(void)
 	PIOS_HAL_ConfigureRFM22B(hwTauLink.Radio, pios_spi_rfm22b_id,
 			bdinfo->board_type,
 			bdinfo->board_rev,
-			hwTauLink.RfBand, NULL);	/* XXX */
+			hwTauLink.RfBand, NULL, NULL);	/* XXX */
 
 	if (bdinfo->board_rev == TAULINK_VERSION_MODULE) {
 		// Configure the main serial port function

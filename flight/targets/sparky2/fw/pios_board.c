@@ -452,8 +452,7 @@ void PIOS_Board_Init(void) {
 
 	PIOS_HAL_ConfigureRFM22B(hwSparky2.Radio, pios_spi_telem_flash_id,
 			bdinfo->board_type, bdinfo->board_rev,
-			hwSparky2.RfBand,
-			openlrs_cfg);
+			hwSparky2.RfBand, openlrs_cfg, &openlrs_handle);
 
 #endif /* PIOS_INCLUDE_OPENLRS */
 

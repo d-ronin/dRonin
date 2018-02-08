@@ -45,12 +45,20 @@ struct pios_openlrs_cfg {
 	enum gpio_direction gpio_direction; /* Definition comes from pios_rfm22b.h */
 };
 
-extern int32_t PIOS_OpenLRS_Init(uintptr_t *openlrs_id, pios_spi_t spi_id,
+struct pios_openlrs_dev;
+typedef struct pios_openlrs_dev *pios_openlrs_t;
+
+int32_t PIOS_OpenLRS_Init(pios_openlrs_t *openlrs_id, pios_spi_t spi_id,
 		uint32_t slave_num, const struct pios_openlrs_cfg *cfg,
 		HwSharedRfBandOptions rf_band);
 
-extern void PIOS_OpenLRS_RegisterRcvr(uintptr_t openlrs_id, uintptr_t rfm22b_rcvr_id);
-extern uint8_t PIOS_OpenLRS_RSSI_Get(void);
+int32_t PIOS_OpenLRS_Start(pios_openlrs_t openlrs_id);
+
+void PIOS_OpenLRS_RegisterRcvr(pios_openlrs_t openlrs_id,
+		uintptr_t rfm22b_rcvr_id);
+uint8_t PIOS_OpenLRS_RSSI_Get(void);
+
+bool PIOS_OpenLRS_EXT_Int(pios_openlrs_t openlrs_id);
 
 #endif
 #endif /* PIOS_OPENLRS_H */

@@ -431,7 +431,8 @@ void PIOS_Board_Init(void) {
 					pios_spi_telem_flash_id,
 					bdinfo->board_type, bdinfo->board_rev,
 					hwRevoMini.RfBand,
-					openlrs_cfg);
+					openlrs_cfg,
+					&openlrs_handle);
 			break;
 #endif /* PIOS_INCLUDE_OPENLRS */
 	}

@@ -289,8 +289,14 @@ pios_spi_t pios_spi_telem_flash_id;
 
 #include <pios_openlrs_priv.h>
 
+pios_openlrs_t openlrs_handle;
+
+static bool openlrs_int(void) {
+	return PIOS_OpenLRS_EXT_Int(openlrs_handle);
+}
+
 static const struct pios_exti_cfg pios_exti_openlrs_cfg __exti_config = {
-	.vector = PIOS_OpenLRS_EXT_Int,
+	.vector = openlrs_int,
 	.line = EXTI_Line2,
 	.pin = {
 		.gpio = GPIOD,

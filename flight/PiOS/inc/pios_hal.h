@@ -116,11 +116,14 @@ void PIOS_HAL_ConfigureHID(HwSharedUSB_HIDPortOptions port_type,
 		const struct pios_usb_hid_cfg *hid_cfg);
 
 #if defined(PIOS_INCLUDE_OPENLRS)
+#include <pios_openlrs.h>
+
 void PIOS_HAL_ConfigureRFM22B(HwSharedRadioPortOptions radio_type,
 		pios_spi_t spi_dev,
 		uint8_t board_type, uint8_t board_rev,
 		HwSharedRfBandOptions rf_band,
-		const struct pios_openlrs_cfg *openlrs_cfg);
+		const struct pios_openlrs_cfg *openlrs_cfg,
+		pios_openlrs_t *handle);
 #endif /* PIOS_INCLUDE_RFM22B */
 
 void PIOS_HAL_ConfigureSerialSpeed(uintptr_t com_id,
