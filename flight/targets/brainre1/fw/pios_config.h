@@ -80,6 +80,7 @@
 #define MODULE_FLIGHTSTATS_BUILTIN
 #define PIOS_INCLUDE_DEBUG_CONSOLE
 #define OSD_USE_BRAINFPV_LOGO
+#define OSD_USE_MENU
 
 /* Flags that alter behaviors */
 #define AUTOTUNE_AVERAGING_DECIMATION 2

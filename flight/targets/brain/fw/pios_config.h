@@ -72,6 +72,7 @@
 #define PIOS_INCLUDE_DEBUG_CONSOLE
 #define OSD_USE_BRAINFPV_LOGO
 #define PIOS_OMIT_TIM2IRQ
+#define OSD_USE_MENU
 
 /* Flags that alter behaviors */
 
