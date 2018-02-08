@@ -35,8 +35,8 @@
 
 extern const struct pios_rcvr_driver pios_openlrs_rcvr_driver;
 
-extern int32_t PIOS_OpenLRS_Rcvr_Init(uintptr_t * openlrs_rcvr_id, uintptr_t openlrs_id);
-extern int32_t PIOS_OpenLRS_Rcvr_UpdateChannels(uintptr_t openlrs_rcvr_id, int16_t * channels);
+extern int32_t PIOS_OpenLRS_Rcvr_Init(uintptr_t *openlrs_rcvr_id, uintptr_t openlrs_id);
+extern int32_t PIOS_OpenLRS_Rcvr_UpdateChannels(uintptr_t openlrs_rcvr_id, int16_t *channels);
 
 #endif /* PIOS_OPENLRS_RCVR_PRIV_H */
 
