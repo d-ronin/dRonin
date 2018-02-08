@@ -155,9 +155,6 @@ void inputChannelForm::groupUpdated()
         case ManualControlSettings::CHANNELGROUPS_SBUS:
             count = 18;
             break;
-        case ManualControlSettings::CHANNELGROUPS_RFM22B:
-            count = 9;
-            break;
         case ManualControlSettings::CHANNELGROUPS_OPENLRS:
             count = 8;
             break;
@@ -206,9 +203,6 @@ void inputChannelForm::groupUpdated()
             break;
         case ManualControlSettings::RSSITYPE_OPENLRS:
             count = 8;
-            break;
-        case ManualControlSettings::RSSITYPE_RFM22B:
-            count = 1;
             break;
         case ManualControlSettings::RSSITYPE_FRSKYPWM:
             count = 1;

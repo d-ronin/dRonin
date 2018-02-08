@@ -34,7 +34,6 @@
 #include "pios_openlrs_priv.h"
  
 #include <uavobjectmanager.h>
-#include <rfm22breceiver.h>
 #include <pios_openlrs_priv.h>
 #include <pios_openlrs_rcvr_priv.h>
 
@@ -59,8 +58,6 @@ struct pios_openlrs_rcvr_dev {
 	uint8_t supv_timer;
 	bool fresh;
 };
-
-static void openlrs_rcvr_update_uavo(struct pios_openlrs_rcvr_dev *pios_rfm22b_rcvr_dev);
 
 static bool PIOS_OpenLRS_Rcvr_Validate(struct pios_openlrs_rcvr_dev
 				      *openlrs_rcvr_dev)
@@ -98,9 +95,8 @@ extern int32_t PIOS_OpenLRS_Rcvr_Init(uintptr_t * openlrs_rcvr_id, uintptr_t ope
 	}
 
 	/* Register uavobj callback */
-    RFM22BReceiverInitialize();
 
-    *openlrs_rcvr_id = (uintptr_t) openlrs_rcvr_dev;
+	*openlrs_rcvr_id = (uintptr_t) openlrs_rcvr_dev;
 	PIOS_OpenLRS_RegisterRcvr(openlrs_id, *openlrs_rcvr_id);
 
 	/* Register the failsafe timer callback. */
@@ -131,8 +127,6 @@ int32_t PIOS_OpenLRS_Rcvr_UpdateChannels(uintptr_t openlrs_rcvr_id, int16_t * ch
 	for (uint32_t i = 0; i < OPENLRS_PPM_NUM_CHANNELS; i++) {
 		openlrs_rcvr_dev->channels[i] = channels[i];
 	}
-
-	openlrs_rcvr_update_uavo(openlrs_rcvr_dev);
 
 	// This is a task, not an ISR.
 	PIOS_RCVR_Active();
@@ -191,29 +185,13 @@ static void PIOS_OpenLRS_Rcvr_Supervisor(uintptr_t openlrs_rcvr_id)
 	openlrs_rcvr_dev->supv_timer = 0;
 
 	if (!openlrs_rcvr_dev->fresh) {
-		for (int32_t i = 0; i < RFM22BRECEIVER_CHANNEL_NUMELEM;
-		     i++) {
+		for (int32_t i = 0; i < OPENLRS_PPM_NUM_CHANNELS; i++) {
 			openlrs_rcvr_dev->channels[i] = PIOS_RCVR_TIMEOUT;
 		}
 
 	}
 
 	openlrs_rcvr_dev->fresh = false;
-}
-
-static void openlrs_rcvr_update_uavo(struct pios_openlrs_rcvr_dev *rcvr_dev)
-{
-	// Also store the received data in a UAVO for easy
-	// debugging. However this is not what is used in
-	// ManualControl (it fetches directly from this driver)
-    RFM22BReceiverData rcvr;
-	for (uint8_t i = 0; i < OPENLRS_PPM_NUM_CHANNELS; i++) {
-		if (i < RFM22BRECEIVER_CHANNEL_NUMELEM)
-			rcvr.Channel[i] = rcvr_dev->channels[i];
-	}
-	for (int i = OPENLRS_PPM_NUM_CHANNELS - 1; i < RFM22BRECEIVER_CHANNEL_NUMELEM; i++)
-		rcvr.Channel[i] = PIOS_RCVR_INVALID;
-	RFM22BReceiverSet(&rcvr);
 }
 
 #endif /* PIOS_INCLUDE_OPENLRS */

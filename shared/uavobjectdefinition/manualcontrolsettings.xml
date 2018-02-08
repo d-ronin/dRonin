@@ -25,7 +25,6 @@
         <option>PPM</option>
         <option>DSM</option>
         <option>S.Bus</option>
-        <option>RFM22B</option>
         <option>OpenLRS</option>
         <option>GCS</option>
         <option>HoTT SUM</option>
@@ -44,7 +43,6 @@
         <option>S.Bus</option>
         <option>HoTT SUM</option>
         <option>ADC</option>
-        <option>RFM22B</option>
         <option>OpenLRS</option>
         <option>FrSkyPWM</option>
         <option>TBS Crossfire</option>

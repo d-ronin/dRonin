@@ -106,8 +106,6 @@
       <description/>
       <options>
         <option>Disabled</option>
-        <option>Telem</option>
-        <option>Telem+PPM</option>
         <option>PPM</option>
         <option>OpenLRS</option>
       </options>

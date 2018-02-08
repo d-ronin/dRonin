@@ -33,10 +33,9 @@
 
 /* Enable/Disable PiOS Modules */
 #define PIOS_INCLUDE_ANNUNC
-#define PIOS_INCLUDE_RFM22B
-#define PIOS_INCLUDE_RFM22B_COM
 #define PIOS_INCLUDE_RCVR
 #define PIOS_INCLUDE_TIM
+#define PIOS_INCLUDE_OPENLRS
 
 /* Supported receiver interfaces */
 #define PIOS_INCLUDE_PPM
@@ -54,7 +53,6 @@
 #define PIOS_INCLUDE_RTC
 #define PIOS_INCLUDE_WDG
 #define PIOS_INCLUDE_BL_HELPER
-#define PIOS_INCLUDE_RFM22B
 
 #define PIOS_INCLUDE_TARANIS_SPORT
 #define PIOS_INCLUDE_FRSKY_SPORT_TELEMETRY

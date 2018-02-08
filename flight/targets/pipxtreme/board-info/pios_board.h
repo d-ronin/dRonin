@@ -249,20 +249,6 @@ extern uintptr_t pios_com_frsky_sport_id;
 #define PIOS_USB_DETECT_EXTI_LINE               EXTI_Line15
 
 //-------------------------
-// RFM22
-//-------------------------
-
-#if defined(PIOS_INCLUDE_RFM22B)
-extern uintptr_t pios_rfm22b_id;
-#endif /* PIOS_INCLUDE_RFM22B */
-
-//-------------------------
-// Reed-Solomon ECC
-//-------------------------
-
-#define RS_ECC_NPARITY 4
-
-//-------------------------
 // Flash EEPROM Emulation
 //-------------------------
 

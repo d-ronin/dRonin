@@ -56,8 +56,8 @@ USE_I2C ?= YES
 
 # List of modules to include
 MODULES += ComUsbBridge
-MODULES += RadioComBridge
-MODULES += UAVOTaranis
+#MODULES += RadioComBridge
+#MODULES += UAVOTaranis
 
 # Paths
 OPUAVOBJINC = $(OPUAVOBJ)/inc
@@ -121,8 +121,6 @@ SRC += pios_rcvr.c
 SRC += pios_flash.c
 SRC += pios_flashfs_logfs.c
 SRC += printf-stdarg.c
-SRC += pios_rfm22b.c
-SRC += pios_rfm22b_com.c
 SRC += pios_heap.c
 SRC += pios_semaphore.c
 SRC += pios_mutex.c

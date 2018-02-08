@@ -125,9 +125,6 @@ SRC += pios_hmc5983_i2c.c
 SRC += pios_ms5611.c
 SRC += pios_openlrs.c
 SRC += pios_openlrs_rcvr.c
-SRC += pios_rfm22b.c
-SRC += pios_rfm22b_com.c
-SRC += pios_rfm22b_rcvr.c
 SRC += pios_max7456.c
 
 # List C source files here which must be compiled in ARM-Mode (no -mthumb).

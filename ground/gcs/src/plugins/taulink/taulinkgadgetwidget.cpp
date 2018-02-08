@@ -26,8 +26,6 @@
 #include "ui_taulink.h"
 #include "taulinkgadgetwidget.h"
 
-#include <rfm22bstatus.h>
-
 TauLinkGadgetWidget::TauLinkGadgetWidget(QWidget *parent)
     : ConfigTaskWidget(parent)
 {

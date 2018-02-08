@@ -9,9 +9,7 @@
       <description>Function for the radio port</description>
       <options>
         <option>Disabled</option>
-        <option>Telem</option>
-        <option>Telem+PPM</option>
-        <option>PPM</option>
+        <option>OpenLRS</option>
       </options>
     </field>
     <field defaultvalue="0" display="hex" elements="1" name="CoordID" type="uint32" units="">
@@ -69,20 +67,11 @@
         <option>Init HM10</option>
       </options>
     </field>
-    <field defaultvalue="64000" elements="1" name="MaxRfSpeed" parent="HwShared.MaxRfSpeed" type="enum" units="bps">
-      <description>Maximum radio speed</description>
-    </field>
     <field defaultvalue="3.16" elements="1" name="MaxRfPower" parent="HwShared.MaxRfPower" type="enum" units="mW">
       <description>Maximum radio power</description>
     </field>
     <field defaultvalue="BoardDefault" elements="1" name="RfBand" parent="HwShared.RfBand" type="enum" units="MHz">
       <description>Radio frequency to use</description>
-    </field>
-    <field defaultvalue="0" elements="1" limits="%BE:0:250" name="MinChannel" type="uint8" units="">
-      <description>Minimum channel to use</description>
-    </field>
-    <field defaultvalue="250" elements="1" limits="%BE:0:250" name="MaxChannel" type="uint8" units="">
-      <description>Maximum channel to use</description>
     </field>
   </object>
 </xml>

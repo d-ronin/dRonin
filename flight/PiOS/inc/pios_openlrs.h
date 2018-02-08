@@ -36,6 +36,7 @@
 struct pios_openlrs_cfg;
 
 #ifdef PIOS_INCLUDE_OPENLRS
+enum gpio_direction { GPIO0_TX_GPIO1_RX, GPIO0_RX_GPIO1_TX };
 
 /* Global Types */
 struct pios_openlrs_cfg {
