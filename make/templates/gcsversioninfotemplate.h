@@ -31,6 +31,10 @@
 #define UAVO_HASH { ${UAVOSHA1} }
 #define UAVO_HASH_STR "${UAVOSHA1}"
 #define GCS_REVISION_NEXTANCESTOR "${ANCESTOR}"
+#define GCS_DIRTY ${DIRTY_BOOL}
+#define GCS_BRANCH "${BRANCH}"
+#define GCS_TAG "${TAG}"
+
 /**
  * @}
  */
