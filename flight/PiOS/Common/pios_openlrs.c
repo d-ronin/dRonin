@@ -57,7 +57,7 @@
 #define RF22B_PACKET_SENT_INTERRUPT          RFM22_ie1_enpksent
 #define RF22B_RX_PACKET_RECEIVED_IRQ         RFM22_ie1_enpkvalid
 
-static void rx_reset(struct pios_openlrs_dev *openlrs_dev);
+static void rfm22_rx_reset(struct pios_openlrs_dev *openlrs_dev);
 static OpenLRSStatusData openlrs_status;
 
 static struct pios_openlrs_dev *pios_openlrs_alloc();
@@ -69,6 +69,7 @@ static void rfm22_to_rx_mode(struct pios_openlrs_dev *openlrs_dev);
 static void rfm22_set_frequency(struct pios_openlrs_dev *openlrs_dev, uint32_t f);
 static uint8_t rfm22_get_rssi(struct pios_openlrs_dev *openlrs_dev);
 static void rfm22_tx_packet(struct pios_openlrs_dev *openlrs_dev, uint8_t *pkt, uint8_t size);
+static void rfm22_rx_packet(pios_openlrs_t openlrs_dev);
 static void rfm22_set_channel(struct pios_openlrs_dev *openlrs_dev, uint8_t ch);
 
 // SPI read/write functions
@@ -306,7 +307,6 @@ static uint8_t pios_openlrs_bind_receive(struct pios_openlrs_dev *openlrs_dev, u
 	uint32_t start = millis();
 	uint8_t rxb;
 	rfm22_init(openlrs_dev, true);
-	// TODO: move openlrs_dev->rf_mode into dev structure
 	openlrs_dev->rf_mode = Receive;
 	rfm22_to_rx_mode(openlrs_dev);
 	DEBUG_PRINTF(2,"Waiting bind\r\n");
@@ -331,7 +331,7 @@ static uint8_t pios_openlrs_bind_receive(struct pios_openlrs_dev *openlrs_dev, u
 
 			DEBUG_PRINTF(2,"Got pkt\r\n");
 
-			// TODO: parse data packet (write command for that)
+			// TODO: use rx packet for this functionality
 			rfm22_claim_bus(openlrs_dev);
 			rfm22_assert_cs(openlrs_dev);
 			PIOS_SPI_TransferByte(openlrs_dev->spi_id, 0x7f);
@@ -404,7 +404,7 @@ static uint8_t pios_openlrs_bind_receive(struct pios_openlrs_dev *openlrs_dev, u
 			}
 
 			openlrs_dev->rf_mode = Receive;
-			rx_reset(openlrs_dev);
+			rfm22_rx_reset(openlrs_dev);
 		}
 	}
 	return 0;
@@ -489,14 +489,8 @@ static void pios_openlrs_rx_step(struct pios_openlrs_dev *openlrs_dev)
 		DEBUG_PRINTF(2,"Packet Received. Dt=%d\r\n", timeUs-openlrs_dev->lastPacketTimeUs);
 
 		// Read the packet from RFM22b
-		rfm22_claim_bus(openlrs_dev);
-		rfm22_assert_cs(openlrs_dev);
-		PIOS_SPI_TransferByte(openlrs_dev->spi_id, 0x7F);
-		uint32_t packet_size = getPacketSize(&openlrs_dev->bind_data);
-		PIOS_SPI_TransferBlock(openlrs_dev->spi_id, OUT_FF,
-				openlrs_dev->rx_buf, packet_size);
-		rfm22_deassert_cs(openlrs_dev);
-		rfm22_release_bus(openlrs_dev);
+
+		rfm22_rx_packet(openlrs_dev);
 
 		openlrs_dev->lastAFCCvalue = rfm22_get_afcc(openlrs_dev);
 
@@ -587,7 +581,7 @@ static void pios_openlrs_rx_step(struct pios_openlrs_dev *openlrs_dev)
 
 		// Once a packet has been processed, flip back into receiving mode
 		openlrs_dev->rf_mode = Receive;
-		rx_reset(openlrs_dev);
+		rfm22_rx_reset(openlrs_dev);
 
 		openlrs_dev->willhop = 1;
 	}
@@ -647,7 +641,7 @@ static void pios_openlrs_rx_step(struct pios_openlrs_dev *openlrs_dev)
 				if (armed == FLIGHTSTATUS_ARMED_DISARMED) {
 					rfm22_beacon_send(openlrs_dev, false); // play cool tune
 					rfm22_init(openlrs_dev, 0);   // go back to normal RX
-					rx_reset(openlrs_dev);
+					rfm22_rx_reset(openlrs_dev);
 					openlrs_dev->nextBeaconTimeMs = (timeMs +  1000UL * openlrs_dev->beacon_period) | 1; // avoid 0 in time
 				}
 			}
@@ -681,7 +675,7 @@ static void pios_openlrs_rx_step(struct pios_openlrs_dev *openlrs_dev)
 		}
 
 		rfm22_set_channel(openlrs_dev, openlrs_dev->rf_channel);
-		rx_reset(openlrs_dev);
+		rfm22_rx_reset(openlrs_dev);
 		openlrs_dev->willhop = 0;
 	}
 
@@ -1025,40 +1019,6 @@ static bool pios_openlrs_validate(struct pios_openlrs_dev *openlrs_dev)
 	       && openlrs_dev->magic == PIOS_OPENLRS_DEV_MAGIC;
 }
 
-static void rfm22_tx_packet(struct pios_openlrs_dev *openlrs_dev, uint8_t *pkt, uint8_t size)
-{
-	rfm22_claim_bus(openlrs_dev);
-	rfm22_write(openlrs_dev, RFM22_transmit_packet_length, size);   // total tx size
-
-	for (uint8_t i = 0; i < size; i++) {
-		/* XXX do burst access for performance */
-		rfm22_write(openlrs_dev, RFM22_fifo_access, pkt[i]);
-	}
-
-	rfm22_write(openlrs_dev, RFM22_interrupt_enable1, RF22B_PACKET_SENT_INTERRUPT);
-
-	rfm22_get_it_status(openlrs_dev);
-
-	/* Initiate TX */
-	rfm22_write(openlrs_dev, RFM22_op_and_func_ctrl1, RF22B_PWRSTATE_TX);
-
-	openlrs_dev->rf_mode = Transmit;
-
-	rfm22_release_bus(openlrs_dev);
-
-	PIOS_Semaphore_Take(openlrs_dev->sema_isr, 25);
-
-#if defined(PIOS_INCLUDE_WDG) && defined(PIOS_WDG_RFM22B)
-	// Update the watchdog timer
-	PIOS_WDG_UpdateFlag(PIOS_WDG_RFM22B);
-#endif /* PIOS_WDG_RFM22B */
-
-	if (openlrs_dev->rf_mode == Transmit) {
-		DEBUG_PRINTF(2,"OLRS ERR: rfm22_tx_packet timeout\r\n");
-		rfm22_init(openlrs_dev, false); // reset modem
-	}
-}
-
 static void rfm22_set_channel(struct pios_openlrs_dev *openlrs_dev, uint8_t ch)
 {
 	DEBUG_PRINTF(3,"rfm22_set_channel %d\r\n", ch);
@@ -1110,7 +1070,7 @@ static void rfm22_to_rx_mode(struct pios_openlrs_dev *openlrs_dev)
 	rfm22_write(openlrs_dev, RFM22_op_and_func_ctrl1, RF22B_PWRSTATE_READY);
 	rfm22_release_bus(openlrs_dev);
 	delay(10);
-	rx_reset(openlrs_dev);
+	rfm22_rx_reset(openlrs_dev);
 }
 
 static void rfm22_clear_fifo(struct pios_openlrs_dev *openlrs_dev)
@@ -1254,9 +1214,55 @@ static void rfm22_beacon_send(struct pios_openlrs_dev *openlrs_dev, bool static_
 	rfm22_write_claim(openlrs_dev, 0x07, RF22B_PWRSTATE_READY);
 }
 
-static void rx_reset(struct pios_openlrs_dev *openlrs_dev)
+static void rfm22_tx_packet(struct pios_openlrs_dev *openlrs_dev, uint8_t *pkt, uint8_t size)
 {
-	DEBUG_PRINTF(3,"rx_reset\r\n");
+	rfm22_claim_bus(openlrs_dev);
+	rfm22_write(openlrs_dev, RFM22_transmit_packet_length, size);   // total tx size
+
+	rfm22_assert_cs(openlrs_dev);
+	PIOS_SPI_TransferByte(openlrs_dev->spi_id, RFM22_fifo_access | 0x80);
+	PIOS_SPI_TransferBlock(openlrs_dev->spi_id, pkt, NULL, size);
+	rfm22_deassert_cs(openlrs_dev);
+
+	rfm22_write(openlrs_dev, RFM22_interrupt_enable1, RF22B_PACKET_SENT_INTERRUPT);
+
+	rfm22_get_it_status(openlrs_dev);
+
+	/* Initiate TX */
+	rfm22_write(openlrs_dev, RFM22_op_and_func_ctrl1, RF22B_PWRSTATE_TX);
+
+	openlrs_dev->rf_mode = Transmit;
+
+	rfm22_release_bus(openlrs_dev);
+
+	PIOS_Semaphore_Take(openlrs_dev->sema_isr, 25);
+
+#if defined(PIOS_INCLUDE_WDG) && defined(PIOS_WDG_RFM22B)
+	// Update the watchdog timer
+	PIOS_WDG_UpdateFlag(PIOS_WDG_RFM22B);
+#endif /* PIOS_WDG_RFM22B */
+
+	if (openlrs_dev->rf_mode == Transmit) {
+		DEBUG_PRINTF(2,"OLRS ERR: rfm22_tx_packet timeout\r\n");
+		rfm22_init(openlrs_dev, false); // reset modem
+	}
+}
+
+static void rfm22_rx_packet(pios_openlrs_t openlrs_dev)
+{
+	rfm22_claim_bus(openlrs_dev);
+	rfm22_assert_cs(openlrs_dev);
+	PIOS_SPI_TransferByte(openlrs_dev->spi_id, RFM22_fifo_access);
+	uint32_t packet_size = getPacketSize(&openlrs_dev->bind_data);
+	PIOS_SPI_TransferBlock(openlrs_dev->spi_id, OUT_FF,
+			openlrs_dev->rx_buf, packet_size);
+	rfm22_deassert_cs(openlrs_dev);
+	rfm22_release_bus(openlrs_dev);
+}
+
+static void rfm22_rx_reset(struct pios_openlrs_dev *openlrs_dev)
+{
+	DEBUG_PRINTF(3,"rfm22_rx_reset\r\n");
 	rfm22_write_claim(openlrs_dev, RFM22_op_and_func_ctrl1, RF22B_PWRSTATE_READY);
 	rfm22_write_claim(openlrs_dev, RFM22_rx_fifo_control, 36);       // threshold for rx almost full, interrupt when 1 byte received
 	rfm22_clear_fifo(openlrs_dev);
