@@ -84,6 +84,7 @@ bool AQ32::queryCapabilities(BoardCapabilities capability)
     case BOARD_CAPABILITIES_MAGS:
     case BOARD_CAPABILITIES_BAROS:
     case BOARD_CAPABILITIES_UPGRADEABLE:
+    case BOARD_CAPABILITIES_CHAROSD:
         return true;
     default:
         break;

@@ -32,6 +32,7 @@
 
 #include "configgadgetwidget.h"
 
+#include "characterosd.h"
 #include "configvehicletypewidget.h"
 #include "configinputwidget.h"
 #include "configoutputwidget.h"
@@ -196,6 +197,17 @@ void ConfigGadgetWidget::deferredLoader()
         break;
 
     case 12:
+        icon = new QIcon();
+        icon->addFile(":/configgadget/images/osd_normal.png", QSize(), QIcon::Normal, QIcon::Off);
+        icon->addFile(":/configgadget/images/osd_selected.png", QSize(), QIcon::Selected,
+                      QIcon::Off);
+        qwd = new CharacterOSD(this);
+        ftw->insertTab(ConfigGadgetWidget::charosd, qwd, *icon, QString("OSD"));
+        // Hide OSD if not applicable, else show
+        ftw->setHidden(ConfigGadgetWidget::charosd, true);
+        break;
+
+    case 13:
     default:
         // *********************
         // Listen to autopilot connection events
@@ -226,7 +238,7 @@ void ConfigGadgetWidget::paintEvent(QPaintEvent *event)
 {
     (void)event;
 
-    if (chunk < 12) {
+    if (chunk < 13) {
         // jumpstart loading.
         deferredLoader();
         deferredLoader();
@@ -279,7 +291,7 @@ void ConfigGadgetWidget::onAutopilotConnect()
     QIcon *icon;
     QWidget *qwd;
 
-    bool hasOSD = false;
+    bool hasOSD = false, hasCharOSD = false;
 
     int index = ftw->currentIndex();
 
@@ -315,7 +327,10 @@ void ConfigGadgetWidget::onAutopilotConnect()
 
             if (board->queryCapabilities(Core::IBoardType::BOARD_CAPABILITIES_OSD)) {
                 hasOSD = true;
-            } else if (lastTabIndex == ConfigGadgetWidget::osd) {
+            } else if (board->queryCapabilities(Core::IBoardType::BOARD_CAPABILITIES_CHAROSD)) {
+                hasCharOSD = true;
+            } else if (lastTabIndex == ConfigGadgetWidget::osd ||
+                       lastTabIndex == ConfigGadgetWidget::charosd) {
                 lastTabIndex = ConfigGadgetWidget::hardware;
             }
         }
@@ -347,6 +362,7 @@ void ConfigGadgetWidget::onAutopilotConnect()
 
     // Hide OSD if not applicable, else show
     ftw->setHidden(ConfigGadgetWidget::osd, !hasOSD);
+    ftw->setHidden(ConfigGadgetWidget::charosd, !hasCharOSD);
 
     ftw->setCurrentIndex(lastTabIndex);
 

@@ -35,5 +35,6 @@
         <file>images/ic_content_paste_48px.svg</file>
         <file>images/autotunebg.png</file>
         <file>images/ic_warning_black_24px_trans.png</file>
+        <file>characterosd.qml</file>
     </qresource>
 </RCC>

@@ -27,6 +27,7 @@
     </field>
     <field defaultvalue="GPS,Latitude,Longitude,ArmedFlag,RSSI,FlightMode,Pitch,Horizon,Throttle,GroundSpeed,Altitude,Roll,FlightTime,HomeDistance,HomeDirection,BatteryVolt,BatteryCurrent,BatteryConsumed,Crosshair,Disabled,Disabled,Disabled,Disabled,Disabled" elements="24" name="PanelType" type="enum" units="Panel">
       <description>Selection of the elements to put on the OSD</description>
+      <!-- MUST match table in ground/gcs/src/plugins/config/characterosd.cpp -->
       <options>
         <option>Disabled</option>
         <option>Airspeed</option>

@@ -6,6 +6,8 @@ DEFINES += QWT_DLL
 QT += svg
 QT += network
 QT += charts
+QT += quickwidgets
+QT += quickcontrols2
 
 include(../../gcsplugin.pri)
 
@@ -55,7 +57,8 @@ HEADERS += calibration.h \
     configmodulewidget.h \
     configosdwidget.h \
     expocurve.h \
-    qreadonlycheckbox.h
+    qreadonlycheckbox.h \
+    characterosd.h
 
 SOURCES += calibration.cpp \
     configplugin.cpp \
@@ -87,7 +90,8 @@ SOURCES += calibration.cpp \
     vehicletrim.cpp \
     configmodulewidget.cpp \
     configosdwidget.cpp \
-    expocurve.cpp
+    expocurve.cpp \
+    characterosd.cpp
 
 FORMS += airframe.ui \
     ccpm.ui \
@@ -108,6 +112,10 @@ FORMS += airframe.ui \
     autotunebeginning.ui \
     autotuneproperties.ui \
     autotunesliders.ui \
-    autotunefinalpage.ui
+    autotunefinalpage.ui \
+    characterosd.ui
 
 RESOURCES += configgadget.qrc
+
+DISTFILES += \
+    characterosd.qml

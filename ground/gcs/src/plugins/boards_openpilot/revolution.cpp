@@ -101,6 +101,7 @@ bool Revolution::queryCapabilities(BoardCapabilities capability)
     case BOARD_CAPABILITIES_BAROS:
     case BOARD_CAPABILITIES_RADIO:
     case BOARD_CAPABILITIES_UPGRADEABLE:
+    case BOARD_CAPABILITIES_CHAROSD:
         return true;
     default:
         break;

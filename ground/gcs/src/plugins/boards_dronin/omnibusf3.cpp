@@ -80,6 +80,7 @@ bool OmnibusF3::queryCapabilities(BoardCapabilities capability)
     case BOARD_CAPABILITIES_GYROS:
     case BOARD_CAPABILITIES_ACCELS:
     case BOARD_CAPABILITIES_UPGRADEABLE:
+    case BOARD_CAPABILITIES_CHAROSD:
         return true;
     case BOARD_CAPABILITIES_MAGS:
     case BOARD_CAPABILITIES_BAROS:
