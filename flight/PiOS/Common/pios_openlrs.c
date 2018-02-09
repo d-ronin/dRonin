@@ -858,11 +858,9 @@ static void pios_openlrs_rx_task(void *parameters)
 
 	PIOS_Assert(pios_openlrs_validate(openlrs_dev));
 
-	if (openlrs_dev->bind_data.version == BINDING_VERSION) {
-		while (!pios_openlrs_bind_receive(openlrs_dev, 0));
+	while (openlrs_dev->bind_data.version != BINDING_VERSION) {
+		pios_openlrs_bind_receive(openlrs_dev, 0);
 	}
-
-	PIOS_Assert(openlrs_dev->bind_data.version == BINDING_VERSION);
 
 	pios_openlrs_rx_setup(openlrs_dev, true);
 
