@@ -280,8 +280,8 @@ int OmnibusF3::queryMaxGyroRate()
 
 QStringList OmnibusF3::getAdcNames()
 {
-    return QStringList() << "I"
-                         << "V";
+    return QStringList() << "V"
+                         << "I";
 }
 
 bool OmnibusF3::hasAnnunciator(AnnunciatorType annunc)
