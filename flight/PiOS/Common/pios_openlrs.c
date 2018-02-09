@@ -64,6 +64,7 @@ static struct pios_openlrs_dev *pios_openlrs_alloc();
 static bool pios_openlrs_validate(struct pios_openlrs_dev *openlrs_dev);
 
 static void rfm22_init(struct pios_openlrs_dev *openlrs_dev, uint8_t isbind);
+static void rfm22_disable(struct pios_openlrs_dev *openlrs_dev);
 static uint16_t rfm22_get_afcc(struct pios_openlrs_dev *openlrs_dev);
 static void rfm22_to_rx_mode(struct pios_openlrs_dev *openlrs_dev);
 static void rfm22_set_frequency(struct pios_openlrs_dev *openlrs_dev, uint32_t f);
@@ -825,17 +826,18 @@ int32_t PIOS_OpenLRS_Start(pios_openlrs_t openlrs_dev)
 	OpenLRSroleGet(&role);
 
 	switch (role) {
-		case OPENLRS_ROLE_DISABLED:
-		case OPENLRS_ROLE_TX:
-			/* XXX handle putting radio hw into safe state. */
-			break;
 		case OPENLRS_ROLE_RX:
 			openlrs_dev->taskHandle =
 				PIOS_Thread_Create(pios_openlrs_rx_task,
 					"PIOS_OpenLRS_Task", STACK_SIZE_BYTES,
 					(void *)openlrs_dev, TASK_PRIORITY);
-			TaskMonitorAdd(TASKINFO_RUNNING_MODEMRX,
+			TaskMonitorAdd(TASKINFO_RUNNING_MODEM,
 					openlrs_dev->taskHandle);
+			break;
+		case OPENLRS_ROLE_TX:
+		case OPENLRS_ROLE_DISABLED:
+			/* handle putting radio hw into safe state. */
+			rfm22_disable(openlrs_dev);
 			break;
 	}
 
@@ -1141,6 +1143,19 @@ static void rfm22_beacon_tone(struct pios_openlrs_dev *openlrs_dev, int16_t hz, 
 	// Update the watchdog timer
 	PIOS_WDG_UpdateFlag(PIOS_WDG_RFM22B);
 #endif /* PIOS_WDG_RFM22B */
+}
+
+static void rfm22_disable(struct pios_openlrs_dev *openlrs_dev)
+{
+	rfm22_claim_bus(openlrs_dev);
+
+	rfm22_get_it_status(openlrs_dev);
+
+	/* disable interrupts, turn off power */
+	rfm22_write(openlrs_dev, RFM22_interrupt_enable2, 0x00);
+	rfm22_write(openlrs_dev, RFM22_op_and_func_ctrl1, RF22B_PWRSTATE_POWERDOWN);
+
+	rfm22_release_bus(openlrs_dev);
 }
 
 static void rfm22_beacon_send(struct pios_openlrs_dev *openlrs_dev, bool static_tone)

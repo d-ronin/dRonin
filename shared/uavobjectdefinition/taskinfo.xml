@@ -22,7 +22,7 @@
         <elementname>PathFollower</elementname>
         <elementname>Com2UsbBridge</elementname>
         <elementname>Usb2ComBridge</elementname>
-        <elementname>ModemRx</elementname>
+        <elementname>Modem</elementname>
         <elementname>UAVOMavlinkBridge</elementname>
         <elementname>UAVOMSPBridge</elementname>
         <elementname>UAVOLighttelemetryBridge</elementname>
@@ -60,7 +60,7 @@
         <elementname>PathFollower</elementname>
         <elementname>Com2UsbBridge</elementname>
         <elementname>Usb2ComBridge</elementname>
-        <elementname>ModemRx</elementname>
+        <elementname>Modem</elementname>
         <elementname>UAVOMavlinkBridge</elementname>
         <elementname>UAVOMSPBridge</elementname>
         <elementname>UAVOLighttelemetryBridge</elementname>
@@ -102,7 +102,7 @@
         <elementname>PathFollower</elementname>
         <elementname>Com2UsbBridge</elementname>
         <elementname>Usb2ComBridge</elementname>
-        <elementname>ModemRx</elementname>
+        <elementname>Modem</elementname>
         <elementname>UAVOMavlinkBridge</elementname>
         <elementname>UAVOMSPBridge</elementname>
         <elementname>UAVOLighttelemetryBridge</elementname>
