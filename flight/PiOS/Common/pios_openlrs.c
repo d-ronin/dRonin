@@ -300,14 +300,80 @@ static uint8_t beaconGetRSSI(struct pios_openlrs_dev *openlrs_dev)
 	delay(1);
 	rssiSUM += rfm22_get_rssi(openlrs_dev);
 
-	return rssiSUM>>2;
+	return rssiSUM / 4;
 }
 
 /*****************************************************************************
  * High level OpenLRS functions
  *****************************************************************************/
 
-static uint8_t pios_openlrs_bind_receive(struct pios_openlrs_dev *openlrs_dev, uint32_t timeout)
+static bool pios_openlrs_bind_transmit_step(struct pios_openlrs_dev *openlrs_dev)
+{
+	return false;
+}
+
+static bool pios_openlrs_bind_data_to_config(struct pios_openlrs_dev *openlrs_dev)
+{
+	if (openlrs_dev->bind_data.hdr == 'b') {
+#if defined(PIOS_INCLUDE_DEBUG_CONSOLE)
+		if (2 <= DEBUG_LEVEL && pios_com_debug_id > 0) {
+			DEBUG_PRINTF(2, "Binding settings:\r\n");
+			PIOS_Thread_Sleep(10);
+			DEBUG_PRINTF(2, "  version: %d\r\n", openlrs_dev->bind_data.version);
+			PIOS_Thread_Sleep(10);
+			DEBUG_PRINTF(2, "  serial_baudrate: %d\r\n", openlrs_dev->bind_data.serial_baudrate);
+			PIOS_Thread_Sleep(10);
+			DEBUG_PRINTF(2, "  rf_frequency: %d\r\n", openlrs_dev->bind_data.rf_frequency);
+			PIOS_Thread_Sleep(10);
+			DEBUG_PRINTF(2, "  rf_power: %d\r\n", openlrs_dev->bind_data.rf_power);
+			PIOS_Thread_Sleep(10);
+			DEBUG_PRINTF(2, "  rf_channel_spacing: %d\r\n", openlrs_dev->bind_data.rf_channel_spacing);
+			PIOS_Thread_Sleep(10);
+			DEBUG_PRINTF(2, "  modem_params: %d\r\n", openlrs_dev->bind_data.modem_params);
+			PIOS_Thread_Sleep(10);
+			DEBUG_PRINTF(2, "  flags: %d\r\n", openlrs_dev->bind_data.flags);
+			PIOS_Thread_Sleep(10);
+
+			for (uint32_t i = 0; i < MAXHOPS; i++) {
+				DEBUG_PRINTF(2, "    hop channel: %d\r\n", openlrs_dev->bind_data.hopchannel[i]);
+				PIOS_Thread_Sleep(10);
+			}
+		}
+#endif /* PIOS_INCLUDE_DEBUG_CONSOLE */
+
+		if (openlrs_dev->bind_data.version == BINDING_VERSION) {
+			OpenLRSData binding;
+			OpenLRSGet(&binding);
+			binding.version = openlrs_dev->bind_data.version;
+			binding.serial_baudrate = openlrs_dev->bind_data.serial_baudrate;
+			binding.rf_frequency = openlrs_dev->bind_data.rf_frequency;
+			binding.rf_magic = openlrs_dev->bind_data.rf_magic;
+			binding.rf_power = openlrs_dev->bind_data.rf_power;
+			binding.rf_channel_spacing = openlrs_dev->bind_data.rf_channel_spacing;
+			binding.modem_params = openlrs_dev->bind_data.modem_params;
+			binding.flags = openlrs_dev->bind_data.flags;
+			for (uint32_t i = 0; i < OPENLRS_HOPCHANNEL_NUMELEM; i++)
+				binding.hopchannel[i] = openlrs_dev->bind_data.hopchannel[i];
+			binding.beacon_frequency = openlrs_dev->beacon_frequency;
+			binding.beacon_delay = openlrs_dev->beacon_delay;
+			binding.beacon_period = openlrs_dev->beacon_period;
+			OpenLRSSet(&binding);
+			UAVObjSave(OpenLRSHandle(), 0);
+
+			DEBUG_PRINTF(2, "Saved bind data\r\n");
+#if defined(PIOS_LED_LINK)
+			PIOS_ANNUNC_Toggle(PIOS_LED_LINK);
+#endif /* PIOS_LED_LINK */
+
+			return true;
+		}
+	}
+
+	return false;
+}
+
+static bool pios_openlrs_bind_receive(struct pios_openlrs_dev *openlrs_dev,
+		uint32_t timeout)
 {
 	uint32_t start = millis();
 	uint8_t rxb;
@@ -340,73 +406,23 @@ static uint8_t pios_openlrs_bind_receive(struct pios_openlrs_dev *openlrs_dev, u
 					&openlrs_dev->bind_data,
 					sizeof(openlrs_dev->bind_data));
 
-			if (openlrs_dev->bind_data.hdr == 'b') {
-#if defined(PIOS_INCLUDE_DEBUG_CONSOLE)
-				if (2 <= DEBUG_LEVEL && pios_com_debug_id > 0) {
-					DEBUG_PRINTF(2, "Binding settings:\r\n");
-					PIOS_Thread_Sleep(10);
-					DEBUG_PRINTF(2, "  version: %d\r\n", openlrs_dev->bind_data.version);
-					PIOS_Thread_Sleep(10);
-					DEBUG_PRINTF(2, "  serial_baudrate: %d\r\n", openlrs_dev->bind_data.serial_baudrate);
-					PIOS_Thread_Sleep(10);
-					DEBUG_PRINTF(2, "  rf_frequency: %d\r\n", openlrs_dev->bind_data.rf_frequency);
-					PIOS_Thread_Sleep(10);
-					DEBUG_PRINTF(2, "  rf_power: %d\r\n", openlrs_dev->bind_data.rf_power);
-					PIOS_Thread_Sleep(10);
-					DEBUG_PRINTF(2, "  rf_channel_spacing: %d\r\n", openlrs_dev->bind_data.rf_channel_spacing);
-					PIOS_Thread_Sleep(10);
-					DEBUG_PRINTF(2, "  modem_params: %d\r\n", openlrs_dev->bind_data.modem_params);
-					PIOS_Thread_Sleep(10);
-					DEBUG_PRINTF(2, "  flags: %d\r\n", openlrs_dev->bind_data.flags);
-					PIOS_Thread_Sleep(10);
+			if (pios_openlrs_bind_data_to_config(openlrs_dev)) {
+				DEBUG_PRINTF(2,"data good\r\n");
+				
+				/* Acknowledge binding */
 
-					for (uint32_t i = 0; i < MAXHOPS; i++) {
-						DEBUG_PRINTF(2, "    hop channel: %d\r\n", openlrs_dev->bind_data.hopchannel[i]);
-						PIOS_Thread_Sleep(10);
-					}
-				}
-#endif /* PIOS_INCLUDE_DEBUG_CONSOLE */
+				rxb = 'B';
+				rfm22_tx_packet(openlrs_dev, &rxb, 1);
 
-				if (openlrs_dev->bind_data.version == BINDING_VERSION) {
-					DEBUG_PRINTF(2,"data good\r\n");
-					rxb = 'B';
-					rfm22_tx_packet(openlrs_dev, &rxb, 1); // ACK that we got bound
-
-					OpenLRSData binding;
-					OpenLRSGet(&binding);
-					binding.version = openlrs_dev->bind_data.version;
-					binding.serial_baudrate = openlrs_dev->bind_data.serial_baudrate;
-					binding.rf_frequency = openlrs_dev->bind_data.rf_frequency;
-					binding.rf_magic = openlrs_dev->bind_data.rf_magic;
-					binding.rf_power = openlrs_dev->bind_data.rf_power;
-					binding.rf_channel_spacing = openlrs_dev->bind_data.rf_channel_spacing;
-					binding.modem_params = openlrs_dev->bind_data.modem_params;
-					binding.flags = openlrs_dev->bind_data.flags;
-					for (uint32_t i = 0; i < OPENLRS_HOPCHANNEL_NUMELEM; i++)
-						binding.hopchannel[i] = openlrs_dev->bind_data.hopchannel[i];
-					binding.beacon_frequency = openlrs_dev->beacon_frequency;
-					binding.beacon_delay = openlrs_dev->beacon_delay;
-					binding.beacon_period = openlrs_dev->beacon_period;
-					OpenLRSSet(&binding);
-					UAVObjSave(OpenLRSHandle(), 0);
-
-					DEBUG_PRINTF(2, "Saved bind data\r\n");
-#if defined(PIOS_LED_LINK)
-					PIOS_ANNUNC_Toggle(PIOS_LED_LINK);
-#endif /* PIOS_LED_LINK */
-
-					return 1;
-				}
-			} else {
-				rfm22_deassert_cs(openlrs_dev);
-				rfm22_release_bus(openlrs_dev);
+				return true;
 			}
 
 			openlrs_dev->rf_mode = Receive;
 			rfm22_rx_reset(openlrs_dev);
 		}
 	}
-	return 0;
+
+	return false;
 }
 
 #if defined(PIOS_INCLUDE_DEBUG_CONSOLE)
@@ -859,10 +875,11 @@ static void pios_openlrs_tx_task(void *parameters)
 
 	pios_openlrs_setup(openlrs_dev, true);
 
-	bool binding = true;
+	bool binding = true;	/* XXX */
 
 	while (1) {
-		if (binding) {
+		if (binding && pios_openlrs_bind_transmit_step(openlrs_dev)) {
+			binding = false;
 		}
 
 		PIOS_Thread_Sleep(2);
