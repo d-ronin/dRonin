@@ -35,11 +35,13 @@
 #include <QtNetwork/QtNetwork>
 #include <QSysInfo>
 
-const QString MainWindow::postUrl = QString("http://dronin-autotown.appspot.com/storeCrash");
-const QString MainWindow::gitCommit = QString(GIT_COMMIT);
-const QString MainWindow::gitBranch = QString(GIT_BRANCH);
+#include "version.h"
+
+const QString MainWindow::postUrl = QStringLiteral("http://dronin-autotown.appspot.com/storeCrash");
+const QString MainWindow::gitCommit = QStringLiteral(GIT_COMMIT);
+const QString MainWindow::gitBranch = QStringLiteral(GIT_BRANCH);
 const bool MainWindow::gitDirty = GIT_DIRTY;
-const QString MainWindow::gitTag = QString(GIT_TAG);
+const QString MainWindow::gitTag = QStringLiteral(GIT_TAG);
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),

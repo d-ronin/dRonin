@@ -30,7 +30,9 @@ GIT_TAG    = $$system(git name-rev --tags --name-only --no-undefined HEAD 2>/dev
 GIT_DIRTY  = true
 system(git diff-index --quiet HEAD --): GIT_DIRTY = false
 
-DEFINES += GIT_COMMIT=\\\"$$GIT_COMMIT\\\" \
-           GIT_BRANCH=\\\"$$GIT_BRANCH\\\" \
-           GIT_TAG=\\\"$$GIT_TAG\\\" \
-           GIT_DIRTY=\\\"$$GIT_DIRTY\\\"
+VERSION_INFO = $$cat($$system_path($$PWD/version.template.h), blob)
+VERSION_INFO = $$replace(VERSION_INFO, __COMMIT__, $$GIT_COMMIT)
+VERSION_INFO = $$replace(VERSION_INFO, __BRANCH__, $$GIT_BRANCH)
+VERSION_INFO = $$replace(VERSION_INFO, __TAG__, $$GIT_TAG)
+VERSION_INFO = $$replace(VERSION_INFO, __DIRTY__, $$GIT_DIRTY)
+write_file($$OUT_PWD/version.h, VERSION_INFO)
