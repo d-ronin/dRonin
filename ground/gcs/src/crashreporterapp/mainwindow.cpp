@@ -35,13 +35,13 @@
 #include <QtNetwork/QtNetwork>
 #include <QSysInfo>
 
-#include "version.h"
+#include "../../gcsversioninfo.h"
 
 const QString MainWindow::postUrl = QStringLiteral("http://dronin-autotown.appspot.com/storeCrash");
-const QString MainWindow::gitCommit = QStringLiteral(GIT_COMMIT);
-const QString MainWindow::gitBranch = QStringLiteral(GIT_BRANCH);
-const bool MainWindow::gitDirty = GIT_DIRTY;
-const QString MainWindow::gitTag = QStringLiteral(GIT_TAG);
+const QString MainWindow::gitCommit = QStringLiteral(GCS_REVISION_SHORT);
+const QString MainWindow::gitBranch = QStringLiteral(GCS_BRANCH);
+const bool MainWindow::gitDirty = GCS_DIRTY;
+const QString MainWindow::gitTag = QStringLiteral(GCS_TAG);
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
