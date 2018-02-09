@@ -35,6 +35,8 @@
 #include "osd_utils.h"
 #include "onscreendisplay.h"
 
+#ifdef OSD_USE_MENU
+
 #include "flightstatus.h"
 #include "flightbatterystate.h"
 #include "flightbatterysettings.h"
@@ -2380,6 +2382,8 @@ void battery_menu(void)
 		current_state = FSM_STATE_BATTERY_EXIT;
 	}
 }
+
+#endif /* OSD_USE_MENU */
 
 /**
  * @}

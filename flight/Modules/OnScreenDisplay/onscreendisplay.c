@@ -1223,7 +1223,7 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 	if (page->Compass) {
 		bool do_compass = has_mag;
 
-		if (!do_compass) {
+		if (!do_compass && has_nav) {
 			StateEstimationAttitudeFilterGet(&tmp_uint8);
 
 			if (tmp_uint8 == STATEESTIMATION_ATTITUDEFILTER_COMPLEMENTARYVELCOMPASS) {
@@ -1915,11 +1915,13 @@ static void onScreenDisplayTask(__attribute__((unused)) void *parameters)
 				render_stats();
 				break;
 			case ONSCREENDISPLAYSETTINGS_PAGECONFIG_MENU:
+#ifdef OSD_USE_MENU
 				if ((arm_status == FLIGHTSTATUS_ARMED_DISARMED) ||
 						(osd_settings.DisableMenuWhenArmed == ONSCREENDISPLAYSETTINGS_DISABLEMENUWHENARMED_DISABLED)) {
 					render_osd_menu();
 					break;
 				}
+#endif
 				write_string("MENU DISABLED", GRAPHICS_X_MIDDLE, 50, 0, 0, TEXT_VA_TOP, TEXT_HA_CENTER, 0, 3);
 			case ONSCREENDISPLAYSETTINGS_PAGECONFIG_CUSTOM1:
 			case ONSCREENDISPLAYSETTINGS_PAGECONFIG_CUSTOM2:
