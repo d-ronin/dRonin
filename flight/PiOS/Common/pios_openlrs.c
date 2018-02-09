@@ -62,6 +62,8 @@ static OpenLRSStatusData openlrs_status;
 
 static struct pios_openlrs_dev *pios_openlrs_alloc();
 static bool pios_openlrs_validate(struct pios_openlrs_dev *openlrs_dev);
+static void pios_openlrs_rx_task(void *parameters);
+static void pios_openlrs_tx_task(void *parameters);
 
 static void rfm22_init(struct pios_openlrs_dev *openlrs_dev, uint8_t isbind);
 static void rfm22_disable(struct pios_openlrs_dev *openlrs_dev);
@@ -429,7 +431,7 @@ static void printVersion(uint16_t v)
 }
 #endif
 
-static void pios_openlrs_rx_setup(struct pios_openlrs_dev *openlrs_dev, bool bind)
+static void pios_openlrs_setup(struct pios_openlrs_dev *openlrs_dev, bool bind)
 {
 	DEBUG_PRINTF(2,"OpenLRSng RX setup starting.\r\n");
 	PIOS_Thread_Sleep(5);
@@ -486,7 +488,6 @@ static void pios_openlrs_rx_step(struct pios_openlrs_dev *openlrs_dev)
 		DEBUG_PRINTF(2,"Packet Received. Dt=%d\r\n", timeUs-openlrs_dev->lastPacketTimeUs);
 
 		// Read the packet from RFM22b
-
 		rfm22_rx_packet(openlrs_dev);
 
 		openlrs_dev->lastAFCCvalue = rfm22_get_afcc(openlrs_dev);
@@ -736,8 +737,6 @@ void PIOS_OpenLRS_RegisterRcvr(pios_openlrs_t openlrs_dev,
 * Task and device setup
 *****************************************************************************/
 
-static void pios_openlrs_rx_task(void *parameters);
-
 /**
  * Initialise an RFM22B device
  *
@@ -831,6 +830,13 @@ int32_t PIOS_OpenLRS_Start(pios_openlrs_t openlrs_dev)
 					openlrs_dev->taskHandle);
 			break;
 		case OPENLRS_ROLE_TX:
+			openlrs_dev->taskHandle =
+				PIOS_Thread_Create(pios_openlrs_tx_task,
+					"PIOS_OpenLRS_Task", STACK_SIZE_BYTES,
+					(void *)openlrs_dev, TASK_PRIORITY);
+			TaskMonitorAdd(TASKINFO_RUNNING_MODEM,
+					openlrs_dev->taskHandle);
+			break;
 		case OPENLRS_ROLE_DISABLED:
 			/* handle putting radio hw into safe state. */
 			rfm22_disable(openlrs_dev);
@@ -838,6 +844,29 @@ int32_t PIOS_OpenLRS_Start(pios_openlrs_t openlrs_dev)
 	}
 
 	return 0;
+}
+
+static void pios_openlrs_tx_task(void *parameters)
+{
+	struct pios_openlrs_dev *openlrs_dev = (struct pios_openlrs_dev *)parameters;
+
+	// Register the watchdog timer for the radio driver task
+#if defined(PIOS_INCLUDE_WDG) && defined(PIOS_WDG_RFM22B)
+	PIOS_WDG_RegisterFlag(PIOS_WDG_RFM22B);
+#endif /* PIOS_WDG_RFM22B */
+
+	PIOS_Assert(pios_openlrs_validate(openlrs_dev));
+
+	pios_openlrs_setup(openlrs_dev, true);
+
+	bool binding = true;
+
+	while (1) {
+		if (binding) {
+		}
+
+		PIOS_Thread_Sleep(2);
+	}
 }
 
 /**
@@ -860,7 +889,7 @@ static void pios_openlrs_rx_task(void *parameters)
 		pios_openlrs_bind_receive(openlrs_dev, 0);
 	}
 
-	pios_openlrs_rx_setup(openlrs_dev, true);
+	pios_openlrs_setup(openlrs_dev, true);
 
 	DEBUG_PRINTF(2, "Setup complete\r\n");
 
