@@ -114,6 +114,7 @@
 #define RFM22_DT_MASK                             0x1F
 
 struct bind_data {
+	uint8_t hdr;
 	uint8_t version;
 	uint32_t serial_baudrate;
 	uint32_t rf_frequency;

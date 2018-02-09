@@ -70,6 +70,8 @@ static void rfm22_to_rx_mode(struct pios_openlrs_dev *openlrs_dev);
 static void rfm22_set_frequency(struct pios_openlrs_dev *openlrs_dev, uint32_t f);
 static uint8_t rfm22_get_rssi(struct pios_openlrs_dev *openlrs_dev);
 static void rfm22_tx_packet(struct pios_openlrs_dev *openlrs_dev, uint8_t *pkt, uint8_t size);
+static void rfm22_rx_packet_loc(pios_openlrs_t openlrs_dev,
+		void *whence, uint32_t size);
 static void rfm22_rx_packet(pios_openlrs_t openlrs_dev);
 static void rfm22_set_channel(struct pios_openlrs_dev *openlrs_dev, uint8_t ch);
 
@@ -332,17 +334,11 @@ static uint8_t pios_openlrs_bind_receive(struct pios_openlrs_dev *openlrs_dev, u
 
 			DEBUG_PRINTF(2,"Got pkt\r\n");
 
-			// TODO: use rx packet for this functionality
-			rfm22_claim_bus(openlrs_dev);
-			rfm22_assert_cs(openlrs_dev);
-			PIOS_SPI_TransferByte(openlrs_dev->spi_id, 0x7f);
-			rxb = PIOS_SPI_TransferByte(openlrs_dev->spi_id, 0x00);
-			if (rxb == 'b') {
-				PIOS_SPI_TransferBlock(openlrs_dev->spi_id, OUT_FF,
-						(uint8_t *) &openlrs_dev->bind_data, sizeof(struct bind_data));
-				rfm22_deassert_cs(openlrs_dev);
-				rfm22_release_bus(openlrs_dev);
+			rfm22_rx_packet_loc(openlrs_dev,
+					&openlrs_dev->bind_data,
+					sizeof(openlrs_dev->bind_data));
 
+			if (openlrs_dev->bind_data.hdr == 'b') {
 #if defined(PIOS_INCLUDE_DEBUG_CONSOLE)
 				if (2 <= DEBUG_LEVEL && pios_com_debug_id > 0) {
 					DEBUG_PRINTF(2, "Binding settings:\r\n");
@@ -1261,16 +1257,24 @@ static void rfm22_tx_packet(struct pios_openlrs_dev *openlrs_dev, uint8_t *pkt, 
 	}
 }
 
-static void rfm22_rx_packet(pios_openlrs_t openlrs_dev)
+static void rfm22_rx_packet_loc(pios_openlrs_t openlrs_dev,
+		void *whence, uint32_t size)
 {
 	rfm22_claim_bus(openlrs_dev);
 	rfm22_assert_cs(openlrs_dev);
+	/* XXX TODO: check that the FIFO actually has what we expect? */
 	PIOS_SPI_TransferByte(openlrs_dev->spi_id, RFM22_fifo_access);
-	uint32_t packet_size = getPacketSize(&openlrs_dev->bind_data);
 	PIOS_SPI_TransferBlock(openlrs_dev->spi_id, OUT_FF,
-			openlrs_dev->rx_buf, packet_size);
+			whence, size);
 	rfm22_deassert_cs(openlrs_dev);
 	rfm22_release_bus(openlrs_dev);
+}
+
+static void rfm22_rx_packet(pios_openlrs_t openlrs_dev)
+{
+	rfm22_rx_packet_loc(openlrs_dev,
+			openlrs_dev->rx_buf,
+			getPacketSize(&openlrs_dev->bind_data));
 }
 
 static void rfm22_rx_reset(struct pios_openlrs_dev *openlrs_dev)
