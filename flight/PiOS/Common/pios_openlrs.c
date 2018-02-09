@@ -8,7 +8,7 @@
 *
 * @file       pios_openlrs.c
 * @author     Tau Labs, http://taulabs.org, Copyright (C) 2015
-* @author     dRonin, http://dronin.org Copyright (C) 2015
+* @author     dRonin, http://dronin.org Copyright (C) 2015-2018
 * @brief      Implements an OpenLRS driver for the RFM22B
 * @see	      The GNU Public License (GPL) Version 3
 *
@@ -310,6 +310,33 @@ static uint8_t beaconGetRSSI(struct pios_openlrs_dev *openlrs_dev)
 static bool pios_openlrs_bind_transmit_step(struct pios_openlrs_dev *openlrs_dev)
 {
 	return false;
+}
+
+static void pios_openlrs_config_to_bind_data(struct pios_openlrs_dev *openlrs_dev)
+{
+	OpenLRSData binding;
+	OpenLRSGet(&binding);
+
+	if (binding.version == BINDING_VERSION) {
+		openlrs_dev->bind_data.hdr = 'b';
+		openlrs_dev->bind_data.version = binding.version;
+		openlrs_dev->bind_data.serial_baudrate = binding.serial_baudrate;
+		openlrs_dev->bind_data.rf_frequency = binding.rf_frequency;
+		openlrs_dev->bind_data.rf_magic = binding.rf_magic;
+		openlrs_dev->bind_data.rf_power = binding.rf_power;
+		openlrs_dev->bind_data.rf_channel_spacing = binding.rf_channel_spacing;
+		openlrs_dev->bind_data.modem_params = binding.modem_params;
+		openlrs_dev->bind_data.flags = binding.flags;
+		for (uint32_t i = 0; i < OPENLRS_HOPCHANNEL_NUMELEM; i++)
+			openlrs_dev->bind_data.hopchannel[i] = binding.hopchannel[i];
+	}
+
+	// Also copy beacon settings over to device config.
+	openlrs_dev->beacon_frequency = binding.beacon_frequency;
+	openlrs_dev->beacon_delay = binding.beacon_delay;
+	openlrs_dev->beacon_period = binding.beacon_period;
+
+	openlrs_dev->failsafeDelay = binding.failsafe_delay;
 }
 
 static bool pios_openlrs_bind_data_to_config(struct pios_openlrs_dev *openlrs_dev)
@@ -797,31 +824,12 @@ int32_t PIOS_OpenLRS_Init(pios_openlrs_t *openlrs_id,
 
 	OpenLRSInitialize();
 	OpenLRSStatusInitialize();
-	OpenLRSData binding;
-	OpenLRSGet(&binding);
-
-	if (binding.version == BINDING_VERSION) {
-		openlrs_dev->bind_data.version = binding.version;
-		openlrs_dev->bind_data.serial_baudrate = binding.serial_baudrate;
-		openlrs_dev->bind_data.rf_frequency = binding.rf_frequency;
-		openlrs_dev->bind_data.rf_magic = binding.rf_magic;
-		openlrs_dev->bind_data.rf_power = binding.rf_power;
-		openlrs_dev->bind_data.rf_channel_spacing = binding.rf_channel_spacing;
-		openlrs_dev->bind_data.modem_params = binding.modem_params;
-		openlrs_dev->bind_data.flags = binding.flags;
-		for (uint32_t i = 0; i < OPENLRS_HOPCHANNEL_NUMELEM; i++)
-			openlrs_dev->bind_data.hopchannel[i] = binding.hopchannel[i];
-	}
-
-	// Copy beacon settings over
-	openlrs_dev->beacon_frequency = binding.beacon_frequency;
-	openlrs_dev->beacon_delay = binding.beacon_delay;
-	openlrs_dev->beacon_period = binding.beacon_period;
-
-	openlrs_dev->failsafeDelay = binding.failsafe_delay;
 
 	// Bind the configuration to the device instance
 	openlrs_dev->cfg = *cfg;
+
+	// Convert UAVO configuration to device runtime config
+	pios_openlrs_config_to_bind_data(openlrs_dev);
 
 	return 0;
 }
