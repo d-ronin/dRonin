@@ -19,9 +19,14 @@ AUTHORS_DEST          = $$system_path($$AUTHORS_PATH/gcsauthors.html)
 REL_AUTHORS_DEST      = $$system_path($$AUTHORS_PATH/gcsrelauthors.html)
 
 # these run once while Qmake is reading pro files rather than later during the actual build
-!build_pass {
-    system($$QMAKE_MKDIR \"$$AUTHORS_PATH\")
-    system($$VERSION_INFO_COMMAND \
+!build_pass: system($$QMAKE_MKDIR \"$$AUTHORS_PATH\")
+
+DEPENDPATH *= $$VERSION_INFO_PATH
+HEADERS *= $$VERSION_INFO_HEADER
+DEFINES += 'GCS_VERSION_INFO_FILE=\\\"$$VERSION_INFO_HEADER\\\"'
+
+version.target = $$VERSION_INFO_HEADER
+version.commands = $$VERSION_INFO_COMMAND \
                             --path=\"$$GCS_SOURCE_TREE\" \
                             --uavodir=\"$$UAVO_DEF_PATH\" \
                             --template=\"$$VERSION_INFO_TEMPLATE\" \
@@ -29,9 +34,9 @@ REL_AUTHORS_DEST      = $$system_path($$AUTHORS_PATH/gcsrelauthors.html)
                             --template=\"$$REL_AUTHORS_TEMPLATE\" \
                             --outfile=\"$$REL_AUTHORS_DEST\" \
                             --template=\"$$AUTHORS_TEMPLATE\" \
-                            --outfile=\"$$AUTHORS_DEST\")
-}
+                            --outfile=\"$$AUTHORS_DEST\"
+version.depends = FORCE
 
-DEPENDPATH *= $$VERSION_INFO_PATH
-HEADERS *= $$VERSION_INFO_HEADER
-DEFINES += 'GCS_VERSION_INFO_FILE=\\\"$$VERSION_INFO_HEADER\\\"'
+QMAKE_EXTRA_TARGETS += version
+
+PRE_TARGETDEPS += $$version.target
