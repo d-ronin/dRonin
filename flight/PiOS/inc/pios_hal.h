@@ -118,7 +118,7 @@ void PIOS_HAL_ConfigureHID(HwSharedUSB_HIDPortOptions port_type,
 #if defined(PIOS_INCLUDE_OPENLRS)
 #include <pios_openlrs.h>
 
-void PIOS_HAL_ConfigureRFM22B(HwSharedRadioPortOptions radio_type,
+void PIOS_HAL_ConfigureRFM22B(
 		pios_spi_t spi_dev,
 		uint8_t board_type, uint8_t board_rev,
 		HwSharedRfBandOptions rf_band,

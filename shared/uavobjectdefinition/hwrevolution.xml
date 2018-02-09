@@ -127,9 +127,6 @@
     <field defaultvalue="Autodetect" elements="1" name="DSMxMode" parent="HwShared.DSMxMode" type="enum" units="mode">
       <description/>
     </field>
-    <field defaultvalue="Disabled" elements="1" name="Radio" parent="HwShared.RadioPort" type="enum" units="">
-      <description>Function for the radio port</description>
-    </field>
     <field defaultvalue="0" elements="1" name="MaxRfPower" parent="HwShared.MaxRfPower" type="enum" units="mW">
       <description>Maximum radio power</description>
     </field>

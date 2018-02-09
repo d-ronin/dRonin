@@ -796,17 +796,13 @@ static void printVersion(uint16_t v)
 }
 #endif
 
-static void pios_openlrs_setup(struct pios_openlrs_dev *openlrs_dev, bool bind)
+static void pios_openlrs_rx_setup(struct pios_openlrs_dev *openlrs_dev, bool bind)
 {
-	DEBUG_PRINTF(2,"OpenLRSng RX setup starting. Binding: %e\r\n", bind);
+	DEBUG_PRINTF(2,"OpenLRSng RX setup starting.\r\n");
 	PIOS_Thread_Sleep(5);
 #if defined(PIOS_INCLUDE_DEBUG_CONSOLE)
 	printVersion(OPENLRSNG_VERSION);
 #endif
-
-	if (bind) {
-		pios_openlrs_bind_receive(openlrs_dev, 0);
-	}
 
 	DEBUG_PRINTF(2,"Entering normal mode\r\n");
 
@@ -820,7 +816,7 @@ static void pios_openlrs_setup(struct pios_openlrs_dev *openlrs_dev, bool bind)
 		openlrs_dev->hopcount++;
 	}
 
-	//################### RX SYNC AT STARTUP #################
+	// ################### RX SYNC AT STARTUP #################
 	openlrs_dev->rf_mode = Receive;
 	to_rx_mode(openlrs_dev);
 
@@ -1193,16 +1189,25 @@ int32_t PIOS_OpenLRS_Start(pios_openlrs_t openlrs_dev)
 	// Initialize the external interrupt.
 	PIOS_EXTI_Init(openlrs_dev->cfg.exti_cfg);
 
-	// Register the watchdog timer for the radio driver task
-#if defined(PIOS_INCLUDE_WDG) && defined(PIOS_WDG_RFM22B)
-	PIOS_WDG_RegisterFlag(PIOS_WDG_RFM22B);
-#endif /* PIOS_WDG_RFM22B */
-
 	// Start the receiver task.
-	openlrs_dev->taskHandle = PIOS_Thread_Create(pios_openlrs_rx_task,
-			"PIOS_OpenLRS_Task", STACK_SIZE_BYTES,
-			(void *)openlrs_dev, TASK_PRIORITY);
-	TaskMonitorAdd(TASKINFO_RUNNING_MODEMRX, openlrs_dev->taskHandle);
+	OpenLRSroleOptions role;
+
+	OpenLRSroleGet(&role);
+
+	switch (role) {
+		case OPENLRS_ROLE_DISABLED:
+		case OPENLRS_ROLE_TX:
+			/* XXX handle putting radio hw into safe state. */
+			break;
+		case OPENLRS_ROLE_RX:
+			openlrs_dev->taskHandle =
+				PIOS_Thread_Create(pios_openlrs_rx_task,
+					"PIOS_OpenLRS_Task", STACK_SIZE_BYTES,
+					(void *)openlrs_dev, TASK_PRIORITY);
+			TaskMonitorAdd(TASKINFO_RUNNING_MODEMRX,
+					openlrs_dev->taskHandle);
+			break;
+	}
 
 	return 0;
 }
@@ -1216,14 +1221,20 @@ static void pios_openlrs_rx_task(void *parameters)
 {
 	struct pios_openlrs_dev *openlrs_dev = (struct pios_openlrs_dev *)parameters;
 
-	if (!pios_openlrs_validate(openlrs_dev)) {
-		return;
+	// Register the watchdog timer for the radio driver task
+#if defined(PIOS_INCLUDE_WDG) && defined(PIOS_WDG_RFM22B)
+	PIOS_WDG_RegisterFlag(PIOS_WDG_RFM22B);
+#endif /* PIOS_WDG_RFM22B */
+
+	PIOS_Assert(pios_openlrs_validate(openlrs_dev));
+
+	if (openlrs_dev->bind_data.version == BINDING_VERSION) {
+		while (!pios_openlrs_bind_receive(openlrs_dev, 0));
 	}
 
-	if (openlrs_dev->bind_data.version == BINDING_VERSION)
-		pios_openlrs_setup(openlrs_dev, false);
-	else
-		pios_openlrs_setup(openlrs_dev, true);
+	PIOS_Assert(openlrs_dev->bind_data.version == BINDING_VERSION);
+
+	pios_openlrs_rx_setup(openlrs_dev, true);
 
 	DEBUG_PRINTF(2, "Setup complete\r\n");
 
@@ -1328,8 +1339,6 @@ static void pios_openlrs_rx_task(void *parameters)
 bool PIOS_OpenLRS_EXT_Int(pios_openlrs_t openlrs_dev)
 {
 	PIOS_Assert(pios_openlrs_validate(openlrs_dev));
-	if (!pios_openlrs_validate(openlrs_dev))
-		return false;
 
 	if (openlrs_dev->rf_mode == Transmit) {
 		openlrs_dev->rf_mode = Transmitted;

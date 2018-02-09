@@ -34,7 +34,6 @@
 
 #include <pios_com_priv.h>
 #include <pios_rcvr_priv.h>
-#include <pios_openlrs_rcvr_priv.h>
 
 #include <pios_modules.h>
 #include <pios_sys.h>
@@ -45,6 +44,7 @@
 
 #if defined(PIOS_INCLUDE_OPENLRS_RCVR)
 #include <openlrs.h>
+#include <pios_openlrs_rcvr_priv.h>
 #endif
 
 #ifdef PIOS_INCLUDE_USART
@@ -1056,8 +1056,7 @@ void PIOS_HAL_ConfigureHID(HwSharedUSB_HIDPortOptions port_type,
  * @param[in] board_rev Target board revision
  * @param[in] openlrs_cfg Configuration for radio in openlrs mode
  */
-void PIOS_HAL_ConfigureRFM22B(HwSharedRadioPortOptions radio_type,
-		pios_spi_t spi_dev,
+void PIOS_HAL_ConfigureRFM22B(pios_spi_t spi_dev,
 		uint8_t board_type, uint8_t board_rev,
 		HwSharedRfBandOptions rf_band,
 		const struct pios_openlrs_cfg *openlrs_cfg,
@@ -1065,36 +1064,26 @@ void PIOS_HAL_ConfigureRFM22B(HwSharedRadioPortOptions radio_type,
 {
 #if defined(PIOS_INCLUDE_OPENLRS_RCVR)
 	OpenLRSInitialize();
-#endif
 
 	/* XXX power limit here */
+	pios_openlrs_t openlrs_id;
+	uintptr_t rfm22brcvr_id;
+	uintptr_t rfm22brcvr_rcvr_id;
 
-	if (radio_type == HWSHARED_RADIOPORT_OPENLRS) {
-#if defined(PIOS_INCLUDE_OPENLRS_RCVR)
-		pios_openlrs_t openlrs_id;
-		uintptr_t rfm22brcvr_id;
-		uintptr_t rfm22brcvr_rcvr_id;
+	PIOS_OpenLRS_Init(&openlrs_id, spi_dev, 0, openlrs_cfg, rf_band);
 
-		PIOS_OpenLRS_Init(&openlrs_id, spi_dev, 0, openlrs_cfg, rf_band);
+	*handle = openlrs_id;
 
-		*handle = openlrs_id;
+	PIOS_OpenLRS_Start(openlrs_id);
 
-		PIOS_OpenLRS_Start(openlrs_id);
+	PIOS_OpenLRS_Rcvr_Init(&rfm22brcvr_id, openlrs_id);
 
-		PIOS_OpenLRS_Rcvr_Init(&rfm22brcvr_id, openlrs_id);
-
-		if (PIOS_RCVR_Init(&rfm22brcvr_rcvr_id, &pios_openlrs_rcvr_driver, rfm22brcvr_id)) {
-			PIOS_Assert(0);
-		}
-
-		PIOS_HAL_SetReceiver(MANUALCONTROLSETTINGS_CHANNELGROUPS_OPENLRS, rfm22brcvr_rcvr_id);
-#endif /* PIOS_INCLUDE_OPENLRS_RCVR */
-	} else  {
-		// XXX NULL INIT OPENLRS
-		//
-		// When radio disabled, it is ok for init to fail. This allows
-		// boards without populating this component.
+	if (PIOS_RCVR_Init(&rfm22brcvr_rcvr_id, &pios_openlrs_rcvr_driver, rfm22brcvr_id)) {
+		PIOS_Assert(0);
 	}
+
+	PIOS_HAL_SetReceiver(MANUALCONTROLSETTINGS_CHANNELGROUPS_OPENLRS, rfm22brcvr_rcvr_id);
+#endif /* PIOS_INCLUDE_OPENLRS_RCVR */
 }
 #endif /* PIOS_INCLUDE_RFM22B */
 

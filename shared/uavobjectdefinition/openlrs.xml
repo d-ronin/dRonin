@@ -5,6 +5,14 @@
     <logging updatemode="manual" period="0"/>
     <telemetrygcs acked="true" updatemode="onchange" period="0"/>
     <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="Disabled" elements="1" name="role" type="enum" units="">
+      <description>Whether to be a receiver or transmitter</description>
+      <options>
+        <option>Disabled</option>
+        <option>Rx</option>
+        <option>Tx</option>
+      </options>
+    </field>
     <field defaultvalue="0" elements="1" name="version" type="uint8" units="">
       <description>Version</description>
     </field>

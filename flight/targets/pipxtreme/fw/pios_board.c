@@ -164,7 +164,7 @@ void PIOS_Board_Init(void)
 
 	// Since we don't expose the ModuleSettings object from TauLink to the GCS
 	// we just map the baud rate from HwTauLink into this object
-	PIOS_HAL_ConfigureRFM22B(hwTauLink.Radio, pios_spi_rfm22b_id,
+	PIOS_HAL_ConfigureRFM22B(pios_spi_rfm22b_id,
 			bdinfo->board_type,
 			bdinfo->board_rev,
 			hwTauLink.RfBand, NULL, NULL);	/* XXX */

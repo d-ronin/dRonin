@@ -427,8 +427,7 @@ void PIOS_Board_Init(void) {
 			(void) 0;
 			const struct pios_openlrs_cfg *openlrs_cfg =PIOS_BOARD_HW_DEFS_GetOpenLRSCfg(bdinfo->board_rev);
 
-			PIOS_HAL_ConfigureRFM22B(hwRevoMini.Radio,
-					pios_spi_telem_flash_id,
+			PIOS_HAL_ConfigureRFM22B(pios_spi_telem_flash_id,
 					bdinfo->board_type, bdinfo->board_rev,
 					hwRevoMini.RfBand,
 					openlrs_cfg,

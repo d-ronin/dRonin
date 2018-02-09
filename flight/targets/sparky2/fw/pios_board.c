@@ -450,10 +450,9 @@ void PIOS_Board_Init(void) {
 
 	const struct pios_openlrs_cfg *openlrs_cfg = PIOS_BOARD_HW_DEFS_GetOpenLRSCfg(bdinfo->board_rev);
 
-	PIOS_HAL_ConfigureRFM22B(hwSparky2.Radio, pios_spi_telem_flash_id,
+	PIOS_HAL_ConfigureRFM22B(pios_spi_telem_flash_id,
 			bdinfo->board_type, bdinfo->board_rev,
 			hwSparky2.RfBand, openlrs_cfg, &openlrs_handle);
-
 #endif /* PIOS_INCLUDE_OPENLRS */
 
 	/* Configure the receiver port*/
