@@ -52,6 +52,7 @@ public:
     virtual QString getConnectionDiagram();
     virtual QWidget *getBoardConfiguration(QWidget *parent, bool connected);
     virtual bool hasAnnunciator(AnnunciatorType annunc);
+    virtual int onBoardRgbLeds() const override { return 1; }
 
 private:
     UAVObjectManager *uavoManager;

@@ -64,6 +64,10 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent)
     ui->cbTxPid->setDisabled(true);
     ui->cbCameraStab->setDisabled(true);
 
+    // This will be un-hidden as required by boards, but keep the unformatted string for later
+    ui->lblOnBoardLeds->setVisible(false);
+    ui->lblOnBoardLeds->setProperty("format", QVariant::fromValue(ui->lblOnBoardLeds->text()));
+
     // Connect auto-cell detection logic
     connect(ui->gbAutoCellDetection, &QGroupBox::toggled, this,
             &ConfigModuleWidget::autoCellDetectionToggled);
@@ -550,6 +554,14 @@ void ConfigModuleWidget::updateAnnunciatorTab()
             else
                 qWarning() << "Failed to get widget:" << name.arg(annunc.widgetName);
         }
+    }
+
+    // tell the user if some of the LEDs are on the PCB
+    const int onBoard = board->onBoardRgbLeds();
+    ui->lblOnBoardLeds->setVisible(onBoard > 0);
+    if (onBoard > 0) {
+        ui->lblOnBoardLeds->setText(
+                    ui->lblOnBoardLeds->property("format").toString().arg(onBoard));
     }
 }
 
