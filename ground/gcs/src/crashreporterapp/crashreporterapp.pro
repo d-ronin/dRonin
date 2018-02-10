@@ -25,13 +25,14 @@ RESOURCES += \
 # TODO: should really use the GCS revision rather than crashreporterapp
 # (it is possible to build it seperately, then the results are misleading)
 GIT_COMMIT = $$system(git rev-parse -q --short HEAD)
-GIT_BRANCH = $$system(git for-each-ref --count=1 --format=$$system_quote(%(refname:strip=2)) --contains HEAD refs/heads)
-GIT_TAG    = $$system(git for-each-ref --count=1 --format=$$system_quote(%(refname:strip=2)) --points-at HEAD refs/tags)
-GIT_DIFF   = $$system(git status --porcelain)
+GIT_BRANCH = $$system(git symbolic-ref -q --short HEAD)
+GIT_TAG    = $$system(git name-rev --tags --name-only --no-undefined HEAD 2>/dev/null)
 GIT_DIRTY  = true
-isEmpty(GIT_DIFF): GIT_DIRTY = false
+system(git diff-index --quiet HEAD --): GIT_DIRTY = false
 
-DEFINES += GIT_COMMIT=\\\"$$GIT_COMMIT\\\" \
-           GIT_BRANCH=\\\"$$GIT_BRANCH\\\" \
-           GIT_TAG=\\\"$$GIT_TAG\\\" \
-           GIT_DIRTY=\\\"$$GIT_DIRTY\\\"
+VERSION_INFO = $$cat($$system_path($$PWD/version.template.h), blob)
+VERSION_INFO = $$replace(VERSION_INFO, __COMMIT__, $$GIT_COMMIT)
+VERSION_INFO = $$replace(VERSION_INFO, __BRANCH__, $$GIT_BRANCH)
+VERSION_INFO = $$replace(VERSION_INFO, __TAG__, $$GIT_TAG)
+VERSION_INFO = $$replace(VERSION_INFO, __DIRTY__, $$GIT_DIRTY)
+write_file($$OUT_PWD/version.h, VERSION_INFO)
