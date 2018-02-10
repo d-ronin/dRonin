@@ -650,9 +650,11 @@ static bool disarming_position(ManualControlCommandData * cmd, ManualControlSett
 	case MANUALCONTROLSETTINGS_ARMING_YAWRIGHTTHROTTLE:
 		return low_throt && cmd->Yaw < -ARMED_THRESHOLD;
 	case MANUALCONTROLSETTINGS_ARMING_CORNERSTHROTTLE:
-		return low_throt && (
-			(cmd->Yaw > ARMED_THRESHOLD || cmd->Yaw < -ARMED_THRESHOLD) &&
-			(cmd->Roll > ARMED_THRESHOLD || cmd->Roll < -ARMED_THRESHOLD) );
+		/* Don't handle this here; it's handled in arming_position
+		 * because it's a toggle.
+		 */
+		return false;
+
 	case MANUALCONTROLSETTINGS_ARMING_SWITCH:
 	case MANUALCONTROLSETTINGS_ARMING_SWITCHTHROTTLE:
 		return cmd->ArmSwitch != MANUALCONTROLCOMMAND_ARMSWITCH_ARMED;
@@ -796,6 +798,7 @@ static void process_transmitter_events(ManualControlCommandData * cmd, ManualCon
 
 	if (disarm_commanded(cmd, settings, low_throt)) {
 		/* Separate timer from the above */
+
 		control_status = STATUS_DISARM;
 		return;
 	} else if (arming_position(cmd, settings, low_throt)) {
@@ -811,6 +814,8 @@ static void process_transmitter_events(ManualControlCommandData * cmd, ManualCon
 		if (settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCH ||
 				settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCHTHROTTLE) {
 			control_status = STATUS_ARM_VALID;
+		} if (settings->Arming == MANUALCONTROLSETTINGS_ARMING_CORNERSTHROTTLE) {
+			control_status = STATUS_TOGGLE_ARM;
 		} else {
 			control_status = STATUS_ARM_INVALID;
 		}
