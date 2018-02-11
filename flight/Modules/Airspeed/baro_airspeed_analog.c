@@ -124,6 +124,10 @@ void baro_airspeedGetAnalog(BaroAirspeedData *baroAirspeedData, uint32_t *lastSy
 		//not. This is something that will have to change on the ADC side of things.
 		baroAirspeedData->SensorValue=PIOS_MPXV5004_Measure(airspeedADCPin);
 
+	} else if (airspeedSensorType == AIRSPEEDSETTINGS_AIRSPEEDSENSORTYPE_RAWANALOG) {
+		// will return raw ADC reading in mV (typically in range [0, 3300])
+		calibratedAirspeed = PIOS_ADC_GetChannelRaw(airspeedADCPin);
+		baroAirspeedData->SensorValue = calibratedAirspeed;
 	}
 	//Filter CAS
 	float alpha=SAMPLING_DELAY_MS_MPXV/(SAMPLING_DELAY_MS_MPXV + ANALOG_BARO_AIRSPEED_TIME_CONSTANT_MS); //Low pass filter.

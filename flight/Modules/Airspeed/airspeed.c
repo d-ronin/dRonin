@@ -60,7 +60,7 @@
  #define GPS_AIRSPEED_PRESENT
 #endif
 
-#if defined (PIOS_INCLUDE_MPXV5004) || defined (PIOS_INCLUDE_MPXV7002) || defined (PIOS_INCLUDE_ETASV3)
+#if defined (PIOS_INCLUDE_MPXV5004) || defined (PIOS_INCLUDE_MPXV7002) || defined (PIOS_INCLUDE_ETASV3) || defined(PIOS_INCLUDE_ADC)
  #define BARO_AIRSPEED_PRESENT
 #endif
 
@@ -371,7 +371,7 @@ void baro_airspeedGet(BaroAirspeedData *baroAirspeedData, uint32_t *lastSysTime,
 	switch (airspeedSensorType) {
 		case AIRSPEEDSETTINGS_AIRSPEEDSENSORTYPE_DIYDRONESMPXV7002:
 		case AIRSPEEDSETTINGS_AIRSPEEDSENSORTYPE_DIYDRONESMPXV5004:
-			//MPXV5004 and MPXV7002 sensors
+		case AIRSPEEDSETTINGS_AIRSPEEDSENSORTYPE_RAWANALOG:
 			baro_airspeedGetAnalog(baroAirspeedData, lastSysTime, airspeedSensorType, airspeedADCPin);
 			break;
 		case AIRSPEEDSETTINGS_AIRSPEEDSENSORTYPE_EAGLETREEAIRSPEEDV3:
