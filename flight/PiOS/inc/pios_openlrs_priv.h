@@ -189,7 +189,6 @@ struct pios_openlrs_dev {
 	uint32_t numberOfLostPackets;
 	uint16_t lastAFCCvalue;
 	uint32_t lastRSSITimeUs;
-	bool willhop;
 	uint32_t nextBeaconTimeMs;
 	uint32_t linkLossTimeMs;
 	uint32_t failsafeDelay;
