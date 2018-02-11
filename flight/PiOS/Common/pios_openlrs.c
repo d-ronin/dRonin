@@ -121,8 +121,8 @@ static const uint8_t OUT_FF[64] = {
 
 const uint8_t default_hop_list[] = {DEFAULT_HOPLIST};
 
-const uint32_t packet_advance_time_us = 1500;
 const uint32_t packet_timeout_us = 1000;
+const uint32_t packet_rssi_time_us = 1500;
 
 const struct rfm22_modem_regs bind_params =
 { 9600, 0x05, 0x40, 0x0a, 0xa1, 0x20, 0x4e, 0xa5, 0x00, 0x20, 0x24, 0x4e, 0xa5, 0x2c, 0x23, 0x30 };
@@ -188,7 +188,7 @@ static uint8_t getPacketSize(struct bind_data *bd)
 	return pktsizes[(bd->flags & 0x07)];
 }
 
-static uint32_t getInterval(struct bind_data *bd)
+static uint32_t getPacketActiveTime(struct bind_data *bd)
 {
 	// Sending a x byte packet on bps y takes about (emperical)
 	// usec = (x + 15) * 8200000 / baudrate
@@ -202,9 +202,12 @@ static uint32_t getInterval(struct bind_data *bd)
 	// considerations, so leave them alone :D
 #define BYTES_AT_BAUD_TO_USEC(bytes, bps, div) ((uint32_t)((bytes) + (div ? 20 : 15)) * 8 * 1025000L / (uint32_t)(bps))
 
-	uint32_t ret;
+	return (BYTES_AT_BAUD_TO_USEC(getPacketSize(bd), modem_params[bd->modem_params].bps, bd->flags&DIVERSITY_ENABLED) + 2000);
+}
 
-	ret = (BYTES_AT_BAUD_TO_USEC(getPacketSize(bd), modem_params[bd->modem_params].bps, bd->flags&DIVERSITY_ENABLED) + 2000);
+static uint32_t getInterval(struct bind_data *bd)
+{
+	uint32_t ret = getPacketActiveTime(bd);
 
 	if (bd->flags & TELEMETRY_MASK) {
 		ret += (BYTES_AT_BAUD_TO_USEC(TELEMETRY_PACKETSIZE, modem_params[bd->modem_params].bps, bd->flags&DIVERSITY_ENABLED) + 1000);
@@ -237,6 +240,7 @@ static void packChannels(uint8_t config, int16_t *ppm, uint8_t *p)
 	/* "Switch" channel */
 	if (config & 1) {
 		/* XXX TODO implement switch */
+		*(p++) = 0;
 	}
 
 }
@@ -246,26 +250,27 @@ static void unpackChannels(uint8_t config, int16_t *ppm, uint8_t *p)
 {
 	/* Ordinary channels are 4ch packed strangely in 5 bytes */
 	for (int i = 0; i<=(config/2); i++) {
-		ppm[0] = (((uint16_t)p[4] & 0x03) << 8) + p[0];
-		ppm[1] = (((uint16_t)p[4] & 0x0c) << 6) + p[1];
-		ppm[2] = (((uint16_t)p[4] & 0x30) << 4) + p[2];
-		ppm[3] = (((uint16_t)p[4] & 0xc0) << 2) + p[3];
+		ppm[0] = ((p[4] << 8) & 0x300) | p[0];
+		ppm[1] = ((p[4] << 6) & 0x300) | p[1];
+		ppm[2] = ((p[4] << 4) & 0x300) | p[2];
+		ppm[3] = ((p[4] << 2) & 0x300) | p[3];
 		p += 5;
 		ppm += 4;
 	}
+
 	if (config & 1) { // 4ch packed in 1 byte;
-		ppm[0] = (((uint16_t)p[0] >> 6) & 3) * 333 + 12;
-		ppm[1] = (((uint16_t)p[0] >> 4) & 3) * 333 + 12;
-		ppm[2] = (((uint16_t)p[0] >> 2) & 3) * 333 + 12;
-		ppm[3] = (((uint16_t)p[0] >> 0) & 3) * 333 + 12;
+		ppm[0] = ((p[0] >> 6) & 3) * 333 + 12;
+		ppm[1] = ((p[0] >> 4) & 3) * 333 + 12;
+		ppm[2] = ((p[0] >> 2) & 3) * 333 + 12;
+		ppm[3] = ((p[0] >> 0) & 3) * 333 + 12;
 	}
 }
 
 //! Apply the OpenLRS rescaling to the channels
-static void rescaleChannels(int16_t PPM[])
+static void rescaleChannels(int16_t control[])
 {
 	for (uint32_t i = 0; i < OPENLRS_PPM_NUM_CHANNELS; i++) {
-		int16_t x = PPM[i];
+		int16_t x = control[i];
 		int16_t ret;
 
 		if (x < 12) {
@@ -278,7 +283,7 @@ static void rescaleChannels(int16_t PPM[])
 			ret = 2192;
 		}
 
-		PPM[i] = ret;
+		control[i] = ret;
 	}
 }
 
@@ -572,7 +577,108 @@ static void pios_openlrs_setup(pios_openlrs_t openlrs_dev, bool bind)
 	DEBUG_PRINTF(2,"OpenLRSng RX setup complete\r\n");
 }
 
-static void pios_openlrs_rx_step(pios_openlrs_t openlrs_dev)
+static void pios_openlrs_rx_frame(pios_openlrs_t openlrs_dev)
+{
+	uint8_t *tx_buf = openlrs_dev->tx_buf;
+
+	DEBUG_PRINTF(2,"Packet Received. Dt=%d\r\n", timeUs-openlrs_dev->lastPacketTimeUs);
+
+	// Read the packet from RFM22b
+	rfm22_rx_packet(openlrs_dev);
+
+	openlrs_dev->lastAFCCvalue = rfm22_get_afcc(openlrs_dev);
+
+#if defined(PIOS_LED_LINK)
+	PIOS_ANNUNC_Toggle(PIOS_LED_LINK);
+#endif /* PIOS_LED_LINK */
+
+	openlrs_status.LinkQuality <<= 1;
+	openlrs_status.LinkQuality |= 1;
+
+	if ((openlrs_dev->rx_buf[0] & 0x3e) == 0x00) {
+		// This flag indicates receiving control data
+
+		unpackChannels(openlrs_dev->bind_data.flags & 7, openlrs_dev->ppm, openlrs_dev->rx_buf + 1);
+		rescaleChannels(openlrs_dev->ppm);
+
+		// Call the control received callback if it's available.
+		if (openlrs_dev->openlrs_rcvr_id) {
+#if defined(PIOS_INCLUDE_OPENLRS_RCVR)
+			PIOS_OpenLRS_Rcvr_UpdateChannels(openlrs_dev->openlrs_rcvr_id, openlrs_dev->ppm);
+#endif
+		}
+	} else {
+		// Not control data. Push into serial RX buffer.
+		if ((openlrs_dev->rx_buf[0] & 0x38) == 0x38) {
+			if ((openlrs_dev->rx_buf[0] ^ tx_buf[0]) & 0x80) {
+				// We got new data... (not retransmission)
+				tx_buf[0] ^= 0x80; // signal that we got it
+				bool rx_need_yield;
+				uint8_t data_len = openlrs_dev->rx_buf[0] & 7;
+				if (openlrs_dev->rx_in_cb && (data_len > 0)) {
+					(openlrs_dev->rx_in_cb)(openlrs_dev->rx_in_context, &openlrs_dev->rx_buf[1], data_len, NULL,
+							&rx_need_yield);
+				}
+			}
+		}
+	}
+
+	// Flag to indicate ever got a link
+	openlrs_dev->link_acquired |= true;
+	openlrs_status.FailsafeActive = OPENLRSSTATUS_FAILSAFEACTIVE_INACTIVE;
+	openlrs_dev->beacon_armed = false; // when receiving packets make sure beacon cannot emit
+
+	// When telemetry is enabled we ack packets and send info about FC back
+	if (openlrs_dev->bind_data.flags & TELEMETRY_MASK) {
+		if ((tx_buf[0] ^ openlrs_dev->rx_buf[0]) & 0x40) {
+			// resend last message
+		} else {
+			tx_buf[0] &= 0xc0;
+			tx_buf[0] ^= 0x40; // swap sequence as we have new data
+
+			// Check for data on serial link
+			uint8_t bytes = 0;
+			// Append data from the com interface if applicable.
+			if (openlrs_dev->tx_out_cb) {
+				// Try to get some data to send
+				bool need_yield = false;
+				bytes = (openlrs_dev->tx_out_cb)(openlrs_dev->tx_out_context, &tx_buf[1], 8, NULL, &need_yield);
+			}
+
+			if (bytes > 0) {
+				tx_buf[0] |= (0x37 + bytes);
+			} else {
+				// tx_buf[0] lowest 6 bits left at 0
+				tx_buf[1] = openlrs_status.LastRSSI;
+				if (FlightBatteryStateHandle()) {
+					FlightBatteryStateData bat;
+					FlightBatteryStateGet(&bat);
+					// FrSky protocol normally uses 3.3V at 255 but
+					// divider from display can be set internally
+					tx_buf[2] = (uint8_t) (bat.Voltage / 25.0f * 255);
+					tx_buf[3] = (uint8_t) (bat.Current / 60.0f * 255);
+				} else {
+					tx_buf[2] = 0; // these bytes carry analog info. package
+					tx_buf[3] = 0; // battery here
+				}
+				tx_buf[4] = (openlrs_dev->lastAFCCvalue >> 8);
+				tx_buf[5] = openlrs_dev->lastAFCCvalue & 0xff;
+				tx_buf[6] = countSetBits(openlrs_status.LinkQuality & 0x7fff);
+			}
+		}
+
+		// This will block until sent
+		rfm22_tx_packet(openlrs_dev, tx_buf, 9);
+	}
+
+	// Once a packet has been processed, flip back into receiving mode
+	rfm22_rx_reset(openlrs_dev);
+
+	openlrs_dev->willhop = 1;
+}
+
+static void pios_openlrs_rx_step(pios_openlrs_t openlrs_dev,
+		bool have_frame)
 {
 	uint32_t timeUs, timeMs;
 
@@ -581,186 +687,70 @@ static void pios_openlrs_rx_step(pios_openlrs_t openlrs_dev)
 	PIOS_WDG_UpdateFlag(PIOS_WDG_RFM22B);
 #endif /* PIOS_WDG_RFM22B */
 
-	if (rfm22_read_claim(openlrs_dev, 0x0C) == 0) {     // detect the locked module and reboot
-		DEBUG_PRINTF(2,"OLRS ERR: RX hang\r\n");
-		rfm22_init(openlrs_dev, false);
-		rfm22_to_rx_mode(openlrs_dev);
-	}
-
 	timeUs = micros();
 	timeMs = millis();
 
 	DEBUG_PRINTF(2,"Time: %d\r\n", timeUs);
 
-	uint8_t *tx_buf = openlrs_dev->tx_buf;  // convenient variable
-
-	if (openlrs_dev->rf_mode == Received) {
-
-		DEBUG_PRINTF(2,"Packet Received. Dt=%d\r\n", timeUs-openlrs_dev->lastPacketTimeUs);
-
-		// Read the packet from RFM22b
-		rfm22_rx_packet(openlrs_dev);
-
-		openlrs_dev->lastAFCCvalue = rfm22_get_afcc(openlrs_dev);
-
-#if defined(PIOS_LED_LINK)
-		PIOS_ANNUNC_Toggle(PIOS_LED_LINK);
-#endif /* PIOS_LED_LINK */
-
+	// For missing packets to properly trigger a well timed
+	// channel hop, this method should be called at the
+	// appropriate time after the packet was expected to trigger
+	// this path.
+	if (have_frame) {
 		openlrs_dev->lastPacketTimeUs = timeUs;
 		openlrs_dev->numberOfLostPackets = 0;
+	} else if (openlrs_dev->numberOfLostPackets < openlrs_dev->hopcount) {
+		DEBUG_PRINTF(2,"OLRS WARN: Lost packet: %d\r\n", openlrs_dev->numberOfLostPackets);
+		// we lost packet, hop to next channel
 		openlrs_status.LinkQuality <<= 1;
-		openlrs_status.LinkQuality |= 1;
-
-		if ((openlrs_dev->rx_buf[0] & 0x3e) == 0x00) {
-			// This flag indicates receiving PPM data
-
-			unpackChannels(openlrs_dev->bind_data.flags & 7, openlrs_dev->ppm, openlrs_dev->rx_buf + 1);
-			rescaleChannels(openlrs_dev->ppm);
-
-			// Call the PPM received callback if it's available.
-			if (openlrs_dev->openlrs_rcvr_id) {
-#if defined(PIOS_INCLUDE_OPENLRS_RCVR)
-				PIOS_OpenLRS_Rcvr_UpdateChannels(openlrs_dev->openlrs_rcvr_id, openlrs_dev->ppm);
-#endif
-			}
-		} else {
-			// Not PPM data. Push into serial RX buffer.
-			if ((openlrs_dev->rx_buf[0] & 0x38) == 0x38) {
-				if ((openlrs_dev->rx_buf[0] ^ tx_buf[0]) & 0x80) {
-					// We got new data... (not retransmission)
-					tx_buf[0] ^= 0x80; // signal that we got it
-					bool rx_need_yield;
-					uint8_t data_len = openlrs_dev->rx_buf[0] & 7;
-					if (openlrs_dev->rx_in_cb && (data_len > 0)) {
-						(openlrs_dev->rx_in_cb)(openlrs_dev->rx_in_context, &openlrs_dev->rx_buf[1], data_len, NULL,
-								&rx_need_yield);
-					}
-				}
-			}
-		}
-
-		// Flag to indicate ever got a link
-		openlrs_dev->link_acquired |= true;
-		openlrs_status.FailsafeActive = OPENLRSSTATUS_FAILSAFEACTIVE_INACTIVE;
-		openlrs_dev->beacon_armed = false; // when receiving packets make sure beacon cannot emit
-
-		// When telemetry is enabled we ack packets and send info about FC back
-		if (openlrs_dev->bind_data.flags & TELEMETRY_MASK) {
-			if ((tx_buf[0] ^ openlrs_dev->rx_buf[0]) & 0x40) {
-				// resend last message
-			} else {
-				tx_buf[0] &= 0xc0;
-				tx_buf[0] ^= 0x40; // swap sequence as we have new data
-
-				// Check for data on serial link
-				uint8_t bytes = 0;
-				// Append data from the com interface if applicable.
-				if (openlrs_dev->tx_out_cb) {
-					// Try to get some data to send
-					bool need_yield = false;
-					bytes = (openlrs_dev->tx_out_cb)(openlrs_dev->tx_out_context, &tx_buf[1], 8, NULL, &need_yield);
-				}
-
-				if (bytes > 0) {
-					tx_buf[0] |= (0x37 + bytes);
-				} else {
-					// tx_buf[0] lowest 6 bits left at 0
-					tx_buf[1] = openlrs_status.LastRSSI;
-					if (FlightBatteryStateHandle()) {
-						FlightBatteryStateData bat;
-						FlightBatteryStateGet(&bat);
-						// FrSky protocol normally uses 3.3V at 255 but
-						// divider from display can be set internally
-						tx_buf[2] = (uint8_t) (bat.Voltage / 25.0f * 255);
-						tx_buf[3] = (uint8_t) (bat.Current / 60.0f * 255);
-					} else {
-						tx_buf[2] = 0; // these bytes carry analog info. package
-						tx_buf[3] = 0; // battery here
-					}
-					tx_buf[4] = (openlrs_dev->lastAFCCvalue >> 8);
-					tx_buf[5] = openlrs_dev->lastAFCCvalue & 0xff;
-					tx_buf[6] = countSetBits(openlrs_status.LinkQuality & 0x7fff);
-				}
-			}
-
-			// This will block until sent
-			rfm22_tx_packet(openlrs_dev, tx_buf, 9);
-		}
-
-		// Once a packet has been processed, flip back into receiving mode
-		rfm22_rx_reset(openlrs_dev);
-
 		openlrs_dev->willhop = 1;
+		if (openlrs_dev->numberOfLostPackets == 0) {
+			openlrs_dev->linkLossTimeMs = timeMs;
+			openlrs_dev->nextBeaconTimeMs = 0;
+		}
+		openlrs_dev->numberOfLostPackets++;
+		openlrs_dev->lastPacketTimeUs += getInterval(&openlrs_dev->bind_data);
+		openlrs_dev->willhop = 1;
+	} else if ((openlrs_dev->numberOfLostPackets >= openlrs_dev->hopcount) &&
+			(PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs) >
+			(getInterval(&openlrs_dev->bind_data) * (openlrs_dev->hopcount + 1)))) {
+		DEBUG_PRINTF(2,"ORLS WARN: Trying to sync\r\n");
+		// hop slowly to allow resync with TX
+		openlrs_status.LinkQuality = 0;
+		openlrs_dev->willhop = 1;
+		openlrs_dev->lastPacketTimeUs = timeUs;
 	}
 
-	if (openlrs_dev->link_acquired) {
-		// For missing packets to be properly trigger a well timed channel hop, this method should be called fairly close (but not sooner)
-		// than 1ms after the packet was expected to trigger this path
-		if ((openlrs_dev->numberOfLostPackets < openlrs_dev->hopcount) &&
-				(PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs) >
-				(getInterval(&openlrs_dev->bind_data) + packet_timeout_us))) {
-			DEBUG_PRINTF(2,"OLRS WARN: Lost packet: %d\r\n", openlrs_dev->numberOfLostPackets);
-			// we lost packet, hop to next channel
-			openlrs_status.LinkQuality <<= 1;
-			openlrs_dev->willhop = 1;
-			if (openlrs_dev->numberOfLostPackets == 0) {
-				openlrs_dev->linkLossTimeMs = timeMs;
-				openlrs_dev->nextBeaconTimeMs = 0;
-			}
-			openlrs_dev->numberOfLostPackets++;
-			openlrs_dev->lastPacketTimeUs += getInterval(&openlrs_dev->bind_data);
-			openlrs_dev->willhop = 1;
-		} else if ((openlrs_dev->numberOfLostPackets >= openlrs_dev->hopcount) &&
-				(PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs) >
-				(getInterval(&openlrs_dev->bind_data) * openlrs_dev->hopcount))) {
-			DEBUG_PRINTF(2,"ORLS WARN: Trying to resync\r\n");
-			// hop slowly to allow resync with TX
-			openlrs_status.LinkQuality = 0;
-			openlrs_dev->willhop = 1;
-			openlrs_dev->lastPacketTimeUs = timeUs;
-		}
-
-		if (openlrs_dev->numberOfLostPackets) {
-
+	if (openlrs_dev->link_acquired && openlrs_dev->numberOfLostPackets) {
 #if defined(PIOS_LED_LINK)
-			PIOS_ANNUNC_Off(PIOS_LED_LINK);
+		PIOS_ANNUNC_Off(PIOS_LED_LINK);
 #endif /* PIOS_LED_LINK */
 
-			if (openlrs_dev->failsafeDelay &&
-					(openlrs_status.FailsafeActive == OPENLRSSTATUS_FAILSAFEACTIVE_INACTIVE) &&
-					((timeMs - openlrs_dev->linkLossTimeMs) > ((uint32_t) openlrs_dev->failsafeDelay))) {
-				DEBUG_PRINTF(2,"Failsafe activated: %d %d\r\n", timeMs, openlrs_dev->linkLossTimeMs);
-				openlrs_status.FailsafeActive = OPENLRSSTATUS_FAILSAFEACTIVE_ACTIVE;
-				//failsafeApply();
-				openlrs_dev->nextBeaconTimeMs = (timeMs + 1000UL * openlrs_dev->beacon_period) | 1; //beacon activating...
-			}
+		if (openlrs_dev->failsafeDelay &&
+				(openlrs_status.FailsafeActive == OPENLRSSTATUS_FAILSAFEACTIVE_INACTIVE) &&
+				((timeMs - openlrs_dev->linkLossTimeMs) > ((uint32_t) openlrs_dev->failsafeDelay))) {
+			DEBUG_PRINTF(2,"Failsafe activated: %d %d\r\n", timeMs, openlrs_dev->linkLossTimeMs);
+			openlrs_status.FailsafeActive = OPENLRSSTATUS_FAILSAFEACTIVE_ACTIVE;
 
-			if ((openlrs_dev->beacon_frequency) && (openlrs_dev->nextBeaconTimeMs) &&
-					((timeMs - openlrs_dev->nextBeaconTimeMs) < 0x80000000)) {
-
-				// Indicate that the beacon is now active so we can trigger extra ones below
-				openlrs_dev->beacon_armed = true;
-
-				DEBUG_PRINTF(2,"Beacon time: %d\r\n", openlrs_dev->nextBeaconTimeMs);
-				// Only beacon when disarmed
-				uint8_t armed;
-				FlightStatusArmedGet(&armed);
-				if (armed == FLIGHTSTATUS_ARMED_DISARMED) {
-					rfm22_beacon_send(openlrs_dev, false);
-					rfm22_init(openlrs_dev, false);
-					rfm22_rx_reset(openlrs_dev);
-					openlrs_dev->nextBeaconTimeMs = (timeMs +  1000UL * openlrs_dev->beacon_period) | 1; // avoid 0 in time
-				}
-			}
+			openlrs_dev->nextBeaconTimeMs = (timeMs + 1000UL * openlrs_dev->beacon_period) | 1; //beacon activating...
 		}
 
-	} else {
-		// Waiting for first packet, hop slowly
-		if (PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs) > (getInterval(&openlrs_dev->bind_data) * (openlrs_dev->hopcount + 1))) {
-			DEBUG_PRINTF(3,"Trying to get first packet\r\n");
-			openlrs_dev->lastPacketTimeUs = timeUs;
-			openlrs_dev->willhop = 1;
+		if ((openlrs_dev->beacon_frequency) && (openlrs_dev->nextBeaconTimeMs) &&
+				((timeMs - openlrs_dev->nextBeaconTimeMs) < 0x80000000)) {
+
+			// Indicate that the beacon is now active so we can trigger extra ones below
+			openlrs_dev->beacon_armed = true;
+
+			DEBUG_PRINTF(2,"Beacon time: %d\r\n", openlrs_dev->nextBeaconTimeMs);
+			// Only beacon when disarmed
+			uint8_t armed;
+			FlightStatusArmedGet(&armed);
+			if (armed == FLIGHTSTATUS_ARMED_DISARMED) {
+				rfm22_beacon_send(openlrs_dev, false);
+				rfm22_init(openlrs_dev, false);
+				rfm22_rx_reset(openlrs_dev);
+				openlrs_dev->nextBeaconTimeMs = (timeMs +  1000UL * openlrs_dev->beacon_period) | 1; // avoid 0 in time
+			}
 		}
 	}
 
@@ -826,14 +816,14 @@ uint8_t PIOS_OpenLRS_RSSI_Get(void)
 }
 
 /*****************************************************************************
-* PPM Code
+* control Code
 *****************************************************************************/
 
 /**
- * Register a OpenLRS_Rcvr interface to inform of PPM packets
+ * Register a OpenLRS_Rcvr interface to inform of control packets
  *
  * @param[in] rfm22b_dev     The RFM22B device ID.
- * @param[in] rfm22b_rcvr_id The receiver device to inform of PPM packets
+ * @param[in] rfm22b_rcvr_id The receiver device to inform of control packets
  */
 void PIOS_OpenLRS_RegisterRcvr(pios_openlrs_t openlrs_dev,
 		uintptr_t openlrs_rcvr_id)
@@ -886,7 +876,7 @@ int32_t PIOS_OpenLRS_Init(pios_openlrs_t *openlrs_id,
 	openlrs_dev->rx_in_cb = NULL;
 	openlrs_dev->tx_out_cb = NULL;
 
-	// Initialize the "PPM" callback.
+	// Initialize the control callback.
 	openlrs_dev->openlrs_rcvr_id = 0;
 
 	OpenLRSInitialize();
@@ -963,6 +953,18 @@ static void pios_openlrs_tx_task(void *parameters)
 	}
 }
 
+static bool wait_interrupt(pios_openlrs_t openlrs_dev, int delay_us)
+{
+	/* Round up-- always better to do these things "late" */
+	int delay_ms = (delay_us + 999) / 1000;
+
+	if (delay_ms <= 0) {
+		delay_ms = 1;
+	}
+
+	return PIOS_Semaphore_Take(openlrs_dev->sema_isr, delay_ms);
+}
+
 /**
  * The task that controls the radio state machine.
  *
@@ -987,12 +989,18 @@ static void pios_openlrs_rx_task(void *parameters)
 
 	DEBUG_PRINTF(2, "Setup complete\r\n");
 
-	bool rssi_sampled = false;
 	while (1) {
 #if defined(PIOS_INCLUDE_WDG) && defined(PIOS_WDG_RFM22B)
 		// Update the watchdog timer
 		PIOS_WDG_UpdateFlag(PIOS_WDG_RFM22B);
 #endif /* PIOS_WDG_RFM22B */
+
+		/* Hack-- detect a locked module and reset */
+		if (rfm22_read_claim(openlrs_dev, 0x0C) == 0) {
+			DEBUG_PRINTF(2,"OLRS ERR: RX hang\r\n");
+			rfm22_init(openlrs_dev, false);
+			rfm22_to_rx_mode(openlrs_dev);
+		}
 
 		/* This block of code determines the timing of when to call
 		 * the loop method. It reaches a bit into the internal state
@@ -1009,78 +1017,64 @@ static void pios_openlrs_rx_task(void *parameters)
 		 *     a packet was missing)
 		 */
 
-		uint32_t delay_ms = 0;
-
 		uint32_t time_since_packet_us = PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs);
 
-		uint32_t delay_us;
+		/* Schedule for a good time to sample RSSI */
+		uint32_t delay_us =
+			getPacketActiveTime(&openlrs_dev->bind_data) -
+			packet_rssi_time_us -
+			time_since_packet_us;
 
-		if (!rssi_sampled) {
-			// If we had not sampled RSSI yet, schedule a bit
-			// early to try and catch while "packet is in the air"
-			delay_us = getInterval(&openlrs_dev->bind_data) -
-				packet_advance_time_us -
-				time_since_packet_us;
+		DEBUG_PRINTF(3, "T1: %d\r\n", delay_us);
 
-			DEBUG_PRINTF(3, "T1: %d\r\n", delay_us);
-		} else {
-			// If we have sampled RSSI we want to schedule to
-			// hop when a packet has been missed
-			delay_us = getInterval(&openlrs_dev->bind_data) +
-				packet_timeout_us -
-				time_since_packet_us;
-			DEBUG_PRINTF(3, "T2: %d %d\r\n", delay_us,
-					time_since_packet_us);
+		bool have_interrupt = wait_interrupt(openlrs_dev, delay_us);
+
+		if (!have_interrupt) {
+			if (openlrs_dev->numberOfLostPackets < 2) {
+				openlrs_dev->lastRSSITimeUs =
+					openlrs_dev->lastPacketTimeUs;
+				openlrs_status.LastRSSI =
+					rfm22_get_rssi(openlrs_dev);
+
+				DEBUG_PRINTF(3,
+					"Sampled RSSI: %d %d\r\n",
+					openlrs_status.LastRSSI,
+					delay);
+			}
 		}
 
-		/* Round up-- always better to do these things "late" */
-		delay_ms = (delay_us + 999) / 1000;
+		time_since_packet_us = PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs);
 
-		// Maximum delay based on packet time
-		const uint32_t max_delay =
-			(getInterval(&openlrs_dev->bind_data) + packet_timeout_us) / 1000;
-		if (delay_ms > max_delay) delay_ms = max_delay;
+		// Now we want our timeout to be when a packet has been
+		// missed.
+		delay_us = getInterval(&openlrs_dev->bind_data) +
+			packet_timeout_us - time_since_packet_us;
+		DEBUG_PRINTF(3, "T2: %d %d\r\n", delay_us,
+				time_since_packet_us);
 
-		if (PIOS_Semaphore_Take(openlrs_dev->sema_isr, delay_ms) == false) {
-			if (!rssi_sampled) {
-				// We hit the timeout where it's time to
-				// sample RSSI.  (Only apply if we're not
-				// likely to be out of sync).
-				if (openlrs_dev->numberOfLostPackets < 2) {
-					openlrs_dev->lastRSSITimeUs =
-						openlrs_dev->lastPacketTimeUs;
-					openlrs_status.LastRSSI =
-						rfm22_get_rssi(openlrs_dev);
+		bool have_frame = false;
 
-					DEBUG_PRINTF(3,
-						"Sampled RSSI: %d %d\r\n",
-						openlrs_status.LastRSSI,
-						delay);
-				}
-			} else {
-				// We timed out because packet was missed
-				DEBUG_PRINTF(3,
-					"ISR Timeout. Missed packet: %d %d %d\r\n",
-					delay,
-					getInterval(&openlrs_dev->bind_data),
-					time_since_packet_us);
-
-				pios_openlrs_rx_step(openlrs_dev);
-			}
-
-			rssi_sampled = true;
-		} else {
+		if (have_interrupt ||
+				wait_interrupt(openlrs_dev, delay_us)) {
 			DEBUG_PRINTF(3, "ISR %d %d %d\r\n", delay,
 					getInterval(&openlrs_dev->bind_data),
 					time_since_packet_us);
 
 			// Process incoming data
-			pios_openlrs_rx_step(openlrs_dev);
+			pios_openlrs_rx_frame(openlrs_dev);
 
-			// When a packet has been received (processed below)
-			// indicate we need to sample a new RSSI
-			rssi_sampled = false;
+			have_frame = true;	// XXX more sanity check
+		} else {
+			// We timed out because packet was missed
+			DEBUG_PRINTF(3,
+				"ISR Timeout. Missed packet: %d %d %d\r\n",
+				delay,
+				getInterval(&openlrs_dev->bind_data),
+				time_since_packet_us);
 		}
+
+		// Select next channel, update timers, etc.
+		pios_openlrs_rx_step(openlrs_dev, have_frame);
 
 		DEBUG_PRINTF(3, "Processing time %d\r\n", PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs));
 	}
@@ -1136,7 +1130,7 @@ static pios_openlrs_t pios_openlrs_alloc(void)
 static bool pios_openlrs_validate(pios_openlrs_t openlrs_dev)
 {
 	return openlrs_dev != NULL
-	       && openlrs_dev->magic == PIOS_OPENLRS_DEV_MAGIC;
+		&& openlrs_dev->magic == PIOS_OPENLRS_DEV_MAGIC;
 }
 
 static void rfm22_set_channel(pios_openlrs_t openlrs_dev, uint8_t ch)
