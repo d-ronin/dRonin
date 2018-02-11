@@ -373,6 +373,9 @@ ConfigInputWidget::ConfigInputWidget(QWidget *parent)
                      << ManualControlSettings::CHANNELGROUPS_ACCESSORY1
                      << ManualControlSettings::CHANNELGROUPS_ACCESSORY2
                      << ManualControlSettings::CHANNELGROUPS_ARMING;
+
+    // force the initial tab
+    m_config->tabWidget->setCurrentIndex(0);
 }
 void ConfigInputWidget::resetTxControls()
 {
