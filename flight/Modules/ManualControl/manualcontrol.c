@@ -229,7 +229,8 @@ static void manualControlTask(void *parameters)
 				 */
 
 				if ((status == STATUS_ARM_INVALID) ||
-						(status == STATUS_ARM_VALID)) {
+						(status == STATUS_ARM_VALID) ||
+						(status == STATUS_TOGGLE_ARM)) {
 					GO_STATE(ARM_STATE_ARMING);
 				} else if ((status == STATUS_DISCONNECTED) ||
 						(status == STATUS_INVALID_FOR_DISARMED)) {
@@ -253,13 +254,15 @@ static void manualControlTask(void *parameters)
 				 */
 
 				if ((status != STATUS_ARM_INVALID) &&
-						(status != STATUS_ARM_VALID)) {
+						(status != STATUS_ARM_VALID) &&
+						(status != STATUS_TOGGLE_ARM)) {
 					GO_STATE(ARM_STATE_SAFETY);
 				} else if (PIOS_Thread_Period_Elapsed(arm_state_time, arm_time)) {
 					if (status == STATUS_ARM_VALID) {
 						GO_STATE(ARM_STATE_ARMED);
 					} else {
-						/* Must be STATUS_ARM_INVALID */
+						/* Must be STATUS_ARM_INVALID
+						 * or STATUS_TOGGLE_ARM */
 						GO_STATE(ARM_STATE_HOLDING);
 					}
 				}
@@ -276,7 +279,8 @@ static void manualControlTask(void *parameters)
 				if ((status == STATUS_ARM_VALID) ||
 						(status == STATUS_NORMAL)) {
 					GO_STATE(ARM_STATE_ARMED);
-				} else if (status == STATUS_ARM_INVALID) {
+				} else if ((status == STATUS_ARM_INVALID) ||
+						(status == STATUS_TOGGLE_ARM)) {
 					/* TODO: could consider having a maximum
 					 * time before we go to safety */
 				} else {
@@ -288,7 +292,8 @@ static void manualControlTask(void *parameters)
 				/* "DISARM" -> SAFETY (lower layer's job to check
 				 * 	DisarmTime)
 				 */
-				if (status == STATUS_DISARM) {
+				if (status == STATUS_DISARM ||
+						status == STATUS_TOGGLE_ARM) {
 					GO_STATE(ARM_STATE_SAFETY);
 				}
 
