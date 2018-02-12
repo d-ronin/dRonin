@@ -1924,21 +1924,21 @@
                 </property>
                </widget>
               </item>
-              <item row="1" column="0">
+              <item row="2" column="0">
                <widget class="QLabel" name="label_15">
                 <property name="text">
                  <string>Alarm Group Begin:</string>
                 </property>
                </widget>
               </item>
-              <item row="2" column="0">
+              <item row="3" column="0">
                <widget class="QLabel" name="label_17">
                 <property name="text">
                  <string>Alarm Group End:</string>
                 </property>
                </widget>
               </item>
-              <item row="1" column="1">
+              <item row="2" column="1">
                <widget class="QSpinBox" name="sbLEDAlarmsBegin">
                 <property name="objrelation" stdset="0">
                  <stringlist notr="true">
@@ -1949,7 +1949,7 @@
                 </property>
                </widget>
               </item>
-              <item row="2" column="1">
+              <item row="3" column="1">
                <widget class="QSpinBox" name="sbLEDAlarmsEnd">
                 <property name="objrelation" stdset="0">
                  <stringlist notr="true">
@@ -1960,14 +1960,14 @@
                 </property>
                </widget>
               </item>
-              <item row="3" column="0">
+              <item row="4" column="0">
                <widget class="QLabel" name="label_27">
                 <property name="text">
                  <string>Default Color:</string>
                 </property>
                </widget>
               </item>
-              <item row="3" column="1">
+              <item row="4" column="1">
                <layout class="QHBoxLayout" name="horizontalLayout_22">
                 <item>
                  <widget class="QLabel" name="lblLEDDefaultColor">
@@ -2002,6 +2002,18 @@
                  </widget>
                 </item>
                </layout>
+              </item>
+              <item row="1" column="1">
+               <widget class="QLabel" name="lblOnBoardLeds">
+                <property name="font">
+                 <font>
+                  <italic>true</italic>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Note: first %0 LEDs are on board.</string>
+                </property>
+               </widget>
               </item>
              </layout>
             </widget>

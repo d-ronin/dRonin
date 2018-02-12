@@ -269,6 +269,14 @@ public:
      */
     virtual bool hasAnnunciator(AnnunciatorType annunc) { Q_UNUSED(annunc) return false; }
 
+    /**
+     * @brief Number of RGB LEDs located on the board
+     * The first n LEDs in the chain will apply to on-board
+     * LEDs rather than external ones
+     * @return Number of RGB LEDs on the PCB
+     */
+    virtual int onBoardRgbLeds() const { return 0; }
+
 signals:
 
 protected:
