@@ -109,6 +109,9 @@ void MainWindow::onSendReport()
     json["gitBranch"] = gitBranch;
     json["gitDirty"] = gitDirty;
     json["gitTag"] = gitTag;
+    // from jenkins
+    json["ciNode"] = QStringLiteral(CI_NODE);
+    json["ciBuildTag"] = QStringLiteral(CI_BUILD_TAG);
 
     json["currentOS"] = QSysInfo::prettyProductName();
     json["currentArch"] = QSysInfo::currentCpuArchitecture();
