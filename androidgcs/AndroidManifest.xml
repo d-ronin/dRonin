@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-	package="org.dronin.androidgcs" android:versionCode="20170826"
-	android:versionName="Neat-1">
+	package="org.dronin.androidgcs" android:versionCode="20180212"
+	android:versionName="Wired">
 	<uses-sdk android:minSdkVersion="14" android:targetSdkVersion="19"/>
 
 	<uses-feature
