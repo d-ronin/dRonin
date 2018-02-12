@@ -35,7 +35,6 @@
  * Altered for use on STM32 Flight controllers by dRonin
  */
 
-
 /*
  * This file is part of MultiOSD <https://github.com/UncleRus/MultiOSD>
  *
@@ -161,7 +160,8 @@ static void FLIGHTMODE_update(charosd_state_t state, uint8_t x, uint8_t y)
 {
 	const char *mode = "INIT";
 
-	switch (state->telemetry.flight_status.mode) {
+	switch ((SharedDefsFlightModeOptions)
+			state->telemetry.flight_status.mode) {
 	case FLIGHTSTATUS_FLIGHTMODE_MANUAL:
 		mode = "MAN";
 		break;
@@ -170,6 +170,9 @@ static void FLIGHTMODE_update(charosd_state_t state, uint8_t x, uint8_t y)
 		break;
 	case FLIGHTSTATUS_FLIGHTMODE_ACROPLUS:
 		mode = "ACR+";
+		break;
+	case FLIGHTSTATUS_FLIGHTMODE_ACRODYNE:
+		mode = "ADYN";
 		break;
 	case FLIGHTSTATUS_FLIGHTMODE_LEVELING:
 		mode = "LVL";
