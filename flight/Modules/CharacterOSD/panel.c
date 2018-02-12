@@ -207,6 +207,9 @@ static void FLIGHTMODE_update(charosd_state_t state, uint8_t x, uint8_t y)
 	case FLIGHTSTATUS_FLIGHTMODE_PATHPLANNER:
 		mode = "PLAN";
 		break;
+	case FLIGHTSTATUS_FLIGHTMODE_ACRODYNE:
+		mode = "ACDN";
+		break;
 	case FLIGHTSTATUS_FLIGHTMODE_FAILSAFE:
 		mode = "FAIL";
 		break;

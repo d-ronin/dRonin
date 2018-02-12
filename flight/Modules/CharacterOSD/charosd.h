@@ -38,6 +38,7 @@
 
 #include "attitudeactual.h"
 #include "flightbatterystate.h"
+#include "flightstatus.h"
 #include "gpsposition.h"
 #include "positionactual.h"
 #include "velocityactual.h"
@@ -53,8 +54,8 @@ typedef struct {
 		float thrust;
 	} manual;
 	struct {
-		uint8_t arm_status;
-		uint8_t mode;
+		FlightStatusArmedOptions arm_status;
+		SharedDefsFlightModeOptions mode;
 	} flight_status;
 	struct {
 		uint32_t flight_time;
