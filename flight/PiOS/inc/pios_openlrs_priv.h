@@ -174,7 +174,7 @@ struct pios_openlrs_dev {
 	uint8_t beacon_period;
 	bool beacon_armed;
 
-	enum RF_MODE rf_mode;
+	volatile enum RF_MODE rf_mode;
 	uint32_t rf_channel;
 
 	uint8_t it_status1;
@@ -188,7 +188,6 @@ struct pios_openlrs_dev {
 	uint32_t lastPacketTimeUs;
 	uint32_t numberOfLostPackets;
 	uint16_t lastAFCCvalue;
-	uint32_t lastRSSITimeUs;
 	uint32_t nextBeaconTimeMs;
 	uint32_t linkLossTimeMs;
 	uint32_t failsafeDelay;

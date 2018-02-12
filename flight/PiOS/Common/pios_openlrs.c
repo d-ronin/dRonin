@@ -46,11 +46,11 @@
 
 #include "pios_rfm22b_regs.h"
 
-#define STACK_SIZE_BYTES                 800
-#define TASK_PRIORITY                    PIOS_THREAD_PRIO_NORMAL
+#define STACK_SIZE_BYTES                 900
+#define TASK_PRIORITY                    PIOS_THREAD_PRIO_HIGH
 
 #define RF22B_PWRSTATE_POWERDOWN    0x00
-#define RF22B_PWRSTATE_READY        RFM22_opfc1_xton
+#define RF22B_PWRSTATE_READY        (RFM22_opfc1_xton | RFM22_opfc1_pllon)
 #define RF22B_PWRSTATE_RX           (RFM22_opfc1_rxon | RFM22_opfc1_xton)
 #define RF22B_PWRSTATE_TX           (RFM22_opfc1_txon | RFM22_opfc1_xton)
 
@@ -338,10 +338,11 @@ static bool pios_openlrs_bind_transmit_step(pios_openlrs_t openlrs_dev)
 			&openlrs_dev->bind_data,
 			sizeof(openlrs_dev->bind_data));
 
-	rfm22_rx_reset(openlrs_dev, true);
+	rfm22_rx_reset(openlrs_dev, false);
+
 	DEBUG_PRINTF(2,"Waiting bind ack\r\n");
 
-	while ((millis() - start) < 100) {
+	while ((millis() - start) < 200) {
 #if defined(PIOS_INCLUDE_WDG) && defined(PIOS_WDG_RFM22B)
 		// Update the watchdog timer
 		PIOS_WDG_UpdateFlag(PIOS_WDG_RFM22B);
@@ -488,7 +489,7 @@ static bool pios_openlrs_bind_receive(pios_openlrs_t openlrs_dev,
 					sizeof(openlrs_dev->bind_data));
 
 			if (ok && pios_openlrs_bind_data_to_config(openlrs_dev)) {
-				DEBUG_PRINTF(2,"data good\r\n");
+				DEBUG_PRINTF(2, "data good\r\n");
 
 				/* Acknowledge binding */
 				txb = 'B';
@@ -526,7 +527,7 @@ static void printVersion(uint16_t v)
 }
 #endif
 
-static void pios_openlrs_setup(pios_openlrs_t openlrs_dev, bool bind)
+static void pios_openlrs_setup(pios_openlrs_t openlrs_dev)
 {
 	DEBUG_PRINTF(2,"OpenLRSng RX setup starting.\r\n");
 	PIOS_Thread_Sleep(5);
@@ -547,7 +548,6 @@ static void pios_openlrs_setup(pios_openlrs_t openlrs_dev, bool bind)
 	rfm22_init(openlrs_dev, false);
 
 	pios_openlrs_do_hop(openlrs_dev);
-	rfm22_rx_reset(openlrs_dev, true);
 
 	openlrs_dev->link_acquired = false;
 	openlrs_dev->lastPacketTimeUs = PIOS_DELAY_GetuS();
@@ -555,12 +555,10 @@ static void pios_openlrs_setup(pios_openlrs_t openlrs_dev, bool bind)
 	DEBUG_PRINTF(2,"OpenLRSng RX setup complete\r\n");
 }
 
-static bool pios_openlrs_rx_frame(pios_openlrs_t openlrs_dev)
+static bool pios_openlrs_rx_frame(pios_openlrs_t openlrs_dev, uint8_t rssi)
 {
 	uint8_t *tx_buf = openlrs_dev->tx_buf;
 	uint8_t rx_buf[64];
-
-	DEBUG_PRINTF(2,"Packet Received. Dt=%d\r\n", timeUs-openlrs_dev->lastPacketTimeUs);
 
 	// Read the packet from RFM22b
 	if (!rfm22_rx_packet(openlrs_dev, rx_buf,
@@ -574,6 +572,7 @@ static bool pios_openlrs_rx_frame(pios_openlrs_t openlrs_dev)
 	PIOS_ANNUNC_Toggle(PIOS_LED_LINK);
 #endif /* PIOS_LED_LINK */
 
+	openlrs_status.LastRSSI = rssi;
 	openlrs_status.LinkQuality <<= 1;
 	openlrs_status.LinkQuality |= 1;
 
@@ -628,7 +627,7 @@ static bool pios_openlrs_rx_frame(pios_openlrs_t openlrs_dev)
 				tx_buf[0] |= (0x37 + bytes);
 			} else {
 				// tx_buf[0] lowest 6 bits left at 0
-				tx_buf[1] = openlrs_status.LastRSSI;
+				tx_buf[1] = rssi;
 				if (FlightBatteryStateHandle()) {
 					FlightBatteryStateData bat;
 					FlightBatteryStateGet(&bat);
@@ -917,6 +916,31 @@ int32_t PIOS_OpenLRS_Start(pios_openlrs_t openlrs_dev)
 	return 0;
 }
 
+static void pios_openlrs_tx_frame(pios_openlrs_t openlrs_dev)
+{
+	rfm22_rx_reset(openlrs_dev, false);
+
+	uint32_t interval = getInterval(&openlrs_dev->bind_data) + 500;
+
+	// Now we want to delay until the next frame is due.
+	while (PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs) <
+			interval) {
+		PIOS_Thread_Sleep(1);
+	}
+
+	pios_openlrs_do_hop(openlrs_dev);
+
+	char tx_buf[11] = {
+		0x00,
+		0x00, 0x00, 0x00, 0x00, 0xaa,
+		0x00, 0x00, 0x00, 0x00, 0xaa,
+	};
+
+	openlrs_dev->lastPacketTimeUs = PIOS_DELAY_GetuS();
+
+	rfm22_tx_packet(openlrs_dev, tx_buf, sizeof(tx_buf));
+}
+
 static void pios_openlrs_tx_task(void *parameters)
 {
 	pios_openlrs_t openlrs_dev = (pios_openlrs_t)parameters;
@@ -928,18 +952,39 @@ static void pios_openlrs_tx_task(void *parameters)
 
 	PIOS_Assert(pios_openlrs_validate(openlrs_dev));
 
-	pios_openlrs_setup(openlrs_dev, true);
+	bool binding = false;	/* XXX */
 
-	bool binding = true;	/* XXX */
+	pios_openlrs_setup(openlrs_dev);
+
+	PIOS_Thread_Sleep(200);
+
+	pios_openlrs_setup(openlrs_dev);
+
+	int i = 0;
 
 	while (1) {
+		//rfm22_check_hang(openlrs_dev);
+
 		if (binding) {
 			if (pios_openlrs_bind_transmit_step(openlrs_dev)) {
 				binding = false;
+				rfm22_init(openlrs_dev, false);
 			}
-		}
 
-		PIOS_Thread_Sleep(2);
+			/* 100 200ms steps, so about 20s to leave binding */
+			if (i++ > 100) {
+				binding = false;
+				rfm22_init(openlrs_dev, false);
+			}
+		} else {
+#if defined(PIOS_INCLUDE_WDG) && defined(PIOS_WDG_RFM22B)
+			// Update the watchdog timer
+			PIOS_WDG_UpdateFlag(PIOS_WDG_RFM22B);
+#endif
+
+			i = 0;
+			pios_openlrs_tx_frame(openlrs_dev);
+		}
 	}
 }
 
@@ -971,11 +1016,11 @@ static void pios_openlrs_rx_task(void *parameters)
 
 	PIOS_Assert(pios_openlrs_validate(openlrs_dev));
 
+	pios_openlrs_setup(openlrs_dev);
+
 	while (openlrs_dev->bind_data.version != BINDING_VERSION) {
 		pios_openlrs_bind_receive(openlrs_dev, 0);
 	}
-
-	pios_openlrs_setup(openlrs_dev, true);
 
 	DEBUG_PRINTF(2, "Setup complete\r\n");
 
@@ -1003,6 +1048,7 @@ static void pios_openlrs_rx_task(void *parameters)
 		 */
 
 		uint32_t time_since_packet_us = PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs);
+		uint8_t rssi = 0;
 
 		/* Schedule for a good time to sample RSSI */
 		uint32_t delay_us =
@@ -1015,17 +1061,12 @@ static void pios_openlrs_rx_task(void *parameters)
 		bool have_interrupt = wait_interrupt(openlrs_dev, delay_us);
 
 		if (!have_interrupt) {
-			if (openlrs_dev->numberOfLostPackets < 2) {
-				openlrs_dev->lastRSSITimeUs =
-					openlrs_dev->lastPacketTimeUs;
-				openlrs_status.LastRSSI =
-					rfm22_get_rssi(openlrs_dev);
+			rssi = rfm22_get_rssi(openlrs_dev);
 
-				DEBUG_PRINTF(3,
-					"Sampled RSSI: %d %d\r\n",
-					openlrs_status.LastRSSI,
-					delay);
-			}
+			DEBUG_PRINTF(3,
+				"Sampled RSSI: %d %d\r\n",
+				openlrs_status.LastRSSI,
+				delay_us);
 		}
 
 		time_since_packet_us = PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs);
@@ -1041,17 +1082,17 @@ static void pios_openlrs_rx_task(void *parameters)
 
 		if (have_interrupt ||
 				wait_interrupt(openlrs_dev, delay_us)) {
-			DEBUG_PRINTF(3, "ISR %d %d %d\r\n", delay,
+			DEBUG_PRINTF(3, "ISR %d %d %d\r\n", delay_us,
 					getInterval(&openlrs_dev->bind_data),
 					time_since_packet_us);
 
 			// Process incoming data
-			have_frame = pios_openlrs_rx_frame(openlrs_dev);
+			have_frame = pios_openlrs_rx_frame(openlrs_dev, rssi);
 		} else {
 			// We timed out because packet was missed
 			DEBUG_PRINTF(3,
 				"ISR Timeout. Missed packet: %d %d %d\r\n",
-				delay,
+				delay_us,
 				getInterval(&openlrs_dev->bind_data),
 				time_since_packet_us);
 		}
@@ -1142,7 +1183,6 @@ static uint16_t rfm22_get_afcc(pios_openlrs_t openlrs_dev)
 static void rfm22_set_modem_regs(pios_openlrs_t openlrs_dev, const struct rfm22_modem_regs *r)
 {
 	DEBUG_PRINTF(3,"rfm22_set_modem_regs\r\n");
-	rfm22_claim_bus(openlrs_dev);
 	rfm22_write(openlrs_dev, RFM22_if_filter_bandwidth, r->r_1c);
 	rfm22_write(openlrs_dev, RFM22_afc_loop_gearshift_override, r->r_1d);
 	rfm22_write(openlrs_dev, RFM22_afc_timing_control, r->r_1e);
@@ -1158,7 +1198,6 @@ static void rfm22_set_modem_regs(pios_openlrs_t openlrs_dev, const struct rfm22_
 	rfm22_write(openlrs_dev, RFM22_modulation_mode_control1, r->r_70);
 	rfm22_write(openlrs_dev, RFM22_modulation_mode_control2, r->r_71);
 	rfm22_write(openlrs_dev, RFM22_frequency_deviation, r->r_72);
-	rfm22_release_bus(openlrs_dev);
 }
 
 static void rfm22_beacon_tone(pios_openlrs_t openlrs_dev, int16_t hz, int16_t len) //duration is now in half seconds.
@@ -1228,11 +1267,11 @@ static void rfm22_disable(pios_openlrs_t openlrs_dev)
 {
 	rfm22_claim_bus(openlrs_dev);
 
-	rfm22_get_it_status(openlrs_dev);
-
 	/* disable interrupts, turn off power */
 	rfm22_write(openlrs_dev, RFM22_interrupt_enable2, 0x00);
 	rfm22_write(openlrs_dev, RFM22_op_and_func_ctrl1, RF22B_PWRSTATE_POWERDOWN);
+
+	rfm22_get_it_status(openlrs_dev);
 
 	rfm22_release_bus(openlrs_dev);
 }
@@ -1306,7 +1345,18 @@ static void rfm22_beacon_send(pios_openlrs_t openlrs_dev, bool static_tone)
 static void rfm22_tx_packet(pios_openlrs_t openlrs_dev, void *pkt,
 		uint8_t size)
 {
+	openlrs_dev->rf_mode = Transmit;
+
 	rfm22_claim_bus(openlrs_dev);
+
+	/* Clear the fifo */
+	rfm22_write(openlrs_dev, RFM22_op_and_func_ctrl2, 0x03);
+	rfm22_write(openlrs_dev, RFM22_op_and_func_ctrl2, 0x00);
+
+	rfm22_get_it_status(openlrs_dev);
+
+	rfm22_write(openlrs_dev, RFM22_interrupt_enable1, RFM22_ie1_enpksent);
+
 	rfm22_write(openlrs_dev, RFM22_transmit_packet_length, size);   // total tx size
 
 	rfm22_assert_cs(openlrs_dev);
@@ -1314,25 +1364,23 @@ static void rfm22_tx_packet(pios_openlrs_t openlrs_dev, void *pkt,
 	PIOS_SPI_TransferBlock(openlrs_dev->spi_id, pkt, NULL, size);
 	rfm22_deassert_cs(openlrs_dev);
 
-	rfm22_write(openlrs_dev, RFM22_interrupt_enable1, RFM22_ie1_enpksent);
-
-	rfm22_get_it_status(openlrs_dev);
-
 	/* Initiate TX */
 	rfm22_write(openlrs_dev, RFM22_op_and_func_ctrl1, RF22B_PWRSTATE_TX);
 
-	openlrs_dev->rf_mode = Transmit;
-
 	rfm22_release_bus(openlrs_dev);
 
-	PIOS_Semaphore_Take(openlrs_dev->sema_isr, 25);
+	bool ok = wait_interrupt(openlrs_dev, 60000);
+
+	rfm22_claim_bus(openlrs_dev);
+	rfm22_get_it_status(openlrs_dev);
+	rfm22_release_bus(openlrs_dev);
 
 #if defined(PIOS_INCLUDE_WDG) && defined(PIOS_WDG_RFM22B)
 	// Update the watchdog timer
 	PIOS_WDG_UpdateFlag(PIOS_WDG_RFM22B);
 #endif /* PIOS_WDG_RFM22B */
 
-	if (openlrs_dev->rf_mode == Transmit) {
+	if (!ok) {
 		DEBUG_PRINTF(2,"OLRS ERR: rfm22_tx_packet timeout\r\n");
 		rfm22_init(openlrs_dev, false); // reset modem
 	}
@@ -1364,16 +1412,16 @@ static void rfm22_rx_reset(pios_openlrs_t openlrs_dev, bool pause_long)
 	openlrs_dev->rf_mode = Receive;
 
 	DEBUG_PRINTF(3,"rfm22_rx_reset\r\n");
-	rfm22_claim_bus(openlrs_dev);
-	rfm22_write(openlrs_dev, RFM22_op_and_func_ctrl1, RF22B_PWRSTATE_READY);
 
 	if (pause_long) {
+		rfm22_claim_bus(openlrs_dev);
+		rfm22_write(openlrs_dev, RFM22_op_and_func_ctrl1, RF22B_PWRSTATE_READY);
 		rfm22_get_it_status(openlrs_dev);
 		rfm22_release_bus(openlrs_dev);
-		PIOS_Thread_Sleep(10);
-
-		rfm22_claim_bus(openlrs_dev);
+		PIOS_Thread_Sleep(20);
 	}
+
+	rfm22_claim_bus(openlrs_dev);
 
 	/* Clear the fifo */
 	rfm22_write(openlrs_dev, RFM22_op_and_func_ctrl2, 0x03);
@@ -1409,10 +1457,12 @@ static void rfm22_init(pios_openlrs_t openlrs_dev, uint8_t isbind)
 		PIOS_Thread_Sleep(10);
 	}
 
+
+	rfm22_write_claim(openlrs_dev, RFM22_op_and_func_ctrl1, RFM22_opfc1_swres);
+
+	PIOS_Thread_Sleep(40);
+
 	rfm22_claim_bus(openlrs_dev);
-
-	rfm22_get_it_status(openlrs_dev);
-
 	rfm22_write(openlrs_dev, RFM22_interrupt_enable2, 0x00);    // disable interrupts
 	rfm22_write(openlrs_dev, RFM22_op_and_func_ctrl1, RF22B_PWRSTATE_READY); // disable lbd, wakeup timer, use internal 32768,xton = 1; in ready mode
 	rfm22_write(openlrs_dev, RFM22_xtal_osc_load_cap, 0x7f);   // c = 12.5p
@@ -1429,7 +1479,6 @@ static void rfm22_init(pios_openlrs_t openlrs_dev, uint8_t isbind)
 	}
 	rfm22_write(openlrs_dev, RFM22_gpio2_config, 0xfd);    // gpio 2 VDD
 	rfm22_write(openlrs_dev, RFM22_io_port_config, RFM22_io_port_default);    // gpio    0, 1,2 NO OTHER FUNCTION.
-	rfm22_release_bus(openlrs_dev);
 
 	if (isbind) {
 		rfm22_set_modem_regs(openlrs_dev, &modem_params[OPENLRS_BIND_PARAMS]);
@@ -1438,7 +1487,6 @@ static void rfm22_init(pios_openlrs_t openlrs_dev, uint8_t isbind)
 	}
 
 	// Packet settings
-	rfm22_claim_bus(openlrs_dev);
 	rfm22_write(openlrs_dev, RFM22_data_access_control, 0x8c);    // enable packet handler, msb first, enable crc,
 	rfm22_write(openlrs_dev, RFM22_header_control1, 0x0f);    // no broadcast, check header bytes 3,2,1,0
 	rfm22_write(openlrs_dev, RFM22_header_control2, 0x42);    // 4 byte header, 2 byte synch, variable pkt size
@@ -1474,6 +1522,8 @@ static void rfm22_init(pios_openlrs_t openlrs_dev, uint8_t isbind)
 	rfm22_write(openlrs_dev, RFM22_frequency_offset2, 0x00);    // no offset
 
 	rfm22_release_bus(openlrs_dev);
+
+	rfm22_rx_reset(openlrs_dev, true);
 
 	rfm22_set_frequency(openlrs_dev, isbind ? bindingFreq(openlrs_dev->band) : openlrs_dev->bind_data.rf_frequency);
 }
@@ -1519,7 +1569,6 @@ static void rfm22_check_hang(pios_openlrs_t openlrs_dev)
 	if (rfm22_read_claim(openlrs_dev, 0x0C) == 0) {
 		DEBUG_PRINTF(2,"OLRS ERR: RX hang\r\n");
 		rfm22_init(openlrs_dev, false);
-		rfm22_rx_reset(openlrs_dev, true);
 	}
 }
 
@@ -1571,7 +1620,7 @@ static void rfm22_release_bus(pios_openlrs_t openlrs_dev)
 }
 
 /**
- * Write a byte to a register without claiming the semaphore
+ * Write a byte to a register without claiming the bus lock
  *
  * @param[in] rfm22b_dev  The RFM22B device.
  * @param[in] addr The address to write to
@@ -1605,7 +1654,7 @@ static uint8_t rfm22_read(pios_openlrs_t openlrs_dev, uint8_t addr)
 	return in[1];
 }
 /**
- * Claim the semaphore and write a byte to a register
+ * Claim the bus lock and write a byte to a register
  *
  * @param[in] rfm22b_dev  The RFM22B device.
  * @param[in] addr The address to write to
@@ -1620,7 +1669,7 @@ static void rfm22_write_claim(pios_openlrs_t openlrs_dev,
 }
 
 /**
- * Claim the semaphore and write a byte to a register
+ * Claim the bus lock and write a byte to a register
  *
  * @param[in] rfm22b_dev  The RFM22B device.
  * @param[in] addr The address to write to
