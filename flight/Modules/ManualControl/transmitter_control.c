@@ -814,7 +814,7 @@ static void process_transmitter_events(ManualControlCommandData * cmd, ManualCon
 		if (settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCH ||
 				settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCHTHROTTLE) {
 			control_status = STATUS_ARM_VALID;
-		} if (settings->Arming == MANUALCONTROLSETTINGS_ARMING_CORNERSTHROTTLE) {
+		} else if (settings->Arming == MANUALCONTROLSETTINGS_ARMING_CORNERSTHROTTLE) {
 			control_status = STATUS_TOGGLE_ARM;
 		} else {
 			control_status = STATUS_ARM_INVALID;
