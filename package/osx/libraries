@@ -28,6 +28,9 @@ rm libqmlxmllistmodelplugin.dylib
 ln -s ../../../../Plugins/quick/libqmlxmllistmodelplugin.dylib
 cd ${CWD}
 
+echo "Adjusting rpath"
+install_name_tool -add_rpath "@executable_path/../Frameworks" "${APP}/Contents/MacOS/dRonin-GCS" || true
+
 # Copy SDL files
 echo "Copying SDL"
 
