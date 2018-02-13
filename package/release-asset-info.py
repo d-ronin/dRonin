@@ -84,6 +84,8 @@ def main():
             label = "Windows (installer)"
         elif name.endswith('.dmg'):
             label = "macOS"
+        elif name.endswith('.udev'):
+            label = "Linux udev rules"
         else:
             label = name
         asset['new_label'] = label
