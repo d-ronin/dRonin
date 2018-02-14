@@ -35,7 +35,7 @@ typedef struct smoothcontrol_state_internal* smoothcontrol_state;
 void smoothcontrol_initialize(smoothcontrol_state *state);
 void smoothcontrol_update_dT(smoothcontrol_state state, float dT);
 void smoothcontrol_next(smoothcontrol_state state);
-void smoothcontrol_run(smoothcontrol_state state, uint8_t axis_num, float *new_signal, float limit);
+void smoothcontrol_run(smoothcontrol_state state, uint8_t axis_num, float *new_signal);
 void smoothcontrol_run_thrust(smoothcontrol_state state, float *new_signal);
 void smoothcontrol_reinit(smoothcontrol_state state, uint8_t axis_num, float new_signal);
 void smoothcontrol_set_mode(smoothcontrol_state state, uint8_t axis_num, uint8_t mode);

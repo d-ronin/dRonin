@@ -606,9 +606,20 @@ static void stabilizationTask(void* parameters)
 		stabilization_failsafe_checks(&stabDesired, &actuatorDesired, airframe_type,
 			raw_input, axis_mode);
 
+		// A flag to track which stabilization mode each axis is in
+		static uint8_t previous_mode[MAX_AXES] = {255,255,255};
+
 		// Do this before attitude error calc, so it benefits from it.
-		for(int i = 0; i < 3; i++)
-			smoothcontrol_run(rc_smoothing, i, &raw_input[i], settings.ManualRate[i]);
+		for(int i = 0; i < 3; i++) {
+			if (axis_mode[i] != previous_mode[i]) {
+				// Disable the integrator this round, so that it doesn't transition between
+				// different stick scales.
+				// Also allows for setting bounds properly, lower in the loop.
+				smoothcontrol_reinit(rc_smoothing, i, raw_input[i]);
+			} else {
+				smoothcontrol_run(rc_smoothing, i, &raw_input[i]);
+			}
+		}
 
 		float horizon_rate_fraction;
 		float local_attitude_error[MAX_AXES];
@@ -624,9 +635,6 @@ static void stabilizationTask(void* parameters)
 
 		static float max_rate_filtered[MAX_AXES];
 
-		// A flag to track which stabilization mode each axis is in
-		static uint8_t previous_mode[MAX_AXES] = {255,255,255};
-
 		actuatorDesired.SystemIdentCycle = 0xffff;
 
 		uint16_t max_safe_rate = PIOS_SENSORS_GetMaxGyro() * 0.9f;
@@ -636,12 +644,6 @@ static void stabilizationTask(void* parameters)
 		{
 			// Check whether this axis mode needs to be reinitialized
 			bool reinit = (axis_mode[i] != previous_mode[i]);
-
-			if(reinit && previous_mode[i] != 255) {
-				// Disable the integrator this round. And only do so on real mode switches.
-				smoothcontrol_reinit(rc_smoothing, i, raw_input[i]);
-			}
-
 			previous_mode[i] = axis_mode[i];
 
 			// Apply the selected control law
@@ -652,7 +654,7 @@ static void stabilizationTask(void* parameters)
 					break;
 
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_RATE:
-					if(reinit) {
+					if (reinit) {
 						pids[PID_GROUP_RATE + i].iAccumulator = 0;
 					}
 
@@ -665,10 +667,12 @@ static void stabilizationTask(void* parameters)
 					break;
 
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_ACRODYNE:
-					if(reinit) {
+					if (reinit) {
 						pids[PID_GROUP_RATE + i].iAccumulator = 0;
 						max_rate_filtered[i] = settings.ManualRate[i];
 					}
+
+					raw_input[i] = bound_sym(raw_input[i], 1.0f);
 
 					float curve_cmd = expoM(raw_input[i],
 							settings.RateExpo[i],
@@ -711,9 +715,11 @@ static void stabilizationTask(void* parameters)
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_ACROPLUS:
 					// this implementation is based on the Openpilot/Librepilot Acro+ flightmode
 					// and our previous MWRate flightmodes
-					if(reinit) {
+					if (reinit) {
 						pids[PID_GROUP_RATE + i].iAccumulator = 0;
 					}
+
+					raw_input[i] = bound_sym(raw_input[i], 1.0f);
 
 					// The factor for gyro suppression / mixing raw stick input into the output; scaled by raw stick input
 					float factor = fabsf(raw_input[i]) * settings.AcroInsanityFactor / 100.0f;
@@ -735,7 +741,7 @@ static void stabilizationTask(void* parameters)
 					break;
 
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE:
-					if(reinit) {
+					if (reinit) {
 						pids[PID_GROUP_ATT + i].iAccumulator = 0;
 						pids[PID_GROUP_RATE + i].iAccumulator = 0;
 					}
@@ -751,6 +757,8 @@ static void stabilizationTask(void* parameters)
 					break;
 
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_VIRTUALBAR:
+					raw_input[i] = bound_sym(raw_input[i], 1.0f);
+
 					// Store for debugging output
 					rateDesiredAxis[i] = raw_input[i];
 
@@ -764,6 +772,7 @@ static void stabilizationTask(void* parameters)
 					if (reinit) {
 						pids[PID_GROUP_RATE + i].iAccumulator = 0;
 					}
+					raw_input[i] = bound_sym(raw_input[i], settings.ManualRate[i]);
 
 					float weak_leveling = local_attitude_error[i] * weak_leveling_kp;
 					weak_leveling = bound_sym(weak_leveling, weak_leveling_max);
@@ -803,6 +812,8 @@ static void stabilizationTask(void* parameters)
 					if(reinit) {
 						pids[PID_GROUP_RATE + i].iAccumulator = 0;
 					}
+
+					raw_input[i] = bound_sym(raw_input[i], 1.0f);
 
 					// Do not allow outer loop integral to wind up in this mode since the controller
 					// is often disengaged.
@@ -949,6 +960,8 @@ static void stabilizationTask(void* parameters)
 								pids[PID_RATE_YAW].iAccumulator = 0;
 								axis_lock_accum[YAW] = 0;
 							}
+
+							raw_input[i] = bound_sym(raw_input[i], 1.0f);
 
 							//If we are not in roll attitude mode, trigger an error
 							if (axis_mode[ROLL] != STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE)

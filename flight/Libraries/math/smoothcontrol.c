@@ -88,7 +88,7 @@ void smoothcontrol_set_mode(smoothcontrol_state state, uint8_t axis_num, uint8_t
 }
 
 // Processes the signal, if internal state allows it.
-void smoothcontrol_run(smoothcontrol_state state, uint8_t axis_num, float *new_signal, float limit)
+void smoothcontrol_run(smoothcontrol_state state, uint8_t axis_num, float *new_signal)
 {
 	PIOS_Assert(state && axis_num <= 3);
 
@@ -123,12 +123,12 @@ void smoothcontrol_run_thrust(smoothcontrol_state state, float *new_signal)
 	 * non-zero.
 	 */
 
-	if (*new_signal == 0) {
+	if (*new_signal == 0 || *new_signal != *new_signal) {
 		smoothcontrol_reinit(state, 3, 0);
 	} else {
 		bool sign = *new_signal > 0;
 
-		smoothcontrol_run(state, 3, new_signal, 1.0f);
+		smoothcontrol_run(state, 3, new_signal);
 
 		// If prediction undershoots while original signal is positive
 		// bound it to zero.
