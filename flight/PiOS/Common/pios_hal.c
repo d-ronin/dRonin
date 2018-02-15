@@ -1062,19 +1062,20 @@ void PIOS_HAL_ConfigureRFM22B(pios_spi_t spi_dev,
 		const struct pios_openlrs_cfg *openlrs_cfg,
 		pios_openlrs_t *handle)
 {
-#if defined(PIOS_INCLUDE_OPENLRS_RCVR)
 	OpenLRSInitialize();
 
 	/* XXX power limit here */
 	pios_openlrs_t openlrs_id;
-	uintptr_t rfm22brcvr_id;
-	uintptr_t rfm22brcvr_rcvr_id;
 
 	PIOS_OpenLRS_Init(&openlrs_id, spi_dev, 0, openlrs_cfg, rf_band);
 
 	*handle = openlrs_id;
 
 	PIOS_OpenLRS_Start(openlrs_id);
+
+#if defined(PIOS_INCLUDE_OPENLRS_RCVR)
+	uintptr_t rfm22brcvr_id;
+	uintptr_t rfm22brcvr_rcvr_id;
 
 	PIOS_OpenLRS_Rcvr_Init(&rfm22brcvr_id, openlrs_id);
 
@@ -1085,7 +1086,7 @@ void PIOS_HAL_ConfigureRFM22B(pios_spi_t spi_dev,
 	PIOS_HAL_SetReceiver(MANUALCONTROLSETTINGS_CHANNELGROUPS_OPENLRS, rfm22brcvr_rcvr_id);
 #endif /* PIOS_INCLUDE_OPENLRS_RCVR */
 }
-#endif /* PIOS_INCLUDE_RFM22B */
+#endif /* PIOS_INCLUDE_OPENLRS */
 
 /* Needs some safety margin over 1000. */
 #define BT_COMMAND_DELAY 1100
