@@ -225,7 +225,7 @@ static void i2c_adapter_reset_bus(struct pios_i2c_adapter *i2c_adapter)
 int32_t PIOS_I2C_CheckClear(pios_i2c_t i2c_adapter)
 {
 	bool valid = PIOS_I2C_validate(i2c_adapter);
-	PIOS_Assert(valid)
+	PIOS_Assert(valid);
 
 	if (PIOS_Mutex_Lock(i2c_adapter->lock, 0) == false)
 		return -1;
@@ -293,7 +293,7 @@ out_fail:
 int32_t PIOS_I2C_Transfer(pios_i2c_t i2c_adapter, const struct pios_i2c_txn txn_list[], uint32_t num_txns)
 {
 	bool valid = PIOS_I2C_validate(i2c_adapter);
-	PIOS_Assert(valid)
+	PIOS_Assert(valid);
 
 	PIOS_DEBUG_Assert(txn_list);
 	PIOS_DEBUG_Assert(num_txns);
@@ -986,7 +986,7 @@ void PIOS_I2C_EV_IRQ_Handler(pios_i2c_t i2c_adapter)
 {
 	PIOS_IRQ_Prologue();
 
-	PIOS_Assert(PIOS_I2C_validate(i2c_adapter) == true)
+	PIOS_Assert(PIOS_I2C_validate(i2c_adapter) == true);
 
 	bool woken = false;
 
@@ -1070,7 +1070,7 @@ void PIOS_I2C_ER_IRQ_Handler(pios_i2c_t i2c_adapter)
 	PIOS_IRQ_Prologue();
 
 	bool valid = PIOS_I2C_validate(i2c_adapter);
-	PIOS_Assert(valid)
+	PIOS_Assert(valid);
 
 	bool woken = false;
 
