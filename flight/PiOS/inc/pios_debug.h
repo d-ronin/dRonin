@@ -45,11 +45,11 @@ void PIOS_DEBUG_PinValue4BitL(uint8_t value);
 void PIOS_DEBUG_Panic(const char *msg) __attribute__((noreturn));
 
 #ifdef DEBUG
-#define PIOS_DEBUG_Assert(test) if (!(test)) PIOS_DEBUG_Panic(PIOS_DEBUG_AssertMsg);
+#define PIOS_DEBUG_Assert(test) do { if (!(test)) PIOS_DEBUG_Panic(PIOS_DEBUG_AssertMsg); } while (0)
 #define PIOS_Assert(test) PIOS_DEBUG_Assert(test)
 #else
-#define PIOS_DEBUG_Assert(test)
-#define PIOS_Assert(test) if (!(test)) while (1);
+#define PIOS_DEBUG_Assert(test) do { } while(0)
+#define PIOS_Assert(test) do { if (!(test)) while (1); } while (0)
 #endif
 
 #endif /* PIOS_DEBUG_H */
