@@ -50,7 +50,6 @@
 #define PIOS_INCLUDE_WDG
 #define PIOS_INCLUDE_SPI
 #define PIOS_INCLUDE_FASTHEAP
-#define PIOS_INCLUDE_FRSKY_RSSI
 #define PIOS_INCLUDE_TBSVTXCONFIG
 
 /* Com systems to include */

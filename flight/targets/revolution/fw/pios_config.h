@@ -47,7 +47,6 @@
 #define PIOS_INCLUDE_SPI
 #define PIOS_INCLUDE_FASTHEAP
 #define PIOS_INCLUDE_WS2811
-#define PIOS_INCLUDE_FRSKY_RSSI
 
 /* Variables related to the RFM22B functionality */
 #define PIOS_INCLUDE_RFM22B

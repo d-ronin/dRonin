@@ -43,7 +43,6 @@
 #define PIOS_INCLUDE_I2C
 #define PIOS_INCLUDE_SPI
 #define PIOS_INCLUDE_HPWM
-#define PIOS_INCLUDE_FRSKY_RSSI
 #define PIOS_INCLUDE_TBSVTXCONFIG
 
 /* Select the sensors to include */

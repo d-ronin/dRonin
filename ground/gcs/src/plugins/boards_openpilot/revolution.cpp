@@ -260,7 +260,6 @@ Core::IBoardType::InputType Revolution::getInputType()
     case HwRevolution::RXPORT_PPMPWM:
     case HwRevolution::RXPORT_PPMOUTPUTS:
     case HwRevolution::RXPORT_PPMUART:
-    case HwRevolution::RXPORT_PPMFRSKY:
         return INPUT_TYPE_PPM;
     case HwRevolution::RXPORT_PWM:
         return INPUT_TYPE_PWM;
