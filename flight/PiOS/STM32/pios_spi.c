@@ -228,7 +228,7 @@ int32_t PIOS_SPI_SetClockSpeed(pios_spi_t spi_dev, uint32_t spi_speed)
 int32_t PIOS_SPI_ClaimBus(pios_spi_t spi_dev)
 {
 	bool valid = PIOS_SPI_validate(spi_dev);
-	PIOS_Assert(valid)
+	PIOS_Assert(valid);
 
 	if (PIOS_Semaphore_Take(spi_dev->busy, PIOS_SEMAPHORE_TIMEOUT_MAX) != true)
 		return -1;
@@ -239,7 +239,7 @@ int32_t PIOS_SPI_ClaimBus(pios_spi_t spi_dev)
 int32_t PIOS_SPI_ReleaseBus(pios_spi_t spi_dev)
 {
 	bool valid = PIOS_SPI_validate(spi_dev);
-	PIOS_Assert(valid)
+	PIOS_Assert(valid);
 
 	PIOS_Semaphore_Give(spi_dev->busy);
 
@@ -249,8 +249,8 @@ int32_t PIOS_SPI_ReleaseBus(pios_spi_t spi_dev)
 int32_t PIOS_SPI_RC_PinSet(pios_spi_t spi_dev, uint32_t slave_id, bool pin_value)
 {
 	bool valid = PIOS_SPI_validate(spi_dev);
-	PIOS_Assert(valid)
-	PIOS_Assert(slave_id <= spi_dev->cfg->slave_count)
+	PIOS_Assert(valid);
+	PIOS_Assert(slave_id <= spi_dev->cfg->slave_count);
 
 	if (pin_value) {
 		GPIO_SetBits(spi_dev->cfg->ssel[slave_id].gpio, spi_dev->cfg->ssel[slave_id].init.GPIO_Pin);
@@ -264,7 +264,7 @@ int32_t PIOS_SPI_RC_PinSet(pios_spi_t spi_dev, uint32_t slave_id, bool pin_value
 uint8_t PIOS_SPI_TransferByte(pios_spi_t spi_dev, uint8_t b)
 {
 	bool valid = PIOS_SPI_validate(spi_dev);
-	PIOS_Assert(valid)
+	PIOS_Assert(valid);
 
 	uint8_t rx_byte;
 
@@ -315,7 +315,7 @@ static int32_t SPI_PIO_TransferBlock(pios_spi_t spi_dev,
 	uint8_t b;
 
 	bool valid = PIOS_SPI_validate(spi_dev);
-	PIOS_Assert(valid)
+	PIOS_Assert(valid);
 
 	while (len--) {
 		/* get the byte to send */

@@ -156,7 +156,7 @@ static int32_t PIOS_Flash_Internal_ReadData(uintptr_t chip_id, uint32_t chip_off
 static int32_t PIOS_Flash_Internal_WriteData(uintptr_t chip_id, uint32_t chip_offset, const uint8_t *data, uint16_t len)
 {
 	PIOS_Assert(data);
-	PIOS_Assert((chip_offset & 0x0001) == 0)
+	PIOS_Assert((chip_offset & 0x0001) == 0);
 
 	struct pios_internal_flash_dev *flash_dev = (struct pios_internal_flash_dev *)chip_id;
 
