@@ -49,6 +49,7 @@
 #include "manualcontrolsettings.h"
 #include "modulesettings.h"
 #include "flightbatterysettings.h"
+#include "systemsettings.h"
 
 #if defined(PIOS_INCLUDE_DEBUG_CONSOLE)
 #define PIOS_COM_DEBUGCONSOLE_TX_BUF_LEN 40
@@ -108,6 +109,9 @@ void PIOS_Board_Init(void)
 	/* Initialize the hardware UAVOs */
 	HwDtfcInitialize();
 	ModuleSettingsInitialize();
+
+	/* Initialize the system setting UAVOs */
+	SystemSettingsInitialize();
 
 #if defined(PIOS_INCLUDE_RTC)
 	/* Initialize the real-time clock and its associated tick */
@@ -257,9 +261,19 @@ void PIOS_Board_Init(void)
 	pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_GCS] = pios_gcsrcvr_rcvr_id;
 #endif	/* PIOS_INCLUDE_GCSRCVR */
 
+	SystemSettingsAirframeTypeOptions airframe_type;
+	SystemSettingsAirframeTypeGet(&airframe_type);
+
 #ifndef PIOS_DEBUG_ENABLE_DEBUG_PINS
 #ifdef PIOS_INCLUDE_SERVO
-	PIOS_Servo_Init(&pios_servo_cfg);
+	if (airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_TRI) {
+		internal_adc_cfg.adc_pin_count = 3;
+		PIOS_Servo_Init(&pios_servo_cfg_tri);
+	}
+	else {
+		internal_adc_cfg.adc_pin_count = 2;
+		PIOS_Servo_Init(&pios_servo_cfg);
+	}
 #endif
 #else
 	PIOS_DEBUG_Init(&pios_tim_servo_all_channels, NELEMENTS(pios_tim_servo_all_channels));

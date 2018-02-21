@@ -541,10 +541,133 @@ static const struct pios_tim_clock_cfg tim_17_cfg = {
 	4:  TIM2_CH3 (PA9)
 	5:  TIM2_CH1 (PA0)
 	6:  TIM2_CH2 (PA1)
-	7:  TIM3_CH3 (PB0)
-	8:  TIM3_CH4 (PB1)
+	7:  TIM3_CH1 (PA6)
  */
 static const struct pios_tim_channel pios_tim_servoport_pins[] = {
+	{ // Ch1
+		.timer = TIM4,
+		.timer_chan = TIM_Channel_3,
+		.remap = GPIO_AF_2,
+		.pin = {
+			.gpio = GPIOB,
+			.init = {
+				.GPIO_Pin = GPIO_Pin_8,
+				.GPIO_Speed = GPIO_Speed_2MHz,
+				.GPIO_Mode  = GPIO_Mode_AF,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd  = GPIO_PuPd_UP
+			},
+			.pin_source = GPIO_PinSource8,
+		},
+	},
+	{ // Ch2
+		.timer = TIM4,
+		.timer_chan = TIM_Channel_4,
+		.remap = GPIO_AF_2,
+		.pin = {
+			.gpio = GPIOB,
+			.init = {
+				.GPIO_Pin = GPIO_Pin_9,
+				.GPIO_Speed = GPIO_Speed_2MHz,
+				.GPIO_Mode  = GPIO_Mode_AF,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd  = GPIO_PuPd_UP
+			},
+			.pin_source = GPIO_PinSource9,
+		},
+	},
+	{ // Ch3
+		.timer = TIM2,
+		.timer_chan = TIM_Channel_4,
+		.remap = GPIO_AF_10,
+		.pin = {
+			.gpio = GPIOA,
+			.init = {
+				.GPIO_Pin = GPIO_Pin_10,
+				.GPIO_Speed = GPIO_Speed_2MHz,
+				.GPIO_Mode  = GPIO_Mode_AF,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd  = GPIO_PuPd_UP
+			},
+			.pin_source = GPIO_PinSource10,
+		},
+	},
+	{ // Ch4
+		.timer = TIM2,
+		.timer_chan = TIM_Channel_3,
+		.remap = GPIO_AF_10,
+		.pin = {
+			.gpio = GPIOA,
+			.init = {
+				.GPIO_Pin = GPIO_Pin_9,
+				.GPIO_Speed = GPIO_Speed_2MHz,
+				.GPIO_Mode  = GPIO_Mode_AF,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd  = GPIO_PuPd_UP
+			},
+			.pin_source = GPIO_PinSource9,
+		},
+	},
+	{ // Ch5
+		.timer = TIM2,
+		.timer_chan = TIM_Channel_1,
+		.remap = GPIO_AF_1,
+		.pin = {
+			.gpio = GPIOA,
+			.init = {
+				.GPIO_Pin = GPIO_Pin_0,
+				.GPIO_Speed = GPIO_Speed_2MHz,
+				.GPIO_Mode  = GPIO_Mode_AF,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd  = GPIO_PuPd_UP
+			},
+			.pin_source = GPIO_PinSource0,
+		},
+	},
+	{ // Ch6
+		.timer = TIM2,
+		.timer_chan = TIM_Channel_2,
+		.remap = GPIO_AF_1,
+		.pin = {
+			.gpio = GPIOA,
+			.init = {
+				.GPIO_Pin = GPIO_Pin_1,
+				.GPIO_Speed = GPIO_Speed_2MHz,
+				.GPIO_Mode  = GPIO_Mode_AF,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd  = GPIO_PuPd_UP
+			},
+			.pin_source = GPIO_PinSource1,
+		},
+	},
+	{ // Ch7
+		.timer = TIM3,
+		.timer_chan = TIM_Channel_1,
+		.remap = GPIO_AF_2,
+		.pin = {
+			.gpio = GPIOA,
+			.init = {
+				.GPIO_Pin = GPIO_Pin_6,
+				.GPIO_Speed = GPIO_Speed_2MHz,
+				.GPIO_Mode  = GPIO_Mode_AF,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd  = GPIO_PuPd_UP
+			},
+			.pin_source = GPIO_PinSource6,
+		},
+	},
+};
+
+/*
+ * 	OUTPUTS
+	1:  TIM4_CH3 (PB8)
+	2:  TIM4_CH4 (PB9)
+	3:  TIM2_CH4 (PA10)
+	4:  TIM2_CH3 (PA9)
+	5:  TIM2_CH1 (PA0)
+	6:  TIM2_CH2 (PA1)
+ */
+static const struct pios_tim_channel pios_tim_servoport_pins_tri[] = {
 	{ // Ch1
 		.timer = TIM4,
 		.timer_chan = TIM_Channel_3,
@@ -664,9 +787,22 @@ static const struct pios_servo_cfg pios_servo_cfg = {
 	.num_channels = NELEMENTS(pios_tim_servoport_pins),
 };
 
+static struct pios_servo_cfg pios_servo_cfg_tri = {
+	.tim_oc_init = {
+		.TIM_OCMode = TIM_OCMode_PWM1,
+		.TIM_OutputState = TIM_OutputState_Enable,
+		.TIM_OutputNState = TIM_OutputNState_Disable,
+		.TIM_Pulse = PIOS_SERVOS_INITIAL_POSITION,
+		.TIM_OCPolarity = TIM_OCPolarity_High,
+		.TIM_OCNPolarity = TIM_OCPolarity_High,
+		.TIM_OCIdleState = TIM_OCIdleState_Reset,
+		.TIM_OCNIdleState = TIM_OCNIdleState_Reset,
+	},
+	.channels = pios_tim_servoport_pins_tri,
+	.num_channels = NELEMENTS(pios_tim_servoport_pins_tri),
+};
+
 #endif	/* PIOS_INCLUDE_SERVO && PIOS_INCLUDE_TIM */
-
-
 
 /*
  * PWM Inputs
@@ -745,7 +881,7 @@ static const struct pios_ppm_cfg pios_ppm_cfg = {
 #define DTFC_VOLTAGE_CALIBRATION_VALUE 90.9091f // mV/V
 #define DTFC_CURRENT_CALIBRATION_VALUE 24.95f // mV/A
 
-static const struct pios_internal_adc_cfg internal_adc_cfg = {
+static struct pios_internal_adc_cfg internal_adc_cfg = {
 	.dma = {
 		.irq = {
 			.flags   = (DMA2_FLAG_TC1 | DMA2_FLAG_TE1 | DMA2_FLAG_HT1 | DMA2_FLAG_GL1),
@@ -765,11 +901,12 @@ static const struct pios_internal_adc_cfg internal_adc_cfg = {
 	},
 	.half_flag = DMA2_IT_HT1,
 	.full_flag = DMA2_IT_TC1,
-	.oversampling = 32,
-	.adc_pin_count = 2,
+	.oversampling = 4,
+	.adc_pin_count = 3,
 	.adc_pins = {
 		{GPIOA,GPIO_Pin_5,ADC_Channel_2,true}, // Current
 		{GPIOA,GPIO_Pin_4,ADC_Channel_1,true}, // Voltage
+		{GPIOA,GPIO_Pin_6,ADC_Channel_3,true}, // Tricopter servo feedback
 	},
 	.adc_dev_master = ADC2,
 };
@@ -890,7 +1027,7 @@ static const struct pios_exti_cfg pios_exti_mpu_cfg __exti_config = {
 
 static struct pios_mpu_cfg pios_mpu_cfg = {
     .exti_cfg = &pios_exti_mpu_cfg,
-    .default_samplerate = 1000,
+    .default_samplerate = 500,
     .orientation = PIOS_MPU_TOP_180DEG
 };
 #endif /* PIOS_INCLUDE_MPU */

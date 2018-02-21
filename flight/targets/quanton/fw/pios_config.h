@@ -35,6 +35,8 @@
 /* Major features */
 #define STABILIZATION_LQG
 
+#define OPENAEROVTOL
+
 /* Enable/Disable PiOS Modules */
 #define PIOS_INCLUDE_FLASH_JEDEC
 #define PIOS_INCLUDE_I2C

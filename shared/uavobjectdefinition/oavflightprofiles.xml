@@ -1,0 +1,29 @@
+<xml>
+	<object name="OAVFlightProfiles" singleinstance="true" settings="true">
+		<description>OAV Flight Profile Settings</description>
+		<access gcs="readwrite" flight="readwrite"/>
+		<logging updatemode="periodic" period="1000"/>
+		<telemetrygcs acked="false" updatemode="onchange" period="0"/>
+		<telemetryflight acked="false" updatemode="onchange" period="0"/>
+		<field defaultvalue="0, 0" elements="2" name="RollP"        type="int8" units=""/>
+		<field defaultvalue="0, 0" elements="2" name="RollI"        type="int8" units=""/>
+		<field defaultvalue="0, 0" elements="2" name="RollILimit"   type="int8" units=""/>
+		<field defaultvalue="0, 0" elements="2" name="RollIRate"    type="int8" units=""/>
+		<field defaultvalue="0, 0" elements="2" name="RollAutoLvl"  type="int8" units=""/>
+		<field defaultvalue="0, 0" elements="2" name="RollTrim"     type="int8" units=""/>
+		<field defaultvalue="0, 0" elements="2" name="PitchP"       type="int8" units=""/>
+		<field defaultvalue="0, 0" elements="2" name="PitchI"       type="int8" units=""/>
+		<field defaultvalue="0, 0" elements="2" name="PitchILimit"  type="int8" units=""/>
+		<field defaultvalue="0, 0" elements="2" name="PitchIRate"   type="int8" units=""/>
+		<field defaultvalue="0, 0" elements="2" name="PitchAutoLvl" type="int8" units=""/>
+		<field defaultvalue="0, 0" elements="2" name="PitchTrim"    type="int8" units=""/>
+		<field defaultvalue="0, 0" elements="2" name="YawP"         type="int8" units=""/>
+		<field defaultvalue="0, 0" elements="2" name="YawI"         type="int8" units=""/>
+		<field defaultvalue="0, 0" elements="2" name="YawILimit"    type="int8" units=""/>
+		<field defaultvalue="0, 0" elements="2" name="YawIRate"     type="int8" units=""/>
+		<field defaultvalue="0, 0" elements="2" name="YawTrim"      type="int8" units=""/>
+		<field defaultvalue="0, 0" elements="2" name="AZedP"        type="int8" units=""/>
+		<field defaultvalue="0, 0" elements="2" name="AZedI"        type="int8" units=""/>
+		<field defaultvalue="0, 0" elements="2" name="AZedILimit"   type="int8" units=""/>
+	</object>
+</xml>

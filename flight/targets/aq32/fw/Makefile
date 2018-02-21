@@ -62,6 +62,7 @@ OPTMODULES += Geofence
 OPTMODULES += Logging
 OPTMODULES += Storm32Bgc
 OPTMODULES += CharacterOSD
+OPTMODULES += OpenAeroVtol
 OPTMODULES += UAVOCrossfireTelemetry
 
 # Paths

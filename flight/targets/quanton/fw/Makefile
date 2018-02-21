@@ -62,6 +62,7 @@ OPTMODULES += Geofence
 OPTMODULES += Logging
 OPTMODULES += FlightStats
 OPTMODULES += Storm32Bgc
+OPTMODULES += OpenAeroVtol
 OPTMODULES += UAVOCrossfireTelemetry
 OPTMODULES += Loadable
 

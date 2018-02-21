@@ -53,6 +53,20 @@
 #include "pios_queue.h"
 #include "misc_math.h"
 
+#include "triflight.h"
+#include "triflightsettings.h"
+#include "triflightstatus.h"
+
+#include "../OpenAeroVtol/oav.h"
+
+#include "oavcurves.h"
+#include "oavflightprofiles.h"
+#include "oavmixerfdbks.h"
+#include "oavmixervolumes.h"
+#include "oavoffsets.h"
+#include "oavsettings.h"
+#include "oavstatus.h"
+
 // Private constants
 #define MAX_QUEUE_SIZE 2
 
@@ -91,6 +105,17 @@ static volatile bool manual_control_cmd_updated = true;
 static volatile bool actuator_settings_updated = true;
 static volatile bool mixer_settings_updated = true;
 
+#ifdef OPENAEROVTOL
+static volatile bool oav_curves_updated          = true;
+static volatile bool oav_flight_profiles_updated = true;
+static volatile bool oav_mixer_fdbks_updated     = true;
+static volatile bool oav_mixer_volumes_updated   = true;
+static volatile bool oav_offsets_updated         = true;
+static volatile bool oav_settings_updated        = true;
+#endif
+
+static volatile bool triflight_settings_updated  = true;
+
 static MixerSettingsMixer1TypeOptions types_mixer[MAX_MIX_ACTUATORS];
 
 /* In the mixer, a row consists of values for one output actuator.
@@ -101,11 +126,30 @@ static float motor_mixer[MAX_MIX_ACTUATORS * MIXERSETTINGS_MIXER1VECTOR_NUMELEM]
 
 /* These are various settings objects used throughout the actuator code */
 static ActuatorSettingsData actuatorSettings;
+static FlightStatusData flightStatus;
+static MixerSettingsData mixerSettings;
 static SystemSettingsAirframeTypeOptions airframe_type;
 
 static float curve2[MIXERSETTINGS_THROTTLECURVE2_NUMELEM];
 
 static MixerSettingsCurve2SourceOptions curve2_src;
+
+#ifdef OPENAEROVTOL
+static OAVCurvesData         OAVCurves;
+static OAVFlightProfilesData OAVFlightProfiles;
+static OAVMixerFdbksData     OAVMixerFdbks;
+static OAVMixerVolumesData   OAVMixerVolumes;
+static OAVOffsetsData        OAVOffsets;
+static OAVSettingsData       OAVSettings;
+static OAVStatusData         OAVStatus;
+#endif
+
+static TriflightSettingsData triflightSettings;
+static TriflightStatusData   triflightStatus;
+
+static bool armed            = false;
+static bool spin_while_armed = false;
+static bool stabilize_now    = false;
 
 // Private functions
 static void actuator_task(void* parameters);
@@ -233,6 +277,50 @@ int32_t ActuatorInitialize()
 	}
 	MixerSettingsConnectCallbackCtx(UAVObjCbSetFlag, &mixer_settings_updated);
 
+#ifdef OPENAEROVTOL
+	// Register for notifications of changes to OAVCurves
+	if (OAVCurvesInitialize() == -1) {
+		return -1;
+	}
+	OAVCurvesConnectCallbackCtx(UAVObjCbSetFlag, &oav_curves_updated);
+
+	// Register for notifications of changes to OAVFlightProfiles
+	if (OAVFlightProfilesInitialize() == -1) {
+		return -1;
+	}
+	OAVFlightProfilesConnectCallbackCtx(UAVObjCbSetFlag, &oav_flight_profiles_updated);
+
+	// Register for notifications of changes to OAVMixerFdbks
+	if (OAVMixerFdbksInitialize() == -1) {
+		return -1;
+	}
+	OAVMixerFdbksConnectCallbackCtx(UAVObjCbSetFlag, &oav_mixer_fdbks_updated);
+
+	// Register for notifications of changes to OAVMixerVolumes
+	if (OAVMixerVolumesInitialize() == -1) {
+		return -1;
+	}
+	OAVMixerVolumesConnectCallbackCtx(UAVObjCbSetFlag, &oav_mixer_volumes_updated);
+
+	// Register for notifications of changes to OAVOffsets
+	if (OAVOffsetsInitialize() == -1) {
+		return -1;
+	}
+	OAVOffsetsConnectCallbackCtx(UAVObjCbSetFlag, &oav_offsets_updated);
+
+	// Register for notifications of changes to OAVSettings
+	if (OAVSettingsInitialize() == -1) {
+		return -1;
+	}
+	OAVSettingsConnectCallbackCtx(UAVObjCbSetFlag, &oav_settings_updated);
+#endif
+
+	// Register for notifications of changes to TriFlightSettings
+	if (TriflightSettingsInitialize() == -1) {
+		return -1;
+	}
+	TriflightSettingsConnectCallbackCtx(UAVObjCbSetFlag, &triflight_settings_updated);
+
 	// Listen for ActuatorDesired updates (Primary input to this module)
 	if (ActuatorDesiredInitialize()  == -1) {
 		return -1;
@@ -243,6 +331,16 @@ int32_t ActuatorInitialize()
 
 	// Primary output of this module
 	if (ActuatorCommandInitialize() == -1) {
+		return -1;
+	}
+
+#ifdef OPENAEROVTOL
+	if (OAVStatusInitialize() == -1) {
+		return -1;
+	}
+#endif
+
+	if (TriflightStatusInitialize() == -1) {
 		return -1;
 	}
 
@@ -338,8 +436,6 @@ static void compute_one_mixer(int mixnum,
 
 static void compute_mixer()
 {
-	MixerSettingsData mixerSettings;
-
 	MixerSettingsGet(&mixerSettings);
 
 #if MAX_MIX_ACTUATORS > 0
@@ -594,6 +690,78 @@ static void post_process_scale_and_commit(float *motor_vect,
 				active_command);
 	}
 
+	if (triflightStatus.Initialized == TRIFLIGHTSTATUS_INITIALIZED_TRUE)
+	{
+		triflightStatus.UncorrectedServoCmd = command.Channel[triflightStatus.ServoChannel];
+
+		command.Channel[triflightStatus.ServoChannel] = getCorrectedServoValue(&actuatorSettings,
+		                                                                       &triflightSettings,
+		                                                                       &triflightStatus,
+		                                                                       command.Channel[triflightStatus.ServoChannel]);
+
+		// Make sure corrected servo command with in PWM range after correction is applied
+		if (actuatorSettings.ChannelMin[triflightStatus.ServoChannel] < actuatorSettings.ChannelMax[triflightStatus.ServoChannel])
+			command.Channel[triflightStatus.ServoChannel] = bound_min_max(command.Channel[triflightStatus.ServoChannel],
+			                                                              actuatorSettings.ChannelMin[triflightStatus.ServoChannel],
+			                                                              actuatorSettings.ChannelMax[triflightStatus.ServoChannel]);
+		else
+			command.Channel[triflightStatus.ServoChannel] = bound_min_max(command.Channel[triflightStatus.ServoChannel],
+			                                                              actuatorSettings.ChannelMax[triflightStatus.ServoChannel],
+			                                                              actuatorSettings.ChannelMin[triflightStatus.ServoChannel]);
+
+		triflightStatus.CorrectedServoCmd = command.Channel[triflightStatus.ServoChannel];
+
+		if ((triflightSettings.EnableVirtualServo == TRIFLIGHTSETTINGS_ENABLEVIRTUALSERVO_ENABLE) ||
+		    (triflightSettings.ServoFdbkPin == TRIFLIGHTSETTINGS_SERVOFDBKPIN_NONE))
+			virtualServoStep(&actuatorSettings,
+			                 &triflightSettings,
+			                 &triflightStatus,
+			                 dT,
+			                 command.Channel[triflightStatus.ServoChannel]);
+		else
+// HJI #if !defined(ARCH_POSIX) && !defined(ARCH_WIN32)
+			feedbackServoStep(&triflightSettings, &triflightStatus, dT);
+// HJI #else
+// HJI 			triflightStatus.ServoAngle = 90.0f;
+// HJI #endif
+
+		// Compute tail motor correction
+		triflightStatus.MotorCorrection = triGetMotorCorrection(&actuatorSettings,
+		                                                        &triflightSettings,
+		                                                        &triflightStatus,
+		                                                        command.Channel[triflightStatus.ServoChannel]);
+
+		if (armed) {
+			// Add in tail motor correction
+			command.Channel[triflightStatus.RearMotorChannel] += triflightStatus.MotorCorrection;
+
+			// Make sure corrected motor command with in PWM range after correction is applied
+			command.Channel[triflightStatus.RearMotorChannel] = bound_min_max(command.Channel[triflightStatus.RearMotorChannel],
+			                                                                  actuatorSettings.ChannelMin[triflightStatus.RearMotorChannel],
+			                                                                  actuatorSettings.ChannelMax[triflightStatus.RearMotorChannel]);
+		}
+
+		virtualTailMotorStep(&actuatorSettings,
+		                     &triflightSettings,
+		                     &triflightStatus,
+		                     command.Channel[triflightStatus.RearMotorChannel],
+		                     dT);
+
+		dynamicYaw(&triflightSettings, &triflightStatus);
+
+// HJI #if !defined(ARCH_POSIX) && !defined(ARCH_WIN32)
+		triTailTuneStep(&actuatorSettings,
+		                &flightStatus,
+		                &triflightSettings,
+		                &triflightStatus,
+		                &command.Channel[triflightStatus.ServoChannel],
+		                armed,
+		                dT);
+// HJI #endif
+
+		TriflightStatusSet(&triflightStatus);
+	}
+
 	// Store update time
 	command.UpdateTime = 1000.0f*dT;
 
@@ -629,13 +797,16 @@ static void normalize_input_data(uint32_t this_systime,
 	float throttle_val = 0;
 	ActuatorDesiredData desired;
 
-	static FlightStatusData flightStatus;
-
 	ActuatorDesiredGet(&desired);
 
 	if (flight_status_updated) {
 		FlightStatusGet(&flightStatus);
 		flight_status_updated = false;
+	}
+
+	if (triflightStatus.Initialized == TRIFLIGHTSTATUS_INITIALIZED_TRUE) {
+		desired.Yaw *= triflightStatus.DynamicYawGain;
+		desired.Yaw = bound_sym(desired.Yaw, 1.0f);
 	}
 
 	if (manual_control_cmd_updated) {
@@ -741,16 +912,143 @@ static void actuator_task(void* parameters)
 		 */
 		if (actuator_settings_updated) {
 			actuator_settings_update();
+			triflight_settings_updated = true;
+		}
+
+		if (flight_status_updated) {
+			FlightStatusGet(&flightStatus);
+			flight_status_updated = false;
 		}
 
 		if (mixer_settings_updated) {
 			mixer_settings_updated = false;
 			SystemSettingsAirframeTypeGet(&airframe_type);
+			triflight_settings_updated = true;
 
 			compute_mixer();
 
 			MixerSettingsThrottleCurve2Get(curve2);
 			MixerSettingsCurve2SourceGet(&curve2_src);
+		}
+
+#ifdef OPENAEROVTOL
+		if (oav_curves_updated) {
+			OAVCurvesGet(&OAVCurves);
+
+			oav_curves_updated = false;
+		}
+
+		if (oav_flight_profiles_updated) {
+			OAVFlightProfilesGet(&OAVFlightProfiles);
+
+			UpdateLimits();
+
+			oav_flight_profiles_updated = false;
+		}
+
+		if (oav_mixer_fdbks_updated) {
+			OAVMixerFdbksGet(&OAVMixerFdbks);
+
+			oav_mixer_fdbks_updated = false;
+		}
+
+		if (oav_mixer_volumes_updated) {
+			OAVMixerVolumesGet(&OAVMixerVolumes);
+
+			oav_mixer_volumes_updated = false;
+		}
+
+		if (oav_offsets_updated) {
+			OAVOffsetsGet(&OAVOffsets);
+
+			oav_offsets_updated = false;
+		}
+
+		if (oav_settings_updated) {
+			OAVSettingsGet(&OAVSettings);
+			OAVStatusGet(&OAVStatus);
+
+			if (OAVSettings.EnableOAV == OAVSETTINGS_ENABLEOAV_ENABLE)
+				OAVStatus.Initialized = OAVSTATUS_INITIALIZED_TRUE;
+			else
+				OAVStatus.Initialized = OAVSTATUS_INITIALIZED_FALSE;
+
+			OAVStatusSet(&OAVStatus);
+
+			oav_settings_updated = false;
+		}
+
+#endif
+
+#define is_yaw_servo(b)  (mixerSettings.Mixer ## b ## Type ==  MIXERSETTINGS_MIXER ## b ## TYPE_SERVO)
+#define is_rear_motor(b) ((mixerSettings.Mixer ## b ## Type ==  MIXERSETTINGS_MIXER ## b ## TYPE_MOTOR) && \
+                          (mixerSettings.Mixer ## b ## Vector[MIXERSETTINGS_MIXER ## b ## VECTOR_ROLL] == 0))
+
+		if (triflight_settings_updated) {
+			triflight_settings_updated = false;
+
+			MixerSettingsGet(&mixerSettings);
+
+			TriflightSettingsGet(&triflightSettings);
+
+			if ((triflightSettings.EnableTriFlight == TRIFLIGHTSETTINGS_ENABLETRIFLIGHT_ENABLE) &&
+			    (airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_TRI))
+			{
+				// Find which output is yaw servo and which output is rear motor
+#if MAX_MIX_ACTUATORS > 0
+				if is_yaw_servo(1)   triflightStatus.ServoChannel = 0;
+				if is_rear_motor(1)  triflightStatus.RearMotorChannel = 0;
+#endif
+#if MAX_MIX_ACTUATORS > 1
+				if is_yaw_servo(2)   triflightStatus.ServoChannel = 1;
+				if is_rear_motor(2)  triflightStatus.RearMotorChannel = 1;
+#endif
+#if MAX_MIX_ACTUATORS > 2
+				if is_yaw_servo(3)   triflightStatus.ServoChannel = 2;
+				if is_rear_motor(3)  triflightStatus.RearMotorChannel = 2;
+#endif
+#if MAX_MIX_ACTUATORS > 3
+				if is_yaw_servo(4)   triflightStatus.ServoChannel = 3;
+				if is_rear_motor(4)  triflightStatus.RearMotorChannel = 3;
+#endif
+#if MAX_MIX_ACTUATORS > 4
+				if is_yaw_servo(5)   triflightStatus.ServoChannel = 4;
+				if is_rear_motor(5)  triflightStatus.RearMotorChannel = 4;
+#endif
+#if MAX_MIX_ACTUATORS > 5
+				if is_yaw_servo(6)   triflightStatus.ServoChannel = 5;
+				if is_rear_motor(6)  triflightStatus.RearMotorChannel = 5;
+#endif
+#if MAX_MIX_ACTUATORS > 6
+				if is_yaw_servo(7)   triflightStatus.ServoChannel = 6;
+				if is_rear_motor(7)  triflightStatus.RearMotorChannel = 6;
+#endif
+#if MAX_MIX_ACTUATORS > 7
+				if is_yaw_servo(8)   triflightStatus.ServoChannel = 7;
+				if is_rear_motor(8)  triflightStatus.RearMotorChannel = 7;
+#endif
+#if MAX_MIX_ACTUATORS > 8
+				if is_yaw_servo(9)   triflightStatus.ServoChannel = 8;
+				if is_rear_motor(9)  triflightStatus.RearMotorChannel = 8;
+#endif
+#if MAX_MIX_ACTUATORS > 9
+				if is_yaw_servo(10)  triflightStatus.ServoChannel = 9;
+				if is_rear_motor(10) triflightStatus.RearMotorChannel = 9;
+#endif
+
+				// Call TriFlight Initialization
+				triflightInit(&actuatorSettings, &triflightSettings, &triflightStatus);
+
+				// Set TriFlight Initialized
+				triflightStatus.Initialized = TRIFLIGHTSTATUS_INITIALIZED_TRUE;
+			}
+			else
+			{
+				// Set TriFlight Uninitialized
+				triflightStatus.Initialized = TRIFLIGHTSTATUS_INITIALIZED_FALSE;
+			}
+
+			TriflightStatusSet(&triflightStatus);
 		}
 
 		PIOS_WDG_UpdateFlag(PIOS_WDG_ACTUATOR);
@@ -816,7 +1114,42 @@ static void actuator_task(void* parameters)
 
 		float motor_vect[MAX_MIX_ACTUATORS];
 
-		bool armed, spin_while_armed, stabilize_now;
+#ifdef OPENAEROVTOL
+		ManualControlCommandData manual_control_command;
+
+		if ((airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_CUSTOM) && (OAVStatus.Initialized == OAVSTATUS_INITIALIZED_TRUE))
+		{
+			ManualControlCommandGet(&manual_control_command);
+			OAVStatusGet(&OAVStatus);
+
+			ScaleInputs(&manual_control_command, &OAVSettings, &OAVStatus);
+			ProfileTransition(&OAVSettings, &OAVStatus);
+			IMUUpdate(&OAVSettings, &OAVStatus, dT);
+			SensorPID(&OAVFlightProfiles, &OAVSettings, &OAVStatus, dT);
+			CalculatePID(&OAVFlightProfiles, &OAVStatus);
+			ProcessMixer(&OAVCurves, &OAVMixerFdbks, &OAVMixerVolumes, &OAVOffsets, &OAVSettings, &OAVStatus, &mixerSettings);
+
+			OAVStatusSet(&OAVStatus);
+
+			for (int ct = 0; ct < MAX_MIX_ACTUATORS; ct++) {
+				motor_vect[ct] = (float)OAVStatus.P1Value[ct] / 1250.0f;
+
+				if (types_mixer[ct] == MIXERSETTINGS_MIXER1TYPE_MOTOR)
+					motor_vect[ct] = (motor_vect[ct] + 1.0f) * 0.5f;
+			}
+
+			armed = flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED;
+
+			spin_while_armed = actuatorSettings.MotorsSpinWhileArmed == ACTUATORSETTINGS_MOTORSSPINWHILEARMED_TRUE;
+
+			ActuatorDesiredData desired;
+			ActuatorDesiredGet(&desired);
+
+			stabilize_now = armed && (desired.Thrust > 0.0f);
+		}
+		else
+#endif
+		{
 
 		/* Receive manual control and desired UAV objects.  Perform
 		 * arming / hangtime checks; form a vector with desired
@@ -831,6 +1164,8 @@ static void actuator_task(void* parameters)
 				MAX_MIX_ACTUATORS,
 				MIXERSETTINGS_MIXER1VECTOR_NUMELEM,
 				1);
+
+		}
 
 		/* At arming time, knock all 3d actuators into 3D mode.
 		 * Note we never "take them out" of 3d mode.

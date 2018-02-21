@@ -1,0 +1,70 @@
+<xml>
+	<object name="OAVSettings" singleinstance="true" settings="true">
+		<description>OAV Curve Settings</description>
+		<access gcs="readwrite" flight="readwrite"/>
+		<logging updatemode="periodic" period="1000"/>
+		<telemetrygcs acked="false" updatemode="onchange" period="0"/>
+		<telemetryflight acked="false" updatemode="onchange" period="0"/>
+		<field defaultvalue="NO_ORIENT" elements="1" name="P1Reference" type="enum" units="">
+			<description/>
+			<options>
+				<option>NO_ORIENT</option>
+				<option>EARTH</option>
+				<option>MODEL</option>
+			</options>
+		</field>
+		<field defaultvalue="6" elements="1" name="CFFactor" type="int8" units=""/>
+		<field defaultvalue="HZ21" elements="1" name="AccelLPF" type="enum" units="Hz">
+			<description/>
+			<options>
+				<option>HZ5</option>
+				<option>HZ10</option>
+				<option>HZ21</option>
+				<option>HZ44</option>
+				<option>HZ94</option>
+				<option>HZ184</option>
+				<option>HZ260</option>
+				<option>NOFILTER</option>
+			</options>
+		</field>
+		<field defaultvalue="NOFILTER" elements="1" name="GyroLPF" type="enum" units="Hz">
+			<description/>
+			<options>
+				<option>HZ5</option>
+				<option>HZ10</option>
+				<option>HZ21</option>
+				<option>HZ44</option>
+				<option>HZ94</option>
+				<option>HZ184</option>
+				<option>HZ260</option>
+				<option>NOFILTER</option>
+			</options>
+		</field>
+		<field defaultvalue="GEAR" elements="1" name="ProfileChannel" type="enum" units="">
+			<description/>
+			<options>
+				<option>THROTTLE</option>
+				<option>AILERON</option>
+				<option>ELEVATOR</option>
+				<option>RUDDER</option>
+				<option>GEAR</option>
+				<option>AUX1</option>
+				<option>AUX2</option>
+				<option>AUX3</option>
+			</options>
+		</field>
+		<field defaultvalue="0" elements="1" name="OutboundTransition" type="int8" units=""/>
+		<field defaultvalue="0" elements="1" name="InboundTransition" type="int8" units=""/>
+		<field defaultvalue="0" elements="1" name="TransitionLow" type="int8" units=""/>
+		<field defaultvalue="50" elements="1" name="TransitionMid" type="int8" units=""/>
+		<field defaultvalue="100" elements="1" name="TransitionHigh" type="int8" units=""/>
+		<field defaultvalue="20" elements="1" name="AccelVertFilter" type="int8" units=""/>
+		<field defaultvalue="Disable"name="EnableOAV" units="" type="enum" elements="1">
+			<description/>
+			<options>
+				<option>Disable</option>
+				<option>Enable</option>
+			</options>
+		</field>
+	</object>
+</xml>

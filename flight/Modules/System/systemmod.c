@@ -159,6 +159,7 @@ static inline void updateRfm22bStats();
 static inline void updateWDGstats();
 #endif
 
+char *triflight_blink_string = NULL;
 /**
  * Create the module task.
  * \returns 0 on success or -1 if initialization failed
@@ -477,52 +478,67 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 			candidate_prio = indicate_error(&candidate_blink);
 		}
 
-		if (candidate_prio > blink_prio) {
-			// Preempt!
-			blink_state = 0;
-			blink_string = candidate_blink;
-			blink_prio = candidate_prio;
+		FlightStatusData flightStatus;
+		FlightStatusGet(&flightStatus);
 
-			if (blink_prio == ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_HAIRONFIRE) {
-				custom_blink_string = NULL;
-			}
-
-			if (blink_string &&
-					!strcmp(blink_string, BLINK_STRING_RADIO)) {
-				/* XXX do this in a more robust way */
-				is_manual_control = true;
-			} else {
-				is_manual_control = false;
+		if (flightStatus.FlightMode == FLIGHTSTATUS_FLIGHTMODE_TAILTUNE) {
+			if ((blink_prio == 0) && (blink_state == 0)) {
+				if (triflight_blink_string != NULL) {
+					blink_string           = triflight_blink_string;
+					blink_prio             = SHAREDDEFS_ALARMLEVELS_HAIRONFIRE;
+					triflight_blink_string = NULL;
+				}
 			}
 		}
+		else
+		{
+			if (candidate_prio > blink_prio) {
+				// Preempt!
+				blink_state = 0;
+				blink_string = candidate_blink;
+				blink_prio = candidate_prio;
 
-		FlightStatusArmedGet(&armed_status);
+				if (blink_prio == ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_HAIRONFIRE) {
+					custom_blink_string = NULL;
+				}
 
-		if (armed_status == FLIGHTSTATUS_ARMED_ARMED) {
-			ever_armed = true;
-		} else {
-			if ((counter & 15) == 0) {
-				/* Every 16 cycles through here, kick off
-				 * a config check next cycle when disarmed.
-				 * Works around #1776 where tasks race
-				 * through startup... but it also just
-				 * seems prudent to check this stuff
-				 * every half second or so while disarmed.
-				 * (for lost events, etc.)
-				 */
-				config_check_needed = true;
+				if (blink_string &&
+						!strcmp(blink_string, BLINK_STRING_RADIO)) {
+					/* XXX do this in a more robust way */
+					is_manual_control = true;
+				} else {
+					is_manual_control = false;
+				}
 			}
-		}
 
-		if ((blink_prio == 0) && (blink_state == 0)) {
-			// Nothing else to do-- show armed status
+			FlightStatusArmedGet(&armed_status);
+
 			if (armed_status == FLIGHTSTATUS_ARMED_ARMED) {
-				blink_string = "I";	// .. pairs of blinks.
+				ever_armed = true;
 			} else {
-				blink_string = "T";	// - single long blinks
+				if ((counter & 15) == 0) {
+					/* Every 16 cycles through here, kick off
+					* a config check next cycle when disarmed.
+					* Works around #1776 where tasks race
+					* through startup... but it also just
+					* seems prudent to check this stuff
+					* every half second or so while disarmed.
+					* (for lost events, etc.)
+					*/
+					config_check_needed = true;
+				}
 			}
 
-			blink_prio = SHAREDDEFS_ALARMLEVELS_OK;
+			if ((blink_prio == 0) && (blink_state == 0)) {
+				// Nothing else to do-- show armed status
+				if (armed_status == FLIGHTSTATUS_ARMED_ARMED) {
+					blink_string = "I";	// .. pairs of blinks.
+				} else {
+					blink_string = "T";	// - single long blinks
+				}
+
+				blink_prio = SHAREDDEFS_ALARMLEVELS_OK;
+			}
 		}
 
 		morse = morse_send(&blink_string, &blink_state);

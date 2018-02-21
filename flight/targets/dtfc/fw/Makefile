@@ -61,6 +61,7 @@ OPTMODULES += UAVOFrSKYSPortBridge
 OPTMODULES += Geofence
 OPTMODULES += Logging
 OPTMODULES += Storm32Bgc
+OPTMODULES += OpenAeroVtol
 OPTMODULES += UAVOCrossfireTelemetry
 
 # Paths

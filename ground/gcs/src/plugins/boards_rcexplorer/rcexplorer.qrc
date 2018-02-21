@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/rcexplorer">
+	    <file>images/f3fc.png</file>
+    </qresource>
+</RCC>

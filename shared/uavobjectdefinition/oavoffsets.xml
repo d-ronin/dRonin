@@ -1,0 +1,16 @@
+<xml>
+	<object name="OAVOffsets" singleinstance="true" settings="true">
+		<description>OAV Offset Set Points</description>
+		<access gcs="readwrite" flight="readwrite"/>
+		<logging updatemode="periodic" period="1000"/>
+		<telemetrygcs acked="false" updatemode="onchange" period="0"/>
+		<telemetryflight acked="false" updatemode="onchange" period="0"/>
+		<field defaultvalue="0, 0, 0, 0, 0, 0, 0, 0, 0, 0" elements="10" name="OffsetPoint1" type="int8" units=""/>
+		<field defaultvalue="0, 0, 0, 0, 0, 0, 0, 0, 0, 0" elements="10" name="OffsetPoint2" type="int8" units=""/>
+		<field defaultvalue="0, 0, 0, 0, 0, 0, 0, 0, 0, 0" elements="10" name="OffsetPoint3" type="int8" units=""/>
+		<field defaultvalue="0, 0, 0, 0, 0, 0, 0, 0, 0, 0" elements="10" name="OffsetPoint4" type="int8" units=""/>
+		<field defaultvalue="0, 0, 0, 0, 0, 0, 0, 0, 0, 0" elements="10" name="OffsetPoint5" type="int8" units=""/>
+		<field defaultvalue="0, 0, 0, 0, 0, 0, 0, 0, 0, 0" elements="10" name="OffsetPoint6" type="int8" units=""/>
+		<field defaultvalue="0, 0, 0, 0, 0, 0, 0, 0, 0, 0" elements="10" name="OffsetPoint7" type="int8" units=""/>
+	</object>
+</xml>

@@ -55,11 +55,12 @@ Quanton::Quanton(void)
     boardType = 0x86;
 
     // Define the bank of channels that are connected to a given timer
-    channelBanks.resize(6);
+    channelBanks.resize(5);
     channelBanks[0] = QVector<int>() << 1 << 2 << 3 << 4;
     channelBanks[1] = QVector<int>() << 5 << 6;
     channelBanks[2] = QVector<int>() << 7;
     channelBanks[3] = QVector<int>() << 8;
+	channelBanks[4] = QVector<int>() << 9 << 10;
 }
 
 Quanton::~Quanton()
@@ -141,9 +142,6 @@ bool Quanton::setInputType(Core::IBoardType::InputType type)
     case INPUT_TYPE_PPM:
         settings.InPort = HwQuanton::INPORT_PPM;
         break;
-    case INPUT_TYPE_PWM:
-        settings.InPort = HwQuanton::INPORT_PWM;
-        break;
     case INPUT_TYPE_HOTTSUMD:
         settings.Uart1 = HwQuanton::UART1_HOTTSUMD;
         break;
@@ -195,39 +193,7 @@ Core::IBoardType::InputType Quanton::getInputType()
 
     switch (settings.InPort) {
     case HwQuanton::INPORT_PPM:
-    case HwQuanton::INPORT_PPMADC:
-    case HwQuanton::INPORT_PPMOUTPUTS:
-    case HwQuanton::INPORT_PPMOUTPUTSADC:
-    // discutable, are these PPM, PWM or defined by the InPortSerial port?
-    // For now defined as PPM.
-    case HwQuanton::INPORT_PPMSERIAL:
-    case HwQuanton::INPORT_PPMSERIALADC:
-    case HwQuanton::INPORT_PPMPWM:
-    case HwQuanton::INPORT_PPMPWMADC:
         return INPUT_TYPE_PPM;
-    case HwQuanton::INPORT_PWM:
-    case HwQuanton::INPORT_PWMADC:
-        return INPUT_TYPE_PWM;
-    case HwQuanton::INPORT_SERIAL:
-        switch (settings.InPortSerial) {
-        case HwQuanton::INPORTSERIAL_DSM:
-            return INPUT_TYPE_DSM;
-        case HwQuanton::INPORTSERIAL_HOTTSUMD:
-            return INPUT_TYPE_HOTTSUMD;
-        case HwQuanton::INPORTSERIAL_HOTTSUMH:
-            return INPUT_TYPE_HOTTSUMH;
-        case HwQuanton::INPORTSERIAL_SBUSNONINVERTED:
-            return INPUT_TYPE_SBUSNONINVERTED;
-        case HwQuanton::INPORTSERIAL_IBUS:
-            return INPUT_TYPE_IBUS;
-        case HwQuanton::INPORTSERIAL_SRXL:
-            return INPUT_TYPE_SRXL;
-        case HwQuanton::INPORTSERIAL_TBSCROSSFIRE:
-            return INPUT_TYPE_TBSCROSSFIRE;
-        default:
-            break;
-        }
-        break;
     default:
         break;
     }
@@ -329,6 +295,25 @@ Core::IBoardType::InputType Quanton::getInputType()
         break;
     }
 
+    switch (settings.Uart6) {
+    case HwQuanton::UART6_DSM:
+        return INPUT_TYPE_DSM;
+    case HwQuanton::UART6_HOTTSUMD:
+        return INPUT_TYPE_HOTTSUMD;
+    case HwQuanton::UART6_HOTTSUMH:
+        return INPUT_TYPE_HOTTSUMH;
+    case HwQuanton::UART6_SBUSNONINVERTED:
+        return INPUT_TYPE_SBUSNONINVERTED;
+    case HwQuanton::UART6_IBUS:
+        return INPUT_TYPE_IBUS;
+    case HwQuanton::UART6_SRXL:
+        return INPUT_TYPE_SRXL;
+    case HwQuanton::UART6_TBSCROSSFIRE:
+        return INPUT_TYPE_TBSCROSSFIRE;
+    default:
+        break;
+    }
+
     return INPUT_TYPE_UNKNOWN;
 }
 
@@ -361,26 +346,7 @@ int Quanton::queryMaxGyroRate()
 
 QStringList Quanton::getAdcNames()
 {
-    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
-    HwQuanton *hwQuanton = HwQuanton::GetInstance(uavoManager);
-    Q_ASSERT(hwQuanton);
-    if (!hwQuanton)
-        return QStringList();
-
-    HwQuanton::DataFields settings = hwQuanton->getData();
-    if (settings.InPort == HwQuanton::INPORT_OUTPUTSADC
-        || settings.InPort == HwQuanton::INPORT_PPMADC
-        || settings.InPort == HwQuanton::INPORT_PPMOUTPUTSADC
-        || settings.InPort == HwQuanton::INPORT_PPMPWMADC
-        || settings.InPort == HwQuanton::INPORT_PWMADC
-        || settings.InPort == HwQuanton::INPORT_PPMSERIALADC) {
-        return QStringList() << "IN 7"
-                             << "IN 8";
-    }
-
-    return QStringList() << "Disabled"
-                         << "Disabled";
+    return QStringList() << "IN 7" << "IN 8";
 }
 
 bool Quanton::hasAnnunciator(AnnunciatorType annunc)

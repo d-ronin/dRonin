@@ -168,7 +168,8 @@ public:
         INPUT_TYPE_SRXL,
         INPUT_TYPE_TBSCROSSFIRE,
         INPUT_TYPE_UNKNOWN,
-        INPUT_TYPE_ANY
+        INPUT_TYPE_ANY,
+		INPUT_TYPE_PPMFRSKYSENSORHUB
     };
 
     enum AnnunciatorType {

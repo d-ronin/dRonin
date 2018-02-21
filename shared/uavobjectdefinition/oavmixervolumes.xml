@@ -1,0 +1,133 @@
+<xml>
+	<object name="OAVMixerVolumes" singleinstance="true" settings="true">
+		<description>OAV Mixer Volumes</description>
+		<access gcs="readwrite" flight="readwrite"/>
+		<logging updatemode="manual" period="0"/>
+		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
+		<telemetryflight acked="true" updatemode="onchange" period="0"/>
+		<field defaultvalue="0, 0, 0, 0, 0, 0, 0, 0, 0, 0" elements="10" name="P1ThrottleVolume" type="int8" units=""/>
+		<field defaultvalue="0, 0, 0, 0, 0, 0, 0, 0, 0, 0" elements="10" name="P2ThrottleVolume" type="int8" units=""/>
+		<field defaultvalue="LINEAR, LINEAR, LINEAR, LINEAR, LINEAR, LINEAR, LINEAR, LINEAR, LINEAR, LINEAR" elements="10" name="ThrottleCurve" type="enum" units="">
+			<description/>
+			<options>
+				<option>LINEAR</option>
+				<option>SINE</option>
+				<option>SQRTSINE</option>
+			</options>
+		</field>
+		<field defaultvalue="0, 0, 0, 0, 0, 0, 0, 0, 0, 0" elements="10" name="P1AileronVolume"  type="int8" units=""/>
+		<field defaultvalue="0, 0, 0, 0, 0, 0, 0, 0, 0, 0" elements="10" name="P2AileronVolume"  type="int8" units=""/>
+		<field defaultvalue="0, 0, 0, 0, 0, 0, 0, 0, 0, 0" elements="10" name="P1ElevatorVolume" type="int8" units=""/>
+		<field defaultvalue="0, 0, 0, 0, 0, 0, 0, 0, 0, 0" elements="10" name="P2ElevatorVolume" type="int8" units=""/>
+		<field defaultvalue="0, 0, 0, 0, 0, 0, 0, 0, 0, 0" elements="10" name="P1RudderVolume"   type="int8" units=""/>
+		<field defaultvalue="0, 0, 0, 0, 0, 0, 0, 0, 0, 0" elements="10" name="P2RudderVolume"   type="int8" units=""/>
+		<field defaultvalue="NOSOURCE, NOSOURCE, NOSOURCE, NOSOURCE, NOSOURCE, NOSOURCE, NOSOURCE, NOSOURCE, NOSOURCE, NOSOURCE" elements="10" name="P1SourceA" type="enum" units="">
+			<description/>
+			<options>
+				<option>THROTTLECURVE</option>
+				<option>COLLECTIVECURVE</option>
+				<option>CURVEC</option>
+				<option>CURVED</option>
+				<option>THROTTLE</option>
+				<option>AILERON</option>
+				<option>ELEVATOR</option>
+				<option>RUDDER</option>
+				<option>GEAR</option>
+				<option>AUX1</option>
+				<option>AUX2</option>
+				<option>AUX3</option>
+				<option>ROLLGYRO</option>
+				<option>PITCHGYRO</option>
+				<option>YAWGYRO</option>
+				<option>ROLLSMOOTH</option>
+				<option>PITCHSMOOTH</option>
+				<option>ACCX</option>
+				<option>ACCY</option>
+				<option>ACCZ</option>
+				<option>NOSOURCE</option>
+			</options>
+		</field>
+		<field defaultvalue="0, 0, 0, 0, 0, 0, 0, 0, 0, 0" elements="10" name="P1SourceAVolume" type="int8" units=""/>
+		<field defaultvalue="NOSOURCE, NOSOURCE, NOSOURCE, NOSOURCE, NOSOURCE, NOSOURCE, NOSOURCE, NOSOURCE, NOSOURCE, NOSOURCE" elements="10" name="P2SourceA" type="enum" units="">
+			<description/>
+			<options>
+				<option>THROTTLECURVE</option>
+				<option>COLLECTIVECURVE</option>
+				<option>CURVEC</option>
+				<option>CURVED</option>
+				<option>THROTTLE</option>
+				<option>AILERON</option>
+				<option>ELEVATOR</option>
+				<option>RUDDER</option>
+				<option>GEAR</option>
+				<option>AUX1</option>
+				<option>AUX2</option>
+				<option>AUX3</option>
+				<option>ROLLGYRO</option>
+				<option>PITCHGYRO</option>
+				<option>YAWGYRO</option>
+				<option>ROLLSMOOTH</option>
+				<option>PITCHSMOOTH</option>
+				<option>ACCX</option>
+				<option>ACCY</option>
+				<option>ACCZ</option>
+				<option>NOSOURCE</option>
+			</options>
+		</field>
+		<field defaultvalue="0, 0, 0, 0, 0, 0, 0, 0, 0, 0" elements="10" name="P2SourceAVolume" type="int8" units=""/>
+		<field defaultvalue="NOSOURCE, NOSOURCE, NOSOURCE, NOSOURCE, NOSOURCE, NOSOURCE, NOSOURCE, NOSOURCE, NOSOURCE, NOSOURCE" elements="10" name="P1SourceB" type="enum" units="">
+			<description/>
+			<options>
+				<option>THROTTLECURVE</option>
+				<option>COLLECTIVECURVE</option>
+				<option>CURVEC</option>
+				<option>CURVED</option>
+				<option>THROTTLE</option>
+				<option>AILERON</option>
+				<option>ELEVATOR</option>
+				<option>RUDDER</option>
+				<option>GEAR</option>
+				<option>AUX1</option>
+				<option>AUX2</option>
+				<option>AUX3</option>
+				<option>ROLLGYRO</option>
+				<option>PITCHGYRO</option>
+				<option>YAWGYRO</option>
+				<option>ROLLSMOOTH</option>
+				<option>PITCHSMOOTH</option>
+				<option>ACCX</option>
+				<option>ACCY</option>
+				<option>ACCZ</option>
+				<option>NOSOURCE</option>
+			</options>
+		</field>
+		<field defaultvalue="0, 0, 0, 0, 0, 0, 0, 0, 0, 0" elements="10" name="P1SourceBVolume" type="int8" units=""/>
+		<field defaultvalue="NOSOURCE, NOSOURCE, NOSOURCE, NOSOURCE, NOSOURCE, NOSOURCE, NOSOURCE, NOSOURCE, NOSOURCE, NOSOURCE" elements="10" name="P2SourceB" type="enum" units="">
+			<description/>
+			<options>
+				<option>THROTTLECURVE</option>
+				<option>COLLECTIVECURVE</option>
+				<option>CURVEC</option>
+				<option>CURVED</option>
+				<option>THROTTLE</option>
+				<option>AILERON</option>
+				<option>ELEVATOR</option>
+				<option>RUDDER</option>
+				<option>GEAR</option>
+				<option>AUX1</option>
+				<option>AUX2</option>
+				<option>AUX3</option>
+				<option>ROLLGYRO</option>
+				<option>PITCHGYRO</option>
+				<option>YAWGYRO</option>
+				<option>ROLLSMOOTH</option>
+				<option>PITCHSMOOTH</option>
+				<option>ACCX</option>
+				<option>ACCY</option>
+				<option>ACCZ</option>
+				<option>NOSOURCE</option>
+			</options>
+		</field>
+		<field defaultvalue="0, 0, 0, 0, 0, 0, 0, 0, 0, 0" elements="10" name="P2SourceBVolume" type="int8" units=""/>
+	</object>
+</xml>

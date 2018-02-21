@@ -333,3 +333,15 @@ plugin_boards_dtf.depends += plugin_uavobjects
 plugin_boards_dtf.depends += plugin_uavobjectutil
 plugin_boards_dtf.depends += plugin_uavobjectwidgetutils
 SUBDIRS += plugin_boards_dtf
+
+# Naze
+plugin_boards_naze.subdir = boards_naze
+plugin_boards_naze.depends = plugin_coreplugin
+plugin_boards_naze.depends = plugin_uavobjects
+SUBDIRS += plugin_boards_naze
+
+# RcExplorer
+plugin_boards_rcexplorer.subdir = boards_rcexplorer
+plugin_boards_rcexplorer.depends = plugin_coreplugin
+plugin_boards_rcexplorer.depends = plugin_uavobjects
+SUBDIRS += plugin_boards_rcexplorer

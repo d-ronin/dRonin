@@ -1,0 +1,22 @@
+<xml>
+	<object name="OAVStatus" singleinstance="true" settings="false">
+		<description>OAV Status</description>
+		<access gcs="readwrite" flight="readwrite"/>
+		<logging updatemode="manual" period="0"/>
+		<telemetrygcs acked="false" updatemode="manual" period="0"/>
+		<telemetryflight acked="false" updatemode="throttled" period="1000"/>
+		<field elements="10" name="P1Value" type="int16" units=""/>
+		<field elements="10" name="P2Value" type="int16" units=""/>
+		<field elements="3" name="OAVGyros" type="int16" units=""/>
+		<field elements="3" name="OAVAccels" type="int16" units=""/>
+		<field elements="2" name="OAVAngles" type="int16" units=""/>
+		<field elements="1" name="OAVTransition" type="int16" units=""/>
+		<field elements="1" name="Initialized" type="enum" units="">
+			<description/>
+			<options>
+				<option>False</option>
+				<option>True</option>
+			</options>
+		</field>
+	</object>
+</xml>

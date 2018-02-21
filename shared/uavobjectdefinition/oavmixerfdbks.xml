@@ -1,0 +1,93 @@
+<xml>
+	<object name="OAVMixerFdbks" singleinstance="true" settings="true">
+		<description>OAV Mixer Feedbacks</description>
+		<access gcs="readwrite" flight="readwrite"/>
+		<logging updatemode="manual" period="0"/>
+		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
+		<telemetryflight acked="true" updatemode="onchange" period="0"/>
+		<field defaultvalue="OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF" elements="10" name="P1RollGyro" type="enum" units="">
+			<options>
+				<option>OFF</option>
+				<option>ON</option>
+				<option>SCALEX5</option>
+			</options>
+		</field>
+		<field defaultvalue="OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF" elements="10" name="P2RollGyro" type="enum" units="">
+			<options>
+				<option>OFF</option>
+				<option>ON</option>
+				<option>SCALEX5</option>
+			</options>
+		</field>
+		<field defaultvalue="OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF" elements="10" name="P1PitchGyro" type="enum" units="">
+			<options>
+				<option>OFF</option>
+				<option>ON</option>
+				<option>SCALEX5</option>
+			</options>
+		</field>
+		<field defaultvalue="OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF" elements="10" name="P2PitchGyro" type="enum" units="">
+			<options>
+				<option>OFF</option>
+				<option>ON</option>
+				<option>SCALEX5</option>
+			</options>
+		</field>
+		<field defaultvalue="OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF"name="P1YawGyro" elements="10" type="enum" units="">
+			<options>
+				<option>OFF</option>
+				<option>ON</option>
+				<option>SCALEX5</option>
+			</options>
+		</field>
+		<field defaultvalue="OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF"name="P2YawGyro" elements="10" type="enum" units="">
+			<options>
+				<option>OFF</option>
+				<option>ON</option>
+				<option>SCALEX5</option>
+			</options>
+		</field>
+		<field defaultvalue="OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF" elements="10" name="P1RollAL" type="enum" units="">
+			<options>
+				<option>OFF</option>
+				<option>ON</option>
+				<option>SCALEX5</option>
+			</options>
+		</field>
+		<field defaultvalue="OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF" elements="10" name="P2RollAL" type="enum" units="">
+			<options>
+				<option>OFF</option>
+				<option>ON</option>
+				<option>SCALEX5</option>
+			</options>
+		</field>
+		<field defaultvalue="OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF" elements="10" name="P1PitchAL" type="enum" units="">
+			<options>
+				<option>OFF</option>
+				<option>ON</option>
+				<option>SCALEX5</option>
+			</options>
+		</field>
+		<field defaultvalue="OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF" elements="10" name="P2PitchAL" type="enum" units="">
+			<options>
+				<option>OFF</option>
+				<option>ON</option>
+				<option>SCALEX5</option>
+			</options>
+		</field>
+		<field defaultvalue="OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF" elements="10" name="P1AltDamp" type="enum" units="">
+			<options>
+				<option>OFF</option>
+				<option>ON</option>
+				<option>SCALEX5</option>
+			</options>
+		</field>
+		<field defaultvalue="OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF, OFF" elements="10" name="P2AltDamp" type="enum" units="">
+			<options>
+				<option>OFF</option>
+				<option>ON</option>
+				<option>SCALEX5</option>
+			</options>
+		</field>
+	</object>
+</xml>

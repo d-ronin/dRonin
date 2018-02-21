@@ -35,6 +35,7 @@
         <!-- Beyond here are the non-serial, special cases -->
         <option>I2C</option>
         <option>PPM</option>
+		<option>PPM FrSKY Sensor Hub</option>
         <option>PWM</option>
       </options>
     </field>

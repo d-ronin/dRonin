@@ -5,51 +5,11 @@
     <logging updatemode="manual" period="0"/>
     <telemetrygcs acked="true" updatemode="onchange" period="0"/>
     <telemetryflight acked="true" updatemode="onchange" period="0"/>
-    <field defaultvalue="PWM" elements="1" name="InPort" type="enum" units="function">
+    <field defaultvalue="Disabled" elements="1" name="InPort" type="enum" units="function">
       <description>The port labelled "IN"</description>
       <options>
         <option>Disabled</option>
-        <option>Outputs</option>
-        <option>Outputs+ADC</option>
-        <option>WS2811+Serial+PPM+ADC</option>
         <option>PPM</option>
-        <option>PPM+ADC</option>
-        <option>PPM+Outputs</option>
-        <option>PPM+Outputs+ADC</option>
-        <option>PPM+Serial</option>
-        <option>PPM+Serial+ADC</option>
-        <option>PPM+PWM</option>
-        <option>PPM+PWM+ADC</option>
-        <option>PWM</option>
-        <option>PWM+ADC</option>
-        <option>Serial</option>
-      </options>
-    </field>
-    <field defaultvalue="Disabled" elements="1" name="InPortSerial" parent="HwShared.PortTypes" type="enum" units="function">
-      <description/>
-      <options>
-        <option>Disabled</option>
-        <option>ComBridge</option>
-        <option>DebugConsole</option>
-        <option>DSM</option>
-        <option>FrSKY Sensor Hub</option>
-        <option>FrSKY SPort Telemetry</option>
-        <option>FrSKY SPort Non Inverted</option>
-        <option>GPS</option>
-        <option>SRXL</option>
-        <option>HoTT SUMD</option>
-        <option>HoTT SUMH</option>
-        <option>HoTT Telemetry</option>
-        <option>LighttelemetryTx</option>
-        <option>MavLinkTX</option>
-        <option>MavLinkTX_GPS_RX</option>
-        <option>MSP</option>
-        <option>OpenLog</option>
-        <option>S.Bus Non Inverted</option>
-        <option>Storm32Bgc</option>
-        <option>Telemetry</option>
-        <option>IBus</option>
-        <option>TBS Crossfire</option>
       </options>
     </field>
     <field defaultvalue="Disabled" elements="1" name="Uart1" parent="HwShared.PortTypes" type="enum" units="function">
@@ -165,6 +125,33 @@
     </field>
     <field defaultvalue="GPS" elements="1" name="Uart5" parent="HwShared.PortTypes" type="enum" units="function">
       <description>The port labelled "UART5"</description>
+      <options>
+        <option>Disabled</option>
+        <option>ComBridge</option>
+        <option>DebugConsole</option>
+        <option>DSM</option>
+        <option>FrSKY Sensor Hub</option>
+        <option>FrSKY SPort Telemetry</option>
+        <option>FrSKY SPort Non Inverted</option>
+        <option>GPS</option>
+        <option>SRXL</option>
+        <option>HoTT SUMD</option>
+        <option>HoTT SUMH</option>
+        <option>HoTT Telemetry</option>
+        <option>LighttelemetryTx</option>
+        <option>MavLinkTX</option>
+        <option>MavLinkTX_GPS_RX</option>
+        <option>MSP</option>
+        <option>OpenLog</option>
+        <option>S.Bus Non Inverted</option>
+        <option>Storm32Bgc</option>
+        <option>Telemetry</option>
+        <option>IBus</option>
+        <option>TBS Crossfire</option>
+      </options>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="Uart6" parent="HwShared.PortTypes" type="enum" units="function">
+      <description>The port labelled "UART6"</description>
       <options>
         <option>Disabled</option>
         <option>ComBridge</option>

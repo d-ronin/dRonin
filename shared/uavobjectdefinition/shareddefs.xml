@@ -28,6 +28,7 @@
         <option>LQG</option>
         <option>LQGLeveling</option>
         <option>Failsafe</option>
+		<option>TailTune</option>
       </options>
     </field>
     <field defaultvalue="Manual" elements="1" name="StabilizationMode" type="enum" units="">

@@ -10,6 +10,7 @@
       <options>
         <option>Disabled</option>
         <option>PPM</option>
+		<option>PPM FrSKY Sensor Hub</option>
         <option>Telemetry</option>
         <option>DebugConsole</option>
         <option>ComBridge</option>

@@ -425,6 +425,7 @@ void VehicleConfigurationHelper::applyManualControlDefaults()
         channelType = ManualControlSettings::CHANNELGROUPS_PWM;
         break;
     case Core::IBoardType::INPUT_TYPE_PPM:
+	case Core::IBoardType::INPUT_TYPE_PPMFRSKYSENSORHUB:
         channelType = ManualControlSettings::CHANNELGROUPS_PPM;
         break;
     case Core::IBoardType::INPUT_TYPE_SBUS:

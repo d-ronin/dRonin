@@ -566,6 +566,7 @@ int32_t transmitter_control_select(bool reset_controller)
 		update_stabilization_desired(&cmd, &settings);
 		break;
 	case FLIGHTSTATUS_FLIGHTMODE_ALTITUDEHOLD:
+	case FLIGHTSTAUUS_FLIGHTMODE_TAILTUNE:
 		update_stabilization_desired(&cmd, &settings);
 		break;
 	case FLIGHTSTATUS_FLIGHTMODE_POSITIONHOLD:
@@ -1144,6 +1145,9 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
 			stab_modes = settings->Stabilization3Settings;
 			reprojection = settings->Stabilization3Reprojection;
 			thrust_mode = settings->Stabilization3Thrust;
+			break;
+		case FLIGHTSTATUS_FLIGHTMODE_TAILTUNE:
+			stab_modes = RATE_SETTINGS;
 			break;
 #ifdef TARGET_MAY_HAVE_BARO
 		case FLIGHTSTATUS_FLIGHTMODE_ALTITUDEHOLD:

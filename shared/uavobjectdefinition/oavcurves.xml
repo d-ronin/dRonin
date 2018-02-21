@@ -1,0 +1,37 @@
+<xml>
+	<object name="OAVCurves" singleinstance="true" settings="true">
+		<description>OAV Curve Set Points</description>
+		<access gcs="readwrite" flight="readwrite"/>
+		<logging updatemode="periodic" period="1000"/>
+		<telemetrygcs acked="false" updatemode="onchange" period="0"/>
+		<telemetryflight acked="false" updatemode="onchange" period="0"/>
+		<field defaultvalue="  0,   0, -100, -100, -100, -100" elements="6" name="CurvePoint1" type="int8" units=""/>
+		<field defaultvalue=" 17,  17,  -67,  -67,  -67,  -67" elements="6" name="CurvePoint2" type="int8" units=""/>
+		<field defaultvalue=" 33,  33,  -33,  -33,  -33,  -33" elements="6" name="CurvePoint3" type="int8" units=""/>
+		<field defaultvalue=" 50,  50,    0,    0,    0,    0" elements="6" name="CurvePoint4" type="int8" units=""/>
+		<field defaultvalue=" 67,  67,   33,   33,   33,   33" elements="6" name="CurvePoint5" type="int8" units=""/>
+		<field defaultvalue=" 83,  83,   67,   67,   67,   67" elements="6" name="CurvePoint6" type="int8" units=""/>
+		<field defaultvalue="100, 100,  100,  100,  100,  100" elements="6" name="CurvePoint7" type="int8" units=""/>
+		<field defaultvalue="THROTTLE, THROTTLE, THROTTLE, THROTTLE, NOSOURCE, NOSOURCE" elements="6" name="CurveSource" type="enum" units="">
+			<description/>
+			<options>
+				<option>THROTTLE</option>
+				<option>AILERON</option>
+				<option>ELEVATOR</option>
+				<option>RUDDER</option>
+				<option>GEAR</option>
+				<option>AUX1</option>
+				<option>AUX2</option>
+				<option>AUX3</option>
+				<option>ROLLGYRO</option>
+				<option>PITCHGYRO</option>
+				<option>YAWGYRO</option>
+				<option>ACCSMOOTH</option>
+				<option>PITCHSMOOTH</option>
+				<option>ROLLACC</option>
+				<option>PITCHACC</option>
+				<option>NOSOURCE</option>
+			</options>
+		</field>
+	</object>
+</xml>

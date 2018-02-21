@@ -44,19 +44,20 @@ OPTMODULES += GPS
 OPTMODULES += CameraStab
 OPTMODULES += Autotune
 OPTMODULES += TxPID
-OPTMODULES += PathPlanner
-OPTMODULES += VtolPathFollower
-OPTMODULES += FixedWingPathFollower
+#OPTMODULES += PathPlanner
+#OPTMODULES += VtolPathFollower
+#OPTMODULES += FixedWingPathFollower
 #OPTMODULES += UAVOMavlinkBridge
 OPTMODULES += UAVOMSPBridge
 #OPTMODULES += UAVOLighttelemetryBridge
 OPTMODULES += Battery
 OPTMODULES += ComUsbBridge
-OPTMODULES += Airspeed
+#OPTMODULES += Airspeed
 #OPTMODULES += UAVOHoTTBridge
 OPTMODULES += UAVOFrSKYSensorHubBridge
 OPTMODULES += UAVOFrSKYSPortBridge
 OPTMODULES += Logging
+OPTMODULES += OpenAeroVtol
 OPTMODULES += UAVOCrossfireTelemetry
 
 # Paths

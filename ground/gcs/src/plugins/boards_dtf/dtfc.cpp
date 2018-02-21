@@ -60,9 +60,10 @@ Dtfc::Dtfc(void)
     boardType = 0xD7;
 
     // Define the bank of channels that are connected to a given timer
-    channelBanks.resize(2);
-    channelBanks[0] = QVector<int>() << 1 << 2; // TIM4
+    channelBanks.resize(3);
+    channelBanks[0] = QVector<int>() << 1 << 2;           // TIM4
     channelBanks[1] = QVector<int>() << 3 << 4 << 5 << 6; // TIM2
+	channelBanks[2] = QVector<int>() << 7 ;               // TIM3
 }
 
 Dtfc::~Dtfc()
@@ -137,6 +138,7 @@ bool Dtfc::setInputType(Core::IBoardType::InputType type)
 
     switch (type) {
     case INPUT_TYPE_PPM:
+	case INPUT_TYPE_PPMFRSKYSENSORHUB:
         settings.RcvrPort = HwDtfc::RCVRPORT_PPM;
         break;
     case INPUT_TYPE_SBUS:
@@ -206,6 +208,8 @@ Core::IBoardType::InputType Dtfc::getInputType()
         return INPUT_TYPE_SRXL;
     case HwDtfc::RCVRPORT_TBSCROSSFIRE:
         return INPUT_TYPE_TBSCROSSFIRE;
+	case HwDtfc::RCVRPORT_PPMFRSKYSENSORHUB:
+		return INPUT_TYPE_PPMFRSKYSENSORHUB;
     default:
         break;
     }
@@ -284,8 +288,7 @@ int Dtfc::queryMaxGyroRate()
 
 QStringList Dtfc::getAdcNames()
 {
-    return QStringList() << "Current"
-                         << "Battery";
+    return QStringList() << "Current" << "Battery" << "ServoFDBK";
 }
 
 QWidget *Dtfc::getBoardConfiguration(QWidget *parent, bool connected)

@@ -1,0 +1,35 @@
+<xml>
+	<object name="TriflightStatus" singleinstance="true" settings="false">
+		<description>Triflight Status</description>
+		<access gcs="readwrite" flight="readwrite"/>
+		<logging updatemode="manual" period="0"/>
+		<telemetrygcs acked="false" updatemode="manual" period="0"/>
+		<telemetryflight acked="false" updatemode="throttled" period="1000"/>
+
+		<field elements="1" name="Initialized" type="enum" units="">
+			<description/>
+			<options>
+				 <option>False</option>
+				 <option>True</option>
+			</options>
+		</field>
+
+		<field elements="1" name="RearMotorChannel" type="uint8" units=""/>
+
+		<field elements="1" name="ServoChannel" type="uint8" units=""/>
+
+		<field elements="1" name="UncorrectedServoCmd" type="float" units=""/>
+
+		<field elements="1" name="CorrectedServoCmd" type="float" units=""/>
+
+		<field elements="1" name="ADCServoFdbk" type="float" units=""/>
+
+		<field elements="1" name="ServoAngle" type="float" units=""/>
+
+		<field elements="1" name="MotorCorrection" type="float" units=""/>
+
+		<field elements="1" name="VirtualTailMotor" type="float" units=""/>
+
+		<field elements="1" name="DynamicYawGain" type="float" units=""/>
+	</object>
+</xml>

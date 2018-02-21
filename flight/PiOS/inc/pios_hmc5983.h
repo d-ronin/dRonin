@@ -128,8 +128,8 @@ struct pios_hmc5983_cfg {
 };
 
 /* Public Functions */
-extern int32_t PIOS_HMC5983_Init(pios_spi_t spi_id, uint32_t slave_num, const struct pios_hmc5983_cfg *cfg);
-extern bool PIOS_HMC5983_IRQHandler(void);
+extern int32_t PIOS_HMC5983_SPI_Init(pios_spi_t spi_id, uint32_t slave_num, const struct pios_hmc5983_cfg *cfg);
+extern bool PIOS_HMC5983_SPI_IRQHandler(void);
 
 #if defined(PIOS_INCLUDE_HMC5983_I2C)
 int32_t PIOS_HMC5983_I2C_Init(pios_i2c_t i2c_id,

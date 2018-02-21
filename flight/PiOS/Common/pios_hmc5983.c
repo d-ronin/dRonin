@@ -115,7 +115,7 @@ static int32_t PIOS_HMC5983_Validate(struct hmc5983_dev *dev)
  * @brief Initialize the HMC5983 magnetometer sensor.
  * @return none
  */
-int32_t PIOS_HMC5983_Init(pios_spi_t spi_id, uint32_t slave_num, const struct pios_hmc5983_cfg *cfg)
+int32_t PIOS_HMC5983_SPI_Init(pios_spi_t spi_id, uint32_t slave_num, const struct pios_hmc5983_cfg *cfg)
 {
 	dev = (struct hmc5983_dev *)PIOS_HMC5983_alloc();
 	if (dev == NULL)
@@ -436,7 +436,7 @@ static int32_t PIOS_HMC5983_Write(uint8_t address, uint8_t buffer)
  * @brief Run self-test operation.  Do not call this during operational use!!
  * \return 0 if success, -1 if test failed
  */
-int32_t PIOS_HMC5983_Test(void)
+int32_t PIOS_HMC5983_SPI_Test(void)
 {
 	int32_t failed = 0;
 	uint8_t registers[3] = { 0, 0, 0 };
@@ -514,7 +514,7 @@ int32_t PIOS_HMC5983_Test(void)
 /**
  * @brief IRQ Handler
  */
-bool PIOS_HMC5983_IRQHandler(void)
+bool PIOS_HMC5983_SPI_IRQHandler(void)
 {
 	if (PIOS_HMC5983_Validate(dev) != 0)
 		return false;

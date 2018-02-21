@@ -68,6 +68,8 @@
 #include "waypointactive.h"
 #include "rtkfestimate.h"
 #include "lqgsolution.h"
+#include "triflightsettings.h"
+#include "triflightstatus.h"
 
 #include "pios_bl_helper.h"
 #include "pios_streamfs_priv.h"
@@ -614,6 +616,10 @@ static void register_default_profile()
 		UAVObjConnectCallbackThrottled(MagnetometerHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED, 5 * min_period);
 	}
 
+	if (TriflightStatusHandle()) {
+		UAVObjConnectCallbackThrottled(TriflightStatusHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED, 5 * min_period);
+	}
+
 	UAVObjConnectCallbackThrottled(ManualControlCommandHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED, 5 * min_period);
 	UAVObjConnectCallbackThrottled(ActuatorDesiredHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED, 5 * min_period);
 	UAVObjConnectCallbackThrottled(StabilizationDesiredHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED, 5 * min_period);
@@ -654,6 +660,10 @@ static void register_default_profile()
 	}
 	if (LQGSolutionHandle()) {
 		UAVObjConnectCallbackThrottled(LQGSolutionHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED, 100 * min_period);
+	}
+
+	if (TriflightSettingsHandle()) {
+		UAVObjConnectCallbackThrottled(TriflightSettingsHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED, 500 * min_period);
 	}
 }
 
