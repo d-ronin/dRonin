@@ -44,5 +44,5 @@ extern const struct pios_com_driver pios_serial_com_driver;
 int32_t PIOS_SERIAL_Init(uintptr_t *serial_id, const char *path);
 int32_t PIOS_SERIAL_InitFromFd(uintptr_t *serial_id, int readfd,
 		int writefd, bool dont_touch_line);
-
+void PIOS_SERIAL_ChangeBaud(uintptr_t udp_id, uint32_t baud);
 #endif /* PIOS_SERIAL_PRIV_H */

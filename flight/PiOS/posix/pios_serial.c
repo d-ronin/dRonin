@@ -48,8 +48,11 @@
 #include <linux/serial.h>
 #include <sys/ioctl.h>
 
+#include "modulesettings.h"
+
 /* Provide a COM driver */
-static void PIOS_SERIAL_ChangeBaud(uintptr_t udp_id, uint32_t baud);
+void PIOS_SERIAL_ChangeBaud(uintptr_t udp_id, uint32_t baud);
+
 static void PIOS_SERIAL_RegisterRxCallback(uintptr_t udp_id, pios_com_callback rx_in_cb, uintptr_t context);
 static void PIOS_SERIAL_RegisterTxCallback(uintptr_t udp_id, pios_com_callback tx_out_cb, uintptr_t context);
 static void PIOS_SERIAL_TxStart(uintptr_t udp_id, uint16_t tx_bytes_avail);
@@ -206,48 +209,62 @@ void PIOS_SERIAL_ChangeBaud(uintptr_t serial_id, uint32_t baud)
 		return;
 	}
 
-	/* This serinfo magic for baud rate is deprecated in favor of BOTHER
-	 * on Linux.  However, that requires termios2 and there's various conflict
-	 * that makes it hard to do.
-	 *
-	 * Only consequence right now is an angry kprintf.
-	 */
-
-	if (baud != 9600) {
-		struct serial_struct serinfo;
-
-		if (ioctl(ser_dev->readfd, TIOCGSERIAL, &serinfo)) {
-			perror("ioctl-TIOCGSERIAL");
-		}
-
-		serinfo.flags = (serinfo.flags & ~ASYNC_SPD_MASK) | ASYNC_SPD_CUST;
-		serinfo.custom_divisor = (serinfo.baud_base + (baud / 2)) / baud;
-		uint32_t closest_speed = serinfo.baud_base / serinfo.custom_divisor;
-
-		if ((closest_speed < baud * 99 / 100) ||
-				(closest_speed > baud * 101 / 100)) {
-			printf("Can't attain serial rate %d; using %d\n",
-					baud, closest_speed);
-		}
-
-		if (ioctl(ser_dev->readfd, TIOCSSERIAL, &serinfo)) {
-			perror("ioctl-TIOCSSERIAL");
-		}
-	}
-
 	struct termios options;
 
 	memset(&options, 0, sizeof(options));
 
 	options.c_cflag = CLOCAL | CREAD | CS8;
 
-	if (baud == 9600) {
-		cfsetispeed(&options, B9600);
-		cfsetospeed(&options, B9600);
-	} else {
-		/* The magic above replaces B38400 with the custom rate */
-		cfsetispeed(&options, B38400);
-		cfsetospeed(&options, B38400);
+	switch (baud) {
+		case HWSHARED_SPEEDBPS_1200:
+			printf("Setting Serial ID 0x%x to 1200 Baud\n", (uint32_t)serial_id);
+			cfsetispeed(&options, B1200);
+			cfsetospeed(&options, B1200);
+			break;
+		case HWSHARED_SPEEDBPS_2400:
+			printf("Setting Serial ID 0x%x to 2400 Baud\n", (uint32_t)serial_id);
+			cfsetispeed(&options, B2400);
+			cfsetospeed(&options, B2400);
+			break;
+		case HWSHARED_SPEEDBPS_4800:
+			printf("Setting Serial ID 0x%x to 4800 Baud\n", (uint32_t)serial_id);
+			cfsetispeed(&options, B4800);
+			cfsetospeed(&options, B4800);
+			break;
+		case HWSHARED_SPEEDBPS_9600:
+			printf("Setting Serial ID 0x%x to 9600 Baud\n", (uint32_t)serial_id);
+			cfsetispeed(&options, B9600);
+			cfsetospeed(&options, B9600);
+			break;
+		case HWSHARED_SPEEDBPS_19200:
+			printf("Setting Serial ID 0x%x to 19200 Baud\n", (uint32_t)serial_id);
+			cfsetispeed(&options, B19200);
+			cfsetospeed(&options, B19200);
+			break;
+		case HWSHARED_SPEEDBPS_38400:
+			printf("Setting Serial ID 0x%x to 38400 Baud\n", (uint32_t)serial_id);
+			cfsetispeed(&options, B38400);
+			cfsetospeed(&options, B38400);
+			break;
+		case HWSHARED_SPEEDBPS_57600:
+			printf("Setting Serial ID 0x%x to 57600 Baud\n", (uint32_t)serial_id);
+			cfsetispeed(&options, B57600);
+			cfsetospeed(&options, B57600);
+			break;
+		case HWSHARED_SPEEDBPS_115200:
+			printf("Setting Serial ID 0x%x to 115200 Baud\n", (uint32_t)serial_id);
+			cfsetispeed(&options, B115200);
+			cfsetospeed(&options, B115200);
+			break;
+		case HWSHARED_SPEEDBPS_230400:
+			printf("Setting Serial ID 0x%x to 230400 Baud\n", (uint32_t)serial_id);
+			cfsetispeed(&options, B230400);
+			cfsetospeed(&options, B230400);
+			break;
+		default:
+			printf("defaulting Serial ID  0x%x to 9600 Baud\n", (uint32_t)serial_id);
+			cfsetispeed(&options, B9600);
+			cfsetospeed(&options, B9600);
 	}
 
 	/* 1 character is enough to wake us.  Leave VTIME at 0, so we will
