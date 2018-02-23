@@ -464,7 +464,7 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 
 	bool first_arg = true;
 
-	while ((opt = getopt(argc, argv, "yfrx:g:l:s:d:S:I:i:")) != -1) {
+	while ((opt = getopt(argc, argv, "yfrx:g:l:s:d:S:I:i:m:")) != -1) {
 		switch (opt) {
 #ifdef PIOS_INCLUDE_SIMSENSORS_YASIM
 			case 'y':
@@ -528,6 +528,7 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 					printf("Invalid mag orientation\n");
 					exit(1);
 				}
+				break;
 			}
 			case 'I':
 			{
