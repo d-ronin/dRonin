@@ -167,7 +167,7 @@ int32_t PIOS_SERIAL_InitFromFd(uintptr_t *serial_id, int readfd,
 
 	*serial_id = (uintptr_t) ser_dev;
 
-	PIOS_SERIAL_ChangeBaud(*serial_id, 9600);
+	PIOS_SERIAL_ChangeBaud(*serial_id, HWSHARED_SPEEDBPS_9600);
 
 	return 0;
 }
@@ -262,7 +262,7 @@ void PIOS_SERIAL_ChangeBaud(uintptr_t serial_id, uint32_t baud)
 			cfsetospeed(&options, B230400);
 			break;
 		default:
-			printf("defaulting Serial ID  0x%x to 9600 Baud\n", (uint32_t)serial_id);
+			printf("Defaulting Serial ID  0x%x to 9600 Baud\n", (uint32_t)serial_id);
 			cfsetispeed(&options, B9600);
 			cfsetospeed(&options, B9600);
 	}
