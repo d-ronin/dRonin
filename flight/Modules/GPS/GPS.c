@@ -67,7 +67,7 @@ static void updateSettings();
 // ****************
 // Private constants
 
-#define GPS_TIMEOUT_MS                  750
+#define GPS_TIMEOUT_MS                  1500 //750
 #define GPS_COM_TIMEOUT_MS              100
 #define STACK_SIZE_BYTES                850
 

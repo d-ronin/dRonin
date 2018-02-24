@@ -1229,7 +1229,7 @@ void PIOS_HAL_ConfigureSerialSpeed(uintptr_t com_id,
 		HwSharedSpeedBpsOptions speed) {
 	switch (speed) {
 		case HWSHARED_SPEEDBPS_1200:
-			PIOS_COM_ChangeBaud(com_id, 2400);
+			PIOS_COM_ChangeBaud(com_id, 1200);
 			break;
 		case HWSHARED_SPEEDBPS_2400:
 			PIOS_COM_ChangeBaud(com_id, 2400);

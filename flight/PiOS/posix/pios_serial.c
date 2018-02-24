@@ -48,11 +48,8 @@
 #include <linux/serial.h>
 #include <sys/ioctl.h>
 
-#include "modulesettings.h"
-
 /* Provide a COM driver */
-void PIOS_SERIAL_ChangeBaud(uintptr_t udp_id, uint32_t baud);
-
+static void PIOS_SERIAL_ChangeBaud(uintptr_t serial_id, uint32_t baud);
 static void PIOS_SERIAL_RegisterRxCallback(uintptr_t udp_id, pios_com_callback rx_in_cb, uintptr_t context);
 static void PIOS_SERIAL_RegisterTxCallback(uintptr_t udp_id, pios_com_callback tx_out_cb, uintptr_t context);
 static void PIOS_SERIAL_TxStart(uintptr_t udp_id, uint16_t tx_bytes_avail);
@@ -167,7 +164,7 @@ int32_t PIOS_SERIAL_InitFromFd(uintptr_t *serial_id, int readfd,
 
 	*serial_id = (uintptr_t) ser_dev;
 
-	PIOS_SERIAL_ChangeBaud(*serial_id, HWSHARED_SPEEDBPS_9600);
+	PIOS_SERIAL_ChangeBaud(*serial_id, 9600);
 
 	return 0;
 }
@@ -216,47 +213,47 @@ void PIOS_SERIAL_ChangeBaud(uintptr_t serial_id, uint32_t baud)
 	options.c_cflag = CLOCAL | CREAD | CS8;
 
 	switch (baud) {
-		case HWSHARED_SPEEDBPS_1200:
+		case 1200:
 			printf("Setting Serial ID 0x%x to 1200 Baud\n", (uint32_t)serial_id);
 			cfsetispeed(&options, B1200);
 			cfsetospeed(&options, B1200);
 			break;
-		case HWSHARED_SPEEDBPS_2400:
+		case 2400:
 			printf("Setting Serial ID 0x%x to 2400 Baud\n", (uint32_t)serial_id);
 			cfsetispeed(&options, B2400);
 			cfsetospeed(&options, B2400);
 			break;
-		case HWSHARED_SPEEDBPS_4800:
+		case 4800:
 			printf("Setting Serial ID 0x%x to 4800 Baud\n", (uint32_t)serial_id);
 			cfsetispeed(&options, B4800);
 			cfsetospeed(&options, B4800);
 			break;
-		case HWSHARED_SPEEDBPS_9600:
+		case 9600:
 			printf("Setting Serial ID 0x%x to 9600 Baud\n", (uint32_t)serial_id);
 			cfsetispeed(&options, B9600);
 			cfsetospeed(&options, B9600);
 			break;
-		case HWSHARED_SPEEDBPS_19200:
+		case 19200:
 			printf("Setting Serial ID 0x%x to 19200 Baud\n", (uint32_t)serial_id);
 			cfsetispeed(&options, B19200);
 			cfsetospeed(&options, B19200);
 			break;
-		case HWSHARED_SPEEDBPS_38400:
+		case 38400:
 			printf("Setting Serial ID 0x%x to 38400 Baud\n", (uint32_t)serial_id);
 			cfsetispeed(&options, B38400);
 			cfsetospeed(&options, B38400);
 			break;
-		case HWSHARED_SPEEDBPS_57600:
+		case 57600:
 			printf("Setting Serial ID 0x%x to 57600 Baud\n", (uint32_t)serial_id);
 			cfsetispeed(&options, B57600);
 			cfsetospeed(&options, B57600);
 			break;
-		case HWSHARED_SPEEDBPS_115200:
+		case 115200:
 			printf("Setting Serial ID 0x%x to 115200 Baud\n", (uint32_t)serial_id);
 			cfsetispeed(&options, B115200);
 			cfsetospeed(&options, B115200);
 			break;
-		case HWSHARED_SPEEDBPS_230400:
+		case 230400:
 			printf("Setting Serial ID 0x%x to 230400 Baud\n", (uint32_t)serial_id);
 			cfsetispeed(&options, B230400);
 			cfsetospeed(&options, B230400);
