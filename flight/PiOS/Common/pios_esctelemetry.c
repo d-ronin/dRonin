@@ -192,9 +192,9 @@ static bool PIOS_ESCTelemetry_UnpackFrame(struct pios_esctelemetry_dev *dev)
 
 		dev->telem.temperature = dev->rx_buf[0];
 		dev->telem.voltage = (float)(dev->rx_buf[1]<<8 | dev->rx_buf[2]) * 0.01f;
-		dev->telem.current = (float)(dev->rx_buf[3]<<8 | dev->rx_buf[4]);
+		dev->telem.current = (float)(dev->rx_buf[3]<<8 | dev->rx_buf[4]) * 0.01f;
 		dev->telem.mAh = (uint16_t)(dev->rx_buf[5]<<8 | dev->rx_buf[6]);
-		dev->telem.rpm = (dev->rx_buf[7]<<8 | dev->rx_buf[8]) * 100;
+		dev->telem.rpm = (dev->rx_buf[7]<<8 | dev->rx_buf[8]);
 
 		dev->telem_available = 1;
 
