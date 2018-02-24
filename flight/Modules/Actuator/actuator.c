@@ -100,7 +100,7 @@ static MixerSettingsMixer1TypeOptions types_mixer[MAX_MIX_ACTUATORS];
 
 #if defined(PIOS_INCLUDE_ESCTELEMETRY)
 
-#define ESC_TELEM_CYCLE_uS		200000	/* Poll ESCs every 200ms. */
+#define ESC_TELEM_CYCLE_uS		100000	/* Poll ESCs every 200ms. */
 #define ESC_TELEM_TIMEOUT_uS	5000	/* Transmission is supposed to take 900us. Timeout at 5ms. */
 
 struct telemetry_state {
@@ -743,11 +743,11 @@ static void post_process_scale_and_commit(float *motor_vect,
 				struct pios_esctelemetry_info t;
 				PIOS_ESCTelemetry_Get(&t);
 
-				tlm->voltage += t.voltage;
+				tlm->voltage += (uint16_t)(t.voltage * 1000);
 				tlm->consumed += t.mAh;
 				tlm->telemetry.Temperature[tlm->active] = t.temperature;
-				tlm->telemetry.Current[tlm->active] = t.current * 0.01f;
-				tlm->telemetry.eRPM[tlm->active] = t.rpm;
+				tlm->telemetry.Current[tlm->active] = (uint16_t)(t.current*100);
+				tlm->telemetry.eRPM[tlm->active] = (uint16_t)t.rpm;
 				tlm->ok++;
 
 				tlm->active = 0xFF;
@@ -758,7 +758,7 @@ static void post_process_scale_and_commit(float *motor_vect,
 		}
 
 		if (tlm && tlm->push && tlm->active == 0xFF && tlm->ok) {
-			tlm->telemetry.Voltage = tlm->voltage / (float)tlm->ok;
+			tlm->telemetry.Voltage = tlm->voltage / tlm->ok;
 			/* Only replace the Consumed value in the UAVO, if the readout is larger.
 			   Because timeouts and all that. */
 			if (tlm->consumed > tlm->telemetry.Consumed) tlm->telemetry.Consumed = tlm->consumed;
