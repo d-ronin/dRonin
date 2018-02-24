@@ -55,7 +55,7 @@
 static const struct pios_servo_cfg *servo_cfg;
 
 static uint32_t channel_mask = 0;
-static uint32_t telemetry_request = 0;
+static volatile uint32_t telemetry_request = 0;
 
 //! The counter rate for the channel, used to calculate compare values.
 
