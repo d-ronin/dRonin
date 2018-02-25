@@ -70,7 +70,7 @@ include $(ROOT_DIR)/flight/targets/*/target-defs.mk
 GCS_BUILD_CONF ?= debug ccache
 
 # And the flight build configuration (debug | default | release)
-export FLIGHT_BUILD_CONF ?= default
+export FLIGHT_BUILD_CONF ?= default ccache
 
 # Paths
 UAVOBJ_XML_DIR := $(ROOT_DIR)/shared/uavobjectdefinition
@@ -100,16 +100,6 @@ ifdef GCS_BUILD_CONF
  ifneq ($(filter release, $(GCS_BUILD_CONF)), release)
   ifneq ($(filter debug, $(GCS_BUILD_CONF)), debug)
    $(error Either debug or release are required for GCS_BUILD_CONF)
-  endif
- endif
-endif
-
-ifdef FLIGHT_BUILD_CONF
- ifneq ($(FLIGHT_BUILD_CONF), release)
-  ifneq ($(FLIGHT_BUILD_CONF), debug)
-   ifneq ($(FLIGHT_BUILD_CONF), default)
-    $(error Only debug or release are allowed for FLIGHT_BUILD_CONF)
-   endif
   endif
  endif
 endif
