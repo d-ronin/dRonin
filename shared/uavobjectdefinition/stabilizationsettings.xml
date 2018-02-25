@@ -209,8 +209,8 @@
         <elementname>Yaw</elementname>
       </elementnames>
     </field>
-    <field defaultvalue="None" name="RCControlSmoothing" type="enum" units="">
-      <description>Enables different ways of input signal smoothing, to reduce excessive P- and D-term excitation in the PID controller. Normal and Extended modes chamfer the leading edges in combination with some amount of prediction, to avoid delay.</description>
+    <field defaultvalue="None" name="ManualControlSmoothing" type="enum" units="">
+      <description>Enables different ways of input signal smoothing, to reduce excessive P- and D-term excitation in the PID controller. Normal mode chamfer the leading edges in combination with some amount of prediction, to avoid delay. Linear uses linear prediction to smooth control input.</description>
       <elementnames>
         <elementname>Axes</elementname>
         <elementname>Thrust</elementname>
@@ -218,8 +218,11 @@
       <options>
         <option>None</option>
         <option>Normal</option>
-        <option>Extended</option>
+        <option>Linear</option>
       </options>
+    </field>
+    <field defaultvalue="50" elements="1" name="ManualControlSmoothingDutyCycle" type="uint8" units="%">
+      <description>The timespan, defined in percent of the receiver update rate, the smoothing should operate after each control update.</description>
     </field>
     <field defaultvalue="0.0" elements="1" limits="%BE:0.0:5.0" name="LowPowerStabilizationMaxTime" type="float" units="s">
       <description>Maximum time in seconds to add power when at zero throttle to ensure stabilization.  Choosing 0 prevents adding power at zero throttle.</description>
