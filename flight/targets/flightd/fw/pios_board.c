@@ -59,8 +59,8 @@ const struct pios_tcp_cfg pios_tcp_telem_cfg = {
   .port = 9000,
 };
 
-#define PIOS_COM_TELEM_RF_RX_BUF_LEN 384
-#define PIOS_COM_TELEM_RF_TX_BUF_LEN 384
+#define PIOS_COM_TELEM_TCP_RX_BUF_LEN 384
+#define PIOS_COM_TELEM_TCP_TX_BUF_LEN 384
 #define PIOS_COM_GPS_RX_BUF_LEN 96
 
 /**
@@ -136,14 +136,15 @@ void PIOS_Board_Init(void) {
 	HwSparkyInitialize();
 	HwSimulationInitialize();
 
-	uintptr_t pios_tcp_telem_rf_id;
-	if (PIOS_TCP_Init(&pios_tcp_telem_rf_id, &pios_tcp_telem_cfg)) {
+	uintptr_t pios_tcp_telem_id;
+	if (PIOS_TCP_Init(&pios_tcp_telem_id, &pios_tcp_telem_cfg)) {
 		PIOS_Assert(0);
 	}
 
-	if (PIOS_COM_Init(&pios_com_telem_rf_id, &pios_tcp_com_driver, pios_tcp_telem_rf_id,
-			PIOS_COM_TELEM_RF_RX_BUF_LEN,
-			PIOS_COM_TELEM_RF_TX_BUF_LEN)) {
+	if (PIOS_COM_Init(&pios_com_telem_usb_id,
+				&pios_tcp_com_driver, pios_tcp_telem_id,
+				PIOS_COM_TELEM_TCP_RX_BUF_LEN,
+				PIOS_COM_TELEM_TCP_TX_BUF_LEN)) {
 		PIOS_Assert(0);
 	}
 
