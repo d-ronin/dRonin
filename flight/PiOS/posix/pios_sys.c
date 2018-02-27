@@ -217,7 +217,7 @@ static int handle_serial_device(const char *optarg) {
 		PIOS_Modules_Enable(PIOS_MODULE_UAVOLIGHTTELEMETRYBRIDGE);
 		PIOS_COM_LIGHTTELEMETRY = com_id;
 	} else if (!strcmp(drv_name, "telemetry")) {
-		PIOS_COM_TELEM_USB = com_id;
+		PIOS_COM_TELEM_RF = com_id;
 #ifdef PIOS_INCLUDE_OMNIP
 	} else if (!strcmp(drv_name, "omnip")) {
 		omnip_dev_t dontcare;
