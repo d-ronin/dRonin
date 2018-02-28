@@ -1170,8 +1170,11 @@ void render_user_page(OnScreenDisplayPageSettingsData * page)
 	// Arming Status
 	if (page->ArmStatus) {
 		FlightStatusArmedGet(&tmp_uint8);
-		if (tmp_uint8 != FLIGHTSTATUS_ARMED_DISARMED)
+		if (tmp_uint8 == FLIGHTSTATUS_ARMED_ARMED)
 			write_string("ARMED", page->ArmStatusPosX, page->ArmStatusPosY, 0, 0, TEXT_VA_TOP, (int)page->ArmStatusAlign, 0,
+					page->ArmStatusFont);
+		else if (tmp_uint8 == FLIGHTSTATUS_ARMED_ARMING)
+			write_string("arm..", page->ArmStatusPosX, page->ArmStatusPosY, 0, 0, TEXT_VA_TOP, (int)page->ArmStatusAlign, 0,
 					page->ArmStatusFont);
 	}
 
