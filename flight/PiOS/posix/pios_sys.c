@@ -232,8 +232,6 @@ static int handle_serial_device(const char *optarg) {
 		goto fail;
 	}
 
-	PIOS_HAL_ConfigureSerialSpeed(com_id, baud_rate);
-
 	return 0;
 fail:
 	return -1;
