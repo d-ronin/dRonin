@@ -45,4 +45,4 @@ int32_t PIOS_SERIAL_Init(uintptr_t *serial_id, const char *path);
 int32_t PIOS_SERIAL_InitFromFd(uintptr_t *serial_id, int readfd,
 		int writefd, bool dont_touch_line);
 
-		#endif /* PIOS_SERIAL_PRIV_H */
+#endif /* PIOS_SERIAL_PRIV_H */
