@@ -68,6 +68,7 @@ typedef struct {
 	uint8_t rx_buffer[PIOS_SERIAL_RX_BUFFER_SIZE];
 	uint8_t tx_buffer[PIOS_SERIAL_RX_BUFFER_SIZE];
 
+	bool ever_used_custom_rate;
 	bool dont_touch_line;
 } pios_ser_dev;
 
@@ -214,54 +215,101 @@ void PIOS_SERIAL_ChangeBaud(uintptr_t serial_id, uint32_t baud)
 
 	switch (baud) {
 		case 1200:
-			printf("Setting Serial ID 0x%x to 1200 Baud\n", (uint32_t)serial_id);
+			printf("Setting Serial ID 0x%p to 1200 bps\n",
+					ser_dev);
 			cfsetispeed(&options, B1200);
 			cfsetospeed(&options, B1200);
 			break;
 		case 2400:
-			printf("Setting Serial ID 0x%x to 2400 Baud\n", (uint32_t)serial_id);
+			printf("Setting Serial ID 0x%p to 2400 bps\n",
+					ser_dev);
 			cfsetispeed(&options, B2400);
 			cfsetospeed(&options, B2400);
 			break;
 		case 4800:
-			printf("Setting Serial ID 0x%x to 4800 Baud\n", (uint32_t)serial_id);
+			printf("Setting Serial ID 0x%p to 4800 bps\n",
+					ser_dev);
 			cfsetispeed(&options, B4800);
 			cfsetospeed(&options, B4800);
 			break;
 		case 9600:
-			printf("Setting Serial ID 0x%x to 9600 Baud\n", (uint32_t)serial_id);
+			printf("Setting Serial ID 0x%p to 9600 bps\n",
+					ser_dev);
 			cfsetispeed(&options, B9600);
 			cfsetospeed(&options, B9600);
 			break;
 		case 19200:
-			printf("Setting Serial ID 0x%x to 19200 Baud\n", (uint32_t)serial_id);
+			printf("Setting Serial ID 0x%p to 19200 bps\n",
+					ser_dev);
 			cfsetispeed(&options, B19200);
 			cfsetospeed(&options, B19200);
 			break;
-		case 38400:
-			printf("Setting Serial ID 0x%x to 38400 Baud\n", (uint32_t)serial_id);
-			cfsetispeed(&options, B38400);
-			cfsetospeed(&options, B38400);
-			break;
 		case 57600:
-			printf("Setting Serial ID 0x%x to 57600 Baud\n", (uint32_t)serial_id);
+			printf("Setting Serial ID %p to 57600 bps\n",
+					ser_dev);
 			cfsetispeed(&options, B57600);
 			cfsetospeed(&options, B57600);
 			break;
 		case 115200:
-			printf("Setting Serial ID 0x%x to 115200 Baud\n", (uint32_t)serial_id);
+			printf("Setting Serial ID %p to 115200 bps\n",
+					ser_dev);
 			cfsetispeed(&options, B115200);
 			cfsetospeed(&options, B115200);
 			break;
 		case 230400:
-			printf("Setting Serial ID 0x%x to 230400 Baud\n", (uint32_t)serial_id);
+			printf("Setting Serial ID %p to 230400 bps\n",
+					ser_dev);
 			cfsetispeed(&options, B230400);
 			cfsetospeed(&options, B230400);
 			break;
+		case 38400:
 		default:
-			printf("Defaulting Serial ID  0x%x to 9600 Baud\n", (uint32_t)serial_id);
-			cfsetispeed(&options, B9600);
-			cfsetospeed(&options, B9600);
+			/*
+			 * This serinfo magic for baud rate is deprecated in
+			 * favor of BOTHER on Linux.  However, that requires
+			 * termios2 and there's various conflict that makes
+			 * it hard to do presently.
+			 *
+			 * Only consequence of using deprecated mechanism
+			 * is an angry kprintf.
+			 *
+			 * Right now, only use it for rates that there isn't
+			 * a proper define for, to preserve interoperability
+			 * with simple USB drivers.
+			 */
+
+			if (ser_dev->ever_used_custom_rate ||
+					(baud != 38400)) {
+				ser_dev->ever_used_custom_rate = true;
+
+				struct serial_struct serinfo;
+
+				if (ioctl(ser_dev->readfd, TIOCGSERIAL, &serinfo)) {
+					perror("ioctl-TIOCGSERIAL");
+				}
+
+				serinfo.flags =
+					(serinfo.flags & ~ASYNC_SPD_MASK) |
+					ASYNC_SPD_CUST;
+				serinfo.custom_divisor = (serinfo.baud_base + (baud / 2)) / baud;
+				uint32_t closest_speed = serinfo.baud_base / serinfo.custom_divisor;
+
+				if ((closest_speed < baud * 99 / 100) ||
+						(closest_speed > baud * 101 / 100)) {
+					printf("Can't attain serial rate %d; using %d\n",
+							baud, closest_speed);
+				}
+
+				if (ioctl(ser_dev->readfd, TIOCSSERIAL, &serinfo)) {
+					perror("ioctl-TIOCSSERIAL");
+				}
+			}
+
+			printf("Setting Serial ID %p to %d bps\n",
+					ser_dev, baud);
+			cfsetispeed(&options, B38400);
+			cfsetospeed(&options, B38400);
+			break;
 	}
 
 	/* 1 character is enough to wake us.  Leave VTIME at 0, so we will
