@@ -215,31 +215,31 @@ void PIOS_SERIAL_ChangeBaud(uintptr_t serial_id, uint32_t baud)
 
 	switch (baud) {
 		case 1200:
-			printf("Setting Serial ID 0x%p to 1200 bps\n",
+			printf("Setting Serial ID %p to 1200 bps\n",
 					ser_dev);
 			cfsetispeed(&options, B1200);
 			cfsetospeed(&options, B1200);
 			break;
 		case 2400:
-			printf("Setting Serial ID 0x%p to 2400 bps\n",
+			printf("Setting Serial ID %p to 2400 bps\n",
 					ser_dev);
 			cfsetispeed(&options, B2400);
 			cfsetospeed(&options, B2400);
 			break;
 		case 4800:
-			printf("Setting Serial ID 0x%p to 4800 bps\n",
+			printf("Setting Serial ID %p to 4800 bps\n",
 					ser_dev);
 			cfsetispeed(&options, B4800);
 			cfsetospeed(&options, B4800);
 			break;
 		case 9600:
-			printf("Setting Serial ID 0x%p to 9600 bps\n",
+			printf("Setting Serial ID %p to 9600 bps\n",
 					ser_dev);
 			cfsetispeed(&options, B9600);
 			cfsetospeed(&options, B9600);
 			break;
 		case 19200:
-			printf("Setting Serial ID 0x%p to 19200 bps\n",
+			printf("Setting Serial ID %p to 19200 bps\n",
 					ser_dev);
 			cfsetispeed(&options, B19200);
 			cfsetospeed(&options, B19200);
