@@ -162,12 +162,12 @@ void PIOS_Board_Init(void)
 
 	ModuleSettingsSet(&moduleSettings);
 
-	// Since we don't expose the ModuleSettings object from TauLink to the GCS
-	// we just map the baud rate from HwTauLink into this object
+	const struct pios_openlrs_cfg *openlrs_cfg = PIOS_BOARD_HW_DEFS_GetOpenLRSCfg(bdinfo->board_rev);
+
 	PIOS_HAL_ConfigureRFM22B(pios_spi_rfm22b_id,
 			bdinfo->board_type,
 			bdinfo->board_rev,
-			hwTauLink.RfBand, NULL, NULL);	/* XXX */
+			hwTauLink.RfBand, openlrs_cfg, &openlrs_handle);
 
 	if (bdinfo->board_rev == TAULINK_VERSION_MODULE) {
 		// Configure the main serial port function

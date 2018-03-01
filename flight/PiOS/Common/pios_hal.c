@@ -42,9 +42,11 @@
 #include <dacsettings.h>
 #include <manualcontrolsettings.h>
 
-#if defined(PIOS_INCLUDE_OPENLRS_RCVR)
+#if defined(PIOS_INCLUDE_OPENLRS)
 #include <openlrs.h>
+#if defined(PIOS_INCLUDE_OPENLRS_RCVR)
 #include <pios_openlrs_rcvr_priv.h>
+#endif
 #endif
 
 #ifdef PIOS_INCLUDE_USART

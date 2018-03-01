@@ -61,7 +61,7 @@ enum pios_hal_panic {
  */
 extern uintptr_t pios_rcvr_group_map[];
 
-#if defined(PIOS_INCLUDE_SBUS) || defined(PIOS_INCLUDE_DSM) || defined(PIOS_INCLUDE_HOTT) || defined(PIOS_INCLUDE_GPS) || defined(PIOS_INCLUDE_RFM22B) || defined(PIOS_INCLUDE_USB_CDC) || defined(PIOS_INCLUDE_USB_HID) || defined(PIOS_INCLUDE_MAVLINK)
+#if defined(PIOS_INCLUDE_SBUS) || defined(PIOS_INCLUDE_DSM) || defined(PIOS_INCLUDE_HOTT) || defined(PIOS_INCLUDE_GPS) || defined(PIOS_INCLUDE_OPENLRS) || defined(PIOS_INCLUDE_USB_CDC) || defined(PIOS_INCLUDE_USB_HID) || defined(PIOS_INCLUDE_MAVLINK)
 
 #ifndef PIOS_INCLUDE_COM
 #error Options defined that require PIOS_INCLUDE_COM!

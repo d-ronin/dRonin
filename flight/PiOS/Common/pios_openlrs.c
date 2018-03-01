@@ -1217,20 +1217,29 @@ static void rfm22_beacon_tone(pios_openlrs_t openlrs_dev, int16_t hz, int16_t le
 
 	GPIO_TypeDef *gpio = openlrs_dev->cfg.spi_cfg->mosi.gpio;
 	uint16_t pin_source = openlrs_dev->cfg.spi_cfg->mosi.init.GPIO_Pin;
-	uint8_t remap = openlrs_dev->cfg.spi_cfg->remap;
 
 	/* XXX Use SPI for this. */
+	/* XXX this is not device independent */
 
+#if defined(STM32F10X_MD)
+	GPIO_InitTypeDef init = {
+		.GPIO_Speed = GPIO_Speed_50MHz,
+		.GPIO_Mode  = GPIO_Mode_Out_PP,
+		.GPIO_Pin   = pin_source,
+	};
+#else
 	GPIO_InitTypeDef init = {
 		.GPIO_Speed = GPIO_Speed_50MHz,
 		.GPIO_Mode  = GPIO_Mode_OUT,
 		.GPIO_OType = GPIO_OType_PP,
-		.GPIO_PuPd = GPIO_PuPd_UP
+		.GPIO_PuPd  = GPIO_PuPd_UP,
+		.GPIO_Pin   = pin_source,
 	};
-	init.GPIO_Pin = pin_source;
 
 	// Set MOSI to digital out for bit banging
 	GPIO_PinAFConfig(gpio, pin_source, 0);
+#endif
+
 	GPIO_Init(gpio, &init);
 
 	int16_t cycles = (len * 200000 / d);
@@ -1254,7 +1263,10 @@ static void rfm22_beacon_tone(pios_openlrs_t openlrs_dev, int16_t hz, int16_t le
 	}
 
 	GPIO_Init(gpio, (GPIO_InitTypeDef *) &openlrs_dev->cfg.spi_cfg->mosi.init);
-	GPIO_PinAFConfig(gpio, pin_source, remap);
+
+#if !defined(STM32F10X_MD)
+	GPIO_PinAFConfig(gpio, pin_source, openlrs_dev->cfg.spi_cfg->remap);
+#endif
 
 	rfm22_release_bus(openlrs_dev);
 

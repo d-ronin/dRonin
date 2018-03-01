@@ -36,6 +36,7 @@
 #define PIOS_INCLUDE_RCVR
 #define PIOS_INCLUDE_TIM
 #define PIOS_INCLUDE_OPENLRS
+#define PIOS_INCLUDE_OPENLRS_RCVR
 
 /* Supported receiver interfaces */
 #define PIOS_INCLUDE_PPM

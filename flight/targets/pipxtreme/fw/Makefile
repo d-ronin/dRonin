@@ -140,6 +140,10 @@ SRC += pios_reset.c
 ## Libraries for flight calculations
 SRC += taskmonitor.c
 
+## Radio
+SRC += pios_openlrs.c
+SRC += pios_openlrs_rcvr.c
+
 ## CMSIS for STM32
 include $(PIOSCOMMONLIB)/CMSIS/library.mk
 
