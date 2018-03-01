@@ -555,6 +555,23 @@ static void pios_openlrs_setup(pios_openlrs_t openlrs_dev)
 	DEBUG_PRINTF(2,"OpenLRSng RX setup complete\r\n");
 }
 
+static void pios_openlrs_rx_update_rssi(pios_openlrs_t openlrs_dev,
+		uint8_t rssi, bool have_frame)
+{
+	openlrs_status.LinkQuality <<= 1;
+	openlrs_status.LinkQuality |= !!have_frame;
+
+	if (have_frame) {
+		openlrs_status.LastRSSI = rssi;
+	} else {
+		/*
+		 * If we weren't able to sample RSSI, don't just carry the
+		 * old value forward indefinitely.
+		 */
+		openlrs_status.LastRSSI >>= 1;
+	}
+}
+
 static bool pios_openlrs_rx_frame(pios_openlrs_t openlrs_dev, uint8_t rssi)
 {
 	uint8_t *tx_buf = openlrs_dev->tx_buf;
@@ -566,20 +583,19 @@ static bool pios_openlrs_rx_frame(pios_openlrs_t openlrs_dev, uint8_t rssi)
 		return false;
 	}
 
+	pios_openlrs_rx_update_rssi(openlrs_dev, rssi, true);
+
 	openlrs_dev->lastAFCCvalue = rfm22_get_afcc(openlrs_dev);
 
 #if defined(PIOS_LED_LINK)
 	PIOS_ANNUNC_Toggle(PIOS_LED_LINK);
 #endif /* PIOS_LED_LINK */
 
-	openlrs_status.LastRSSI = rssi;
-	openlrs_status.LinkQuality <<= 1;
-	openlrs_status.LinkQuality |= 1;
-
 	if ((rx_buf[0] & 0x3e) == 0x00) {
 		// This flag indicates receiving control data
 
-		unpackChannels(openlrs_dev->bind_data.flags & 7, openlrs_dev->ppm, rx_buf + 1);
+		unpackChannels(openlrs_dev->bind_data.flags & 7,
+				openlrs_dev->ppm, rx_buf + 1);
 		rescaleChannels(openlrs_dev->ppm);
 
 		// Call the control received callback if it's available.
@@ -592,16 +608,16 @@ static bool pios_openlrs_rx_frame(pios_openlrs_t openlrs_dev, uint8_t rssi)
 		}
 	} else {
 		// Not control data. Push into serial RX buffer.
-		if ((rx_buf[0] & 0x38) == 0x38) {
-			if ((rx_buf[0] ^ tx_buf[0]) & 0x80) {
-				// We got new data... (not retransmission)
-				tx_buf[0] ^= 0x80; // signal that we got it
-				bool rx_need_yield;
-				uint8_t data_len = rx_buf[0] & 7;
-				if (openlrs_dev->rx_in_cb && (data_len > 0)) {
-					(openlrs_dev->rx_in_cb)(openlrs_dev->rx_in_context, &rx_buf[1], data_len, NULL,
-							&rx_need_yield);
-				}
+		if (((rx_buf[0] & 0x38) == 0x38) &&
+				((rx_buf[0] ^ tx_buf[0]) & 0x80)) {
+			// We got new data... (not retransmission)
+			tx_buf[0] ^= 0x80; // signal that we got it
+			bool rx_need_yield;
+			uint8_t data_len = rx_buf[0] & 7;
+			if (openlrs_dev->rx_in_cb && (data_len > 0)) {
+				(openlrs_dev->rx_in_cb)(openlrs_dev->rx_in_context,
+						&rx_buf[1], data_len,
+						NULL, &rx_need_yield);
 			}
 		}
 	}
@@ -718,15 +734,14 @@ static void pios_openlrs_rx_step(pios_openlrs_t openlrs_dev,
 	} else if (openlrs_dev->numberOfLostPackets < openlrs_dev->hopcount) {
 		DEBUG_PRINTF(2,"OLRS WARN: Lost packet: %d\r\n", openlrs_dev->numberOfLostPackets);
 		/* We lost packet, execute normally timed hop */
-		openlrs_status.LinkQuality <<= 1;
 		openlrs_dev->numberOfLostPackets++;
 		openlrs_dev->lastPacketTimeUs += getInterval(&openlrs_dev->bind_data);
 	} else if ((openlrs_dev->numberOfLostPackets >= openlrs_dev->hopcount) &&
 			(PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs) >
 			(getInterval(&openlrs_dev->bind_data) * (openlrs_dev->hopcount + 1)))) {
 		DEBUG_PRINTF(2,"ORLS WARN: Trying to sync\r\n");
+
 		// hop slowly to allow resync with TX
-		openlrs_status.LinkQuality = 0;
 		openlrs_dev->lastPacketTimeUs = timeUs;
 	} else {
 		/* Don't have link, but it's not time for slow hop yet */
@@ -755,7 +770,9 @@ static void pios_openlrs_rx_step(pios_openlrs_t openlrs_dev,
 			openlrs_dev->beacon_armed = true;
 
 			DEBUG_PRINTF(2,"Beacon time: %d\r\n", openlrs_dev->nextBeaconTimeMs);
-			// Only beacon when disarmed
+			// Only beacon when vehicle is disarmed
+			// (This should be reconsidered, because it means we
+			// can't beacon when always armed, etc.)
 			uint8_t armed;
 			FlightStatusArmedGet(&armed);
 			if (armed == FLIGHTSTATUS_ARMED_DISARMED) {
@@ -778,9 +795,9 @@ static void pios_openlrs_rx_step(pios_openlrs_t openlrs_dev,
 
 uint8_t PIOS_OpenLRS_RSSI_Get(void)
 {
-	if (openlrs_status.FailsafeActive == OPENLRSSTATUS_FAILSAFEACTIVE_ACTIVE)
+	if (openlrs_status.FailsafeActive == OPENLRSSTATUS_FAILSAFEACTIVE_ACTIVE) {
 		return 0;
-	else {
+	} else {
 		// Check object handle exists
 		if (OpenLRSHandle() == NULL)
 			return 0;
@@ -1032,25 +1049,14 @@ static void pios_openlrs_rx_task(void *parameters)
 
 		rfm22_check_hang(openlrs_dev);
 
-		/* This block of code determines the timing of when to call
-		 * the loop method. It reaches a bit into the internal state
-		 * of that method to get the optimal timings. This is to keep
-		 * the loop method as similar as possible to the openLRSng
-		 * implementation (for easier maintenance of compatibility)
-		 * while minimizing overhead spinning in a while loop.
-		 *
-		 * There are three reasons to go into loop:
-		 *  1. the ISR was triggered (packet was received)
-		 *  2. a little before the expected packet (to sample the
-		 *     RSSI while receiving packet)
-		 *  3. a little after expected packet (to channel hop when
-		 *     a packet was missing)
-		 */
-
 		uint32_t time_since_packet_us = PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs);
 		uint8_t rssi = 0;
 
-		/* Schedule for a good time to sample RSSI */
+		/*
+		 * Schedule for a good time to sample RSSI.  This should be
+		 * after frame start and the AGC has had a good chance to
+		 * lock on.
+		 */
 		uint32_t delay_us =
 			getPacketActiveTime(&openlrs_dev->bind_data) -
 			packet_rssi_time_us -
@@ -1060,19 +1066,37 @@ static void pios_openlrs_rx_task(void *parameters)
 
 		bool have_interrupt = wait_interrupt(openlrs_dev, delay_us);
 
+		/*
+		 * We don't really expect an interrupt here.  If we have one,
+		 * it means we are badly out of sync and got a frame when we
+		 * didn't expect.
+		 */
 		if (!have_interrupt) {
 			rssi = rfm22_get_rssi(openlrs_dev);
 
 			DEBUG_PRINTF(3,
 				"Sampled RSSI: %d %d\r\n",
-				openlrs_status.LastRSSI,
-				delay_us);
+				rssi, delay_us);
 		}
 
 		time_since_packet_us = PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs);
 
-		// Now we want our timeout to be when a packet has been
-		// missed.
+		/*
+		 * Now wait until we have received a frame, or until the
+		 * packet is truly late.
+		 *
+		 * It's worth noting that for non-telemetry modes, we need
+		 * to stay very closely in sync because the TX is transmitting
+		 * most of the time.  This means that we need to carefully
+		 * split that "dead" non-TX time, arriving to channels slightly
+		 * early, and leaving slightly late if we have not received a
+		 * frame.
+		 *
+		 * For telemetry modes, since "we" have a timeslot the
+		 * tolerances can be much more lax-- we can afford to listen
+		 * into what we believe to be our telemetry timeslot and thus
+		 * cope better if the TX is slower than we expect.
+		 */
 		delay_us = getInterval(&openlrs_dev->bind_data) +
 			packet_timeout_us - time_since_packet_us;
 		DEBUG_PRINTF(3, "T2: %d %d\r\n", delay_us,
@@ -1095,6 +1119,11 @@ static void pios_openlrs_rx_task(void *parameters)
 				delay_us,
 				getInterval(&openlrs_dev->bind_data),
 				time_since_packet_us);
+		}
+
+		if (!have_frame) {
+			pios_openlrs_rx_update_rssi(openlrs_dev, rssi,
+				false);
 		}
 
 		// Select next channel, update timers, etc.

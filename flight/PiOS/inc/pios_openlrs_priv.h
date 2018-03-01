@@ -156,14 +156,11 @@ struct pios_openlrs_dev {
 	// The event queue handle
 	struct pios_semaphore *sema_isr;
 
-	// The PPM buffer
+	// The channel value buffer
 	int16_t ppm[OPENLRS_PPM_NUM_CHANNELS];
 
 	// RFM22B RCVR interface
 	uintptr_t openlrs_rcvr_id;
-
-	// Flag to indicate if link every acquired
-	bool link_acquired;
 
 	// Active bound information data
 	struct bind_data bind_data;
@@ -174,14 +171,14 @@ struct pios_openlrs_dev {
 	uint8_t beacon_period;
 	bool beacon_armed;
 
+	// Flag to indicate if link ever acquired
+	bool link_acquired;
+
 	volatile enum RF_MODE rf_mode;
 	uint32_t rf_channel;
 
 	uint8_t it_status1;
 	uint8_t it_status2;
-
-	uint8_t rx_buf[64];
-	uint8_t tx_buf[9];
 
 	// Variables from OpenLRS for radio control
 	uint8_t hopcount;
@@ -192,6 +189,8 @@ struct pios_openlrs_dev {
 	uint32_t linkLossTimeMs;
 	uint32_t failsafeDelay;
 	uint32_t beacon_rssi_avg;
+
+	uint8_t tx_buf[9];
 };
 
 #endif /* PIOS_INCLUDE_OPENLRS */
