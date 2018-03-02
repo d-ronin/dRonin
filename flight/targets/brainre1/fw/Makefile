@@ -39,7 +39,6 @@ MODULES += FirmwareIAP
 MODULES += Telemetry
 
 OPTMODULES += GPS
-OPTMODULES += AltitudeHold
 OPTMODULES += PathPlanner
 OPTMODULES += VtolPathFollower
 OPTMODULES += FixedWingPathFollower

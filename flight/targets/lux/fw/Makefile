@@ -45,7 +45,6 @@ OPTMODULES += GPS
 OPTMODULES += Autotune
 OPTMODULES += TxPID
 #OPTMODULES += GenericI2CSensor
-#OPTMODULES += AltitudeHold
 #OPTMODULES += PathPlanner
 #OPTMODULES += VtolPathFollower
 #OPTMODULES += FixedWingPathFollower

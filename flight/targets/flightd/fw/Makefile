@@ -82,7 +82,6 @@ MODULES += Stabilization
 MODULES += Telemetry
 
 OPTMODULES += Airspeed
-OPTMODULES += AltitudeHold
 OPTMODULES += Autotune
 OPTMODULES += Battery
 OPTMODULES += CameraStab

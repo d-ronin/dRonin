@@ -44,7 +44,6 @@ OPTMODULES += GPS
 OPTMODULES += CameraStab
 OPTMODULES += Autotune
 OPTMODULES += TxPID
-OPTMODULES += AltitudeHold
 OPTMODULES += PathPlanner
 OPTMODULES += VtolPathFollower
 OPTMODULES += FixedWingPathFollower
