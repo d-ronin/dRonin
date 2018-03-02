@@ -9,7 +9,6 @@
       <description>Controls whether modules are enabled or not (they will still only run when correctly configured and subject to hardware limitations).</description>
       <elementnames>
         <elementname>Airspeed</elementname>
-        <elementname>AltitudeHold</elementname>
         <elementname>Autotune</elementname>
         <elementname>Battery</elementname>
         <elementname>CameraStab</elementname>

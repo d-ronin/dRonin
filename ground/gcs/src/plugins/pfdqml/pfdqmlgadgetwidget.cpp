@@ -35,7 +35,6 @@ PfdQmlGadgetWidget::PfdQmlGadgetWidget(QWindow *parent)
 
     objectsToExport << "VelocityActual"
                     << "PositionActual"
-                    << "AltitudeHoldDesired"
                     << "AttitudeActual"
                     << "AttitudeSimulated"
                     << "AirspeedActual"
