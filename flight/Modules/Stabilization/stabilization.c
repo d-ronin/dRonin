@@ -145,6 +145,10 @@ static bool lowThrottleZeroIntegral;
 static float max_rate_alpha = 0.8f;
 float vbar_decay = 0.991f;
 
+uint8_t altitude_hold_expo;
+float altitude_hold_maxclimbrate;
+float altitude_hold_maxdescentrate;
+
 struct pid vertspeed_pid;
 struct pid pids[PID_MAX];
 smoothcontrol_state rc_smoothing;
@@ -409,20 +413,6 @@ static float calculate_thrust(StabilizationDesiredThrustModeOptions mode,
 
 	static float alt_desired;
 	float vs_desired = 0;
-
-
-	/* XXX factor to settings! */
-		uint8_t altitude_hold_expo;
-		uint8_t altitude_hold_maxclimbrate10;
-		uint8_t altitude_hold_maxdescentrate10;
-		AltitudeHoldSettingsMaxClimbRateGet(&altitude_hold_maxclimbrate10);
-		AltitudeHoldSettingsMaxDescentRateGet(&altitude_hold_maxdescentrate10);
-
-		// Scale altitude hold rate
-		float altitude_hold_maxclimbrate = altitude_hold_maxclimbrate10 * 0.1f;
-		float altitude_hold_maxdescentrate = altitude_hold_maxdescentrate10 * 0.1f;
-
-		AltitudeHoldSettingsExpoGet(&altitude_hold_expo);
 
 	switch (mode) {
 		case STABILIZATIONDESIRED_THRUSTMODE_ALTITUDEWITHSTICKSCALING:
@@ -1433,6 +1423,17 @@ static void update_settings(float dT)
 
 	// Whether to zero the PID integrals while thrust is low
 	lowThrottleZeroIntegral = settings.LowThrottleZeroIntegral == STABILIZATIONSETTINGS_LOWTHROTTLEZEROINTEGRAL_TRUE;
+
+	uint8_t altitude_hold_maxclimbrate10;
+	uint8_t altitude_hold_maxdescentrate10;
+	AltitudeHoldSettingsMaxClimbRateGet(&altitude_hold_maxclimbrate10);
+	AltitudeHoldSettingsMaxDescentRateGet(&altitude_hold_maxdescentrate10);
+
+	// Scale altitude hold rate
+	altitude_hold_maxclimbrate = altitude_hold_maxclimbrate10 * 0.1f;
+	altitude_hold_maxdescentrate = altitude_hold_maxdescentrate10 * 0.1f;
+
+	AltitudeHoldSettingsExpoGet(&altitude_hold_expo);
 
 	uint8_t s_mode = remap_smoothing_mode(settings.RCControlSmoothing[STABILIZATIONSETTINGS_RCCONTROLSMOOTHING_AXES]);
 	smoothcontrol_set_mode(rc_smoothing, ROLL, s_mode);
