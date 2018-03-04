@@ -219,8 +219,8 @@ static void altitudeHoldTask(void *parameters)
 			float velocity_desired = altitude_error * altitudeHoldSettings.PositionKp + altitudeHoldDesired.ClimbRate;
 			float throttle_desired = pid_apply_antiwindup(&velocity_pid, 
 			                    velocity_desired - velocity_z,
-			                    min_throttle, 1.0f // positive limits since this is throttle
-			                    );
+			                    min_throttle, 1.0f, // positive limits since this is throttle
+			                    0);
 
 			AltitudeHoldStateData altitudeHoldState;
 			altitudeHoldState.VelocityDesired = velocity_desired;
