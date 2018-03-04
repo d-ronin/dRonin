@@ -322,6 +322,15 @@ UAVTalkRxState UAVTalkProcessInputStreamQuiet(UAVTalkConnection connectionHandle
 
 		// Check the lengths match
 		if ((iproc->rxPacketLength + iproc->instanceLength + iproc->length) != iproc->packet_size) { // packet error - mismatched packet size
+			if (iproc->instanceLength == 0) {
+				// Try again with a 2 inst len
+				// to accept LP's fork of
+				// protocol.
+				iproc->instanceLength = 2;
+			}
+		}
+
+		if ((iproc->rxPacketLength + iproc->instanceLength + iproc->length) != iproc->packet_size) { // packet error - mismatched packet size
 			iproc->state = UAVTALK_STATE_ERROR;
 			break;
 		}
