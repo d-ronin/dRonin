@@ -56,7 +56,8 @@ USE_I2C ?= YES
 
 # List of modules to include
 MODULES += ComUsbBridge
-MODULES += RadioComBridge
+MODULES += Telemetry
+#MODULES += RadioComBridge
 MODULES += UAVOTaranis
 
 # Paths

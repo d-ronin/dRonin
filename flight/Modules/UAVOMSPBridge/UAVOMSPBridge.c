@@ -1217,7 +1217,7 @@ static void msp_receive_byte(struct msp_bridge *m, uint8_t b)
 		m->state = MSP_IDLE;
 		// If this looks like the fourth possible uavtalk byte, we're done
 		if ((b & 0xf0) == 0) {
-			PIOS_COM_TELEM_RF = m->com;
+			PIOS_COM_TELEM_SER = m->com;
 
 			m->handler = MSP_HANDLER_IDLE;
 		}
@@ -1234,8 +1234,8 @@ static int32_t uavoMSPBridgeStart(void)
 	if (!module_enabled) {
 		// give port to telemetry if it doesn't have one
 		// stops board getting stuck in condition where it can't be connected to gcs
-		if(!PIOS_COM_TELEM_RF)
-			PIOS_COM_TELEM_RF = pios_com_msp_id;
+		if(!PIOS_COM_TELEM_SER)
+			PIOS_COM_TELEM_SER = pios_com_msp_id;
 
 		return -1;
 	}

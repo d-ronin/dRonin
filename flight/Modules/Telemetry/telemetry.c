@@ -916,12 +916,12 @@ static void updateTelemetryStats(telem_t telem)
  */
 static void updateSettings()
 {
-	if (PIOS_COM_TELEM_RF) {
+	if (PIOS_COM_TELEM_SER) {
 		// Retrieve settings
 		uint8_t speed;
 		ModuleSettingsTelemetrySpeedGet(&speed);
 
-		PIOS_HAL_ConfigureSerialSpeed(PIOS_COM_TELEM_RF, speed);
+		PIOS_HAL_ConfigureSerialSpeed(PIOS_COM_TELEM_SER, speed);
 	}
 }
 
@@ -944,8 +944,8 @@ static uintptr_t getComPort()
 	}
 #endif /* PIOS_COM_TELEM_USB */
 
-	if (PIOS_COM_Available(PIOS_COM_TELEM_RF) )
-		return PIOS_COM_TELEM_RF;
+	if (PIOS_COM_Available(PIOS_COM_TELEM_SER))
+		return PIOS_COM_TELEM_SER;
 
 	return 0;
 }

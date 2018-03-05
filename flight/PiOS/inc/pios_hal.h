@@ -55,6 +55,8 @@ enum pios_hal_panic {
 	PIOS_HAL_PANIC_OSD       = 12,
 };
 
+#define PIOS_COM_TELEM_SER (pios_com_telem_serial_id)
+
 /* One slot per selectable receiver group.
  *  eg. PWM, PPM, GCS, SPEKTRUM1, SPEKTRUM2, SBUS
  * NOTE: No slot in this map for NONE.
