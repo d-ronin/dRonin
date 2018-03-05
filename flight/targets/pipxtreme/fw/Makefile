@@ -56,8 +56,8 @@ USE_I2C ?= YES
 
 # List of modules to include
 MODULES += ComUsbBridge
-#MODULES += RadioComBridge
-#MODULES += UAVOTaranis
+MODULES += RadioComBridge
+MODULES += UAVOTaranis
 
 # Paths
 OPUAVOBJINC = $(OPUAVOBJ)/inc

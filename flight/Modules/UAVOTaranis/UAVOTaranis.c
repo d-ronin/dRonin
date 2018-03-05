@@ -121,9 +121,9 @@ static struct frsky_sport_telemetry *frsky;
  */
 static bool frsky_encode_rssi(struct frsky_settings *frsky, uint32_t *value, bool test_presence_only, uint32_t arg)
 {
+#if 0
 	uint8_t local_link_quality = 0, local_link_connected = 0; /* XXX */
 
-#if 0
 	RFM22BStatusLinkStateGet(&local_link_connected);
 	RFM22BStatusLinkQualityGet(&local_link_quality);
 

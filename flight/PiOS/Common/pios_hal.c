@@ -116,6 +116,10 @@ uintptr_t pios_com_telem_usb_id;
 uintptr_t pios_com_vcp_id;
 #endif
 
+#if defined(PIOS_INCLUDE_OPENLRS)
+uintptr_t pios_com_rf_id;
+#endif
+
 uintptr_t pios_com_telem_serial_id;
 
 #if defined(PIOS_INCLUDE_DEBUG_CONSOLE)
