@@ -868,7 +868,7 @@ void PIOS_Servo_Update(void)
 	// If some banks are oneshot and some are dshot (why would you do this?)
 	// get the oneshots firing first.
 	for (uint8_t i = 0; i < servo_cfg->num_channels; i++) {
-		if (channel_mask & (1 << 1)) {
+		if (channel_mask & (1 << i)) {
 			continue;
 		}
 
