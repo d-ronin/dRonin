@@ -32,7 +32,7 @@
 
 #include <pios_dio.h>
 
-#define PIOS_SERVO_MAX_BANKS 6
+#define PIOS_SERVO_MAX_BANKS 8
 
 /* Used in out_rate.  If 65535, we really mean 65535Hz.  Values close to that
  * are reserved/abused for dshot support.  0 is used for sync pwm per legacy
