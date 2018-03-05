@@ -229,8 +229,9 @@ bool UAVSettingsImportExportManager::importUAVSettings(const QByteArray &setting
 
     if (swui.numLines() < 1) {
         QMessageBox::critical(nullptr, tr("Unable to import settings"),
-                              tr("No settings found in XML dump"), QMessageBox::Ok);
-        return false;
+                              tr("No settings found in XML dump; the flight controller settings may have been blank."), QMessageBox::Ok);
+        /* This is a termination condition-- no settings found. */
+        return true;
     }
 
     swui.setUAVOSettings(importedObjectManager);
