@@ -336,12 +336,15 @@ int PIOS_Servo_SetMode(const uint16_t *out_rate, const int banks, const uint16_t
 				bank = j;
 		}
 
-		if (bank < 0)
+		if ((bank < 0) && (banks_found < PIOS_SERVO_MAX_BANKS)) {
 			bank = banks_found++;
+		}
 
-		timer_banks[bank].timer = chan->timer;
-		timer_banks[bank].max_pulse = MAX(timer_banks[bank].max_pulse, channel_max[i]);
-		timer_banks[bank].max_pulse = MAX(timer_banks[bank].max_pulse, channel_min[i]);
+		if (bank >= 0) {
+			timer_banks[bank].timer = chan->timer;
+			timer_banks[bank].max_pulse = MAX(timer_banks[bank].max_pulse, channel_max[i]);
+			timer_banks[bank].max_pulse = MAX(timer_banks[bank].max_pulse, channel_min[i]);
+		}
 	}
 
 	// configure timers/banks
