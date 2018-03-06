@@ -1,9 +1,9 @@
 /**
  ******************************************************************************
  * @addtogroup Modules Modules
- * @{ 
+ * @{
  * @addtogroup AirspeedModule Airspeed Module
- * @{ 
+ * @{
  *
  * @file       airspeed.c
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
@@ -65,7 +65,7 @@
 #endif
 
 #if defined (GPS_AIRSPEED_PRESENT) && defined (BARO_AIRSPEED_PRESENT)
- #define STACK_SIZE_BYTES 700 
+ #define STACK_SIZE_BYTES 700
 #elif defined (GPS_AIRSPEED_PRESENT)
  #define STACK_SIZE_BYTES 600
 #elif defined (BARO_AIRSPEED_PRESENT)
@@ -74,7 +74,6 @@
  #define STACK_SIZE_BYTES 0
  #define NO_AIRSPEED_SENSOR_PRESENT
 #endif
-
 
 #define TASK_PRIORITY PIOS_THREAD_PRIO_LOW
 
@@ -98,30 +97,28 @@ static uint8_t airspeedSensorType;
 static uint16_t gpsSamplePeriod_ms;
 
 #ifdef BARO_AIRSPEED_PRESENT
-static int8_t airspeedADCPin=-1;
+static int8_t airspeedADCPin = -1;
 #endif
-
 
 // Private functions
 static void airspeedTask(void *parameters);
 void baro_airspeedGet(BaroAirspeedData *baroAirspeedData, uint32_t *lastSysTime, uint8_t airspeedSensorType, int8_t airspeedADCPin);
-
 
 /**
  * Initialise the module, called on startup
  * \returns 0 on success or -1 if initialisation failed
  */
 int32_t AirspeedStart()
-{	
+{
 #if defined (NO_AIRSPEED_SENSOR_PRESENT)
 	return -1;
-#endif	
-	
+#endif
+
 	//Check if module is enabled or not
 	if (module_enabled == false) {
 		return -1;
 	}
-		
+
 	// Start main task
 	taskHandle = PIOS_Thread_Create(airspeedTask, "Airspeed", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 	TaskMonitorAdd(TASKINFO_RUNNING_AIRSPEED, taskHandle);
@@ -134,17 +131,17 @@ static void doSettingsUpdate()
 
 	AirspeedSettingsGet(&settings);
 
-	airspeedSensorType=settings.AirspeedSensorType;
-	gpsSamplePeriod_ms=settings.GPSSamplePeriod_ms;
-	
+	airspeedSensorType = settings.AirspeedSensorType;
+	gpsSamplePeriod_ms = settings.GPSSamplePeriod_ms;
+
 #if defined(PIOS_INCLUDE_MPXV7002)
-	if (airspeedSensorType==AIRSPEEDSETTINGS_AIRSPEEDSENSORTYPE_DIYDRONESMPXV7002){
+	if (airspeedSensorType==AIRSPEEDSETTINGS_AIRSPEEDSENSORTYPE_DIYDRONESMPXV7002) {
 		PIOS_MPXV7002_UpdateCalibration(settings.ZeroPoint); //This makes sense for the user if the initial calibration was not good and the user does not wish to reboot.
 	}
 #endif
 #if defined(PIOS_INCLUDE_MPXV5004)
-	if (airspeedSensorType==AIRSPEEDSETTINGS_AIRSPEEDSENSORTYPE_DIYDRONESMPXV5004){
-		PIOS_MPXV5004_UpdateCalibration(settings.ZeroPoint); 
+	if (airspeedSensorType==AIRSPEEDSETTINGS_AIRSPEEDSENSORTYPE_DIYDRONESMPXV5004) {
+		PIOS_MPXV5004_UpdateCalibration(settings.ZeroPoint);
 	}
 #endif
 }
@@ -205,12 +202,12 @@ static void airspeedTask(void *parameters)
 	AirspeedActualData airspeedActualData;
 
 #ifdef BARO_AIRSPEED_PRESENT
-	float airspeedErrInt=0;
-	
+	float airspeedErrInt = 0;
+
 #ifdef GPS_AIRSPEED_PRESENT
 	uint32_t lastGPSTime = PIOS_Thread_Systime(); //Time since last GPS-derived airspeed calculation
-	uint32_t lastLoopTime= PIOS_Thread_Systime(); //Time since last loop
-	float airspeed_tas_baro=0;
+	uint32_t lastLoopTime = PIOS_Thread_Systime(); //Time since last loop
+	float airspeed_tas_baro = 0;
 #endif
 
 #endif
@@ -225,7 +222,7 @@ static void airspeedTask(void *parameters)
 #endif
 
 	AirspeedSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settingsUpdated);
-	
+
 	// Main task loop
 	uint32_t lastSysTime = PIOS_Thread_Systime();
 
@@ -234,8 +231,7 @@ static void airspeedTask(void *parameters)
 
 	airspeedData.BaroConnected = BAROAIRSPEED_BAROCONNECTED_FALSE;
 
-	while (1)
-	{
+	while (1) {
 		if (settingsUpdated) {
 			settingsUpdated = false;
 
@@ -243,7 +239,7 @@ static void airspeedTask(void *parameters)
 		}
 
 #ifdef BARO_AIRSPEED_PRESENT
-		if(airspeedSensorType != AIRSPEEDSETTINGS_AIRSPEEDSENSORTYPE_GPSONLY) {
+		if (airspeedSensorType != AIRSPEEDSETTINGS_AIRSPEEDSENSORTYPE_GPSONLY) {
 			//Fetch calibrated airspeed from sensors
 			baro_airspeedGet(&airspeedData, &lastSysTime, airspeedSensorType, airspeedADCPin);
 
@@ -262,77 +258,78 @@ static void airspeedTask(void *parameters)
 
  #ifdef GPS_AIRSPEED_PRESENT
 			//GPS present, so use baro sensor to filter TAS
-			airspeed_tas_baro = cas2tas(airspeedData.CalibratedAirspeed, -positionActual_Down, &air_STP) + airspeedErrInt * GPS_AIRSPEED_BIAS_KI;
+			airspeed_tas_baro =
+					cas2tas(airspeedData.CalibratedAirspeed, -positionActual_Down,
+							&air_STP) + airspeedErrInt * GPS_AIRSPEED_BIAS_KI;
  #else
 			//No GPS, so TAS comes only from baro sensor
-			airspeedData.TrueAirspeed = cas2tas(airspeedData.CalibratedAirspeed, -positionActual_Down, &air_STP) + airspeedErrInt * GPS_AIRSPEED_BIAS_KI;
- #endif			
-		}
-		else
+			airspeedData.TrueAirspeed =
+					cas2tas(airspeedData.CalibratedAirspeed, -positionActual_Down,
+							&air_STP) + airspeedErrInt * GPS_AIRSPEED_BIAS_KI;
+ #endif
+		} else
 #endif
 		{ //Have to catch the fallthrough, or else this loop will monopolize the processor!
-			airspeedData.BaroConnected=BAROAIRSPEED_BAROCONNECTED_FALSE;
-			airspeedData.SensorValue=12345;
-			
+			airspeedData.BaroConnected = BAROAIRSPEED_BAROCONNECTED_FALSE;
+			airspeedData.SensorValue = 12345;
+
 			//Likely, we have a GPS, so let's configure the fallthrough at close to GPS refresh rates
 			PIOS_Thread_Sleep_Until(&lastSysTime, SAMPLING_DELAY_MS_FALLTHROUGH);
 		}
-		
+
 #ifdef GPS_AIRSPEED_PRESENT
-		float v_air_GPS=-1.0f;
-		
+		float v_air_GPS = -1.0f;
+
 		//Check if sufficient time has passed. This will depend on whether we have a pitot tube
 		//sensor or not. In the case we do, shoot for about once per second. Otherwise, consume GPS
 		//as quickly as possible.
  #ifdef BARO_AIRSPEED_PRESENT
 		float delT = (lastSysTime - lastLoopTime) / 1000.0f;
-		lastLoopTime=lastSysTime;
+		lastLoopTime = lastSysTime;
 		if ( ((lastSysTime - lastGPSTime) > 1000 || airspeedSensorType==AIRSPEEDSETTINGS_AIRSPEEDSENSORTYPE_GPSONLY)
 				&& gpsNew) {
-			lastGPSTime=lastSysTime;
+			lastGPSTime = lastSysTime;
  #else
-		if (gpsNew)	{				
+		if (gpsNew) {
  #endif
-			gpsNew=false; //Do this first
+			gpsNew = false; //Do this first
 
 			//Calculate airspeed as a function of GPS groundspeed and vehicle attitude. From "IMU Wind Estimation (Theory)", by William Premerlani
 			gps_airspeedGet(&v_air_GPS);
 		}
-		
-			
+
 		//Use the GPS error to correct the airspeed estimate.
-		if (v_air_GPS > 0) //We have valid GPS estimate...
-		{
-			airspeedData.GPSAirspeed=v_air_GPS;
+		if (v_air_GPS > 0) { //We have valid GPS estimate...
+			airspeedData.GPSAirspeed = v_air_GPS;
 
  #ifdef BARO_AIRSPEED_PRESENT
-			if(airspeedData.BaroConnected==BAROAIRSPEED_BAROCONNECTED_TRUE){ //Check if there is an airspeed sensors present...
+			if (airspeedData.BaroConnected==BAROAIRSPEED_BAROCONNECTED_TRUE) { //Check if there is an airspeed sensors present...
 				//Calculate error and error integral
-				float airspeedErr=v_air_GPS - airspeed_tas_baro;
-				airspeedErrInt+=airspeedErr * delT;
-				
+				float airspeedErr = v_air_GPS - airspeed_tas_baro;
+				airspeedErrInt += airspeedErr * delT;
+
 				//Saturate integral component at 5 m/s
-				airspeedErrInt = airspeedErrInt >  (5.0f / GPS_AIRSPEED_BIAS_KI) ?  (5.0f / GPS_AIRSPEED_BIAS_KI) : airspeedErrInt;
-				airspeedErrInt = airspeedErrInt < -(5.0f / GPS_AIRSPEED_BIAS_KI) ? -(5.0f / GPS_AIRSPEED_BIAS_KI) : airspeedErrInt;
-							
+				airspeedErrInt = airspeedErrInt >
+						(5.0f / GPS_AIRSPEED_BIAS_KI) ?  (5.0f / GPS_AIRSPEED_BIAS_KI) : airspeedErrInt;
+				airspeedErrInt = airspeedErrInt <
+						-(5.0f / GPS_AIRSPEED_BIAS_KI) ? -(5.0f / GPS_AIRSPEED_BIAS_KI) : airspeedErrInt;
+
 				//There's already an airspeed sensor, so instead correct it for bias with P correction. The I correction happened earlier in the function.
 				airspeedData.TrueAirspeed = airspeed_tas_baro + airspeedErr * GPS_AIRSPEED_BIAS_KP;
-				
-				
-				/* Note: 
+
+				/* Note:
 				      This would be a good place to change the airspeed calibration, so that it matches the GPS computed values. However,
-				      this might be a bad idea, as their are two degrees of freedom here: temperature and sensor calibration. I don't 
+				      this might be a bad idea, as their are two degrees of freedom here: temperature and sensor calibration. I don't
 				      know how to control for temperature bias.
 				 */
-			}
-			else
+			} else
  #endif
 			{
 				//...there's no airspeed sensor, so everything comes from GPS. In this
 				//case, filter the airspeed for smoother output
-				float alpha=gpsSamplePeriod_ms/(gpsSamplePeriod_ms + GPS_AIRSPEED_TIME_CONSTANT_MS); //Low pass filter.
-				airspeedData.TrueAirspeed=v_air_GPS*(alpha) + airspeedData.TrueAirspeed*(1.0f-alpha);
-				
+				float alpha = gpsSamplePeriod_ms/(gpsSamplePeriod_ms + GPS_AIRSPEED_TIME_CONSTANT_MS); //Low pass filter.
+				airspeedData.TrueAirspeed = v_air_GPS*(alpha) + airspeedData.TrueAirspeed*(1.0f-alpha);
+
 				//Calculate calibrated airspeed from GPS, since we're not getting it from a discrete airspeed sensor
 				int16_t groundTemperature_10;
 				float groundTemperature;
@@ -350,10 +347,10 @@ static void airspeedTask(void *parameters)
 			}
 		}
  #ifdef BARO_AIRSPEED_PRESENT
-		else if (airspeedData.BaroConnected==BAROAIRSPEED_BAROCONNECTED_TRUE){
+		else if (airspeedData.BaroConnected==BAROAIRSPEED_BAROCONNECTED_TRUE) {
 			//No GPS velocity estimate this loop, so filter true airspeed data with baro airspeed
-			float alpha=delT/(delT + BARO_TRUEAIRSPEED_TIME_CONSTANT_S); //Low pass filter.
-			airspeedData.TrueAirspeed=airspeed_tas_baro*(alpha) + airspeedData.TrueAirspeed*(1.0f-alpha);
+			float alpha = delT/(delT + BARO_TRUEAIRSPEED_TIME_CONSTANT_S); //Low pass filter.
+			airspeedData.TrueAirspeed = airspeed_tas_baro*(alpha) + airspeedData.TrueAirspeed*(1.0f-alpha);
 		}
  #endif
 #endif
@@ -370,24 +367,23 @@ void baro_airspeedGet(BaroAirspeedData *baroAirspeedData, uint32_t *lastSysTime,
 {
 	//Find out which sensor we're using.
 	switch (airspeedSensorType) {
-		case AIRSPEEDSETTINGS_AIRSPEEDSENSORTYPE_DIYDRONESMPXV7002:
-		case AIRSPEEDSETTINGS_AIRSPEEDSENSORTYPE_DIYDRONESMPXV5004:
-		case AIRSPEEDSETTINGS_AIRSPEEDSENSORTYPE_RAWANALOG:
-			baro_airspeedGetAnalog(baroAirspeedData, lastSysTime, airspeedSensorType, airspeedADCPin);
-			break;
-		case AIRSPEEDSETTINGS_AIRSPEEDSENSORTYPE_EAGLETREEAIRSPEEDV3:
-			//Eagletree Airspeed v3
-			baro_airspeedGetETASV3(baroAirspeedData, lastSysTime, airspeedSensorType, airspeedADCPin);
-			break;
-		default:
-			baroAirspeedData->BaroConnected = BAROAIRSPEED_BAROCONNECTED_FALSE;
-			PIOS_Thread_Sleep_Until(lastSysTime, SAMPLING_DELAY_MS_FALLTHROUGH);
-			break;
+	case AIRSPEEDSETTINGS_AIRSPEEDSENSORTYPE_DIYDRONESMPXV7002:
+	case AIRSPEEDSETTINGS_AIRSPEEDSENSORTYPE_DIYDRONESMPXV5004:
+	case AIRSPEEDSETTINGS_AIRSPEEDSENSORTYPE_RAWANALOG:
+		baro_airspeedGetAnalog(baroAirspeedData, lastSysTime, airspeedSensorType, airspeedADCPin);
+		break;
+	case AIRSPEEDSETTINGS_AIRSPEEDSENSORTYPE_EAGLETREEAIRSPEEDV3:
+		//Eagletree Airspeed v3
+		baro_airspeedGetETASV3(baroAirspeedData, lastSysTime, airspeedSensorType, airspeedADCPin);
+		break;
+	default:
+		baroAirspeedData->BaroConnected = BAROAIRSPEED_BAROCONNECTED_FALSE;
+		PIOS_Thread_Sleep_Until(lastSysTime, SAMPLING_DELAY_MS_FALLTHROUGH);
+		break;
 	}
 }
 #endif
 
-	
 /**
  * @}
  * @}
