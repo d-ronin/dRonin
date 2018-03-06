@@ -166,7 +166,8 @@ int32_t vtol_follower_control_path(const PathDesiredData *pathDesired,
 
 	commands_ned[2] = pid_apply_antiwindup(&vtol_pids[DOWN_POSITION], downError,
 		-altitudeHoldSettings.MaxClimbRate * 0.1f,
-		altitudeHoldSettings.MaxDescentRate * 0.1f);
+		altitudeHoldSettings.MaxDescentRate * 0.1f,
+		0);
 
 	VelocityDesiredData velocityDesired;
 	VelocityDesiredGet(&velocityDesired);
@@ -240,17 +241,18 @@ static int32_t vtol_follower_control_impl(
 
 	// Compute desired north command velocity from position error
 	commands_ned[0] = pid_apply_antiwindup(&vtol_pids[NORTH_POSITION], damped_ne[0],
-	    -guidanceSettings.HorizontalVelMax, guidanceSettings.HorizontalVelMax);
+	    -guidanceSettings.HorizontalVelMax, guidanceSettings.HorizontalVelMax, 0);
 
 	// Compute desired east command velocity from position error
 	commands_ned[1] = pid_apply_antiwindup(&vtol_pids[EAST_POSITION], damped_ne[1],
-	    -guidanceSettings.HorizontalVelMax, guidanceSettings.HorizontalVelMax);
+	    -guidanceSettings.HorizontalVelMax, guidanceSettings.HorizontalVelMax, 0);
 
 	if (fabsf(alt_rate) < 0.001f) {
 		// Compute desired down comand velocity from the position difference
 		commands_ned[2] = pid_apply_antiwindup(&vtol_pids[DOWN_POSITION], errors_ned[2],
 				-altitudeHoldSettings.MaxClimbRate * 0.1f,
-				altitudeHoldSettings.MaxDescentRate * 0.1f);
+				altitudeHoldSettings.MaxDescentRate * 0.1f,
+				0);
 	} else {
 		// Just use the commanded rate
 		commands_ned[2] = alt_rate;
@@ -369,14 +371,14 @@ static int32_t vtol_follower_control_accel(float dT)
 	// Compute desired north command from velocity error
 	north_error = velocityDesired.North - velocityActual.North;
 	north_acceleration += pid_apply_antiwindup(&vtol_pids[NORTH_VELOCITY], north_error,
-	    -MAX_ACCELERATION, MAX_ACCELERATION) +
+	    -MAX_ACCELERATION, MAX_ACCELERATION, 0) +
 	    velocityDesired.North * guidanceSettings.VelocityFeedforward +
 	    -nedAccel.North * guidanceSettings.HorizontalVelPID[VTOLPATHFOLLOWERSETTINGS_HORIZONTALVELPID_KD];
 	
 	// Compute desired east command from velocity error
 	east_error = velocityDesired.East - velocityActual.East;
 	east_acceleration += pid_apply_antiwindup(&vtol_pids[EAST_VELOCITY], east_error,
-	    -MAX_ACCELERATION, MAX_ACCELERATION) +
+	    -MAX_ACCELERATION, MAX_ACCELERATION, 0) +
 	    velocityDesired.East * guidanceSettings.VelocityFeedforward +
 	    -nedAccel.East * guidanceSettings.HorizontalVelPID[VTOLPATHFOLLOWERSETTINGS_HORIZONTALVELPID_KD];
 
@@ -389,7 +391,7 @@ static int32_t vtol_follower_control_accel(float dT)
 	// Compute desired down command.  Using NED accel as the damping term
 	down_error = velocityDesired.Down - velocityActual.Down;
 	// Negative is critical here since throttle is negative with down
-	accelDesired.Down = -pid_apply_antiwindup(&vtol_pids[DOWN_VELOCITY], down_error, -1, 0);
+	accelDesired.Down = -pid_apply_antiwindup(&vtol_pids[DOWN_VELOCITY], down_error, -1, 0, 0);
 
 	// Store the desired acceleration
 	AccelDesiredSet(&accelDesired);

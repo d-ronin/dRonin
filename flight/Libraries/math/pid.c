@@ -76,6 +76,7 @@ float pid_apply(struct pid *pid, const float err)
  * @param[in] err The error term
  * @param[in] min_bound The minimum output
  * @param[in] max_bound The maximum output
+ * @param[in] aw_bound The absolute boundary for slope-related anti-windup.
  * @param[in] dT  The time step
  * @returns Output the computed controller value
  *
@@ -83,7 +84,7 @@ float pid_apply(struct pid *pid, const float err)
  *  chapter.
  */
 float pid_apply_antiwindup(struct pid *pid, const float err,
-	float min_bound, float max_bound)
+	float min_bound, float max_bound, float aw_bound)
 {
 	float dT = pid->dT;
 
@@ -91,7 +92,12 @@ float pid_apply_antiwindup(struct pid *pid, const float err,
 		// If Ki is zero, do not change the integrator. We do not reset to zero
 		// because sometimes the accumulator term is set externally
 	} else {
-		pid->iAccumulator += err * (pid->i * dT);
+		if (aw_bound > 0) {
+			float p = bound_sym(err * pid->p, aw_bound) / aw_bound;
+			pid->iAccumulator += err * (pid->i * dT) * (1 - p*p);
+		} else {
+			pid->iAccumulator += err * (pid->i * dT);
+		}
 	}
 
 	// Calculate DT1 term
@@ -169,9 +175,18 @@ float pid_apply_setpoint(struct pid *pid, struct pid_deadband *deadband, const f
 	return ((err * pid->p) + pid->iAccumulator + dterm);
 }
 
+/**
+ * Update the PID computation with setpoint weighting on the derivative and apply anti windup limit
+ * @param[in] pid The PID struture which stores temporary information
+ * @param[in] err The error term
+ * @param[in] min_bound The minimum output
+ * @param[in] max_bound The maximum output
+ * @param[in] aw_bound The absolute boundary for slope-related anti-windup.
+ * @returns Output the computed controller value
+ */
 float pid_apply_setpoint_antiwindup(struct pid *pid,
 		struct pid_deadband *deadband, const float setpoint,
-		const float measured, float min_bound, float max_bound)
+		const float measured, float min_bound, float max_bound, float aw_bound)
 {
 	float dT = pid->dT;
 
@@ -190,7 +205,12 @@ float pid_apply_setpoint_antiwindup(struct pid *pid,
 		// If Ki is zero, do not change the integrator. We do not reset to zero
 		// because sometimes the accumulator term is set externally
 	} else {
-		pid->iAccumulator += err * (pid->i * dT);
+		if (aw_bound > 0) {
+			float p = bound_sym(err * pid->p, aw_bound) / aw_bound;
+			pid->iAccumulator += err * (pid->i * dT) * (1 - p*p);
+		} else {
+			pid->iAccumulator += err * (pid->i * dT);
+		}
 		pid->iAccumulator = bound_sym(pid->iAccumulator, pid->iLim);
 	}
 
