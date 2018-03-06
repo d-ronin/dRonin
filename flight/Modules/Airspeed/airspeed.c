@@ -196,7 +196,6 @@ int32_t AirspeedInitialize()
 }
 MODULE_INITCALL(AirspeedInitialize, AirspeedStart);
 
-
 /**
  * Module thread, should not return.
  */
@@ -204,14 +203,18 @@ static void airspeedTask(void *parameters)
 {
 	BaroAirspeedData airspeedData;
 	AirspeedActualData airspeedActualData;
+
+#ifdef BARO_AIRSPEED_PRESENT
+	float airspeedErrInt=0;
 	
-#ifdef BARO_AIRSPEED_PRESENT		
+#ifdef GPS_AIRSPEED_PRESENT
 	uint32_t lastGPSTime = PIOS_Thread_Systime(); //Time since last GPS-derived airspeed calculation
 	uint32_t lastLoopTime= PIOS_Thread_Systime(); //Time since last loop
-
-	float airspeedErrInt=0;
+	float airspeed_tas_baro=0;
 #endif
-	
+
+#endif
+
 	//GPS airspeed calculation variables
 #ifdef GPS_AIRSPEED_PRESENT
 	GPSVelocityConnectCallbackCtx(UAVObjCbSetFlag, &gpsNew);
@@ -240,8 +243,6 @@ static void airspeedTask(void *parameters)
 		}
 
 #ifdef BARO_AIRSPEED_PRESENT
-		float airspeed_tas_baro=0;
-		
 		if(airspeedSensorType != AIRSPEEDSETTINGS_AIRSPEEDSENSORTYPE_GPSONLY) {
 			//Fetch calibrated airspeed from sensors
 			baro_airspeedGet(&airspeedData, &lastSysTime, airspeedSensorType, airspeedADCPin);
