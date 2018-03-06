@@ -49,7 +49,7 @@
 #include <sys/ioctl.h>
 
 /* Provide a COM driver */
-static void PIOS_SERIAL_ChangeBaud(uintptr_t udp_id, uint32_t baud);
+static void PIOS_SERIAL_ChangeBaud(uintptr_t serial_id, uint32_t baud);
 static void PIOS_SERIAL_RegisterRxCallback(uintptr_t udp_id, pios_com_callback rx_in_cb, uintptr_t context);
 static void PIOS_SERIAL_RegisterTxCallback(uintptr_t udp_id, pios_com_callback tx_out_cb, uintptr_t context);
 static void PIOS_SERIAL_TxStart(uintptr_t udp_id, uint16_t tx_bytes_avail);
@@ -68,6 +68,7 @@ typedef struct {
 	uint8_t rx_buffer[PIOS_SERIAL_RX_BUFFER_SIZE];
 	uint8_t tx_buffer[PIOS_SERIAL_RX_BUFFER_SIZE];
 
+	bool ever_used_custom_rate;
 	bool dont_touch_line;
 } pios_ser_dev;
 
@@ -206,48 +207,109 @@ void PIOS_SERIAL_ChangeBaud(uintptr_t serial_id, uint32_t baud)
 		return;
 	}
 
-	/* This serinfo magic for baud rate is deprecated in favor of BOTHER
-	 * on Linux.  However, that requires termios2 and there's various conflict
-	 * that makes it hard to do.
-	 *
-	 * Only consequence right now is an angry kprintf.
-	 */
-
-	if (baud != 9600) {
-		struct serial_struct serinfo;
-
-		if (ioctl(ser_dev->readfd, TIOCGSERIAL, &serinfo)) {
-			perror("ioctl-TIOCGSERIAL");
-		}
-
-		serinfo.flags = (serinfo.flags & ~ASYNC_SPD_MASK) | ASYNC_SPD_CUST;
-		serinfo.custom_divisor = (serinfo.baud_base + (baud / 2)) / baud;
-		uint32_t closest_speed = serinfo.baud_base / serinfo.custom_divisor;
-
-		if ((closest_speed < baud * 99 / 100) ||
-				(closest_speed > baud * 101 / 100)) {
-			printf("Can't attain serial rate %d; using %d\n",
-					baud, closest_speed);
-		}
-
-		if (ioctl(ser_dev->readfd, TIOCSSERIAL, &serinfo)) {
-			perror("ioctl-TIOCSSERIAL");
-		}
-	}
-
 	struct termios options;
 
 	memset(&options, 0, sizeof(options));
 
 	options.c_cflag = CLOCAL | CREAD | CS8;
 
-	if (baud == 9600) {
-		cfsetispeed(&options, B9600);
-		cfsetospeed(&options, B9600);
-	} else {
-		/* The magic above replaces B38400 with the custom rate */
-		cfsetispeed(&options, B38400);
-		cfsetospeed(&options, B38400);
+	switch (baud) {
+		case 1200:
+			printf("Setting Serial ID %p to 1200 bps\n",
+					ser_dev);
+			cfsetispeed(&options, B1200);
+			cfsetospeed(&options, B1200);
+			break;
+		case 2400:
+			printf("Setting Serial ID %p to 2400 bps\n",
+					ser_dev);
+			cfsetispeed(&options, B2400);
+			cfsetospeed(&options, B2400);
+			break;
+		case 4800:
+			printf("Setting Serial ID %p to 4800 bps\n",
+					ser_dev);
+			cfsetispeed(&options, B4800);
+			cfsetospeed(&options, B4800);
+			break;
+		case 9600:
+			printf("Setting Serial ID %p to 9600 bps\n",
+					ser_dev);
+			cfsetispeed(&options, B9600);
+			cfsetospeed(&options, B9600);
+			break;
+		case 19200:
+			printf("Setting Serial ID %p to 19200 bps\n",
+					ser_dev);
+			cfsetispeed(&options, B19200);
+			cfsetospeed(&options, B19200);
+			break;
+		case 57600:
+			printf("Setting Serial ID %p to 57600 bps\n",
+					ser_dev);
+			cfsetispeed(&options, B57600);
+			cfsetospeed(&options, B57600);
+			break;
+		case 115200:
+			printf("Setting Serial ID %p to 115200 bps\n",
+					ser_dev);
+			cfsetispeed(&options, B115200);
+			cfsetospeed(&options, B115200);
+			break;
+		case 230400:
+			printf("Setting Serial ID %p to 230400 bps\n",
+					ser_dev);
+			cfsetispeed(&options, B230400);
+			cfsetospeed(&options, B230400);
+			break;
+		case 38400:
+		default:
+			/*
+			 * This serinfo magic for baud rate is deprecated in
+			 * favor of BOTHER on Linux.  However, that requires
+			 * termios2 and there's various conflict that makes
+			 * it hard to do presently.
+			 *
+			 * Only consequence of using deprecated mechanism
+			 * is an angry kprintf.
+			 *
+			 * Right now, only use it for rates that there isn't
+			 * a proper define for, to preserve interoperability
+			 * with simple USB drivers.
+			 */
+
+			if (ser_dev->ever_used_custom_rate ||
+					(baud != 38400)) {
+				ser_dev->ever_used_custom_rate = true;
+
+				struct serial_struct serinfo;
+
+				if (ioctl(ser_dev->readfd, TIOCGSERIAL, &serinfo)) {
+					perror("ioctl-TIOCGSERIAL");
+				}
+
+				serinfo.flags =
+					(serinfo.flags & ~ASYNC_SPD_MASK) |
+					ASYNC_SPD_CUST;
+				serinfo.custom_divisor = (serinfo.baud_base + (baud / 2)) / baud;
+				uint32_t closest_speed = serinfo.baud_base / serinfo.custom_divisor;
+
+				if ((closest_speed < baud * 99 / 100) ||
+						(closest_speed > baud * 101 / 100)) {
+					printf("Can't attain serial rate %d; using %d\n",
+							baud, closest_speed);
+				}
+
+				if (ioctl(ser_dev->readfd, TIOCSSERIAL, &serinfo)) {
+					perror("ioctl-TIOCSSERIAL");
+				}
+			}
+
+			printf("Setting Serial ID %p to %d bps\n",
+					ser_dev, baud);
+			cfsetispeed(&options, B38400);
+			cfsetospeed(&options, B38400);
+			break;
 	}
 
 	/* 1 character is enough to wake us.  Leave VTIME at 0, so we will
