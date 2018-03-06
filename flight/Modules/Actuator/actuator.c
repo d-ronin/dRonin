@@ -82,6 +82,8 @@ DONT_BUILD_IF((MIXERSETTINGS_MIXER1VECTOR_NUMELEM - MIXERSETTINGS_MIXER1VECTOR_A
 static struct pios_queue *queue;
 static struct pios_thread *taskHandle;
 
+static float hangtime_leakybucket_timeconstant = 0.3f;
+
 // used to inform the actuator thread that actuator / mixer settings are updated
 // set true to ensure they're fetched on first run
 static volatile bool flight_status_updated = true;
@@ -399,8 +401,6 @@ static void post_process_scale_and_commit(float *motor_vect,
 	int num_motors = 0;
 	ActuatorCommandData command;
 
-	const float hangtime_leakybucket_timeconstant = 0.3f;
-
 	/* Hangtime maximum power add is now a "leaky bucket" system, ensuring
 	 * that the average added power in the long term is the configured value
 	 * but allowing higher values briefly.
@@ -602,6 +602,9 @@ static void post_process_scale_and_commit(float *motor_vect,
 	if (command.UpdateTime > command.MaxUpdateTime)
 		command.MaxUpdateTime = 1000.0f*dT;
 
+	// Store bucket content
+	command.LowPowerStabilizationReserve = *maxpoweradd_bucket;
+
 	// Update output object
 	if (!ActuatorCommandReadOnly()) {
 		ActuatorCommandSet(&command);
@@ -692,6 +695,8 @@ static void actuator_settings_update()
 			desired_3d_mask |= (1 << i);
 		}
 	}
+
+	hangtime_leakybucket_timeconstant = actuatorSettings.LowPowerStabilizationTimeConstant;
 }
 
 /**

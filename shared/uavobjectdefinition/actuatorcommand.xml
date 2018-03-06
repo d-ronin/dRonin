@@ -14,5 +14,10 @@
     <field defaultvalue="0" elements="1" name="MaxUpdateTime" type="uint16" units="ms">
       <description/>
     </field>
+    <field defaultvalue="0" elements="1" name="LowPowerStabilizationReserve" type="float" units="s">
+      <description>
+        The power reserve available that can be added to actuators during negative clipping.
+      </description>
+    </field>
   </object>
 </xml>
