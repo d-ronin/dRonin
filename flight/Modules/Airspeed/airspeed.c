@@ -93,7 +93,7 @@
 static struct pios_thread *taskHandle;
 static bool module_enabled = false;
 volatile bool gpsNew = false;
-volatile bool settingsUpdated = false;
+volatile bool settingsUpdated = true;
 static uint8_t airspeedSensorType;
 static uint16_t gpsSamplePeriod_ms;
 
