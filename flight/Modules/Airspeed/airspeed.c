@@ -287,7 +287,7 @@ static void airspeedTask(void *parameters)
 		float delT = (lastSysTime - lastLoopTime) / 1000.0f;
 		lastLoopTime = lastSysTime;
 		if ( ((lastSysTime - lastGPSTime) > 1000 || airspeedSensorType==AIRSPEEDSETTINGS_AIRSPEEDSENSORTYPE_GPSONLY)
-				&& gpsNew) {
+				&& gpsNew && airspeedSensorType != AIRSPEEDSETTINGS_AIRSPEEDSENSORTYPE_RAWANALOG) {
 			lastGPSTime = lastSysTime;
  #else
 		if (gpsNew) {
