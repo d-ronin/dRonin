@@ -491,6 +491,8 @@ static float calculate_thrust(StabilizationDesiredThrustModeOptions mode,
 
 		const float min_throttle = 0.00001f;
 
+		/* TODO: This can wind up when one is in an unusual attitude.
+		 */
 		float throttle_desired = pid_apply_antiwindup(&vertspeed_pid, 
 				// negate because "down" vel vs "up" thrust
 				-(vs_desired - velocity_z),
@@ -526,7 +528,9 @@ static float calculate_thrust(StabilizationDesiredThrustModeOptions mode,
 			// inverted and should shut off throttle (but keep
 			// stabilization).
 			if (fraction > 0.1f) {
-				throttle_desired = (throttle_desired / fraction);
+				throttle_desired = bound_min_max(
+						throttle_desired / fraction,
+						min_throttle, 1);
 			} else {
 				// XXX chop throttle if stick low 
 				throttle_desired = min_throttle;
