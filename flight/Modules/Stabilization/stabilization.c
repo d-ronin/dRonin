@@ -605,6 +605,13 @@ static void stabilizationTask(void* parameters)
 	SubTrimSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_flag);
 #ifdef TARGET_MAY_HAVE_BARO
 	AltitudeHoldSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_flag);
+#else
+	/*
+	 * Sanity check uses this to know whether althold mode is permitted,
+	 * so we'd better not have a baro if the target doesn't "support"
+	 * one.
+	 */
+	PIOS_Assert(!PIOS_SENSORS_IsRegistered(PIOS_SENSOR_BARO));
 #endif
 
 	smoothcontrol_initialize(&rc_smoothing);
