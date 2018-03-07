@@ -1057,7 +1057,7 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
 	const uint8_t SYSTEMIDENT_SETTINGS[3] = {  STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT,
                                           STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT,
                                           STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENTRATE };
-	const uint8_t * stab_modes;
+	const uint8_t * stab_modes = ATTITUDE_SETTINGS;
 
 	uint8_t reprojection = STABILIZATIONDESIRED_REPROJECTIONMODE_NONE;
 	uint8_t thrust_mode = STABILIZATIONDESIRED_THRUSTMODE_DIRECT;
