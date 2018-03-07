@@ -51,7 +51,7 @@
         <elementname>Alarm</elementname>
       </elementnames>
     </field>
-    <field defaultvalue="63.69,36.6" name="SensorCalibrationFactor" type="float" units="mV/U">
+    <field defaultvalue="90.90909,36.6" name="SensorCalibrationFactor" type="float" units="mV/U">
       <description>Calibration factor to be applied to the sensor readings</description>
       <elementnames>
         <elementname>Voltage</elementname>
