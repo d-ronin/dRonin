@@ -1108,11 +1108,13 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
 			stab_modes = settings->Stabilization3Settings;
 			reprojection = settings->Stabilization3Reprojection;
 			break;
+#ifdef TARGET_MAY_HAVE_BARO
 		case FLIGHTSTATUS_FLIGHTMODE_ALTITUDEHOLD:
 			stab_modes = ATTITUDE_SETTINGS;
 			thrust_mode =
 				STABILIZATIONDESIRED_THRUSTMODE_ALTITUDEWITHSTICKSCALING;
 			break;
+#endif
 		default:
 			{
 				// Major error, this should not occur because only enter this block when one of these is true

@@ -128,7 +128,10 @@ DONT_BUILD_IF((PID_RATE_YAW+0 != YAW)||(PID_ATT_YAW != PID_GROUP_ATT+YAW), stabA
 // Private variables
 static struct pios_thread *taskHandle;
 
+#if defined(TARGET_MAY_HAVE_BARO)
 static AltitudeHoldSettingsData altitudeHoldSettings;
+#endif
+
 static StabilizationSettingsData settings;
 static VbarSettingsData vbar_settings;
 
@@ -145,13 +148,16 @@ static bool lowThrottleZeroIntegral;
 static float max_rate_alpha = 0.8f;
 float vbar_decay = 0.991f;
 
-uint8_t altitude_hold_expo;
-float altitude_hold_maxclimbrate;
-float altitude_hold_maxdescentrate;
+#if defined(TARGET_MAY_HAVE_BARO)
+static struct pid vertspeed_pid;
 
-struct pid vertspeed_pid;
-struct pid pids[PID_MAX];
-smoothcontrol_state rc_smoothing;
+static uint8_t altitude_hold_expo;
+static float altitude_hold_maxclimbrate;
+static float altitude_hold_maxdescentrate;
+#endif
+
+static struct pid pids[PID_MAX];
+static smoothcontrol_state rc_smoothing;
 
 #ifndef NO_CONTROL_DEADBANDS
 struct pid_deadband *deadbands = NULL;
@@ -220,6 +226,13 @@ int32_t StabilizationInitialize()
 
 #if defined(RATEDESIRED_DIAGNOSTICS)
 	if (RateDesiredInitialize() == -1) {
+		return -1;
+	}
+#endif
+
+#if defined(TARGET_MAY_HAVE_BARO)
+	if (AltitudeHoldStateInitialize() == -1
+		|| AltitudeHoldSettingsInitialize() == -1) {
 		return -1;
 	}
 #endif
@@ -404,6 +417,7 @@ static float calculate_thrust(StabilizationDesiredThrustModeOptions mode,
 		return 0.0f;
 	}
 
+#ifdef TARGET_MAY_HAVE_BARO
 	bool do_alt_control = false;
 	bool do_vs_control = false;
 
@@ -530,6 +544,7 @@ static float calculate_thrust(StabilizationDesiredThrustModeOptions mode,
 	}
 
 	old_vs_control = do_vs_control;
+#endif
 
 	if (fabsf(desired_thrust) > THROTTLE_EPSILON) {
 		if (settings.LowPowerStabilizationMaxTime) {
@@ -588,7 +603,9 @@ static void stabilizationTask(void* parameters)
 	StabilizationSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_flag);
 	VbarSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_flag);
 	SubTrimSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_flag);
+#ifdef TARGET_MAY_HAVE_BARO
 	AltitudeHoldSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_flag);
+#endif
 
 	smoothcontrol_initialize(&rc_smoothing);
 	ManualControlCommandConnectCallbackCtx(UAVObjCbSetFlag, smoothcontrol_get_ringer(rc_smoothing));
@@ -1387,11 +1404,13 @@ static void calculate_pids(float dT)
 
 static void calculate_vert_pids(float dT)
 {
+#if defined(TARGET_MAY_HAVE_BARO)
 	AltitudeHoldSettingsGet(&altitudeHoldSettings);
 
 	pid_configure(&vertspeed_pid, altitudeHoldSettings.VelocityKp,
 		          altitudeHoldSettings.VelocityKi, 0.0f, 1.0f,
 			  dT);
+#endif
 }
 
 static void update_settings(float dT)
@@ -1424,6 +1443,7 @@ static void update_settings(float dT)
 	// Whether to zero the PID integrals while thrust is low
 	lowThrottleZeroIntegral = settings.LowThrottleZeroIntegral == STABILIZATIONSETTINGS_LOWTHROTTLEZEROINTEGRAL_TRUE;
 
+#if defined(TARGET_MAY_HAVE_BARO)
 	uint8_t altitude_hold_maxclimbrate10;
 	uint8_t altitude_hold_maxdescentrate10;
 	AltitudeHoldSettingsMaxClimbRateGet(&altitude_hold_maxclimbrate10);
@@ -1434,6 +1454,7 @@ static void update_settings(float dT)
 	altitude_hold_maxdescentrate = altitude_hold_maxdescentrate10 * 0.1f;
 
 	AltitudeHoldSettingsExpoGet(&altitude_hold_expo);
+#endif
 
 	uint8_t s_mode = remap_smoothing_mode(settings.RCControlSmoothing[STABILIZATIONSETTINGS_RCCONTROLSMOOTHING_AXES]);
 	smoothcontrol_set_mode(rc_smoothing, ROLL, s_mode);

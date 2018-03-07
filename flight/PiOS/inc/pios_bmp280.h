@@ -33,8 +33,14 @@
 
 #include <pios.h>
 
+#if defined(PIOS_INCLUDE_BMP280)
+#ifndef TARGET_MAY_HAVE_BARO
+#define TARGET_MAY_HAVE_BARO
+#endif
+
 /* Public Functions */
 extern int32_t PIOS_BMP280_Test();
+#endif
 
 #endif /* PIOS_BMP280_H */
 
