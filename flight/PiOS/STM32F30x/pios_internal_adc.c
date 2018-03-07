@@ -57,8 +57,8 @@ enum pios_internal_adc_dev_magic {
 };
 
 struct adc_accumulator {
-	uint32_t accumulator;
-	uint32_t count;
+	volatile uint32_t accumulator;
+	volatile uint32_t count;
 };
 
 struct pios_internal_adc_dev * driver_instances[PIOS_INTERNAL_ADC_MAX_INSTANCES];
@@ -452,8 +452,8 @@ static int32_t PIOS_INTERNAL_ADC_PinGet(uintptr_t internal_adc_id, uint32_t pin)
 		return -1;
 	}
 	result = adc_dev->accumulator[pin].accumulator / (adc_dev->accumulator[pin].count ? : 1);
-	adc_dev->accumulator[pin].accumulator = 0;
-	adc_dev->accumulator[pin].count = 0;
+	adc_dev->accumulator[pin].accumulator = result;
+	adc_dev->accumulator[pin].count = 1;
 	return result;
 }
 
