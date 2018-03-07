@@ -182,7 +182,7 @@ static void init_adc(void)
 	ADC_InitStructure.ADC_ScanConvMode				= ENABLE;
 	ADC_InitStructure.ADC_ContinuousConvMode		= ENABLE;
 	ADC_InitStructure.ADC_ExternalTrigConvEdge		= ADC_ExternalTrigConvEdge_None;
-	ADC_InitStructure.ADC_DataAlign					= ADC_DataAlign_Right;
+	ADC_InitStructure.ADC_DataAlign					= ADC_DataAlign_Left;
 	ADC_InitStructure.ADC_NbrOfConversion			= pios_adc_dev->cfg->adc_pin_count;
 	ADC_Init(pios_adc_dev->cfg->adc_dev_master, &ADC_InitStructure);
 
@@ -405,7 +405,7 @@ static float PIOS_INTERNAL_ADC_LSB_Voltage(uintptr_t internal_adc_id)
 	if (!PIOS_INTERNAL_ADC_validate(adc_dev)) {
 		return 0;
 	}
-	return VREF_PLUS / (((uint32_t)1 << 12) - 1);
+	return VREF_PLUS / (((uint32_t)1 << 16) - 16);
 }
 #endif /* PIOS_INCLUDE_ADC */
 

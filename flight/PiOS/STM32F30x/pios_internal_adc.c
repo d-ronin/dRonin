@@ -254,7 +254,7 @@ static void PIOS_INTERNAL_ADC_Converter_Config(uintptr_t internal_adc_id)
 	ADC_InitStructure.ADC_ContinuousConvMode = ADC_ContinuousConvMode_Enable;
 	ADC_InitStructure.ADC_ExternalTrigConvEvent = ADC_ExternalTrigConvEvent_0;
 	ADC_InitStructure.ADC_ExternalTrigEventEdge = ADC_ExternalTrigEventEdge_None;
-	ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;
+	ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Left;
 
 	ADC_InitStructure.ADC_NbrOfRegChannel = adc_dev->regular_group_size;
 
@@ -539,7 +539,7 @@ static float PIOS_INTERNAL_ADC_LSB_Voltage(uintptr_t internal_adc_id)
 	if (!PIOS_INTERNAL_ADC_validate(adc_dev)) {
 		return 0;
 	}
-        return VREF_PLUS / (((uint32_t)1 << 12) - 1);
+        return VREF_PLUS / (((uint32_t)1 << 16) - 16);
 }
 #endif /* PIOS_INCLUDE_ADC */
 /** 
