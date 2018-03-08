@@ -419,29 +419,29 @@ static float calculate_thrust(StabilizationDesiredThrustModeOptions mode,
 
 #ifdef TARGET_MAY_HAVE_BARO
 	bool do_alt_control = false;
-	bool do_vs_control = false;
+	bool do_vertspeed_control = false;
 
-	static bool old_vs_control;
+	static bool prev_vertspeed_control;
 
 	static float prev_thrust;
 
 	static float alt_desired;
-	float vs_desired = 0;
+	float vertspeed_desired = 0;
 
 	switch (mode) {
 		case STABILIZATIONDESIRED_THRUSTMODE_ALTITUDEWITHSTICKSCALING:
-			do_vs_control = true;
+			do_vertspeed_control = true;
 
 			/* scale stick, decide control mode */
 			if (desired_thrust == 0) {
 				/* Use manualcontrol deadbands */
 				do_alt_control = true;
 			} else if (desired_thrust > 0) {
-				vs_desired = -expo3(desired_thrust,
-						altitude_hold_expo) * 
+				vertspeed_desired = -expo3(desired_thrust,
+						altitude_hold_expo) *
 					altitude_hold_maxclimbrate;
 			} else {
-				vs_desired = -expo3(desired_thrust,
+				vertspeed_desired = -expo3(desired_thrust,
 						altitude_hold_expo) *
 					altitude_hold_maxdescentrate;
 			}
@@ -450,15 +450,15 @@ static float calculate_thrust(StabilizationDesiredThrustModeOptions mode,
 
 		case STABILIZATIONDESIRED_THRUSTMODE_ALTITUDE:
 			do_alt_control = true;
-			do_vs_control = true;
+			do_vertspeed_control = true;
 
 			alt_desired = desired_thrust;
 
 			break;
 
 		case STABILIZATIONDESIRED_THRUSTMODE_VERTICALSPEED:
-			do_vs_control = true;
-			vs_desired = desired_thrust;
+			do_vertspeed_control = true;
+			vertspeed_desired = desired_thrust;
 			break;
 
 		default:
@@ -473,13 +473,13 @@ static float calculate_thrust(StabilizationDesiredThrustModeOptions mode,
 
 		altitude_error = alt_desired - position_z;
 
-		vs_desired = altitudeHoldSettings.PositionKp * altitude_error;
+		vertspeed_desired = altitudeHoldSettings.PositionKp * altitude_error;
 	} else {
 		alt_desired = position_z;
 	}
 
-	if (do_vs_control) {
-		if (!old_vs_control) {
+	if (do_vertspeed_control) {
+		if (!prev_vertspeed_control) {
 			/* set integral on mode entry */
 			vertspeed_pid.iAccumulator =
 				bound_min_max(prev_thrust, 0, 1);
@@ -493,34 +493,35 @@ static float calculate_thrust(StabilizationDesiredThrustModeOptions mode,
 
 		/* TODO: This can wind up when one is in an unusual attitude.
 		 */
-		float throttle_desired = pid_apply_antiwindup(&vertspeed_pid, 
+		float throttle_desired = pid_apply_antiwindup(&vertspeed_pid,
 				// negate because "down" vel vs "up" thrust
-				-(vs_desired - velocity_z),
+				-(vertspeed_desired - velocity_z),
 				min_throttle, 1.0f, // don't use reverse thrust
 				0	// don't use slope-antiwindup
 				);
 
 		AltitudeHoldStateData altitudeHoldState;
-		altitudeHoldState.VelocityDesired = vs_desired;
+		altitudeHoldState.VelocityDesired = vertspeed_desired;
 		altitudeHoldState.Integral = vertspeed_pid.iAccumulator;
 		altitudeHoldState.AngleGain = 1.0f;
 
 		if (altitudeHoldSettings.AttitudeComp > 0) {
-			// Thrust desired is at this point the mount desired in the up direction, we can
-			// account for the attitude if desired
+			// Thrust desired is at this point the amount desired
+			// in the up direction, we can account for the
+			// attitude if desired
 			AttitudeActualData attitudeActual;
 			AttitudeActualGet(&attitudeActual);
 
-			// Project a unit vector pointing up into the body frame and
-			// get the z component
+			// Project a unit vector pointing up into the body
+			// frame and get the z component
 			float fraction = attitudeActual.q1 * attitudeActual.q1 -
 				attitudeActual.q2 * attitudeActual.q2 -
 				attitudeActual.q3 * attitudeActual.q3 +
 				attitudeActual.q4 * attitudeActual.q4;
 
-			// Add ability to scale up the amount of compensation to achieve
-			// level forward flight
-			fraction = powf(fraction, (float) altitudeHoldSettings.AttitudeComp / 100.0f);
+			// Add ability to scale up the amount of
+			// compensation to achieve level forward flight
+			fraction = powf(fraction, (float)altitudeHoldSettings.AttitudeComp / 100.0f);
 
 			// Dividing by the fraction remaining in the vertical
 			// projection will attempt to compensate for tilt.
@@ -532,7 +533,7 @@ static float calculate_thrust(StabilizationDesiredThrustModeOptions mode,
 						throttle_desired / fraction,
 						min_throttle, 1);
 			} else {
-				// XXX chop throttle if stick low 
+				// XXX chop throttle if stick low
 				throttle_desired = min_throttle;
 			}
 
@@ -547,7 +548,7 @@ static float calculate_thrust(StabilizationDesiredThrustModeOptions mode,
 		prev_thrust = desired_thrust;
 	}
 
-	old_vs_control = do_vs_control;
+	prev_vertspeed_control = do_vertspeed_control;
 #endif
 
 	if (fabsf(desired_thrust) > THROTTLE_EPSILON) {
@@ -568,7 +569,7 @@ static float calculate_thrust(StabilizationDesiredThrustModeOptions mode,
 			}
 		} else {
 			last_nonzero_thrust_time = 0;
-			
+
 			return 0.0f;
 		}
 	} else {
@@ -594,21 +595,21 @@ static void stabilizationTask(void* parameters)
 	FlightStatusData flightStatus;
 	SystemSettingsAirframeTypeOptions airframe_type;
 
-	volatile bool settings_flag = true;
-	volatile bool flightstatus_flag = true;
+	volatile bool settings_updated = true;
+	volatile bool flightstatus_updated = true;
 
 	float *actuatorDesiredAxis = &actuatorDesired.Roll;
 	float *rateDesiredAxis = &rateDesired.Roll;
 	smoothcontrol_initialize(&rc_smoothing);
 
 	// Connect callbacks
-	FlightStatusConnectCallbackCtx(UAVObjCbSetFlag, &flightstatus_flag);
-	SystemSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_flag);
-	StabilizationSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_flag);
-	VbarSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_flag);
-	SubTrimSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_flag);
+	FlightStatusConnectCallbackCtx(UAVObjCbSetFlag, &flightstatus_updated);
+	SystemSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_updated);
+	StabilizationSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_updated);
+	VbarSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_updated);
+	SubTrimSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_updated);
 #ifdef TARGET_MAY_HAVE_BARO
-	AltitudeHoldSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_flag);
+	AltitudeHoldSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_updated);
 #else
 	/*
 	 * Sanity check uses this to know whether althold mode is permitted,
@@ -667,7 +668,7 @@ static void stabilizationTask(void* parameters)
 
 		PIOS_WDG_UpdateFlag(PIOS_WDG_STABILIZATION);
 
-		if (settings_flag) {
+		if (settings_updated) {
 			update_settings(dT_expected);
 
 			SystemSettingsAirframeTypeGet(&airframe_type);
@@ -685,7 +686,7 @@ static void stabilizationTask(void* parameters)
 				vbar_decay = expf(-dT_expected / vbar_settings.VbarTau);
 			}
 
-			settings_flag = false;
+			settings_updated = false;
 		}
 
 		// Wait until the AttitudeRaw object is updated, if a timeout
@@ -714,7 +715,7 @@ static void stabilizationTask(void* parameters)
 			 * done this test and set an alarm here.  Do not remove
 			 * without verifying those places
 			 */
-			if ((dT_measured > dT_expected * 1.15f) || 
+			if ((dT_measured > dT_expected * 1.15f) ||
 					(dT_measured < dT_expected * 0.85f)) {
 				frequency_wrong = true;
 #ifdef FLIGHT_POSIX
@@ -725,9 +726,9 @@ static void stabilizationTask(void* parameters)
 
 		bool error = frequency_wrong;
 
-		if (flightstatus_flag) {
+		if (flightstatus_updated) {
 			FlightStatusGet(&flightStatus);
-			flightstatus_flag = false;
+			flightstatus_updated = false;
 		}
 
 		StabilizationDesiredGet(&stabDesired);
@@ -813,8 +814,7 @@ static void stabilizationTask(void* parameters)
 		uint16_t max_safe_rate = PIOS_SENSORS_GetMaxGyro() * 0.9f;
 
 		//Run the selected stabilization algorithm on each axis:
-		for (uint8_t i = 0; i < MAX_AXES; i++)
-		{
+		for (uint8_t i = 0; i < MAX_AXES; i++) {
 			// Check whether this axis mode needs to be reinitialized
 			bool reinit = (axis_mode[i] != previous_mode[i]);
 
@@ -826,8 +826,7 @@ static void stabilizationTask(void* parameters)
 			previous_mode[i] = axis_mode[i];
 
 			// Apply the selected control law
-			switch(axis_mode[i])
-			{
+			switch(axis_mode[i]) {
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE:
 					PIOS_Assert(0); /* Shouldn't happen, per above */
 					break;
@@ -1395,7 +1394,7 @@ static void calculate_pids(float dT)
 	// Set up the derivative term
 	pid_configure_derivative(settings.DerivativeCutoff, settings.DerivativeGamma);
 
-#ifndef NO_CONTROL_DEADBANDS	
+#ifndef NO_CONTROL_DEADBANDS
 	if(deadbands ||
 		settings.DeadbandWidth[STABILIZATIONSETTINGS_DEADBANDWIDTH_ROLL] ||
 		settings.DeadbandWidth[STABILIZATIONSETTINGS_DEADBANDWIDTH_PITCH] ||
