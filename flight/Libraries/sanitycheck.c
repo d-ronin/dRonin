@@ -210,13 +210,16 @@ static int32_t check_stabilization_settings(int index, bool multirotor)
 		for(uint32_t i = 0; i < NELEMENTS(modes); i++) {
 			if (modes[i] == MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_DISABLED || modes[i] == MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_MANUAL)
 				return SYSTEMALARMS_CONFIGERROR_MULTIROTOR;
+		}
+	}
 
-			// If this axis allows enabling an autotune behavior without the module
-			// running then set an alarm now that aututune module initializes the
-			// appropriate objects
-			if ((modes[i] == MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_SYSTEMIDENT) &&
-				(!PIOS_Modules_IsEnabled(PIOS_MODULE_AUTOTUNE)))
-				return SYSTEMALARMS_CONFIGERROR_AUTOTUNE;
+	for(uint32_t i = 0; i < NELEMENTS(modes); i++) {
+		// If this axis allows enabling an autotune behavior without the module
+		// running then set an alarm now that aututune module initializes the
+		// appropriate objects
+		if ((modes[i] == MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_SYSTEMIDENT) &&
+				(!PIOS_Modules_IsEnabled(PIOS_MODULE_AUTOTUNE))) {
+			return SYSTEMALARMS_CONFIGERROR_AUTOTUNE;
 		}
 	}
 
