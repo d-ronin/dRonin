@@ -56,24 +56,20 @@
         <option>HeadFree</option>
       </options>
     </field>
-    <field defaultvalue="Effort" elements="1" name="OrientationUnit" type="enum" units="">
-      <description/>
+    <field defaultvalue="Direct" elements="1" name="ThrustMode" type="enum">
+      <description>The thrust mode for stabilization</description>
       <options>
-        <option>Effort</option>
-        <option>ModeSpecific</option>
-        <option>Degrees</option>
-        <option>DegreesPerSec</option>
-        <option>DegreesPerSec2</option>
+        <option>Direct</option>
+        <option>Altitude</option>
+        <option>Vertical Speed</option>
+        <option>Altitude With Stick Scaling</option>
       </options>
     </field>
-    <field defaultvalue="Effort" elements="1" name="PositionUnit" type="enum" units="">
-      <description/>
+    <field defaultvalue="Direct" elements="1" name="ThrustModeStabBank" parent="SharedDefs.ThrustMode" type="enum">
+      <description>The thrust mode for stabilization</description>
       <options>
-        <option>Effort</option>
-        <option>ModeSpecific</option>
-        <option>Meters</option>
-        <option>MetersPerSec</option>
-        <option>MetersPerSec2</option>
+        <option>Direct</option>
+        <option>Altitude With Stick Scaling</option>
       </options>
     </field>
     <field defaultvalue="Uninitialised" elements="1" name="AlarmLevels" type="enum" units="">
