@@ -191,6 +191,15 @@
     <field defaultvalue="None" elements="1" name="Stabilization3Reprojection" parent="SharedDefs.ReprojectionMode" type="enum">
       <description>Stabilization 3 reprojection</description>
     </field>
+    <field defaultvalue="Direct" elements="1" name="Stabilization1Thrust" parent="SharedDefs.ThrustModeStabBank" type="enum">
+      <description>Stabilization 1 desired thrust mode</description>
+    </field>
+    <field defaultvalue="Direct" elements="1" name="Stabilization2Thrust" parent="SharedDefs.ThrustModeStabBank" type="enum">
+      <description>Stabilization 2 desired thrust mode</description>
+    </field>
+    <field defaultvalue="Direct" elements="1" name="Stabilization3Thrust" parent="SharedDefs.ThrustModeStabBank" type="enum">
+      <description>Stabilization 3 desired thrust mode</description>
+    </field>
     <field defaultvalue="3" elements="1" name="FlightModeNumber" type="uint8" units="">
       <description>Number of flight modes</description>
     </field>

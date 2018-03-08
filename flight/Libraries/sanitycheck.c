@@ -53,7 +53,8 @@
 static int32_t check_safe_to_arm();
 
 //! Check a stabilization mode switch position for safety
-static int32_t check_stabilization_settings(int index, bool multirotor);
+static int32_t check_stabilization_settings(int index, bool multirotor,
+		SharedDefsThrustModeStabBankOptions thrust_mode);
 
 //! Check a stabilization mode switch position for safety
 static int32_t check_stabilization_rates();
@@ -101,6 +102,7 @@ int32_t configuration_check()
 	// modes
 	uint8_t num_modes;
 	uint8_t modes[MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_NUMELEM];
+	SharedDefsThrustModeStabBankOptions thrust_mode;
 	ManualControlSettingsFlightModeNumberGet(&num_modes);
 	ManualControlSettingsFlightModePositionGet(modes);
 
@@ -122,13 +124,16 @@ int32_t configuration_check()
 				// always ok
 				break;
 			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_STABILIZED1:
-				error_code = (error_code == SYSTEMALARMS_CONFIGERROR_NONE) ? check_stabilization_settings(1, multirotor) : error_code;
+				ManualControlSettingsStabilization1ThrustGet(&thrust_mode);
+				error_code = (error_code == SYSTEMALARMS_CONFIGERROR_NONE) ? check_stabilization_settings(1, multirotor, thrust_mode) : error_code;
 				break;
 			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_STABILIZED2:
-				error_code = (error_code == SYSTEMALARMS_CONFIGERROR_NONE) ? check_stabilization_settings(2, multirotor) : error_code;
+				ManualControlSettingsStabilization2ThrustGet(&thrust_mode);
+				error_code = (error_code == SYSTEMALARMS_CONFIGERROR_NONE) ? check_stabilization_settings(2, multirotor, thrust_mode) : error_code;
 				break;
 			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_STABILIZED3:
-				error_code = (error_code == SYSTEMALARMS_CONFIGERROR_NONE) ? check_stabilization_settings(3, multirotor) : error_code;
+				ManualControlSettingsStabilization3ThrustGet(&thrust_mode);
+				error_code = (error_code == SYSTEMALARMS_CONFIGERROR_NONE) ? check_stabilization_settings(3, multirotor, thrust_mode) : error_code;
 				break;
 			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_AUTOTUNE:
 				if (!PIOS_Modules_IsEnabled(PIOS_MODULE_AUTOTUNE)) {
@@ -184,7 +189,8 @@ DONT_BUILD_IF(MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_NUMELEM != MANUALCONT
  * @param[in] index Which stabilization mode to check
  * @returns SYSTEMALARMS_CONFIGERROR_NONE or SYSTEMALARMS_CONFIGERROR_MULTIROTOR
  */
-static int32_t check_stabilization_settings(int index, bool multirotor)
+static int32_t check_stabilization_settings(int index, bool multirotor,
+		SharedDefsThrustModeStabBankOptions thrust_mode)
 {
 	uint8_t modes[MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_NUMELEM];
 
@@ -209,6 +215,11 @@ static int32_t check_stabilization_settings(int index, bool multirotor)
 			if (modes[i] == MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_DISABLED || modes[i] == MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_MANUAL)
 				return SYSTEMALARMS_CONFIGERROR_MULTIROTOR;
 		}
+	}
+
+	if ((thrust_mode == SHAREDDEFS_THRUSTMODESTABBANK_ALTITUDEWITHSTICKSCALING) &&
+			(!PIOS_SENSORS_IsRegistered(PIOS_SENSOR_BARO))) {
+		return SYSTEMALARMS_CONFIGERROR_ALTITUDEHOLD;
 	}
 
 	for(uint32_t i = 0; i < NELEMENTS(modes); i++) {

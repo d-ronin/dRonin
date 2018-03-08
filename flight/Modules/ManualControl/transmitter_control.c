@@ -1104,14 +1104,17 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
 		case FLIGHTSTATUS_FLIGHTMODE_STABILIZED1:
 			stab_modes = settings->Stabilization1Settings;
 			reprojection = settings->Stabilization1Reprojection;
+			thrust_mode = settings->Stabilization1Thrust;
 			break;
 		case FLIGHTSTATUS_FLIGHTMODE_STABILIZED2:
 			stab_modes = settings->Stabilization2Settings;
 			reprojection = settings->Stabilization2Reprojection;
+			thrust_mode = settings->Stabilization2Thrust;
 			break;
 		case FLIGHTSTATUS_FLIGHTMODE_STABILIZED3:
 			stab_modes = settings->Stabilization3Settings;
 			reprojection = settings->Stabilization3Reprojection;
+			thrust_mode = settings->Stabilization3Thrust;
 			break;
 #ifdef TARGET_MAY_HAVE_BARO
 		case FLIGHTSTATUS_FLIGHTMODE_ALTITUDEHOLD:
