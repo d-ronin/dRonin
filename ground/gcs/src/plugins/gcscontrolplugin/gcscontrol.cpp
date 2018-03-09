@@ -31,10 +31,11 @@
 #include "sdlgamepad/sdlgamepad.h"
 #endif
 
-#define CHANNEL_MAX 2000
-#define CHANNEL_NEUTRAL 1500
-#define CHANNEL_THROTNEUTRAL 1100
+#define CHANNEL_MAX 9000
+#define CHANNEL_NEUTRAL 5000
+#define CHANNEL_THROTNEUTRAL 1800
 #define CHANNEL_MIN 1000
+
 bool GCSControl::firstInstance = true;
 
 GCSControl::GCSControl()
