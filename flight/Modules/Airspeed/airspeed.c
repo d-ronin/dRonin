@@ -82,7 +82,6 @@
 #define GPS_AIRSPEED_BIAS_KP                   0.01f //Needs to be settable in a UAVO
 #define GPS_AIRSPEED_BIAS_KI                   0.01f //Needs to be settable in a UAVO
 #define GPS_AIRSPEED_TIME_CONSTANT_MS        500.0f  //Needs to be settable in a UAVO
-#define BARO_TRUEAIRSPEED_TIME_CONSTANT_S      1.0f  //Needs to be settable in a UAVO
 
 #define BARO_TEMPERATURE_OFFSET 5
 
@@ -95,6 +94,7 @@ volatile bool gpsNew = false;
 volatile bool settingsUpdated = true;
 static uint8_t airspeedSensorType;
 static uint16_t gpsSamplePeriod_ms;
+static float tasFilterTau = 0.1f;
 
 #ifdef BARO_AIRSPEED_PRESENT
 static int8_t airspeedADCPin = -1;
@@ -133,6 +133,7 @@ static void doSettingsUpdate()
 
 	airspeedSensorType = settings.AirspeedSensorType;
 	gpsSamplePeriod_ms = settings.GPSSamplePeriod_ms;
+	tasFilterTau = settings.TASFilterTau;
 
 #if defined(PIOS_INCLUDE_MPXV7002)
 	if (airspeedSensorType==AIRSPEEDSETTINGS_AIRSPEEDSENSORTYPE_DIYDRONESMPXV7002) {
@@ -349,7 +350,7 @@ static void airspeedTask(void *parameters)
  #ifdef BARO_AIRSPEED_PRESENT
 		else if (airspeedData.BaroConnected==BAROAIRSPEED_BAROCONNECTED_TRUE) {
 			//No GPS velocity estimate this loop, so filter true airspeed data with baro airspeed
-			float alpha = delT/(delT + BARO_TRUEAIRSPEED_TIME_CONSTANT_S); //Low pass filter.
+			float alpha = delT/(delT + tasFilterTau); //Low pass filter.
 			airspeedData.TrueAirspeed = airspeed_tas_baro*(alpha) + airspeedData.TrueAirspeed*(1.0f-alpha);
 		}
  #endif

@@ -14,6 +14,9 @@
     <field defaultvalue="1.0" elements="1" name="Scale" type="float" units="raw">
       <description>Scale factor which is used to scale the airspeed coming from the airspeed sensor</description>
     </field>
+    <field defaultvalue="0.1" elements="1" name="TASFilterTau" type="float" units="s">
+      <description>Time constant for TAS filter</description>
+    </field>
     <field defaultvalue="GPSOnly" elements="1" name="AirspeedSensorType" type="enum" units="">
       <description>The type of airspeed sensor connected</description>
       <options>
