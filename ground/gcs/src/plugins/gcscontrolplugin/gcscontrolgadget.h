@@ -31,7 +31,6 @@
 #include "gcscontrolgadgetconfiguration.h"
 #include <QTimer>
 #include <QTime>
-#include <QUdpSocket>
 #include <QHostAddress>
 #include <gcscontrolplugin/gcscontrol.h>
 
@@ -74,7 +73,8 @@ private:
     double constrain(double value);
 
     //! Set the GCS Receiver object
-    void setGcsReceiver(double leftX, double leftY, double rightX, double rightY);
+    void setGcsReceiver(double leftX, double leftY, double rightX,
+            double rightY, double arming);
 
     QTime joystickTime;
     GCSControlGadgetWidget *m_widget;
@@ -100,15 +100,13 @@ private:
     double bound(double input);
     double wrap(double input);
     bool channelReverse[8];
-    QUdpSocket *control_sock;
 
 signals:
     void sticksChangedRemotely(double leftX, double leftY, double rightX, double rightY);
 
 protected slots:
     void manualControlCommandUpdated(UAVObject *);
-    void sticksChangedLocally(double leftX, double leftY, double rightX, double rightY);
-    void readUDPCommand();
+    void sticksChangedLocally(double leftX, double leftY, double rightX, double rightY, double arming);
     void flightModeChanged(ManualControlSettings::FlightModePositionOptions mode);
     //! Enable or disable sending data
     void enableControl(bool enable);

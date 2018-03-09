@@ -53,9 +53,6 @@ GCSControlGadgetConfiguration::GCSControlGadgetConfiguration(QString classId, QS
         yawChannel = qSettings->value("yawChannel").toInt();
         throttleChannel = qSettings->value("throttleChannel").toInt();
 
-        udp_port = qSettings->value("controlPortUDP").toUInt();
-        udp_host = QHostAddress(qSettings->value("controlHostUDP").toString());
-
         gcsReceiverMode = qSettings->value("gcsReceiverMode").toBool();
 
         for (unsigned int i = 0; i < 8; i++) {
@@ -68,21 +65,6 @@ GCSControlGadgetConfiguration::GCSControlGadgetConfiguration(QString classId, QS
             channelReverse[i] = qSettings->value(QString().sprintf("channel%dReverse", i)).toBool();
         }
     }
-}
-
-void GCSControlGadgetConfiguration::setUDPControlSettings(int port, QString host)
-{
-    udp_port = port;
-    udp_host = QHostAddress(host);
-}
-
-int GCSControlGadgetConfiguration::getUDPControlPort()
-{
-    return udp_port;
-}
-QHostAddress GCSControlGadgetConfiguration::getUDPControlHost()
-{
-    return udp_host;
 }
 
 void GCSControlGadgetConfiguration::setRPYTchannels(int roll, int pitch, int yaw, int throttle)
@@ -133,9 +115,6 @@ IUAVGadgetConfiguration *GCSControlGadgetConfiguration::clone()
     m->yawChannel = yawChannel;
     m->throttleChannel = throttleChannel;
 
-    m->udp_host = udp_host;
-    m->udp_port = udp_port;
-
     m->gcsReceiverMode = gcsReceiverMode;
 
     int i;
@@ -160,9 +139,6 @@ void GCSControlGadgetConfiguration::saveConfig(QSettings *settings) const
     settings->setValue("pitchChannel", pitchChannel);
     settings->setValue("yawChannel", yawChannel);
     settings->setValue("throttleChannel", throttleChannel);
-
-    settings->setValue("controlPortUDP", QString::number(udp_port));
-    settings->setValue("controlHostUDP", udp_host.toString());
 
     settings->setValue("gcsReceiverMode", gcsReceiverMode);
 

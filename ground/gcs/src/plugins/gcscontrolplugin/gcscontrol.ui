@@ -26,7 +26,16 @@
    <property name="spacing">
     <number>2</number>
    </property>
-   <property name="margin">
+   <property name="leftMargin">
+    <number>5</number>
+   </property>
+   <property name="topMargin">
+    <number>5</number>
+   </property>
+   <property name="rightMargin">
+    <number>5</number>
+   </property>
+   <property name="bottomMargin">
     <number>5</number>
    </property>
    <item>
@@ -45,30 +54,43 @@
       </widget>
      </item>
      <item>
-      <widget class="QCheckBox" name="checkBoxUDPControl">
-       <property name="enabled">
-        <bool>false</bool>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
        </property>
-       <property name="toolTip">
-        <string>Allow UDP packets to set the control signals.</string>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
        </property>
-       <property name="text">
-        <string>UDP Control</string>
-       </property>
-      </widget>
+      </spacer>
      </item>
      <item>
       <widget class="QCheckBox" name="checkBoxArmed">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="text">
-        <string>Armed</string>
+        <string>Arm Switch</string>
        </property>
        <property name="checkable">
         <bool>true</bool>
        </property>
       </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
      </item>
      <item>
       <widget class="QLabel" name="label">
@@ -87,11 +109,11 @@
    </item>
    <item>
     <layout class="QGridLayout" name="gridLayout" columnstretch="0,0,0">
-     <property name="horizontalSpacing">
-      <number>10</number>
-     </property>
      <property name="leftMargin">
       <number>0</number>
+     </property>
+     <property name="horizontalSpacing">
+      <number>10</number>
      </property>
      <item row="0" column="0">
       <widget class="JoystickControl" name="widgetLeftStick" native="true">

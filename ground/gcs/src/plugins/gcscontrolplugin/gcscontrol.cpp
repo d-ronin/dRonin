@@ -109,22 +109,25 @@ bool GCSControl::beginGCSControl()
     manControlSettingsUAVO->setChannelGroups(ManualControlSettings::CHANNELGROUPS_FLIGHTMODE,
                                              ManualControlSettings::CHANNELGROUPS_NONE);
 
-    // Only throttle, roll, pitch and yaw need to be configured for this
+    // Only throttle, roll, pitch, yaw, and arming need to be configured for this
     // mode to work
-    const int NUM_CHANNELS = 4;
+    const int NUM_CHANNELS = 5;
     const quint8 channels[NUM_CHANNELS] = { ManualControlSettings::CHANNELGROUPS_THROTTLE,
                                             ManualControlSettings::CHANNELGROUPS_ROLL,
                                             ManualControlSettings::CHANNELGROUPS_PITCH,
-                                            ManualControlSettings::CHANNELGROUPS_YAW };
+                                            ManualControlSettings::CHANNELGROUPS_YAW,
+                                            ManualControlSettings::CHANNELGROUPS_ARMING };
 
     for (quint8 i = 0; i < NUM_CHANNELS; ++i) {
         quint8 x = channels[i];
+
+        inverseMapping[x] = i;
 
         // Assign this channel to GCS control
         manControlSettingsUAVO->setChannelGroups(x, ManualControlSettings::CHANNELGROUPS_GCS);
 
         // Set the ranges to match what the widget produces
-        manControlSettingsUAVO->setChannelNumber(x, x + 1);
+        manControlSettingsUAVO->setChannelNumber(x, i + 1);
         manControlSettingsUAVO->setChannelMax(x, CHANNEL_MAX);
 
         if (x == ManualControlSettings::CHANNELGROUPS_THROTTLE) {
@@ -197,8 +200,18 @@ bool GCSControl::setYaw(float value)
     return setChannel(ManualControlSettings::CHANNELGROUPS_YAW, value);
 }
 
-bool GCSControl::setChannel(quint8 channel, float value)
+bool GCSControl::setArming(float value)
 {
+    return setChannel(ManualControlSettings::CHANNELGROUPS_ARMING, value);
+}
+
+bool GCSControl::setChannel(quint8 channeltype, float value)
+{
+    if (channeltype >= ManualControlSettings::CHANNELGROUPS_NUMELEM)
+        return false;
+
+    uint8_t channel = inverseMapping[channeltype];
+
     if (value > 1 || value < -1 || channel >= GCSReceiver::CHANNEL_NUMELEM || !hasControl)
         return false;
     quint16 pwmValue;
