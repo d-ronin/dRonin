@@ -929,14 +929,62 @@ channel value for each flight mode.</string>
              <property name="title">
               <string>Configure each stabilization mode for each axis</string>
              </property>
-             <layout class="QGridLayout" name="gridLayout_2" columnstretch="0,0,1,0,1,0,1,0,1,0">
+             <layout class="QGridLayout" name="gridLayout_2" columnstretch="0,0,1,0,1,0,1,0,1,0,0,0">
               <property name="leftMargin">
                <number>9</number>
               </property>
               <property name="horizontalSpacing">
                <number>12</number>
               </property>
-              <item row="2" column="8">
+              <item row="3" column="9">
+               <spacer name="horizontalSpacer_25">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>5</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="1" column="10">
+               <widget class="QLabel" name="label_12">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>20</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>20</height>
+                 </size>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">background-color: qlineargradient(spread:reflect, x1:0.507, y1:0, x2:0.507, y2:0.772, stop:0.208955 rgba(74, 74, 74, 255), stop:0.78607 rgba(36, 36, 36, 255));
+color: rgb(255, 255, 255);
+border-radius: 5;
+font: bold 12px;
+margin:1px;</string>
+                </property>
+                <property name="text">
+                 <string>Thrust</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="8">
                <widget class="QComboBox" name="fmsSsPos2Rep">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -961,7 +1009,7 @@ channel value for each flight mode.</string>
                 </property>
                </widget>
               </item>
-              <item row="2" column="1">
+              <item row="3" column="1">
                <spacer name="horizontalSpacer_11">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
@@ -977,7 +1025,7 @@ channel value for each flight mode.</string>
                 </property>
                </spacer>
               </item>
-              <item row="3" column="2">
+              <item row="4" column="2">
                <widget class="QComboBox" name="fmsSsPos3Roll">
                 <property name="focusPolicy">
                  <enum>Qt::StrongFocus</enum>
@@ -991,7 +1039,7 @@ channel value for each flight mode.</string>
                 </property>
                </widget>
               </item>
-              <item row="0" column="6">
+              <item row="1" column="6">
                <widget class="QLabel" name="label_10">
                 <property name="minimumSize">
                  <size>
@@ -1020,7 +1068,7 @@ margin:1px;</string>
                 </property>
                </widget>
               </item>
-              <item row="2" column="3">
+              <item row="3" column="3">
                <spacer name="horizontalSpacer_12">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
@@ -1033,7 +1081,7 @@ margin:1px;</string>
                 </property>
                </spacer>
               </item>
-              <item row="1" column="0">
+              <item row="2" column="0">
                <widget class="QLabel" name="label_14">
                 <property name="text">
                  <string>Stabilized1</string>
@@ -1043,7 +1091,7 @@ margin:1px;</string>
                 </property>
                </widget>
               </item>
-              <item row="2" column="5">
+              <item row="3" column="5">
                <spacer name="horizontalSpacer_13">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
@@ -1056,7 +1104,7 @@ margin:1px;</string>
                 </property>
                </spacer>
               </item>
-              <item row="3" column="6">
+              <item row="4" column="6">
                <widget class="QComboBox" name="fmsSsPos3Yaw">
                 <property name="focusPolicy">
                  <enum>Qt::StrongFocus</enum>
@@ -1070,7 +1118,7 @@ margin:1px;</string>
                 </property>
                </widget>
               </item>
-              <item row="2" column="0">
+              <item row="3" column="0">
                <widget class="QLabel" name="label_21">
                 <property name="text">
                  <string>Stabilized2</string>
@@ -1080,7 +1128,7 @@ margin:1px;</string>
                 </property>
                </widget>
               </item>
-              <item row="3" column="4">
+              <item row="4" column="4">
                <widget class="QComboBox" name="fmsSsPos3Pitch">
                 <property name="focusPolicy">
                  <enum>Qt::StrongFocus</enum>
@@ -1094,7 +1142,7 @@ margin:1px;</string>
                 </property>
                </widget>
               </item>
-              <item row="2" column="6">
+              <item row="3" column="6">
                <widget class="QComboBox" name="fmsSsPos2Yaw">
                 <property name="focusPolicy">
                  <enum>Qt::StrongFocus</enum>
@@ -1108,7 +1156,7 @@ margin:1px;</string>
                 </property>
                </widget>
               </item>
-              <item row="0" column="4">
+              <item row="1" column="4">
                <widget class="QLabel" name="label_9">
                 <property name="minimumSize">
                  <size>
@@ -1137,7 +1185,7 @@ margin:1px;</string>
                 </property>
                </widget>
               </item>
-              <item row="0" column="2">
+              <item row="1" column="2">
                <widget class="QLabel" name="label_8">
                 <property name="minimumSize">
                  <size>
@@ -1166,7 +1214,7 @@ margin:1px;</string>
                 </property>
                </widget>
               </item>
-              <item row="2" column="4">
+              <item row="3" column="4">
                <widget class="QComboBox" name="fmsSsPos2Pitch">
                 <property name="focusPolicy">
                  <enum>Qt::StrongFocus</enum>
@@ -1180,7 +1228,7 @@ margin:1px;</string>
                 </property>
                </widget>
               </item>
-              <item row="1" column="6">
+              <item row="2" column="6">
                <widget class="QComboBox" name="fmsSsPos1Yaw">
                 <property name="minimumSize">
                  <size>
@@ -1200,7 +1248,7 @@ margin:1px;</string>
                 </property>
                </widget>
               </item>
-              <item row="2" column="2">
+              <item row="3" column="2">
                <widget class="QComboBox" name="fmsSsPos2Roll">
                 <property name="focusPolicy">
                  <enum>Qt::StrongFocus</enum>
@@ -1214,7 +1262,7 @@ margin:1px;</string>
                 </property>
                </widget>
               </item>
-              <item row="1" column="2">
+              <item row="2" column="2">
                <widget class="QComboBox" name="fmsSsPos1Roll">
                 <property name="minimumSize">
                  <size>
@@ -1234,7 +1282,7 @@ margin:1px;</string>
                 </property>
                </widget>
               </item>
-              <item row="1" column="4">
+              <item row="2" column="4">
                <widget class="QComboBox" name="fmsSsPos1Pitch">
                 <property name="minimumSize">
                  <size>
@@ -1254,7 +1302,7 @@ margin:1px;</string>
                 </property>
                </widget>
               </item>
-              <item row="3" column="0">
+              <item row="4" column="0">
                <widget class="QLabel" name="label_22">
                 <property name="text">
                  <string>Stabilized3</string>
@@ -1264,7 +1312,7 @@ margin:1px;</string>
                 </property>
                </widget>
               </item>
-              <item row="2" column="7">
+              <item row="3" column="7">
                <spacer name="horizontalSpacer_14">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
@@ -1277,7 +1325,7 @@ margin:1px;</string>
                 </property>
                </spacer>
               </item>
-              <item row="0" column="8">
+              <item row="1" column="8">
                <widget class="QLabel" name="label_11">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -1312,7 +1360,7 @@ margin:1px;</string>
                 </property>
                </widget>
               </item>
-              <item row="1" column="8">
+              <item row="2" column="8">
                <widget class="QComboBox" name="fmsSsPos1Rep">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -1337,7 +1385,7 @@ margin:1px;</string>
                 </property>
                </widget>
               </item>
-              <item row="3" column="8">
+              <item row="4" column="8">
                <widget class="QComboBox" name="fmsSsPos3Rep">
                 <property name="minimumSize">
                  <size>
@@ -1356,7 +1404,70 @@ margin:1px;</string>
                 </property>
                </widget>
               </item>
-              <item row="2" column="9">
+              <item row="2" column="10">
+               <widget class="QComboBox" name="fmsSsPos1Thr">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>102</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="focusPolicy">
+                 <enum>Qt::StrongFocus</enum>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:ManualControlSettings</string>
+                  <string>fieldname:Stabilization1Thrust</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <spacer name="horizontalSpacer_26">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>5</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="3" column="10">
+               <widget class="QComboBox" name="fmsSsPos2Thr">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>102</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="focusPolicy">
+                 <enum>Qt::StrongFocus</enum>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:ManualControlSettings</string>
+                  <string>fieldname:Stabilization2Thrust</string>
+                 </stringlist>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="11">
                <spacer name="horizontalSpacer_15">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
@@ -1368,6 +1479,31 @@ margin:1px;</string>
                  </size>
                 </property>
                </spacer>
+              </item>
+              <item row="4" column="10">
+               <widget class="QComboBox" name="fmsSsPos3Thr">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>102</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="focusPolicy">
+                 <enum>Qt::StrongFocus</enum>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist notr="true">
+                  <string>objname:ManualControlSettings</string>
+                  <string>fieldname:Stabilization3Thrust</string>
+                 </stringlist>
+                </property>
+               </widget>
               </item>
              </layout>
             </widget>
