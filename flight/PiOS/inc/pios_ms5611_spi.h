@@ -31,10 +31,17 @@
 #ifndef PIOS_MS5611_SPI_H
 #define PIOS_MS5611_SPI_H
 
+#if defined(PIOS_INCLUDE_MS5611_SPI)
+#ifndef TARGET_MAY_HAVE_BARO
+#define TARGET_MAY_HAVE_BARO
+#endif
+
 #include <stdint.h>
 
 /* Public Functions */
 extern int32_t PIOS_MS5611_SPI_Test(void);
+
+#endif
 
 #endif /* PIOS_MS5611_SPI_H */
 

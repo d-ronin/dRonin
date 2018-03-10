@@ -26,8 +26,5 @@
     <field defaultvalue="40" elements="1" name="Expo" type="uint8" units="">
       <description/>
     </field>
-    <field defaultvalue="30" elements="1" name="Deadband" type="uint8" units="%">
-      <description>Deadband that is used around the altitude set</description>
-    </field>
   </object>
 </xml>

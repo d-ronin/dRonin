@@ -598,10 +598,9 @@ bool vtol_follower_control_loiter(float dT, float *hold_pos, float *att_adj,
 	if (guidanceSettings.ThrottleControl && 
 			guidanceSettings.LoiterAllowAltControl) {
 		// Inverted because we want units in "Down" frame
-		// Doubled to recenter to 1 to -1 scale from 0-1.
 		// loiter_deadband clips appropriately.
 		down_cmd = loiter_deadband(cmd.Thrust,
-				altitudeHoldSettings.Deadband / 100.0f,
+				0, /* Deadbanded in manual control */
 				altitudeHoldSettings.Expo);
 	}
 	

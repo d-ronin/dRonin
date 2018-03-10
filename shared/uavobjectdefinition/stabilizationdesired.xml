@@ -25,6 +25,15 @@
         <elementname>Yaw</elementname>
       </elementnames>
     </field>
+    <field defaultvalue="Direct" elements="1" name="ThrustMode" type="enum">
+      <description>The thrust mode for stabilization</description>
+      <options>
+        <option>Direct</option>
+        <option>Altitude</option>
+        <option>Vertical Speed</option>
+        <option>Altitude With Stick Scaling</option>
+      </options>
+    </field>
     <field defaultvalue="None" elements="1" name="ReprojectionMode" parent="SharedDefs.ReprojectionMode" type="enum">
       <description/>
     </field>

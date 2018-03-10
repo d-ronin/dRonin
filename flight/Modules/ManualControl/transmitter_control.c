@@ -38,7 +38,6 @@
 #include "transmitter_control.h"
 #include "pios_thread.h"
 
-#include "altitudeholddesired.h"
 #include "altitudeholdsettings.h"
 #include "baroaltitude.h"
 #include "flighttelemetrystats.h"
@@ -104,7 +103,6 @@ static bool                       collective_is_thrust;
 static float get_thrust_source(ManualControlCommandData *manual_control_command,
 		bool always_fullrange);
 static void update_stabilization_desired(ManualControlCommandData * manual_control_command, ManualControlSettingsData * settings);
-static void altitude_hold_desired(ManualControlCommandData * cmd, bool flightModeChanged);
 static void set_flight_mode();
 static void process_transmitter_events(ManualControlCommandData * cmd, ManualControlSettingsData * settings, bool valid);
 static void set_manual_control_error(SystemAlarmsManualControlOptions errorCode);
@@ -187,18 +185,16 @@ static float get_thrust_source(ManualControlCommandData *manual_control_command,
 	}
 
 	if (!always_fullrange) {
-		/* TODO/consider: use the value from 3D flight, and remove
-		 * deadbands from downstream subsystems.  May want a
-		 * different deadband, because e.g. helicopters may want no
-		 * deadband except in althold etc.
-		 */
-
 		/* We have a 0..1 value, and they are OK with a 0..1 value */
 		return thrust;
 	}
 
 	/* We want a -1..1 value, but thrust is squished into a 0..1 range. */
-	return thrust * 2.0f - 1.0f;
+	thrust = thrust * 2.0f - 1.0f;
+
+	applyDeadband(&thrust, settings.ThrustDeadband);
+
+	return thrust;
 }
 
 static bool is_low_throttle_for_arming(
@@ -532,9 +528,6 @@ int32_t transmitter_control_select(bool reset_controller)
 	uint8_t flightMode;
 	FlightStatusFlightModeGet(&flightMode);
 
-	// Depending on the mode update the Stabilization object
-	static uint8_t lastFlightMode = FLIGHTSTATUS_FLIGHTMODE_MANUAL;
-
 	switch(flightMode) {
 	case FLIGHTSTATUS_FLIGHTMODE_MANUAL:
 	case FLIGHTSTATUS_FLIGHTMODE_ACRO:
@@ -549,10 +542,8 @@ int32_t transmitter_control_select(bool reset_controller)
 	case FLIGHTSTATUS_FLIGHTMODE_STABILIZED3:
 	case FLIGHTSTATUS_FLIGHTMODE_FAILSAFE:
 	case FLIGHTSTATUS_FLIGHTMODE_AUTOTUNE:
-		update_stabilization_desired(&cmd, &settings);
-		break;
 	case FLIGHTSTATUS_FLIGHTMODE_ALTITUDEHOLD:
-		altitude_hold_desired(&cmd, lastFlightMode != flightMode);
+		update_stabilization_desired(&cmd, &settings);
 		break;
 	case FLIGHTSTATUS_FLIGHTMODE_POSITIONHOLD:
 		set_loiter_command(&cmd);
@@ -566,7 +557,6 @@ int32_t transmitter_control_select(bool reset_controller)
 		set_manual_control_error(SYSTEMALARMS_MANUALCONTROL_UNDEFINED);
 		return -1;
 	}
-	lastFlightMode = flightMode;
 
 	return 0;
 }
@@ -1067,9 +1057,10 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
 	const uint8_t SYSTEMIDENT_SETTINGS[3] = {  STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT,
                                           STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT,
                                           STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENTRATE };
-	const uint8_t * stab_modes;
+	const uint8_t * stab_modes = ATTITUDE_SETTINGS;
 
 	uint8_t reprojection = STABILIZATIONDESIRED_REPROJECTIONMODE_NONE;
+	uint8_t thrust_mode = STABILIZATIONDESIRED_THRUSTMODE_DIRECT;
 
 	uint8_t flightMode;
 
@@ -1117,6 +1108,13 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
 			stab_modes = settings->Stabilization3Settings;
 			reprojection = settings->Stabilization3Reprojection;
 			break;
+#ifdef TARGET_MAY_HAVE_BARO
+		case FLIGHTSTATUS_FLIGHTMODE_ALTITUDEHOLD:
+			stab_modes = ATTITUDE_SETTINGS;
+			thrust_mode =
+				STABILIZATIONDESIRED_THRUSTMODE_ALTITUDEWITHSTICKSCALING;
+			break;
+#endif
 		default:
 			{
 				// Major error, this should not occur because only enter this block when one of these is true
@@ -1144,92 +1142,16 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
 			stab_modes[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW],
 			STABILIZATIONDESIRED_STABILIZATIONMODE_YAW);
 
-	// get thrust source; normalize_positive = false since we just want to pass the value through
-	stabilization.Thrust = get_thrust_source(manual_control_command, false);
+	// get thrust source
+	stabilization.Thrust = get_thrust_source(manual_control_command,
+			(thrust_mode == STABILIZATIONDESIRED_THRUSTMODE_ALTITUDEWITHSTICKSCALING));
 
 	// Set the reprojection.
 	stabilization.ReprojectionMode = reprojection;
+	stabilization.ThrustMode = thrust_mode;
 
 	StabilizationDesiredSet(&stabilization);
 }
-
-/**
- * @brief Update the altitude desired to current altitude when
- * enabled and enable altitude mode for stabilization
- */
-static void altitude_hold_desired(ManualControlCommandData * cmd,
-		bool flightModeChanged)
-{
-	if (AltitudeHoldDesiredHandle() == NULL) {
-		set_manual_control_error(SYSTEMALARMS_MANUALCONTROL_ALTITUDEHOLD);
-		return;
-	}
-
-	const float MIN_CLIMB_RATE = 0.01f;
-
-	AltitudeHoldDesiredData altitudeHoldDesired;
-	AltitudeHoldDesiredGet(&altitudeHoldDesired);
-
-	StabilizationSettingsData stabSettings;
-	StabilizationSettingsGet(&stabSettings);
-
-	altitudeHoldDesired.Roll = cmd->Roll * stabSettings.RollMax;
-	altitudeHoldDesired.Pitch = cmd->Pitch * stabSettings.PitchMax;
-	altitudeHoldDesired.Yaw = cmd->Yaw * stabSettings.ManualRate[STABILIZATIONSETTINGS_MANUALRATE_YAW];
-
-	float current_down;
-	PositionActualDownGet(&current_down);
-
-	if(flightModeChanged) {
-		// Initialize at the current location. Note that this object uses the up is positive
-		// convention.
-		altitudeHoldDesired.Altitude = -current_down;
-		altitudeHoldDesired.ClimbRate = 0;
-	} else {
-		uint8_t altitude_hold_expo;
-		uint8_t altitude_hold_maxclimbrate10;
-		uint8_t altitude_hold_maxdescentrate10;
-		uint8_t altitude_hold_deadband;
-		AltitudeHoldSettingsMaxClimbRateGet(&altitude_hold_maxclimbrate10);
-		AltitudeHoldSettingsMaxDescentRateGet(&altitude_hold_maxdescentrate10);
-
-		// Scale altitude hold rate
-		float altitude_hold_maxclimbrate = altitude_hold_maxclimbrate10 * 0.1f;
-		float altitude_hold_maxdescentrate = altitude_hold_maxdescentrate10 * 0.1f;
-
-		AltitudeHoldSettingsExpoGet(&altitude_hold_expo);
-		AltitudeHoldSettingsDeadbandGet(&altitude_hold_deadband);
-
-		const float DEADBAND = altitude_hold_deadband * 0.01f;
-
-		float const thrust_source = get_thrust_source(cmd, true);
-
-		float climb_rate = 0.0f;
-
-		if (thrust_source > DEADBAND) {
-			climb_rate = expo3((thrust_source - DEADBAND) / (1.0f - DEADBAND), altitude_hold_expo) *
-		                         altitude_hold_maxclimbrate;
-		} else if (thrust_source < -DEADBAND && altitude_hold_maxdescentrate > MIN_CLIMB_RATE) {
-			climb_rate = expo3((thrust_source + DEADBAND) / (1.0f - DEADBAND), altitude_hold_expo) *
-		                         altitude_hold_maxdescentrate;
-		}
-
-		// If more than MIN_CLIMB_RATE enter vario mode
-		if (fabsf(climb_rate) > MIN_CLIMB_RATE) {
-			// Desired state is at the current location with the requested rate
-			altitudeHoldDesired.Altitude = -current_down;
-			altitudeHoldDesired.ClimbRate = climb_rate;
-		} else {
-			// Here we intentionally do not change the set point, it will
-			// remain where the user released vario mode
-			altitudeHoldDesired.ClimbRate = 0.0f;
-		}
-	}
-
-	// Must always set since this contains the control signals
-	AltitudeHoldDesiredSet(&altitudeHoldDesired);
-}
-
 
 static void set_loiter_command(ManualControlCommandData *cmd)
 {

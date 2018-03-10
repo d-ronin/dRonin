@@ -33,8 +33,15 @@
 
 #include <stdint.h>
 
+#if defined(PIOS_INCLUDE_MS5611)
+#ifndef TARGET_MAY_HAVE_BARO
+#define TARGET_MAY_HAVE_BARO
+#endif
+
 /* Public Functions */
 extern int32_t PIOS_MS5611_Test(void);
+
+#endif
 
 #endif /* PIOS_MS5611_H */
 
