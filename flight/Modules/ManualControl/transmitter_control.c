@@ -292,7 +292,12 @@ int32_t transmitter_control_update()
 		case MANUALCONTROLSETTINGS_RSSITYPE_ADC:
 #if defined(PIOS_INCLUDE_ADC)
 			if (settings.RssiChannelNumber > 0) {
-				value = PIOS_ADC_GetChannelRaw(settings.RssiChannelNumber - 1);
+				value = PIOS_ADC_GetChannelRaw(settings.RssiChannelNumber - 1) >> 4;
+				/*
+				 * Shift right 4 bits because most targets
+				 * return a 16 bit value now but existing configs
+				 * expect a 12 bit value.
+				 */
 			} else {
 				value = 0;
 			}

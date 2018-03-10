@@ -255,7 +255,7 @@ static float PIOS_INTERNAL_ADC_LSB_Voltage(uintptr_t internal_adc_id)
 
 	// Though we have 12 bits of resolution, it's left-adjusted into a 16
 	// bit word.
-        return VREF_PLUS / (((uint32_t)1 << 16) - 1);
+        return VREF_PLUS / (((uint32_t)1 << 16) - 16);
 }
 #endif /* PIOS_INCLUDE_ADC */
 /** 
