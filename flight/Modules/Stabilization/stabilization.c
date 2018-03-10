@@ -244,11 +244,12 @@ int32_t StabilizationInitialize()
 	return 0;
 }
 
-void stabilization_failsafe_checks(StabilizationDesiredData *stab_desired,
+bool stabilization_failsafe_checks(StabilizationDesiredData *stab_desired,
 	ActuatorDesiredData *actuator_desired,
 	SystemSettingsAirframeTypeOptions airframe_type,
 	float *input, uint8_t *mode)
 {
+	bool failsafed = false;
 	float *rate = &stab_desired->Roll;
 	for(int i = 0; i < MAX_AXES; i++)
 	{
@@ -256,6 +257,7 @@ void stabilization_failsafe_checks(StabilizationDesiredData *stab_desired,
 		input[i] = rate[i];
 
 		if (mode[i] == STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE) {
+			failsafed = true;
 			// Everything except planes should drop straight down
 			if ((airframe_type != SYSTEMSETTINGS_AIRFRAMETYPE_FIXEDWING) &&
 					(airframe_type != SYSTEMSETTINGS_AIRFRAMETYPE_FIXEDWINGELEVON) &&
@@ -299,6 +301,7 @@ void stabilization_failsafe_checks(StabilizationDesiredData *stab_desired,
 			}
 		}
 	}
+	return failsafed;
 }
 
 static void calculate_attitude_errors(uint8_t *axis_mode, float *raw_input,
@@ -785,7 +788,7 @@ static void stabilizationTask(void* parameters)
 		float raw_input[MAX_AXES];
 		uint8_t axis_mode[MAX_AXES];
 
-		stabilization_failsafe_checks(&stabDesired, &actuatorDesired, airframe_type,
+		bool failsafed = stabilization_failsafe_checks(&stabDesired, &actuatorDesired, airframe_type,
 			raw_input, axis_mode);
 
 		// A flag to track which stabilization mode each axis is in
@@ -793,9 +796,10 @@ static void stabilizationTask(void* parameters)
 
 		// Do this before attitude error calc, so it benefits from it.
 		for(int i = 0; i < 3; i++) {
-			if (axis_mode[i] != previous_mode[i]) {
+			if (axis_mode[i] != previous_mode[i] || failsafed) {
 				// Reset integrator and don't smooth for this cycle after a mode switch.
 				// Otherwise we might interpolate between different stick scales.
+				// Also, kill it during failsafe.
 				smoothcontrol_reinit(rc_smoothing, i, raw_input[i]);
 			} else {
 				smoothcontrol_run(rc_smoothing, i, &raw_input[i]);
