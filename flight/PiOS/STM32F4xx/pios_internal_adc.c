@@ -83,8 +83,7 @@ const struct pios_adc_driver pios_internal_adc_driver = {
 };
 
 struct adc_accumulator {
-	uint32_t		accumulator;
-	uint32_t		count;
+	volatile uint32_t		accumulator, count;
 };
 
 // Buffers to hold the ADC data
@@ -296,7 +295,8 @@ static int32_t PIOS_INTERNAL_ADC_PinGet(uintptr_t internal_adc_id, uint32_t pin)
 	}
 
 	/* return accumulated result and clear accumulator */
-	result = accumulator[pin].accumulator / (accumulator[pin].count ?: 1);
+	result = accumulator[pin].accumulator /
+		(accumulator[pin].count ? accumulator[pin].count : 1);
 	accumulator[pin].accumulator = result;
 	accumulator[pin].count = 1;
 
@@ -321,7 +321,7 @@ static inline void accumulate(uint16_t *buffer, uint32_t count)
 	 */
 	while (count--) {
 		for (int i = 0; i < pios_adc_dev->cfg->adc_pin_count; i++) {
-			accumulator[i].accumulator += *sp++;
+			accumulator[i].accumulator += *(sp++);
 			accumulator[i].count++;
 			/*
 			 * If the accumulator reaches half-full, rescale in order to

@@ -40,7 +40,7 @@
 #include "baroairspeed.h"	// object that will be updated by the module
 #include "pios_thread.h"
 
-#if defined(PIOS_INCLUDE_MPXV7002) || defined (PIOS_INCLUDE_MPXV5004)
+#if defined(PIOS_INCLUDE_MPXV7002) || defined (PIOS_INCLUDE_MPXV5004) || defined (PIOS_INCLUDE_ADC)
 
 #define SAMPLING_DELAY_MS_MPXV                  10     //Update at 100Hz
 #define CALIBRATION_IDLE_MS                     2000   //Time to wait before calibrating, in [ms]
@@ -76,6 +76,7 @@ void baro_airspeedGetAnalog(BaroAirspeedData *baroAirspeedData, uint32_t *lastSy
 		calibrationCount++; /*DO NOT MOVE FROM BEFORE sensorCalibration=... LINE, OR ELSE WILL HAVE DIVIDE BY ZERO */
 
 		uint16_t sensorCalibration;
+#if defined(PIOS_INCLUDE_MPXV7002) || defined (PIOS_INCLUDE_MPXV5004) 
 		if(airspeedSensorType==AIRSPEEDSETTINGS_AIRSPEEDSENSORTYPE_DIYDRONESMPXV7002){
 		sensorCalibration=PIOS_MPXV7002_Calibrate(airspeedADCPin, calibrationCount-CALIBRATION_IDLE_MS/SAMPLING_DELAY_MS_MPXV);
 		PIOS_MPXV7002_UpdateCalibration(sensorCalibration); //This makes sense for the user if the initial calibration was not good and the user does not wish to reboot.
@@ -84,6 +85,7 @@ void baro_airspeedGetAnalog(BaroAirspeedData *baroAirspeedData, uint32_t *lastSy
 		sensorCalibration=PIOS_MPXV5004_Calibrate(airspeedADCPin, calibrationCount-CALIBRATION_IDLE_MS/SAMPLING_DELAY_MS_MPXV);
 		PIOS_MPXV5004_UpdateCalibration(sensorCalibration); //This makes sense for the user if the initial calibration was not good and the user does not wish to reboot.
 		}
+#endif
 
 
 		baroAirspeedData->BaroConnected = BAROAIRSPEED_BAROCONNECTED_TRUE;
@@ -97,6 +99,7 @@ void baro_airspeedGetAnalog(BaroAirspeedData *baroAirspeedData, uint32_t *lastSy
 
 	//Get CAS
 	float calibratedAirspeed=0;
+#if defined(PIOS_INCLUDE_MPXV7002) || defined (PIOS_INCLUDE_MPXV5004) 
 	if(airspeedSensorType==AIRSPEEDSETTINGS_AIRSPEEDSENSORTYPE_DIYDRONESMPXV7002){
 		calibratedAirspeed = PIOS_MPXV7002_ReadAirspeed(airspeedADCPin);
 		if (calibratedAirspeed < 0) //This only occurs when there's a bad ADC reading.
@@ -124,6 +127,13 @@ void baro_airspeedGetAnalog(BaroAirspeedData *baroAirspeedData, uint32_t *lastSy
 		//not. This is something that will have to change on the ADC side of things.
 		baroAirspeedData->SensorValue=PIOS_MPXV5004_Measure(airspeedADCPin);
 
+#else
+	if (false) {
+#endif
+	} else if (airspeedSensorType == AIRSPEEDSETTINGS_AIRSPEEDSENSORTYPE_RAWANALOG) {
+		// will return raw ADC reading in mV (typically in range [0, 3300])
+		calibratedAirspeed = PIOS_ADC_GetChannelRaw(airspeedADCPin);
+		baroAirspeedData->SensorValue = calibratedAirspeed;
 	}
 	//Filter CAS
 	float alpha=SAMPLING_DELAY_MS_MPXV/(SAMPLING_DELAY_MS_MPXV + ANALOG_BARO_AIRSPEED_TIME_CONSTANT_MS); //Low pass filter.
