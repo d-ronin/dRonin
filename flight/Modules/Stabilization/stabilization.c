@@ -856,6 +856,8 @@ static void stabilizationTask(void* parameters)
 						max_rate_filtered[i] = settings.ManualRate[i];
 					}
 
+					raw_input[i] = bound_sym(raw_input[i], 1.0f);
+
 					float curve_cmd = expoM(raw_input[i],
 							settings.RateExpo[i],
 							settings.RateExponent[i]*0.1f);
@@ -901,6 +903,8 @@ static void stabilizationTask(void* parameters)
 						pids[PID_GROUP_RATE + i].iAccumulator = 0;
 					}
 
+					raw_input[i] = bound_sym(raw_input[i], 1.0f);
+
 					// The factor for gyro suppression / mixing raw stick input into the output; scaled by raw stick input
 					float factor = fabsf(raw_input[i]) * settings.AcroInsanityFactor / 100.0f;
 
@@ -938,7 +942,7 @@ static void stabilizationTask(void* parameters)
 
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_VIRTUALBAR:
 					// Store for debugging output
-					rateDesiredAxis[i] = raw_input[i];
+					rateDesiredAxis[i] = bound_sym(raw_input[i], 1.0f);
 
 					// Run a virtual flybar stabilization algorithm on this axis
 					stabilization_virtual_flybar(gyro_filtered[i], rateDesiredAxis[i], &actuatorDesiredAxis[i], dT_expected, reinit, i, &pids[PID_GROUP_VBAR + i], &vbar_settings);
@@ -955,7 +959,7 @@ static void stabilizationTask(void* parameters)
 					weak_leveling = bound_sym(weak_leveling, weak_leveling_max);
 
 					// Compute desired rate as input biased towards leveling
-					rateDesiredAxis[i] = raw_input[i] + weak_leveling;
+					rateDesiredAxis[i] = bound_sym(raw_input[i] + weak_leveling, settings.ManualRate[i]);
 					actuatorDesiredAxis[i] = pid_apply_setpoint_antiwindup(&pids[PID_GROUP_RATE + i], get_deadband(i),  rateDesiredAxis[i],  gyro_filtered[i], -1.0f, 1.0f, 1.0f);
 
 					break;
@@ -997,7 +1001,7 @@ static void stabilizationTask(void* parameters)
 					// Compute the outer loop for the attitude control
 					float rateDesiredAttitude = pid_apply(&pids[PID_GROUP_ATT + i], local_attitude_error[i]);
 					// Compute the desire rate for a rate control
-					float rateDesiredRate = raw_input[i] * settings.ManualRate[i];
+					float rateDesiredRate = bound_sym(raw_input[i], 1.0f) * settings.ManualRate[i];
 
 					// Blend from one rate to another. The maximum of all stick positions is used for the
 					// amount so that when one axis goes completely to rate the other one does too. This
