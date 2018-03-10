@@ -48,14 +48,10 @@ GCSControlGadget::GCSControlGadget(QString classId, GCSControlGadgetWidget *widg
             &GCSControlGadget::enableControl);
     connect(this, &GCSControlGadget::sticksChangedRemotely, widget,
             &GCSControlGadgetWidget::updateSticks);
-    connect(widget, &GCSControlGadgetWidget::flightModeChangedLocaly, this,
+    connect(widget, &GCSControlGadgetWidget::flightModeChangedLocally, this,
             &GCSControlGadget::flightModeChanged);
 
     manualControlCommandUpdated(getManualControlCommand());
-
-    control_sock = new QUdpSocket(this);
-
-    connect(control_sock, &QIODevice::readyRead, this, &GCSControlGadget::readUDPCommand);
 
     joystickTime.start();
 
@@ -85,9 +81,6 @@ void GCSControlGadget::loadConfiguration(IUAVGadgetConfiguration *config)
     pitchChannel = ql.at(1);
     yawChannel = ql.at(2);
     throttleChannel = ql.at(3);
-
-    control_sock->bind(GCSControlConfig->getUDPControlHost(), GCSControlConfig->getUDPControlPort(),
-                       QUdpSocket::ShareAddress);
 
     controlsMode = GCSControlConfig->getControlsMode();
     gcsReceiverMode = GCSControlConfig->getGcsReceiverMode();
@@ -135,7 +128,7 @@ GCSControl *GCSControlGadget::getGcsControl()
 void GCSControlGadget::manualControlCommandUpdated(UAVObject *obj)
 {
 
-    // Not sending then show updates from transmitter
+    // Show updates from transmitter when we're not sending.
     if (enableSending)
         return;
 
@@ -167,15 +160,16 @@ void GCSControlGadget::manualControlCommandUpdated(UAVObject *obj)
 /**
   Update the manual commands - maps depending on mode
   */
-void GCSControlGadget::sticksChangedLocally(double leftX, double leftY, double rightX,
-                                            double rightY)
+void GCSControlGadget::sticksChangedLocally(double leftX, double leftY,
+                                            double rightX, double rightY,
+                                            double arming)
 {
     if (enableSending)
-        setGcsReceiver(leftX, leftY, rightX, rightY);
+        setGcsReceiver(leftX, leftY, rightX, rightY, arming);
 }
 
 //! Set the GCS Receiver object
-void GCSControlGadget::setGcsReceiver(double leftX, double leftY, double rightX, double rightY)
+void GCSControlGadget::setGcsReceiver(double leftX, double leftY, double rightX, double rightY, double arming)
 {
     GCSControl *ctr = getGcsControl();
     Q_ASSERT(ctr);
@@ -218,10 +212,12 @@ void GCSControlGadget::setGcsReceiver(double leftX, double leftY, double rightX,
         newThrottle = leftY;
         break;
     }
+
     ctr->setThrottle(newThrottle);
     ctr->setRoll(newRoll);
     ctr->setPitch(newPitch);
     ctr->setYaw(newYaw);
+    ctr->setArming(arming);
 
     switch (controlsMode) {
     case 1:
@@ -254,79 +250,6 @@ void GCSControlGadget::gamepads(quint8 count)
     Q_UNUSED(count);
 }
 
-void GCSControlGadget::readUDPCommand()
-{
-    double pitch = 0, yaw = 0, roll = 0, throttle = 0;
-    while (control_sock->hasPendingDatagrams()) {
-        QByteArray datagram;
-        datagram.resize(control_sock->pendingDatagramSize());
-        control_sock->readDatagram(datagram.data(), datagram.size());
-        QDataStream readData(datagram);
-        bool badPack = false;
-        int state = 0;
-        while (!readData.atEnd() && !badPack) {
-            double buffer;
-            readData >> buffer;
-            switch (state) {
-            case 0:
-                if (buffer == 42) {
-                    state = 1;
-                } else {
-                    state = 0;
-                    badPack = true;
-                }
-                break;
-            case 1:
-                pitch = buffer;
-                state = 2;
-                break;
-            case 2:
-                yaw = buffer;
-                state = 3;
-                break;
-            case 3:
-                roll = buffer;
-                state = 4;
-                break;
-            case 4:
-                throttle = buffer;
-                state = 5;
-                break;
-            case 5:
-                if (buffer != 36 || !readData.atEnd())
-                    badPack = true;
-                break;
-            }
-        }
-        if (!badPack && ((GCSControlGadgetWidget *)m_widget)->getUDPControl()) {
-            ManualControlCommand *obj = getManualControlCommand();
-            bool update = false;
-
-            if (pitch != obj->getField("Pitch")->getDouble()) {
-                obj->getField("Pitch")->setDouble(constrain(pitch));
-                update = true;
-            }
-            if (yaw != obj->getField("Yaw")->getDouble()) {
-                obj->getField("Yaw")->setDouble(constrain(yaw));
-                update = true;
-            }
-            if (roll != obj->getField("Roll")->getDouble()) {
-                obj->getField("Roll")->setDouble(constrain(roll));
-                update = true;
-            }
-            if (throttle != obj->getField("Throttle")->getDouble()) {
-                obj->getField("Throttle")->setDouble(constrain(throttle));
-                update = true;
-            }
-            if (update)
-                obj->updated();
-        }
-    }
-
-    qDebug() << "Pitch: " << pitch << " Yaw: " << yaw << " Roll: " << roll
-             << " Throttle: " << throttle;
-}
-
 double GCSControlGadget::constrain(double value)
 {
     if (value < -1)
@@ -346,7 +269,6 @@ void GCSControlGadget::buttonState(ButtonNumber number, bool pressed)
         UAVDataObject *obj =
             dynamic_cast<UAVDataObject *>(objManager->getObject(QString("ManualControlCommand")));
         bool currentCGSControl = ((GCSControlGadgetWidget *)m_widget)->getGCSControl();
-        bool currentUDPControl = ((GCSControlGadgetWidget *)m_widget)->getUDPControl();
 
         switch (buttonSettings[number].ActionID) {
         case 1: // increase
@@ -421,11 +343,6 @@ void GCSControlGadget::buttonState(ButtonNumber number, bool pressed)
                 ((GCSControlGadgetWidget *)m_widget)->setGCSControl(!currentCGSControl);
 
                 break;
-            case 3: // UDP Control
-                if (currentCGSControl)
-                    ((GCSControlGadgetWidget *)m_widget)->setUDPControl(!currentUDPControl);
-
-                break;
             }
 
             break;
@@ -454,6 +371,9 @@ void GCSControlGadget::axesValues(QListInt16 values)
     double tValue = (throttleChannel > -1) ? values[throttleChannel] : 0;
     double max = 32767;
 
+    /* TODO: need to appropriately plumb */
+    double arming = -1;
+
     if (rollChannel > -1)
         if (channelReverse[rollChannel] == true)
             rValue = -rValue;
@@ -476,16 +396,16 @@ void GCSControlGadget::axesValues(QListInt16 values)
         // Mode 4: LeftX = Roll, LeftY = Throttle, RightX = Yaw, RightY = Pitch;
         switch (controlsMode) {
         case 1:
-            sticksChangedLocally(yValue / max, -pValue / max, rValue / max, -tValue / max);
+            sticksChangedLocally(yValue / max, -pValue / max, rValue / max, -tValue / max, arming);
             break;
         case 2:
-            sticksChangedLocally(yValue / max, -tValue / max, rValue / max, -pValue / max);
+            sticksChangedLocally(yValue / max, -tValue / max, rValue / max, -pValue / max, arming);
             break;
         case 3:
-            sticksChangedLocally(rValue / max, -pValue / max, yValue / max, -tValue / max);
+            sticksChangedLocally(rValue / max, -pValue / max, yValue / max, -tValue / max, arming);
             break;
         case 4:
-            sticksChangedLocally(rValue / max, -tValue / max, yValue / max, -pValue / max);
+            sticksChangedLocally(rValue / max, -tValue / max, yValue / max, -pValue / max, arming);
             break;
         }
     }

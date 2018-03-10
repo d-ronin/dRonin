@@ -140,7 +140,7 @@ QWidget *GCSControlGadgetOptionsPage::createPage(QWidget *parent)
                   << "Yaw"
                   << "Throttle"
                   << "Armed"
-                  << "GCS Control"; // added UDP control to action list
+                  << "GCS Control";
     foreach (QComboBox *qb, buttonFunctionList) {
         qb->addItems(buttonOptions);
     }
@@ -199,11 +199,6 @@ QWidget *GCSControlGadgetOptionsPage::createPage(QWidget *parent)
     connect(buttonActionList.at(7), SIGNAL(currentIndexChanged(int)), this,
             SLOT(updateButtonAction_7()));
 
-    // updateButtonFunction();
-
-    options_page->udp_host->setText(m_config->getUDPControlHost().toString());
-    options_page->udp_port->setText(QString::number(m_config->getUDPControlPort()));
-
     // Controls mode are from 1 to 4.
     if (m_config->getControlsMode() > 0 && m_config->getControlsMode() < 5)
         options_page->controlsMode->setCurrentIndex(m_config->getControlsMode() - 1);
@@ -260,9 +255,6 @@ void GCSControlGadgetOptionsPage::apply()
     }
     m_config->setRPYTchannels(roll, pitch, yaw, throttle);
 
-    m_config->setUDPControlSettings(options_page->udp_port->text().toInt(),
-                                    options_page->udp_host->text());
-
     m_config->setGcsReceiverMode(options_page->gcsReceiverCB->checkState());
 
     for (unsigned int j = 0; j < 8; j++) {
@@ -315,8 +307,7 @@ void GCSControlGadgetOptionsPage::updateButtonAction(int controlID)
                        SLOT(updateButtonFunction()));
             buttonOptions << "-"
                           << "Armed"
-                          << "GCS Control"
-                          << "UDP Control";
+                          << "GCS Control";
             buttonFunctionList.at(controlID)->clear();
             buttonFunctionList.at(controlID)->insertItems(-1, buttonOptions);
 

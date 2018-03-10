@@ -32,8 +32,6 @@
 #include <QMap>
 #include <QLabel>
 
-#define UDP_PORT 2323
-
 class Ui_GCSControl;
 
 class GCSControlGadgetWidget : public QLabel
@@ -46,14 +44,13 @@ public:
     void allowGcsControl(bool allow);
     void setGCSControl(bool newState);
     bool getGCSControl(void);
-    void setUDPControl(bool newState);
-    bool getUDPControl(void);
 
 signals:
     //! Emitted whenever the UI is clicked on to indicate the new stick positions
-    void sticksChanged(double leftX, double leftY, double rightX, double rightY);
+    void sticksChanged(double leftX, double leftY, double rightX, double rightY,
+            double arming);
     void controlEnabled(bool);
-    void flightModeChangedLocaly(ManualControlSettings::FlightModePositionOptions);
+    void flightModeChangedLocally(ManualControlSettings::FlightModePositionOptions);
 public slots:
     //! Signals from parent gadget indicating change from the remote system
     void updateSticks(double leftX, double leftY, double rightX, double rightY);
@@ -64,14 +61,14 @@ public slots:
 
 protected slots:
     void toggleControl(bool checked);
+    void toggleArming(bool checked);
     void selectFlightMode(int state);
     void flightModeChanged(quint8 mode);
-    void toggleUDPControl(int state);
     void armedChanged(quint8 armed);
 
 private:
     Ui_GCSControl *m_gcscontrol;
-    double leftX, leftY, rightX, rightY;
+    double leftX, leftY, rightX, rightY, arming;
     QMap<QString, ManualControlSettings::FlightModePositionOptions> flightModesMap;
 };
 

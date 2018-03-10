@@ -58,6 +58,7 @@ public slots:
     bool setRoll(float value);
     bool setPitch(float value);
     bool setYaw(float value);
+    bool setArming(float value);
     bool setChannel(quint8 channel, float value);
 
 private:
@@ -70,6 +71,9 @@ private:
     QTimer receiverActivity;
 
     GCSControlGadgetFactory *mf;
+
+    quint8 inverseMapping[ManualControlSettings::CHANNELGROUPS_NUMELEM];
+
 private slots:
     void objectsUpdated(UAVObject *);
     void receiverActivitySlot();

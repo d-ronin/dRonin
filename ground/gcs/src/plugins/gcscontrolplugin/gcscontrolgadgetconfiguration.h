@@ -54,9 +54,6 @@ public:
 
     void setControlsMode(int mode) { controlsMode = mode; }
     void setRPYTchannels(int roll, int pitch, int yaw, int throttle);
-    void setUDPControlSettings(int port, QString host);
-    int getUDPControlPort();
-    QHostAddress getUDPControlHost();
     int getControlsMode() { return controlsMode; }
     QList<int> getChannelsMapping();
     QList<bool> getChannelsReverse();
@@ -103,8 +100,6 @@ private:
     int throttleChannel;
     buttonSettingsStruct buttonSettings[8];
     bool channelReverse[8];
-    int udp_port;
-    QHostAddress udp_host;
 };
 
 #endif // GCSCONTROLGADGETCONFIGURATION_H
