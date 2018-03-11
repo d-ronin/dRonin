@@ -61,10 +61,10 @@ extern pios_i2c_t external_i2c_adapter_id;
 #include "coordinate_conversions.h"
 
 // Private constants
-#define SENSOR_PERIOD 6		// this allows sensor data to arrive as slow as 166Hz
+#define MAX_SENSOR_PERIOD 6	// allow sensor data as slow as 166Hz
 #define REQUIRED_GOOD_CYCLES 50
-#define MAX_TIME_BETWEEN_VALID_BARO_DATAS_MS 100*1000  // we allow a pause time of 100 ms between two valid
-                                                       // temperature/barometer dataa
+#define MAX_TIME_BETWEEN_VALID_BARO_DATAS_US (100*1000)
+#define MAX_TIME_BETWEEN_VALID_MAG_DATAS_US (300*1000)
 
 // Private types
 enum mag_calibration_algo {
@@ -230,20 +230,23 @@ bool sensors_step()
 
 	// First do everything NON-gyro/accel, so as to minimize gyro->stab
 	// latency.
-	bool test_good_run = good_runs > REQUIRED_GOOD_CYCLES;
+	bool good_run = true;
+
+	SystemAlarmsAlarmOptions fallback_severity = SYSTEMALARMS_ALARM_OK;
 
 	if (PIOS_SENSORS_GetData(PIOS_SENSOR_MAG, &mags, 0) != false) {
 		update_mags(&mags);
 #ifdef PIOS_TOLERATE_MISSING_SENSORS
-	} else if (test_good_run) {
-		if (PIOS_SENSORS_GetMissing(PIOS_SENSOR_MAG)) {
-			// Keep alarm asserted
-			test_good_run = false;
-
-			AlarmsSet(SYSTEMALARMS_ALARM_SENSORS,
-					missing_sensor_severity);
-		}
+	} else if (PIOS_SENSORS_GetMissing(PIOS_SENSOR_MAG)) {
+		fallback_severity = missing_sensor_severity;
 #endif
+	} else if (PIOS_SENSORS_IsRegistered(PIOS_SENSOR_MAG)) {
+		uint32_t dT_baro_datas = PIOS_DELAY_DiffuS(last_baro_update_time);
+		// if the last valid sensor datas older than 300 ms report an error
+		if (dT_baro_datas > MAX_TIME_BETWEEN_VALID_MAG_DATAS_US) {
+			good_run = false;
+			fallback_severity = SYSTEMALARMS_ALARM_ERROR;
+		}
 	}
 
 	if (PIOS_SENSORS_GetData(PIOS_SENSOR_BARO, &baro, 0) != false) {
@@ -253,17 +256,14 @@ bool sensors_step()
 		AlarmsClear(SYSTEMALARMS_ALARM_TEMPBARO);
 #ifdef PIOS_TOLERATE_MISSING_SENSORS
 	} else if (PIOS_SENSORS_GetMissing(PIOS_SENSOR_BARO)) {
-		// Keep alarm asserted
-		test_good_run = false;
-
-		AlarmsSet(SYSTEMALARMS_ALARM_TEMPBARO,
-				missing_sensor_severity);
+		fallback_severity = missing_sensor_severity;
 #endif
 	} else if (PIOS_SENSORS_IsRegistered(PIOS_SENSOR_BARO)) {
 		// Check that we got valid sensor datas
 		uint32_t dT_baro_datas = PIOS_DELAY_DiffuS(last_baro_update_time);
 		// if the last valid sensor datas older than 100 ms report an error
-		if (dT_baro_datas > MAX_TIME_BETWEEN_VALID_BARO_DATAS_MS) {
+		if (dT_baro_datas > MAX_TIME_BETWEEN_VALID_BARO_DATAS_US) {
+			good_run = false;
 			AlarmsSet(SYSTEMALARMS_ALARM_TEMPBARO, SYSTEMALARMS_ALARM_ERROR);
 		}
 	}
@@ -283,15 +283,14 @@ bool sensors_step()
 #endif /* PIOS_INCLUDE_RANGEFINDER */
 
 	//Block on gyro data but nothing else
-	if (PIOS_SENSORS_GetData(PIOS_SENSOR_GYRO, &gyros, SENSOR_PERIOD) == false) {
-		good_runs = 0;
-		test_good_run = false;
+	if (PIOS_SENSORS_GetData(PIOS_SENSOR_GYRO, &gyros, MAX_SENSOR_PERIOD) == false) {
+		good_run = false;
 	} else {
 		ret = true;
 	}
 
 	if (PIOS_SENSORS_GetData(PIOS_SENSOR_ACCEL, &accels, 0) == false) {
-		//If no new accels data is ready, reuse the latest sample
+		// If no new accels data is ready, reuse the latest sample
 		AccelsSet(&accelsData);
 	} else {
 		update_accels(&accels);
@@ -303,20 +302,21 @@ bool sensors_step()
 
 	// Check total time to get the sensors wasn't over the limit
 	uint32_t dT_us = PIOS_DELAY_DiffuS(timeval);
-	if (dT_us > (SENSOR_PERIOD * 1000)) {
-		good_runs = 0;
+	if (dT_us > (MAX_SENSOR_PERIOD * 1000)) {
+		good_run = false;
 	}
 
-	if (good_runs == 0) {
+	if (!good_run || (good_runs < REQUIRED_GOOD_CYCLES)) {
 		AlarmsSet(SYSTEMALARMS_ALARM_SENSORS, SYSTEMALARMS_ALARM_CRITICAL);
-	} else if (test_good_run) {
-		AlarmsClear(SYSTEMALARMS_ALARM_SENSORS);
-	}
 
-	if (ret && (!test_good_run)) {
-		good_runs++;
+		if (good_run) {
+			good_runs++;
+		} else {
+			good_runs = 0;
+		}
+	} else {
+		AlarmsSet(SYSTEMALARMS_ALARM_SENSORS, fallback_severity);
 	}
-
 
 	return ret;
 }
