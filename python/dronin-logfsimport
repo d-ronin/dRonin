@@ -15,7 +15,7 @@ def main():
     githashes = arg.githash.split(':')
     srcfile = arg.filename
 
-    imported = LogFSImport(githashes, file(srcfile, 'rb').read())
+    imported = LogFSImport(githashes, open(srcfile, 'rb').read())
 
     print(imported.ExportXML())
 
