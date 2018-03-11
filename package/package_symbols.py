@@ -60,7 +60,7 @@ class GenericSymbolDump(object):
 	def enumerate_targets(self):
 		for file in recursive_file_gen(self.root_path):
 			# might have to move down into os specific subclass if we ever package outside mingw
-			sig = subprocess.check_output(['file', '-b', file]).split(" ")
+			sig = subprocess.check_output(['file', '-b', file]).split(b' ')
 			if self.is_object_file(file, sig):
 				info("Found object file: " + os.path.relpath(file, self.root_path))
 				self.add_target(file)
@@ -120,6 +120,8 @@ class GenericSymbolDump(object):
 			return
 		elif err:
 			debug(err)
+
+        syms = syms.decode('utf-8')
 
 		lines = syms.splitlines()
 		assert(len(lines) > 0)
@@ -219,7 +221,7 @@ class LinuxSymbolDump(GenericSymbolDump):
 		name, ext = os.path.splitext(file)
 		if ext == ".debug":
 			return False
-		return sig[0].startswith("ELF")
+		return sig[0].startswith(b'ELF')
 
 	def find_debug_symbols(self, file):
 		dsym = file + ".debug"
