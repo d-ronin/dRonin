@@ -1,19 +1,9 @@
 # windows.mk
 #
 # Goals:
-#   Configure an environment that will allow Taulabs GCS and firmware to be built
-#   on a Windows system. The environment will support the current 4.8 series of the
-#   Qt Library the current versions of Qt SDK and the ARM toolchain installed to either
-#   their respective default installation locations, the Taulabs/tools directory, or made
-#   available on the system path.
+#   Configure an environment that will allow dRonin GCS and firmware to be built
+#   on a Windows system.
 #   
-# Requirements:
-#   Qt SDK - or - Qt 4.8.x Library + Qt 4.8.x MinGW toolchain
-#   msysGit
-#   Python
-
-PYTHON := python
-export PYTHON
 
 QT_SPEC ?= win32-g++
 QT_CLANG_SPEC ?= win32-clang-msvc

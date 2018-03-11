@@ -276,7 +276,7 @@ $(GCS_QMAKE_DEPS): ;
 $(GCS_QMAKE_MARKER): $(UAVOBJECT_MARKER) $(GCS_QMAKE_DEPS) $(SHAREDUSBIDDIR)/board_usb_ids.h
 	$(V1) mkdir -p $(BUILD_DIR)/ground/gcs
 	$(V1) ( cd $(BUILD_DIR)/ground/gcs && \
-	  PYTHON=$(PYTHON) $(QMAKE) $(ROOT_DIR)/ground/gcs/gcs.pro -spec $(QT_SPEC) -r CONFIG+="$(GCS_BUILD_CONF) $(GCS_SILENT)" $(GCS_QMAKE_OPTS) ; \
+	  $(QMAKE) $(ROOT_DIR)/ground/gcs/gcs.pro -spec $(QT_SPEC) -r CONFIG+="$(GCS_BUILD_CONF) $(GCS_SILENT)" $(GCS_QMAKE_OPTS) ; \
 	)
 	$(V1) touch $(GCS_QMAKE_MARKER)
 
@@ -298,7 +298,7 @@ gcs_clean:
 gcs_ts: tools_required_qt
 	$(V1) mkdir -p $(BUILD_DIR)/ground/gcs/share/translations
 	$(V1) ( cd $(BUILD_DIR)/ground/gcs/share/translations && \
-	  PYTHON=$(PYTHON) $(QMAKE) $(ROOT_DIR)/ground/gcs/share/translations/translations.pro -spec $(QT_SPEC) -r CONFIG+="$(GCS_BUILD_CONF) $(GCS_SILENT)" $(GCS_QMAKE_OPTS) && \
+	  $(QMAKE) $(ROOT_DIR)/ground/gcs/share/translations/translations.pro -spec $(QT_SPEC) -r CONFIG+="$(GCS_BUILD_CONF) $(GCS_SILENT)" $(GCS_QMAKE_OPTS) && \
 	  $(MAKE) --no-print-directory -w ts ; \
 	)
 
@@ -310,7 +310,7 @@ gcs_clazy: $(UAVOBJECT_MARKER) | tools_required_qt
 	$(V1) which clazy >/dev/null 2>&1; if [ $$? -ne 0 ]; then echo "ERROR: clazy executable not found!"; exit 1; fi
 	$(V1) mkdir -p $(BUILD_DIR)/ground/$@
 	$(V1) ( cd $(BUILD_DIR)/ground/$@ && \
-	  CLAZY_CHECKS=$(CLAZY_CHECKS) PYTHON=$(PYTHON) $(QMAKE) $(ROOT_DIR)/ground/gcs/gcs.pro -spec $(QT_CLANG_SPEC) QMAKE_CXX="clazy" -r CONFIG+="release $(GCS_SILENT)" $(GCS_QMAKE_OPTS) && \
+	  CLAZY_CHECKS=$(CLAZY_CHECKS) $(QMAKE) $(ROOT_DIR)/ground/gcs/gcs.pro -spec $(QT_CLANG_SPEC) QMAKE_CXX="clazy" -r CONFIG+="release $(GCS_SILENT)" $(GCS_QMAKE_OPTS) && \
 	  $(MAKE) --no-print-directory -w ; \
 	)
 
@@ -328,12 +328,12 @@ uavobjgenerator:
 	$(V1) mkdir -p $(BUILD_DIR)/ground/$@
 ifeq ($(USE_MSVC), NO)
 	$(V1) ( cd $(BUILD_DIR)/ground/$@ && \
-	  PYTHON=$(PYTHON) $(QMAKE) $(ROOT_DIR)/ground/uavobjgenerator/uavobjgenerator.pro -spec $(QT_SPEC) -r CONFIG+="debug $(UAVOGEN_SILENT)" && \
+	  $(QMAKE) $(ROOT_DIR)/ground/uavobjgenerator/uavobjgenerator.pro -spec $(QT_SPEC) -r CONFIG+="debug $(UAVOGEN_SILENT)" && \
 	  $(MAKE) --no-print-directory -w; \
 	)
 else
 	$(V1) ( cd $(BUILD_DIR)/ground/$@ && \
-	  PYTHON=$(PYTHON) $(QMAKE) $(ROOT_DIR)/ground/uavobjgenerator/uavobjgenerator.pro -spec $(QT_SPEC) -r CONFIG+="debug $(UAVOGEN_SILENT)" && \
+	  $(QMAKE) $(ROOT_DIR)/ground/uavobjgenerator/uavobjgenerator.pro -spec $(QT_SPEC) -r CONFIG+="debug $(UAVOGEN_SILENT)" && \
 	  MAKEFLAGS= jom $(JOM_OPTIONS); \
 	)
 endif
@@ -369,7 +369,7 @@ $(MATLAB_OUT_DIR):
 
 FORCE:
 $(MATLAB_OUT_DIR)/LogConvert.m: $(MATLAB_OUT_DIR) $(UAVOBJECT_MARKER) FORCE
-	$(V1) $(PYTHON) $(ROOT_DIR)/make/scripts/version-info.py \
+	$(V1) $(ROOT_DIR)/make/scripts/version-info.py \
 		--path=$(ROOT_DIR) \
 		--template=$(BUILD_DIR)/uavobject-synthetics/matlab/LogConvert.m.pass1 \
 		--outfile=$@ \
@@ -503,7 +503,7 @@ define UAVO_COLLECTION_BUILD_TEMPLATE
 $$(UAVO_COLLECTION_DIR)/$(1)/uavohash: $$(UAVO_COLLECTION_DIR)/$(1)/uavo-xml
         # Compute the sha1 hash for this UAVO collection
         # The sed bit truncates the UAVO hash to 16 hex digits
-	$$(V1) $(PYTHON) $$(ROOT_DIR)/make/scripts/version-info.py \
+	$$(V1) $$(ROOT_DIR)/make/scripts/version-info.py \
 			--path=$$(ROOT_DIR) \
 			--uavodir=$$(UAVO_COLLECTION_DIR)/$(1)/uavo-xml/shared/uavobjectdefinition \
 			--format='$$$${UAVOSHA1TXT}' | \
@@ -557,7 +557,7 @@ $$(UAVO_COLLECTION_DIR)/$(1)/matlab-build/LogConvert.m: $$(UAVO_COLLECTION_DIR)/
 	$$(V1) ( \
 		HASH=$$$$(cat $$(UAVO_COLLECTION_DIR)/$(1)/uavohash) && \
 		cd $$(UAVO_COLLECTION_DIR)/$(1)/matlab-build && \
-		$(PYTHON) $(ROOT_DIR)/make/scripts/version-info.py \
+		$(ROOT_DIR)/make/scripts/version-info.py \
 			--path=$$(ROOT_DIR) \
 			--template=$$(UAVO_COLLECTION_DIR)/$(1)/matlab-build/matlab/LogConvert.m.pass1 \
 		--outfile=$$@ \
@@ -925,15 +925,15 @@ $(SHAREDUSBIDDIR):
 
 $(SHAREDUSBIDDIR)/board_usb_ids.h: | $(SHAREDUSBIDDIR)
 $(SHAREDUSBIDDIR)/board_usb_ids.h: $(ROOT_DIR)/shared/usb_ids/usb_ids.json
-	$(V1) $(PYTHON) $(ROOT_DIR)/shared/usb_ids/generate_usb_files.py -i "$<" -c "$@"
+	$(V1) $(ROOT_DIR)/shared/usb_ids/generate_usb_files.py -i "$<" -c "$@"
 
 $(SHAREDUSBIDDIR)/dronin.udev: | $(SHAREDUSBIDDIR)
 $(SHAREDUSBIDDIR)/dronin.udev: $(ROOT_DIR)/shared/usb_ids/usb_ids.json
-	$(V1) $(PYTHON) $(ROOT_DIR)/shared/usb_ids/generate_usb_files.py -i "$<" -u "$@"
+	$(V1) $(ROOT_DIR)/shared/usb_ids/generate_usb_files.py -i "$<" -u "$@"
 
 $(SHAREDUSBIDDIR)/dronin_cdc.inf: | $(SHAREDUSBIDDIR)
 $(SHAREDUSBIDDIR)/dronin_cdc.inf: $(ROOT_DIR)/shared/usb_ids/usb_ids.json
-	$(V1) $(PYTHON) $(ROOT_DIR)/shared/usb_ids/generate_usb_files.py -i "$<" -d "$@"
+	$(V1) $(ROOT_DIR)/shared/usb_ids/generate_usb_files.py -i "$<" -d "$@"
 
 # $(1) = Canonical board name all in lower case (e.g. coptercontrol)
 define BOARD_PHONY_TEMPLATE
@@ -1099,14 +1099,14 @@ $(foreach ut, $(ALL_UNITTESTS), $(eval $(call UT_TEMPLATE,$(ut))))
 .PHONY: python_ut_test
 python_ut_test:
 	$(V0) @echo "  PYTHON_UT test.py"
-	$(V1) $(PYTHON) python/test.py
+	$(V1) python/test.py
 
 .PHONY: python_ut_ins
 python_ut_ins:
 	$(V0) @echo "  PYTHON_UT ins/test.py"
 	$(V1) ( cd python/ins && \
-	  $(PYTHON) setup.py build_ext --inplace && \
-	  $(PYTHON) test.py \
+	  ./setup.py build_ext --inplace && \
+	  ./test.py \
 	)
 
 .PHONY: gcs_ut_test
@@ -1182,7 +1182,7 @@ docs: $(DOCS_BUILD_TARGETS)
 
 docs_clean: $(DOCS_CLEAN_TARGETS)
 
-$(DOCS_BUILD_TARGETS): export PROJECT_REV:=$(shell $(PYTHON) $(ROOT_DIR)/make/scripts/version-info.py \
+$(DOCS_BUILD_TARGETS): export PROJECT_REV:=$(shell $(ROOT_DIR)/make/scripts/version-info.py \
 		--path=$(ROOT_DIR) \
 		--format="\$$TAG_OR_HASH8\$$DIRTY")
 $(DOCS_BUILD_TARGETS): docs_%: $(BUILD_DIR) uavobjects
