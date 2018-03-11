@@ -29,7 +29,7 @@ def main():
 
     tStream.wait_connection()
 
-    sys.stdout.write(tStream.transfer_file(3))
+    sys.stdout.buffer.write(tStream.transfer_file(4)) #4 is autotune data
 
 #-------------------------------------------------------------------------------
 
