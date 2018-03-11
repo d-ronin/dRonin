@@ -561,6 +561,10 @@ int32_t transmitter_control_select(bool reset_controller)
 	case FLIGHTSTATUS_FLIGHTMODE_STABILIZED3:
 	case FLIGHTSTATUS_FLIGHTMODE_FAILSAFE:
 	case FLIGHTSTATUS_FLIGHTMODE_AUTOTUNE:
+	case FLIGHTSTATUS_FLIGHTMODE_LQG:
+	case FLIGHTSTATUS_FLIGHTMODE_LQGLEVELING:
+		update_stabilization_desired(&cmd, &settings);
+		break;
 	case FLIGHTSTATUS_FLIGHTMODE_ALTITUDEHOLD:
 		update_stabilization_desired(&cmd, &settings);
 		break;
@@ -1007,6 +1011,7 @@ static inline float scale_stabilization(StabilizationSettingsData *stabSettings,
 		case SHAREDDEFS_STABILIZATIONMODE_RATE:
 		case SHAREDDEFS_STABILIZATIONMODE_WEAKLEVELING:
 		case SHAREDDEFS_STABILIZATIONMODE_AXISLOCK:
+		case SHAREDDEFS_STABILIZATIONMODE_LQG:
 			cmd = expoM(cmd, stabSettings->RateExpo[axis],
 					stabSettings->RateExponent[axis]*0.1f);
 			return cmd * stabSettings->ManualRate[axis];
@@ -1019,6 +1024,7 @@ static inline float scale_stabilization(StabilizationSettingsData *stabSettings,
 			return cmd;
 		case SHAREDDEFS_STABILIZATIONMODE_SYSTEMIDENT:
 		case SHAREDDEFS_STABILIZATIONMODE_ATTITUDE:
+		case SHAREDDEFS_STABILIZATIONMODE_ATTITUDELQG:
 			return cmd * stabSettings->MaxLevelAngle[axis];
 		case SHAREDDEFS_STABILIZATIONMODE_HORIZON:
 			cmd = expo3(cmd, stabSettings->HorizonExpo[axis]);
@@ -1076,6 +1082,15 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
 	const uint8_t SYSTEMIDENT_SETTINGS[3] = {  STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT,
                                           STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT,
                                           STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENTRATE };
+
+	const uint8_t LQG_SETTINGS[3] = {  STABILIZATIONDESIRED_STABILIZATIONMODE_LQG,
+                                       STABILIZATIONDESIRED_STABILIZATIONMODE_LQG,
+                                       STABILIZATIONDESIRED_STABILIZATIONMODE_LQG };
+
+	const uint8_t ATTITUDELQG_SETTINGS[3] = {  STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDELQG,
+                                               STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDELQG,
+                                               STABILIZATIONDESIRED_STABILIZATIONMODE_LQG };
+
 	const uint8_t * stab_modes = ATTITUDE_SETTINGS;
 
 	uint8_t reprojection = STABILIZATIONDESIRED_REPROJECTIONMODE_NONE;
@@ -1137,6 +1152,12 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
 				STABILIZATIONDESIRED_THRUSTMODE_ALTITUDEWITHSTICKSCALING;
 			break;
 #endif
+		case FLIGHTSTATUS_FLIGHTMODE_LQG:
+			stab_modes = LQG_SETTINGS;
+			break;
+		case FLIGHTSTATUS_FLIGHTMODE_LQGLEVELING:
+			stab_modes = ATTITUDELQG_SETTINGS;
+			break;
 		default:
 			{
 				// Major error, this should not occur because only enter this block when one of these is true
