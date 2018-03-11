@@ -115,7 +115,7 @@
         <elementname>ILimit</elementname>
       </elementnames>
     </field>
-    <field defaultvalue="0.0035,0.0035,0.0,0.3" limits="%BE:0:0.01,%BE:0:0.05,, " name="YawRatePID" type="float" units="">
+    <field defaultvalue="0.0035,0.0035,0.0,0.3" limits="%BE:0:0.015,%BE:0:0.06,, " name="YawRatePID" type="float" units="">
       <description/>
       <elementnames>
         <elementname>Kp</elementname>
