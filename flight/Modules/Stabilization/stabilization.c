@@ -1258,7 +1258,12 @@ static void stabilizationTask(void* parameters)
 		}
 
 		// Run the smoothing over the throttle stick.
-		smoothcontrol_run_thrust(rc_smoothing, &actuatorDesired.Thrust);
+		if (actuatorDesired.Thrust > THROTTLE_EPSILON || actuatorDesired.Thrust < -THROTTLE_EPSILON){
+			smoothcontrol_run_thrust(rc_smoothing, &actuatorDesired.Thrust);
+		} else {
+			/* Between the epsilons, we're at zero thrust. Reset smoothcontrol and leave ActuatorDesired be. */
+			smoothcontrol_reinit_thrust(rc_smoothing, 0);
+		}
 
 		// Register loop.
 		smoothcontrol_next(rc_smoothing);

@@ -35,6 +35,7 @@ void smoothcontrol_next(smoothcontrol_state state);
 void smoothcontrol_run(smoothcontrol_state state, uint8_t axis_num, float *new_signal);
 void smoothcontrol_run_thrust(smoothcontrol_state state, float *new_signal);
 void smoothcontrol_reinit(smoothcontrol_state state, uint8_t axis_num, float new_signal);
+void smoothcontrol_reinit_thrust(smoothcontrol_state state, float new_signal);
 void smoothcontrol_set_mode(smoothcontrol_state state, uint8_t axis_num, uint8_t mode, uint8_t duty_cycle);
 bool* smoothcontrol_get_ringer(smoothcontrol_state state);
 

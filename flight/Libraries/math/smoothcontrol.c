@@ -86,6 +86,12 @@ void smoothcontrol_reinit(smoothcontrol_state state, uint8_t axis_num, float new
 	state->axis[axis_num].current = new_signal;
 }
 
+// Resets the thrust state.
+void smoothcontrol_reinit_thrust(smoothcontrol_state state, float new_signal)
+{
+	smoothcontrol_reinit(state, 3, new_signal);
+}
+
 // Sets mode for an axis.
 void smoothcontrol_set_mode(smoothcontrol_state state, uint8_t axis_num, uint8_t mode, uint8_t duty_cycle)
 {
