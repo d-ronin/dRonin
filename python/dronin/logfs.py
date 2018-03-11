@@ -7,7 +7,7 @@ from datetime import datetime
 try:
     import lxml.etree as etree
 except:
-    import xml.etree.etree as etree
+    import xml.etree.ElementTree as etree
 
 def _prettify(elem):
     """Return a pretty-printed XML string for the Element.
