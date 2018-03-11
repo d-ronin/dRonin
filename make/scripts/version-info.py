@@ -318,9 +318,9 @@ def sha1(file):
     else:
         sha1 = hashlib.sha1()
         with open(file, 'rb') as f:
-            for chunk in iter(lambda: f.read(8192), ''):
+            for chunk in iter(lambda: f.read(8192), b''):
                 sha1.update(chunk)
-        hex_stream = lambda s:",".join(['0x'+hex(ord(c))[2:].zfill(2) for c in s])
+        hex_stream = lambda s:",".join(['0x'+hex(c)[2:].zfill(2) for c in s])
         return hex_stream(sha1.digest())
 
 def xtrim(string, suffix, length):
@@ -358,7 +358,7 @@ def GetHashofDirs(directory, verbose=0, raw=0, what_to_hash='..*.xml$'):
           print('Hashing', names)
         filepath = os.path.join(root,names)
         try:
-          f1 = open(filepath, 'rU')
+          f1 = open(filepath, 'rb')
         except:
           # You can't open the file for some reason
           continue
@@ -376,7 +376,7 @@ def GetHashofDirs(directory, verbose=0, raw=0, what_to_hash='..*.xml$'):
           print('Hash is', f1hash.hexdigest())
 
         # Append the hex representation of the current file's hash into the cumulative hash
-        SHAhash.update(f1hash.hexdigest())
+        SHAhash.update(f1hash.hexdigest().encode('ascii'))
 
   except:
     import traceback
@@ -390,7 +390,7 @@ def GetHashofDirs(directory, verbose=0, raw=0, what_to_hash='..*.xml$'):
   if raw == 1:
       return SHAhash.hexdigest()
   else:
-      hex_stream = lambda s:",".join(['0x'+hex(ord(c))[2:].zfill(2) for c in s])
+      hex_stream = lambda s:",".join(['0x'+hex(c)[2:].zfill(2) for c in s])
       return hex_stream(SHAhash.digest())
 
 def main():
