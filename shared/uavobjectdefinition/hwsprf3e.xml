@@ -21,11 +21,7 @@
         <option>FrSKY Sensor Hub</option>
         <option>FrSKY SPort Telemetry</option>
         <option>GPS</option>
-        <option>HoTT Telemetry</option>
         <option>I2C</option>
-        <option>LighttelemetryTx</option>
-        <option>MavLinkTX</option>
-        <option>MavLinkTX_GPS_RX</option>
         <option>MSP</option>
         <option>OpenLog</option>
         <option>Storm32Bgc</option>
@@ -50,11 +46,7 @@
         <option>FrSKY Sensor Hub</option>
         <option>FrSKY SPort Telemetry</option>
         <option>GPS</option>
-        <option>HoTT Telemetry</option>
         <option>I2C</option>
-        <option>LighttelemetryTx</option>
-        <option>MavLinkTX</option>
-        <option>MavLinkTX_GPS_RX</option>
         <option>MSP</option>
         <option>OpenLog</option>
         <option>Storm32Bgc</option>
@@ -75,10 +67,6 @@
         <option>FrSKY Sensor Hub</option>
         <option>FrSKY SPort Telemetry</option>
         <option>GPS</option>
-        <option>HoTT Telemetry</option>
-        <option>LighttelemetryTx</option>
-        <option>MavLinkTX</option>
-        <option>MavLinkTX_GPS_RX</option>
         <option>MSP</option>
         <option>OpenLog</option>
         <option>S.Bus</option>
