@@ -217,6 +217,12 @@ static void FLIGHTMODE_update(charosd_state_t state, uint8_t x, uint8_t y)
 		// There are many sub modes here that could be filled in.
 		mode = "TAB";
 		break;
+	case FLIGHTSTATUS_FLIGHTMODE_LQG:
+		mode = "LQGR";
+		break;
+	case FLIGHTSTATUS_FLIGHTMODE_LQGLEVELING:
+		mode = "LQGA";
+		break;
 	}
 
 	draw_rect(state, x, y, 6, 3, 0, 0);

@@ -716,6 +716,12 @@ void draw_flight_mode(int x, int y, int xs, int ys, int va, int ha, int flags, i
 			break;
 		}
 		break;
+	case FLIGHTSTATUS_FLIGHTMODE_LQG:
+		write_string("LQG-R", x, y, xs, ys, va, ha, flags, font);
+		break;
+	case FLIGHTSTATUS_FLIGHTMODE_LQGLEVELING:
+		write_string("LQG-L", x, y, xs, ys, va, ha, flags, font);
+		break;
 	}
 }
 
