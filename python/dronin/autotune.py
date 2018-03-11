@@ -72,7 +72,7 @@ def process_autotune_lump(contents, filter_freq=55, filter_order=0):
         frame['deriv' + col] = deriv[col]
 
     # And then take the last half of the data to un-duplicate it
-    frame = frame.iloc[len(frame) /2:]
+    frame = frame.iloc[int(len(frame) /2):]
 
     return (frame, time_step)
 
