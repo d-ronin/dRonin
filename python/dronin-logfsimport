@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Proof of concept example of using the logfs api.
 from dronin.logfs import LogFSImport
@@ -15,7 +15,7 @@ def main():
     githashes = arg.githash.split(':')
     srcfile = arg.filename
 
-    imported = LogFSImport(githashes, file(srcfile, 'rb').read())
+    imported = LogFSImport(githashes, open(srcfile, 'rb').read())
 
     print(imported.ExportXML())
 

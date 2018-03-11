@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 **
@@ -34,7 +34,7 @@
 import os.path as op
 
 from string import Template
-from itertools import izip, chain, repeat
+from itertools import chain, repeat
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -118,14 +118,14 @@ const struct FontEntry* fonts[NUM_FONTS] = {$CONTENT};
 
 def grouper(n, iterable, padvalue=None):
     "grouper(3, 'abcdefg', 'x') --> ('a','b','c'), ('d','e','f'), ('g','x','x')"
-    return izip(*[chain(iterable, repeat(padvalue, n-1))]*n)
+    return zip(*[chain(iterable, repeat(padvalue, n-1))]*n)
 
 
 def encode_font(fname, start, last):
     img = img=mpimg.imread(fname)
     height, width, depth = img.shape
-    font_height = height / 16
-    font_width = width / 16
+    font_height = int(height / 16)
+    font_width = int(width / 16)
     if font_width * 16 != width or font_height * 16 != height:
         raise RuntimeError("width or height of image is not divisable by 16!")
     gray = np.max(img[:, :, :3], axis=-1)
@@ -142,13 +142,13 @@ def encode_font(fname, start, last):
     lookup = np.zeros(256, dtype=np.uint8)
     lookup.fill(255)
     for ii in range(start, last + 1):
-        row = ii / 16 * font_height
+        row = int(ii / 16) * font_height
         col = (ii % 16) * font_width
         if np.sum(mask[row:row + font_height, col:col + font_width]) > 0:
             lookup[ii] = pos
             pos += 1
     n_active = pos + 1
-    print 'Encoding %s: %d x %d pixels / character. Active characters: %d' % (fname, font_width, font_height, n_active)
+    print('Encoding %s: %d x %d pixels / character. Active characters: %d' % (fname, font_width, font_height, n_active))
 
     out_height = n_active * font_height
     # width in bytes
@@ -165,14 +165,14 @@ def encode_font(fname, start, last):
         if entry == 255:
             continue
         for row in range(0, font_height):
-            row_in = ii / 16 * font_height + row
-            for col in xrange(font_width):
+            row_in = int(ii / 16) * font_height + row
+            for col in range(font_width):
                 col_in = (ii % 16) * font_width + col
                 if mask[row_in, col_in]:
-                    pos = col / 8
+                    pos = int(col / 8)
                     mask_buffer[row_out, pos] |= 0x01 << (7 - (col % 8))
                     level_buffer[row_out, pos] |= ~bw[row_in, col_in] << (7 - (col % 8))
-                    pos = col / 4
+                    pos = int(col / 4)
                     data_buffer[row_out, pos] |= (bw[row_in, col_in] << (7 - 2 * (col % 4))) | (0x01 << (6 - 2 * (col % 4)))
             row_out += 1
     
@@ -206,10 +206,10 @@ def c_format_font(fid, name, font, buffer_names, buffers, row_width=16):
                 for byte in row:
                     fid.write('0x%0.2X, ' % byte)
             elif word_size == 16:
-                for pos in range(len(row) / 2):
+                for pos in range(int(len(row) / 2)):
                     fid.write('0x%0.2X%0.2X, ' % (row[2 * pos], row[2 * pos + 1]))
             elif word_size == 32:
-                    for pos in range(len(row) / 4):
+                    for pos in range(int(len(row) / 4)):
                         value = (row[4 * pos], row[4 * pos + 1], row[4 * pos + 2], row[4 * pos + 3])
                         fid.write('0x%0.2X%0.2X%0.2X%0.2X, ' % value)
             if ii < n_rows - 1:
@@ -236,7 +236,7 @@ if __name__ == '__main__':
 
     in_files = args
     names = [fname[:-4] for fname in in_files]
-    print 'Input fonts: %s' % str(in_files)
+    print('Input fonts: %s' % str(in_files))
     fonts = dict()
     for name,fname in zip(names, in_files):
         fonts[name] = encode_font(fname, options.start, options.last)

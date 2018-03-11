@@ -72,12 +72,6 @@ LIBS =
 # pass only the first few names in the list to the shell, for some
 # reason.
 #
-# Therefore, we have a script to generate the plugin.c file.
-# The shell script runs slowly, as multiple greps and seds are run
-# for each input file; this is especially slow on Windows.  Therefore,
-# if Python is present (as indicated by PYTHON being defined), we run
-# a faster Python script to do that work instead.
-#
 # The first argument is the directory in which the source files live.
 # The second argument is "plugin", to indicate that we should build
 # a plugin.c file for a plugin.
@@ -85,7 +79,7 @@ LIBS =
 #
 plugin.c: $(DISSECTOR_SRC) Makefile.common $(top_srcdir)/tools/make-dissector-reg.py
 	@echo Making plugin.c
-	@$(PYTHON) $(top_srcdir)/tools/make-dissector-reg.py $(srcdir) plugin $(DISSECTOR_SRC)
+	@$(top_srcdir)/tools/make-dissector-reg.py $(srcdir) plugin $(DISSECTOR_SRC)
 
 
 #

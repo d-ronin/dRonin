@@ -342,7 +342,7 @@ endif
 REMOVE  = rm -f
 
 $(OUTDIR)/sim_firmwareinfo.c: $(ROOT_DIR)/make/templates/firmwareinfotemplate.c
-	$(V1) $(PYTHON) $(ROOT_DIR)/make/scripts/version-info.py \
+	$(V1) $(ROOT_DIR)/make/scripts/version-info.py \
 		--path=$(ROOT_DIR) \
 		--template=$^ \
 		--outfile=$@ \

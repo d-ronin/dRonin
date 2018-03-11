@@ -311,7 +311,7 @@ class TelemetryBase(with_metaclass(ABCMeta)):
                 return response[0]
 
     def filedata_callback(self, file_id, offset, eof, last_chunk, data):
-        #print "Offs %d fd=[%s]" % (offset, data.encode("hex"))
+        #print("Offs %d fd=[%s]" % (offset, data.hex()))
         with self.ack_cond:
             if self.file_id != file_id:
                 return
