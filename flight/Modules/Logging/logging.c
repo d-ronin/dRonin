@@ -66,6 +66,8 @@
 #include "systemident.h"
 #include "velocityactual.h"
 #include "waypointactive.h"
+#include "rtkfestimate.h"
+#include "lqgsolution.h"
 
 #include "pios_bl_helper.h"
 #include "pios_streamfs_priv.h"
@@ -644,6 +646,14 @@ static void register_default_profile()
 	// Log very very slow
 	if (GPSSatellitesHandle()) {
 		UAVObjConnectCallbackThrottled(GPSSatellitesHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED, 500 * min_period);
+	}
+
+	// Log LQG data
+	if (RTKFEstimateHandle()) {
+		UAVObjConnectCallbackThrottled(RTKFEstimateHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED, 2 * min_period);
+	}
+	if (LQGSolutionHandle()) {
+		UAVObjConnectCallbackThrottled(LQGSolutionHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED, 100 * min_period);
 	}
 }
 
