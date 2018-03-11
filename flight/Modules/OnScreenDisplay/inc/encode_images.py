@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from string import Template
-from itertools import izip, chain, repeat
+from itertools import chain, repeat
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -49,12 +49,12 @@ static const struct Image image_$name = {
 
 def grouper(n, iterable, padvalue=None):
     "grouper(3, 'abcdefg', 'x') --> ('a','b','c'), ('d','e','f'), ('g','x','x')"
-    return izip(*[chain(iterable, repeat(padvalue, n-1))]*n)
+    return zip(*[chain(iterable, repeat(padvalue, n-1))]*n)
 
 def encode_image(fname):
     img = img=mpimg.imread(fname)
     height, width, depth = img.shape
-    print 'Encoding %s: %d x %d pixels' % (fname, width, height)
+    print('Encoding %s: %d x %d pixels' % (fname, width, height))
     gray = np.max(img[:, :, :3], axis=-1)
     bw = gray > 0.9
 
@@ -73,13 +73,13 @@ def encode_image(fname):
     byte_width = int(np.ceil(width / float(4)))
     data_buffer = np.zeros((height, byte_width), dtype=np.uint8)
 
-    for row in xrange(height):
-        for col in xrange(width):
+    for row in range(height):
+        for col in range(width):
             if mask[row, col]:
-                pos = col / 8
+                pos = int(col / 8)
                 mask_buffer[row, pos] |= 0x01 << (7 - (col % 8))
                 level_buffer[row, pos] |= bw[row, col] << (7 - (col % 8))
-                pos = col / 4
+                pos = int(col / 4)
                 data_buffer[row, pos] |= (bw[row, col] << (7 - 2 * (col % 4))) | (0x01 << (6 - 2 * (col % 4)))
     image = dict(width=4*byte_width, width_split=8*byte_width_split, height=height, mask=mask_buffer,
                  level=level_buffer, data=data_buffer)
@@ -112,7 +112,7 @@ if __name__ == '__main__':
     options, args = parser.parse_args()
 
     in_files = args
-    print 'Input images: %s' % str(in_files)
+    print('Input images: %s' % str(in_files))
     images = dict()
     for fname in in_files:
         images[fname[:-4]] = encode_image(fname)
@@ -121,13 +121,13 @@ if __name__ == '__main__':
         fid.write('#ifndef IMAGES_H\n#define IMAGES_H\n')
         fid.write('#if defined(PIOS_VIDEO_SPLITBUFFER)\n')
         fid.write(img_c_typedef_split)
-        for name, image in images.iteritems():
+        for name, image in images.items():
             c_format_image(fid, name, image, buffers=('level', 'mask'))
             fid.write(img_c_template_split.substitute(width=image['width_split'],
                                                       height=image['height'], name=name))
         fid.write('#else /* defined(PIOS_VIDEO_SPLITBUFFER) */\n')
         fid.write(img_c_typedef)
-        for name, image in images.iteritems():
+        for name, image in images.items():
             c_format_image(fid, name, image, buffers=('data',))
             fid.write(img_c_template.substitute(width=image['width'],
                                                 height=image['height'], name=name))
