@@ -18,5 +18,11 @@
     <field defaultvalue="0.0" elements="1" name="HoverThrottle" type="float" units="% / 100">
       <description>Measurement of the amount of throttle required to hover</description>
     </field>
+    <field name="Tau" units="s" type="float" elementnames="Roll,Pitch,Yaw" defaultvalue="0">
+      <description>Estimated response time per axis.</description>
+    </field>
+    <field name="Beta" units="" type="float" elementnames="Roll,Pitch,Yaw" defaultvalue="0">
+      <description>Estimated torque per axis.</description>
+    </field>
   </object>
 </xml>

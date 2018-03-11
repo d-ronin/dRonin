@@ -59,6 +59,9 @@
 #include "systemsettings.h"
 #include "manualcontrolcommand.h"
 #include "vbarsettings.h"
+#include "lqgsettings.h"
+#include "rtkfestimate.h"
+#include "lqgsolution.h"
 
 #include "altitudeholdsettings.h"
 #include "altitudeholdstate.h"
@@ -71,6 +74,7 @@
 #include "pid.h"
 #include "misc_math.h"
 #include "smoothcontrol.h"
+#include "lqg.h"
 
 // Sensors subsystem which runs in this task
 #include "sensors.h"
@@ -165,6 +169,9 @@ static float altitude_hold_maxdescentrate;
 
 static struct pid pids[PID_MAX];
 static smoothcontrol_state rc_smoothing;
+#if defined(STABILIZATION_LQG)
+static lqg_t lqg[MAX_AXES];
+#endif
 
 #ifndef NO_CONTROL_DEADBANDS
 struct pid_deadband *deadbands = NULL;
@@ -230,6 +237,15 @@ int32_t StabilizationInitialize()
 		|| VbarSettingsInitialize() == -1) {
 		return -1;
 	}
+
+#if defined(STABILIZATION_LQG)
+	if (LQGSettingsInitialize() == -1 ||
+		SystemIdentInitialize() == -1 ||
+		RTKFEstimateInitialize() == -1 ||
+		LQGSolutionInitialize() == -1) {
+		return -1;
+	}
+#endif
 
 #if defined(RATEDESIRED_DIAGNOSTICS)
 	if (RateDesiredInitialize() == -1) {
@@ -373,6 +389,7 @@ static void calculate_attitude_errors(uint8_t *axis_mode, float *raw_input,
 			case STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON:
 			case STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING:
 			case STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE:
+			case STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDELQG:
 			case STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT:
 				break;
 			default:
@@ -405,6 +422,83 @@ static void calculate_attitude_errors(uint8_t *axis_mode, float *raw_input,
 	// Wrap yaw error to [-180,180]
 	local_attitude_error[YAW] = circular_modulus_deg(local_attitude_error[YAW]);
 }
+
+#if defined(STABILIZATION_LQG)
+static void initialize_lqg_controllers(float dT)
+{
+	if (SystemIdentHandle()) {
+		SystemIdentData sysIdent;
+		SystemIdentGet(&sysIdent);
+
+		LQGSettingsData lqgSettings;
+		LQGSettingsGet(&lqgSettings);
+
+		for (int i = 0; i < MAX_AXES; i++) {
+			if (lqg[i]) {
+				/* Update Q matrix. */
+				lqr_t lqr = lqg_get_lqr(lqg[i]);
+				lqr_update(lqr, 
+						lqgSettings.LQR[i == YAW ? LQGSETTINGS_LQR_YAWQ1 : LQGSETTINGS_LQR_Q1],
+						lqgSettings.LQR[i == YAW ? LQGSETTINGS_LQR_YAWQ2 : LQGSETTINGS_LQR_Q2]
+					);
+			} else {
+				/* Initial setup. */
+				float beta = sysIdent.Beta[i];
+				float tau = (sysIdent.Tau[0] + sysIdent.Tau[1]) * 0.5f;
+
+				if (i == YAW)
+				{
+					beta += lqgSettings.LQR[LQGSETTINGS_LQR_YAWBETAOFFSET];
+				}
+
+				if (tau > 0.001f && beta > 6) {
+					rtkf_t rtkf = rtkf_create(beta, tau, dT, 
+							lqgSettings.RTKF[i == YAW ? LQGSETTINGS_RTKF_YAWR : LQGSETTINGS_RTKF_R],
+							lqgSettings.RTKF[LQGSETTINGS_RTKF_Q1],
+							lqgSettings.RTKF[LQGSETTINGS_RTKF_Q2],
+							lqgSettings.RTKF[LQGSETTINGS_RTKF_Q3],
+							lqgSettings.RTKF[LQGSETTINGS_RTKF_BIASLIMIT]
+						);
+					lqr_t lqr = lqr_create(beta, tau, dT,
+							lqgSettings.LQR[i == YAW ? LQGSETTINGS_LQR_YAWQ1 : LQGSETTINGS_LQR_Q1],
+							lqgSettings.LQR[i == YAW ? LQGSETTINGS_LQR_YAWQ2 : LQGSETTINGS_LQR_Q2]
+						);
+					lqg[i] = lqg_create(rtkf, lqr);
+				}
+			}
+		}
+	}
+}
+
+static void dump_lqg_solution(lqg_t lqg, int axis)
+{
+	if (lqg_is_solved(lqg)) {
+		LQGSolutionData lqgsol;
+		LQGSolutionGet(&lqgsol);
+
+		lqr_t lqr = lqg_get_lqr(lqg);
+		float K[2];
+		lqr_get_gains(lqr, K);
+
+		switch(axis) {
+			case ROLL:
+				lqgsol.RollK[0] = K[0];
+				lqgsol.RollK[1] = K[1];
+				break;
+			case PITCH:
+				lqgsol.PitchK[0] = K[0];
+				lqgsol.PitchK[1] = K[1];
+				break;
+			case YAW:
+				lqgsol.YawK[0] = K[0];
+				lqgsol.YawK[1] = K[1];
+				break;
+		}
+
+		LQGSolutionSet(&lqgsol);
+	}
+}
+#endif
 
 MODULE_HIPRI_INITCALL(StabilizationInitialize, StabilizationStart);
 
@@ -610,6 +704,7 @@ static void stabilizationTask(void* parameters)
 
 	volatile bool settings_updated = true;
 	volatile bool flightstatus_updated = true;
+	volatile bool lqgsettings_updated = true;
 
 	float *actuatorDesiredAxis = &actuatorDesired.Roll;
 	float *rateDesiredAxis = &rateDesired.Roll;
@@ -631,6 +726,7 @@ static void stabilizationTask(void* parameters)
 	 */
 	PIOS_Assert(!PIOS_SENSORS_IsRegistered(PIOS_SENSOR_BARO));
 #endif
+	LQGSettingsConnectCallbackCtx(UAVObjCbSetFlag, &lqgsettings_updated);
 
 	smoothcontrol_initialize(&rc_smoothing);
 	ManualControlCommandConnectCallbackCtx(UAVObjCbSetFlag, smoothcontrol_get_ringer(rc_smoothing));
@@ -744,6 +840,14 @@ static void stabilizationTask(void* parameters)
 			flightstatus_updated = false;
 		}
 
+		if (lqgsettings_updated) {
+#if defined(STABILIZATION_LQG)
+			/* Set up LQG controllers. */
+			initialize_lqg_controllers(dT_expected);
+#endif
+			lqgsettings_updated = false;
+		}
+
 		StabilizationDesiredGet(&stabDesired);
 		AttitudeActualGet(&attitudeActual);
 		GyrosGet(&gyrosData);
@@ -834,6 +938,18 @@ static void stabilizationTask(void* parameters)
 
 		uint16_t max_safe_rate = PIOS_SENSORS_GetMaxGyro() * 0.9f;
 
+#if defined(STABILIZATION_LQG)
+		bool lqg_in_use = false;
+
+		for (int i = 0; i < MAX_AXES; i++) {
+			/* Solve for LQG, if it's configured for an axis. */
+			if (lqg[i] && !lqg_is_solved(lqg[i])) {
+				lqg_run_covariance(lqg[i], 1);
+				dump_lqg_solution(lqg[i], i);
+			}
+		}
+#endif
+
 		//Run the selected stabilization algorithm on each axis:
 		for (uint8_t i = 0; i < MAX_AXES; i++) {
 			// Check whether this axis mode needs to be reinitialized
@@ -846,6 +962,27 @@ static void stabilizationTask(void* parameters)
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE:
 					PIOS_Assert(0); /* Shouldn't happen, per above */
 					break;
+
+				case STABILIZATIONDESIRED_STABILIZATIONMODE_LQG:
+#if defined(STABILIZATION_LQG)
+					if (lqg[i] && lqg_is_solved(lqg[i])) {
+						if (reinit) {
+							lqg_set_x0(lqg[i], gyro_filtered[i]);
+						}
+						lqg_in_use = true;
+
+						/* Store to rate desired variable for storing to UAVO */
+						rateDesiredAxis[i] = bound_sym(raw_input[i], settings.ManualRate[i]);
+
+						/* Compute the inner loop */
+						actuatorDesiredAxis[i] = lqg_controller(lqg[i], gyro_filtered[i], rateDesiredAxis[i]);
+						/* The LQG controller bounds data already, but whatever. */
+						actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i], 1.0f);
+						break;
+					}
+#endif
+					/* Fall through to rate, if LQR gains haven't been solved yet, or if
+					   LQG wasn't initialized. */
 
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_RATE:
 					if(reinit) {
@@ -933,6 +1070,31 @@ static void stabilizationTask(void* parameters)
 					actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i], 1.0f);
 
 					break;
+
+				case STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDELQG:
+#if defined(STABILIZATION_LQG)
+					if (lqg[i] && lqg_is_solved(lqg[i])) {
+						if (reinit) {
+							pids[PID_GROUP_ATT + i].iAccumulator = 0;
+							lqg_set_x0(lqg[i], gyro_filtered[i]);
+						}
+						lqg_in_use = true;
+
+						/* Store to rate desired variable for storing to UAVO */
+						// Compute the outer loop
+						rateDesiredAxis[i] = pid_apply(&pids[PID_GROUP_ATT + i], local_attitude_error[i]);
+						rateDesiredAxis[i] = bound_sym(rateDesiredAxis[i], settings.MaximumRate[i]);
+
+						/* Compute the inner loop */
+						actuatorDesiredAxis[i] = lqg_controller(lqg[i], gyro_filtered[i], rateDesiredAxis[i]);
+						/* The LQG controller bounds data already, but whatever. */
+						actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i], 1.0f);
+						break;
+					}
+#endif
+					/* Fall through to attitude, if LQR gains haven't been solved yet, or if
+					   LQG wasn't initialized. */
+
 
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE:
 					if(reinit) {
@@ -1267,6 +1429,26 @@ static void stabilizationTask(void* parameters)
 					break;
 			}
 		}
+
+#if defined(STABILIZATION_LQG)
+		/* If there's a LQG controller running, dump the RTKF state for logging. */
+		if (lqg_in_use && (lqg[0] || lqg[1] || lqg[2])) {
+			RTKFEstimateData est = { 0 };
+			if (lqg[0]) {
+				lqg_get_rtkf_state(lqg[0],
+					&est.Rate[RTKFESTIMATE_RATE_ROLL], &est.Torque[RTKFESTIMATE_TORQUE_ROLL], &est.Bias[RTKFESTIMATE_BIAS_ROLL]);
+			}
+			if (lqg[1]) {
+				lqg_get_rtkf_state(lqg[1],
+					&est.Rate[RTKFESTIMATE_RATE_PITCH], &est.Torque[RTKFESTIMATE_TORQUE_PITCH], &est.Bias[RTKFESTIMATE_BIAS_PITCH]);
+			}
+			if (lqg[2]) {
+				lqg_get_rtkf_state(lqg[2],
+					&est.Rate[RTKFESTIMATE_RATE_YAW], &est.Torque[RTKFESTIMATE_TORQUE_YAW], &est.Bias[RTKFESTIMATE_BIAS_YAW]);
+			}
+			RTKFEstimateSet(&est);
+		}
+#endif
 
 		// Run the smoothing over the throttle stick.
 		if (actuatorDesired.Thrust > THROTTLE_EPSILON || actuatorDesired.Thrust < -THROTTLE_EPSILON){

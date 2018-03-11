@@ -1,0 +1,18 @@
+<xml>
+  <object name="LQGSolution" settings="false" singleinstance="true">
+    <description>Current LQR solution.</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="false" updatemode="manual" period="0"/>
+    <telemetryflight acked="false" updatemode="throttled" period="1000"/>
+    <field defaultvalue="0" elements="2" name="RollK" type="float" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="2" name="PitchK" type="float" units="">
+      <description/>
+    </field>
+    <field defaultvalue="0" elements="2" name="YawK" type="float" units="">
+      <description/>
+    </field>
+  </object>
+</xml>
