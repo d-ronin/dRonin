@@ -42,7 +42,7 @@ class UAVOCollection(dict):
 
             filename = "%s/%s.xml"%(outdir, uavo_name)
 
-            with open(filename, "w") as f:
+            with open(filename, "wb") as f:
                 f.write(u.to_xml_description(as_text=True))
 
     def from_file_contents(self, content_list):
