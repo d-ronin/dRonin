@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import dronin_pyqtgraph as pg
 from dronin_pyqtgraph.Qt import QtCore, QtGui

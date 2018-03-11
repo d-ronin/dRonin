@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Utility functions to access git repository info and
 # generate source files and binary objects using templates.

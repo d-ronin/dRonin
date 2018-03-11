@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Proof of concept example of using the logfs api.
 from dronin.logfs import LogFSImport

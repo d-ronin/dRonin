@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from string import Template
 from itertools import izip, chain, repeat

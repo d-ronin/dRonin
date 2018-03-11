@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Interface to read data and do numerical computing on autotune data partitions.
