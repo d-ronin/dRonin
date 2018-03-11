@@ -40,6 +40,7 @@
 #include "stateestimation.h"
 #include "systemalarms.h"
 #include "systemsettings.h"
+#include "systemident.h"
 
 #include "pios_sensors.h"
 
@@ -61,6 +62,21 @@ static int32_t check_stabilization_rates();
 
 //! Check the system is safe for autonomous flight
 static int32_t check_safe_autonomous();
+
+bool lqg_sysident_check()
+{
+	if (SystemIdentHandle()) {
+		SystemIdentData si;
+		SystemIdentGet(&si);
+
+		if (si.Beta[SYSTEMIDENT_BETA_ROLL] < 6 || si.Tau[SYSTEMIDENT_TAU_ROLL] < 0.001f ||
+			si.Beta[SYSTEMIDENT_BETA_PITCH] < 6 || si.Tau[SYSTEMIDENT_TAU_PITCH] < 0.001f ||
+			si.Beta[SYSTEMIDENT_BETA_YAW] < 6 || si.Tau[SYSTEMIDENT_TAU_YAW] < 0.001f) {
+			return false;
+		}
+	}
+	return true;
+}
 
 /**
  * Run a preflight check over the hardware configuration
@@ -122,6 +138,12 @@ int32_t configuration_check()
 			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_VIRTUALBAR:
 			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_FAILSAFE:
 				// always ok
+				break;
+			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_LQG:
+			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_LQGLEVELING:
+				if (!lqg_sysident_check()) {
+					error_code = SYSTEMALARMS_CONFIGERROR_LQG;
+				}
 				break;
 			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_STABILIZED1:
 				ManualControlSettingsStabilization1ThrustGet(&thrust_mode);
@@ -230,6 +252,13 @@ static int32_t check_stabilization_settings(int index, bool multirotor,
 				(!PIOS_Modules_IsEnabled(PIOS_MODULE_AUTOTUNE))) {
 			return SYSTEMALARMS_CONFIGERROR_AUTOTUNE;
 		}
+
+		/* Throw an error if LQG modes are configured without system identification data. */
+		if (modes[i] == MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_LQG ||
+			modes[i] == MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_ATTITUDELQG) {
+			if (!lqg_sysident_check())
+				return SYSTEMALARMS_CONFIGERROR_LQG;
+		}
 	}
 
 	// POI mode is only valid for YAW in the case it is enabled and camera stab is running
@@ -280,6 +309,12 @@ static int32_t check_safe_to_arm()
 			case FLIGHTSTATUS_FLIGHTMODE_STABILIZED2:
 			case FLIGHTSTATUS_FLIGHTMODE_STABILIZED3:
 			case FLIGHTSTATUS_FLIGHTMODE_ALTITUDEHOLD:
+				break;
+			case FLIGHTSTATUS_FLIGHTMODE_LQG:
+			case FLIGHTSTATUS_FLIGHTMODE_LQGLEVELING:
+				if (!lqg_sysident_check()) {
+					return SYSTEMALARMS_CONFIGERROR_LQG;
+				}
 				break;
 
 			case FLIGHTSTATUS_FLIGHTMODE_FAILSAFE:
@@ -381,6 +416,7 @@ void set_config_error(SystemAlarmsConfigErrorOptions error_code)
 	case SYSTEMALARMS_CONFIGERROR_STABILIZATION:
 	case SYSTEMALARMS_CONFIGERROR_UNDEFINED:
 	case SYSTEMALARMS_CONFIGERROR_UNSAFETOARM:
+	case SYSTEMALARMS_CONFIGERROR_LQG:
 		severity = SYSTEMALARMS_ALARM_ERROR;
 		break;
 	}

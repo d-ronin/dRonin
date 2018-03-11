@@ -325,6 +325,10 @@ QString SystemHealthGadgetWidget::getAlarmDescriptionFileName(const QString item
             alarmDescriptionFileName =
                 QString(":/systemhealth/html/SystemConfiguration-Error-UnsafeToArm.html");
             break;
+        case SystemAlarms::CONFIGERROR_LQG:
+            alarmDescriptionFileName =
+                QString(":/systemhealth/html/SystemConfiguration-Error-LQG.html");
+            break;
         case SystemAlarms::CONFIGERROR_UNDEFINED:
             alarmDescriptionFileName =
                 QString(":/systemhealth/html/SystemConfiguration-Undefined.html");
