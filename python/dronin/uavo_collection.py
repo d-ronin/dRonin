@@ -173,7 +173,7 @@ class UAVOCollection(dict):
         return reparsed.toprettyxml(indent="  ")
 
     @classmethod
-    def ExportXML(cls, objects, githash=None):
+    def export_xml(cls, objects, githash=None):
         try:
             import lxml.etree as etree
         except:

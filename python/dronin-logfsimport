@@ -18,7 +18,7 @@ def main():
 
     imported = LogFSImport(githashes, open(srcfile, 'rb').read())
 
-    print(UAVOCollection.ExportXML(imported, githash=imported.githash))
+    print(UAVOCollection.export_xml(imported, githash=imported.githash))
 
 if __name__ == '__main__':
         main()

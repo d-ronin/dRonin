@@ -116,7 +116,7 @@ def main(argv):
 
     uf = UAVFileImport('HEAD', contents)
 
-    sys.stdout.write(uavo_collection.UAVOCollection.ExportXML(uf))
+    sys.stdout.write(uavo_collection.UAVOCollection.export_xml(uf))
 
 if __name__ == "__main__":
     import sys
