@@ -2268,16 +2268,6 @@ border-radius: 5;</string>
                 </property>
                </widget>
               </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="lblHangtimeDuration">
-                <property name="text">
-                 <string>HangTime Maximum Duration</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                </property>
-               </widget>
-              </item>
               <item row="1" column="3">
                <widget class="QLabel" name="lblHangtimePower">
                 <property name="text">
@@ -2344,10 +2334,48 @@ border-radius: 5;</string>
                 </property>
                </spacer>
               </item>
-              <item row="2" column="0" colspan="6">
+              <item row="3" column="0" colspan="6">
                <widget class="QLabel" name="lblSwitchArmingWarning">
                 <property name="text">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;Warning:&lt;/span&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt; It is strongly recommended to use switch arming when HangTime is enabled.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="lblHangtimeDuration">
+                <property name="text">
+                 <string>HangTime Maximum Duration</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="3">
+               <widget class="QLabel" name="lblHoverPower">
+                <property name="text">
+                 <string>Observed Hover Power</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="4">
+               <widget class="QLabel" name="lblHoverPower_2">
+                <property name="text">
+                 <string>0.0%</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+                <property name="objrelation" stdset="0">
+                 <stringlist>
+                  <string>objname:SystemIdent</string>
+                  <string>fieldname:HoverThrottle</string>
+                  <string>scale:.01</string>
+                  <string>useunits:yes</string>
+                 </stringlist>
                 </property>
                </widget>
               </item>
