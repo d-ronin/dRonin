@@ -528,6 +528,7 @@ def make_class(collection, xml_file, update_globals=True):
         _is_settings = is_settings
         _canonical_xml = canonical_xml
         _units = {f['name'] : f['units'] for f in fields}
+        _types = {f['name'] : f['type'] for f in fields}
 
     # This is magic for two reasons.  First, we create the class to have
     # the proper dynamic name.  Second, we override __slots__, so that
