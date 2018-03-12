@@ -1242,7 +1242,7 @@ bool ConfigTaskWidget::setWidgetFromVariant(QWidget *widget, QVariant value, dou
         if (scale == 0)
             label->setText(value.toString() + units);
         else
-            label->setText(QString::number((value.toDouble() / scale)) + units);
+            label->setText(QString::number(value.toDouble() / scale, 'g', 3) + units);
         return true;
     } else if (QDoubleSpinBox *dblSpinBox = qobject_cast<QDoubleSpinBox *>(widget)) {
         dblSpinBox->setValue(value.toDouble() / scale);
