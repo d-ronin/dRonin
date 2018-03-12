@@ -123,7 +123,7 @@ class UAVOCollection(dict):
 
                 if p.returncode == 0:
                     self.from_tar_bytes(git_archive_data)
-                    return
+                    return h
             except Exception:
                 # Popen isn't available on GAE, so all of the above fails.
                 pass
@@ -138,7 +138,7 @@ class UAVOCollection(dict):
                     continue
 
                 self.from_tar_bytes(web_data.read())
-                return
+                return h
             except Exception:
                 pass
 

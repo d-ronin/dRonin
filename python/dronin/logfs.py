@@ -110,9 +110,7 @@ class LogFSImport(dict):
 
         uavo_defs = uavo_collection.UAVOCollection()
 
-        uavo_defs.from_git_hash(githash)
-
-        self.githash = githash
+        self.githash = uavo_defs.from_git_hash(githash)
 
         for id_tup,offset in obj_offsets.items():
             obj_id, inst_id = id_tup
