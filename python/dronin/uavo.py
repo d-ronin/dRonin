@@ -120,8 +120,9 @@ class UAVTupleClass():
     def get_inst_id(self):
         return getattr(self, 'inst_id', 0)
 
-    def elem_to_string(self, field_name, value):
-        mapping = getattr(self, 'ENUMR_' + field_name, None)
+    @classmethod
+    def enum_to_string(cls, field_name, value):
+        mapping = getattr(cls, 'ENUMR_' + field_name, None)
 
         if mapping is None:
             return str(value)
@@ -132,6 +133,20 @@ class UAVTupleClass():
             return mapping[value]
         else:
             return 'Unknown'
+
+    @classmethod
+    def string_to_enum(cls, field_name, value):
+        mapping = getattr(cls, 'ENUM_' + field_name, None)
+
+        if mapping is None:
+            return str(value)
+
+        val = mapping.get(value, None)
+
+        if val is not None:
+            return mapping[value]
+        else:
+            raise KeyError("Unknown enum value %s in %s"%(value, field_name))
 
     @classmethod
     def to_xml_description(cls, as_text=False):
@@ -163,9 +178,9 @@ class UAVTupleClass():
             field_value = raw_dict[field_name]
 
             if isinstance(field_value, tuple) or isinstance(field_value, list):
-                text_value = ','.join( [ self.elem_to_string(field_name, v) for v in field_value ] )
+                text_value = ','.join( [ self.enum_to_string(field_name, v) for v in field_value ] )
             else:
-                text_value = self.elem_to_string(field_name, field_value)
+                text_value = self.enum_to_string(field_name, field_value)
 
             xmlfield = etree.SubElement(xmlobj, 'field', { 'name' : field_name, 'values' : text_value })
 
