@@ -13,15 +13,6 @@
         <elementname>Yaw</elementname>
       </elementnames>
     </field>
-    <field defaultvalue="55" elements="1" limits="%BE:0:180" name="RollMax" type="uint8" units="degrees">
-      <description/>
-    </field>
-    <field defaultvalue="55" elements="1" limits="%BE:0:90" name="PitchMax" type="uint8" units="degrees">
-      <description/>
-    </field>
-    <field defaultvalue="35" elements="1" limits="%BE:0:180" name="YawMax" type="uint8" units="degrees">
-      <description/>
-    </field>
     <field defaultvalue="250.0,250.0,225.0" limits="%BE:0:1650,%BE:0:1650,%BE:0:1650" name="ManualRate" type="float" units="degrees/sec">
       <description>The rate to rotate on this axis at full stick deflection in rate/acro modeis.</description>
       <elementnames>

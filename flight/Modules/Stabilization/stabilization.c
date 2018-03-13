@@ -125,6 +125,13 @@ DONT_BUILD_IF((PID_RATE_ROLL+0 != ROLL)||(PID_ATT_ROLL != PID_GROUP_ATT+ROLL), s
 DONT_BUILD_IF((PID_RATE_PITCH+0 != PITCH)||(PID_ATT_PITCH != PID_GROUP_ATT+PITCH), stabAxisPidEnumMapping2);
 DONT_BUILD_IF((PID_RATE_YAW+0 != YAW)||(PID_ATT_YAW != PID_GROUP_ATT+YAW), stabAxisPidEnumMapping3);
 
+DONT_BUILD_IF(STABILIZATIONSETTINGS_MAXLEVELANGLE_ROLL != ROLL + 0,
+               LevelAngleConstantRoll);
+DONT_BUILD_IF(STABILIZATIONSETTINGS_MAXLEVELANGLE_PITCH != PITCH + 0,
+               LevelAngleConstantPitch);
+DONT_BUILD_IF(STABILIZATIONSETTINGS_MAXLEVELANGLE_YAW != YAW + 0,
+               LevelAngleConstantYaw);
+
 // Private variables
 static struct pios_thread *taskHandle;
 
@@ -311,12 +318,12 @@ static void calculate_attitude_errors(uint8_t *axis_mode, float *raw_input,
 	// Mux in level trim values, and saturate the trimmed attitude setpoint.
 	trimmed_setpoint[ROLL] = bound_min_max(
 			raw_input[ROLL] + subTrim.Roll,
-			-settings.RollMax + subTrim.Roll,
-			settings.RollMax + subTrim.Roll);
+			-settings.MaxLevelAngle[ROLL] + subTrim.Roll,
+			settings.MaxLevelAngle[ROLL] + subTrim.Roll);
 	trimmed_setpoint[PITCH] = bound_min_max(
 			raw_input[PITCH] + subTrim.Pitch,
-			-settings.PitchMax + subTrim.Pitch,
-			settings.PitchMax + subTrim.Pitch);
+			-settings.MaxLevelAngle[PITCH] + subTrim.Roll,
+			settings.MaxLevelAngle[PITCH] + subTrim.Roll);
 	trimmed_setpoint[YAW] = raw_input[YAW];
 
 	// For horizon mode we need to compute the desire attitude from an unscaled value and apply the
@@ -325,21 +332,24 @@ static void calculate_attitude_errors(uint8_t *axis_mode, float *raw_input,
 
 	if (axis_mode[ROLL] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) {
 		trimmed_setpoint[ROLL] = bound_min_max(
-				raw_input[ROLL] * settings.RollMax + subTrim.Roll,
-				-settings.RollMax + subTrim.Roll,
-				settings.RollMax + subTrim.Roll);
+				raw_input[ROLL] * settings.MaxLevelAngle[ROLL]
+						+ subTrim.Roll,
+				-settings.MaxLevelAngle[ROLL] + subTrim.Roll,
+				settings.MaxLevelAngle[ROLL] + subTrim.Roll);
 		*horizon_rate_fraction = fabsf(raw_input[ROLL]);
 	}
 	if (axis_mode[PITCH] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) {
 		trimmed_setpoint[PITCH] = bound_min_max(
-				raw_input[PITCH] * settings.PitchMax + subTrim.Pitch,
-				-settings.PitchMax + subTrim.Pitch,
-				settings.PitchMax + subTrim.Pitch);
+				raw_input[PITCH] * settings.MaxLevelAngle[PITCH]
+			       			+ subTrim.Pitch,
+				-settings.MaxLevelAngle[PITCH] + subTrim.Roll,
+				settings.MaxLevelAngle[PITCH] + subTrim.Roll);
 		*horizon_rate_fraction =
 			MAX(*horizon_rate_fraction, fabsf(raw_input[PITCH]));
 	}
 	if (axis_mode[YAW] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) {
-		trimmed_setpoint[YAW] = raw_input[YAW] * settings.YawMax;
+		trimmed_setpoint[YAW] =
+				raw_input[YAW] * settings.MaxLevelAngle[YAW];
 		*horizon_rate_fraction =
 			MAX(*horizon_rate_fraction, fabsf(raw_input[YAW]));
 	}

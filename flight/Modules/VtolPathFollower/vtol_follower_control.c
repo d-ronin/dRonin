@@ -485,8 +485,10 @@ int32_t vtol_follower_control_attitude(float dT, const float *att_adj)
 	stabDesired.Roll = bound_sym(RAD2DEG * atanf(right_accel_desired / GRAVITY), guidanceSettings.MaxRollPitch) + att_adj[0];
 
 	// Re-bound based on maximum attitude settings
-	stabDesired.Pitch = bound_sym(stabDesired.Pitch, stabSet.PitchMax);
-	stabDesired.Roll = bound_sym(stabDesired.Roll, stabSet.RollMax);
+	stabDesired.Pitch = bound_sym(stabDesired.Pitch,
+			stabSet.MaxLevelAngle[STABILIZATIONSETTINGS_MAXLEVELANGLE_PITCH]);
+	stabDesired.Roll = bound_sym(stabDesired.Roll,
+			stabSet.MaxLevelAngle[STABILIZATIONSETTINGS_MAXLEVELANGLE_ROLL]);
 	
 	stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
 	stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
