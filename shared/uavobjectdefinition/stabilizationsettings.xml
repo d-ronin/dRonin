@@ -23,7 +23,7 @@
       <description/>
     </field>
     <field defaultvalue="250.0,250.0,225.0" limits="%BE:0:1650,%BE:0:1650,%BE:0:1650" name="ManualRate" type="float" units="degrees/sec">
-      <description>The rate to rotate on this axis at full stick deflection in rate/acro modeis.</description>
+      <description>The rate to rotate on this axis at full stick deflection in rate/acro modes.</description>
       <elementnames>
         <elementname>Roll</elementname>
         <elementname>Pitch</elementname>
@@ -39,7 +39,7 @@
       </elementnames>
     </field>
     <field defaultvalue="70" limits="%BE:50:85,%BE:50:85,%BE:50:85" name="AcroDynamicTransition" type="uint8" units="%">
-      <description/>
+      <description>The percentage of stick deflection where we should transition to dynamic acceleration in AcroDyne mode.</description>
       <elementnames>
         <elementname>Roll</elementname>
         <elementname>Pitch</elementname>
@@ -47,10 +47,10 @@
       </elementnames>
     </field>
     <field defaultvalue="0.225" elements="1" limits="%BE:0.1:4.0" name="AcroDynamicTau" type="float" units="seconds">
-      <description/>
+      <description>The time constant for acceleration to the ultimate rate in AcroDyne mode</description>
     </field>
     <field defaultvalue="0.065,0.065,0.09" limits="%BE:0:0.2,%BE:0:0.2,%BE:0:0.2" name="AutotuneActuationEffort" type="float" units="">
-      <description/>
+      <description>This is a measure, during AutoTune flight, of how hard to wiggle each axis.  Higher values are more difficult to control but may produce cleaner AutoTune data.</description>
       <elementnames>
         <elementname>Roll</elementname>
         <elementname>Pitch</elementname>
@@ -58,7 +58,7 @@
       </elementnames>
     </field>
     <field defaultvalue="350.0" limits="%BE:0:500,%BE:0:500,%BE:0:500" name="MaximumRate" type="float" units="degrees/sec">
-      <description/>
+      <description>The maximum rate to move towards level in leveling modes (Leveling, horizon, etc.)</description>
       <elementnames>
         <elementname>Roll</elementname>
         <elementname>Pitch</elementname>
@@ -66,7 +66,7 @@
       </elementnames>
     </field>
     <field defaultvalue="35,35,30" limits="%BE:0:100,%BE:0:100,%BE:0:100" name="RateExpo" type="uint8" units="%">
-      <description/>
+      <description>How much expo to apply in rate modes.</description>
       <elementnames>
         <elementname>Roll</elementname>
         <elementname>Pitch</elementname>
@@ -74,7 +74,7 @@
       </elementnames>
     </field>
     <field defaultvalue="30" limits="%BE:20:160,%BE:20:160,%BE:20:160" name="RateExponent" type="uint8" units="*10">
-      <description/>
+      <description>The exponent to use in expo in rate modes.  30 (representing 3) is the traditional value, but higher values "feel better".  The GCS rate pane calculates this in an intuitive way</description>
       <elementnames>
         <elementname>Roll</elementname>
         <elementname>Pitch</elementname>
@@ -82,7 +82,7 @@
       </elementnames>
     </field>
     <field defaultvalue="30" limits="%BE:0:100,%BE:0:100,%BE:0:100" name="HorizonExpo" type="uint8" units="%">
-      <description/>
+      <description>How much expo to apply in Horizon mode.</description>
       <elementnames>
         <elementname>Roll</elementname>
         <elementname>Pitch</elementname>
@@ -90,7 +90,7 @@
       </elementnames>
     </field>
     <field defaultvalue="30.0" limits="%BE:0:500,%BE:0:500,%BE:0:500" name="PoiMaximumRate" type="float" units="degrees/sec">
-      <description/>
+      <description>The maximum rate to slew in Point-of-Interest mode.</description>
       <elementnames>
         <elementname>Roll</elementname>
         <elementname>Pitch</elementname>
@@ -98,7 +98,7 @@
       </elementnames>
     </field>
     <field defaultvalue="0.002,0.0015,0.0,0.3" limits="%BE:0:0.01,%BE:0:0.05,, " name="RollRatePID" type="float" units="">
-      <description/>
+      <description>The control coefficients for the PID rate controller (inner loop) for the roll axis.</description>
       <elementnames>
         <elementname>Kp</elementname>
         <elementname>Ki</elementname>
@@ -107,7 +107,7 @@
       </elementnames>
     </field>
     <field defaultvalue="0.002,0.0015,0.0,0.3" limits="%BE:0:0.01,%BE:0:0.05,, " name="PitchRatePID" type="float" units="">
-      <description/>
+      <description>The control coefficients for the PID rate controller (inner loop) for the pitch axis.</description>
       <elementnames>
         <elementname>Kp</elementname>
         <elementname>Ki</elementname>
@@ -116,7 +116,7 @@
       </elementnames>
     </field>
     <field defaultvalue="0.0035,0.0035,0.0,0.3" limits="%BE:0:0.015,%BE:0:0.06,, " name="YawRatePID" type="float" units="">
-      <description/>
+      <description>The control coefficients for the PID rate controller (inner loop) for the yaw axis.</description>
       <elementnames>
         <elementname>Kp</elementname>
         <elementname>Ki</elementname>
@@ -125,6 +125,7 @@
       </elementnames>
     </field>
     <field defaultvalue="2.5,0.0,50.0" limits="%BE:0:20,%BE:0:20," name="RollPI" type="float" units="">
+      <description>The control coefficients for the PID attitude controller (outer loop) for the roll axis.</description>
       <description/>
       <elementnames>
         <elementname>Kp</elementname>
@@ -133,7 +134,7 @@
       </elementnames>
     </field>
     <field defaultvalue="2.5,0.0,50.0" limits="%BE:0:20,%BE:0:20," name="PitchPI" type="float" units="">
-      <description/>
+      <description>The control coefficients for the PID attitude controller (outer loop) for the pitch axis.</description>
       <elementnames>
         <elementname>Kp</elementname>
         <elementname>Ki</elementname>
@@ -141,7 +142,7 @@
       </elementnames>
     </field>
     <field defaultvalue="2.5,0.0,50.0" limits="%BE:0:20,%BE:0:20," name="YawPI" type="float" units="">
-      <description/>
+      <description>The control coefficients for the PID attitude controller (outer loop) for the yaw axis.</description>
       <elementnames>
         <elementname>Kp</elementname>
         <elementname>Ki</elementname>
@@ -149,25 +150,25 @@
       </elementnames>
     </field>
     <field defaultvalue="20" elements="1" name="DerivativeCutoff" type="uint8" units="Hz">
-      <description/>
+      <description>The cutoff frequency (lowpass) for the derivative filter in the rate control loops.  This term prevents noise from coupling in through the D term.  Shared between all axes.  Computed by autotune.</description>
     </field>
     <field defaultvalue="0.6" elements="1" name="DerivativeGamma" type="float" units="">
-      <description/>
+      <description>This term sets how sensitive the derivative term is to stick movements.  If it is 0, it does not pay attention to stick position at all, but instead only responds to changes in system state.  If it is 1, it weights the setpoint equally to vehicle movement.</description>
     </field>
     <field defaultvalue="15" elements="1" name="MaxAxisLock" type="uint8" units="deg">
-      <description/>
+      <description>The maximum strength of the axis lock term, trying to push an axis back to original angle when there is no command to move</description>
     </field>
     <field defaultvalue="2" elements="1" name="MaxAxisLockRate" type="uint8" units="deg/s">
-      <description/>
+      <description>The maximum rate at which axis lock should try and maintain an angular setpoint</description>
     </field>
     <field defaultvalue="0.33" elements="1" name="WeakLevelingKp" type="float" units="(deg/s)/deg">
-      <description/>
+      <description>This term is multiplied by the angle of an axis to determine how quickly the WeakLeveling mode should attempt to return the vehicle to level.</description>
     </field>
     <field defaultvalue="45" elements="1" name="MaxWeakLevelingRate" type="uint8" units="deg/s">
-      <description/>
+      <description>The maximum rate, in degrees/second, that WeakLeveling will attempt to move an axis</description>
     </field>
     <field defaultvalue="TRUE" elements="1" name="LowThrottleZeroIntegral" type="enum" units="">
-      <description/>
+      <description>This determines whether to reset axis integrals when throttle is low.  Recommended for aircraft where controls are only effective at positive throttle.  For other vehicles, it may be helpful to reduce integral windup during launch scenarios, but it also limits control authority at low throttle.</description>
       <options>
         <option>FALSE</option>
         <option>TRUE</option>

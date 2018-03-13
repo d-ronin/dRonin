@@ -996,6 +996,7 @@ static void stabilizationTask(void* parameters)
 					// Blend from one rate to another. The maximum of all stick positions is used for the
 					// amount so that when one axis goes completely to rate the other one does too. This
 					// prevents doing flips while one axis tries to stay in attitude mode.
+					// XXX the bounding here is not right!
 					rateDesiredAxis[i] = rateDesiredAttitude * (1.0f - horizon_rate_fraction) + rateDesiredRate * horizon_rate_fraction;
 					rateDesiredAxis[i] = bound_sym(rateDesiredAxis[i], settings.ManualRate[i]);
 
