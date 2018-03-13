@@ -74,7 +74,6 @@
       <options>
         <option>Rate</option>
         <option>AxisLock</option>
-        <option>Attitude</option>
         <option>Path</option>
         <option>POI</option>
       </options>

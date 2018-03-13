@@ -514,12 +514,6 @@ int32_t vtol_follower_control_attitude(float dT, const float *att_adj)
 		stabDesired.Yaw = stabSet.ManualRate[STABILIZATIONSETTINGS_MANUALRATE_YAW] * manual_control_command.Yaw;
 		stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_AXISLOCK;
 		break;
-	case VTOLPATHFOLLOWERSETTINGS_YAWMODE_ATTITUDE:
-	{
-		stabDesired.Yaw = stabSet.YawMax * manual_control_command.Yaw;
-		stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
-	}
-		break;
 	case VTOLPATHFOLLOWERSETTINGS_YAWMODE_PATH:
 	{
 		// Face forward on the path
