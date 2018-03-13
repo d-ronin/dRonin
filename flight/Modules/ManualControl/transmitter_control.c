@@ -213,6 +213,21 @@ static bool is_low_throttle_for_arming(
 	return get_thrust_source(manual_control_command, false) == 0;
 }
 
+static bool channel_is_configured(int channel_num)
+{
+	if (settings.ChannelGroups[channel_num] >=
+			MANUALCONTROLSETTINGS_CHANNELGROUPS_NONE) {
+		return false;
+	}
+
+	if (settings.ChannelNumber[channel_num] == 0) {
+		/* Channel numbers are offset, 0 means "none" */
+		return false;
+	}
+
+	return true;
+}
+
 static void perform_tc_settings_update()
 {
 	settings_updated = false;
@@ -220,8 +235,7 @@ static void perform_tc_settings_update()
 
 	uint8_t thrust_channel;
 
-	if (settings.ChannelGroups[MANUALCONTROLSETTINGS_CHANNELGROUPS_COLLECTIVE]
-			< MANUALCONTROLSETTINGS_CHANNELGROUPS_NONE) {
+	if (channel_is_configured(MANUALCONTROLSETTINGS_CHANNELGROUPS_COLLECTIVE)) {
 		collective_is_thrust = true;
 		thrust_channel = MANUALCONTROLSETTINGS_CHANNELGROUPS_COLLECTIVE;
 	} else {
