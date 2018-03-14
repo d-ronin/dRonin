@@ -19,17 +19,6 @@ DESC  = """
   Apply a UAV file to a flight controller.\
 """
 
-def save_object(telem, obj):
-    from dronin.uavo import UAVO_ObjectPersistence
-
-    save_req = UAVO_ObjectPersistence._make_to_send(
-            Operation = UAVO_ObjectPersistence.ENUM_Operation['Save'],
-            ObjectID = obj._id,
-            InstanceID = 0
-    )
-
-    telem.send_object(save_req, req_ack=True)
-
 #-------------------------------------------------------------------------------
 def main():
     import argparse
@@ -48,11 +37,7 @@ def main():
     with open(args.uavo_file, "rb") as f:
         objs = uavofile.UAVFileImport(uavo_defs=tStream.uavo_defs, contents=f.read())
 
-    for obj in objs.values():
-        tStream.send_object(obj, req_ack=True)
-
-    for obj in objs.values():
-        save_object(tStream, obj)
+    tStream.save_objects(objs.values(), send_first=True)
 
 #-------------------------------------------------------------------------------
 

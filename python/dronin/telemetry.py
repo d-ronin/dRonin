@@ -333,6 +333,24 @@ class TelemetryBase(with_metaclass(ABCMeta)):
 
         self._send(uavtalk.request_filedata(file_id, offset))
 
+    def save_object(self, obj, send_first=False):
+        if send_first:
+            self.send_object(obj, req_ack=True)
+
+        save_obj = self.uavo_defs.find_by_name('UAVO_ObjectPersistence')
+
+        save_req = save_obj._make_to_send(
+                Operation = save_obj.ENUM_Operation['Save'],
+                ObjectID = obj._id,
+                InstanceID = 0
+        )
+
+        self.send_object(save_req, req_ack=True)
+
+    def save_objects(self, objs, *arg, **kwargs):
+        for obj in objs:
+            self.save_object(obj, *arg, **kwargs)
+
     def transfer_file(self, file_id):
         with self.ack_cond:
             self.file_data = b''
