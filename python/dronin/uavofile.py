@@ -108,17 +108,25 @@ class UAVFileImport(dict):
 
 def main(argv):
     from dronin import uavo_collection
+    import argparse
 
-    if len(argv) != 1:
-        print("nope")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(description="Import a logfs settings partition and convert to XML")
+    parser.add_argument('filename', metavar='filename.bin', help="the filename in which the settings dump is stored")
+    parser.add_argument('-g', dest='githash', metavar='githash', help="the githash to use to interpret the settings dump", default="HEAD")
+    parser.add_argument("-n", "--not-defaults",
+                        action  = "store_true",
+                        default = False,
+                        dest    = "not_defaults",
+                        help    = "output only non-default values")
+    arg = parser.parse_args()
 
-    with open(argv[0], "rb") as f:
+    with open(arg.filename, "rb") as f:
         contents = f.read()
 
-    uf = UAVFileImport(contents)
+    uf = UAVFileImport(contents, githash=arg.githash)
 
-    sys.stdout.write(uavo_collection.UAVOCollection.export_xml(uf.values()))
+    sys.stdout.write(uavo_collection.UAVOCollection.export_xml(uf.values(),
+        only_nondefault=arg.not_defaults))
 
 if __name__ == "__main__":
     import sys
