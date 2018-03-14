@@ -97,6 +97,8 @@ class UAVFileImport(dict):
 
                 if len(values) == 1:
                     values = values[0]
+                else:
+                    values = tuple(values)
 
                 obj_conv_fields[of] = values
 

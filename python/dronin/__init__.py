@@ -8,3 +8,4 @@ from . import telemetry
 from . import uavo
 from . import uavo_collection
 from . import uavtalk
+from . import uavofile
