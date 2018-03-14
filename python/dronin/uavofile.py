@@ -3,7 +3,7 @@
 # Copyright (C) 2018 dRonin, http://dronin.org
 
 class UAVFileImport(dict):
-    def __init__(self, githash, contents, warnings_fatal=False):
+    def __init__(self, contents, uavo_defs=None, githash='HEAD', warnings_fatal=False):
         try:
             import lxml.etree as etree
         except:
@@ -11,11 +11,11 @@ class UAVFileImport(dict):
 
         from dronin import uavo_collection
 
-        uavo_defs = uavo_collection.UAVOCollection()
+        if uavo_defs is None:
+            uavo_defs = uavo_collection.UAVOCollection()
 
-        uavo_defs.from_git_hash(githash)
-
-        self.githash = githash
+            uavo_defs.from_git_hash(githash)
+            self.githash = githash
 
         tree = etree.fromstring(contents)
 
@@ -116,7 +116,7 @@ def main(argv):
     with open(argv[0], "rb") as f:
         contents = f.read()
 
-    uf = UAVFileImport('HEAD', contents)
+    uf = UAVFileImport(contents)
 
     sys.stdout.write(uavo_collection.UAVOCollection.export_xml(uf.values()))
 
