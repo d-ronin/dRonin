@@ -117,7 +117,7 @@ class TelemetryBase(with_metaclass(ABCMeta)):
             request = self.req_obj.pop(key, None)
 
             if request is not None:
-                request.completed(None)
+                request.completed(None, obj._id)
 
     def as_numpy_array(self, match_class, filter_cond=None, blocks=True):
         """ Transforms all received instances of a given object to a numpy array.
@@ -248,9 +248,9 @@ class TelemetryBase(with_metaclass(ABCMeta)):
 
             return False
 
-        def completed(self, value):
+        def completed(self, value, id_val):
             for cb in self.cbs:
-                cb(value)
+                cb(value, id_val)
 
         def expired(self):
             if (not self.retries) and (time.time() >= self.expiration):
@@ -268,7 +268,7 @@ class TelemetryBase(with_metaclass(ABCMeta)):
             for f in self.req_obj.values():
                 if f.expired():
                     self.req_obj.pop(f.key())
-                    f.completed(None)
+                    f.completed(None, f._id)
                 elif f.time_to_resend():
                     key = f.key()
                     self._send(f.make_request())
@@ -408,7 +408,7 @@ class TelemetryBase(with_metaclass(ABCMeta)):
                 request = self.req_obj.pop(key, None)
 
                 if request is not None:
-                    request.completed(obj)
+                    request.completed(obj, obj._id)
 
             self.cond.notifyAll()
 
