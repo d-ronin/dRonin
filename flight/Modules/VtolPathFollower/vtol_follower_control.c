@@ -478,7 +478,7 @@ int32_t vtol_follower_control_attitude(float dT, const float *att_adj)
 	float forward_accel_desired = -northCommand * cosf(yaw * DEG2RAD) + -eastCommand * sinf(yaw * DEG2RAD);
 	float right_accel_desired = -northCommand * sinf(yaw * DEG2RAD) + eastCommand * cosf(yaw * DEG2RAD);
 
-	StabilizationDesiredData stabDesired;
+	StabilizationDesiredData stabDesired = {};
 
 	// Set the angle that would achieve the desired acceleration given the thrust is enough for a hover
 	stabDesired.Pitch = bound_sym(RAD2DEG * atanf(forward_accel_desired / GRAVITY), guidanceSettings.MaxRollPitch) + att_adj[1];
@@ -491,6 +491,7 @@ int32_t vtol_follower_control_attitude(float dT, const float *att_adj)
 	stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
 	stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
 
+	stabDesired.ThrustMode = STABILIZATIONDESIRED_THRUSTMODE_DIRECT;
 	stabDesired.ReprojectionMode = STABILIZATIONDESIRED_REPROJECTIONMODE_NONE;
 
 	// Calculate the throttle setting or use pass through from transmitter

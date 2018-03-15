@@ -76,13 +76,14 @@ int32_t failsafe_control_select(bool reset_controller)
 	SystemSettingsAirframeTypeOptions airframe_type;
 	SystemSettingsAirframeTypeGet(&airframe_type);
 
-	StabilizationDesiredData stabilization_desired;
+	StabilizationDesiredData stabilization_desired = {};
 	stabilization_desired.Thrust = 0;
 	stabilization_desired.Roll = 0;
 	stabilization_desired.Pitch = 0;
 	stabilization_desired.Yaw   = 0;
 
 	stabilization_desired.ReprojectionMode = STABILIZATIONDESIRED_REPROJECTIONMODE_NONE;
+	stabilization_desired.ThrustMode = STABILIZATIONDESIRED_THRUSTMODE_DIRECT;
 
 	if (!armed_when_enabled) {
 		/* disable stabilization so outputs do not move when system was not armed */
