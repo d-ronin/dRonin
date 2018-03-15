@@ -163,12 +163,15 @@ static int32_t PIOS_BMP280_Common_Init(const struct pios_bmp280_cfg *cfg)
 	dev->cfg = cfg;
 
 	uint8_t data[24];
+	uint16_t ref_digT1;
 	if (PIOS_BMP280_Read(BMP280_CAL_ADDR, data, 2) != 0)
 		return -2;
-	dev->digT1 = (data[ 1] << 8) | data[ 0];
+
+	/* Ignore first result */
 	if (PIOS_BMP280_Read(BMP280_CAL_ADDR, data, 2) != 0)
 		return -2;
-	dev->digT1 = (data[ 1] << 8) | data[ 0];
+
+	ref_digT1 = (data[ 1] << 8) | data[ 0];
 
 	if (PIOS_BMP280_Read(BMP280_CAL_ADDR, data, 24) != 0)
 		return -2;
@@ -185,6 +188,17 @@ static int32_t PIOS_BMP280_Common_Init(const struct pios_bmp280_cfg *cfg)
 	dev->digP7 = (data[19] << 8) | data[18];
 	dev->digP8 = (data[21] << 8) | data[20];
 	dev->digP9 = (data[23] << 8) | data[22];
+
+	if (ref_digT1 != dev->digT1) {
+		/* Values inconsistent, so no good device detect */
+		return -10;
+	}
+
+	if ((ref_digT1 == dev->digT2) &&
+			(ref_digT1 == dev->digP1)) {
+		/* Values invariant, so no good device detect */
+		return -11;
+	}
 
 	if (PIOS_BMP280_WriteCommand(BMP280_CONFIG, 0x00) != 0)
 		return -2;
