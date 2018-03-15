@@ -669,6 +669,7 @@ static uint8_t updateFixedDesiredAttitude()
 	stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_ROLL] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
 	stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_PITCH] = STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE;
 	stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL;
+	stabDesired.ThrustMode = STABILIZATIONDESIRED_THRUSTMODE_DIRECT;
 	
 	if (isnan(stabDesired.Roll) || isnan(stabDesired.Pitch) || isnan(stabDesired.Yaw) || isnan(stabDesired.Thrust)) {
 		northVelIntegral = 0;
