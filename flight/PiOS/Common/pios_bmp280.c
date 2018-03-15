@@ -31,7 +31,7 @@
 /* Project Includes */
 #include "pios.h"
 
-#if defined(PIOS_INCLUDE_BMP280)
+#if defined(PIOS_INCLUDE_BMP280) || defined(PIOS_INCLUDE_BMP280_SPI)
 
 #include "pios_bmp280_priv.h"
 #include "pios_semaphore.h"

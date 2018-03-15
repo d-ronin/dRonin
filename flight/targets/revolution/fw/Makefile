@@ -116,6 +116,7 @@ include $(PIOS)/STM32F4xx/library_chibios.mk
 include $(PIOS)/pios_flight_library.mk
 
 SRC += pios_mpu.c
+SRC += pios_bmp280.c
 SRC += pios_etasv3.c
 SRC += pios_mpxv5004.c
 SRC += pios_mpxv7002.c
