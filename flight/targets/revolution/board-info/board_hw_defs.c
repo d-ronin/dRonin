@@ -275,6 +275,14 @@ static const struct pios_spi_cfg pios_spi_telem_flash_cfg = {
 	},
 };
 
+#ifdef PIOS_INCLUDE_BMP280_SPI
+#include "pios_bmp280_priv.h"
+
+static const struct pios_bmp280_cfg pios_bmp280_cfg = {
+	.oversampling = BMP280_HIGH_RESOLUTION,
+};
+#endif
+
 pios_spi_t pios_spi_telem_flash_id;
 
 #if defined(PIOS_INCLUDE_RFM22B)

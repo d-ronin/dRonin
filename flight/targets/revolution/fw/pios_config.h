@@ -59,6 +59,7 @@
 #define PIOS_INCLUDE_MAX7456
 
 /* Select the sensors to include */
+#define PIOS_INCLUDE_BMP280_SPI
 #define PIOS_INCLUDE_HMC5883
 #define PIOS_INCLUDE_HMC5983_I2C
 #define PIOS_INCLUDE_MPU

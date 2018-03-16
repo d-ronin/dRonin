@@ -602,6 +602,18 @@ void PIOS_Board_Init(void) {
 
 #endif    /* PIOS_INCLUDE_I2C */
 
+#ifdef PIOS_INCLUDE_SPI
+#ifdef PIOS_INCLUDE_BMP280_SPI
+	// BMP280 support
+	if ((!flash_chip_ok) &&
+			(!PIOS_SENSORS_IsRegistered(PIOS_SENSOR_BARO))) {
+		/* Best effort */
+		PIOS_BMP280_SPI_Init(&pios_bmp280_cfg,
+				pios_spi_telem_flash_id, 1);
+	}
+#endif /* PIOS_INCLUDE_BMP280_SPI */
+#endif
+
 #if defined(PIOS_INCLUDE_ADC)
 	uintptr_t internal_adc_id;
 	PIOS_INTERNAL_ADC_Init(&internal_adc_id, &pios_adc_cfg);

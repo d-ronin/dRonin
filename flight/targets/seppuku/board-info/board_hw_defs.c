@@ -234,7 +234,7 @@ static const struct pios_lis3mdl_cfg pios_lis3mdl_cfg = {
 
 #endif /* PIOS_INCLUDE_LIS3MDL */
 
-#ifdef PIOS_INCLUDE_BMP280
+#ifdef PIOS_INCLUDE_BMP280_SPI
 #include "pios_bmp280_priv.h"
 
 static const struct pios_bmp280_cfg pios_bmp280_cfg = {
