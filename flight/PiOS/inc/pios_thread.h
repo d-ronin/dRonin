@@ -88,6 +88,7 @@ void PIOS_Thread_Scheduler_Resume(void);
  * @retval true if period has elapsed, false otherwise
  */
 bool PIOS_Thread_Period_Elapsed(const uint32_t prev_systime, const uint32_t increment_ms);
+struct pios_thread *PIOS_Thread_WrapCurrentThread(const char *namep);
 
 #endif /* PIOS_THREAD_H_ */
 

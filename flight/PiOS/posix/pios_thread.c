@@ -34,8 +34,44 @@ struct pios_thread
 {
 	pthread_t thread;
 
-	char *name;
+	const char *name;
 };
+
+/**
+ * @brief   Creates a handle for the current thread.
+ *
+ * @param[in] namep        pointer to thread name
+ *
+ * @returns instance of @p struct pios_thread or NULL on failure
+ */
+struct pios_thread *PIOS_Thread_WrapCurrentThread(const char *namep)
+{
+	struct pios_thread *thread = PIOS_malloc_no_dma(sizeof(struct pios_thread));
+
+	extern bool are_realtime;
+
+	if (!thread) {
+		abort();
+	}
+
+	thread->thread = pthread_self();
+
+	thread->name = namep;
+
+	if (are_realtime) {
+		struct sched_param param = {
+			.sched_priority = 30 + PIOS_THREAD_PRIO_HIGHEST * 5
+		};
+
+		pthread_setschedparam(thread->thread, SCHED_RR, &param);
+	}
+
+#ifdef __linux__
+	pthread_setname_np(thread->thread, thread->name);
+#endif
+
+	return thread;
+}
 
 struct pios_thread *PIOS_Thread_Create(void (*fp)(void *), const char *namep, size_t stack_bytes, void *argp, enum pios_thread_prio_e prio)
 {
@@ -60,7 +96,7 @@ struct pios_thread *PIOS_Thread_Create(void (*fp)(void *), const char *namep, si
 		pthread_attr_setschedparam(&attr, &param);
 	}
 
-	thread->name = strdup(namep);
+	thread->name = namep;
 
 	void *(*thr_func)(void *) = (void *) fp;
 
@@ -69,7 +105,6 @@ struct pios_thread *PIOS_Thread_Create(void (*fp)(void *), const char *namep, si
 	if (ret) {
 		printf("Couldn't start thr (%s) ret=%d\n", namep, ret);
 
-		free(thread->name);
 		free(thread);
 		return NULL;
 	}
