@@ -8,9 +8,6 @@
 // Defines ratio of inter-signal timing to run a prediction algorithm for.
 #define SMOOTHCONTROL_DUTY_CYCLE					0.5f
 
-// Same for extended mode.
-#define SMOOTHCONTROL_EXTENDED_DUTY_CYCLE			0.75f
-
 // Controls steepness of prediction slope.
 #define SMOOTHCONTROL_PREDICTOR_SLOPE				0.8f
 
@@ -25,8 +22,8 @@ enum {
 	// icee's idea.
 	SMOOTHCONTROL_NORMAL,
 
-	// Same but with extended duty cycle.
-	SMOOTHCONTROL_EXTENDED,
+	// Linear interpolate control input.
+	SMOOTHCONTROL_LINEAR,
 };
 
 typedef struct smoothcontrol_state_internal* smoothcontrol_state;
@@ -35,10 +32,11 @@ typedef struct smoothcontrol_state_internal* smoothcontrol_state;
 void smoothcontrol_initialize(smoothcontrol_state *state);
 void smoothcontrol_update_dT(smoothcontrol_state state, float dT);
 void smoothcontrol_next(smoothcontrol_state state);
-void smoothcontrol_run(smoothcontrol_state state, uint8_t axis_num, float *new_signal, float limit);
+void smoothcontrol_run(smoothcontrol_state state, uint8_t axis_num, float *new_signal);
 void smoothcontrol_run_thrust(smoothcontrol_state state, float *new_signal);
 void smoothcontrol_reinit(smoothcontrol_state state, uint8_t axis_num, float new_signal);
-void smoothcontrol_set_mode(smoothcontrol_state state, uint8_t axis_num, uint8_t mode);
+void smoothcontrol_reinit_thrust(smoothcontrol_state state, float new_signal);
+void smoothcontrol_set_mode(smoothcontrol_state state, uint8_t axis_num, uint8_t mode, uint8_t duty_cycle);
 bool* smoothcontrol_get_ringer(smoothcontrol_state state);
 
 #endif // SMOOTHCONTROL_H

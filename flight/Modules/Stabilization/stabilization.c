@@ -251,11 +251,12 @@ int32_t StabilizationInitialize()
 	return 0;
 }
 
-void stabilization_failsafe_checks(StabilizationDesiredData *stab_desired,
+bool stabilization_failsafe_checks(StabilizationDesiredData *stab_desired,
 	ActuatorDesiredData *actuator_desired,
 	SystemSettingsAirframeTypeOptions airframe_type,
 	float *input, uint8_t *mode)
 {
+	bool failsafed = false;
 	float *rate = &stab_desired->Roll;
 	for(int i = 0; i < MAX_AXES; i++)
 	{
@@ -263,6 +264,7 @@ void stabilization_failsafe_checks(StabilizationDesiredData *stab_desired,
 		input[i] = rate[i];
 
 		if (mode[i] == STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE) {
+			failsafed = true;
 			// Everything except planes should drop straight down
 			if ((airframe_type != SYSTEMSETTINGS_AIRFRAMETYPE_FIXEDWING) &&
 					(airframe_type != SYSTEMSETTINGS_AIRFRAMETYPE_FIXEDWINGELEVON) &&
@@ -306,6 +308,7 @@ void stabilization_failsafe_checks(StabilizationDesiredData *stab_desired,
 			}
 		}
 	}
+	return failsafed;
 }
 
 static void calculate_attitude_errors(uint8_t *axis_mode, float *raw_input,
@@ -795,12 +798,23 @@ static void stabilizationTask(void* parameters)
 		float raw_input[MAX_AXES];
 		uint8_t axis_mode[MAX_AXES];
 
-		stabilization_failsafe_checks(&stabDesired, &actuatorDesired, airframe_type,
+		bool failsafed = stabilization_failsafe_checks(&stabDesired, &actuatorDesired, airframe_type,
 			raw_input, axis_mode);
 
+		// A flag to track which stabilization mode each axis is in
+		static uint8_t previous_mode[MAX_AXES] = {255,255,255};
+
 		// Do this before attitude error calc, so it benefits from it.
-		for(int i = 0; i < 3; i++)
-			smoothcontrol_run(rc_smoothing, i, &raw_input[i], settings.ManualRate[i]);
+		for(int i = 0; i < 3; i++) {
+			if (axis_mode[i] != previous_mode[i] || failsafed) {
+				// Reset integrator and don't smooth for this cycle after a mode switch.
+				// Otherwise we might interpolate between different stick scales.
+				// Also, kill it during failsafe.
+				smoothcontrol_reinit(rc_smoothing, i, raw_input[i]);
+			} else {
+				smoothcontrol_run(rc_smoothing, i, &raw_input[i]);
+			}
+		}
 
 		float horizon_rate_fraction;
 		float local_attitude_error[MAX_AXES];
@@ -816,9 +830,6 @@ static void stabilizationTask(void* parameters)
 
 		static float max_rate_filtered[MAX_AXES];
 
-		// A flag to track which stabilization mode each axis is in
-		static uint8_t previous_mode[MAX_AXES] = {255,255,255};
-
 		actuatorDesired.SystemIdentCycle = 0xffff;
 
 		uint16_t max_safe_rate = PIOS_SENSORS_GetMaxGyro() * 0.9f;
@@ -827,11 +838,6 @@ static void stabilizationTask(void* parameters)
 		for (uint8_t i = 0; i < MAX_AXES; i++) {
 			// Check whether this axis mode needs to be reinitialized
 			bool reinit = (axis_mode[i] != previous_mode[i]);
-
-			if(reinit && previous_mode[i] != 255) {
-				// Disable the integrator this round. And only do so on real mode switches.
-				smoothcontrol_reinit(rc_smoothing, i, raw_input[i]);
-			}
 
 			previous_mode[i] = axis_mode[i];
 
@@ -859,6 +865,8 @@ static void stabilizationTask(void* parameters)
 						pids[PID_GROUP_RATE + i].iAccumulator = 0;
 						max_rate_filtered[i] = settings.ManualRate[i];
 					}
+
+					raw_input[i] = bound_sym(raw_input[i], 1.0f);
 
 					float curve_cmd = expoM(raw_input[i],
 							settings.RateExpo[i],
@@ -905,6 +913,8 @@ static void stabilizationTask(void* parameters)
 						pids[PID_GROUP_RATE + i].iAccumulator = 0;
 					}
 
+					raw_input[i] = bound_sym(raw_input[i], 1.0f);
+
 					// The factor for gyro suppression / mixing raw stick input into the output; scaled by raw stick input
 					float factor = fabsf(raw_input[i]) * settings.AcroInsanityFactor / 100.0f;
 
@@ -942,7 +952,7 @@ static void stabilizationTask(void* parameters)
 
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_VIRTUALBAR:
 					// Store for debugging output
-					rateDesiredAxis[i] = raw_input[i];
+					rateDesiredAxis[i] = bound_sym(raw_input[i], 1.0f);
 
 					// Run a virtual flybar stabilization algorithm on this axis
 					stabilization_virtual_flybar(gyro_filtered[i], rateDesiredAxis[i], &actuatorDesiredAxis[i], dT_expected, reinit, i, &pids[PID_GROUP_VBAR + i], &vbar_settings);
@@ -959,7 +969,7 @@ static void stabilizationTask(void* parameters)
 					weak_leveling = bound_sym(weak_leveling, weak_leveling_max);
 
 					// Compute desired rate as input biased towards leveling
-					rateDesiredAxis[i] = raw_input[i] + weak_leveling;
+					rateDesiredAxis[i] = bound_sym(raw_input[i] + weak_leveling, settings.ManualRate[i]);
 					actuatorDesiredAxis[i] = pid_apply_setpoint_antiwindup(&pids[PID_GROUP_RATE + i], get_deadband(i),  rateDesiredAxis[i],  gyro_filtered[i], -1.0f, 1.0f, 1.0f);
 
 					break;
@@ -1001,7 +1011,7 @@ static void stabilizationTask(void* parameters)
 					// Compute the outer loop for the attitude control
 					float rateDesiredAttitude = pid_apply(&pids[PID_GROUP_ATT + i], local_attitude_error[i]);
 					// Compute the desire rate for a rate control
-					float rateDesiredRate = raw_input[i] * settings.ManualRate[i];
+					float rateDesiredRate = bound_sym(raw_input[i], 1.0f) * settings.ManualRate[i];
 
 					// Blend from one rate to another. The maximum of all stick positions is used for the
 					// amount so that when one axis goes completely to rate the other one does too. This
@@ -1259,7 +1269,12 @@ static void stabilizationTask(void* parameters)
 		}
 
 		// Run the smoothing over the throttle stick.
-		smoothcontrol_run_thrust(rc_smoothing, &actuatorDesired.Thrust);
+		if (actuatorDesired.Thrust > THROTTLE_EPSILON || actuatorDesired.Thrust < -THROTTLE_EPSILON){
+			smoothcontrol_run_thrust(rc_smoothing, &actuatorDesired.Thrust);
+		} else {
+			/* Between the epsilons, we're at zero thrust. Reset smoothcontrol and leave ActuatorDesired be. */
+			smoothcontrol_reinit_thrust(rc_smoothing, 0);
+		}
 
 		// Register loop.
 		smoothcontrol_next(rc_smoothing);
@@ -1314,12 +1329,12 @@ static uint8_t remap_smoothing_mode(uint8_t m)
 	switch(m)
 	{
 		default:
-		case STABILIZATIONSETTINGS_RCCONTROLSMOOTHING_NONE:
+		case STABILIZATIONSETTINGS_MANUALCONTROLSMOOTHING_NONE:
 			return SMOOTHCONTROL_NONE;
-		case STABILIZATIONSETTINGS_RCCONTROLSMOOTHING_NORMAL:
+		case STABILIZATIONSETTINGS_MANUALCONTROLSMOOTHING_NORMAL:
 			return SMOOTHCONTROL_NORMAL;
-		case STABILIZATIONSETTINGS_RCCONTROLSMOOTHING_EXTENDED:
-			return SMOOTHCONTROL_EXTENDED;
+		case STABILIZATIONSETTINGS_MANUALCONTROLSMOOTHING_LINEAR:
+			return SMOOTHCONTROL_LINEAR;
 	}
 }
 
@@ -1477,13 +1492,14 @@ static void update_settings(float dT)
 	AltitudeHoldSettingsExpoGet(&altitude_hold_expo);
 #endif
 
-	uint8_t s_mode = remap_smoothing_mode(settings.RCControlSmoothing[STABILIZATIONSETTINGS_RCCONTROLSMOOTHING_AXES]);
-	smoothcontrol_set_mode(rc_smoothing, ROLL, s_mode);
-	smoothcontrol_set_mode(rc_smoothing, PITCH, s_mode);
-	smoothcontrol_set_mode(rc_smoothing, YAW, s_mode);
+	uint8_t s_mode = remap_smoothing_mode(settings.ManualControlSmoothing[STABILIZATIONSETTINGS_MANUALCONTROLSMOOTHING_AXES]);
+	uint8_t duty_cycle = settings.ManualControlSmoothingDutyCycle;
+	smoothcontrol_set_mode(rc_smoothing, ROLL, s_mode, duty_cycle);
+	smoothcontrol_set_mode(rc_smoothing, PITCH, s_mode, duty_cycle);
+	smoothcontrol_set_mode(rc_smoothing, YAW, s_mode, duty_cycle);
 	smoothcontrol_set_mode(rc_smoothing, 3, remap_smoothing_mode(
-		settings.RCControlSmoothing[STABILIZATIONSETTINGS_RCCONTROLSMOOTHING_THRUST]
-		));
+		settings.ManualControlSmoothing[STABILIZATIONSETTINGS_MANUALCONTROLSMOOTHING_THRUST]
+		), duty_cycle);
 
 }
 

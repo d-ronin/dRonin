@@ -38,6 +38,9 @@ struct smoothcontrol_state_internal {
 	// Control interval determined by the ringer.
 	uint8_t control_interval;
 
+	// Duty cycle to use.
+	float duty_cycle;
+
 	// RPY+Thrust.
 	struct smoothcontrol_axis_state axis[4];
 };
@@ -46,6 +49,7 @@ struct smoothcontrol_state_internal {
 static void smoothcontrol_update(smoothcontrol_state state, struct smoothcontrol_axis_state *axis, const float new_signal)
 {
 	float signal_diff = new_signal - axis->signal;
+	float cycles = MIN((float)state->control_interval * state->duty_cycle, state->control_interval);
 
 	switch(axis->mode) {
 		default:
@@ -57,11 +61,14 @@ static void smoothcontrol_update(smoothcontrol_state state, struct smoothcontrol
 
 		// icee's proposal, creates chamfered steps with signal prediction
 		case SMOOTHCONTROL_NORMAL:
-		case SMOOTHCONTROL_EXTENDED:
 			axis->differential = signal_diff * SMOOTHCONTROL_PREDICTOR_SLOPE / (float)state->control_interval;
 			axis->current = axis->signal + signal_diff * SMOOTHCONTROL_CHAMFER_START;
-			axis->integrator_timeout = (uint8_t)MIN((float)state->control_interval *
-				(axis->mode == SMOOTHCONTROL_NORMAL ? SMOOTHCONTROL_DUTY_CYCLE : SMOOTHCONTROL_EXTENDED_DUTY_CYCLE), 255);
+			axis->integrator_timeout = (uint8_t)cycles;
+			break;
+
+		case SMOOTHCONTROL_LINEAR:
+			axis->differential = (new_signal - axis->current) / cycles;
+			axis->integrator_timeout = (uint8_t)cycles;
 			break;
 	}
 
@@ -79,16 +86,22 @@ void smoothcontrol_reinit(smoothcontrol_state state, uint8_t axis_num, float new
 	state->axis[axis_num].current = new_signal;
 }
 
+// Resets the thrust state.
+void smoothcontrol_reinit_thrust(smoothcontrol_state state, float new_signal)
+{
+	smoothcontrol_reinit(state, 3, new_signal);
+}
+
 // Sets mode for an axis.
-void smoothcontrol_set_mode(smoothcontrol_state state, uint8_t axis_num, uint8_t mode)
+void smoothcontrol_set_mode(smoothcontrol_state state, uint8_t axis_num, uint8_t mode, uint8_t duty_cycle)
 {
 	PIOS_Assert(state && axis_num <= 3);
-	state->axis[axis_num].mode = mode;
+	state->duty_cycle = bound_min_max((float)duty_cycle, 0, 100) / 100.0f;
 	smoothcontrol_reinit(state, axis_num, state->axis[axis_num].signal);
 }
 
 // Processes the signal, if internal state allows it.
-void smoothcontrol_run(smoothcontrol_state state, uint8_t axis_num, float *new_signal, float limit)
+void smoothcontrol_run(smoothcontrol_state state, uint8_t axis_num, float *new_signal)
 {
 	PIOS_Assert(state && axis_num <= 3);
 
@@ -123,12 +136,12 @@ void smoothcontrol_run_thrust(smoothcontrol_state state, float *new_signal)
 	 * non-zero.
 	 */
 
-	if (*new_signal == 0) {
+	if (*new_signal == 0 || *new_signal != *new_signal) {
 		smoothcontrol_reinit(state, 3, 0);
 	} else {
 		bool sign = *new_signal > 0;
 
-		smoothcontrol_run(state, 3, new_signal, 1.0f);
+		smoothcontrol_run(state, 3, new_signal);
 
 		// If prediction undershoots while original signal is positive
 		// bound it to zero.
