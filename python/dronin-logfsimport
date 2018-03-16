@@ -2,6 +2,7 @@
 
 # Proof of concept example of using the logfs api.
 from dronin.logfs import LogFSImport
+from dronin.uavo_collection import UAVOCollection
 
 def main():
     import argparse
@@ -17,7 +18,7 @@ def main():
 
     imported = LogFSImport(githashes, open(srcfile, 'rb').read())
 
-    print(imported.ExportXML())
+    print(UAVOCollection.export_xml(imported, githash=imported.githash))
 
 if __name__ == '__main__':
         main()
