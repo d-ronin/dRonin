@@ -132,8 +132,8 @@ static PeriodicObjectList* objList;
 static struct pios_recursive_mutex *mutex;
 static EventStats stats;
 
-static uint32_t idleCounter;
-static uint32_t idleCounterClear;
+static volatile uint32_t idleCounter;
+static volatile uint32_t idleCounterClear;
 static struct pios_thread *systemTaskHandle;
 static struct pios_queue *objectPersistenceQueue;
 
@@ -234,9 +234,6 @@ static void systemTask(void *parameters)
 	PIOS_IAP_WriteBootCount(0);
 #endif
 
-	// Initialize vars
-	idleCounter = 0;
-	idleCounterClear = 0;
 
 	// Listen for SettingPersistance object updates, connect a callback function
 	ObjectPersistenceConnectQueue(objectPersistenceQueue);
