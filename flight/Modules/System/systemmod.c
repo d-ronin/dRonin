@@ -151,7 +151,8 @@ static int32_t eventPeriodicUpdate(UAVObjEvent* ev, UAVObjEventCallback cb, stru
 static void configurationUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len);
 #endif
 
-static void systemTask(void *parameters);
+void system_task();
+
 static inline void updateStats();
 static inline void updateSystemAlarms();
 static inline void updateRfm22bStats();
@@ -171,11 +172,6 @@ int32_t SystemModStart(void)
 	EventPeriodicCallbackCreate(&ev, systemPeriodicCb, SYSTEM_UPDATE_PERIOD_MS);
 
 	EventClearStats();
-
-	// Create system task
-	systemTaskHandle = PIOS_Thread_Create(systemTask, "System", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
-	// Register task
-	TaskMonitorAdd(TASKINFO_RUNNING_SYSTEM, systemTaskHandle);
 
 	return 0;
 }
@@ -219,7 +215,7 @@ int32_t SystemModInitialize(void)
 }
 
 MODULE_HIPRI_INITCALL(SystemModInitialize, SystemModStart)
-static void systemTask(void *parameters)
+void system_task()
 {
 	if (PIOS_heap_malloc_failed_p()) {
 		/* We failed to malloc during task creation,
@@ -234,6 +230,8 @@ static void systemTask(void *parameters)
 	PIOS_IAP_WriteBootCount(0);
 #endif
 
+	systemTaskHandle = PIOS_Thread_WrapCurrentThread("system");
+	TaskMonitorAdd(TASKINFO_RUNNING_SYSTEM, systemTaskHandle);
 
 	// Listen for SettingPersistance object updates, connect a callback function
 	ObjectPersistenceConnectQueue(objectPersistenceQueue);
