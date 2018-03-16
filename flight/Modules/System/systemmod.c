@@ -544,7 +544,6 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 				ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_LED_ALARM);
 #endif
 
-#ifdef PIOS_ANNUNCIATOR_BUZZER
 		uint8_t buzzer_prio = blink_prio;
 
 		if (annunciatorSettings.ManualBuzzer !=
@@ -556,6 +555,9 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 				buzzer_prio = ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_HAIRONFIRE;
 		}
 
+		(void) buzzer_prio;
+
+#ifdef PIOS_ANNUNCIATOR_BUZZER
 		consider_annunc(&annunciatorSettings, morse > 0, ever_armed,
 				is_manual_control,
 				buzzer_prio, PIOS_ANNUNCIATOR_BUZZER,
@@ -565,7 +567,7 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 #ifdef PIOS_INCLUDE_DAC_ANNUNCIATOR
 		if (pios_dac_annunciator_id) {
 			if (should_annunc(&annunciatorSettings, ever_armed,
-					is_manual_control, blink_prio,
+					is_manual_control, buzzer_prio,
 					ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_DAC)) {
 				PIOS_ANNUNCDAC_SetValue(pios_dac_annunciator_id,
 						true, morse > 0);
@@ -578,7 +580,7 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 
 #ifdef PIOS_INCLUDE_ACTUATOR_ANNUNCIATOR
 		if (should_annunc(&annunciatorSettings, ever_armed,
-				is_manual_control, blink_prio,
+				is_manual_control, buzzer_prio,
 				ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_ACTUATORS)) {
 			actuator_send_dshot_command(DSHOT_CMD_BEACON3,
 					1, 0xffff);
