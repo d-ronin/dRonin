@@ -67,15 +67,15 @@ int32_t TaskMonitorInitialize(void)
 int32_t TaskMonitorAdd(TaskInfoRunningElem task, struct pios_thread *threadp)
 {
 	uint32_t task_idx = (uint32_t) task;
-	if (task_idx < TASKINFO_RUNNING_NUMELEM)
-	{
+
+	PIOS_Assert(threadp);
+
+	if (task_idx < TASKINFO_RUNNING_NUMELEM) {
 		PIOS_Mutex_Lock(lock, PIOS_MUTEX_TIMEOUT_MAX);
 		handles[task_idx] = threadp;
 		PIOS_Mutex_Unlock(lock);
 		return 0;
-	}
-	else
-	{
+	} else {
 		return -1;
 	}
 }
