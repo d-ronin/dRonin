@@ -64,6 +64,10 @@ static struct pios_internal_flash_dev *PIOS_Flash_Internal_alloc(void)
 	return(flash_dev);
 }
 
+void FLASH_IRQHandler() {
+	PIOS_Assert(0);
+}
+
 int32_t PIOS_Flash_Internal_Init(uintptr_t *chip_id, const struct pios_flash_internal_cfg *cfg)
 {
 	struct pios_internal_flash_dev *flash_dev;
@@ -75,6 +79,20 @@ int32_t PIOS_Flash_Internal_Init(uintptr_t *chip_id, const struct pios_flash_int
 	flash_dev->transaction_lock = PIOS_Semaphore_Create();
 
 	flash_dev->cfg = cfg;
+
+	/* Catch ERRIE interrupt indicating a flash error.
+	 * These are usually null-pointer dereferences inadvertently
+	 * accessing flash memory.
+	 */
+	NVIC_InitTypeDef intr = {
+		.NVIC_IRQChannel                   = FLASH_IRQn,
+		.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGHEST,
+		.NVIC_IRQChannelSubPriority        = 0,
+		.NVIC_IRQChannelCmd                = ENABLE,
+	};
+
+	NVIC_Init(&intr);
+	FLASH_ITConfig(FLASH_IT_ERR, ENABLE);
 
 	*chip_id = (uintptr_t) flash_dev;
 
