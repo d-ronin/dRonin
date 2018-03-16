@@ -1223,10 +1223,17 @@ bool ConfigTaskWidget::setWidgetFromVariant(QWidget *widget, QVariant value, dou
                                             QString units)
 {
     units = units.trimmed();
-    if (!units.isEmpty() && !qFuzzyCompare(1 + 1.0, 1 + scale) && scale != 0)
-        units = applyScaleToUnits(units, scale);
-    if (!units.isEmpty())
-        units.prepend(' ');
+    if (!units.startsWith("%")) {
+        if (!units.isEmpty() && !qFuzzyCompare(1 + 1.0, 1 + scale) && scale != 0)
+            units = applyScaleToUnits(units, scale);
+        if (!units.isEmpty())
+            units.prepend(' ');
+    } else {
+        /* We have a lot of things like % / 100 in the unit set.
+         * Best to make them just %.  (Assume they'll use scale properly)
+         */
+        units = QString("%");
+    }
 
     if (QComboBox *comboBox = qobject_cast<QComboBox *>(widget)) {
         comboBox->setCurrentIndex(comboBox->findData(value.toString()));
@@ -1235,7 +1242,7 @@ bool ConfigTaskWidget::setWidgetFromVariant(QWidget *widget, QVariant value, dou
         if (scale == 0)
             label->setText(value.toString() + units);
         else
-            label->setText(QString::number((value.toDouble() / scale)) + units);
+            label->setText(QString::number(value.toDouble() / scale, 'g', 3) + units);
         return true;
     } else if (QDoubleSpinBox *dblSpinBox = qobject_cast<QDoubleSpinBox *>(widget)) {
         dblSpinBox->setValue(value.toDouble() / scale);

@@ -32,6 +32,7 @@
 
 #include "configstabilizationwidget.h"
 #include "manualcontrolsettings.h"
+#include "systemident.h"
 
 #include <coreplugin/iboardtype.h>
 #include <uavobjectutil/uavobjectutilmanager.h>
@@ -445,8 +446,30 @@ void ConfigStabilizationWidget::hangtimeDurationChanged()
 
 void ConfigStabilizationWidget::hangtimeToggle(bool enabled)
 {
-    if (!enabled)
+    if (!enabled) {
         m_stabilization->sbHangtimeDuration->setValue(0.0); // 0.0 is disabled
-    else if (m_stabilization->sbHangtimeDuration->value() == 0.0)
+    } else if (m_stabilization->sbHangtimeDuration->value() == 0.0) {
         m_stabilization->sbHangtimeDuration->setValue(2.5); // default duration in s
+
+        UAVObject *systemIdent =
+            getObjectManager()->getObject(SystemIdent::NAME);
+
+        if (systemIdent) {
+            UAVObjectField *field = systemIdent->getField("HoverThrottle");
+
+            if (field) {
+                float hoverThrottle = field->getValue().toFloat();
+                if (hoverThrottle > 0.01) {
+                    float powerAdd = hoverThrottle * 85;
+
+                    if (powerAdd > 20) {
+                        powerAdd = 20;
+                    }
+
+                    m_stabilization->sbHangtimePower->setValue(powerAdd);
+                }
+            }
+        }
+
+    }
 }
