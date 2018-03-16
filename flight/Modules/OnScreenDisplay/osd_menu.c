@@ -1824,10 +1824,16 @@ void pidatt_menu(void)
 	}
 }
 
+DONT_BUILD_IF(STABILIZATIONSETTINGS_MAXLEVELANGLE_ROLL != 0,
+		LevelAngleConstantRoll);
+DONT_BUILD_IF(STABILIZATIONSETTINGS_MAXLEVELANGLE_PITCH != 1,
+		LevelAngleConstantPitch);
+DONT_BUILD_IF(STABILIZATIONSETTINGS_MAXLEVELANGLE_YAW != 2,
+		LevelAngleConstantYaw);
+
 #define MAX_STICK_RATE 1440
 void sticklimits_menu(void)
 {
-	uint8_t angle;
 	int y_pos = MENU_LINE_Y;
 	enum menu_fsm_state my_state = FSM_STATE_STICKLIMITS_ROLLA;
 	bool data_changed = false;
@@ -1835,20 +1841,15 @@ void sticklimits_menu(void)
 
 	draw_menu_title("Stick Limits and Expo");
 
+	uint8_t level_angles[STABILIZATIONSETTINGS_MAXLEVELANGLE_NUMELEM];
+
+	StabilizationSettingsMaxLevelAngleGet(level_angles);
+
 	// Full Stick Angle
 	for (int i = 0; i < 3; i++) {
 		data_changed = false;
-		switch (i) {
-			case 0:
-				StabilizationSettingsRollMaxGet(&angle);
-				break;
-			case 1:
-				StabilizationSettingsPitchMaxGet(&angle);
-				break;
-			case 2:
-				StabilizationSettingsYawMaxGet(&angle);
-				break;
-		}
+
+		uint8_t angle = level_angles[i];
 
 		sprintf(tmp_str, "Max Stick Angle %s: %d", axis_strings[i], angle);
 		write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
@@ -1856,25 +1857,15 @@ void sticklimits_menu(void)
 		if (my_state == current_state) {
 			draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
 			if (current_event == FSM_EVENT_RIGHT) {
-				angle = MIN(angle + 1, 90);
+				level_angles[i] = MIN(angle + 1, 90);
 				data_changed = true;
 			}
 			if (current_event == FSM_EVENT_LEFT) {
-				angle = MAX((int)angle - 1, 0);
+				level_angles[i] = MAX((int)angle - 1, 0);
 				data_changed = true;
 			}
 			if (data_changed) {
-				switch (i) {
-					case 0:
-						StabilizationSettingsRollMaxSet(&angle);
-						break;
-					case 1:
-						StabilizationSettingsPitchMaxSet(&angle);
-						break;
-					case 2:
-						StabilizationSettingsYawMaxSet(&angle);
-						break;
-				}
+				StabilizationSettingsMaxLevelAngleSet(level_angles);
 			}
 		}
 		my_state++;
