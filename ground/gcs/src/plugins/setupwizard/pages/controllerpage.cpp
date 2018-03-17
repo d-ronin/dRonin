@@ -82,6 +82,11 @@ bool ControllerPage::isComplete() const
     if (type == NULL)
         return false;
 
+    /*
+     * Only allow you to continue with setup wizard if you have a USB-type
+     * connection... or if the type doesn't support USB
+     * (e.g. simulation/posix)
+     */
     return !type->isUSBSupported()
         || m_connectionManager->getCurrentDevice().getConName().startsWith("USB:",
                                                                            Qt::CaseInsensitive);
@@ -123,21 +128,22 @@ void ControllerPage::devicesChanged(QLinkedList<Core::DevListItem> devices)
     ui->deviceCombo->clear();
 
     int indexOfSelectedItem = -1;
-    int i = 0;
+
+    /* Sadly comparison of device doesn't seem to work... */
+    QString refName = m_connectionManager->getCurrentDevice().getConName();
 
     // Loop and fill the combo with items from connectionmanager
     foreach (Core::DevListItem deviceItem, devices) {
-        ui->deviceCombo->addItem(deviceItem.getConName());
-        QString deviceName = (const QString)deviceItem.getConName();
+        QString deviceName = deviceItem.getConName();
+        if ((deviceName != refName) &&
+                (!deviceName.startsWith("USB:", Qt::CaseInsensitive))) {
+            continue;
+        }
+        ui->deviceCombo->addItem(deviceName);
         ui->deviceCombo->setItemData(ui->deviceCombo->count() - 1, deviceName, Qt::ToolTipRole);
-        if (!deviceName.startsWith("USB:", Qt::CaseInsensitive)) {
-            ui->deviceCombo->setItemData(ui->deviceCombo->count() - 1, QVariant(0),
-                                         Qt::UserRole - 1);
-        }
         if (currSelectedDeviceName != "" && currSelectedDeviceName == deviceName) {
-            indexOfSelectedItem = i;
+            indexOfSelectedItem = ui->deviceCombo->count() - 1;
         }
-        i++;
     }
 
     // Re select the item that was selected before if any
