@@ -17,7 +17,7 @@
  files located at the root of the source distribution.
  These files may also be found in the public source
  code repository located at:
-        http://github.com/signal11/hidapi .
+	http://github.com/signal11/hidapi .
 ********************************************************/
 
 /* See Apple Technical Note TN2187 for details on IOHidManager. */
@@ -186,7 +186,7 @@ static int get_string_property(IOHIDDeviceRef device, CFStringRef prop, wchar_t 
 			len * sizeof(wchar_t),
 			&used_buf_len);
 
-		if (chars_copied == len)
+		if ((size_t) chars_copied == len)
 			buf[len] = 0; /* len is decremented above */
 		else
 			buf[chars_copied] = 0;
@@ -226,7 +226,7 @@ static int get_string_property_utf8(IOHIDDeviceRef device, CFStringRef prop, cha
 			len,
 			&used_buf_len);
 
-		if (used_buf_len == len)
+		if ((size_t) used_buf_len == len)
 			buf[len] = 0; /* len is decremented above */
 		else
 			buf[used_buf_len] = 0;
@@ -341,6 +341,7 @@ static void process_pending_events(void) {
 	} while(res != kCFRunLoopRunFinished && res != kCFRunLoopRunTimedOut);
 }
 
+#if 0
 static struct hid_device_info *remove_from_list_by_path(struct hid_device_info **list,
 		const char *path) {
 	// Double-pointer walk of list
@@ -359,6 +360,7 @@ static struct hid_device_info *remove_from_list_by_path(struct hid_device_info *
 
 	return NULL;
 }
+#endif
 
 struct hid_device_info HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, unsigned short product_id, struct hid_device_info *prev_enumeration)
 {
@@ -537,6 +539,8 @@ static void hid_report_callback(void *context, IOReturn result, void *sender,
 	struct input_report *rpt;
 	hid_device *dev = context;
 
+	(void) result; (void) sender; (void) report_type; (void) report_id;
+
 	/* Make a new Input Report object */
 	rpt = calloc(1, sizeof(struct input_report));
 	rpt->data = calloc(1, report_length);
@@ -551,8 +555,7 @@ static void hid_report_callback(void *context, IOReturn result, void *sender,
 	if (dev->input_reports == NULL) {
 		/* The list is empty. Put it at the root. */
 		dev->input_reports = rpt;
-	}
-	else {
+	} else {
 		/* Find the end of the list and attach. */
 		struct input_report *cur = dev->input_reports;
 		int num_queued = 0;
@@ -896,9 +899,9 @@ int HID_API_EXPORT hid_get_feature_report(hid_device *dev, unsigned char *data, 
 		return -1;
 
 	res = IOHIDDeviceGetReport(dev->device_handle,
-	                           kIOHIDReportTypeFeature,
-	                           data[0], /* Report ID */
-	                           data, &len);
+				   kIOHIDReportTypeFeature,
+				   data[0], /* Report ID */
+				   data, &len);
 
 	if (res == kIOReturnSuccess)
 		return len;
@@ -960,6 +963,7 @@ int HID_API_EXPORT_CALL hid_get_serial_number_string(hid_device *dev, wchar_t *s
 int HID_API_EXPORT_CALL hid_get_indexed_string(hid_device *dev, int string_index, wchar_t *string, size_t maxlen)
 {
 	/* TODO: */
+	(void) dev; (void) string_index; (void) string; (void) maxlen;
 
 	return 0;
 }
@@ -967,6 +971,7 @@ int HID_API_EXPORT_CALL hid_get_indexed_string(hid_device *dev, int string_index
 HID_API_EXPORT const wchar_t * HID_API_CALL  hid_error(hid_device *dev)
 {
 	/* TODO: */
+	(void) dev;
 
 	return NULL;
 }
