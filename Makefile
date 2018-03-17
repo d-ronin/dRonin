@@ -957,6 +957,8 @@ endef
 ifeq ($(filter debug, $(FLIGHT_BUILD_CONF)), debug)
 # Don't build boards that overflow with debugging
 ALL_BOARDS     := $(filter-out $(NODEBUG_BOARDS), $(ALL_BOARDS))
+
+$(warning Removing targets with inoperable debug mode: $(NODEBUG_BOARDS))
 endif
 
 FW_BOARDS      := $(ALL_BOARDS)
