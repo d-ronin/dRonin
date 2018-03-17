@@ -531,12 +531,6 @@ TEST_F(MatrixMath, MultipliesAndInverses) {
     EXPECT_NEAR(matr_5x3[i], degen_5x3[i], hugeeps);
   }
 }
-  const float simple_4x4[] = {
-     1.0f,  1.0f,  1.0f, 1.0f,
-    -1.0f, -1.0f,  1.0f, 1.0f,
-     1.0f, -1.0f, -1.0f, 1.0f,
-    -1.0f,  1.0f, -1.0f, 1.0f,
-  };
 
 TEST_F(MatrixMath, MixerMatrixInverses) {
   const float eps = 0.0005f;
