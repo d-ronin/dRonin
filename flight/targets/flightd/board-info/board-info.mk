@@ -9,5 +9,3 @@ MODEL_SUFFIX        :=
 
 USB_VEND            := ""
 USB_PROD            := ""
-
-include $(MAKE_INC_DIR)/firmware-arches.mk
