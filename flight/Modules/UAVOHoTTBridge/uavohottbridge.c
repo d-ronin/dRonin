@@ -625,6 +625,7 @@ void update_telemetrydata () {
 	const char *txt_disarmed = "Disarmed";
 	const char *txt_arming = "Arming";
 	const char *txt_armed = "Armed";
+	const char *txt_tailtune = "Tailtune";
 
 	const char *txt_flightmode;
 	switch (telestate->FlightStatus.FlightMode) {
@@ -669,6 +670,9 @@ void update_telemetrydata () {
 			break;
 		case FLIGHTSTATUS_FLIGHTMODE_FAILSAFE:
 			txt_flightmode = txt_failsafe;
+			break;
+		case FLIGHTSTATUS_FLIGHTMODE_TAILTUNE:
+			txt_flightmode = txt_tailtune;
 			break;
 		default:
 			txt_flightmode = txt_unknown;

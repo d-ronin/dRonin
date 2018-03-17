@@ -566,7 +566,7 @@ int32_t transmitter_control_select(bool reset_controller)
 		update_stabilization_desired(&cmd, &settings);
 		break;
 	case FLIGHTSTATUS_FLIGHTMODE_ALTITUDEHOLD:
-	case FLIGHTSTAUUS_FLIGHTMODE_TAILTUNE:
+	case FLIGHTSTATUS_FLIGHTMODE_TAILTUNE:
 		update_stabilization_desired(&cmd, &settings);
 		break;
 	case FLIGHTSTATUS_FLIGHTMODE_POSITIONHOLD:

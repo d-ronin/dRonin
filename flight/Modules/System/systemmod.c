@@ -541,7 +541,10 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 			}
 		}
 
-		morse = morse_send(&blink_string, &blink_state);
+		if (blink_string == NULL)
+			morse = 0;
+		else
+			morse = morse_send(&blink_string, &blink_state);
 
 		AnnunciatorSettingsData annunciatorSettings;
 		AnnunciatorSettingsGet(&annunciatorSettings);
