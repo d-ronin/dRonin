@@ -48,6 +48,7 @@ public:
     virtual int queryMaxGyroRate();
     QWidget *getBoardConfiguration(QWidget *parent, bool connected);
     virtual bool hasAnnunciator(AnnunciatorType annunc);
+    virtual bool isUSBSupported() { return false; }
 };
 
 #endif // SIMULATION_H_
