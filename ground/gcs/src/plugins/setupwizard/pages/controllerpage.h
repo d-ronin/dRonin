@@ -57,7 +57,7 @@ private:
     void setupDeviceList();
     void setControllerType(Core::IBoardType *);
     Core::ConnectionManager *m_connectionManager;
-    TelemetryManager *m_telemtryManager;
+    TelemetryManager *m_telemetryManager;
 
 private slots:
     void devicesChanged(QLinkedList<Core::DevListItem> devices);

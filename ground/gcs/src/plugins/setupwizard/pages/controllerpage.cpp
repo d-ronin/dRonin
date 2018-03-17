@@ -47,11 +47,14 @@ ControllerPage::ControllerPage(SetupWizard *wizard, QWidget *parent)
 
     ExtensionSystem::PluginManager *pluginManager = ExtensionSystem::PluginManager::instance();
     Q_ASSERT(pluginManager);
-    m_telemtryManager = pluginManager->getObject<TelemetryManager>();
-    Q_ASSERT(m_telemtryManager);
-    connect(m_telemtryManager, &TelemetryManager::connected, this,
+    m_telemetryManager = pluginManager->getObject<TelemetryManager>();
+    Q_ASSERT(m_telemetryManager);
+    connect(m_telemetryManager, &TelemetryManager::connected, this,
             &ControllerPage::connectionStatusChanged);
-    connect(m_telemtryManager, &TelemetryManager::disconnected, this,
+    /* Consider us "connected" when telemetry manager says so, but
+     * disconnected the instant connection manager knows the conn is down.
+     */
+    connect(m_connectionManager, &Core::ConnectionManager::deviceDisconnected, this,
             &ControllerPage::connectionStatusChanged);
 
     connect(ui->connectButton, &QAbstractButton::clicked, this, &ControllerPage::connectDisconnect);
@@ -100,7 +103,7 @@ bool ControllerPage::validatePage()
 
 bool ControllerPage::anyControllerConnected()
 {
-    return m_telemtryManager->isConnected();
+    return m_telemetryManager->isConnected();
 }
 
 void ControllerPage::setupDeviceList()
