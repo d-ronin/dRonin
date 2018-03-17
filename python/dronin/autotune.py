@@ -118,7 +118,7 @@ def read_autotune_json_lump(f_name, **kwargs):
     return process_autotune_json(contents, **kwargs)
 
 def read_autotune_from_autotown(tuneid, **kwargs):
-    from six.moves import urllib
+    import urllib
 
     contents = urllib.request.urlopen("http://dronin-autotown.appspot.com/api/tune?tune=%s"%(tuneid)).read()
 

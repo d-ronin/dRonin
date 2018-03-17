@@ -129,7 +129,7 @@ class UAVOCollection(dict):
                 pass
 
             try:
-                from six.moves.urllib.request import urlopen
+                from urllib.request import urlopen
 
                 # TODO -- this can be bundled into a single request and unrolled.
                 web_data = urlopen("http://dronin-autotown.appspot.com/uavos/%s" % (h))
