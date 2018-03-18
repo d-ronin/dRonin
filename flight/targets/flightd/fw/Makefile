@@ -232,8 +232,6 @@ EXTRAINCDIRS  += $(RTOSINCDIR)
 #EXTRAINCDIRS  += $(APPLIBDIR)
 EXTRAINCDIRS  += $(RTOSSRCDIR)/portable/GCC/Posix
 
-EXTRAINCDIRS  += $(BOARD_INFO_DIR)
-
 EXTRAINCDIRS += ${foreach MOD, ${OPTMODULES} ${MODULES}, $(OPMODULEDIR)/${MOD}/inc} ${OPMODULEDIR}/System/inc
 
 # Optimization level, can be [0, 1, 2, 3, s].

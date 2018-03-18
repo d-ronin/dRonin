@@ -1,5 +1,9 @@
 ifneq ($(BOARD_INFO_DIR)x,x)
 include $(BOARD_INFO_DIR)/board-info.mk
+include $(MAKE_INC_DIR)/firmware-arches.mk
+
+EXTRAINCDIRS += $(BOARD_INFO_DIR)
+EXTRAINCDIRS += $(foreach d,$(ARCH_TYPES),$(PIOS)/$(d)/inc)
 
 ALL_LOAD_ARG := -Wl,-whole-archive
 NO_ALL_LOAD_ARG := -Wl,-no-whole-archive
