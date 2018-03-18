@@ -156,14 +156,14 @@ void smartSaveButton::processOperation(QPushButton *button, bool save)
         timer.start(1000);
         loop.exec();
         if (!timer.isActive())
-            qDebug() << "[smartsavebutton.cpp] Upload timeout for object" << obj->getName();
+            qInfo() << "[smartsavebutton.cpp] Upload timeout for object" << obj->getName();
         timer.stop();
         disconnect(obj, SIGNAL(transactionCompleted(UAVObject *, bool)), this,
                    SLOT(transaction_finished(UAVObject *, bool)));
         disconnect(&timer, SIGNAL(timeout()), &loop, SLOT(quit()));
 
         if (upload_result == false) {
-            qDebug() << "[smartsavebutton.cpp] Object upload error:" << obj->getName();
+            qInfo() << "[smartsavebutton.cpp] Object upload error:" << obj->getName();
             if (mandatoryList.value(obj, true))
                 failedUploads.append(obj->getName());
             continue;
@@ -196,14 +196,14 @@ void smartSaveButton::processOperation(QPushButton *button, bool save)
             timer.start(2000);
             loop.exec();
             if (!timer.isActive())
-                qDebug() << "[smartsavebutton.cpp] Saving timeout for object" << obj->getName();
+                qInfo() << "[smartsavebutton.cpp] Saving timeout for object" << obj->getName();
             timer.stop();
             disconnect(utilMngr, SIGNAL(saveCompleted(int, bool)), this,
                        SLOT(saving_finished(int, bool)));
             disconnect(&timer, SIGNAL(timeout()), &loop, SLOT(quit()));
 
             if (save_result == false) {
-                qDebug() << "[smartsavebutton.cpp] failed to save:" << obj->getName();
+                qInfo() << "[smartsavebutton.cpp] failed to save:" << obj->getName();
                 if (mandatoryList.value(obj, true))
                     failedSaves.append(obj->getName());
             }
