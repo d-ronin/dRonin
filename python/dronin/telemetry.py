@@ -117,7 +117,7 @@ class TelemetryBase(with_metaclass(ABCMeta)):
             request = self.req_obj.pop(key, None)
 
             if request is not None:
-                request.completed(None)
+                request.completed(None, obj._id)
 
     def as_numpy_array(self, match_class, filter_cond=None, blocks=True):
         """ Transforms all received instances of a given object to a numpy array.
@@ -248,9 +248,9 @@ class TelemetryBase(with_metaclass(ABCMeta)):
 
             return False
 
-        def completed(self, value):
+        def completed(self, value, id_val):
             for cb in self.cbs:
-                cb(value)
+                cb(value, id_val)
 
         def expired(self):
             if (not self.retries) and (time.time() >= self.expiration):
@@ -268,7 +268,7 @@ class TelemetryBase(with_metaclass(ABCMeta)):
             for f in self.req_obj.values():
                 if f.expired():
                     self.req_obj.pop(f.key())
-                    f.completed(None)
+                    f.completed(None, f._id)
                 elif f.time_to_resend():
                     key = f.key()
                     self._send(f.make_request())
@@ -332,6 +332,24 @@ class TelemetryBase(with_metaclass(ABCMeta)):
             raise ValueError("Can only request on handshaking/bidir sessions")
 
         self._send(uavtalk.request_filedata(file_id, offset))
+
+    def save_object(self, obj, send_first=False):
+        if send_first:
+            self.send_object(obj, req_ack=True)
+
+        save_obj = self.uavo_defs.find_by_name('UAVO_ObjectPersistence')
+
+        save_req = save_obj._make_to_send(
+                Operation = save_obj.ENUM_Operation['Save'],
+                ObjectID = obj._id,
+                InstanceID = 0
+        )
+
+        self.send_object(save_req, req_ack=True)
+
+    def save_objects(self, objs, *arg, **kwargs):
+        for obj in objs:
+            self.save_object(obj, *arg, **kwargs)
 
     def transfer_file(self, file_id):
         with self.ack_cond:
@@ -408,7 +426,7 @@ class TelemetryBase(with_metaclass(ABCMeta)):
                 request = self.req_obj.pop(key, None)
 
                 if request is not None:
-                    request.completed(obj)
+                    request.completed(obj, obj._id)
 
             self.cond.notifyAll()
 
@@ -524,6 +542,7 @@ class BidirTelemetry(TelemetryBase):
         Meaningful parameters passed up to TelemetryBase include: githash,
         service_in_iter, iter_blocks, use_walltime
         """
+
         TelemetryBase.__init__(self, do_handshaking=True,
                 gcs_timestamps=False,  *args, **kwargs)
 
@@ -971,12 +990,71 @@ class FileTelemetry(TelemetryBase):
 
         return buf
 
+def _finish_telemetry_args(parser, args, service_in_iter, iter_blocks):
+    parse_header = False
+    githash = None
+
+    if args.githash is not None:
+        # If we specify the log header no need to attempt to parse it
+        githash = args.githash
+    else:
+        parse_header = True # only for files
+
+    from dronin import telemetry
+
+    if args.serial:
+        return telemetry.SerialTelemetry(args.source, speed=args.baud,
+                service_in_iter=service_in_iter, iter_blocks=iter_blocks,
+                githash=githash)
+
+    if args.baud != "115200":
+        parser.print_help()
+        raise ValueError("Baud rates only apply to serial ports")
+
+    if args.hid:
+        return telemetry.HIDTelemetry(args.source,
+                service_in_iter=service_in_iter, iter_blocks=iter_blocks,
+                githash=githash)
+
+    if args.command:
+        return telemetry.SubprocessTelemetry(args.source,
+                service_in_iter=service_in_iter, iter_blocks=iter_blocks,
+                githash=githash)
+
+    import os.path
+
+    if os.path.isfile(args.source):
+        file_obj = open(args.source, 'rb')
+
+        if parse_header:
+            return telemetry.FileTelemetry(file_obj, parse_header=True,
+                gcs_timestamps=args.timestamped, name=args.source)
+        else:
+            return telemetry.FileTelemetry(file_obj, parse_header=False,
+                gcs_timestamps=args.timestamped, name=args.source,
+                githash=githash)
+
+    # OK, running out of options, time to try the network!
+    host,sep,port = args.source.partition(':')
+
+    if sep != ':':
+        parser.print_help()
+        raise ValueError("Target doesn't exist and isn't a network address")
+
+    return telemetry.NetworkTelemetry(host=host, port=int(port), name=args.source,
+            service_in_iter=service_in_iter, iter_blocks=iter_blocks,
+            githash=githash)
+
 def get_telemetry_by_args(desc="Process telemetry", service_in_iter=True,
-        iter_blocks=True):
+        iter_blocks=True, arg_parser=None):
     """ Parses command line to decide how to get a telemetry object. """
     # Setup the command line arguments.
-    import argparse
-    parser = argparse.ArgumentParser(description=desc)
+
+    if not arg_parser:
+        import argparse
+        parser = argparse.ArgumentParser(description=desc)
+    else:
+        parser = arg_parser
 
     # Log format indicates this log is using the old file format which
     # embeds the timestamping information between the UAVTalk packet
@@ -1021,58 +1099,9 @@ def get_telemetry_by_args(desc="Process telemetry", service_in_iter=True,
     # Parse the command-line.
     args = parser.parse_args()
 
-    parse_header = False
-    githash = None
+    ret = _finish_telemetry_args(parser, args, service_in_iter, iter_blocks)
 
-    if args.githash is not None:
-        # If we specify the log header no need to attempt to parse it
-        githash = args.githash
+    if arg_parser is None:
+        return ret
     else:
-        parse_header = True # only for files
-
-    from dronin import telemetry
-
-    if args.serial:
-        return telemetry.SerialTelemetry(args.source, speed=args.baud,
-                service_in_iter=service_in_iter, iter_blocks=iter_blocks,
-                githash=githash)
-
-    if args.baud != "115200":
-        parser.print_help()
-        raise ValueError("Baud rates only apply to serial ports")
-
-    if args.hid:
-        return telemetry.HIDTelemetry(args.source,
-                service_in_iter=service_in_iter, iter_blocks=iter_blocks,
-                githash=githash)
-
-    if args.command:
-        return telemetry.SubprocessTelemetry(args.source,
-                service_in_iter=service_in_iter, iter_blocks=iter_blocks,
-                githash=githash)
-
-    import os.path
-
-    if os.path.isfile(args.source):
-        file_obj = open(args.source, 'rb')
-
-        if parse_header:
-            t = telemetry.FileTelemetry(file_obj, parse_header=True,
-                gcs_timestamps=args.timestamped, name=args.source)
-        else:
-            t = telemetry.FileTelemetry(file_obj, parse_header=False,
-                gcs_timestamps=args.timestamped, name=args.source,
-                githash=githash)
-
-        return t
-
-    # OK, running out of options, time to try the network!
-    host,sep,port = args.source.partition(':')
-
-    if sep != ':':
-        parser.print_help()
-        raise ValueError("Target doesn't exist and isn't a network address")
-
-    return telemetry.NetworkTelemetry(host=host, port=int(port), name=args.source,
-            service_in_iter=service_in_iter, iter_blocks=iter_blocks,
-            githash=githash)
+        return (ret, args)

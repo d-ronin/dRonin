@@ -10,7 +10,11 @@ def main():
     parser = argparse.ArgumentParser(description="Import a logfs settings partition and convert to XML")
     parser.add_argument('filename', metavar='filename.bin', help="the filename in which the settings dump is stored")
     parser.add_argument('-g', dest='githash', metavar='githash', help="the githash to use to interpret the settings dump", default="next")
-
+    parser.add_argument("-n", "--not-defaults",
+                        action  = "store_true",
+                        default = False,
+                        dest    = "not_defaults",
+                        help    = "output only non-default values")
     arg = parser.parse_args()
 
     githashes = arg.githash.split(':')
@@ -18,7 +22,8 @@ def main():
 
     imported = LogFSImport(githashes, open(srcfile, 'rb').read())
 
-    print(UAVOCollection.export_xml(imported, githash=imported.githash))
+    print(UAVOCollection.export_xml(imported.values(), githash=imported.githash,
+        only_nondefault=arg.not_defaults))
 
 if __name__ == '__main__':
         main()

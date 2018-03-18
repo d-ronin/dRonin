@@ -162,7 +162,13 @@ class UAVTupleClass():
         except Exception:
             return etree.tostring(xml_elem)
 
-    def to_xml_elem(self):
+    @classmethod
+    def is_default_value(cls, field, val):
+        def_val = getattr(cls(), field)
+
+        return def_val == val
+
+    def to_xml_elem(self, only_nondefault=False):
         munged_name = self._name[5:]
         munged_id = '0x%X' % self._id
         xmlobj = etree.Element('object', { 'name' : munged_name,
@@ -176,6 +182,9 @@ class UAVTupleClass():
             if field_name == 'uavo_id': continue
 
             field_value = raw_dict[field_name]
+
+            if (only_nondefault) and self.is_default_value(field_name, field_value):
+                continue
 
             if isinstance(field_value, tuple) or isinstance(field_value, list):
                 text_value = ','.join( [ self.enum_to_string(field_name, v) for v in field_value ] )

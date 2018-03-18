@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+
+import argparse
+import errno
+import code
+import struct
+import time
+
+# Insert the parent directory into the module import search path.
+import os
+import sys
+sys.path.insert(1, os.path.dirname(sys.path[0]))
+
+from dronin import telemetry, uavo_collection, uavofile
+
+#-------------------------------------------------------------------------------
+USAGE = "%(prog)s"
+DESC  = """
+  Apply a UAV file to a flight controller.\
+"""
+
+#-------------------------------------------------------------------------------
+def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="Upload UAVO file to flight controller")
+    parser.add_argument("-f", "--uavo-file",
+                        action   = "store",
+                        dest     = "uavo_file",
+                        required = True,
+                        help     = "The XML filename to apply to the flight controller")
+
+    tStream,args = telemetry.get_telemetry_by_args(service_in_iter=False,
+            arg_parser=parser)
+    tStream.start_thread()
+    tStream.wait_connection()
+
+    with open(args.uavo_file, "rb") as f:
+        objs = uavofile.UAVFileImport(uavo_defs=tStream.uavo_defs, contents=f.read())
+
+    tStream.save_objects(objs.values(), send_first=True)
+
+#-------------------------------------------------------------------------------
+
+if __name__ == "__main__":
+    main()

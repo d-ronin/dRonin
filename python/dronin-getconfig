@@ -26,9 +26,9 @@ DESC  = """
 cond = Condition()
 pending = []
 
-def completion_cb(obj):
+def completion_cb(obj, id_val):
     with cond:
-        pending.remove(obj._id)
+        pending.remove(id_val)
         cond.notifyAll()
 
 def wait_till_less_than(num):
@@ -57,15 +57,18 @@ def main():
     wait_till_less_than(0)
 
     missing = []
+    sobjs = []
     for s in settings_objects:
         val = tStream.last_values.get(s)
         if val is not None:
-            print(val)
+            sobjs.append(val)
         else:
             missing.append(s._name)
 
-    for s in missing:
-        print("No instance of %s" % (s))
+    #for s in missing:
+    #    print("No instance of %s" % (s))
+
+    print(tStream.uavo_defs.export_xml(sobjs))
 
 #-------------------------------------------------------------------------------
 

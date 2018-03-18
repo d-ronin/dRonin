@@ -3,7 +3,7 @@
 # Copyright (C) 2018 dRonin, http://dronin.org
 
 class UAVFileImport(dict):
-    def __init__(self, githash, contents, warnings_fatal=False):
+    def __init__(self, contents, uavo_defs=None, githash='HEAD', warnings_fatal=False):
         try:
             import lxml.etree as etree
         except:
@@ -11,11 +11,11 @@ class UAVFileImport(dict):
 
         from dronin import uavo_collection
 
-        uavo_defs = uavo_collection.UAVOCollection()
+        if uavo_defs is None:
+            uavo_defs = uavo_collection.UAVOCollection()
 
-        uavo_defs.from_git_hash(githash)
-
-        self.githash = githash
+            uavo_defs.from_git_hash(githash)
+            self.githash = githash
 
         tree = etree.fromstring(contents)
 
@@ -97,6 +97,8 @@ class UAVFileImport(dict):
 
                 if len(values) == 1:
                     values = values[0]
+                else:
+                    values = tuple(values)
 
                 obj_conv_fields[of] = values
 
@@ -106,17 +108,25 @@ class UAVFileImport(dict):
 
 def main(argv):
     from dronin import uavo_collection
+    import argparse
 
-    if len(argv) != 1:
-        print("nope")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(description="Import a logfs settings partition and convert to XML")
+    parser.add_argument('filename', metavar='filename.bin', help="the filename in which the settings dump is stored")
+    parser.add_argument('-g', dest='githash', metavar='githash', help="the githash to use to interpret the settings dump", default="HEAD")
+    parser.add_argument("-n", "--not-defaults",
+                        action  = "store_true",
+                        default = False,
+                        dest    = "not_defaults",
+                        help    = "output only non-default values")
+    arg = parser.parse_args()
 
-    with open(argv[0], "rb") as f:
+    with open(arg.filename, "rb") as f:
         contents = f.read()
 
-    uf = UAVFileImport('HEAD', contents)
+    uf = UAVFileImport(contents, githash=arg.githash)
 
-    sys.stdout.write(uavo_collection.UAVOCollection.export_xml(uf))
+    sys.stdout.write(uavo_collection.UAVOCollection.export_xml(uf.values(),
+        only_nondefault=arg.not_defaults))
 
 if __name__ == "__main__":
     import sys

@@ -173,7 +173,7 @@ class UAVOCollection(dict):
         return reparsed.toprettyxml(indent="  ")
 
     @classmethod
-    def export_xml(cls, objects, githash=None):
+    def export_xml(cls, objects, githash=None, only_nondefault=False):
         try:
             import lxml.etree as etree
         except:
@@ -194,8 +194,8 @@ class UAVOCollection(dict):
 
         settings = etree.SubElement(top, 'settings')
 
-        for obj_name in sorted(objects.keys()):
-            exported_obj = objects[obj_name].to_xml_elem()
+        for obj in sorted(objects):
+            exported_obj = obj.to_xml_elem(only_nondefault=only_nondefault)
             settings.append(exported_obj)
 
         return cls._prettify(top)
