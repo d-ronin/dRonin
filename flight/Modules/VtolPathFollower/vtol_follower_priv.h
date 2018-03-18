@@ -31,8 +31,7 @@
 #include "openpilot.h"
 #include "pathdesired.h"
 #include "paths.h"
-
-const static float DT               = 0.05f; // TODO: make the self monitored
+#include "vtolpathfollowersettings.h"
 
 /**
  * The set of goals the VTOL follower will attempt to achieve this selects
@@ -58,6 +57,9 @@ enum vtol_pid {
 	VTOL_PID_NUM
 };
 
+extern VtolPathFollowerSettingsData vtol_guidanceSettings;
+extern float vtol_dT;
+
 // Control code public API methods
 int32_t vtol_follower_control_path(const PathDesiredData *pathDesired, struct path_status *progress);
 int32_t vtol_follower_control_endpoint(const float *hold_pos_ned);
@@ -67,8 +69,7 @@ int32_t vtol_follower_control_attitude(const float dT, const float *att_adj);
 int32_t vtol_follower_control_land(const float *hold_pos_ned, bool *landed);
 bool vtol_follower_control_loiter(float dT, float *hold_pos, float *att_adj,
 		float *alt_adj);
-void vtol_follower_control_settings_updated(UAVObjEvent * ev, void *ctx,
-		void *obj, int len);
+void vtol_follower_control_settings_updated();
 
 // Follower FSM public API methods
 
