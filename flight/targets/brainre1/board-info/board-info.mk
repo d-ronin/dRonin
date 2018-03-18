@@ -11,6 +11,8 @@ MODEL_SUFFIX        :=
 USB_VEND            := "BrainFPV"
 USB_PROD            := "RE1"
 
+include $(MAKE_INC_DIR)/firmware-arches.mk
+
 # Note: These must match the values in link_$(BOARD)_memory.ld
 BL_BANK_BASE        := 0x08000000  # Start of bootloader flash
 BL_BANK_SIZE        := 0x00008000  # Should include BD_INFO region (32kb)

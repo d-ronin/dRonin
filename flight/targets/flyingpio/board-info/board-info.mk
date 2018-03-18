@@ -8,6 +8,8 @@ BOARD               := FLYINGPIO
 USB_VEND            := ""
 USB_PROD            := ""
 
+include $(MAKE_INC_DIR)/firmware-arches.mk
+
 FW_BANK_BASE        := 0x08000000  # Start of firmware flash
 FW_BANK_SIZE        := 0x00008000  # 32kbytes, including firmware descriptor.
 

@@ -17,10 +17,10 @@
 /**
  * @addtogroup Targets Target Boards
  * @{
- * @addtogroup RevoMini OpenPilot Revolution Mini
+ * @addtogroup Sparky2 Tau Labs Sparky2
  * @{
  *
- * @file    revolution/fw/mcuconf.h
+ * @file    sparky2/fw/mcuconf.h
  */
 
 /*
@@ -42,7 +42,7 @@
 /*
  * HAL driver system settings.
  */
-#define STM32_NO_INIT                       TRUE
+#define STM32_NO_INIT                       FALSE
 #define STM32_HSI_ENABLED                   TRUE
 #define STM32_LSI_ENABLED                   TRUE
 #define STM32_HSE_ENABLED                   TRUE
@@ -50,33 +50,10 @@
 #define STM32_CLOCK48_REQUIRED              TRUE
 #define STM32_SW                            STM32_SW_PLL
 #define STM32_PLLSRC                        STM32_PLLSRC_HSE
-
-#if (HSE_VALUE == 8000000) && (SYSCLK_FREQ == 168000000)
 #define STM32_PLLM_VALUE                    8
 #define STM32_PLLN_VALUE                    336
 #define STM32_PLLP_VALUE                    2
 #define STM32_PLLQ_VALUE                    7
-#define STM32_CLOCK48_PLLSAI                FALSE
-#elif (HSE_VALUE == 16000000) && (SYSCLK_FREQ == 168000000)
-#define STM32_PLLM_VALUE                    16
-#define STM32_PLLN_VALUE                    336
-#define STM32_PLLP_VALUE                    2
-#define STM32_PLLQ_VALUE                    7
-#define STM32_CLOCK48_PLLSAI                FALSE
-#elif (HSE_VALUE == 16000000) && (SYSCLK_FREQ == 180000000)
-#define STM32_PLLM_VALUE                    8
-#define STM32_PLLN_VALUE                    180
-#define STM32_PLLP_VALUE                    2
-#define STM32_PLLQ_VALUE                    2
-#define STM32_CLOCK48_PLLSAI                TRUE
-#define STM32_PLLSAI_M_VALUE                8
-#define STM32_PLLSAI_N_VALUE                192
-#define STM32_PLLSAI_P_VALUE                8
-#define STM32_PLLSAI_Q_VALUE                2
-#else
-#error unsupported clock combination
-#endif
-
 #define STM32_HPRE                          STM32_HPRE_DIV1
 #define STM32_PPRE1                         STM32_PPRE1_DIV4
 #define STM32_PPRE2                         STM32_PPRE2_DIV2
