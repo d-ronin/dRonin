@@ -88,6 +88,11 @@ public:
         return connection == rhs.connection && device == rhs.device;
     }
 
+    bool operator!=(const DevListItem &rhs)
+    {
+        return !(this == &rhs);
+    }
+
     IConnection *connection;
     QPointer<IDevice> device;
 };

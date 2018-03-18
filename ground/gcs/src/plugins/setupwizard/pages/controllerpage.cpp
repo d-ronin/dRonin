@@ -47,11 +47,14 @@ ControllerPage::ControllerPage(SetupWizard *wizard, QWidget *parent)
 
     ExtensionSystem::PluginManager *pluginManager = ExtensionSystem::PluginManager::instance();
     Q_ASSERT(pluginManager);
-    m_telemtryManager = pluginManager->getObject<TelemetryManager>();
-    Q_ASSERT(m_telemtryManager);
-    connect(m_telemtryManager, &TelemetryManager::connected, this,
+    m_telemetryManager = pluginManager->getObject<TelemetryManager>();
+    Q_ASSERT(m_telemetryManager);
+    connect(m_telemetryManager, &TelemetryManager::connected, this,
             &ControllerPage::connectionStatusChanged);
-    connect(m_telemtryManager, &TelemetryManager::disconnected, this,
+    /* Consider us "connected" when telemetry manager says so, but
+     * disconnected the instant connection manager knows the conn is down.
+     */
+    connect(m_connectionManager, &Core::ConnectionManager::deviceDisconnected, this,
             &ControllerPage::connectionStatusChanged);
 
     connect(ui->connectButton, &QAbstractButton::clicked, this, &ControllerPage::connectDisconnect);
@@ -82,6 +85,11 @@ bool ControllerPage::isComplete() const
     if (type == NULL)
         return false;
 
+    /*
+     * Only allow you to continue with setup wizard if you have a USB-type
+     * connection... or if the type doesn't support USB
+     * (e.g. simulation/posix)
+     */
     return !type->isUSBSupported()
         || m_connectionManager->getCurrentDevice().getConName().startsWith("USB:",
                                                                            Qt::CaseInsensitive);
@@ -95,7 +103,7 @@ bool ControllerPage::validatePage()
 
 bool ControllerPage::anyControllerConnected()
 {
-    return m_telemtryManager->isConnected();
+    return m_telemetryManager->isConnected();
 }
 
 void ControllerPage::setupDeviceList()
@@ -123,21 +131,22 @@ void ControllerPage::devicesChanged(QLinkedList<Core::DevListItem> devices)
     ui->deviceCombo->clear();
 
     int indexOfSelectedItem = -1;
-    int i = 0;
+
+    /* Sadly comparison of device doesn't seem to work... */
+    QString refName = m_connectionManager->getCurrentDevice().getConName();
 
     // Loop and fill the combo with items from connectionmanager
     foreach (Core::DevListItem deviceItem, devices) {
-        ui->deviceCombo->addItem(deviceItem.getConName());
-        QString deviceName = (const QString)deviceItem.getConName();
+        QString deviceName = deviceItem.getConName();
+        if ((deviceName != refName) &&
+                (!deviceName.startsWith("USB:", Qt::CaseInsensitive))) {
+            continue;
+        }
+        ui->deviceCombo->addItem(deviceName);
         ui->deviceCombo->setItemData(ui->deviceCombo->count() - 1, deviceName, Qt::ToolTipRole);
-        if (!deviceName.startsWith("USB:", Qt::CaseInsensitive)) {
-            ui->deviceCombo->setItemData(ui->deviceCombo->count() - 1, QVariant(0),
-                                         Qt::UserRole - 1);
-        }
         if (currSelectedDeviceName != "" && currSelectedDeviceName == deviceName) {
-            indexOfSelectedItem = i;
+            indexOfSelectedItem = ui->deviceCombo->count() - 1;
         }
-        i++;
     }
 
     // Re select the item that was selected before if any
