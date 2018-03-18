@@ -44,7 +44,7 @@
 /*
  * HAL driver system settings.
  */
-#define STM32_NO_INIT                       TRUE
+#define STM32_NO_INIT                       FALSE
 #define STM32_PVD_ENABLE                    FALSE
 #define STM32_PLS                           STM32_PLS_LEV0
 #define STM32_HSI_ENABLED                   TRUE
