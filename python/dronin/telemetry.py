@@ -263,10 +263,10 @@ class TelemetryBase(metaclass=ABCMeta):
             # Check for anything that needs retrying--- requests,
             # acked operations.  Do at most one thing per cycle.
 
-            for f in self.req_obj.values():
+            for f in list(self.req_obj.values()):
                 if f.expired():
                     self.req_obj.pop(f.key())
-                    f.completed(None, f._id)
+                    f.completed(None, f.obj._id)
                 elif f.time_to_resend():
                     key = f.key()
                     self._send(f.make_request())
