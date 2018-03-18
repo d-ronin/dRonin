@@ -406,7 +406,7 @@ static float vtol_hold_position_ned[3];
 static int32_t do_hold()
 {
 	if (vtol_follower_control_endpoint(vtol_hold_position_ned) == 0) {
-		if (vtol_follower_control_attitude(DT, NULL) == 0) {
+		if (vtol_follower_control_attitude(vtol_dT, NULL) == 0) {
 			return 0;
 		}
 	}
@@ -431,7 +431,7 @@ static int32_t do_path()
 {
 	struct path_status progress;
 	if (vtol_follower_control_path(&vtol_fsm_path_desired, &progress) == 0) {
-		if (vtol_follower_control_attitude(DT, NULL) == 0) {
+		if (vtol_follower_control_attitude(vtol_dT, NULL) == 0) {
 
 			if (progress.fractional_progress >= 1.0f) {
 				vtol_fsm_inject_event(FSM_EVENT_HIT_TARGET);
@@ -482,7 +482,7 @@ static int32_t do_land()
 {
 	bool landed;
 	if (vtol_follower_control_land(vtol_hold_position_ned, &landed) == 0) {
-		if (vtol_follower_control_attitude(DT, NULL) == 0) {
+		if (vtol_follower_control_attitude(vtol_dT, NULL) == 0) {
 			return 0;
 		}
 	}
@@ -504,7 +504,7 @@ static int32_t do_loiter()
 
 	float alt_adj = 0;
 
-	if (vtol_follower_control_loiter(DT, hold_pos, att_adj, &alt_adj)) {
+	if (vtol_follower_control_loiter(vtol_dT, hold_pos, att_adj, &alt_adj)) {
 		// If hold position changed, use it!
 		// We follow this conditional just to avoid unnecessarily
 		// spamming updates to the PositionDesired object.
@@ -514,7 +514,7 @@ static int32_t do_loiter()
 
 	if (vtol_follower_control_altrate(vtol_hold_position_ned,
 				alt_adj) == 0) {
-		if (vtol_follower_control_attitude(DT, att_adj) == 0) {
+		if (vtol_follower_control_attitude(vtol_dT, att_adj) == 0) {
 			return 0;
 		}
 	}
@@ -534,7 +534,7 @@ static int32_t do_slow_altitude_change(float descent_rate)
 {
 	if (vtol_follower_control_altrate(vtol_hold_position_ned,
 				descent_rate) == 0) {
-		if (vtol_follower_control_attitude(DT, NULL) == 0) {
+		if (vtol_follower_control_attitude(vtol_dT, NULL) == 0) {
 			return 0;
 		}
 	}

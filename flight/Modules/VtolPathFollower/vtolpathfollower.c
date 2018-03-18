@@ -58,6 +58,9 @@
 #include "vtolpathfollowerstatus.h"
 #include "coordinate_conversions.h"
 
+VtolPathFollowerSettingsData vtol_guidanceSettings;
+float vtol_dT = 0.050f;
+
 // Private constants
 #define MAX_QUEUE_SIZE 4
 #define STACK_SIZE_BYTES 1548
@@ -67,7 +70,6 @@
 
 // Private variables
 static struct pios_thread *pathfollowerTaskHandle;
-static VtolPathFollowerSettingsData guidanceSettings;
 static struct pios_queue *queue;
 
 // Private functions
@@ -145,6 +147,8 @@ MODULE_INITCALL(VtolPathFollowerInitialize, VtolPathFollowerStart);
 
 extern struct pid vtol_pids[VTOL_PID_NUM];
 
+volatile bool settings_updated = true;
+
 /**
  * Module thread, should not return.
  */
@@ -153,15 +157,17 @@ static void vtolPathFollowerTask(void *parameters)
 	SystemSettingsData systemSettings;
 	FlightStatusData flightStatus;
 
-	VtolPathFollowerSettingsConnectCallback(vtol_follower_control_settings_updated);
-	AltitudeHoldSettingsConnectCallback(vtol_follower_control_settings_updated);
-	vtol_follower_control_settings_updated(NULL, NULL, NULL, 0);
-	
-	VtolPathFollowerSettingsGet(&guidanceSettings);
-	
+	VtolPathFollowerSettingsConnectCallbackCtx(UAVObjCbSetFlag,
+			&settings_updated);
+	AltitudeHoldSettingsConnectCallbackCtx(UAVObjCbSetFlag,
+			&settings_updated);
+
 	// Main task loop
 	while (1) {
-
+		if (settings_updated) {
+			vtol_follower_control_settings_updated();
+		}
+	
 		SystemSettingsGet(&systemSettings);
 		if ( (systemSettings.AirframeType != SYSTEMSETTINGS_AIRFRAMETYPE_VTOL) &&
 			(systemSettings.AirframeType != SYSTEMSETTINGS_AIRFRAMETYPE_QUADP) &&
@@ -185,7 +191,7 @@ static void vtolPathFollowerTask(void *parameters)
 
 		// Make sure when flight mode toggles, to immediately update the path
 		UAVObjEvent ev;
-		PIOS_Queue_Receive(queue, &ev, guidanceSettings.UpdatePeriod);
+		PIOS_Queue_Receive(queue, &ev, vtol_guidanceSettings.UpdatePeriod);
 		
 		static uint8_t last_flight_mode;
 		FlightStatusGet(&flightStatus);
