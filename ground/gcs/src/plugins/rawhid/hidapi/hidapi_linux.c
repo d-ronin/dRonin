@@ -380,6 +380,10 @@ int HID_API_EXPORT hid_exit(void)
 static struct hid_device_info *remove_from_list_by_path(
 		struct hid_device_info ** list,
 		const char *path) {
+	if (!path) {
+		return NULL;
+	}
+
 	// Double-pointer walk of list
 	for (; *list; list = &((*list)->next)) {
 		if (!strcmp(path, (*list)->path)) {
