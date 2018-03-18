@@ -40,10 +40,8 @@ ifeq ($(filter release, $(FLIGHT_BUILD_CONF)), release)
   export DEBUG:=NO
 else ifeq ($(filter debug, $(FLIGHT_BUILD_CONF)), debug)
   export DEBUG:=YES
-else ifeq ($(filter default, $(FLIGHT_BUILD_CONF)), default)
-  # In the default case, keep the old "DEBUG"  variable handling
 else
-  $(error Only debug, release, or default allowed for FLIGHT_BUILD_CONF)
+  $(error Only debug or release allowed for FLIGHT_BUILD_CONF)
 endif
 
 # Define toolchain component names.

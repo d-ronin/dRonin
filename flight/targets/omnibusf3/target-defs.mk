@@ -1,5 +1,6 @@
 # Add this board to the list of buildable boards
 ALL_BOARDS += omnibusf3
+NODEBUG_BOARDS += omnibusf3
 
 # Set the cpu architecture here that matches your STM32
 # Should be one of: f1,f3,f4

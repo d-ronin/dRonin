@@ -1,5 +1,6 @@
 # Add this board to the list of buildable boards
 ALL_BOARDS += sparky
+NODEBUG_BOARDS += sparky
 
 # Set the cpu architecture here that matches your STM32
 # Should be one of: f1,f3,f4

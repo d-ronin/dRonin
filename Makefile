@@ -69,8 +69,12 @@ include $(ROOT_DIR)/flight/targets/*/target-defs.mk
 # OpenPilot GCS build configuration (debug | release)
 GCS_BUILD_CONF ?= debug ccache
 
-# And the flight build configuration (debug | default | release)
-export FLIGHT_BUILD_CONF ?= default ccache
+# And the flight build configuration (debug | release)
+ifeq ($(DEBUG),YES)
+export FLIGHT_BUILD_CONF ?= debug ccache
+else
+export FLIGHT_BUILD_CONF ?= release ccache
+endif
 
 # Paths
 UAVOBJ_XML_DIR := $(ROOT_DIR)/shared/uavobjectdefinition
@@ -950,8 +954,15 @@ all_$(1)_clean: $$(addsuffix _clean, $$(filter bu_$(1), $$(BU_TARGETS)))
 all_$(1)_clean: $$(addsuffix _clean, $$(filter ef_$(1), $$(EF_TARGETS)))
 endef
 
-# Some boards don't use the bootloader
+ifeq ($(filter debug, $(FLIGHT_BUILD_CONF)), debug)
+# Don't build boards that overflow with debugging
+ALL_BOARDS     := $(filter-out $(NODEBUG_BOARDS), $(ALL_BOARDS))
+
+$(warning Removing targets with inoperable debug mode: $(NODEBUG_BOARDS))
+endif
+
 FW_BOARDS      := $(ALL_BOARDS)
+# Some boards don't use the bootloader
 NOBL_BOARDS    := $(strip $(foreach BOARD, $(ALL_BOARDS),$(if $(filter no,$($(BOARD)_bootloader)),$(BOARD))))
 BL_BOARDS      := $(filter-out $(NOBL_BOARDS), $(ALL_BOARDS))
 BU_BOARDS      := $(BL_BOARDS)
