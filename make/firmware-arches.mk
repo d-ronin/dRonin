@@ -37,3 +37,5 @@ endif
 vpath % $(BOARD_ROOT_DIR)/$(BUILD_TYPE)
 
 vpath % $(foreach d,$(ARCH_TYPES) Common,$(PIOS)/$(d))
+
+EXTRAINCDIRS += $(foreach d,$(ARCH_TYPES),$(PIOS)/$(d)/inc)
