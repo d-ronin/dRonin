@@ -178,6 +178,9 @@ void ConfigTaskWidget::addUAVObjectToWidgetRelation(QString object, QString fiel
     objOfInterest.append(ow);
 
     // QLabel is a one-way binding, don't try to save it
+    // This is duplicative with addApplySaveButtons, because we don't
+    // know which will be invoked first-- it depends on widget ordering
+    // in the .ui file.
     if (smartsave && obj && !qobject_cast<QLabel *>(widget))
         smartsave->addObject(static_cast<UAVDataObject *>(obj));
 
@@ -378,6 +381,7 @@ void ConfigTaskWidget::refreshWidgetsValues(UAVObject *obj)
     }
     setDirty(dirtyBack);
 }
+
 /**
  * SLOT function used to update the uavobject fields from widgets with relation to
  * object field added to the framework pool
@@ -415,6 +419,12 @@ void ConfigTaskWidget::addApplySaveButtons(QPushButton *update, QPushButton *sav
         connect(smartsave, SIGNAL(saveSuccessfull()), this, SLOT(clearDirty()));
         connect(smartsave, SIGNAL(beginOp()), this, SLOT(disableObjUpdates()));
         connect(smartsave, SIGNAL(endOp()), this, SLOT(enableObjUpdates()));
+
+        foreach (objectToWidget *oTw, objOfInterest) {
+            if (oTw->object && !qobject_cast<QLabel *>(oTw->widget)) {
+                smartsave->addObject((UAVDataObject *)oTw->object);
+            }
+        }
     }
     if (update && save)
         smartsave->addButtons(save, update);
@@ -422,17 +432,14 @@ void ConfigTaskWidget::addApplySaveButtons(QPushButton *update, QPushButton *sav
         smartsave->addApplyButton(update);
     else if (save)
         smartsave->addSaveButton(save);
-    if (objOfInterest.count() > 0) {
-        foreach (objectToWidget *oTw, objOfInterest) {
-            smartsave->addObject((UAVDataObject *)oTw->object);
-        }
-    }
+
     TelemetryManager *telMngr = pm->getObject<TelemetryManager>();
     if (telMngr->isConnected())
         enableControls(true);
     else
         enableControls(false);
 }
+
 /**
  * SLOT function used the enable or disable the SAVE, UPLOAD and RELOAD buttons
  * @param enable set to true to enable the buttons or false to disable them
@@ -645,6 +652,7 @@ bool ConfigTaskWidget::addShadowWidget(QString object, QString field, QWidget *w
                                        double scale, bool isLimited, bool useUnits,
                                        QList<int> *defaultReloadGroups, quint32 instID)
 {
+    /* TODO: This is n^2 with number of widgets */
     foreach (objectToWidget *oTw, objOfInterest) {
         if (!oTw->object || !oTw->widget || !oTw->field)
             continue;
@@ -839,6 +847,7 @@ void ConfigTaskWidget::autoLoadWidgets()
     refreshWidgetsValues();
     forceShadowUpdates();
 }
+
 /**
  * Adds a widget to a list of default/reload groups
  * default/reload groups are groups of widgets to be set with default or reloaded (values from
