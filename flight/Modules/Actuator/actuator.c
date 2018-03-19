@@ -579,6 +579,7 @@ static void post_process_scale_and_commit(float *motor_vect,
 					// Apply curve fitting, mapping the input to the propeller output.
 
 					motor_vect[ct] = powapprox(motor_vect[ct], actuatorSettings.MotorInputOutputCurveFit);
+					motor_vect[ct] *= actuatorSettings.MotorInputOutputGain;
 				} else {
 					/* Clip to minimum spin in this direction */
 					motor_vect[ct] = ACTUATOR_EPSILON;
