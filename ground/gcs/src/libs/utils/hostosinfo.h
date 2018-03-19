@@ -80,6 +80,12 @@ public:
     {
         return isMacHost() ? Qt::MetaModifier : Qt::ControlModifier;
     }
+
+    /**
+     * @brief Is debugger connected to this process?
+     * @return true if debugger connected
+     */
+    static bool debuggerPresent();
 };
 
 HostOsInfo::HostOs HostOsInfo::hostOs()

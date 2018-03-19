@@ -34,6 +34,7 @@
 #define COMMAND_LINE_MULTIPLE_OK "multiple-ok"
 #define COMMAND_LINE_PLUGIN_OPTION "plugin-option"
 
+#include "utils/hostosinfo.h"
 #include "utils/xmlconfig.h"
 #include "utils/pathutils.h"
 #include <runguard/runguard.h>
@@ -284,9 +285,16 @@ int main(int argc, char **argv)
     }
 
 #ifdef USE_CRASHREPORTING
-    // Only use crash reporter if we're not doing unit tests
+    // Disable crash reporter if we're doing unit tests
     // This means we won't hang CI, and QtTest will give us a nice stack trace
-    if (parser.values(doTestsOption).isEmpty()) {
+    bool enableReporter = parser.values(doTestsOption).isEmpty();
+
+    // not implemented on linux
+#if defined(Q_OS_WIN) || defined(Q_OS_MAC)
+    enableReporter &= !Utils::HostOsInfo::debuggerPresent();
+#endif
+
+    if (enableReporter) {
         QString dirName(GCS_REVISION_PRETTY);
         dirName = dirName.replace("%@%", "_");
         // Limit to alphanumerics plus dots, because this will be a filename
