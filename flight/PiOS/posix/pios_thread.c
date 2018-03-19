@@ -145,8 +145,37 @@ void PIOS_Thread_Delete(struct pios_thread *threadp)
 	pthread_exit(0);
 }
 
+static volatile uint32_t fake_clock;
+static pthread_cond_t fake_clock_cond = PTHREAD_COND_INITIALIZER;
+static pthread_mutex_t fake_clock_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+void PIOS_Thread_FakeClock_Tick(void)
+{
+	pthread_mutex_lock(&fake_clock_mutex);
+
+	if (!fake_clock) {
+		fake_clock = PIOS_Thread_Systime();
+	}
+
+	fake_clock++;
+
+	pthread_cond_broadcast(&fake_clock_cond);
+
+	pthread_mutex_unlock(&fake_clock_mutex);
+}
+
+bool PIOS_Thread_FakeClock_IsActive(void)
+{
+	return fake_clock != 0;
+}
+
 uint32_t PIOS_Thread_Systime(void)
 {
+	if (fake_clock) {
+		/* Doing some nice atomic reads here is OK */
+		return fake_clock;
+	}
+
 	struct timespec monotime;
 
 	clock_gettime(CLOCK_MONOTONIC, &monotime);
@@ -168,6 +197,21 @@ void PIOS_Thread_Sleep(uint32_t time_ms)
 		while (true) {
 			usleep(50000000); /* 50s */
 		}
+	}
+
+	if (fake_clock) {
+		pthread_mutex_lock(&fake_clock_mutex);
+
+		uint32_t expiration = fake_clock + time_ms;
+
+		while ((fake_clock - expiration) > 0x8000000) {
+			pthread_cond_wait(&fake_clock_cond,
+					&fake_clock_mutex);
+		}
+
+		pthread_mutex_unlock(&fake_clock_mutex);
+
+		return;
 	}
 
 	usleep(1000 * time_ms);

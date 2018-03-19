@@ -104,10 +104,11 @@ int orig_stdout;
 static void Usage(char *cmdName) {
 	printf( "usage: %s [-f] [-r] [-m orientation] [-s spibase]\n"
 		"\t\t[-d drvname:bus:id] [-l logfile] [-I i2cdev] [-i drvname:bus]\n"
-		"\t\t[-g port] [-c confflash]\n"
+		"\t\t[-g port] [-c confflash] [-x time] -!\n"
 		"\n"
 		"\t-f\t\t\tEnables floating point exception trapping mode\n"
 		"\t-r\t\t\tGoes realtime and pins all memory (requires root)\n"
+		"\t-!\t\t\tUse a fake clock timebase gated by gcs/simsensors\n"
 		"\t-l log\t\t\tWrites simulation data to a log\n"
 		"\t-g port\t\t\tStarts FlightGear driver on port\n"
 #ifdef PIOS_INCLUDE_SIMSENSORS_YASIM
@@ -465,13 +466,16 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 
 	bool first_arg = true;
 
-	while ((opt = getopt(argc, argv, "yfrx:g:l:s:d:S:I:i:m:c:")) != -1) {
+	while ((opt = getopt(argc, argv, "!yfrx:g:l:s:d:S:I:i:m:c:")) != -1) {
 		switch (opt) {
 #ifdef PIOS_INCLUDE_SIMSENSORS_YASIM
 			case 'y':
 				use_yasim = true;
 				break;
 #endif
+			case '!':
+				PIOS_Thread_FakeClock_Tick();
+				break;
 			case 'c':
 				PIOS_Flash_Posix_SetFName(optarg);
 				break;

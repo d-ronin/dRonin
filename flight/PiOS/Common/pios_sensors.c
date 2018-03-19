@@ -31,6 +31,10 @@
 #include <stddef.h>
 #include <pios_thread.h>
 
+#ifdef FLIGHT_POSIX
+#include <unistd.h>
+#endif
+
 //! The list of queue handles / callbacks
 static struct PIOS_Sensor {
 	PIOS_SENSOR_Callback_t getdata_cb;
@@ -117,7 +121,19 @@ bool PIOS_SENSORS_GetData(enum pios_sensor_type type, void *buf, int ms_to_wait)
 		}
 
 		if (time_until > 0) {
+#ifdef FLIGHT_POSIX
+			if (PIOS_Thread_FakeClock_IsActive()) {
+				while (!PIOS_Thread_Period_Elapsed(now,
+							time_until)) {
+					usleep(1000);
+					PIOS_Thread_FakeClock_Tick();
+				}
+			} else {
+				PIOS_Thread_Sleep(time_until);
+			}
+#else
 			PIOS_Thread_Sleep(time_until);
+#endif
 		}
 
 		/* TODO: could use elapsed time to properly adjust */

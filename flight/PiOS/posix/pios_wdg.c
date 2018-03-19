@@ -6,14 +6,14 @@
  * @brief PIOS Comamnds to initialize and clear watchdog timer
  * @{
  *
- * @file       pios_spi.c
+ * @file       pios_wdg.c
+ *
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2017-2018
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * 	        Parts by Thorsten Klose (tk@midibox.org) (tk@midibox.org)
- * @brief      Hardware Abstraction Layer for SPI ports of STM32
+ * @brief      Posix pseudo-watchdog routines
  * @see        The GNU Public License (GPL) Version 3
  * @notes
- *
- * The PIOS Watchdog provides a HAL to initialize a watchdog 
  *
  *****************************************************************************/
 /*
@@ -31,12 +31,14 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
-#include "pios.h"
+#include <pios.h>
+#include <pios_thread.h>
 
 unsigned int wdg_registered_flags;
 unsigned int wdg_updated_flags;
-unsigned int wdg_cleared_time;
-unsigned int wdg_last_update_time;
+uint32_t wdg_cleared_time;
+uint32_t wdg_last_update_time;
+
 bool wdg_expired;
 
 static bool PIOS_WDG_Check();
@@ -62,6 +64,8 @@ uint16_t PIOS_WDG_Init()
 {
 	wdg_registered_flags = 0;
 	wdg_updated_flags = 0;
+
+	wdg_last_update_time = PIOS_Thread_Systime();
 
 	return 0;
 }
@@ -96,13 +100,16 @@ bool PIOS_WDG_RegisterFlag(uint16_t flag_requested)
  * @return true if the watchdog cleared, false if flags are pending
  */
 bool PIOS_WDG_UpdateFlag(uint16_t flag) 
-{	
+{
+	uint32_t now = PIOS_Thread_Systime();
+
 	PIOS_WDG_Check();
+
 	wdg_updated_flags |= flag;
 	if( wdg_updated_flags == wdg_registered_flags) {
-		wdg_last_update_time = PIOS_DELAY_DiffuS(wdg_cleared_time);
 		wdg_updated_flags = 0;
-		wdg_cleared_time = PIOS_DELAY_GetRaw();
+		wdg_last_update_time = now - wdg_cleared_time;
+		wdg_cleared_time = now;
 	}
 	return true;		
 }
@@ -147,9 +154,13 @@ void PIOS_WDG_Clear(void)
  */
 static bool PIOS_WDG_Check()
 {
-	if(PIOS_DELAY_DiffuS(wdg_cleared_time) > 250000) {
+	if (PIOS_Thread_Period_Elapsed(wdg_cleared_time, 250)) {
 		if(!wdg_expired)
-			fprintf(stderr, "Watchdog fired / %d\r\n", wdg_cleared_time);
+			fprintf(stderr, "Watchdog fired / %d %d %x %x\r\n",
+					wdg_cleared_time,
+					PIOS_Thread_Systime(),
+					wdg_registered_flags,
+					wdg_updated_flags);
 		wdg_expired = true;
 	}
 	return wdg_expired;
