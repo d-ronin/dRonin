@@ -88,8 +88,7 @@ static float hangtime_leakybucket_timeconstant = 0.3f;
 // set true to ensure they're fetched on first run
 static volatile bool flight_status_updated = true;
 static volatile bool manual_control_cmd_updated = true;
-static volatile bool actuator_settings_updated = true;
-static volatile bool mixer_settings_updated = true;
+static volatile bool settings_updated = true;
 
 static MixerSettingsMixer1TypeOptions types_mixer[MAX_MIX_ACTUATORS];
 
@@ -225,13 +224,15 @@ int32_t ActuatorInitialize()
 	if (ActuatorSettingsInitialize()  == -1) {
 		return -1;
 	}
-	ActuatorSettingsConnectCallbackCtx(UAVObjCbSetFlag, &actuator_settings_updated);
+	ActuatorSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_updated);
 
 	// Register for notification of changes to MixerSettings
 	if (MixerSettingsInitialize()  == -1) {
 		return -1;
 	}
-	MixerSettingsConnectCallbackCtx(UAVObjCbSetFlag, &mixer_settings_updated);
+
+	MixerSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_updated);
+	SystemSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_updated);
 
 	// Listen for ActuatorDesired updates (Primary input to this module)
 	if (ActuatorDesiredInitialize()  == -1) {
@@ -314,7 +315,8 @@ static float get_curve2_source(ActuatorDesiredData *desired,
 
 static void compute_one_mixer(int mixnum,
 		int16_t (*vals)[MIXERSETTINGS_MIXER1VECTOR_NUMELEM],
-		MixerSettingsMixer1TypeOptions type)
+		MixerSettingsMixer1TypeOptions type,
+		float scale_adjustment)
 {
 	types_mixer[mixnum] = type;
 
@@ -330,14 +332,44 @@ static void compute_one_mixer(int mixnum,
 		for (int i = 0; i < MIXERSETTINGS_MIXER1VECTOR_NUMELEM; i++) {
 			motor_mixer[mixnum+i] = (*vals)[i] * (1.0f / MIXER_SCALE);
 		}
+
+		if (type == MIXERSETTINGS_MIXER1TYPE_MOTOR) {
+			/*
+			 * We have motor scale management so that we can
+			 * limit the maximum command sent to a motor,
+			 * allowing the use of e.g. 2700kV motors in 6S
+			 * builds at a lower duty cycle.
+			 *
+			 * However, it's desirable to adjust this limitation
+			 * parameter in the field, and it commutes with the
+			 * PIDs.  Therefore, scale the mixer, to MOTOR
+			 * OUTPUTS ONLY, for roll/pitch/yaw to give the
+			 * same control authority irrespective of
+			 * motor scale setting.
+			 */
+			motor_mixer[mixnum + MIXERSETTINGS_MIXER1VECTOR_ROLL] *=
+				scale_adjustment;
+			motor_mixer[mixnum + MIXERSETTINGS_MIXER1VECTOR_PITCH] *=
+				scale_adjustment;
+			motor_mixer[mixnum + MIXERSETTINGS_MIXER1VECTOR_YAW] *=
+				scale_adjustment;
+		}
 	}
 }
 
 /* Here be dragons */
-#define compute_one_token_paste(b) compute_one_mixer(b-1, &mixerSettings.Mixer ## b ## Vector, mixerSettings.Mixer ## b ## Type)
+#define compute_one_token_paste(b) compute_one_mixer(b-1, &mixerSettings.Mixer ## b ## Vector, mixerSettings.Mixer ## b ## Type, scale_adjustment)
 
 static void compute_mixer()
 {
+	float scale_adjustment = 1.0f;
+	const float output_gain = actuatorSettings.MotorInputOutputGain;
+	const float curve_fit = actuatorSettings.MotorInputOutputCurveFit;
+
+	if ((output_gain < 1.0f) && (output_gain >= 0.01f)) {
+		scale_adjustment = powf(1 / output_gain, 1 / curve_fit);
+	}
+
 	MixerSettingsData mixerSettings;
 
 	MixerSettingsGet(&mixerSettings);
@@ -681,7 +713,6 @@ static void normalize_input_data(uint32_t this_systime,
 
 static void actuator_settings_update()
 {
-	actuator_settings_updated = false;
 	ActuatorSettingsGet(&actuatorSettings);
 
 	PIOS_Servo_SetMode(actuatorSettings.TimerUpdateFreq,
@@ -740,18 +771,16 @@ static void actuator_task(void* parameters)
 		/* If settings objects have changed, update our internal
 		 * state appropriately.
 		 */
-		if (actuator_settings_updated) {
+		if (settings_updated) {
 			actuator_settings_update();
-		}
 
-		if (mixer_settings_updated) {
-			mixer_settings_updated = false;
 			SystemSettingsAirframeTypeGet(&airframe_type);
 
 			compute_mixer();
 
 			MixerSettingsThrottleCurve2Get(curve2);
 			MixerSettingsCurve2SourceGet(&curve2_src);
+			settings_updated = false;
 		}
 
 		PIOS_WDG_UpdateFlag(PIOS_WDG_ACTUATOR);
