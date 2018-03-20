@@ -736,7 +736,7 @@ static void updateStats()
 
 	uint32_t now = PIOS_Thread_Systime();
 	if (now > lastTickCount) {
-		float dT = (PIOS_Thread_Systime() - lastTickCount) / 1000.0f;
+		float dT = (now - lastTickCount) / 1000.0f;
 
 		// In the case of a slightly miscalibrated max idle count, make sure CPULoad does
 		// not go negative and set an alarm inappropriately.
