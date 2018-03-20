@@ -232,6 +232,10 @@ int32_t ActuatorInitialize()
 	}
 
 	MixerSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_updated);
+
+	if (SystemSettingsInitialize()  == -1) {
+		return -1;
+	}
 	SystemSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_updated);
 
 	// Listen for ActuatorDesired updates (Primary input to this module)
