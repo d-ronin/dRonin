@@ -810,6 +810,7 @@ static int32_t setUpdatePeriod(telem_t telem, UAVObjHandle obj,
  */
 static void gcsTelemetryStatsUpdated(telem_t telem)
 {
+	// XXX this is dumb.
 	FlightTelemetryStatsData flightStats;
 	GCSTelemetryStatsData gcsStats;
 	FlightTelemetryStatsGet(&flightStats);
@@ -895,12 +896,14 @@ static void updateTelemetryStats(telem_t telem)
 		flightStats.Status = FLIGHTTELEMETRYSTATS_STATUS_DISCONNECTED;
 	}
 
+#ifndef PIPXTREME
 	// Update the telemetry alarm
 	if (flightStats.Status == FLIGHTTELEMETRYSTATS_STATUS_CONNECTED) {
 		AlarmsClear(SYSTEMALARMS_ALARM_TELEMETRY);
 	} else {
 		AlarmsSet(SYSTEMALARMS_ALARM_TELEMETRY, SYSTEMALARMS_ALARM_ERROR);
 	}
+#endif
 
 	// Update object
 	FlightTelemetryStatsSet(&flightStats);
