@@ -273,6 +273,11 @@ void system_task()
  */
 static inline uint8_t indicate_error(const char **sequence)
 {
+#ifdef PIPXTREME
+	*sequence="q";
+	return SYSTEMALARMS_ALARM_CRITICAL;
+#else
+
 	SystemAlarmsData alarms;
 	SystemAlarmsGet(&alarms);
 
@@ -343,6 +348,7 @@ static inline uint8_t indicate_error(const char **sequence)
 	}
 
 	return worst_sev;
+#endif /* PIPXTREME */
 }
 #endif
 
@@ -419,10 +425,10 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 #endif
 
 	if (fourth) {
-#ifndef PIPXTREME
 		// Update the system statistics
 		updateStats();
 
+#ifndef PIPXTREME
 		// Update the system alarms
 		updateSystemAlarms();
 
@@ -438,7 +444,7 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 #endif /* PIPXTREME */
 	}
 
-#if !defined(PIPXTREME) && defined(PIOS_INCLUDE_ANNUNC)
+#if defined(PIOS_INCLUDE_ANNUNC)
 	// Figure out what we should be doing.
 
 	static const char *blink_string = NULL;
@@ -454,7 +460,6 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 #endif
 
 	// Evaluate all our possible annunciator sources.
-
 	// The most important: indicate_error / alarms
 
 	if (fourth) {
@@ -538,6 +543,7 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 
 		uint8_t buzzer_prio = blink_prio;
 
+#ifndef PIPXTREME
 		if (annunciatorSettings.ManualBuzzer !=
 				ANNUNCIATORSETTINGS_MANUALBUZZER_DISABLED) {
 			float acc[MANUALCONTROLCOMMAND_ACCESSORY_NUMELEM];
@@ -546,6 +552,7 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 			if (acc[annunciatorSettings.ManualBuzzer - 1] > 0.0f)
 				buzzer_prio = ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_HAIRONFIRE;
 		}
+#endif
 
 		(void) buzzer_prio;
 
@@ -601,7 +608,7 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 		((counter & 3) < 2));
 #endif /* SYSTEMMOD_RGBLED_SUPPORT */
 
-#endif  /* !PIPXTREME && PIOS_INCLUDE_ANNUNC */
+#endif  /* PIOS_INCLUDE_ANNUNC */
 }
 
 
