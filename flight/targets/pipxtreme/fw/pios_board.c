@@ -162,12 +162,14 @@ void PIOS_Board_Init(void)
 
 	ModuleSettingsSet(&moduleSettings);
 
+#ifdef PIOS_INCLUDE_OPENLRS
 	const struct pios_openlrs_cfg *openlrs_cfg = PIOS_BOARD_HW_DEFS_GetOpenLRSCfg(bdinfo->board_rev);
 
 	PIOS_HAL_ConfigureRFM22B(pios_spi_rfm22b_id,
 			bdinfo->board_type,
 			bdinfo->board_rev,
 			hwTauLink.RfBand, openlrs_cfg, &openlrs_handle);
+#endif
 
 	if (bdinfo->board_rev == TAULINK_VERSION_MODULE) {
 		// Configure the main serial port function
