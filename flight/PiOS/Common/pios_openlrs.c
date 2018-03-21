@@ -302,7 +302,6 @@ static uint8_t beaconGetRSSI(pios_openlrs_t openlrs_dev)
 	uint16_t rssiSUM = 0;
 
 	rfm22_set_frequency(openlrs_dev, openlrs_dev->beacon_frequency);
-	rfm22_write_claim(openlrs_dev, RFM22_frequency_hopping_channel_select, 0);
 
 	PIOS_Thread_Sleep(1);
 	rssiSUM += rfm22_get_rssi(openlrs_dev);
@@ -333,6 +332,7 @@ static bool pios_openlrs_bind_transmit_step(pios_openlrs_t openlrs_dev)
 
 	/* Select bind channel, bind power, and bind packet header */
 	rfm22_init(openlrs_dev, true);
+	PIOS_Thread_Sleep(5);
 
 	rfm22_tx_packet(openlrs_dev,
 			&openlrs_dev->bind_data,
@@ -342,7 +342,7 @@ static bool pios_openlrs_bind_transmit_step(pios_openlrs_t openlrs_dev)
 
 	DEBUG_PRINTF(2,"Waiting bind ack\r\n");
 
-	while ((millis() - start) < 200) {
+	while ((millis() - start) < 100) {
 #if defined(PIOS_INCLUDE_WDG) && defined(PIOS_WDG_RFM22B)
 		// Update the watchdog timer
 		PIOS_WDG_UpdateFlag(PIOS_WDG_RFM22B);
@@ -969,7 +969,7 @@ static void pios_openlrs_tx_task(void *parameters)
 
 	PIOS_Assert(pios_openlrs_validate(openlrs_dev));
 
-	bool binding = false;	/* XXX */
+	bool binding = true;	/* XXX */
 
 	pios_openlrs_setup(openlrs_dev);
 
@@ -988,8 +988,8 @@ static void pios_openlrs_tx_task(void *parameters)
 				rfm22_init(openlrs_dev, false);
 			}
 
-			/* 100 200ms steps, so about 20s to leave binding */
-			if (i++ > 100) {
+			/* 50 ~100ms steps, so about 6s to leave binding */
+			if (i++ > 50) {
 				binding = false;
 				rfm22_init(openlrs_dev, false);
 			}
@@ -1405,6 +1405,8 @@ static void rfm22_tx_packet(pios_openlrs_t openlrs_dev, void *pkt,
 	PIOS_SPI_TransferBlock(openlrs_dev->spi_id, pkt, NULL, size);
 	rfm22_deassert_cs(openlrs_dev);
 
+	/* Ensure sema taken */
+	PIOS_Semaphore_Take(openlrs_dev->sema_isr, 0);
 	/* Initiate TX */
 	rfm22_write(openlrs_dev, RFM22_op_and_func_ctrl1, RF22B_PWRSTATE_TX);
 
@@ -1556,7 +1558,6 @@ static void rfm22_init(pios_openlrs_t openlrs_dev, uint8_t isbind)
 		rfm22_write(openlrs_dev, RFM22_tx_power, openlrs_dev->bind_data.rf_power);
 	}
 
-	rfm22_write(openlrs_dev, RFM22_frequency_hopping_channel_select, 0);
 	rfm22_write(openlrs_dev, RFM22_frequency_hopping_step_size, openlrs_dev->bind_data.rf_channel_spacing);   // channel spacing
 
 	rfm22_write(openlrs_dev, RFM22_frequency_offset1, 0x00);
@@ -1594,6 +1595,7 @@ static void rfm22_set_frequency(pios_openlrs_t openlrs_dev, uint32_t f)
 	rfm22_write(openlrs_dev, RFM22_frequency_band_select, RFM22_fbs_sbse + (hbsel ? RFM22_fbs_hbsel : 0) + (fb & RFM22_fb_mask));
 	rfm22_write(openlrs_dev, RFM22_nominal_carrier_frequency1, (fc >> 8));
 	rfm22_write(openlrs_dev, RFM22_nominal_carrier_frequency0, (fc & 0xff));
+	rfm22_write(openlrs_dev, RFM22_frequency_hopping_channel_select, 0);
 	rfm22_release_bus(openlrs_dev);
 }
 
