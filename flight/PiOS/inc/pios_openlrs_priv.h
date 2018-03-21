@@ -35,6 +35,8 @@
 
 #ifdef PIOS_INCLUDE_OPENLRS
 
+#include "openlrs.h"
+
 #define OPENLRSNG_VERSION 0x0382
 
 #define MAXHOPS      24
@@ -116,7 +118,12 @@
 struct bind_data {
 	uint8_t hdr;
 	uint8_t version;
-	uint32_t serial_baudrate;
+
+	/* This was serial_baudrate, which we don't use.  It's an RX parameter
+	 * and not really something specific to the link.
+	 */
+	uint32_t reserved;
+
 	uint32_t rf_frequency;
 	uint32_t rf_magic;
 	uint8_t rf_power;
@@ -189,6 +196,11 @@ struct pios_openlrs_dev {
 	uint32_t linkLossTimeMs;
 	uint32_t failsafeDelay;
 	uint32_t beacon_rssi_avg;
+
+	// Scaling values for input controls in transmitter path
+	uint16_t scale_min, scale_max;
+
+	OpenLRStx_sourceOptions tx_source;
 
 	uint8_t tx_buf[9];
 };

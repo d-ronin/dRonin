@@ -364,6 +364,12 @@ void PIOS_HAL_SetReceiver(int receiver_type, uintptr_t value) {
  * @return device instance handle
  */
 uintptr_t PIOS_HAL_GetReceiver(int receiver_type) {
+	if (receiver_type < 0) {
+		return 0;
+	} else if (receiver_type >= MANUALCONTROLSETTINGS_CHANNELGROUPS_NONE) {
+		return 0;
+	}
+
 #ifdef STM32F0XX
 	return pios_rcvr_group_map[0];
 #else

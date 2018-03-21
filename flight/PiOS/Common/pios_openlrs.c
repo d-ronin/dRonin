@@ -252,21 +252,44 @@ static int pack_channels(uint8_t config, int16_t *ppm, uint8_t *buf)
 }
 
 //! Apply the OpenLRS rescaling to the channels
-static void txscaleChannels(int16_t *chan)
+static void txscale_channels(int16_t *chan, int16_t nominal_min, int16_t nominal_max)
 {
+	if (nominal_min == nominal_max) {
+		/* Prevent divide by zero */
+		nominal_max++;
+	}
+
 	for (uint32_t i = 0; i < OPENLRS_PPM_NUM_CHANNELS; i++) {
 		int16_t x = chan[i];
 
-		if (x <= 808) {
+		/*
+		 * We have 1024 counts.  The middle 1000 should correspond to
+		 * 1000..1999, the "normal range".  The extra 12 are scaled by
+		 * a factor of 16 (from original openlrsng) to make the
+		 * overall range from -19% to 119%
+		 *
+		 * In other words, the "normal resolution" is 0.1%; the
+		 * extended resolution is in 1.6% chunks.
+		 */
+
+		float scaled = x;
+		scaled -= nominal_min;
+		scaled /= (nominal_max - nominal_min);
+
+		const float scale_edge = (12*16) / 1000.0f; /* .192 */
+
+		if (scaled < -scale_edge) {
 			x = 0;
-		} else if (x < 1012) {
-			x = (x - 808) / 16;
-		} else if (x <= 2000) {
-			x = x - 988;
-		} else if (x < 2192) {
-			x = 1011 + (x - 2000) / 16;
+		} else if (scaled < 0) {
+			/* [-scale_edge, 0) mapped to 0..12 */
+			x = ((scaled + scale_edge) / scale_edge) * 12;
+		} else if (scaled < 1) {
+			/* [0 .. 1) mapped to 12..1011 */
+			x = scaled * 1000 + 12;
+		} else if (scaled < (1 + scale_edge)) {
+			/* [1, 1 + scale_edge) mapped to 1011..1023 */
+			x = ((scaled - 1) / scale_edge) * 12 + 1011;
 		} else {
-			/* x >= 2192 */
 			x = 1023;
 		}
 
@@ -420,7 +443,7 @@ static void pios_openlrs_config_to_bind_data(pios_openlrs_t openlrs_dev)
 	if (binding.version == BINDING_VERSION) {
 		openlrs_dev->bind_data.hdr = 'b';
 		openlrs_dev->bind_data.version = binding.version;
-		openlrs_dev->bind_data.serial_baudrate = binding.serial_baudrate;
+		openlrs_dev->bind_data.reserved = 0;
 		openlrs_dev->bind_data.rf_frequency = binding.rf_frequency;
 		openlrs_dev->bind_data.rf_magic = binding.rf_magic;
 		openlrs_dev->bind_data.rf_power = binding.rf_power;
@@ -437,6 +460,11 @@ static void pios_openlrs_config_to_bind_data(pios_openlrs_t openlrs_dev)
 	openlrs_dev->beacon_period = binding.beacon_period;
 
 	openlrs_dev->failsafeDelay = binding.failsafe_delay;
+
+	openlrs_dev->scale_min = binding.tx_scale_min;
+	openlrs_dev->scale_max = binding.tx_scale_max;
+
+	openlrs_dev->tx_source = binding.tx_source;
 }
 
 static bool pios_openlrs_bind_data_to_config(pios_openlrs_t openlrs_dev)
@@ -447,8 +475,6 @@ static bool pios_openlrs_bind_data_to_config(pios_openlrs_t openlrs_dev)
 			DEBUG_PRINTF(2, "Binding settings:\r\n");
 			PIOS_Thread_Sleep(10);
 			DEBUG_PRINTF(2, "  version: %d\r\n", openlrs_dev->bind_data.version);
-			PIOS_Thread_Sleep(10);
-			DEBUG_PRINTF(2, "  serial_baudrate: %d\r\n", openlrs_dev->bind_data.serial_baudrate);
 			PIOS_Thread_Sleep(10);
 			DEBUG_PRINTF(2, "  rf_frequency: %d\r\n", openlrs_dev->bind_data.rf_frequency);
 			PIOS_Thread_Sleep(10);
@@ -472,7 +498,6 @@ static bool pios_openlrs_bind_data_to_config(pios_openlrs_t openlrs_dev)
 			OpenLRSData binding;
 			OpenLRSGet(&binding);
 			binding.version = openlrs_dev->bind_data.version;
-			binding.serial_baudrate = openlrs_dev->bind_data.serial_baudrate;
 			binding.rf_frequency = openlrs_dev->bind_data.rf_frequency;
 			binding.rf_magic = openlrs_dev->bind_data.rf_magic;
 			binding.rf_power = openlrs_dev->bind_data.rf_power;
@@ -994,13 +1019,12 @@ static void pios_openlrs_tx_frame(pios_openlrs_t openlrs_dev)
 	int16_t channels[OPENLRS_PPM_NUM_CHANNELS];
 
 	for (int i=0; i < OPENLRS_PPM_NUM_CHANNELS; i++) {
-		int selected_rcvr = MANUALCONTROLSETTINGS_CHANNELGROUPS_GCS;
 		uintptr_t rcvr =
-			pios_rcvr_group_map[selected_rcvr];
+			PIOS_HAL_GetReceiver(openlrs_dev->tx_source);
 		channels[i] = PIOS_RCVR_Read(rcvr, i+1);
 	}
 
-	txscaleChannels(channels);
+	txscale_channels(channels, openlrs_dev->scale_min, openlrs_dev->scale_max);
 
 	uint8_t tx_buf[MAX_CONTROL_PACKET_SIZE];
 
@@ -1540,8 +1564,6 @@ static void rfm22_init(pios_openlrs_t openlrs_dev, uint8_t isbind)
 		DEBUG_PRINTF(2, "Binding settings:\r\n");
 		PIOS_Thread_Sleep(10);
 		DEBUG_PRINTF(2, "  version: %d\r\n", openlrs_dev->bind_data.version);
-		PIOS_Thread_Sleep(10);
-		DEBUG_PRINTF(2, "  serial_baudrate: %d\r\n", openlrs_dev->bind_data.serial_baudrate);
 		PIOS_Thread_Sleep(10);
 		DEBUG_PRINTF(2, "  rf_frequency: %d\r\n", openlrs_dev->bind_data.rf_frequency);
 		PIOS_Thread_Sleep(10);

@@ -16,8 +16,14 @@
     <field defaultvalue="0" elements="1" name="version" type="uint8" units="">
       <description>Version</description>
     </field>
-    <field defaultvalue="0" elements="1" name="serial_baudrate" type="uint32" units="">
-      <description>Serial Baudrate</description>
+    <field defaultvalue="None" elements="1" name="tx_source" parent="ManualControlSettings.ChannelGroups" type="enum" units="Channel Group">
+      <description>The source for channel data on an OpenLRS transmitter.</description>
+    </field>
+    <field defaultvalue="1000" elements="1" name="tx_scale_min" type="uint16" units="">
+      <description>Minimum value for tx scaling (corresponds to 100% stick travel in negative direction)</description>
+    </field>
+    <field defaultvalue="2000" elements="1" name="tx_scale_max" type="uint16" units="">
+      <description>Maximum value for tx scaling (corresponds to 100% stick travel in positive direction)</description>
     </field>
     <field defaultvalue="0" elements="1" name="rf_frequency" type="uint32" units="">
       <description>Radio Frequency</description>
