@@ -1239,10 +1239,10 @@ bool ConfigTaskWidget::setWidgetFromVariant(QWidget *widget, QVariant value, dou
         comboBox->setCurrentIndex(comboBox->findData(value.toString()));
         return true;
     } else if (QLabel *label = qobject_cast<QLabel *>(widget)) {
-        if (scale == 0)
+        if ((scale == 0) || (scale == 1))
             label->setText(value.toString() + units);
         else
-            label->setText(QString::number(value.toDouble() / scale, 'g', 3) + units);
+            label->setText(QString::number(value.toDouble() / scale, 'f', 1) + units);
         return true;
     } else if (QDoubleSpinBox *dblSpinBox = qobject_cast<QDoubleSpinBox *>(widget)) {
         dblSpinBox->setValue(value.toDouble() / scale);
