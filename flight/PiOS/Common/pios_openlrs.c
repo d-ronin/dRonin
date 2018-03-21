@@ -215,9 +215,10 @@ static uint32_t getInterval(struct bind_data *bd)
 	return ret;
 }
 
-#if 0
-static void packChannels(uint8_t config, int16_t *ppm, uint8_t *p)
+static int pack_channels(uint8_t config, int16_t *ppm, uint8_t *buf)
 {
+	uint8_t *p = buf;
+
 	/* Pack 4 channels into 5 bytes */
 	for (int i = 0; i <= (config/2); i++) {
 		*(p++) = ppm[0];
@@ -239,10 +240,33 @@ static void packChannels(uint8_t config, int16_t *ppm, uint8_t *p)
 		*(p++) = 0;
 	}
 
+	return p - buf;
 }
-#endif
 
-static void unpackChannels(uint8_t config, int16_t *ppm, uint8_t *p)
+//! Apply the OpenLRS rescaling to the channels
+static void txscaleChannels(int16_t *chan)
+{
+	for (uint32_t i = 0; i < OPENLRS_PPM_NUM_CHANNELS; i++) {
+		int16_t x = chan[i];
+
+		if (x <= 808) {
+			x = 0;
+		} else if (x < 1012) {
+			x = (x - 808) / 16;
+		} else if (x <= 2000) {
+			x = x - 988;
+		} else if (x < 2192) {
+			x = 1011 + (x - 2000) / 16;
+		} else {
+			/* x >= 2192 */
+			x = 1023;
+		}
+
+		chan[i] = x;
+	}
+}
+
+static void unpack_channels(uint8_t config, int16_t *ppm, uint8_t *p)
 {
 	/* Ordinary channels are 4ch packed strangely in 5 bytes */
 	for (int i = 0; i<=(config/2); i++) {
@@ -263,7 +287,7 @@ static void unpackChannels(uint8_t config, int16_t *ppm, uint8_t *p)
 }
 
 //! Apply the OpenLRS rescaling to the channels
-static void rescaleChannels(int16_t control[])
+static void rxscale_channels(int16_t control[])
 {
 	for (uint32_t i = 0; i < OPENLRS_PPM_NUM_CHANNELS; i++) {
 		int16_t x = control[i];
@@ -594,9 +618,9 @@ static bool pios_openlrs_rx_frame(pios_openlrs_t openlrs_dev, uint8_t rssi)
 	if ((rx_buf[0] & 0x3e) == 0x00) {
 		// This flag indicates receiving control data
 
-		unpackChannels(openlrs_dev->bind_data.flags & 7,
+		unpack_channels(openlrs_dev->bind_data.flags & 7,
 				openlrs_dev->ppm, rx_buf + 1);
-		rescaleChannels(openlrs_dev->ppm);
+		rxscale_channels(openlrs_dev->ppm);
 
 		// Call the control received callback if it's available.
 		if (openlrs_dev->openlrs_rcvr_id) {
@@ -947,15 +971,21 @@ static void pios_openlrs_tx_frame(pios_openlrs_t openlrs_dev)
 
 	pios_openlrs_do_hop(openlrs_dev);
 
-	char tx_buf[11] = {
-		0x00,
-		0x00, 0x00, 0x00, 0x00, 0xaa,
-		0x00, 0x00, 0x00, 0x00, 0xaa,
+	int16_t channels[OPENLRS_PPM_NUM_CHANNELS] = {
+		800, 900, 1000, 1100, 1900, 2000, 2040
 	};
+
+	txscaleChannels(channels);
+
+	uint8_t tx_buf[20];
+
+	tx_buf[0] = 0;	/* XXX */
+	int len = pack_channels(openlrs_dev->bind_data.flags & 7,
+		channels, tx_buf+1);
 
 	openlrs_dev->lastPacketTimeUs = PIOS_DELAY_GetuS();
 
-	rfm22_tx_packet(openlrs_dev, tx_buf, sizeof(tx_buf));
+	rfm22_tx_packet(openlrs_dev, tx_buf, len + 1);
 }
 
 static void pios_openlrs_tx_task(void *parameters)
