@@ -110,7 +110,8 @@ const struct rfm22_modem_regs {
 
 #define OPENLRS_BIND_PARAMS 1	/* 9600 params */
 
-const static uint8_t pktsizes[8] = { 0, 7, 11, 12, 16, 17, 21, 0 };
+const static uint8_t pktsizes[8] = { 6, 7, 11, 12, 16, 17, 21, 22 };
+#define MAX_CONTROL_PACKET_SIZE 22
 
 static const uint8_t OUT_FF[64] = {
 	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -222,6 +223,8 @@ static uint32_t getInterval(struct bind_data *bd)
 
 static int pack_channels(uint8_t config, int16_t *ppm, uint8_t *buf)
 {
+	config &= 7;
+
 	uint8_t *p = buf;
 
 	/* Pack 4 channels into 5 bytes */
@@ -271,8 +274,19 @@ static void txscaleChannels(int16_t *chan)
 	}
 }
 
+DONT_BUILD_IF(OPENLRS_PPM_NUM_CHANNELS < 20, NotEnoughChannelSpaceForAllConfigs);
+
 static void unpack_channels(uint8_t config, int16_t *ppm, uint8_t *p)
 {
+	/* Look at least 3 significant bit of config.
+	 * LSB picks whether 4 switch channels are around.
+	 * other 2 bits are a number between 1 and 4 for number of
+	 * 4 channel groups.
+	 *
+	 * Therefore there can be up to 20 channels.
+	 */
+
+	config &= 7;
 	/* Ordinary channels are 4ch packed strangely in 5 bytes */
 	for (int i = 0; i<=(config/2); i++) {
 		ppm[0] = ((p[4] << 8) & 0x300) | p[0];
@@ -623,7 +637,7 @@ static bool pios_openlrs_rx_frame(pios_openlrs_t openlrs_dev, uint8_t rssi)
 	if ((rx_buf[0] & 0x3e) == 0x00) {
 		// This flag indicates receiving control data
 
-		unpack_channels(openlrs_dev->bind_data.flags & 7,
+		unpack_channels(openlrs_dev->bind_data.flags,
 				openlrs_dev->ppm, rx_buf + 1);
 		rxscale_channels(openlrs_dev->ppm);
 
@@ -919,6 +933,7 @@ int32_t PIOS_OpenLRS_Init(pios_openlrs_t *openlrs_id,
 	openlrs_dev->cfg = *cfg;
 
 	// Convert UAVO configuration to device runtime config
+	// XXX register for updates!  change at runtime.
 	pios_openlrs_config_to_bind_data(openlrs_dev);
 
 	*openlrs_id = openlrs_dev;
@@ -987,10 +1002,10 @@ static void pios_openlrs_tx_frame(pios_openlrs_t openlrs_dev)
 
 	txscaleChannels(channels);
 
-	uint8_t tx_buf[20];
+	uint8_t tx_buf[MAX_CONTROL_PACKET_SIZE];
 
 	tx_buf[0] = 0;	/* XXX */
-	int len = pack_channels(openlrs_dev->bind_data.flags & 7,
+	int len = pack_channels(openlrs_dev->bind_data.flags,
 		channels, tx_buf+1);
 
 	openlrs_dev->lastPacketTimeUs = PIOS_DELAY_GetuS();

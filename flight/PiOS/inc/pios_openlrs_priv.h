@@ -38,7 +38,7 @@
 #define OPENLRSNG_VERSION 0x0382
 
 #define MAXHOPS      24
-#define OPENLRS_PPM_NUM_CHANNELS 16
+#define OPENLRS_PPM_NUM_CHANNELS 20
 
 // Factory setting values, modify via the CLI
 
