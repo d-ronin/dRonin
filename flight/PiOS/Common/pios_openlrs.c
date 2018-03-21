@@ -42,9 +42,14 @@
 #include "openlrs.h"
 #include "flightstatus.h"
 #include "flightbatterystate.h"
+#include "manualcontrolsettings.h"
 #include "openlrsstatus.h"
 
+#include <pios_hal.h>	/* for rcvr_group_map in tx path */
+
 #include "pios_rfm22b_regs.h"
+
+
 
 #define STACK_SIZE_BYTES                 900
 #define TASK_PRIORITY                    PIOS_THREAD_PRIO_HIGH
@@ -709,7 +714,7 @@ static void pios_openlrs_do_hop(pios_openlrs_t openlrs_dev)
 		uint8_t rssi = beaconGetRSSI(openlrs_dev) << 2;
 
 		if ((openlrs_dev->beacon_rssi_avg + 80) < rssi) {
-			openlrs_dev->nextBeaconTimeMs = 
+			openlrs_dev->nextBeaconTimeMs =
 				millis() + 1000L;
 		}
 
@@ -725,7 +730,7 @@ static void pios_openlrs_rx_step(pios_openlrs_t openlrs_dev,
 {
 	uint32_t timeUs, timeMs;
 
-	/* We hop channels here, unless we're hopping slowly and 
+	/* We hop channels here, unless we're hopping slowly and
 	 * it's not time yet.
 	 */
 	bool willhop = true;
@@ -971,9 +976,14 @@ static void pios_openlrs_tx_frame(pios_openlrs_t openlrs_dev)
 
 	pios_openlrs_do_hop(openlrs_dev);
 
-	int16_t channels[OPENLRS_PPM_NUM_CHANNELS] = {
-		800, 900, 1000, 1100, 1900, 2000, 2040
-	};
+	int16_t channels[OPENLRS_PPM_NUM_CHANNELS];
+
+	for (int i=0; i < OPENLRS_PPM_NUM_CHANNELS; i++) {
+		int selected_rcvr = MANUALCONTROLSETTINGS_CHANNELGROUPS_GCS;
+		uintptr_t rcvr =
+			pios_rcvr_group_map[selected_rcvr];
+		channels[i] = PIOS_RCVR_Read(rcvr, i+1);
+	}
 
 	txscaleChannels(channels);
 
