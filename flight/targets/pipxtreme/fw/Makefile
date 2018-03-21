@@ -34,13 +34,11 @@ include $(MAKE_INC_DIR)/firmware-defs.mk
 DEBUG ?= NO
 
 # Include objects that are just nice information to show
-STACK_DIAGNOSTICS ?= NO
-RATEDESIRED_DIAGNOSTICS ?= NO
 WDG_STATS_DIAGNOSTICS ?= NO
-DIAG_TASKS ?= NO
+DIAG_TASKS ?= YES
 
 #Or just turn on all the above diagnostics. WARNING: This consumes massive amounts of memory.
-ALL_DIGNOSTICS ?=NO
+ALL_DIAGNOSTICS ?=NO
 
 # Set to YES to build a FW version that will erase all flash memory
 ERASE_FLASH ?= NO
@@ -121,6 +119,7 @@ SRC += pios_com.c
 SRC += pios_rcvr.c
 SRC += pios_flash.c
 SRC += pios_flashfs_logfs.c
+SRC += pios_gcsrcvr.c
 SRC += printf-stdarg.c
 SRC += pios_heap.c
 SRC += pios_semaphore.c
@@ -291,19 +290,11 @@ ifeq ($(DEBUG),YES)
 CFLAGS += -DDEBUG
 endif
 
-ifneq (,$(filter YES,$(STACK_DIAGNOSTICS) $(ALL_DIGNOSTICS)))
-CFLAGS += -DSTACK_DIAGNOSTICS
-endif
-
-ifneq (,$(filter YES,$(RATEDESIRED_DIAGNOSTICS) $(ALL_DIGNOSTICS)))
-CFLAGS += -DRATEDESIRED_DIAGNOSTICS
-endif
-
-ifneq (,$(filter YES,$(WDG_STATS_DIAGNOSTICS) $(ALL_DIGNOSTICS)))
+ifneq (,$(filter YES,$(WDG_STATS_DIAGNOSTICS) $(ALL_DIAGNOSTICS)))
 CFLAGS += -DWDG_STATS_DIAGNOSTICS
 endif
 
-ifneq (,$(filter YES,$(DIAG_TASKS) $(ALL_DIGNOSTICS)))
+ifneq (,$(filter YES,$(DIAG_TASKS) $(ALL_DIAGNOSTICS)))
 CFLAGS += -DDIAG_TASKS
 endif
 
