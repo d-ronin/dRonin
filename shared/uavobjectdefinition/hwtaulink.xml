@@ -12,9 +12,9 @@
       <description/>
       <options>
         <option>Disabled</option>
-        <option>GPS</option>
         <option>Telemetry</option>
         <option>ComBridge</option>
+        <option>S.Bus Non Inverted</option>
       </options>
     </field>
     <field defaultvalue="Telemetry" elements="1" name="BTPort" type="enum" units="">
@@ -28,7 +28,6 @@
     <field defaultvalue="PPM+SPORT" elements="1" name="PPMPort" type="enum" units="">
       <description/>
       <options>
-        <!-- Whenever port is enabled to PPM that data will be sent to other side -->
         <option>Disabled</option>
         <option>PPM</option>
         <option>SPORT</option>

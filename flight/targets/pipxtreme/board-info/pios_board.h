@@ -228,7 +228,7 @@ extern uintptr_t pios_com_frsky_sport_id;
 // Receiver PPM input
 //-------------------------
 #define PIOS_PPM_NUM_INPUTS   8
-
+#define PIOS_SBUS_NUM_INPUTS         (16+2)
 //-------------------------
 // Servo outputs
 //-------------------------

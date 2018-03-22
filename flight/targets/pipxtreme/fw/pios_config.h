@@ -39,8 +39,9 @@
 #define PIOS_INCLUDE_OPENLRS_RCVR
 
 /* Supported receiver interfaces */
-#define PIOS_INCLUDE_PPM
 #define PIOS_INCLUDE_GCSRCVR
+#define PIOS_INCLUDE_PPM
+#define PIOS_INCLUDE_SBUS
 
 /* Supported USART-based PIOS modules */
 #define PIOS_INCLUDE_SPI

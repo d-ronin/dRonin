@@ -111,6 +111,7 @@
 #endif
 
 #define PIOS_INCLUDE_SIMSENSORS
+#define PIOS_INCLUDE_ADC
 
 #if !(defined(_WIN32) || defined(WIN32) || defined(__MINGW32__))
 #define PIOS_INCLUDE_SIMSENSORS_YASIM
