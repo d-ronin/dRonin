@@ -49,8 +49,6 @@
 
 #include "pios_rfm22b_regs.h"
 
-
-
 #define STACK_SIZE_BYTES                 900
 #define TASK_PRIORITY                    PIOS_THREAD_PRIO_HIGH
 
@@ -69,7 +67,6 @@ static void pios_openlrs_do_hop(pios_openlrs_t openlrs_dev);
 
 static void rfm22_init(pios_openlrs_t openlrs_dev, uint8_t isbind);
 static void rfm22_disable(pios_openlrs_t openlrs_dev);
-static uint16_t rfm22_get_afcc(pios_openlrs_t openlrs_dev);
 static void rfm22_set_frequency(pios_openlrs_t openlrs_dev, uint32_t f);
 static uint8_t rfm22_get_rssi(pios_openlrs_t openlrs_dev);
 static void rfm22_tx_packet(pios_openlrs_t openlrs_dev,
@@ -640,6 +637,55 @@ static void pios_openlrs_rx_update_rssi(pios_openlrs_t openlrs_dev,
 	}
 }
 
+static void pios_openlrs_rx_form_telemetry(pios_openlrs_t openlrs_dev,
+		uint8_t *tx_buf, uint8_t rssi)
+{
+	// Check for data on serial link
+	uint8_t bytes = 0;
+	// Append data from the com interface if applicable.
+	if (openlrs_dev->tx_out_cb) {
+		// Try to get some data to send
+		bool need_yield = false;
+		bytes = (openlrs_dev->tx_out_cb)(openlrs_dev->tx_out_context, &tx_buf[1], 8, NULL, &need_yield);
+	}
+
+	if (bytes > 0) {
+		tx_buf[0] |= (0x37 + bytes);
+	} else {
+		// tx_buf[0] lowest 6 bits left at 0
+		tx_buf[1] = rssi;
+		if (FlightBatteryStateHandle()) {
+			FlightBatteryStateData bat;
+			FlightBatteryStateGet(&bat);
+			// FrSky protocol normally uses 3.3V at
+			// 255 but divider from display can be
+			// set internally
+			if (bat.DetectedCellCount) {
+				/* Use detected cell count to
+				 * maximize useful resolution
+				 */
+				tx_buf[2] = (uint8_t) (bat.Voltage / bat.DetectedCellCount / 5.0f * 255);
+			} else {
+				tx_buf[2] = (uint8_t) (bat.Voltage / 25.0f * 255);
+			}
+			tx_buf[3] = (uint8_t) (bat.Current / 60.0f * 255);
+		} else {
+			tx_buf[2] = 0;
+			tx_buf[3] = 0;
+		}
+
+		/*
+		 * 4-5: This used to be AFCC information, which
+		 * was never used.  Deprecated.
+		 */
+		tx_buf[4] = 0;
+		tx_buf[5] = 0;
+		tx_buf[6] = countSetBits(openlrs_status.LinkQuality & 0x7fff);
+		tx_buf[7] = 0;
+		tx_buf[8] = 0;
+	}
+}
+
 static bool pios_openlrs_rx_frame(pios_openlrs_t openlrs_dev, uint8_t rssi)
 {
 	uint8_t *tx_buf = openlrs_dev->tx_buf;
@@ -652,8 +698,6 @@ static bool pios_openlrs_rx_frame(pios_openlrs_t openlrs_dev, uint8_t rssi)
 	}
 
 	pios_openlrs_rx_update_rssi(openlrs_dev, rssi, true);
-
-	openlrs_dev->lastAFCCvalue = rfm22_get_afcc(openlrs_dev);
 
 #if defined(PIOS_LED_LINK)
 	PIOS_ANNUNC_Toggle(PIOS_LED_LINK);
@@ -693,42 +737,25 @@ static bool pios_openlrs_rx_frame(pios_openlrs_t openlrs_dev, uint8_t rssi)
 	// When telemetry is enabled we ack packets and send info about FC back
 	if (openlrs_dev->bind_data.flags & TELEMETRY_MASK) {
 		if ((tx_buf[0] ^ rx_buf[0]) & 0x40) {
-			// resend last message
+			// Last message was lost... resend, unless it
+			// is just ordinary rx telemetry in which
+			// case we can update it.
+
+			if ((tx_buf[0] & 0x38) != 0x38) {
+				tx_buf[0] &= 0xc0; // Preserve top two sequence bits
+				// Don't swap telem sequence bit though.
+				pios_openlrs_rx_form_telemetry(openlrs_dev,
+						tx_buf, rssi);
+			}
 		} else {
-			tx_buf[0] &= 0xc0;
-			tx_buf[0] ^= 0x40; // swap sequence as we have new data
-
-			// Check for data on serial link
-			uint8_t bytes = 0;
-			// Append data from the com interface if applicable.
-			if (openlrs_dev->tx_out_cb) {
-				// Try to get some data to send
-				bool need_yield = false;
-				bytes = (openlrs_dev->tx_out_cb)(openlrs_dev->tx_out_context, &tx_buf[1], 8, NULL, &need_yield);
-			}
-
-			if (bytes > 0) {
-				tx_buf[0] |= (0x37 + bytes);
-			} else {
-				// tx_buf[0] lowest 6 bits left at 0
-				tx_buf[1] = rssi;
-				if (FlightBatteryStateHandle()) {
-					FlightBatteryStateData bat;
-					FlightBatteryStateGet(&bat);
-					// FrSky protocol normally uses 3.3V at 255 but
-					// divider from display can be set internally
-					tx_buf[2] = (uint8_t) (bat.Voltage / 25.0f * 255);
-					tx_buf[3] = (uint8_t) (bat.Current / 60.0f * 255);
-				} else {
-					tx_buf[2] = 0; // these bytes carry analog info. package
-					tx_buf[3] = 0; // battery here
-				}
-				tx_buf[4] = (openlrs_dev->lastAFCCvalue >> 8);
-				tx_buf[5] = openlrs_dev->lastAFCCvalue & 0xff;
-				tx_buf[6] = countSetBits(openlrs_status.LinkQuality & 0x7fff);
-			}
+			tx_buf[0] &= 0xc0; // Preserve top two sequence bits
+			tx_buf[0] ^= 0x40; // Swap telem sequence
+			pios_openlrs_rx_form_telemetry(openlrs_dev,
+					tx_buf, rssi);
 		}
 
+		// XXX consider proving it's safe to send shorter frames
+		// with existing impl, will improve margins on timing
 		// This will block until sent
 		rfm22_tx_packet(openlrs_dev, tx_buf, 9);
 	}
@@ -896,8 +923,8 @@ uint8_t PIOS_OpenLRS_RSSI_Get(void)
 }
 
 /*****************************************************************************
-* control Code
-*****************************************************************************/
+ * control Code
+ *****************************************************************************/
 
 /**
  * Register a OpenLRS_Rcvr interface to inform of control packets
@@ -1192,6 +1219,10 @@ static void pios_openlrs_rx_task(void *parameters)
 			// Process incoming data
 			have_frame = pios_openlrs_rx_frame(openlrs_dev, rssi);
 		} else {
+			// TODO: We could delay a little bit more if we looked
+			// at the hardware and see it's midway through
+			// receiving a valid frame.
+
 			// We timed out because packet was missed
 			DEBUG_PRINTF(3,
 				"ISR Timeout. Missed packet: %d %d %d\r\n",
@@ -1281,11 +1312,6 @@ static void rfm22_set_channel(pios_openlrs_t openlrs_dev, uint8_t ch)
 static uint8_t rfm22_get_rssi(pios_openlrs_t openlrs_dev)
 {
 	return rfm22_read_claim(openlrs_dev, 0x26);
-}
-
-static uint16_t rfm22_get_afcc(pios_openlrs_t openlrs_dev)
-{
-	return (((uint16_t)rfm22_read_claim(openlrs_dev, 0x2B) << 2) | ((uint16_t)rfm22_read_claim(openlrs_dev, 0x2C) >> 6));
 }
 
 static void rfm22_set_modem_regs(pios_openlrs_t openlrs_dev, const struct rfm22_modem_regs *r)
