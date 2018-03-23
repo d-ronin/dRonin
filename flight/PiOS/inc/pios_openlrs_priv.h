@@ -35,6 +35,8 @@
 
 #ifdef PIOS_INCLUDE_OPENLRS
 
+extern const struct pios_com_driver pios_openlrs_com_driver;
+
 #include "openlrs.h"
 
 #define OPENLRSNG_VERSION 0x0382
@@ -158,10 +160,12 @@ struct pios_openlrs_dev {
 	struct pios_thread *taskHandle;
 
 	// The COM callback functions.
+	// Expected to be nailed down prior to PIOS_OpenLRS_Start.
+	// (Not volatile, etc.).
 	pios_com_callback rx_in_cb;
-	uint32_t rx_in_context;
+	uintptr_t rx_in_context;
 	pios_com_callback tx_out_cb;
-	uint32_t tx_out_context;
+	uintptr_t tx_out_context;
 
 	// The event queue handle
 	struct pios_semaphore *sema_isr;

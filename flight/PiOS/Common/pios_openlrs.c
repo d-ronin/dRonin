@@ -121,7 +121,32 @@ static const uint8_t OUT_FF[64] = {
 	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
 };
 
-const uint8_t default_hop_list[] = {DEFAULT_HOPLIST};
+static void olrs_bind_rx(uintptr_t olrs_id, pios_com_callback rx_in_cb,
+		uintptr_t context)
+{
+	pios_openlrs_t openlrs_dev = (pios_openlrs_t) olrs_id;
+
+	PIOS_Assert(pios_openlrs_validate(openlrs_dev));
+
+	openlrs_dev->rx_in_cb = rx_in_cb;
+	openlrs_dev->rx_in_context = context;
+}
+
+static void olrs_bind_tx(uintptr_t olrs_id, pios_com_callback tx_out_cb,
+		uintptr_t context)
+{
+	pios_openlrs_t openlrs_dev = (pios_openlrs_t) olrs_id;
+
+	PIOS_Assert(pios_openlrs_validate(openlrs_dev));
+
+	openlrs_dev->tx_out_cb = tx_out_cb;
+	openlrs_dev->tx_out_context = context;
+}
+
+const struct pios_com_driver pios_openlrs_com_driver = {
+	.bind_tx_cb = olrs_bind_tx,
+	.bind_rx_cb = olrs_bind_rx,
+};
 
 const uint32_t packet_timeout_us = 1000;
 const uint32_t packet_rssi_time_us = 1500;
