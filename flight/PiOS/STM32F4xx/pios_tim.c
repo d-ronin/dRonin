@@ -250,7 +250,7 @@ static void PIOS_TIM_generic_irq_handler(TIM_TypeDef * timer)
 			}
 
 			/* Generate the appropriate callbacks */
-			if (overflow_event & edge_event) {
+			if (overflow_event && edge_event) {
 				/*
 				 * When both edge and overflow happen in the same interrupt, we
 				 * need a heuristic to determine the order of the edge and overflow

@@ -198,9 +198,8 @@ static void PIOS_TIM_generic_irq_handler(TIM_TypeDef * timer)
 {
 	uint16_t flags = timer->SR;
 
-	/* While the datasheet is not 100% clear that this (very common
-	 * paradigm) is correct TIM_ClearITPendingBit from stdperiph shows
-	 * that software is unable to set bits in this register.
+	/* Reference manual indicates these are rc_w0-- can only be
+	 * written to 0.
 	 *
 	 * Therefore, clear only the events we're going to process. 
 	 * Otherwise we could lose an overflow just after a rising edge,
@@ -289,7 +288,7 @@ static void PIOS_TIM_generic_irq_handler(TIM_TypeDef * timer)
 			}
 
 			/* Generate the appropriate callbacks */
-			if (overflow_event & edge_event) {
+			if (overflow_event && edge_event) {
 				/*
 				 * When both edge and overflow happen in the same interrupt, we
 				 * need a heuristic to determine the order of the edge and overflow
@@ -301,7 +300,7 @@ static void PIOS_TIM_generic_irq_handler(TIM_TypeDef * timer)
 				 * assume it happened before the overflow.
 				 */
 
-				if (edge_count < chan->timer->ARR / 2) {
+				if (edge_count < (chan->timer->ARR / 2)) {
 					/* Call the overflow callback first */
 					if (tim_dev->callbacks->overflow) {
 						(*tim_dev->callbacks->overflow)((uintptr_t)tim_dev,
