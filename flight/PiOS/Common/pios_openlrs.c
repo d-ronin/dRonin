@@ -107,8 +107,6 @@ const struct rfm22_modem_regs {
 
 #define OPENLRS_BIND_PARAMS 1	/* 9600 params */
 
-const static uint8_t pktsizes[8] = { 6, 7, 11, 12, 16, 17, 21, 22 };
-#define MAX_CONTROL_PACKET_SIZE 22
 
 static const uint8_t OUT_FF[64] = {
 	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -120,6 +118,22 @@ static const uint8_t OUT_FF[64] = {
 	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
 };
+
+static uint8_t countSetBits(uint16_t x)
+{
+	return __builtin_popcount(x);
+}
+
+static bool wait_interrupt(pios_openlrs_t openlrs_dev, int delay_us)
+{
+	int delay_ms = (delay_us) / 1000;
+
+	if (delay_ms <= 0) {
+		delay_ms = 1;
+	}
+
+	return PIOS_Semaphore_Take(openlrs_dev->sema_isr, delay_ms);
+}
 
 static void olrs_bind_rx(uintptr_t olrs_id, pios_com_callback rx_in_cb,
 		uintptr_t context)
@@ -209,7 +223,7 @@ static uint32_t bindingFreq(HwSharedRfBandOptions band)
 
 static uint8_t getPacketSize(struct bind_data *bd)
 {
-	return pktsizes[(bd->flags & 0x07)];
+	return openlrs_pktsizes[(bd->flags & 0x07)];
 }
 
 // Sending a x byte packet on bps y takes about (emperical)
@@ -371,9 +385,63 @@ static void rxscale_channels(int16_t control[])
 	}
 }
 
-static uint8_t countSetBits(uint16_t x)
+static bool pios_openlrs_form_telemetry(pios_openlrs_t openlrs_dev,
+		uint8_t *tx_buf, uint8_t rssi, bool only_serial)
 {
-	return __builtin_popcount(x);
+	tx_buf[0] &= 0xc0; // Preserve top two sequence bits
+
+	// Check for data on serial link
+	uint8_t bytes = 0;
+	// Append data from the com interface if applicable.
+	if (openlrs_dev->tx_out_cb) {
+		// Try to get some data to send
+		bool need_yield = false;
+		bytes = (openlrs_dev->tx_out_cb)(openlrs_dev->tx_out_context, &tx_buf[1], 8, NULL, &need_yield);
+	}
+
+	if (bytes > 0) {
+		tx_buf[0] |= (0x37 + bytes);
+
+		for (int i = bytes+1; i < TELEMETRY_PACKETSIZE; i++) {
+			tx_buf[i] = 0;
+		}
+	} else if (only_serial) {
+		return false;
+	} else {
+		// tx_buf[0] lowest 6 bits left at 0
+		tx_buf[1] = rssi;
+		if (FlightBatteryStateHandle()) {
+			FlightBatteryStateData bat;
+			FlightBatteryStateGet(&bat);
+			// FrSky protocol normally uses 3.3V at
+			// 255 but divider from display can be
+			// set internally
+			if (bat.DetectedCellCount) {
+				/* Use detected cell count to
+				 * maximize useful resolution
+				 */
+				tx_buf[2] = (uint8_t) (bat.Voltage / bat.DetectedCellCount / 5.0f * 255);
+			} else {
+				tx_buf[2] = (uint8_t) (bat.Voltage / 25.0f * 255);
+			}
+			tx_buf[3] = (uint8_t) (bat.Current / 60.0f * 255);
+		} else {
+			tx_buf[2] = 0;
+			tx_buf[3] = 0;
+		}
+
+		/*
+		 * 4-5: This used to be AFCC information, which
+		 * was never used.  Deprecated.
+		 */
+		tx_buf[4] = 0;
+		tx_buf[5] = 0;
+		tx_buf[6] = countSetBits(openlrs_status.LinkQuality & 0x7fff);
+		tx_buf[7] = 0;
+		tx_buf[8] = 0;
+	}
+
+	return true;
 }
 
 static uint32_t millis()
@@ -662,59 +730,10 @@ static void pios_openlrs_rx_update_rssi(pios_openlrs_t openlrs_dev,
 	}
 }
 
-static void pios_openlrs_rx_form_telemetry(pios_openlrs_t openlrs_dev,
-		uint8_t *tx_buf, uint8_t rssi)
-{
-	// Check for data on serial link
-	uint8_t bytes = 0;
-	// Append data from the com interface if applicable.
-	if (openlrs_dev->tx_out_cb) {
-		// Try to get some data to send
-		bool need_yield = false;
-		bytes = (openlrs_dev->tx_out_cb)(openlrs_dev->tx_out_context, &tx_buf[1], 8, NULL, &need_yield);
-	}
-
-	if (bytes > 0) {
-		tx_buf[0] |= (0x37 + bytes);
-	} else {
-		// tx_buf[0] lowest 6 bits left at 0
-		tx_buf[1] = rssi;
-		if (FlightBatteryStateHandle()) {
-			FlightBatteryStateData bat;
-			FlightBatteryStateGet(&bat);
-			// FrSky protocol normally uses 3.3V at
-			// 255 but divider from display can be
-			// set internally
-			if (bat.DetectedCellCount) {
-				/* Use detected cell count to
-				 * maximize useful resolution
-				 */
-				tx_buf[2] = (uint8_t) (bat.Voltage / bat.DetectedCellCount / 5.0f * 255);
-			} else {
-				tx_buf[2] = (uint8_t) (bat.Voltage / 25.0f * 255);
-			}
-			tx_buf[3] = (uint8_t) (bat.Current / 60.0f * 255);
-		} else {
-			tx_buf[2] = 0;
-			tx_buf[3] = 0;
-		}
-
-		/*
-		 * 4-5: This used to be AFCC information, which
-		 * was never used.  Deprecated.
-		 */
-		tx_buf[4] = 0;
-		tx_buf[5] = 0;
-		tx_buf[6] = countSetBits(openlrs_status.LinkQuality & 0x7fff);
-		tx_buf[7] = 0;
-		tx_buf[8] = 0;
-	}
-}
-
 static bool pios_openlrs_rx_frame(pios_openlrs_t openlrs_dev, uint8_t rssi)
 {
 	uint8_t *tx_buf = openlrs_dev->tx_buf;
-	uint8_t rx_buf[64];
+	uint8_t rx_buf[MAX_CONTROL_PACKET_SIZE];
 
 	// Read the packet from RFM22b
 	if (!rfm22_rx_packet(openlrs_dev, rx_buf,
@@ -766,23 +785,21 @@ static bool pios_openlrs_rx_frame(pios_openlrs_t openlrs_dev, uint8_t rssi)
 			// is just ordinary rx telemetry in which
 			// case we can update it.
 
-			if ((tx_buf[0] & 0x38) != 0x38) {
-				tx_buf[0] &= 0xc0; // Preserve top two sequence bits
+			if ((tx_buf[0] & 0x3F) == 0) {
 				// Don't swap telem sequence bit though.
-				pios_openlrs_rx_form_telemetry(openlrs_dev,
-						tx_buf, rssi);
+				pios_openlrs_form_telemetry(openlrs_dev,
+						tx_buf, rssi, false);
 			}
 		} else {
-			tx_buf[0] &= 0xc0; // Preserve top two sequence bits
 			tx_buf[0] ^= 0x40; // Swap telem sequence
-			pios_openlrs_rx_form_telemetry(openlrs_dev,
-					tx_buf, rssi);
+			pios_openlrs_form_telemetry(openlrs_dev,
+					tx_buf, rssi, false);
 		}
 
 		// XXX consider proving it's safe to send shorter frames
 		// with existing impl, will improve margins on timing
 		// This will block until sent
-		rfm22_tx_packet(openlrs_dev, tx_buf, 9);
+		rfm22_tx_packet(openlrs_dev, tx_buf, TELEMETRY_PACKETSIZE);
 	}
 
 	// Once a packet has been processed, flip back into receiving mode
@@ -859,7 +876,7 @@ static void pios_openlrs_rx_step(pios_openlrs_t openlrs_dev,
 	} else if ((openlrs_dev->numberOfLostPackets >= openlrs_dev->hopcount) &&
 			(PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs) >
 			(getInterval(&openlrs_dev->bind_data) * (openlrs_dev->hopcount + 1)))) {
-		DEBUG_PRINTF(2,"ORLS WARN: Trying to sync\r\n");
+		DEBUG_PRINTF(2,"OLRS WARN: Trying to sync\r\n");
 
 		// hop slowly to allow resync with TX
 		openlrs_dev->lastPacketTimeUs = timeUs;
@@ -1054,6 +1071,66 @@ int32_t PIOS_OpenLRS_Start(pios_openlrs_t openlrs_dev)
 	return 0;
 }
 
+static int pios_openlrs_form_control_frame(pios_openlrs_t openlrs_dev)
+{
+	int16_t channels[OPENLRS_PPM_NUM_CHANNELS];
+
+	for (int i=0; i < OPENLRS_PPM_NUM_CHANNELS; i++) {
+		uintptr_t rcvr =
+			PIOS_HAL_GetReceiver(openlrs_dev->tx_source);
+		channels[i] = PIOS_RCVR_Read(rcvr, i+1);
+	}
+
+	txscale_channels(channels, openlrs_dev->scale_min, openlrs_dev->scale_max);
+	uint8_t *tx_buf = openlrs_dev->tx_buf;
+
+	tx_buf[0] &= 0xc0; // Preserve top two sequence bits
+
+	int len = pack_channels(openlrs_dev->bind_data.flags,
+		channels, tx_buf+1);
+
+	/* Packed length + 1 byte */
+	return len + 1;
+}
+
+static bool pios_openlrs_tx_receive_telemetry(pios_openlrs_t openlrs_dev)
+{
+	uint8_t rx_buf[TELEMETRY_PACKETSIZE];
+
+	// Read the packet from RFM22b
+	if (!rfm22_rx_packet(openlrs_dev, rx_buf,
+				TELEMETRY_PACKETSIZE)) {
+		return false;
+	}
+
+#if defined(PIOS_LED_LINK)
+	PIOS_ANNUNC_Toggle(PIOS_LED_LINK);
+#endif /* PIOS_LED_LINK */
+
+	/* Set acknowledge bit to match */
+	if (rx_buf[0] & 0x40) {
+		openlrs_dev->tx_buf[0] |= 0x40;
+	} else {
+		openlrs_dev->tx_buf[0] &= ~0x40;
+	}
+
+	if ((rx_buf[0] & 0x3f) == 0) {
+		/* Generic link telemetry.  Grab the data, shove it
+		 * into status.
+		 */
+
+		openlrs_status.LastRSSI = rx_buf[1];
+		openlrs_status.LinkQuality = (1 << (rx_buf[6])) - 1; /* fudge */
+
+		OpenLRSStatusSet(&openlrs_status);
+	}
+
+	/* XXX serial data */
+
+	return true;
+
+}
+
 static void pios_openlrs_tx_frame(pios_openlrs_t openlrs_dev)
 {
 	rfm22_rx_reset(openlrs_dev, false);
@@ -1068,25 +1145,31 @@ static void pios_openlrs_tx_frame(pios_openlrs_t openlrs_dev)
 
 	pios_openlrs_do_hop(openlrs_dev);
 
-	int16_t channels[OPENLRS_PPM_NUM_CHANNELS];
-
-	for (int i=0; i < OPENLRS_PPM_NUM_CHANNELS; i++) {
-		uintptr_t rcvr =
-			PIOS_HAL_GetReceiver(openlrs_dev->tx_source);
-		channels[i] = PIOS_RCVR_Read(rcvr, i+1);
-	}
-
-	txscale_channels(channels, openlrs_dev->scale_min, openlrs_dev->scale_max);
-
-	uint8_t tx_buf[MAX_CONTROL_PACKET_SIZE];
-
-	tx_buf[0] = 0;	/* XXX */
-	int len = pack_channels(openlrs_dev->bind_data.flags,
-		channels, tx_buf+1);
+	int len = pios_openlrs_form_control_frame(openlrs_dev);
 
 	openlrs_dev->lastPacketTimeUs = PIOS_DELAY_GetuS();
 
-	rfm22_tx_packet(openlrs_dev, tx_buf, len + 1);
+	rfm22_tx_packet(openlrs_dev, openlrs_dev->tx_buf, len);
+
+	if (!(openlrs_dev->bind_data.flags & TELEMETRY_MASK)) {
+		return;
+	}
+
+	rfm22_rx_reset(openlrs_dev, false);
+
+	uint32_t wait_time = interval - PIOS_DELAY_GetuSSince(
+			openlrs_dev->lastPacketTimeUs);
+
+	if ((wait_time > 100000) || (wait_time < 500)) {
+		/* Only do telemetry if time remaining is sane. */
+		return;
+	}
+
+	bool have_interrupt = wait_interrupt(openlrs_dev, wait_time);
+
+	if (have_interrupt) {
+		pios_openlrs_tx_receive_telemetry(openlrs_dev);
+	}
 }
 
 static void pios_openlrs_tx_task(void *parameters)
@@ -1136,18 +1219,6 @@ static void pios_openlrs_tx_task(void *parameters)
 	}
 }
 
-static bool wait_interrupt(pios_openlrs_t openlrs_dev, int delay_us)
-{
-	/* Round up-- always better to do these things "late" */
-	int delay_ms = (delay_us + 999) / 1000;
-
-	if (delay_ms <= 0) {
-		delay_ms = 1;
-	}
-
-	return PIOS_Semaphore_Take(openlrs_dev->sema_isr, delay_ms);
-}
-
 /**
  * The task that controls the radio state machine.
  *
@@ -1180,7 +1251,8 @@ static void pios_openlrs_rx_task(void *parameters)
 
 		rfm22_check_hang(openlrs_dev);
 
-		uint32_t time_since_packet_us = PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs);
+		uint32_t time_since_packet_us =
+			PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs);
 		uint8_t rssi = 0;
 
 		/*
@@ -1191,7 +1263,7 @@ static void pios_openlrs_rx_task(void *parameters)
 		uint32_t delay_us =
 			getPacketActiveTime(&openlrs_dev->bind_data) -
 			packet_rssi_time_us -
-			time_since_packet_us;
+			time_since_packet_us + 999;
 
 		DEBUG_PRINTF(3, "T1: %d\r\n", delay_us);
 
@@ -1210,7 +1282,8 @@ static void pios_openlrs_rx_task(void *parameters)
 				rssi, delay_us);
 		}
 
-		time_since_packet_us = PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs);
+		time_since_packet_us =
+			PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs);
 
 		/*
 		 * Now wait until we have received a frame, or until the
@@ -1524,9 +1597,9 @@ static void rfm22_tx_packet(pios_openlrs_t openlrs_dev, void *pkt,
 	rfm22_write(openlrs_dev, RFM22_op_and_func_ctrl2, 0x03);
 	rfm22_write(openlrs_dev, RFM22_op_and_func_ctrl2, 0x00);
 
-	rfm22_get_it_status(openlrs_dev);
-
 	rfm22_write(openlrs_dev, RFM22_interrupt_enable1, RFM22_ie1_enpksent);
+
+	rfm22_get_it_status(openlrs_dev);
 
 	rfm22_write(openlrs_dev, RFM22_transmit_packet_length, size);   // total tx size
 
@@ -1600,10 +1673,14 @@ static void rfm22_rx_reset(pios_openlrs_t openlrs_dev, bool pause_long)
 	rfm22_write(openlrs_dev, RFM22_op_and_func_ctrl2, 0x03);
 	rfm22_write(openlrs_dev, RFM22_op_and_func_ctrl2, 0x00);
 
-	rfm22_write(openlrs_dev, RFM22_op_and_func_ctrl1, RF22B_PWRSTATE_RX);   // to rx mode
-	rfm22_write(openlrs_dev, RFM22_interrupt_enable1, RFM22_ie1_enpkvalid);
-
 	rfm22_get_it_status(openlrs_dev);
+
+	/* Ensure sema taken */
+	PIOS_Semaphore_Take(openlrs_dev->sema_isr, 0);
+
+	rfm22_write(openlrs_dev, RFM22_interrupt_enable1, RFM22_ie1_enpkvalid);
+	rfm22_write(openlrs_dev, RFM22_op_and_func_ctrl1, RF22B_PWRSTATE_RX);   // to rx mode
+
 	rfm22_release_bus(openlrs_dev);
 }
 

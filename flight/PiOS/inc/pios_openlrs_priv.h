@@ -120,6 +120,9 @@ extern const struct pios_com_driver pios_openlrs_com_driver;
 #define RFM22_DEVICE_TYPE                         0x00  // R
 #define RFM22_DT_MASK                             0x1F
 
+const static uint8_t openlrs_pktsizes[8] = { 6, 7, 11, 12, 16, 17, 21, 22 };
+#define MAX_CONTROL_PACKET_SIZE 22
+
 struct bind_data {
 	uint8_t hdr;
 	uint8_t version;
@@ -209,7 +212,7 @@ struct pios_openlrs_dev {
 
 	OpenLRStx_sourceOptions tx_source;
 
-	uint8_t tx_buf[9];
+	uint8_t tx_buf[MAX_CONTROL_PACKET_SIZE];
 };
 
 #endif /* PIOS_INCLUDE_OPENLRS */
