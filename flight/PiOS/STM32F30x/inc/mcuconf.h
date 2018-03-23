@@ -54,7 +54,15 @@
 #define STM32_SW                            STM32_SW_PLL
 #define STM32_PLLSRC                        STM32_PLLSRC_HSE
 #define STM32_PREDIV_VALUE                  1
+
+#if (HSE_VALUE == 8000000) && (SYSCLK_FREQ == 72000000)
 #define STM32_PLLMUL_VALUE                  9
+#elif (HSE_VALUE == 12000000) && (SYSCLK_FREQ == 72000000)
+#define STM32_PLLMUL_VALUE                  6
+#else
+#error unsupported clock combination
+#endif
+
 #define STM32_HPRE                          STM32_HPRE_DIV1
 #define STM32_PPRE1                         STM32_PPRE1_DIV2
 #define STM32_PPRE2                         STM32_PPRE2_DIV2
