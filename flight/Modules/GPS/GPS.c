@@ -215,6 +215,8 @@ static void gpsConfigure(uint8_t gpsProtocol)
 		}
 		break;
 #endif
+		default:
+			break;
 	}
 }
 
