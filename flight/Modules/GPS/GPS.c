@@ -76,7 +76,7 @@ static void updateSettings();
 // ****************
 // Private variables
 
-static uint32_t gpsPort;
+static uintptr_t gpsPort;
 static bool module_enabled = false;
 
 static struct pios_thread *gpsTaskHandle;
