@@ -39,23 +39,22 @@
 #include "GPS.h"
 
 //#define ENABLE_DEBUG_MSG						///< define to enable debug-messages
-#define DEBUG_PORT		PIOS_COM_TELEM_RF		///< defines which serial port is ued for debug-messages
 
 
 
 // Debugging
 #ifdef ENABLE_DEBUG_MSG
-//#define DEBUG_MSG_IN			///< define to display the incoming NMEA messages
+#define DEBUG_MSG_IN			///< define to display the incoming NMEA messages
 //#define DEBUG_PARAMS			///< define to display the incoming NMEA messages split into its parameters
-//#define DEBUG_MGSID_IN		///< define to display the the names of the incoming NMEA messages
-//#define NMEA_DEBUG_PKT		///< define to enable debug of all NMEA messages
-//#define NMEA_DEBUG_GGA		///< define to enable debug of GGA messages
-//#define NMEA_DEBUG_VTG		///< define to enable debug of VTG messages
-//#define NMEA_DEBUG_RMC		///< define to enable debug of RMC messages
-//#define NMEA_DEBUG_GSA		///< define to enable debug of GSA messages
-//#define NMEA_DEBUG_GSV		///< define to enable debug of GSV messages
-//#define NMEA_DEBUG_ZDA		///< define to enable debug of ZDA messages
-#define DEBUG_MSG(format, ...) PIOS_COM_SendFormattedString(DEBUG_PORT, format, ## __VA_ARGS__)
+#define DEBUG_MGSID_IN		///< define to display the the names of the incoming NMEA messages
+#define NMEA_DEBUG_PKT		///< define to enable debug of all NMEA messages
+#define NMEA_DEBUG_GGA		///< define to enable debug of GGA messages
+#define NMEA_DEBUG_VTG		///< define to enable debug of VTG messages
+#define NMEA_DEBUG_RMC		///< define to enable debug of RMC messages
+#define NMEA_DEBUG_GSA		///< define to enable debug of GSA messages
+#define NMEA_DEBUG_GSV		///< define to enable debug of GSV messages
+#define NMEA_DEBUG_ZDA		///< define to enable debug of ZDA messages
+#define DEBUG_MSG(format, ...) DEBUG_PRINTF(2, format, ## __VA_ARGS__)
 #else
 #define DEBUG_MSG(format, ...)
 #endif
@@ -414,7 +413,7 @@ bool NMEA_update_position(char *nmea_sentence, GPSPositionData *GpsData)
 	}
 
 	#ifdef DEBUG_MGSID_IN
-		DEBUG_MSG("%s %d ", params[0]);
+		DEBUG_MSG("%s ", params[0]);
 	#endif
 	// Send the message to the parser and get it update the GpsData
 	// Information from various different NMEA messages are temporarily
@@ -467,7 +466,7 @@ static bool nmeaProcessGPGGA(GPSPositionData * GpsData, bool* gpsDataUpdated, ch
 	DEBUG_MSG(" Sat=%s\n", param[7]);
 	DEBUG_MSG(" HDOP=%s\n", param[8]);
 	DEBUG_MSG(" Alt=%s %s\n", param[9], param[10]);
-	DEBUG_MSG(" GeoidSep=%s %s\n\n", param[11]);
+	DEBUG_MSG(" GeoidSep=%s\n\n", param[11]);
 #endif
 
 	*gpsDataUpdated = true;
