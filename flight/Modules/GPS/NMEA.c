@@ -414,7 +414,7 @@ bool NMEA_update_position(char *nmea_sentence, GPSPositionData *GpsData)
 	}
 
 	#ifdef DEBUG_MGSID_IN
-		DEBUG_MSG("%s %d ", params[0]);
+		DEBUG_MSG("%s ", params[0]);
 	#endif
 	// Send the message to the parser and get it update the GpsData
 	// Information from various different NMEA messages are temporarily
@@ -467,7 +467,7 @@ static bool nmeaProcessGPGGA(GPSPositionData * GpsData, bool* gpsDataUpdated, ch
 	DEBUG_MSG(" Sat=%s\n", param[7]);
 	DEBUG_MSG(" HDOP=%s\n", param[8]);
 	DEBUG_MSG(" Alt=%s %s\n", param[9], param[10]);
-	DEBUG_MSG(" GeoidSep=%s %s\n\n", param[11]);
+	DEBUG_MSG(" GeoidSep=%s\n\n", param[11]);
 #endif
 
 	*gpsDataUpdated = true;
