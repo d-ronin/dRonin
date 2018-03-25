@@ -212,6 +212,8 @@ struct pios_openlrs_dev {
 
 	OpenLRStx_sourceOptions tx_source;
 
+	bool tx_ok_to_telemeter;
+
 	uint8_t tx_buf[MAX_CONTROL_PACKET_SIZE];
 };
 

@@ -1082,8 +1082,6 @@ static int pios_openlrs_form_control_frame(pios_openlrs_t openlrs_dev)
 	txscale_channels(channels, openlrs_dev->scale_min, openlrs_dev->scale_max);
 	uint8_t *tx_buf = openlrs_dev->tx_buf;
 
-	tx_buf[0] &= 0xc0; // Preserve top two sequence bits
-
 	int len = pack_channels(openlrs_dev->bind_data.flags,
 		channels, tx_buf+1);
 
@@ -1121,9 +1119,18 @@ static bool pios_openlrs_tx_receive_telemetry(pios_openlrs_t openlrs_dev)
 		openlrs_status.LinkQuality = (1 << (rx_buf[6])) - 1; /* fudge */
 
 		OpenLRSStatusSet(&openlrs_status);
+	} else if (((rx_buf[0] & 0x38) == 0x38) &&
+			((rx_buf[0] ^ openlrs_dev->tx_buf[0]) & 0x40)) {
+		// We got new data... (not retransmission)
+		openlrs_dev->tx_buf[0] ^= 0x40; // signal that we got it
+		bool rx_need_yield;
+		uint8_t data_len = rx_buf[0] & 7;
+		if (openlrs_dev->rx_in_cb && (data_len > 0)) {
+			(openlrs_dev->rx_in_cb)(openlrs_dev->rx_in_context,
+					&rx_buf[1], data_len,
+					NULL, &rx_need_yield);
+		}
 	}
-
-	/* XXX serial data */
 
 	return true;
 
@@ -1144,7 +1151,28 @@ static void pios_openlrs_tx_frame(pios_openlrs_t openlrs_dev)
 
 	pios_openlrs_do_hop(openlrs_dev);
 
-	int len = pios_openlrs_form_control_frame(openlrs_dev);
+	bool telem_uplink = false;
+	
+	int len = TELEMETRY_PACKETSIZE;
+
+	openlrs_dev->tx_buf[0] &= 0xc0; // Preserve top two sequence bits
+
+	if (openlrs_dev->tx_ok_to_telemeter) {
+		openlrs_dev->tx_ok_to_telemeter = false;
+
+		/* XXX resends, etc... tricky */
+
+		telem_uplink = pios_openlrs_form_telemetry(openlrs_dev,
+					openlrs_dev->tx_buf, 0, true);
+
+		if (telem_uplink) {
+			openlrs_dev->tx_buf[0] ^= 0x80;
+		}
+	}
+
+	if (!telem_uplink) {
+		len = pios_openlrs_form_control_frame(openlrs_dev);
+	}
 
 	openlrs_dev->lastPacketTimeUs = PIOS_DELAY_GetuS();
 
@@ -1167,7 +1195,15 @@ static void pios_openlrs_tx_frame(pios_openlrs_t openlrs_dev)
 	bool have_interrupt = wait_interrupt(openlrs_dev, wait_time);
 
 	if (have_interrupt) {
-		pios_openlrs_tx_receive_telemetry(openlrs_dev);
+		if (pios_openlrs_tx_receive_telemetry(openlrs_dev)) {
+			if (!telem_uplink) {
+				/* It's OK to telemeter when we receive
+				 * a downlink telemetry message.. and we
+				 * didn't telemeter this time around.
+				 */
+				openlrs_dev->tx_ok_to_telemeter = false;
+			}
+		}
 	}
 }
 
