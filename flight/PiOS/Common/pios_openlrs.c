@@ -105,9 +105,15 @@ const struct rfm22_modem_regs {
 	{ 125000, 0x8a, 0x40, 0x0a, 0x60, 0x01, 0x55, 0x55, 0x02, 0xad, 0x1e, 0x20, 0x00, 0x00, 0x23, 0xc8 },
 };
 
+/* invariants
+ * 1D = 0x40 AFC enabled, gearshift = 000000
+ * 20 = 0x0a clock recovery oversampling rate = 0x0a, min value 0x08
+ * 71 = 0x23 modulation mode -- FIFO, GFSK
+ */
+
 #define OPENLRS_BIND_PARAMS 1	/* 9600 params */
 
-static uint8_t countSetBits(uint16_t x)
+static uint8_t count_set_bits(uint16_t x)
 {
 	return __builtin_popcount(x);
 }
@@ -153,7 +159,7 @@ const struct pios_com_driver pios_openlrs_com_driver = {
 const uint32_t packet_timeout_us = 1000;
 const uint32_t packet_rssi_time_us = 1500;
 
-static uint32_t minFreq(HwSharedRfBandOptions band)
+static uint32_t min_freq(HwSharedRfBandOptions band)
 {
 	switch (band) {
 	default:
@@ -166,7 +172,7 @@ static uint32_t minFreq(HwSharedRfBandOptions band)
 	}
 }
 
-static uint32_t maxFreq(HwSharedRfBandOptions band)
+static uint32_t max_freq(HwSharedRfBandOptions band)
 {
 	switch (band) {
 	default:
@@ -179,7 +185,7 @@ static uint32_t maxFreq(HwSharedRfBandOptions band)
 	}
 }
 
-static uint32_t defCarrierFreq(HwSharedRfBandOptions band)
+static uint32_t def_carrier_freq(HwSharedRfBandOptions band)
 {
 	switch (band) {
 	default:
@@ -192,7 +198,7 @@ static uint32_t defCarrierFreq(HwSharedRfBandOptions band)
 	}
 }
 
-static uint32_t bindingFreq(HwSharedRfBandOptions band)
+static uint32_t binding_freq(HwSharedRfBandOptions band)
 {
 	switch (band) {
 	default:
@@ -209,7 +215,7 @@ static uint32_t bindingFreq(HwSharedRfBandOptions band)
 * OpenLRS data formatting utilities
 *****************************************************************************/
 
-static uint8_t getPacketSize(struct bind_data *bd)
+static uint8_t get_control_packet_size(struct bind_data *bd)
 {
 	return openlrs_pktsizes[(bd->flags & 0x07)];
 }
@@ -226,14 +232,16 @@ static uint8_t getPacketSize(struct bind_data *bd)
 // considerations, so leave them alone :D
 #define BYTES_AT_BAUD_TO_USEC(bytes, bps, div) ((uint32_t)((bytes) + (div ? 20 : 15)) * 8 * 1025000L / (uint32_t)(bps))
 
-static uint32_t getPacketActiveTime(struct bind_data *bd)
+static uint32_t get_control_packet_time(struct bind_data *bd)
 {
-	return (BYTES_AT_BAUD_TO_USEC(getPacketSize(bd), modem_params[bd->modem_params].bps, bd->flags&DIVERSITY_ENABLED) + 2000);
+	return (BYTES_AT_BAUD_TO_USEC(get_control_packet_size(bd),
+				modem_params[bd->modem_params].bps,
+				bd->flags & DIVERSITY_ENABLED) + 2000);
 }
 
-static uint32_t getInterval(struct bind_data *bd)
+static uint32_t get_nominal_packet_interval(struct bind_data *bd)
 {
-	uint32_t ret = getPacketActiveTime(bd);
+	uint32_t ret = get_control_packet_time(bd);
 
 	if (bd->flags & TELEMETRY_MASK) {
 		ret += (BYTES_AT_BAUD_TO_USEC(TELEMETRY_PACKETSIZE, modem_params[bd->modem_params].bps, bd->flags&DIVERSITY_ENABLED) + 1000);
@@ -424,7 +432,7 @@ static bool pios_openlrs_form_telemetry(pios_openlrs_t openlrs_dev,
 		 */
 		tx_buf[4] = 0;
 		tx_buf[5] = 0;
-		tx_buf[6] = countSetBits(openlrs_status.LinkQuality & 0x7fff);
+		tx_buf[6] = count_set_bits(openlrs_status.LinkQuality & 0x7fff);
 		tx_buf[7] = 0;
 		tx_buf[8] = 0;
 	}
@@ -725,7 +733,7 @@ static bool pios_openlrs_rx_frame(pios_openlrs_t openlrs_dev, uint8_t rssi)
 
 	// Read the packet from RFM22b
 	if (!rfm22_rx_packet(openlrs_dev, rx_buf,
-			getPacketSize(&openlrs_dev->bind_data))) {
+			get_control_packet_size(&openlrs_dev->bind_data))) {
 		return false;
 	}
 
@@ -860,10 +868,12 @@ static void pios_openlrs_rx_step(pios_openlrs_t openlrs_dev,
 		DEBUG_PRINTF(2,"OLRS WARN: Lost packet: %d\r\n", openlrs_dev->numberOfLostPackets);
 		/* We lost packet, execute normally timed hop */
 		openlrs_dev->numberOfLostPackets++;
-		openlrs_dev->lastPacketTimeUs += getInterval(&openlrs_dev->bind_data);
+		openlrs_dev->lastPacketTimeUs +=
+			get_nominal_packet_interval(&openlrs_dev->bind_data);
 	} else if ((openlrs_dev->numberOfLostPackets >= openlrs_dev->hopcount) &&
 			(PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs) >
-			(getInterval(&openlrs_dev->bind_data) * (openlrs_dev->hopcount + 1)))) {
+			(get_nominal_packet_interval(&openlrs_dev->bind_data)
+					* (openlrs_dev->hopcount + 1)))) {
 		DEBUG_PRINTF(2,"OLRS WARN: Trying to sync\r\n");
 
 		// hop slowly to allow resync with TX
@@ -930,7 +940,7 @@ uint8_t PIOS_OpenLRS_RSSI_Get(void)
 		uint8_t rssi_type;
 		OpenLRSRSSI_TypeGet(&rssi_type);
 
-		uint16_t LQ = countSetBits(openlrs_status.LinkQuality & 0x7fff);
+		uint16_t LQ = count_set_bits(openlrs_status.LinkQuality & 0x7fff);
 
 		switch (rssi_type) {
 		case OPENLRS_RSSI_TYPE_COMBINED:
@@ -1123,7 +1133,8 @@ static void pios_openlrs_tx_frame(pios_openlrs_t openlrs_dev)
 {
 	rfm22_rx_reset(openlrs_dev, false);
 
-	uint32_t interval = getInterval(&openlrs_dev->bind_data) + 500;
+	uint32_t interval =
+		get_nominal_packet_interval(&openlrs_dev->bind_data) + 500;
 
 	// Now we want to delay until the next frame is due.
 	while (PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs) <
@@ -1237,6 +1248,7 @@ static void pios_openlrs_rx_task(void *parameters)
 		PIOS_WDG_UpdateFlag(PIOS_WDG_RFM22B);
 #endif /* PIOS_WDG_RFM22B */
 
+		/* XXX: Factor most of this body to function */
 		rfm22_check_hang(openlrs_dev);
 
 		uint32_t time_since_packet_us =
@@ -1249,7 +1261,7 @@ static void pios_openlrs_rx_task(void *parameters)
 		 * lock on.
 		 */
 		uint32_t delay_us =
-			getPacketActiveTime(&openlrs_dev->bind_data) -
+			get_control_packet_time(&openlrs_dev->bind_data) -
 			packet_rssi_time_us -
 			time_since_packet_us + 999;
 
@@ -1289,7 +1301,7 @@ static void pios_openlrs_rx_task(void *parameters)
 		 * into what we believe to be our telemetry timeslot and thus
 		 * cope better if the TX is slower than we expect.
 		 */
-		delay_us = getInterval(&openlrs_dev->bind_data) +
+		delay_us = get_nominal_packet_interval(&openlrs_dev->bind_data) +
 			packet_timeout_us - time_since_packet_us;
 		DEBUG_PRINTF(3, "T2: %d %d\r\n", delay_us,
 				time_since_packet_us);
@@ -1299,8 +1311,8 @@ static void pios_openlrs_rx_task(void *parameters)
 		if (have_interrupt ||
 				wait_interrupt(openlrs_dev, delay_us)) {
 			DEBUG_PRINTF(3, "ISR %d %d %d\r\n", delay_us,
-					getInterval(&openlrs_dev->bind_data),
-					time_since_packet_us);
+				get_nominal_packet_interval(&openlrs_dev->bind_data),
+				time_since_packet_us);
 
 			// Process incoming data
 			have_frame = pios_openlrs_rx_frame(openlrs_dev, rssi);
@@ -1313,7 +1325,7 @@ static void pios_openlrs_rx_task(void *parameters)
 			DEBUG_PRINTF(3,
 				"ISR Timeout. Missed packet: %d %d %d\r\n",
 				delay_us,
-				getInterval(&openlrs_dev->bind_data),
+				get_nominal_packet_interval(&openlrs_dev->bind_data),
 				time_since_packet_us);
 		}
 
@@ -1386,6 +1398,7 @@ static bool pios_openlrs_validate(pios_openlrs_t openlrs_dev)
 
 static void rfm22_set_channel(pios_openlrs_t openlrs_dev, uint8_t ch)
 {
+	/* XXX enforce maximum frequency here */
 	DEBUG_PRINTF(3,"rfm22_set_channel %d\r\n", ch);
 	uint8_t magicLSB = (openlrs_dev->bind_data.rf_magic & 0xff) ^ ch;
 	rfm22_claim_bus(openlrs_dev);
@@ -1760,7 +1773,9 @@ static void rfm22_init(pios_openlrs_t openlrs_dev, uint8_t isbind)
 
 	rfm22_rx_reset(openlrs_dev, true);
 
-	rfm22_set_frequency(openlrs_dev, isbind ? bindingFreq(openlrs_dev->band) : openlrs_dev->bind_data.rf_frequency);
+	rfm22_set_frequency(openlrs_dev,
+			isbind ? binding_freq(openlrs_dev->band) :
+				 openlrs_dev->bind_data.rf_frequency);
 }
 
 static void rfm22_set_frequency(pios_openlrs_t openlrs_dev, uint32_t f)
@@ -1768,9 +1783,9 @@ static void rfm22_set_frequency(pios_openlrs_t openlrs_dev, uint32_t f)
 	/* Protect ourselves from out-of-band frequencies.  Ideally we'd latch
 	 * an error here and prevent tx, but this is good enough to protect
 	 * the hardware. */
-	if ((f < minFreq(openlrs_dev->band)) ||
-			(f > maxFreq(openlrs_dev->band))) {
-		f = defCarrierFreq(openlrs_dev->band);
+	if ((f < min_freq(openlrs_dev->band)) ||
+			(f > max_freq(openlrs_dev->band))) {
+		f = def_carrier_freq(openlrs_dev->band);
 	}
 
 	DEBUG_PRINTF(3,"rfm22_set_frequency %d\r\n", f);
