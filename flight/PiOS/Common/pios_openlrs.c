@@ -1162,12 +1162,6 @@ static void pios_openlrs_tx_frame(pios_openlrs_t openlrs_dev)
 	uint32_t interval =
 		get_nominal_packet_interval(&openlrs_dev->bind_data) + 500;
 
-	// Now we want to delay until the next frame is due.
-	while (PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs) <
-			interval) {
-		PIOS_Thread_Sleep(1);
-	}
-
 	pios_openlrs_do_hop(openlrs_dev);
 
 	bool telem_uplink = false;
@@ -1191,6 +1185,12 @@ static void pios_openlrs_tx_frame(pios_openlrs_t openlrs_dev)
 
 	if (!telem_uplink) {
 		len = pios_openlrs_form_control_frame(openlrs_dev);
+	}
+
+	// Now we want to delay until the next frame is due.
+	while (PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs) <
+			interval) {
+		PIOS_Thread_Sleep(1);
 	}
 
 	openlrs_dev->lastPacketTimeUs = PIOS_DELAY_GetuS();
