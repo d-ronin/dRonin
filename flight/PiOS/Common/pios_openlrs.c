@@ -73,6 +73,8 @@ static void rfm22_tx_packet(pios_openlrs_t openlrs_dev,
 		void *pkt, uint8_t size);
 static bool rfm22_rx_packet(pios_openlrs_t openlrs_dev,
 		void *whence, uint32_t size);
+static int rfm22_rx_packet_variable(pios_openlrs_t openlrs_dev,
+		void *whence, uint32_t max_size);
 static void rfm22_set_channel(pios_openlrs_t openlrs_dev, uint8_t ch);
 static void rfm22_rx_reset(pios_openlrs_t openlrs_dev, bool pause_long);
 static void rfm22_check_hang(pios_openlrs_t openlrs_dev);
@@ -731,9 +733,12 @@ static bool pios_openlrs_rx_frame(pios_openlrs_t openlrs_dev, uint8_t rssi)
 	uint8_t *tx_buf = openlrs_dev->tx_buf;
 	uint8_t rx_buf[MAX_CONTROL_PACKET_SIZE];
 
+	int ctrl_size = get_control_packet_size(&openlrs_dev->bind_data);
+
 	// Read the packet from RFM22b
-	if (!rfm22_rx_packet(openlrs_dev, rx_buf,
-			get_control_packet_size(&openlrs_dev->bind_data))) {
+	int size = rfm22_rx_packet_variable(openlrs_dev, rx_buf, ctrl_size);
+
+	if (size <= 0) {
 		return false;
 	}
 
@@ -745,6 +750,12 @@ static bool pios_openlrs_rx_frame(pios_openlrs_t openlrs_dev, uint8_t rssi)
 
 	if ((rx_buf[0] & 0x3e) == 0x00) {
 		// This flag indicates receiving control data
+
+		if (size != ctrl_size) {
+			// These size mismatches should never happen because
+			// we are protected by a CRC, and shared magic hdr.
+			return false;
+		}
 
 		unpack_channels(openlrs_dev->bind_data.flags,
 				openlrs_dev->ppm, rx_buf + 1);
@@ -759,18 +770,28 @@ static bool pios_openlrs_rx_frame(pios_openlrs_t openlrs_dev, uint8_t rssi)
 #endif
 		}
 	} else {
+		if (size != TELEMETRY_PACKETSIZE) {
+			return false;
+		}
+
 		// Not control data. Push into serial RX buffer.
 		if (((rx_buf[0] & 0x38) == 0x38) &&
 				((rx_buf[0] ^ tx_buf[0]) & 0x80)) {
 			// We got new data... (not retransmission)
-			tx_buf[0] ^= 0x80; // signal that we got it
 			bool rx_need_yield;
-			uint8_t data_len = rx_buf[0] & 7;
-			if (openlrs_dev->rx_in_cb && (data_len > 0)) {
+			uint8_t data_len = (rx_buf[0] & 7) + 1;
+			if (openlrs_dev->rx_in_cb) {
 				(openlrs_dev->rx_in_cb)(openlrs_dev->rx_in_context,
 						&rx_buf[1], data_len,
 						NULL, &rx_need_yield);
 			}
+		}
+
+		/* Set acknowledge bit to match */
+		if (rx_buf[0] & 0x80) {
+			openlrs_dev->tx_buf[0] |= 0x80;
+		} else {
+			openlrs_dev->tx_buf[0] &= ~0x80;
 		}
 	}
 
@@ -1103,13 +1124,6 @@ static bool pios_openlrs_tx_receive_telemetry(pios_openlrs_t openlrs_dev)
 	PIOS_ANNUNC_Toggle(PIOS_LED_LINK);
 #endif /* PIOS_LED_LINK */
 
-	/* Set acknowledge bit to match */
-	if (rx_buf[0] & 0x40) {
-		openlrs_dev->tx_buf[0] |= 0x40;
-	} else {
-		openlrs_dev->tx_buf[0] &= ~0x40;
-	}
-
 	if ((rx_buf[0] & 0x3f) == 0) {
 		/* Generic link telemetry.  Grab the data, shove it
 		 * into status.
@@ -1121,15 +1135,20 @@ static bool pios_openlrs_tx_receive_telemetry(pios_openlrs_t openlrs_dev)
 		OpenLRSStatusSet(&openlrs_status);
 	} else if (((rx_buf[0] & 0x38) == 0x38) &&
 			((rx_buf[0] ^ openlrs_dev->tx_buf[0]) & 0x40)) {
-		// We got new data... (not retransmission)
-		openlrs_dev->tx_buf[0] ^= 0x40; // signal that we got it
 		bool rx_need_yield;
-		uint8_t data_len = rx_buf[0] & 7;
-		if (openlrs_dev->rx_in_cb && (data_len > 0)) {
+		uint8_t data_len = (rx_buf[0] & 7) + 1;
+		if (openlrs_dev->rx_in_cb) {
 			(openlrs_dev->rx_in_cb)(openlrs_dev->rx_in_context,
 					&rx_buf[1], data_len,
 					NULL, &rx_need_yield);
 		}
+	}
+
+	/* Set acknowledge bit to match */
+	if (rx_buf[0] & 0x40) {
+		openlrs_dev->tx_buf[0] |= 0x40;
+	} else {
+		openlrs_dev->tx_buf[0] &= ~0x40;
 	}
 
 	return true;
@@ -1152,7 +1171,7 @@ static void pios_openlrs_tx_frame(pios_openlrs_t openlrs_dev)
 	pios_openlrs_do_hop(openlrs_dev);
 
 	bool telem_uplink = false;
-	
+
 	int len = TELEMETRY_PACKETSIZE;
 
 	openlrs_dev->tx_buf[0] &= 0xc0; // Preserve top two sequence bits
@@ -1201,7 +1220,7 @@ static void pios_openlrs_tx_frame(pios_openlrs_t openlrs_dev)
 				 * a downlink telemetry message.. and we
 				 * didn't telemeter this time around.
 				 */
-				openlrs_dev->tx_ok_to_telemeter = false;
+				openlrs_dev->tx_ok_to_telemeter = true;
 			}
 		}
 	}
@@ -1669,26 +1688,56 @@ static void rfm22_tx_packet(pios_openlrs_t openlrs_dev, void *pkt,
 	}
 }
 
-static bool rfm22_rx_packet(pios_openlrs_t openlrs_dev,
+static void rfm22_rx_packet_sizeknown(pios_openlrs_t openlrs_dev,
 		void *whence, uint32_t size)
 {
-	rfm22_claim_bus(openlrs_dev);
-	uint8_t len = rfm22_read(openlrs_dev, RFM22_received_packet_length);
-
-	if (len != size) {
-		rfm22_release_bus(openlrs_dev);
-		return false;
-	}
+	/* Assumes bus claimed */
 
 	rfm22_assert_cs(openlrs_dev);
 	PIOS_SPI_TransferByte(openlrs_dev->spi_id, RFM22_fifo_access);
 	PIOS_SPI_TransferBlock(openlrs_dev->spi_id, NULL,
 			whence, size);
 	rfm22_deassert_cs(openlrs_dev);
+}
+
+static bool rfm22_rx_packet(pios_openlrs_t openlrs_dev,
+		void *whence, uint32_t size)
+{
+	rfm22_claim_bus(openlrs_dev);
+	uint8_t len = rfm22_read(openlrs_dev, RFM22_received_packet_length);
+
+	bool ret = false;
+
+	if (len == size) {
+		rfm22_rx_packet_sizeknown(openlrs_dev, whence, size);
+
+		ret = true;
+	}
+
 	rfm22_release_bus(openlrs_dev);
 
-	return true;
+	return ret;
 }
+
+static int rfm22_rx_packet_variable(pios_openlrs_t openlrs_dev,
+		void *whence, uint32_t max_size)
+{
+	rfm22_claim_bus(openlrs_dev);
+	uint8_t size = rfm22_read(openlrs_dev, RFM22_received_packet_length);
+
+	int ret = -1;
+
+	if ((size <= max_size) && (size > 0)) {
+		rfm22_rx_packet_sizeknown(openlrs_dev, whence, size);
+
+		ret = size;
+	}
+
+	rfm22_release_bus(openlrs_dev);
+
+	return ret;
+}
+
 
 static void rfm22_rx_reset(pios_openlrs_t openlrs_dev, bool pause_long)
 {
