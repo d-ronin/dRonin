@@ -868,7 +868,7 @@ static void pios_openlrs_do_hop(pios_openlrs_t openlrs_dev)
 	rfm22_set_channel(openlrs_dev, openlrs_dev->rf_channel);
 }
 
-static void pios_openlrs_rx_step(pios_openlrs_t openlrs_dev,
+static void pios_openlrs_rx_after_receive(pios_openlrs_t openlrs_dev,
 		bool have_frame)
 {
 	uint32_t timeUs, timeMs;
@@ -1315,6 +1315,99 @@ static void pios_openlrs_tx_task(void *parameters)
 	}
 }
 
+static void pios_openlrs_rx_step(pios_openlrs_t openlrs_dev)
+{
+	rfm22_check_hang(openlrs_dev);
+
+	uint32_t time_since_packet_us =
+		PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs);
+	uint8_t rssi = 0;
+
+	/*
+	 * Schedule for a good time to sample RSSI.  This should be
+	 * after frame start and the AGC has had a good chance to
+	 * lock on.
+	 */
+	uint32_t delay_us =
+		get_control_packet_time(&openlrs_dev->bind_data) -
+		packet_rssi_time_us -
+		time_since_packet_us + 999;
+
+	DEBUG_PRINTF(3, "T1: %d\r\n", delay_us);
+
+	bool have_interrupt = wait_interrupt(openlrs_dev, delay_us);
+
+	/*
+	 * We don't really expect an interrupt here.  If we have one,
+	 * it means we are badly out of sync and got a frame when we
+	 * didn't expect.
+	 */
+	if (!have_interrupt) {
+		rssi = rfm22_get_rssi(openlrs_dev);
+
+		DEBUG_PRINTF(3,
+			"Sampled RSSI: %d %d\r\n",
+			rssi, delay_us);
+	}
+
+	time_since_packet_us =
+		PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs);
+
+	/*
+	 * Now wait until we have received a frame, or until the
+	 * packet is truly late.
+	 *
+	 * It's worth noting that for non-telemetry modes, we need
+	 * to stay very closely in sync because the TX is transmitting
+	 * most of the time.  This means that we need to carefully
+	 * split that "dead" non-TX time, arriving to channels slightly
+	 * early, and leaving slightly late if we have not received a
+	 * frame.
+	 *
+	 * For telemetry modes, since "we" have a timeslot the
+	 * tolerances can be much more lax-- we can afford to listen
+	 * into what we believe to be our telemetry timeslot and thus
+	 * cope better if the TX is slower than we expect.
+	 */
+	delay_us = get_nominal_packet_interval(&openlrs_dev->bind_data) +
+		packet_timeout_us - time_since_packet_us;
+	DEBUG_PRINTF(3, "T2: %d %d\r\n", delay_us,
+			time_since_packet_us);
+
+	bool have_frame = false;
+
+	if (have_interrupt ||
+			wait_interrupt(openlrs_dev, delay_us)) {
+		DEBUG_PRINTF(3, "ISR %d %d %d\r\n", delay_us,
+			get_nominal_packet_interval(&openlrs_dev->bind_data),
+			time_since_packet_us);
+
+		// Process incoming data
+		have_frame = pios_openlrs_rx_frame(openlrs_dev, rssi);
+	} else {
+		// TODO: We could delay a little bit more if we looked
+		// at the hardware and see it's midway through
+		// receiving a valid frame.
+
+		// We timed out because packet was missed
+		DEBUG_PRINTF(3,
+			"ISR Timeout. Missed packet: %d %d %d\r\n",
+			delay_us,
+			get_nominal_packet_interval(&openlrs_dev->bind_data),
+			time_since_packet_us);
+	}
+
+	if (!have_frame) {
+		pios_openlrs_rx_update_rssi(openlrs_dev, rssi,
+			false);
+	}
+
+	// Select next channel, update timers, etc.
+	pios_openlrs_rx_after_receive(openlrs_dev, have_frame);
+
+	DEBUG_PRINTF(3, "Processing time %d\r\n", PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs));
+}
+
 /**
  * The task that controls the radio state machine.
  *
@@ -1345,96 +1438,7 @@ static void pios_openlrs_rx_task(void *parameters)
 		PIOS_WDG_UpdateFlag(PIOS_WDG_RFM22B);
 #endif /* PIOS_WDG_RFM22B */
 
-		/* XXX: Factor most of this body to function */
-		rfm22_check_hang(openlrs_dev);
-
-		uint32_t time_since_packet_us =
-			PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs);
-		uint8_t rssi = 0;
-
-		/*
-		 * Schedule for a good time to sample RSSI.  This should be
-		 * after frame start and the AGC has had a good chance to
-		 * lock on.
-		 */
-		uint32_t delay_us =
-			get_control_packet_time(&openlrs_dev->bind_data) -
-			packet_rssi_time_us -
-			time_since_packet_us + 999;
-
-		DEBUG_PRINTF(3, "T1: %d\r\n", delay_us);
-
-		bool have_interrupt = wait_interrupt(openlrs_dev, delay_us);
-
-		/*
-		 * We don't really expect an interrupt here.  If we have one,
-		 * it means we are badly out of sync and got a frame when we
-		 * didn't expect.
-		 */
-		if (!have_interrupt) {
-			rssi = rfm22_get_rssi(openlrs_dev);
-
-			DEBUG_PRINTF(3,
-				"Sampled RSSI: %d %d\r\n",
-				rssi, delay_us);
-		}
-
-		time_since_packet_us =
-			PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs);
-
-		/*
-		 * Now wait until we have received a frame, or until the
-		 * packet is truly late.
-		 *
-		 * It's worth noting that for non-telemetry modes, we need
-		 * to stay very closely in sync because the TX is transmitting
-		 * most of the time.  This means that we need to carefully
-		 * split that "dead" non-TX time, arriving to channels slightly
-		 * early, and leaving slightly late if we have not received a
-		 * frame.
-		 *
-		 * For telemetry modes, since "we" have a timeslot the
-		 * tolerances can be much more lax-- we can afford to listen
-		 * into what we believe to be our telemetry timeslot and thus
-		 * cope better if the TX is slower than we expect.
-		 */
-		delay_us = get_nominal_packet_interval(&openlrs_dev->bind_data) +
-			packet_timeout_us - time_since_packet_us;
-		DEBUG_PRINTF(3, "T2: %d %d\r\n", delay_us,
-				time_since_packet_us);
-
-		bool have_frame = false;
-
-		if (have_interrupt ||
-				wait_interrupt(openlrs_dev, delay_us)) {
-			DEBUG_PRINTF(3, "ISR %d %d %d\r\n", delay_us,
-				get_nominal_packet_interval(&openlrs_dev->bind_data),
-				time_since_packet_us);
-
-			// Process incoming data
-			have_frame = pios_openlrs_rx_frame(openlrs_dev, rssi);
-		} else {
-			// TODO: We could delay a little bit more if we looked
-			// at the hardware and see it's midway through
-			// receiving a valid frame.
-
-			// We timed out because packet was missed
-			DEBUG_PRINTF(3,
-				"ISR Timeout. Missed packet: %d %d %d\r\n",
-				delay_us,
-				get_nominal_packet_interval(&openlrs_dev->bind_data),
-				time_since_packet_us);
-		}
-
-		if (!have_frame) {
-			pios_openlrs_rx_update_rssi(openlrs_dev, rssi,
-				false);
-		}
-
-		// Select next channel, update timers, etc.
-		pios_openlrs_rx_step(openlrs_dev, have_frame);
-
-		DEBUG_PRINTF(3, "Processing time %d\r\n", PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs));
+		pios_openlrs_rx_step(openlrs_dev);
 	}
 }
 
