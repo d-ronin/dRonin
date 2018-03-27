@@ -340,7 +340,7 @@ static int32_t UAVTalkSendHandler(void *ctx, uint8_t * buf, int32_t length)
  */
 static int32_t RadioSendHandler(void *ctx, uint8_t * buf, int32_t length)
 {
-	(void) NULL;
+	(void) ctx;
 
 	uint32_t outputPort = PIOS_COM_RADIOBRIDGE;
 

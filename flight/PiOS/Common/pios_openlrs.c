@@ -945,7 +945,7 @@ static void pios_openlrs_rx_after_receive(pios_openlrs_t openlrs_dev,
 		openlrs_dev->nextBeaconTimeMs = 0;
 
 		openlrs_dev->lastPacketTimeUs = timeUs;
-		openlrs_dev->linkLossTimeMs = timeMs;
+		openlrs_dev->linkLossTimeMs = 0;
 	} else if (openlrs_dev->numberOfLostPackets < openlrs_dev->hopcount) {
 		DEBUG_PRINTF(2,"OLRS WARN: Lost packet: %d\r\n", openlrs_dev->numberOfLostPackets);
 		/* We lost packet, execute normally timed hop */
@@ -960,6 +960,10 @@ static void pios_openlrs_rx_after_receive(pios_openlrs_t openlrs_dev,
 
 		// hop slowly to allow resync with TX
 		openlrs_dev->lastPacketTimeUs = timeUs;
+
+		if (!openlrs_dev->linkLossTimeMs) {
+			openlrs_dev->linkLossTimeMs = timeMs;
+		}
 	} else {
 		/* Don't have link, but it's not time for slow hop yet */
 		willhop = false;
