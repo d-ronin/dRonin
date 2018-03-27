@@ -153,9 +153,27 @@ static void olrs_bind_tx(uintptr_t olrs_id, pios_com_callback tx_out_cb,
 	openlrs_dev->tx_out_context = context;
 }
 
+static bool olrs_available(uintptr_t olrs_id)
+{
+	pios_openlrs_t openlrs_dev = (pios_openlrs_t) olrs_id;
+
+	PIOS_Assert(pios_openlrs_validate(openlrs_dev));
+
+	if (openlrs_dev->linkLossTimeMs) {
+		return false;
+	}
+
+	if (!openlrs_dev->link_acquired) {
+		return false;
+	}
+
+	return true;
+}
+
 const struct pios_com_driver pios_openlrs_com_driver = {
 	.bind_tx_cb = olrs_bind_tx,
 	.bind_rx_cb = olrs_bind_rx,
+	.available  = olrs_available,
 };
 
 const uint32_t packet_timeout_us = 1000;
@@ -1213,6 +1231,8 @@ static void pios_openlrs_tx_frame(pios_openlrs_t openlrs_dev)
 
 	bool have_interrupt = wait_interrupt(openlrs_dev, wait_time);
 
+	bool got_packet = false;
+
 	if (have_interrupt) {
 		if (pios_openlrs_tx_receive_telemetry(openlrs_dev)) {
 			if (!telem_uplink) {
@@ -1222,7 +1242,29 @@ static void pios_openlrs_tx_frame(pios_openlrs_t openlrs_dev)
 				 */
 				openlrs_dev->tx_ok_to_telemeter = true;
 			}
+
+			got_packet = true;
 		}
+	}
+
+	if (!got_packet) {
+		/* TODO: link-beep functionality goes here */
+		if (openlrs_dev->numberOfLostPackets < openlrs_dev->hopcount) {
+			openlrs_dev->numberOfLostPackets++;
+		} else {
+#if defined(PIOS_LED_LINK)
+			/* Ensure link light is off */
+			PIOS_ANNUNC_Off(PIOS_LED_LINK);
+#endif
+			if (!openlrs_dev->linkLossTimeMs) {
+				openlrs_dev->linkLossTimeMs =
+					PIOS_Thread_Systime();
+			}
+		}
+	} else {
+		openlrs_dev->numberOfLostPackets = 0;
+		openlrs_dev->linkLossTimeMs = 0;
+		openlrs_dev->link_acquired = true;
 	}
 }
 
