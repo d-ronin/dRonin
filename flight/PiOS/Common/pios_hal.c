@@ -1083,16 +1083,6 @@ void PIOS_HAL_ConfigureRFM22B(pios_spi_t spi_dev,
 
 	*handle = openlrs_id;
 
-	uintptr_t com_id;
-
-	if (PIOS_COM_Init(&com_id, &pios_openlrs_com_driver,
-				(uintptr_t)openlrs_id, 128, 128)) {
-		PIOS_Assert(0);
-	}
-
-	//module is enabled by the USB port config rather than here
-	pios_com_bridge_id = com_id;
-
 	PIOS_OpenLRS_Start(openlrs_id);
 
 #if defined(PIOS_INCLUDE_OPENLRS_RCVR)

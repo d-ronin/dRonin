@@ -102,6 +102,9 @@ struct telemetry_state {
 
 	struct pios_mutex *reqack_mutex;
 
+	struct pios_semaphore *access_sem;
+	volatile bool request_inhibit, tx_inhibited, rx_inhibited;
+
 	UAVTalkConnection uavTalkCon;
 };
 
@@ -667,6 +670,14 @@ static void telemetryTxTask(void *parameters)
 
 		bool retval;
 
+		if (telem->request_inhibit) {
+			telem->tx_inhibited = true;
+			PIOS_Thread_Sleep(3);
+			continue;
+		}
+
+		telem->tx_inhibited = false;
+
 		// Wait for queue message or short timeout
 		retval = PIOS_Queue_Receive(telem->queue, &ev, 10);
 
@@ -743,12 +754,14 @@ static void telemetryRxTask(void *parameters)
 	while (1) {
 		uintptr_t inputPort = getComPort();
 
-		if (inputPort) {
+		if (inputPort && (!telem->request_inhibit)) {
 			// Block until data are available
 			uint8_t serial_data[16];
 			uint16_t bytes_to_process;
 
-			bytes_to_process = PIOS_COM_ReceiveBuffer(inputPort, serial_data, sizeof(serial_data), 500);
+			telem->rx_inhibited = false;
+
+			bytes_to_process = PIOS_COM_ReceiveBuffer(inputPort, serial_data, sizeof(serial_data), 100);
 
 			if (bytes_to_process > 0) {
 				UAVTalkProcessInputStream(telem->uavTalkCon, serial_data, bytes_to_process);
@@ -760,6 +773,7 @@ static void telemetryRxTask(void *parameters)
 #endif
 			}
 		} else {
+			telem->rx_inhibited = true;
 			PIOS_Thread_Sleep(3);
 		}
 	}
@@ -962,6 +976,25 @@ static uintptr_t getComPort()
 static void update_object_instances(uint32_t obj_id, uint32_t inst_id)
 {
 	/* XXX just send the new instance, reqack. */
+}
+
+extern void telemetry_set_inhibit(bool inhibit)
+{
+	if (inhibit) {
+		if (!telem_state.request_inhibit) {
+			telem_state.request_inhibit = true;
+
+			while (!telem_state.rx_inhibited);
+			while (!telem_state.tx_inhibited);
+		}
+	} else {
+		if (telem_state.request_inhibit) {
+			telem_state.request_inhibit = false;
+
+			while (telem_state.rx_inhibited);
+			while (telem_state.tx_inhibited);
+		}
+	}
 }
 
 /**

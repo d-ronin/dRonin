@@ -67,6 +67,7 @@
 #define TASK_PRIORITY     PIOS_THREAD_PRIO_LOW
 #define MAX_RETRIES       2
 #define MAX_PORT_DELAY    200
+#define RETRY_TIMEOUT_MS  150
 
 // ****************
 // Private types
@@ -79,6 +80,8 @@ typedef struct {
 	// The UAVTalk connection on the com side.
 	UAVTalkConnection telemUAVTalkCon;
 	UAVTalkConnection radioUAVTalkCon;
+
+	volatile bool have_port;
 } RadioComBridgeData;
 
 // ****************
@@ -95,8 +98,6 @@ static void ProcessLocalStream(UAVTalkConnection inConnectionHandle,
 static void ProcessRadioStream(UAVTalkConnection inConnectionHandle,
 			       UAVTalkConnection outConnectionHandle,
 			       uint8_t rxbyte);
-static void registerObject(UAVObjHandle obj);
-static void updateSettings();
 
 // ****************
 // Private variables
@@ -117,29 +118,22 @@ static int32_t RadioComBridgeStart(void)
 		PIOS_WDG_RegisterFlag(PIOS_WDG_RADIORX);
 #endif
 
-		// Start the primary tasks for receiving/sending UAVTalk packets from the GCS.
-		data->telemetryRxTaskHandle = PIOS_Thread_Create(telemetryRxTask, "telemetryRxTask", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
+		// Start the primary tasks for receiving/sending UAVTalk
+		// packets from the GCS.  The main telemetry subsystem
+		// gets the local ports first (and we trust it to
+		// configure them for us).
+		data->telemetryRxTaskHandle =
+			PIOS_Thread_Create(telemetryRxTask, "telemetryRxTask",
+					STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 			    
-		data->radioRxTaskHandle = PIOS_Thread_Create(radioRxTask, "radioRxTask", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
+		data->radioRxTaskHandle =
+			PIOS_Thread_Create(radioRxTask, "radioRxTask",
+					STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 
 		return 0;
 	}
 
 	return -1;
-}
-
-/**
- * Update the telemetry settings, called on startup.
- */
-static void updateSettings()
-{
-	if (PIOS_COM_TELEMETRY) {
-		// Retrieve settings
-		uint8_t speed;
-		ModuleSettingsTelemetrySpeedGet(&speed);
-
-		PIOS_HAL_ConfigureSerialSpeed(PIOS_COM_TELEMETRY, speed);
-	}
 }
 
 /**
@@ -172,28 +166,6 @@ static int32_t RadioComBridgeInitialize(void)
 }
 
 MODULE_INITCALL(RadioComBridgeInitialize, RadioComBridgeStart);
-
-// TODO this code (badly) duplicates code from telemetry.c
-// This method should be used only for periodically updated objects.
-// The register method defined in telemetry.c should be factored out in a shared location so it can be
-// used from here...
-static void registerObject(UAVObjHandle obj)
-{
-	// Setup object for periodic updates
-	UAVObjEvent ev = {
-		.obj = obj,
-		.instId = UAVOBJ_ALL_INSTANCES,
-		.event = EV_UPDATED_PERIODIC,
-	};
-
-	// Get metadata
-	UAVObjMetadata metadata;
-
-	UAVObjGetMetadata(obj, &metadata);
-
-	EventPeriodicQueueCreate(&ev, data->uavtalkEventQueue, metadata.telemetryUpdatePeriod);
-	UAVObjConnectQueue(obj, data->uavtalkEventQueue, EV_UPDATED_PERIODIC | EV_UPDATED_MANUAL);
-}
 
 /**
  * Update telemetry statistics
@@ -249,10 +221,11 @@ static void radioRxTask( __attribute__ ((unused))
 #ifdef PIOS_INCLUDE_WDG
 		PIOS_WDG_UpdateFlag(PIOS_WDG_RADIORX);
 #endif
-		if (PIOS_COM_RFM22B) {
+		if (PIOS_COM_RADIOBRIDGE &&
+				PIOS_COM_Available(PIOS_COM_RADIOBRIDGE)) {
 			uint8_t serial_data[32];
 			uint16_t bytes_to_process =
-			    PIOS_COM_ReceiveBuffer(PIOS_COM_RFM22B,
+			    PIOS_COM_ReceiveBuffer(PIOS_COM_RADIOBRIDGE,
 						   serial_data,
 						   sizeof(serial_data),
 						   MAX_PORT_DELAY);
@@ -268,7 +241,11 @@ static void radioRxTask( __attribute__ ((unused))
 
 			/* XXX periodically inject ComBridgeStats to downstream */
 		} else {
-			PIOS_Thread_Sleep(3);
+			/* hand port to telemetry */
+			data->have_port = false;
+			PIOS_Thread_Sleep(5);
+			telemetry_set_inhibit(false);
+			PIOS_Thread_Sleep(5);
 		}
 	}
 }
@@ -287,9 +264,15 @@ static void telemetryRxTask( __attribute__ ((unused))
 #ifdef PIOS_INCLUDE_WDG
 		PIOS_WDG_UpdateFlag(PIOS_WDG_TELEMETRY);
 #endif
+
+		if ((!PIOS_COM_Available(PIOS_COM_RADIOBRIDGE)) ||
+				(!data->have_port)) {
+			PIOS_Thread_Sleep(5);
+			continue;
+		}
 #if defined(PIOS_INCLUDE_USB)
 		// Determine output port (USB takes priority over telemetry port)
-		if (PIOS_USB_CheckAvailable(PIOS_COM_TELEM_USB)) {
+		if (PIOS_COM_Available(PIOS_COM_TELEM_USB)) {
 			inputPort = PIOS_COM_TELEM_USB;
 		}
 #endif /* PIOS_INCLUDE_USB */
@@ -299,7 +282,8 @@ static void telemetryRxTask( __attribute__ ((unused))
 			    PIOS_COM_ReceiveBuffer(inputPort, serial_data,
 						   sizeof(serial_data),
 						   MAX_PORT_DELAY);
-			if (bytes_to_process > 0) {
+
+			if (data->have_port && (bytes_to_process > 0)) {
 				PIOS_ANNUNC_Toggle(PIOS_LED_RX);
 				for (uint8_t i = 0; i < bytes_to_process;
 				     i++) {
@@ -358,7 +342,7 @@ static int32_t RadioSendHandler(void *ctx, uint8_t * buf, int32_t length)
 {
 	(void) NULL;
 
-	uint32_t outputPort = PIOS_COM_RFM22B;
+	uint32_t outputPort = PIOS_COM_RADIOBRIDGE;
 
 	// Don't send any data unless the radio port is available.
 	if (outputPort && PIOS_COM_Available(outputPort)) {
@@ -408,6 +392,11 @@ static void ProcessRadioStream(UAVTalkConnection inConnectionHandle,
 	// Keep reading until we receive a completed packet.
 	UAVTalkRxState state =
 	    UAVTalkProcessInputStreamQuiet(inConnectionHandle, rxbyte);
+
+	if (!data->have_port) {
+		telemetry_set_inhibit(true);
+		data->have_port = true;
+	}
 
 	if (state == UAVTALK_STATE_COMPLETE) {
 		// We only want to unpack certain objects from the remote modem

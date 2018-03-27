@@ -25,6 +25,14 @@
     <field defaultvalue="2000" elements="1" name="tx_scale_max" type="uint16" units="">
       <description>Maximum value for tx scaling (corresponds to 100% stick travel in positive direction)</description>
     </field>
+    <field defaultvalue="Disabled" elements="1" name="data_source" type="enum" units="function">
+      <description>Where the "data connection" should be connected.  For UAVO telemetry, pick UavoTelemetry.  To be a transparent bridge, pick ComBridge.</description>
+      <options>
+        <option>Disabled</option>
+        <option>UavoTelemetry</option>
+        <option>ComBridge</option>
+      </options>
+    </field>
     <field defaultvalue="0" elements="1" name="rf_frequency" type="uint32" units="">
       <description>Radio Frequency</description>
     </field>

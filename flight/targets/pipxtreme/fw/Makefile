@@ -48,7 +48,7 @@ ENABLE_DEBUG_PINS ?= NO
 # List of modules to include
 MODULES += ComUsbBridge
 MODULES += Telemetry
-#MODULES += RadioComBridge
+MODULES += RadioComBridge
 MODULES += UAVOTaranis
 
 # Paths

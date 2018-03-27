@@ -40,6 +40,8 @@
 #include <taskmonitor.h>
 #include <taskinfo.h>
 
+#include <pios_com_priv.h>
+
 #include "openlrs.h"
 #include "flightstatus.h"
 #include "flightbatterystate.h"
@@ -540,6 +542,46 @@ static bool pios_openlrs_bind_transmit_step(pios_openlrs_t openlrs_dev)
 	}
 
 	return false;
+}
+
+
+static void pios_openlrs_config_to_port_config(pios_openlrs_t openlrs_dev)
+{
+	uintptr_t *target = NULL;
+
+	OpenLRSData config;
+	OpenLRSGet(&config);
+
+	switch (config.data_source) {
+		case OPENLRS_DATA_SOURCE_UAVOTELEMETRY:
+			if (config.role == OPENLRS_ROLE_TX) {
+#ifdef PIOS_COM_RADIOBRIDGE
+				target = &PIOS_COM_RADIOBRIDGE;
+#else
+				return;
+#endif
+			} else {
+				target = &PIOS_COM_TELEM_SER;
+			}
+			break;
+		case OPENLRS_DATA_SOURCE_COMBRIDGE:
+			target = &PIOS_COM_BRIDGE;
+			break;
+		case OPENLRS_DATA_SOURCE_DISABLED:
+		default:
+			return;
+			break;
+	}
+
+	uintptr_t com_id;
+
+	/* TX Buffer must be big enough to store maximal UAVO */
+	if (PIOS_COM_Init(&com_id, &pios_openlrs_com_driver,
+				(uintptr_t)openlrs_dev, 128, 256)) {
+		PIOS_Assert(0);
+	}
+
+	*target = com_id;
 }
 
 static void pios_openlrs_config_to_bind_data(pios_openlrs_t openlrs_dev)
@@ -1066,6 +1108,7 @@ int32_t PIOS_OpenLRS_Init(pios_openlrs_t *openlrs_id,
 
 	// Convert UAVO configuration to device runtime config
 	// XXX register for updates!  change at runtime.
+	pios_openlrs_config_to_port_config(openlrs_dev);
 	pios_openlrs_config_to_bind_data(openlrs_dev);
 
 	*openlrs_id = openlrs_dev;
