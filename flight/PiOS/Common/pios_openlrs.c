@@ -32,6 +32,7 @@
 
 #ifdef PIOS_INCLUDE_OPENLRS
 
+#include <pios_inlinedelay.h>
 #include <pios_thread.h>
 #include <pios_spi_priv.h>
 #include <pios_openlrs_priv.h>
@@ -1534,15 +1535,13 @@ static void rfm22_set_modem_regs(pios_openlrs_t openlrs_dev, const struct rfm22_
 static void rfm22_beacon_tone(pios_openlrs_t openlrs_dev, int16_t hz, int16_t len) //duration is now in half seconds.
 {
 	DEBUG_PRINTF(2,"beacon_tone: %d %d\r\n", hz, len*2);
-	int16_t d = 500000 / hz; // better resolution
+	uint32_t d = 500000000 / hz;	// time low or high per cycle, ns
+
+	d = PIOS_INLINEDELAY_NsToCycles(d);
 
 #if defined(PIOS_LED_LINK)
 	PIOS_ANNUNC_On(PIOS_LED_LINK);
 #endif /* PIOS_LED_LINK */
-
-	if (d < 1) {
-		d = 1;
-	}
 
 	rfm22_claim_bus(openlrs_dev);
 
@@ -1573,24 +1572,27 @@ static void rfm22_beacon_tone(pios_openlrs_t openlrs_dev, int16_t hz, int16_t le
 
 	GPIO_Init(gpio, &init);
 
-	int16_t cycles = (len * 200000 / d);
+	uint32_t cycles = (len * hz) / 5;
+
+	uint32_t whence = PIOS_INLINEDELAY_GetCycleCnt();
+
 	for (int16_t i = 0; i < cycles / 4; i++) {
 		GPIO_SetBits(gpio, pin_source);
-		PIOS_DELAY_WaituS(d);
+		whence += d; PIOS_INLINEDELAY_TillCycleCnt(whence);
 		GPIO_ResetBits(gpio, pin_source);
-		PIOS_DELAY_WaituS(d);
+		whence += d; PIOS_INLINEDELAY_TillCycleCnt(whence);
 		GPIO_SetBits(gpio, pin_source);
-		PIOS_DELAY_WaituS(d);
+		whence += d; PIOS_INLINEDELAY_TillCycleCnt(whence);
 		GPIO_ResetBits(gpio, pin_source);
-		PIOS_DELAY_WaituS(d);
+		whence += d; PIOS_INLINEDELAY_TillCycleCnt(whence);
 		GPIO_SetBits(gpio, pin_source);
-		PIOS_DELAY_WaituS(d);
+		whence += d; PIOS_INLINEDELAY_TillCycleCnt(whence);
 		GPIO_ResetBits(gpio, pin_source);
-		PIOS_DELAY_WaituS(d);
+		whence += d; PIOS_INLINEDELAY_TillCycleCnt(whence);
 		GPIO_SetBits(gpio, pin_source);
-		PIOS_DELAY_WaituS(d);
+		whence += d; PIOS_INLINEDELAY_TillCycleCnt(whence);
 		GPIO_ResetBits(gpio, pin_source);
-		PIOS_DELAY_WaituS(d);
+		whence += d; PIOS_INLINEDELAY_TillCycleCnt(whence);
 	}
 
 	GPIO_Init(gpio, (GPIO_InitTypeDef *) &openlrs_dev->cfg.spi_cfg->mosi.init);
@@ -1652,34 +1654,31 @@ static void rfm22_beacon_send(pios_openlrs_t openlrs_dev, bool static_tone)
 
 	rfm22_write_claim(openlrs_dev, 0x6d, 0x07);   // 7 set max power 100mW
 
+	/* XXX WATCHDOG */
 	PIOS_Thread_Sleep(10);
 	rfm22_write_claim(openlrs_dev, 0x07, RF22B_PWRSTATE_TX);        // to tx mode
-	PIOS_Thread_Sleep(10);
+	PIOS_Thread_Sleep(500);	/* Half a second of silence overcomes squelch */
 
 	if (static_tone) {
 		rfm22_beacon_tone(openlrs_dev, 440, 20);
 	} else {
-		//close encounters tune
-		//  G, A, F, F(lower octave), C
-		//octave 3:  392  440  349  175   261
-
-		rfm22_beacon_tone(openlrs_dev, 392, 1);
+		rfm22_beacon_tone(openlrs_dev, 784, 1);
 
 		rfm22_write(openlrs_dev, 0x6d, 0x05);   // 5 set mid power 25mW
-		PIOS_Thread_Sleep(30);
-		rfm22_beacon_tone(openlrs_dev, 440,1);
+		PIOS_Thread_Sleep(80);
+		rfm22_beacon_tone(openlrs_dev, 699, 1);
 
 		rfm22_write(openlrs_dev, 0x6d, 0x04);   // 4 set mid power 13mW
-		PIOS_Thread_Sleep(30);
-		rfm22_beacon_tone(openlrs_dev, 349, 1);
+		PIOS_Thread_Sleep(80);
+		rfm22_beacon_tone(openlrs_dev, 659, 1);
 
 		rfm22_write(openlrs_dev, 0x6d, 0x02);   // 2 set min power 3mW
-		PIOS_Thread_Sleep(30);
-		rfm22_beacon_tone(openlrs_dev, 175,1);
+		PIOS_Thread_Sleep(80);
+		rfm22_beacon_tone(openlrs_dev, 659,1);
 
 		rfm22_write(openlrs_dev, 0x6d, 0x00);   // 0 set min power 1.3mW
 		PIOS_Thread_Sleep(30);
-		rfm22_beacon_tone(openlrs_dev, 261, 2);
+		rfm22_beacon_tone(openlrs_dev, 699, 3);
 	}
 
 	rfm22_write_claim(openlrs_dev, 0x07, RF22B_PWRSTATE_READY);
