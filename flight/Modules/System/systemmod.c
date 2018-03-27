@@ -236,6 +236,10 @@ void system_task()
 	// Listen for SettingPersistance object updates, connect a callback function
 	ObjectPersistenceConnectQueue(objectPersistenceQueue);
 
+#if defined(PIOS_INCLUDE_WDG) && defined(PIOS_WDG_SYSTEM)
+	PIOS_WDG_RegisterFlag(PIOS_WDG_SYSTEM);
+#endif
+
 #ifndef NO_SENSORS
 	// Run this initially to make sure the configuration is checked
 	configuration_check();
@@ -253,6 +257,10 @@ void system_task()
 
 	// Main system loop
 	while (1) {
+#if defined(PIOS_INCLUDE_WDG) && defined(PIOS_WDG_SYSTEM)
+		PIOS_WDG_UpdateFlag(PIOS_WDG_SYSTEM);
+#endif
+
 		int32_t delayTime = processPeriodicUpdates();
 
 		UAVObjEvent ev;

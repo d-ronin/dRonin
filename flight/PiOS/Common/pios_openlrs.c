@@ -1293,6 +1293,7 @@ static void pios_openlrs_tx_task(void *parameters)
 		//rfm22_check_hang(openlrs_dev);
 
 		if (binding) {
+			/* Binding maintains WDG */
 			if (pios_openlrs_bind_transmit_step(openlrs_dev)) {
 				binding = false;
 				rfm22_init(openlrs_dev, false);
@@ -1304,12 +1305,8 @@ static void pios_openlrs_tx_task(void *parameters)
 				rfm22_init(openlrs_dev, false);
 			}
 		} else {
-#if defined(PIOS_INCLUDE_WDG) && defined(PIOS_WDG_RFM22B)
-			// Update the watchdog timer
-			PIOS_WDG_UpdateFlag(PIOS_WDG_RFM22B);
-#endif
-
 			i = 0;
+			/* Actual packet transmit maintains WDG */
 			pios_openlrs_tx_frame(openlrs_dev);
 		}
 	}

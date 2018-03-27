@@ -66,40 +66,25 @@
 #define STACK_SIZE_BYTES  600
 #define TASK_PRIORITY     PIOS_THREAD_PRIO_LOW
 #define MAX_RETRIES       2
-#define RETRY_TIMEOUT_MS  20
-#define EVENT_QUEUE_SIZE  10
 #define MAX_PORT_DELAY    200
-#define PPM_INPUT_TIMEOUT 100
 
 // ****************
 // Private types
 
 typedef struct {
 	// The task handles.
-	struct pios_thread *telemetryTxTaskHandle;
 	struct pios_thread *telemetryRxTaskHandle;
-	struct pios_thread *radioTxTaskHandle;
 	struct pios_thread *radioRxTaskHandle;
 
 	// The UAVTalk connection on the com side.
 	UAVTalkConnection telemUAVTalkCon;
 	UAVTalkConnection radioUAVTalkCon;
-
-	// Queue handles.
-	struct pios_queue *uavtalkEventQueue;
-	struct pios_queue *radioEventQueue;
-
-	// Error statistics.
-	uint32_t telemetryTxRetries;
-	uint32_t radioTxRetries;
 } RadioComBridgeData;
 
 // ****************
 // Private functions
 
-static void telemetryTxTask(void *parameters);
 static void telemetryRxTask(void *parameters);
-static void radioTxTask(void *parameters);
 static void radioRxTask(void *parameters);
 static int32_t UAVTalkSendHandler(void *ctx, uint8_t * buf, int32_t length);
 static int32_t RadioSendHandler(void *ctx, uint8_t * buf, int32_t length);
@@ -126,20 +111,15 @@ static RadioComBridgeData *data;
 static int32_t RadioComBridgeStart(void)
 {
 	if (data) {
-		registerObject(RadioComBridgeStatsHandle());
-
 		// Watchdog must be registered before starting tasks
 #ifdef PIOS_INCLUDE_WDG
-		PIOS_WDG_RegisterFlag(PIOS_WDG_TELEMETRYRX);
-		PIOS_WDG_RegisterFlag(PIOS_WDG_RADIOTX);
+		PIOS_WDG_RegisterFlag(PIOS_WDG_TELEMETRY);
 		PIOS_WDG_RegisterFlag(PIOS_WDG_RADIORX);
 #endif
 
 		// Start the primary tasks for receiving/sending UAVTalk packets from the GCS.
-		data->telemetryTxTaskHandle = PIOS_Thread_Create(telemetryTxTask, "telemetryTxTask", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 		data->telemetryRxTaskHandle = PIOS_Thread_Create(telemetryRxTask, "telemetryRxTask", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 			    
-		data->radioTxTaskHandle = PIOS_Thread_Create(radioTxTask, "radioTxTask", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 		data->radioRxTaskHandle = PIOS_Thread_Create(radioRxTask, "radioRxTask", STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
 
 		return 0;
@@ -170,8 +150,7 @@ static void updateSettings()
 static int32_t RadioComBridgeInitialize(void)
 {
 	// allocate and initialize the static data storage only if module is enabled
-	data =
-	    (RadioComBridgeData *) PIOS_malloc(sizeof(RadioComBridgeData));
+	data = PIOS_malloc(sizeof(RadioComBridgeData));
 	if (!data) {
 		return -1;
 	}
@@ -188,13 +167,6 @@ static int32_t RadioComBridgeInitialize(void)
 	if (data->telemUAVTalkCon == 0 || data->radioUAVTalkCon == 0) {
 		return -1;
 	}
-	// Initialize the queues.
-	data->uavtalkEventQueue = PIOS_Queue_Create(EVENT_QUEUE_SIZE, sizeof(UAVObjEvent));
-	data->radioEventQueue = PIOS_Queue_Create(EVENT_QUEUE_SIZE, sizeof(UAVObjEvent));
-
-	// Initialize the statistics.
-	data->telemetryTxRetries = 0;
-	data->radioTxRetries = 0;
 
 	return 0;
 }
@@ -226,6 +198,7 @@ static void registerObject(UAVObjHandle obj)
 /**
  * Update telemetry statistics
  */
+#if 0
 static void updateRadioComBridgeStats()
 {
 	UAVTalkStats telemetryUAVTalkStats;
@@ -240,9 +213,6 @@ static void updateRadioComBridgeStats()
 
 	// Get stats object data
 	RadioComBridgeStatsGet(&radioComBridgeStats);
-
-	radioComBridgeStats.TelemetryTxRetries = data->telemetryTxRetries;
-	radioComBridgeStats.RadioTxRetries = data->radioTxRetries;
 
 	// Update stats object
 	radioComBridgeStats.TelemetryTxBytes +=
@@ -264,85 +234,7 @@ static void updateRadioComBridgeStats()
 	// Update stats object data
 	RadioComBridgeStatsSet(&radioComBridgeStats);
 }
-
-/**
- * @brief Telemetry transmit task, regular priority
- *
- * @param[in] parameters  The task parameters
- */
-static void telemetryTxTask( __attribute__ ((unused))
-			    void *parameters)
-{
-	UAVObjEvent ev;
-
-	updateSettings();
-
-	PIOS_WDG_RegisterFlag(PIOS_WDG_TELEMETRYTX);
-
-	// Loop forever
-	while (1) {
-#ifdef PIOS_INCLUDE_WDG
-		PIOS_WDG_UpdateFlag(PIOS_WDG_TELEMETRYTX);
 #endif
-		// Wait for queue message
-		if (PIOS_Queue_Receive(data->uavtalkEventQueue, &ev, MAX_PORT_DELAY)) {
-			if (ev.obj == RadioComBridgeStatsHandle()) {
-				updateRadioComBridgeStats();
-			}
-			// Send update (with retries)
-			int32_t ret = -1;
-			uint32_t retries = 0;
-			while (retries <= MAX_RETRIES && ret == -1) {
-				ret = UAVTalkSendObject(data->telemUAVTalkCon, ev.obj, ev.instId, 0);
-				if (ret == -1) {
-					++retries;
-				}
-			}
-			// Update stats
-			data->telemetryTxRetries += retries;
-		}
-	}
-}
-
-/**
- * @brief Radio tx task.  Receive data packets from the com port and send to the radio.
- *
- * @param[in] parameters  The task parameters
- */
-static void radioTxTask( __attribute__ ((unused))
-			void *parameters)
-{
-
-	// Task loop
-	while (1) {
-#ifdef PIOS_INCLUDE_WDG
-		PIOS_WDG_UpdateFlag(PIOS_WDG_RADIOTX);
-#endif
-
-		// Process the radio event queue, sending UAVObjects over the radio link as necessary.
-		UAVObjEvent ev;
-
-		// Wait for queue message
-		if (PIOS_Queue_Receive(data->radioEventQueue, &ev, 20)) {
-			if (ev.event == EV_UPDATED) {
-				// Send update (with retries)
-				int32_t ret = -1;
-				uint32_t retries = 0;
-				while (retries <= MAX_RETRIES && ret == -1) {
-					ret =
-					    UAVTalkSendObject(data->radioUAVTalkCon,
-							      ev.obj,
-							      ev.instId, 0);
-					if (ret == -1) {
-						++retries;
-					}
-				}
-				data->radioTxRetries += retries;
-			}
-		}
-
-	}
-}
 
 /**
  * @brief Radio rx task.  Receive data packets from the radio and pass them on.
@@ -373,6 +265,8 @@ static void radioRxTask( __attribute__ ((unused))
 							   serial_data[i]);
 				}
 			}
+
+			/* XXX periodically inject ComBridgeStats to downstream */
 		} else {
 			PIOS_Thread_Sleep(3);
 		}
@@ -391,7 +285,7 @@ static void telemetryRxTask( __attribute__ ((unused))
 	while (1) {
 		uint32_t inputPort = PIOS_COM_TELEMETRY;
 #ifdef PIOS_INCLUDE_WDG
-		PIOS_WDG_UpdateFlag(PIOS_WDG_TELEMETRYRX);
+		PIOS_WDG_UpdateFlag(PIOS_WDG_TELEMETRY);
 #endif
 #if defined(PIOS_INCLUDE_USB)
 		// Determine output port (USB takes priority over telemetry port)
