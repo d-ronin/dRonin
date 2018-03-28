@@ -1156,7 +1156,8 @@ int32_t PIOS_OpenLRS_Start(pios_openlrs_t openlrs_dev)
 	return 0;
 }
 
-static int pios_openlrs_form_control_frame(pios_openlrs_t openlrs_dev)
+static int pios_openlrs_form_control_frame(pios_openlrs_t openlrs_dev,
+		uint8_t *tx_buf)
 {
 	int16_t channels[OPENLRS_PPM_NUM_CHANNELS];
 
@@ -1167,7 +1168,6 @@ static int pios_openlrs_form_control_frame(pios_openlrs_t openlrs_dev)
 	}
 
 	txscale_channels(channels, openlrs_dev->scale_min, openlrs_dev->scale_max);
-	uint8_t *tx_buf = openlrs_dev->tx_buf;
 
 	int len = pack_channels(openlrs_dev->bind_data.flags,
 		channels, tx_buf+1);
@@ -1217,8 +1217,23 @@ static bool pios_openlrs_tx_receive_telemetry(pios_openlrs_t openlrs_dev)
 		openlrs_dev->tx_buf[0] &= ~0x40;
 	}
 
-	return true;
+	openlrs_dev->tx_prev_rxtelem_hdr = rx_buf[0];
 
+	return true;
+}
+
+static void pios_openlrs_tx_wait_and_transmit(pios_openlrs_t openlrs_dev,
+		uint32_t interval, uint8_t *tx_buf, int len)
+{
+	// Now we want to delay until the next frame is due.
+	while (PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs)
+			< interval) {
+		PIOS_Thread_Sleep(1);
+	}
+
+	openlrs_dev->lastPacketTimeUs = PIOS_DELAY_GetuS();
+
+	rfm22_tx_packet(openlrs_dev, openlrs_dev->tx_buf, len);
 }
 
 static void pios_openlrs_tx_frame(pios_openlrs_t openlrs_dev)
@@ -1232,36 +1247,43 @@ static void pios_openlrs_tx_frame(pios_openlrs_t openlrs_dev)
 
 	bool telem_uplink = false;
 
-	int len = TELEMETRY_PACKETSIZE;
-
 	openlrs_dev->tx_buf[0] &= 0xc0; // Preserve top two sequence bits
 
 	if (openlrs_dev->tx_ok_to_telemeter) {
 		openlrs_dev->tx_ok_to_telemeter = false;
 
-		/* XXX resends, etc... tricky */
+		if ((openlrs_dev->tx_buf[0] ^ openlrs_dev->tx_prev_rxtelem_hdr)
+				& 0x80) {
+			/* We're resending the existing buffer. */
+			telem_uplink = true;
+		} else {
+			/* Try to form a new telemetry lump */
+			telem_uplink = pios_openlrs_form_telemetry(openlrs_dev,
+						openlrs_dev->tx_buf, 0, true);
 
-		telem_uplink = pios_openlrs_form_telemetry(openlrs_dev,
-					openlrs_dev->tx_buf, 0, true);
-
-		if (telem_uplink) {
-			openlrs_dev->tx_buf[0] ^= 0x80;
+			if (telem_uplink) {
+				/* And if we do, flip the send seq */
+				openlrs_dev->tx_buf[0] ^= 0x80;
+			}
 		}
 	}
 
 	if (!telem_uplink) {
-		len = pios_openlrs_form_control_frame(openlrs_dev);
+		/* Use our own buffer, so we don't touch the telemetry buffer,
+		 * which may need a retry, after all.
+		 */
+		uint8_t tx_buf[MAX_CONTROL_PACKET_SIZE];
+
+		tx_buf[0] = openlrs_dev->tx_buf[0];
+
+		int len = pios_openlrs_form_control_frame(openlrs_dev, tx_buf);
+
+		pios_openlrs_tx_wait_and_transmit(openlrs_dev, interval,
+				tx_buf, len);
+	} else {
+		pios_openlrs_tx_wait_and_transmit(openlrs_dev, interval,
+				openlrs_dev->tx_buf, TELEMETRY_PACKETSIZE);
 	}
-
-	// Now we want to delay until the next frame is due.
-	while (PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs) <
-			interval) {
-		PIOS_Thread_Sleep(1);
-	}
-
-	openlrs_dev->lastPacketTimeUs = PIOS_DELAY_GetuS();
-
-	rfm22_tx_packet(openlrs_dev, openlrs_dev->tx_buf, len);
 
 	if (!(openlrs_dev->bind_data.flags & TELEMETRY_MASK)) {
 		return;

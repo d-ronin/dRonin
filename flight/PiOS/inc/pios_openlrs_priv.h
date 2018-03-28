@@ -211,10 +211,10 @@ struct pios_openlrs_dev {
 	uint16_t scale_min, scale_max;
 
 	OpenLRStx_sourceOptions tx_source;
-
 	bool tx_ok_to_telemeter;
+	uint8_t tx_prev_rxtelem_hdr;
 
-	uint8_t tx_buf[MAX_CONTROL_PACKET_SIZE];
+	uint8_t tx_buf[TELEMETRY_PACKETSIZE];
 };
 
 #endif /* PIOS_INCLUDE_OPENLRS */
