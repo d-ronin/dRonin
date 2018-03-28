@@ -830,6 +830,20 @@ static bool pios_openlrs_rx_frame(pios_openlrs_t openlrs_dev, uint8_t rssi)
 					openlrs_dev->ppm);
 #endif
 		}
+	} else if ((rx_buf[0] & 0x3f) == 0x02) {
+		/* This is a "placeholder frame" -- no control data,
+		 * no telemetry.
+		 */
+
+		/* Still set acknowledge bit to match-- they think we have
+		 * any data, and won't be resending, so be ready to accept
+		 * anything new they send.
+		 */
+		if (rx_buf[0] & 0x80) {
+			openlrs_dev->tx_buf[0] |= 0x80;
+		} else {
+			openlrs_dev->tx_buf[0] &= ~0x80;
+		}
 	} else {
 		if (size != TELEMETRY_PACKETSIZE) {
 			return false;
@@ -1161,10 +1175,29 @@ static int pios_openlrs_form_control_frame(pios_openlrs_t openlrs_dev,
 {
 	int16_t channels[OPENLRS_PPM_NUM_CHANNELS];
 
+	uintptr_t rcvr = PIOS_HAL_GetReceiver(openlrs_dev->tx_source);
+
 	for (int i=0; i < OPENLRS_PPM_NUM_CHANNELS; i++) {
-		uintptr_t rcvr =
-			PIOS_HAL_GetReceiver(openlrs_dev->tx_source);
 		channels[i] = PIOS_RCVR_Read(rcvr, i+1);
+	}
+
+	for (int i = 0; i < 4; i++) {
+		/* At least the first 4 channels must be good.  If not,
+		 * decline to send a control frame.
+		 */
+		if (channels[i] < 0) {
+			return 0;
+		}
+	}
+
+	for (int i = 4; i < OPENLRS_PPM_NUM_CHANNELS; i++) {
+		/* Subsequent channels, put them in the middle if they're
+		 * invalid
+		 */
+		if (channels[i] < 0) {
+			channels[i] = (openlrs_dev->scale_min +
+					openlrs_dev->scale_max) / 2;
+		}
 	}
 
 	txscale_channels(channels, openlrs_dev->scale_min, openlrs_dev->scale_max);
@@ -1233,7 +1266,7 @@ static void pios_openlrs_tx_wait_and_transmit(pios_openlrs_t openlrs_dev,
 
 	openlrs_dev->lastPacketTimeUs = PIOS_DELAY_GetuS();
 
-	rfm22_tx_packet(openlrs_dev, openlrs_dev->tx_buf, len);
+	rfm22_tx_packet(openlrs_dev, tx_buf, len);
 }
 
 static void pios_openlrs_tx_frame(pios_openlrs_t openlrs_dev)
@@ -1249,11 +1282,22 @@ static void pios_openlrs_tx_frame(pios_openlrs_t openlrs_dev)
 
 	openlrs_dev->tx_buf[0] &= 0xc0; // Preserve top two sequence bits
 
-	if (openlrs_dev->tx_ok_to_telemeter) {
+	/* Form a control frame.  If we can't, we're allowed to telemeter
+	 * no matter what.  Otherwise, we hold it in case telemetry
+	 * decided to not do anything
+	 */
+	uint8_t tx_buf[MAX_CONTROL_PACKET_SIZE];
+
+	tx_buf[0] = openlrs_dev->tx_buf[0];
+
+	int len = pios_openlrs_form_control_frame(openlrs_dev, tx_buf);
+
+	if ((!len) || openlrs_dev->tx_ok_to_telemeter) {
 		openlrs_dev->tx_ok_to_telemeter = false;
 
-		if ((openlrs_dev->tx_buf[0] ^ openlrs_dev->tx_prev_rxtelem_hdr)
-				& 0x80) {
+		if (((openlrs_dev->tx_buf[0] & 0x38) == 0x38) &&
+				(openlrs_dev->tx_buf[0] ^
+				 openlrs_dev->tx_prev_rxtelem_hdr) & 0x80) {
 			/* We're resending the existing buffer. */
 			telem_uplink = true;
 		} else {
@@ -1268,22 +1312,25 @@ static void pios_openlrs_tx_frame(pios_openlrs_t openlrs_dev)
 		}
 	}
 
-	if (!telem_uplink) {
-		/* Use our own buffer, so we don't touch the telemetry buffer,
-		 * which may need a retry, after all.
+	if (telem_uplink) {
+		pios_openlrs_tx_wait_and_transmit(openlrs_dev, interval,
+				openlrs_dev->tx_buf, TELEMETRY_PACKETSIZE);
+	} else if (len > 0) {
+		/* From the control buf, so we don't touch the telemetry
+		 * buffer-- which may need a retry, after all.
 		 */
-		uint8_t tx_buf[MAX_CONTROL_PACKET_SIZE];
-
-		tx_buf[0] = openlrs_dev->tx_buf[0];
-
-		int len = pios_openlrs_form_control_frame(openlrs_dev, tx_buf);
-
 		pios_openlrs_tx_wait_and_transmit(openlrs_dev, interval,
 				tx_buf, len);
 	} else {
+		/* We have nothing to transmit, but want to keep sync.
+		 * This is a dR protocol extension.
+		 */
+		tx_buf[0] |= 2;
+
 		pios_openlrs_tx_wait_and_transmit(openlrs_dev, interval,
-				openlrs_dev->tx_buf, TELEMETRY_PACKETSIZE);
+				tx_buf, 1);
 	}
+
 
 	if (!(openlrs_dev->bind_data.flags & TELEMETRY_MASK)) {
 		return;
