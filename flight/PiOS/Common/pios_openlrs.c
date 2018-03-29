@@ -32,6 +32,7 @@
 
 #ifdef PIOS_INCLUDE_OPENLRS
 
+#include <pios_hal.h>	/* for rcvr_group_map in tx path */
 #include <pios_inlinedelay.h>
 #include <pios_thread.h>
 #include <pios_spi_priv.h>
@@ -40,6 +41,8 @@
 #include <taskmonitor.h>
 #include <taskinfo.h>
 
+#include <misc_math.h>
+
 #include <pios_com_priv.h>
 
 #include "openlrs.h"
@@ -47,8 +50,6 @@
 #include "flightbatterystate.h"
 #include "manualcontrolsettings.h"
 #include "openlrsstatus.h"
-
-#include <pios_hal.h>	/* for rcvr_group_map in tx path */
 
 #include "pios_rfm22b_regs.h"
 
@@ -584,10 +585,12 @@ static void pios_openlrs_config_to_port_config(pios_openlrs_t openlrs_dev)
 	*target = com_id;
 }
 
-static void pios_openlrs_config_to_bind_data(pios_openlrs_t openlrs_dev)
+static bool pios_openlrs_config_to_bind_data(pios_openlrs_t openlrs_dev)
 {
 	OpenLRSData binding;
 	OpenLRSGet(&binding);
+
+	bool inited = false;
 
 	if (binding.version == BINDING_VERSION) {
 		openlrs_dev->bind_data.hdr = 'b';
@@ -601,6 +604,32 @@ static void pios_openlrs_config_to_bind_data(pios_openlrs_t openlrs_dev)
 		openlrs_dev->bind_data.flags = binding.flags;
 		for (uint32_t i = 0; i < OPENLRS_HOPCHANNEL_NUMELEM; i++)
 			openlrs_dev->bind_data.hopchannel[i] = binding.hopchannel[i];
+	} else if (binding.role == OPENLRS_ROLE_TX) {
+		inited = true;
+
+		/* Create valid bind data */
+		openlrs_dev->bind_data.hdr = 'b';
+		openlrs_dev->bind_data.version = BINDING_VERSION;
+		openlrs_dev->bind_data.reserved = 0;
+		openlrs_dev->bind_data.rf_frequency =
+			def_carrier_freq(HWSHARED_RFBAND_BOARDDEFAULT);
+		openlrs_dev->bind_data.rf_magic = randomize_int(0);
+		openlrs_dev->bind_data.rf_power = 7;
+		openlrs_dev->bind_data.rf_channel_spacing = 10;
+		openlrs_dev->bind_data.modem_params = 3;
+		openlrs_dev->bind_data.flags = 10; /* Telemetry + 8 channels */
+
+		for (uint32_t i = 0; i < OPENLRS_HOPCHANNEL_NUMELEM; i++) {
+			/* Generate 7 channels by default. */
+			if (i < 7) {
+				/* At spacing of 10KHz, this is from 435.250 
+				 * to 437.5 */
+				openlrs_dev->bind_data.hopchannel[i] =
+					randomize_int(225) + 25;
+			} else {
+				openlrs_dev->bind_data.hopchannel[i] = 0;
+			}
+		}
 	}
 
 	// Also copy beacon settings over to device config.
@@ -614,6 +643,8 @@ static void pios_openlrs_config_to_bind_data(pios_openlrs_t openlrs_dev)
 	openlrs_dev->scale_max = binding.tx_scale_max;
 
 	openlrs_dev->tx_source = binding.tx_source;
+
+	return inited;
 }
 
 static bool pios_openlrs_bind_data_to_config(pios_openlrs_t openlrs_dev)
@@ -1125,7 +1156,11 @@ int32_t PIOS_OpenLRS_Init(pios_openlrs_t *openlrs_id,
 	// Convert UAVO configuration to device runtime config
 	// XXX register for updates!  change at runtime.
 	pios_openlrs_config_to_port_config(openlrs_dev);
-	pios_openlrs_config_to_bind_data(openlrs_dev);
+
+	if (pios_openlrs_config_to_bind_data(openlrs_dev)) {
+		/* Persist / save config */
+		pios_openlrs_bind_data_to_config(openlrs_dev);
+	}
 
 	*openlrs_id = openlrs_dev;
 
