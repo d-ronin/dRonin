@@ -742,11 +742,10 @@ static bool pios_openlrs_bind_receive(pios_openlrs_t openlrs_dev,
 				/* Acknowledge binding */
 				txb = 'B';
 				rfm22_tx_packet(openlrs_dev, &txb, 1);
+				rfm22_rx_reset(openlrs_dev, false);
 
 				return true;
 			}
-
-			rfm22_rx_reset(openlrs_dev, false);
 		}
 	}
 
