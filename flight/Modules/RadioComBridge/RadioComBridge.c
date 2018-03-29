@@ -240,6 +240,7 @@ static void radioRxTask( __attribute__ ((unused))
 			}
 
 			/* XXX periodically inject ComBridgeStats to downstream */
+			/* XXX periodically inject sessionmanaging to downstream */
 		} else {
 			/* hand port to telemetry */
 			data->have_port = false;
