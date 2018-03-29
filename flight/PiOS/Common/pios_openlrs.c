@@ -299,9 +299,31 @@ static int pack_channels(uint8_t config, int16_t *ppm, uint8_t *buf)
 	}
 
 	/* "Switch" channel */
-	if (config & 1) {
-		/* XXX TODO implement switch */
-		*(p++) = 0;
+	if (config & 1)  {
+		uint8_t packed_sw = 0;
+
+		for (int i = 0; i < 4; i++) {
+			packed_sw <<= 2;
+
+			if (ppm[0] < (166 + 12)) {
+				/* First 1/6 of travel sw pos 0 */
+				packed_sw |= 0;
+			} else if (ppm[0] < (550 + 12)) {
+				/* A little more than the next third is
+				 * sw pos 1.  Why?  So a center value /
+				 * 3 pos switch has clear value.
+				 */
+				packed_sw |= 1;
+			} else if (ppm[0] < (833 + 12)) {
+				/* Up to 1/6 + 2/3 is sw pos 2 */
+				packed_sw |= 2;
+			} else {
+				/* Leaving the last sixth for sw pos 3 */
+				packed_sw |= 3;
+			}
+		}
+
+		*(p++) = packed_sw;
 	}
 
 	return p - buf;
@@ -1209,7 +1231,7 @@ static int pios_openlrs_form_control_frame(pios_openlrs_t openlrs_dev,
 
 	uintptr_t rcvr = PIOS_HAL_GetReceiver(openlrs_dev->tx_source);
 
-	for (int i=0; i < OPENLRS_PPM_NUM_CHANNELS; i++) {
+	for (int i = 0; i < OPENLRS_PPM_NUM_CHANNELS; i++) {
 		channels[i] = PIOS_RCVR_Read(rcvr, i+1);
 	}
 
