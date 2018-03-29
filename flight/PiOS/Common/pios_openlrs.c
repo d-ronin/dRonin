@@ -180,7 +180,7 @@ const struct pios_com_driver pios_openlrs_com_driver = {
 };
 
 const uint32_t packet_timeout_us = 1000;
-const uint32_t packet_rssi_time_us = 1500;
+const uint32_t packet_rssi_time_us = 2700;
 
 static uint32_t min_freq(HwSharedRfBandOptions band)
 {
@@ -888,8 +888,6 @@ static bool pios_openlrs_rx_frame(pios_openlrs_t openlrs_dev, uint8_t rssi)
 					tx_buf, rssi, false);
 		}
 
-		// XXX consider proving it's safe to send shorter frames
-		// with existing impl, will improve margins on timing
 		// This will block until sent
 		rfm22_tx_packet(openlrs_dev, tx_buf, TELEMETRY_PACKETSIZE);
 	}
@@ -1443,9 +1441,9 @@ static void pios_openlrs_rx_step(pios_openlrs_t openlrs_dev)
 	 * lock on.
 	 */
 	uint32_t delay_us =
-		get_control_packet_time(&openlrs_dev->bind_data) -
-		packet_rssi_time_us -
-		time_since_packet_us + 999;
+		get_nominal_packet_interval(&openlrs_dev->bind_data) -
+		packet_rssi_time_us -	// XXX consider half telem time
+		time_since_packet_us;
 
 	DEBUG_PRINTF(3, "T1: %d\r\n", delay_us);
 
@@ -1462,6 +1460,9 @@ static void pios_openlrs_rx_step(pios_openlrs_t openlrs_dev)
 		DEBUG_PRINTF(3,
 			"Sampled RSSI: %d %d\r\n",
 			rssi, delay_us);
+	} else {
+		/* Hold previous RSSI, got frame before we were able to sample */
+		rssi = openlrs_status.LastRSSI = rssi;
 	}
 
 	time_since_packet_us =
