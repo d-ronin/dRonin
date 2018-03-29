@@ -28,6 +28,8 @@
 /* OpenPilot Includes */
 #include "openpilot.h"
 
+#include "misc_math.h"
+
 #include "pios_config.h"
 #include "uavobjectsinit.h"
 #include "systemmod.h"
@@ -140,6 +142,19 @@ void initTask(void)
 	/* Initialize the alarms library. Reads RCC reset flags */
 	AlarmsInitialize();
 #endif
+
+	uint8_t serial[PIOS_SYS_SERIAL_NUM_BINARY_LEN];
+	PIOS_SYS_SerialNumberGetBinary(serial);
+
+	for (int i = 0; i < PIOS_SYS_SERIAL_NUM_BINARY_LEN; i += 4) {
+		randomize_addseed(
+				(serial[i]) |
+				(serial[i+1] << 8) |
+				(serial[i+2] << 16) |
+				(serial[i+2] << 24));
+	}
+
+	/* TODO: consider mixing in HRNG on F4 */
 
 	/* board driver init */
 	PIOS_Board_Init();

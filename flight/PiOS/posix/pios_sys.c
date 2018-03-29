@@ -670,6 +670,8 @@ void PIOS_SYS_Init(void)
 		printf("HW serial number-- hex: %s\n", ser_text);
 	}
 
+	/* TODO: initialize random number generator */
+
 #ifdef PIOS_INCLUDE_RTC
 	PIOS_RTC_Init();
 	printf("Pseudo-RTC started\n");
