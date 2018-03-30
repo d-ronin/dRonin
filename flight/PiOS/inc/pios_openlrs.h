@@ -40,9 +40,17 @@ enum gpio_direction { GPIO0_TX_GPIO1_RX, GPIO0_RX_GPIO1_TX };
 
 /* Global Types */
 struct pios_openlrs_cfg {
-	const struct pios_spi_cfg *spi_cfg; /* Pointer to SPI interface configuration */
-	const struct pios_exti_cfg *exti_cfg; /* Pointer to the EXTI configuration */
-	enum gpio_direction gpio_direction; /* Definition comes from pios_rfm22b.h */
+	const struct pios_spi_cfg *spi_cfg;
+			/* Pointer to SPI interface configuration */
+	const struct pios_exti_cfg *exti_cfg;
+			/* Pointer to the EXTI configuration */
+
+	const struct stm32_gpio *bind_button;
+			/* Binding button, if not NULL. */
+
+	bool bind_active_high;
+
+	enum gpio_direction gpio_direction;
 };
 
 struct pios_openlrs_dev;

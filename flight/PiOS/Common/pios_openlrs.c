@@ -236,8 +236,8 @@ static uint32_t binding_freq(HwSharedRfBandOptions band)
 }
 
 /*****************************************************************************
-* OpenLRS data formatting utilities
-*****************************************************************************/
+ * OpenLRS data formatting utilities
+ *****************************************************************************/
 
 static uint8_t get_control_packet_size(struct bind_data *bd)
 {
@@ -492,8 +492,8 @@ static uint32_t millis()
 }
 
 /*****************************************************************************
-* OpenLRS hardware access
-*****************************************************************************/
+ * OpenLRS hardware access
+ *****************************************************************************/
 
 static uint8_t beaconGetRSSI(pios_openlrs_t openlrs_dev)
 {
@@ -513,6 +513,24 @@ static uint8_t beaconGetRSSI(pios_openlrs_t openlrs_dev)
 	rfm22_set_frequency(openlrs_dev, openlrs_dev->bind_data.rf_frequency);
 
 	return rssiSUM / 4;
+}
+
+static bool binding_button_pushed(pios_openlrs_t openlrs_dev)
+{
+	if (!openlrs_dev->cfg.bind_button) {
+		return false;
+	}
+
+	bool truth_value = GPIO_ReadInputDataBit(
+			openlrs_dev->cfg.bind_button->gpio,
+			openlrs_dev->cfg.bind_button->init.GPIO_Pin) !=
+		Bit_RESET;
+
+	if (openlrs_dev->cfg.bind_active_high) {
+		return truth_value;
+	} else {
+		return !truth_value;
+	}
 }
 
 /*****************************************************************************
@@ -665,6 +683,8 @@ static bool pios_openlrs_config_to_bind_data(pios_openlrs_t openlrs_dev)
 	openlrs_dev->scale_max = binding.tx_scale_max;
 
 	openlrs_dev->tx_source = binding.tx_source;
+	openlrs_dev->tx_startup_bind_duration = binding.tx_startup_bind_duration;
+	openlrs_dev->tx_bind_button_duration = binding.tx_bind_button_duration;
 
 	return inited;
 }
@@ -738,6 +758,7 @@ static bool pios_openlrs_bind_receive(pios_openlrs_t openlrs_dev,
 	uint32_t i = 0;
 
 	while ((!timeout) || ((millis() - start) < timeout)) {
+		system_annunc_custom_string("o"); /* --- */
 		PIOS_Thread_Sleep(1);
 #if defined(PIOS_INCLUDE_WDG) && defined(PIOS_WDG_RFM22B)
 		// Update the watchdog timer
@@ -746,10 +767,6 @@ static bool pios_openlrs_bind_receive(pios_openlrs_t openlrs_dev,
 
 		if (i++ % 100 == 0) {
 			DEBUG_PRINTF(2,"Waiting bind\r\n");
-
-#if defined(PIOS_LED_LINK)
-			PIOS_ANNUNC_Toggle(PIOS_LED_LINK);
-#endif /* PIOS_LED_LINK */
 		}
 		if (openlrs_dev->rf_mode == Received) {
 			DEBUG_PRINTF(2,"Got pkt\r\n");
@@ -764,7 +781,10 @@ static bool pios_openlrs_bind_receive(pios_openlrs_t openlrs_dev,
 				/* Acknowledge binding */
 				txb = 'B';
 				rfm22_tx_packet(openlrs_dev, &txb, 1);
-				rfm22_rx_reset(openlrs_dev, false);
+
+				/* Exit bind mode, program proper
+				 * carrier frequency, etc. */
+				rfm22_init(openlrs_dev, false);
 
 				return true;
 			}
@@ -1183,6 +1203,11 @@ int32_t PIOS_OpenLRS_Init(pios_openlrs_t *openlrs_id,
 		pios_openlrs_bind_data_to_config(openlrs_dev);
 	}
 
+	if (cfg->bind_button) {
+		GPIO_Init(cfg->bind_button->gpio,
+			(GPIO_InitTypeDef *) &(cfg->bind_button->init));
+	}
+
 	*openlrs_id = openlrs_dev;
 
 	return 0;
@@ -1450,36 +1475,41 @@ static void pios_openlrs_tx_task(void *parameters)
 
 	PIOS_Assert(pios_openlrs_validate(openlrs_dev));
 
-	bool binding = true;	/* XXX */
-
 	pios_openlrs_setup(openlrs_dev);
 
 	PIOS_Thread_Sleep(200);
 
 	pios_openlrs_setup(openlrs_dev);
 
-	int i = 0;
+	int i = openlrs_dev->tx_startup_bind_duration * 10;
 
 	while (1) {
 		//rfm22_check_hang(openlrs_dev);
 
-		if (binding) {
+		if (binding_button_pushed(openlrs_dev)) {
+			i = openlrs_dev->tx_bind_button_duration * 10;
+		}
+
+		if (i > 0) {
+			/* Time intervals are approximate; 100ms / step */
+			i--;
+
+			system_annunc_custom_string("cq"); /* -.-. --.- */
+
 			/* Binding maintains WDG */
 			if (pios_openlrs_bind_transmit_step(openlrs_dev)) {
-				binding = false;
-				rfm22_init(openlrs_dev, false);
+				/* Binding done once we bind one */
+				i = 0;
 			}
 
-			/* 50 ~100ms steps, so about 6s to leave binding */
-			if (i++ > 50) {
-				binding = false;
-				rfm22_init(openlrs_dev, false);
-			}
-		} else {
-			i = 0;
-			/* Actual packet transmit maintains WDG */
-			pios_openlrs_tx_frame(openlrs_dev);
+			continue;
+		} else if (i == 0) {
+			rfm22_init(openlrs_dev, false);
+			i--;
 		}
+
+		/* Actual packet transmit maintains WDG */
+		pios_openlrs_tx_frame(openlrs_dev);
 	}
 }
 
@@ -1597,13 +1627,20 @@ static void pios_openlrs_rx_task(void *parameters)
 
 	pios_openlrs_setup(openlrs_dev);
 
-	while (openlrs_dev->bind_data.version != BINDING_VERSION) {
-		pios_openlrs_bind_receive(openlrs_dev, 0);
-	}
-
 	DEBUG_PRINTF(2, "Setup complete\r\n");
 
 	while (1) {
+		// check binding truth value-- but only if we've not
+		// had link since powerup.
+		if ((!openlrs_dev->link_acquired) &&
+				binding_button_pushed(openlrs_dev)) {
+			openlrs_dev->bind_data.version = 0;
+		}
+
+		while (openlrs_dev->bind_data.version != BINDING_VERSION) {
+			pios_openlrs_bind_receive(openlrs_dev, 0);
+		}
+
 #if defined(PIOS_INCLUDE_WDG) && defined(PIOS_WDG_RFM22B)
 		// Update the watchdog timer
 		PIOS_WDG_UpdateFlag(PIOS_WDG_RFM22B);

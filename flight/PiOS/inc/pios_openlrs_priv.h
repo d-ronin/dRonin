@@ -213,6 +213,8 @@ struct pios_openlrs_dev {
 	OpenLRStx_sourceOptions tx_source;
 	bool tx_ok_to_telemeter;
 	uint8_t tx_prev_rxtelem_hdr;
+	uint8_t tx_startup_bind_duration;
+	uint8_t tx_bind_button_duration;
 
 	uint8_t tx_buf[TELEMETRY_PACKETSIZE];
 };

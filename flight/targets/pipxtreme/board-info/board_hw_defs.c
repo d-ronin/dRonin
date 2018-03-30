@@ -185,10 +185,24 @@ static const struct pios_exti_cfg pios_exti_rfm22b_cfg __exti_config = {
 	},
 };
 
-struct pios_openlrs_cfg pios_openlrs_taulink_cfg = {
+const struct stm32_gpio pios_openlrs_taulink_bind_button = {
+	.gpio = GPIOB,
+	.init =
+	{
+		.GPIO_Pin = GPIO_Pin_8,
+		.GPIO_Speed = GPIO_Speed_10MHz,
+		.GPIO_Mode  = GPIO_Mode_IPD,
+	},
+};
+
+const struct pios_openlrs_cfg pios_openlrs_taulink_cfg = {
 	.spi_cfg = &pios_spi_rfm22b_cfg,
 	.exti_cfg = &pios_exti_rfm22b_cfg,
 	.gpio_direction = GPIO0_TX_GPIO1_RX,
+
+	.bind_button = &pios_openlrs_taulink_bind_button,
+
+	.bind_active_high = true,
 };
 
 static const struct pios_exti_cfg pios_exti_rfm22b_cfg_module __exti_config = {

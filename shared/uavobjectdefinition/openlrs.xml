@@ -25,6 +25,12 @@
     <field defaultvalue="2000" elements="1" name="tx_scale_max" type="uint16" units="">
       <description>Maximum value for tx scaling (corresponds to 100% stick travel in positive direction)</description>
     </field>
+    <field defaultvalue="3" elements="1" name="tx_startup_bind_duration" type="uint8" units="seconds">
+      <description>How long the transmitter should wait for binding at startup.</description>
+    </field>
+    <field defaultvalue="90" elements="1" name="tx_bind_button_duration" type="uint8" units="seconds">
+      <description>How long the transmitter should wait for binding when the bind button is pressed.</description>
+    </field>
     <field defaultvalue="Disabled" elements="1" name="data_source" type="enum" units="function">
       <description>Where the "data connection" should be connected.  For UAVO telemetry, pick UavoTelemetry.  To be a transparent bridge, pick ComBridge.</description>
       <options>
