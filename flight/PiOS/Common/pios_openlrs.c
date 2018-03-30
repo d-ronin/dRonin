@@ -124,15 +124,32 @@ static uint8_t count_set_bits(uint16_t x)
 	return __builtin_popcount(x);
 }
 
-static bool wait_interrupt(pios_openlrs_t openlrs_dev, int delay_us)
+static bool wait_interrupt_until(pios_openlrs_t openlrs_dev, uint32_t expiry,
+		uint8_t *rssi)
 {
-	int delay_ms = (delay_us) / 1000;
+	bool taken = false;
 
-	if (delay_ms <= 0) {
-		delay_ms = 1;
+	uint8_t our_rssi;
+
+	do {
+		if (rssi) {
+			our_rssi = rfm22_get_rssi(openlrs_dev);
+		}
+
+		taken = PIOS_Semaphore_Take(openlrs_dev->sema_isr, 1);
+	} while ((!taken) && (!PIOS_DELAY_GetuSExpired(expiry)));
+
+	if (taken && rssi) {
+		*rssi = our_rssi;
 	}
 
-	return PIOS_Semaphore_Take(openlrs_dev->sema_isr, delay_ms);
+	return taken;
+}
+
+static bool wait_interrupt(pios_openlrs_t openlrs_dev, uint32_t delay)
+{
+	uint32_t expiry = delay + PIOS_DELAY_GetuS();
+	return wait_interrupt_until(openlrs_dev, expiry, NULL);
 }
 
 static void olrs_bind_rx(uintptr_t olrs_id, pios_com_callback rx_in_cb,
@@ -180,7 +197,6 @@ const struct pios_com_driver pios_openlrs_com_driver = {
 	.available  = olrs_available,
 };
 
-const uint32_t packet_timeout_us = 1000;
 const uint32_t packet_rssi_time_us = 2700;
 
 static uint32_t min_freq(HwSharedRfBandOptions band)
@@ -263,9 +279,12 @@ static uint32_t get_control_packet_time(struct bind_data *bd)
 				bd->flags & DIVERSITY_ENABLED) + 2000);
 }
 
-static uint32_t get_nominal_packet_interval(struct bind_data *bd)
+static uint32_t get_nominal_packet_interval(struct bind_data *bd,
+		uint32_t *rx_slop)
 {
 	uint32_t ret = get_control_packet_time(bd);
+
+	uint32_t pre_slop = ret - 2000;
 
 	if (bd->flags & TELEMETRY_MASK) {
 		ret += (BYTES_AT_BAUD_TO_USEC(TELEMETRY_PACKETSIZE, modem_params[bd->modem_params].bps, bd->flags&DIVERSITY_ENABLED) + 1000);
@@ -273,6 +292,21 @@ static uint32_t get_nominal_packet_interval(struct bind_data *bd)
 
 	// round up to ms
 	ret = ((ret + 999) / 1000) * 1000;
+
+	if (rx_slop) {
+		/* The "rx slop" is calculated as half the time between the
+		 * actual tx frame length, and all the other times-- padding,
+		 * rx telemetry length, etc.
+		 *
+		 * It is when the rx should hop, relative to the end of the
+		 * last known packet plus the interval, to maximize margins.
+		 */
+		*rx_slop = (ret - pre_slop) / 2;
+	}
+
+	/* RRRRRRRTTTT--RRRRRRRTTTT--missed!......
+	 *                                     ^  we want to hop here
+	 */
 
 	return ret;
 }
@@ -1025,6 +1059,9 @@ static void pios_openlrs_rx_after_receive(pios_openlrs_t openlrs_dev,
 
 	DEBUG_PRINTF(2,"Time: %d\r\n", timeUs);
 
+	uint32_t interval = get_nominal_packet_interval(
+			&openlrs_dev->bind_data, NULL);
+
 	// For missing packets to properly trigger a well timed
 	// channel hop, this method should be called at the
 	// appropriate time after the packet was expected to trigger
@@ -1038,18 +1075,18 @@ static void pios_openlrs_rx_after_receive(pios_openlrs_t openlrs_dev,
 		openlrs_dev->numberOfLostPackets = 0;
 		openlrs_dev->nextBeaconTimeMs = 0;
 
+		/* Could consider splitting difference with interval */
 		openlrs_dev->lastPacketTimeUs = timeUs;
 		openlrs_dev->linkLossTimeMs = 0;
 	} else if (openlrs_dev->numberOfLostPackets < openlrs_dev->hopcount) {
-		DEBUG_PRINTF(2,"OLRS WARN: Lost packet: %d\r\n", openlrs_dev->numberOfLostPackets);
+		DEBUG_PRINTF(2,"OLRS WARN: Lost packet: %d\r\n",
+				openlrs_dev->numberOfLostPackets);
 		/* We lost packet, execute normally timed hop */
 		openlrs_dev->numberOfLostPackets++;
-		openlrs_dev->lastPacketTimeUs +=
-			get_nominal_packet_interval(&openlrs_dev->bind_data);
+		openlrs_dev->lastPacketTimeUs += interval;
 	} else if ((openlrs_dev->numberOfLostPackets >= openlrs_dev->hopcount) &&
 			(PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs) >
-			(get_nominal_packet_interval(&openlrs_dev->bind_data)
-					* (openlrs_dev->hopcount + 1)))) {
+			(interval * (openlrs_dev->hopcount + 1)))) {
 		DEBUG_PRINTF(2,"OLRS WARN: Trying to sync\r\n");
 
 		// hop slowly to allow resync with TX
@@ -1353,7 +1390,7 @@ static void pios_openlrs_tx_wait_and_transmit(pios_openlrs_t openlrs_dev,
 		PIOS_Thread_Sleep(1);
 	}
 
-	openlrs_dev->lastPacketTimeUs = PIOS_DELAY_GetuS();
+	openlrs_dev->lastPacketTimeUs += interval;
 
 	rfm22_tx_packet(openlrs_dev, tx_buf, len);
 }
@@ -1362,8 +1399,9 @@ static void pios_openlrs_tx_frame(pios_openlrs_t openlrs_dev)
 {
 	rfm22_rx_reset(openlrs_dev, false);
 
+	uint32_t rx_slop;
 	uint32_t interval =
-		get_nominal_packet_interval(&openlrs_dev->bind_data) + 500;
+		get_nominal_packet_interval(&openlrs_dev->bind_data, &rx_slop);
 
 	pios_openlrs_do_hop(openlrs_dev);
 
@@ -1420,22 +1458,19 @@ static void pios_openlrs_tx_frame(pios_openlrs_t openlrs_dev)
 				tx_buf, 1);
 	}
 
-
 	if (!(openlrs_dev->bind_data.flags & TELEMETRY_MASK)) {
 		return;
 	}
 
 	rfm22_rx_reset(openlrs_dev, false);
 
-	uint32_t wait_time = interval - PIOS_DELAY_GetuSSince(
-			openlrs_dev->lastPacketTimeUs);
+	/* We wait until the RX will be listening on the next channel. */
+	uint32_t expiry = openlrs_dev->lastPacketTimeUs + interval +
+		rx_slop / 2;
 
-	if ((wait_time > 100000) || (wait_time < 500)) {
-		/* Only do telemetry if time remaining is sane. */
-		return;
-	}
-
-	bool have_interrupt = wait_interrupt(openlrs_dev, wait_time);
+	uint8_t rssi;
+	bool have_interrupt = wait_interrupt_until(openlrs_dev, expiry,
+			&rssi);
 
 	bool got_packet = false;
 
@@ -1527,47 +1562,14 @@ static void pios_openlrs_rx_step(pios_openlrs_t openlrs_dev)
 {
 	rfm22_check_hang(openlrs_dev);
 
-	uint32_t time_since_packet_us =
-		PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs);
 	uint8_t rssi = 0;
 
-	/*
-	 * Schedule for a good time to sample RSSI.  This should be
-	 * after frame start and the AGC has had a good chance to
-	 * lock on.
-	 */
-	uint32_t delay_us =
-		get_nominal_packet_interval(&openlrs_dev->bind_data) -
-		packet_rssi_time_us -	// XXX consider half telem time
-		time_since_packet_us;
+	uint32_t interval, slop;
 
-	DEBUG_PRINTF(3, "T1: %d\r\n", delay_us);
-
-	bool have_interrupt = wait_interrupt(openlrs_dev, delay_us);
+	interval = get_nominal_packet_interval(&openlrs_dev->bind_data,
+			&slop);
 
 	/*
-	 * We don't really expect an interrupt here.  If we have one,
-	 * it means we are badly out of sync and got a frame when we
-	 * didn't expect.
-	 */
-	if (!have_interrupt) {
-		rssi = rfm22_get_rssi(openlrs_dev);
-
-		DEBUG_PRINTF(3,
-			"Sampled RSSI: %d %d\r\n",
-			rssi, delay_us);
-	} else {
-		/* Hold previous RSSI, got frame before we were able to sample */
-		rssi = openlrs_status.LastRSSI = rssi;
-	}
-
-	time_since_packet_us =
-		PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs);
-
-	/*
-	 * Now wait until we have received a frame, or until the
-	 * packet is truly late.
-	 *
 	 * It's worth noting that for non-telemetry modes, we need
 	 * to stay very closely in sync because the TX is transmitting
 	 * most of the time.  This means that we need to carefully
@@ -1580,19 +1582,12 @@ static void pios_openlrs_rx_step(pios_openlrs_t openlrs_dev)
 	 * into what we believe to be our telemetry timeslot and thus
 	 * cope better if the TX is slower than we expect.
 	 */
-	delay_us = get_nominal_packet_interval(&openlrs_dev->bind_data) +
-		packet_timeout_us - time_since_packet_us;
-	DEBUG_PRINTF(3, "T2: %d %d\r\n", delay_us,
-			time_since_packet_us);
+
+	uint32_t expiry = openlrs_dev->lastPacketTimeUs + interval + slop;
 
 	bool have_frame = false;
 
-	if (have_interrupt ||
-			wait_interrupt(openlrs_dev, delay_us)) {
-		DEBUG_PRINTF(3, "ISR %d %d %d\r\n", delay_us,
-			get_nominal_packet_interval(&openlrs_dev->bind_data),
-			time_since_packet_us);
-
+	if (wait_interrupt_until(openlrs_dev, expiry, &rssi)) {
 		// Process incoming data
 		have_frame = pios_openlrs_rx_frame(openlrs_dev, rssi);
 	} else {
@@ -1602,10 +1597,8 @@ static void pios_openlrs_rx_step(pios_openlrs_t openlrs_dev)
 
 		// We timed out because packet was missed
 		DEBUG_PRINTF(3,
-			"ISR Timeout. Missed packet: %d %d %d\r\n",
-			delay_us,
-			get_nominal_packet_interval(&openlrs_dev->bind_data),
-			time_since_packet_us);
+			"ISR Timeout. Missed packet: %d %d\r\n",
+			expiry, interval);
 	}
 
 	if (!have_frame) {
