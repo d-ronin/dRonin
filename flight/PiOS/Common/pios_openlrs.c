@@ -566,13 +566,13 @@ static bool pios_openlrs_bind_transmit_step(pios_openlrs_t openlrs_dev)
 
 	DEBUG_PRINTF(2,"Waiting bind ack\r\n");
 
-	while ((millis() - start) < 100) {
+	while ((millis() - start) < 200) {
 #if defined(PIOS_INCLUDE_WDG) && defined(PIOS_WDG_RFM22B)
 		// Update the watchdog timer
 		PIOS_WDG_UpdateFlag(PIOS_WDG_RFM22B);
 #endif /* PIOS_WDG_RFM22B */
 
-		bool have_interrupt = wait_interrupt(openlrs_dev, 5);
+		bool have_interrupt = wait_interrupt(openlrs_dev, 15);
 
 		if (have_interrupt) {
 			DEBUG_PRINTF(2,"Got pkt\r\n");
@@ -1491,13 +1491,13 @@ static void pios_openlrs_tx_task(void *parameters)
 
 	pios_openlrs_setup(openlrs_dev);
 
-	int i = openlrs_dev->tx_startup_bind_duration * 10;
+	int i = openlrs_dev->tx_startup_bind_duration * 5;
 
 	while (1) {
 		//rfm22_check_hang(openlrs_dev);
 
 		if (binding_button_pushed(openlrs_dev)) {
-			i = openlrs_dev->tx_bind_button_duration * 10;
+			i = openlrs_dev->tx_bind_button_duration * 5;
 		}
 
 		if (i > 0) {
