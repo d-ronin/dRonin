@@ -517,6 +517,8 @@ static uint8_t beaconGetRSSI(pios_openlrs_t openlrs_dev)
 
 static bool binding_button_pushed(pios_openlrs_t openlrs_dev)
 {
+	static bool button_history[3];
+
 	if (!openlrs_dev->cfg.bind_button) {
 		return false;
 	}
@@ -526,11 +528,17 @@ static bool binding_button_pushed(pios_openlrs_t openlrs_dev)
 			openlrs_dev->cfg.bind_button->init.GPIO_Pin) !=
 		Bit_RESET;
 
-	if (openlrs_dev->cfg.bind_active_high) {
-		return truth_value;
-	} else {
-		return !truth_value;
+	if (!openlrs_dev->cfg.bind_active_high) {
+		truth_value = !truth_value;
 	}
+
+	button_history[2] = button_history[1];
+	button_history[1] = button_history[0];
+	button_history[0] = truth_value;
+
+	/* Catch an edge, but also require 2 in a row. */
+	return button_history[0] && button_history[1] &&
+		(!button_history[2]);
 }
 
 /*****************************************************************************
@@ -564,9 +572,9 @@ static bool pios_openlrs_bind_transmit_step(pios_openlrs_t openlrs_dev)
 		PIOS_WDG_UpdateFlag(PIOS_WDG_RFM22B);
 #endif /* PIOS_WDG_RFM22B */
 
-		PIOS_Thread_Sleep(1);
+		bool have_interrupt = wait_interrupt(openlrs_dev, 5);
 
-		if (openlrs_dev->rf_mode == Received) {
+		if (have_interrupt) {
 			DEBUG_PRINTF(2,"Got pkt\r\n");
 
 			uint8_t recv_byte;
@@ -780,6 +788,8 @@ static bool pios_openlrs_bind_receive(pios_openlrs_t openlrs_dev,
 
 				/* Acknowledge binding */
 				txb = 'B';
+				rfm22_tx_packet(openlrs_dev, &txb, 1);
+				rfm22_tx_packet(openlrs_dev, &txb, 1);
 				rfm22_tx_packet(openlrs_dev, &txb, 1);
 
 				/* Exit bind mode, program proper
