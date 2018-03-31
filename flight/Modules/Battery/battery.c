@@ -112,6 +112,7 @@ static void batteryTask(void * parameters)
 
 	battery_settings_updated = true;
 	bool cells_calculated = false;
+	int cells_holddown = 0;
 	unsigned cells = 1;
 
 	FlightBatteryStateData flightBatteryData;
@@ -167,6 +168,12 @@ static void batteryTask(void * parameters)
 					if (!cells_calculated) {
 						cells = ((scaled_voltage / batterySettings.MaxCellVoltage) + 0.9f);
 						if (cells > 0) {
+							cells_holddown++;
+						} else {
+							cells_holddown = 0;
+						}
+
+						if (cells_holddown >= (1000 / SAMPLE_PERIOD_MS)) {
 							cells_calculated = true;
 							flightBatteryData.DetectedCellCount = cells;
 						}
