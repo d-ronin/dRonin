@@ -950,6 +950,7 @@ static int32_t eventPeriodicCreate(UAVObjEvent* ev, UAVObjEventCallback cb, stru
 	objEntry->evInfo.ev.obj = ev->obj;
 	objEntry->evInfo.ev.instId = ev->instId;
 	objEntry->evInfo.ev.event = ev->event;
+	objEntry->evInfo.ev.throttle = NULL;
 	objEntry->evInfo.cb = cb;
 	objEntry->evInfo.queue = queue;
 	objEntry->updatePeriodMs = periodMs;

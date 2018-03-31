@@ -116,10 +116,11 @@ typedef enum {
  */
 typedef struct {
 	UAVObjHandle obj;
-	uint16_t instId;
 	UAVObjEventType event;
-} UAVObjEvent;
+	struct ObjectEventEntryThrottled *throttle;
 
+	uint16_t instId;
+} UAVObjEvent;
 
 /**
  * Event callback, this function is called when an event is invoked. The function
@@ -205,6 +206,7 @@ int32_t UAVObjDisconnectQueue(UAVObjHandle obj_handle, struct pios_queue *queue)
 int32_t UAVObjConnectQueueThrottled(UAVObjHandle obj_handle, struct pios_queue *queue, uint8_t eventMask, uint16_t interval);
 int32_t UAVObjConnectCallback(UAVObjHandle obj_handle, UAVObjEventCallback cb, void *cbCtx, uint8_t eventMask);
 int32_t UAVObjConnectCallbackThrottled(UAVObjHandle obj_handle, UAVObjEventCallback cb, void *cbCtx, uint8_t eventMask, uint16_t interval);
+void UAVObjUnblockThrottle(struct ObjectEventEntryThrottled *throttled);
 int32_t UAVObjDisconnectCallback(UAVObjHandle obj_handle, UAVObjEventCallback cb, void *cbCtx);
 void UAVObjUpdated(UAVObjHandle obj);
 void UAVObjInstanceUpdated(UAVObjHandle obj_handle, uint16_t instId);

@@ -599,6 +599,8 @@ static void processObjEvent(telem_t telem, UAVObjEvent * ev)
 					EV_NONE);
 		}
 	}
+
+	UAVObjUnblockThrottle(ev->throttle);
 }
 
 static bool sendRequestedObjs(telem_t telem)
