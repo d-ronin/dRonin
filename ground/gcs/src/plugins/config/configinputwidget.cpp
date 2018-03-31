@@ -1830,7 +1830,8 @@ void ConfigInputWidget::checkReprojection()
         allowed_modes << "AxisLock"
                       << "Rate"
                       << "WeakLevelling"
-                      << "AcroPlus";
+                      << "AcroPlus"
+                      << "LQG";
     } else if (rep->currentText() == "HeadFree") {
         axes << "Roll"
              << "Pitch";
@@ -1839,7 +1840,9 @@ void ConfigInputWidget::checkReprojection()
                       << "WeakLevelling"
                       << "AcroPlus"
                       << "Attitude"
-                      << "Horizon";
+                      << "Horizon"
+                      << "LQG"
+                      << "AttitudeLQG";
     } else {
         return;
     }
