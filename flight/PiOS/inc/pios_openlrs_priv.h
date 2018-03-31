@@ -83,6 +83,7 @@ extern const struct pios_com_driver pios_openlrs_com_driver;
 
 #define DIVERSITY_ENABLED   0x80
 #define DEFAULT_FLAGS       (CHANNELS_8 | TELEMETRY_PASSTHRU)
+#define EXT_FLAG_FASTDATA   0x80
 
 // helper macro for European PMR channels
 #define EU_PMR_CH(x) (445993750L + 12500L * (x)) // valid for ch1-ch8
@@ -121,7 +122,7 @@ extern const struct pios_com_driver pios_openlrs_com_driver;
 #define RFM22_DT_MASK                             0x1F
 
 const static uint8_t openlrs_pktsizes[8] = { 6, 7, 11, 12, 16, 17, 21, 22 };
-#define MAX_CONTROL_PACKET_SIZE 22
+#define MAX_PACKET_SIZE 22
 
 struct bind_data {
 	uint8_t hdr;
@@ -130,7 +131,8 @@ struct bind_data {
 	/* This was serial_baudrate, which we don't use.  It's an RX parameter
 	 * and not really something specific to the link.
 	 */
-	uint32_t reserved;
+	uint8_t reserved[3];
+	uint8_t ext_flags;
 
 	uint32_t rf_frequency;
 	uint32_t rf_magic;
@@ -215,8 +217,8 @@ struct pios_openlrs_dev {
 	uint8_t tx_prev_rxtelem_hdr;
 	uint8_t tx_startup_bind_duration;
 	uint8_t tx_bind_button_duration;
-
-	uint8_t tx_buf[TELEMETRY_PACKETSIZE];
+	uint8_t telem_len;
+	uint8_t tx_buf[MAX_PACKET_SIZE];
 };
 
 #endif /* PIOS_INCLUDE_OPENLRS */

@@ -43,22 +43,25 @@
       <description>Radio Frequency</description>
     </field>
     <field defaultvalue="0" elements="1" name="rf_magic" type="uint32" units="">
-      <description>Radio Magic</description>
+      <description>Radio Magic.  This constant ensures that we only exchange frames wth radios we are bound with.</description>
     </field>
     <field defaultvalue="0" elements="1" name="rf_power" type="uint8" units="">
       <description>Radio Power</description>
     </field>
     <field defaultvalue="0" elements="1" name="rf_channel_spacing" type="uint8" units="">
-      <description>Channel Spacing</description>
+      <description>Channel spacing in kilohertz.</description>
     </field>
     <field defaultvalue="0" elements="24" name="hopchannel" type="uint8" units="">
-      <description>Hop Channel</description>
+      <description>Array of hop channels.  First zero terminates list.</description>
     </field>
     <field defaultvalue="0" elements="1" name="modem_params" type="uint8" units="">
-      <description>Modem Parameters</description>
+      <description>Modem parameters: this sets the link speed</description>
     </field>
     <field defaultvalue="0" elements="1" name="flags" type="uint8" units="">
-      <description>Flags</description>
+      <description>Flags sets the channel mappings and whether telemetry is present.</description>
+    </field>
+    <field defaultvalue="0" elements="1" name="ext_flags" type="uint8" units="">
+      <description>Extended flags</description>
     </field>
     <field defaultvalue="462712500" elements="1" name="beacon_frequency" type="uint32" units="">
       <description>Beacon Frequency</description>

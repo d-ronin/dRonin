@@ -461,10 +461,33 @@ static void rxscale_channels(int16_t control[])
 	}
 }
 
-static bool pios_openlrs_form_telemetry(pios_openlrs_t openlrs_dev,
-		uint8_t *tx_buf, uint8_t rssi, bool only_serial)
+static int pios_openlrs_form_telemetry(pios_openlrs_t openlrs_dev,
+		uint8_t *tx_buf, uint8_t rssi, bool only_serial,
+		int data_len_adjust)
 {
+	int len = 0;
+
 	tx_buf[0] &= 0xc0; // Preserve top two sequence bits
+
+	int max_data_len = TELEMETRY_PACKETSIZE - 1;
+
+	if (openlrs_dev->bind_data.ext_flags & EXT_FLAG_FASTDATA) {
+		/* Fast data extension: Adjust the amount we're
+		 * willing to send from nominal packet lengths.
+		 */
+		max_data_len += data_len_adjust;
+
+		if (max_data_len < 1) {
+			/* Never shrink smaller than a 2b frame */
+			max_data_len = 1;
+		} else if (max_data_len >= MAX_PACKET_SIZE) {
+			max_data_len = MAX_PACKET_SIZE - 1;
+		}
+
+		if (data_len_adjust < 0) {
+			only_serial = true;
+		}
+	}
 
 	// Check for data on serial link
 	uint8_t bytes = 0;
@@ -472,17 +495,31 @@ static bool pios_openlrs_form_telemetry(pios_openlrs_t openlrs_dev,
 	if (openlrs_dev->tx_out_cb) {
 		// Try to get some data to send
 		bool need_yield = false;
-		bytes = (openlrs_dev->tx_out_cb)(openlrs_dev->tx_out_context, &tx_buf[1], 8, NULL, &need_yield);
+		bytes = (openlrs_dev->tx_out_cb)(openlrs_dev->tx_out_context,
+				&tx_buf[1], max_data_len, NULL, &need_yield);
 	}
 
 	if (bytes > 0) {
-		tx_buf[0] |= (0x37 + bytes);
+		if (bytes < (TELEMETRY_PACKETSIZE - 1)) {
+			tx_buf[0] |= (0x37 + bytes);
+		} else {
+			tx_buf[0] |= 0x3f;
+		}
 
-		for (int i = bytes+1; i < TELEMETRY_PACKETSIZE; i++) {
-			tx_buf[i] = 0;
+		if (openlrs_dev->bind_data.ext_flags & EXT_FLAG_FASTDATA) {
+			/* Fast data extension: send only the portion of the
+			 * data that we used.  Length field is capped at 8.
+			 */
+			len = bytes + 1;
+		} else {
+			for (int i = bytes+1; i < TELEMETRY_PACKETSIZE; i++) {
+				tx_buf[i] = 0;
+			}
+
+			len = TELEMETRY_PACKETSIZE;
 		}
 	} else if (only_serial) {
-		return false;
+		return 0;
 	} else {
 		// tx_buf[0] lowest 6 bits left at 0
 		tx_buf[1] = rssi;
@@ -515,9 +552,11 @@ static bool pios_openlrs_form_telemetry(pios_openlrs_t openlrs_dev,
 		tx_buf[6] = count_set_bits(openlrs_status.LinkQuality & 0x7fff);
 		tx_buf[7] = 0;
 		tx_buf[8] = 0;
+
+		len = TELEMETRY_PACKETSIZE;
 	}
 
-	return true;
+	return len;
 }
 
 static uint32_t millis()
@@ -677,13 +716,16 @@ static bool pios_openlrs_config_to_bind_data(pios_openlrs_t openlrs_dev)
 	if (binding.version == BINDING_VERSION) {
 		openlrs_dev->bind_data.hdr = 'b';
 		openlrs_dev->bind_data.version = binding.version;
-		openlrs_dev->bind_data.reserved = 0;
+		openlrs_dev->bind_data.reserved[0] = 0;
+		openlrs_dev->bind_data.reserved[1] = 0;
+		openlrs_dev->bind_data.reserved[2] = 0;
 		openlrs_dev->bind_data.rf_frequency = binding.rf_frequency;
 		openlrs_dev->bind_data.rf_magic = binding.rf_magic;
 		openlrs_dev->bind_data.rf_power = binding.rf_power;
 		openlrs_dev->bind_data.rf_channel_spacing = binding.rf_channel_spacing;
 		openlrs_dev->bind_data.modem_params = binding.modem_params;
 		openlrs_dev->bind_data.flags = binding.flags;
+		openlrs_dev->bind_data.ext_flags = binding.ext_flags;
 		for (uint32_t i = 0; i < OPENLRS_HOPCHANNEL_NUMELEM; i++)
 			openlrs_dev->bind_data.hopchannel[i] = binding.hopchannel[i];
 	} else if (binding.role == OPENLRS_ROLE_TX) {
@@ -692,7 +734,9 @@ static bool pios_openlrs_config_to_bind_data(pios_openlrs_t openlrs_dev)
 		/* Create valid bind data */
 		openlrs_dev->bind_data.hdr = 'b';
 		openlrs_dev->bind_data.version = BINDING_VERSION;
-		openlrs_dev->bind_data.reserved = 0;
+		openlrs_dev->bind_data.reserved[0] = 0;
+		openlrs_dev->bind_data.reserved[1] = 0;
+		openlrs_dev->bind_data.reserved[2] = 0;
 		openlrs_dev->bind_data.rf_frequency =
 			def_carrier_freq(HWSHARED_RFBAND_BOARDDEFAULT);
 		openlrs_dev->bind_data.rf_magic = randomize_int(0);
@@ -768,6 +812,7 @@ static bool pios_openlrs_bind_data_to_config(pios_openlrs_t openlrs_dev)
 			binding.rf_channel_spacing = openlrs_dev->bind_data.rf_channel_spacing;
 			binding.modem_params = openlrs_dev->bind_data.modem_params;
 			binding.flags = openlrs_dev->bind_data.flags;
+			binding.ext_flags = openlrs_dev->bind_data.ext_flags;
 			for (uint32_t i = 0; i < OPENLRS_HOPCHANNEL_NUMELEM; i++)
 				binding.hopchannel[i] = openlrs_dev->bind_data.hopchannel[i];
 			binding.beacon_frequency = openlrs_dev->beacon_frequency;
@@ -908,12 +953,13 @@ static void pios_openlrs_rx_update_rssi(pios_openlrs_t openlrs_dev,
 static bool pios_openlrs_rx_frame(pios_openlrs_t openlrs_dev, uint8_t rssi)
 {
 	uint8_t *tx_buf = openlrs_dev->tx_buf;
-	uint8_t rx_buf[MAX_CONTROL_PACKET_SIZE];
+	uint8_t rx_buf[MAX_PACKET_SIZE];
 
 	int ctrl_size = get_control_packet_size(&openlrs_dev->bind_data);
 
 	// Read the packet from RFM22b
-	int size = rfm22_rx_packet_variable(openlrs_dev, rx_buf, ctrl_size);
+	int size = rfm22_rx_packet_variable(openlrs_dev, rx_buf,
+			MAX_PACKET_SIZE);
 
 	if (size <= 0) {
 		return false;
@@ -961,16 +1007,22 @@ static bool pios_openlrs_rx_frame(pios_openlrs_t openlrs_dev, uint8_t rssi)
 			openlrs_dev->tx_buf[0] &= ~0x80;
 		}
 	} else {
-		if (size != TELEMETRY_PACKETSIZE) {
-			return false;
-		}
-
 		// Not control data. Push into serial RX buffer.
 		if (((rx_buf[0] & 0x38) == 0x38) &&
 				((rx_buf[0] ^ tx_buf[0]) & 0x80)) {
 			// We got new data... (not retransmission)
 			bool rx_need_yield;
 			uint8_t data_len = (rx_buf[0] & 7) + 1;
+
+			if ((data_len + 1) > size) {
+				return false;
+			}
+
+			if (data_len < (size - 1)) {
+				/* Extended / fast-data operation */
+				data_len = size - 1;
+			}
+
 			if (openlrs_dev->rx_in_cb) {
 				(openlrs_dev->rx_in_cb)(openlrs_dev->rx_in_context,
 						&rx_buf[1], data_len,
@@ -995,17 +1047,25 @@ static bool pios_openlrs_rx_frame(pios_openlrs_t openlrs_dev, uint8_t rssi)
 
 			if ((tx_buf[0] & 0x3F) == 0) {
 				// Don't swap telem sequence bit though.
-				pios_openlrs_form_telemetry(openlrs_dev,
-						tx_buf, rssi, false);
+				openlrs_dev->telem_len =
+					pios_openlrs_form_telemetry(
+						openlrs_dev, tx_buf, rssi,
+						false, ctrl_size - size);
 			}
 		} else {
 			tx_buf[0] ^= 0x40; // Swap telem sequence
-			pios_openlrs_form_telemetry(openlrs_dev,
-					tx_buf, rssi, false);
+			openlrs_dev->telem_len = pios_openlrs_form_telemetry(
+					openlrs_dev, tx_buf, rssi, false, 
+					ctrl_size - size);
+		}
+
+		if (openlrs_dev->telem_len == 0) {
+			tx_buf[0] |= 2;
+			openlrs_dev->telem_len = 1;
 		}
 
 		// This will block until sent
-		rfm22_tx_packet(openlrs_dev, tx_buf, TELEMETRY_PACKETSIZE);
+		rfm22_tx_packet(openlrs_dev, tx_buf, openlrs_dev->telem_len);
 	}
 
 	// Once a packet has been processed, flip back into receiving mode
@@ -1337,19 +1397,17 @@ static int pios_openlrs_form_control_frame(pios_openlrs_t openlrs_dev,
 
 static bool pios_openlrs_tx_receive_telemetry(pios_openlrs_t openlrs_dev)
 {
-	uint8_t rx_buf[TELEMETRY_PACKETSIZE];
+	uint8_t rx_buf[MAX_PACKET_SIZE];
 
 	// Read the packet from RFM22b
-	if (!rfm22_rx_packet(openlrs_dev, rx_buf,
-				TELEMETRY_PACKETSIZE)) {
+	int len = rfm22_rx_packet_variable(openlrs_dev, rx_buf,
+			MAX_PACKET_SIZE);
+
+	if (len <= 0) {
 		return false;
 	}
 
-#if defined(PIOS_LED_LINK)
-	PIOS_ANNUNC_Toggle(PIOS_LED_LINK);
-#endif /* PIOS_LED_LINK */
-
-	if ((rx_buf[0] & 0x3f) == 0) {
+	if (((rx_buf[0] & 0x3f) == 0) && (len == TELEMETRY_PACKETSIZE)) {
 		/* Generic link telemetry.  Grab the data, shove it
 		 * into status.
 		 */
@@ -1362,12 +1420,26 @@ static bool pios_openlrs_tx_receive_telemetry(pios_openlrs_t openlrs_dev)
 			((rx_buf[0] ^ openlrs_dev->tx_buf[0]) & 0x40)) {
 		bool rx_need_yield;
 		uint8_t data_len = (rx_buf[0] & 7) + 1;
+
+		if ((data_len + 1) > len) {
+			return false;
+		}
+
+		if (data_len < (len - 1)) {
+			/* Extended / fast-data operation */
+			data_len = len - 1;
+		}
+
 		if (openlrs_dev->rx_in_cb) {
 			(openlrs_dev->rx_in_cb)(openlrs_dev->rx_in_context,
 					&rx_buf[1], data_len,
 					NULL, &rx_need_yield);
 		}
 	}
+
+#if defined(PIOS_LED_LINK)
+	PIOS_ANNUNC_Toggle(PIOS_LED_LINK);
+#endif /* PIOS_LED_LINK */
 
 	/* Set acknowledge bit to match */
 	if (rx_buf[0] & 0x40) {
@@ -1411,9 +1483,9 @@ static void pios_openlrs_tx_frame(pios_openlrs_t openlrs_dev)
 
 	/* Form a control frame.  If we can't, we're allowed to telemeter
 	 * no matter what.  Otherwise, we hold it in case telemetry
-	 * decided to not do anything
+	 * decided to not do anything.
 	 */
-	uint8_t tx_buf[MAX_CONTROL_PACKET_SIZE];
+	uint8_t tx_buf[MAX_PACKET_SIZE];
 
 	tx_buf[0] = openlrs_dev->tx_buf[0];
 
@@ -1422,18 +1494,34 @@ static void pios_openlrs_tx_frame(pios_openlrs_t openlrs_dev)
 	if ((!len) || openlrs_dev->tx_ok_to_telemeter) {
 		openlrs_dev->tx_ok_to_telemeter = false;
 
-		if (((openlrs_dev->tx_buf[0] & 0x38) == 0x38) &&
-				(openlrs_dev->tx_buf[0] ^
-				 openlrs_dev->tx_prev_rxtelem_hdr) & 0x80) {
+		if (openlrs_dev->telem_len &&
+				((openlrs_dev->tx_buf[0] ^
+				  openlrs_dev->tx_prev_rxtelem_hdr) & 0x80)) {
 			/* We're resending the existing buffer. */
 			telem_uplink = true;
 		} else {
-			/* Try to form a new telemetry lump */
-			telem_uplink = pios_openlrs_form_telemetry(openlrs_dev,
-						openlrs_dev->tx_buf, 0, true);
+			int ctrl_size =
+				get_control_packet_size(&openlrs_dev->bind_data);
 
-			if (telem_uplink) {
+			/* Try to form a new telemetry lump */
+			openlrs_dev->telem_len =
+				pios_openlrs_form_telemetry(openlrs_dev,
+					openlrs_dev->tx_buf, 0, true,
+					ctrl_size - TELEMETRY_PACKETSIZE +
+					TELEMETRY_PACKETSIZE / 2);
+
+			/* If we have 9 byte control frames, allow us to send
+			 * up to 9 + 4 = 13 bytes of data, robbing downlink of
+			 * 4 bytes.
+			 *
+			 * 8 + (9-8+4) = 13
+			 *
+			 * Only FASTDATA obeys this.
+			 */
+
+			if (openlrs_dev->telem_len) {
 				/* And if we do, flip the send seq */
+				telem_uplink = true;
 				openlrs_dev->tx_buf[0] ^= 0x80;
 			}
 		}
@@ -1441,7 +1529,7 @@ static void pios_openlrs_tx_frame(pios_openlrs_t openlrs_dev)
 
 	if (telem_uplink) {
 		pios_openlrs_tx_wait_and_transmit(openlrs_dev, interval,
-				openlrs_dev->tx_buf, TELEMETRY_PACKETSIZE);
+				openlrs_dev->tx_buf, openlrs_dev->telem_len);
 	} else if (len > 0) {
 		/* From the control buf, so we don't touch the telemetry
 		 * buffer-- which may need a retry, after all.
