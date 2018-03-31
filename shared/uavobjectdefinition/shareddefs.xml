@@ -25,6 +25,8 @@
         <option>TabletControl</option>
         <option>AcroPlus</option>
         <option>Acrodyne</option>
+        <option>LQG</option>
+        <option>LQGLeveling</option>
         <option>Failsafe</option>
       </options>
     </field>
@@ -46,6 +48,8 @@
         <option>Acrodyne</option>
         <option>Disabled</option>
         <option>Failsafe</option>
+        <option>LQG</option>
+        <option>AttitudeLQG</option>
       </options>
     </field>
     <field defaultvalue="None" elements="1" name="ReprojectionMode" type="enum" units="">

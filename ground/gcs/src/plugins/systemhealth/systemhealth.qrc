@@ -62,6 +62,7 @@
         <file>html/SystemConfiguration-Error-PositionHold.html</file>
         <file>html/SystemConfiguration-Error-Stabilization.html</file>
         <file>html/SystemConfiguration-Error-UnsafeToArm.html</file>
+        <file>html/SystemConfiguration-Error-LQG.html</file>
         <file>html/SystemConfiguration-Undefined.html</file>
         <file>html/Telemetry-Error.html</file>
         <file>html/TempBaro-Error.html</file>

@@ -441,6 +441,21 @@ void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened,
 
         saveObjectToSD(stabilizationSettings);
 
+        SystemIdent *systemIdent = SystemIdent::GetInstance(getObjectManager());
+        if (systemIdent) {
+            SystemIdent::DataFields systemIdentData = systemIdent->getData();
+
+            for (int i = 0; i < 3; i++) {
+                systemIdentData.Tau[i] = av.tau[i];
+                systemIdentData.Beta[i] = av.beta[i];
+            }
+
+            systemIdent->setData(systemIdentData);
+            systemIdent->updated();
+
+            saveObjectToSD(systemIdent);
+        }
+
         if (pg->shareBox->isChecked()) {
             persistShareForm(pg);
 

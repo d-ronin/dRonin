@@ -63,7 +63,6 @@ OPTMODULES += Storm32Bgc
 OPTMODULES += OnScreenDisplay
 OPTMODULES += UAVOCrossfireTelemetry
 
-
 # Paths
 OPUAVOBJINC = $(OPUAVOBJ)/inc
 PIOSINC = $(PIOS)/inc
