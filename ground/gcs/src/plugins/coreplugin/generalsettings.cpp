@@ -43,12 +43,10 @@ GeneralSettings::GeneralSettings()
     : m_saveSettingsOnExit(true)
     , m_autoConnect(true)
     , m_autoSelect(true)
-    , m_useUDPMirror(false)
     , m_useExpertMode(false)
     , m_dialog(nullptr)
     , m_proxyType(QNetworkProxy::NoProxy)
     , m_proxyPort(0)
-    , m_useSessionManaging(true)
 {
 }
 
@@ -129,9 +127,7 @@ QWidget *GeneralSettings::createPage(QWidget *parent)
     m_page->checkBoxSaveOnExit->setChecked(m_saveSettingsOnExit);
     m_page->checkAutoConnect->setChecked(m_autoConnect);
     m_page->checkAutoSelect->setChecked(m_autoSelect);
-    m_page->cbUseUDPMirror->setChecked(m_useUDPMirror);
     m_page->cbExpertMode->setChecked(m_useExpertMode);
-    m_page->cbSessionMessaging->setChecked(m_useSessionManaging);
     m_page->proxyTypeCB->setCurrentIndex(m_page->proxyTypeCB->findData(m_proxyType));
     m_page->portLE->setText(QString::number(m_proxyPort));
     m_page->hostNameLE->setText(m_proxyHostname);
@@ -148,9 +144,7 @@ void GeneralSettings::apply()
     // Apply the new base color if accepted
 
     m_saveSettingsOnExit = m_page->checkBoxSaveOnExit->isChecked();
-    m_useUDPMirror = m_page->cbUseUDPMirror->isChecked();
     m_useExpertMode = m_page->cbExpertMode->isChecked();
-    m_useSessionManaging = m_page->cbSessionMessaging->isChecked();
     m_autoConnect = m_page->checkAutoConnect->isChecked();
     m_autoSelect = m_page->checkAutoSelect->isChecked();
     m_proxyType = m_page->proxyTypeCB->itemData(m_page->proxyTypeCB->currentIndex()).toInt();
@@ -175,10 +169,7 @@ void GeneralSettings::readSettings(QSettings *qs)
         qs->value(QLatin1String("SaveSettingsOnExit"), m_saveSettingsOnExit).toBool();
     m_autoConnect = qs->value(QLatin1String("AutoConnect"), m_autoConnect).toBool();
     m_autoSelect = qs->value(QLatin1String("AutoSelect"), m_autoSelect).toBool();
-    m_useUDPMirror = qs->value(QLatin1String("UDPMirror"), m_useUDPMirror).toBool();
     m_useExpertMode = qs->value(QLatin1String("ExpertMode"), m_useExpertMode).toBool();
-    m_useSessionManaging =
-        qs->value(QLatin1String("UseSessionManaging"), m_useSessionManaging).toBool();
     m_proxyType = qs->value(QLatin1String("proxytype"), m_proxyType).toInt();
     m_proxyPort = qs->value(QLatin1String("proxyport"), m_proxyPort).toInt();
     m_proxyHostname = qs->value(QLatin1String("proxyhostname"), m_proxyHostname).toString();
@@ -209,9 +200,7 @@ void GeneralSettings::saveSettings(QSettings *qs)
     qs->setValue(QLatin1String("SaveSettingsOnExit"), m_saveSettingsOnExit);
     qs->setValue(QLatin1String("AutoConnect"), m_autoConnect);
     qs->setValue(QLatin1String("AutoSelect"), m_autoSelect);
-    qs->setValue(QLatin1String("UDPMirror"), m_useUDPMirror);
     qs->setValue(QLatin1String("ExpertMode"), m_useExpertMode);
-    qs->setValue(QLatin1String("UseSessionManaging"), m_useSessionManaging);
 
     qs->setValue(QLatin1String("proxytype"), m_proxyType);
     qs->setValue(QLatin1String("proxyport"), m_proxyPort);
@@ -276,16 +265,6 @@ bool GeneralSettings::autoConnect() const
 bool GeneralSettings::autoSelect() const
 {
     return m_autoSelect;
-}
-
-bool GeneralSettings::useUDPMirror() const
-{
-    return m_useUDPMirror;
-}
-
-bool GeneralSettings::useSessionManaging() const
-{
-    return m_useSessionManaging;
 }
 
 bool GeneralSettings::useExpertMode() const

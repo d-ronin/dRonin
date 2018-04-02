@@ -60,8 +60,6 @@ namespace Internal {
         bool saveSettingsOnExit() const;
         bool autoConnect() const;
         bool autoSelect() const;
-        bool useUDPMirror() const;
-        bool useSessionManaging() const;
         void readSettings(QSettings *qs);
         void saveSettings(QSettings *qs);
         bool useExpertMode() const;
@@ -101,7 +99,6 @@ namespace Internal {
         bool m_saveSettingsOnExit;
         bool m_autoConnect;
         bool m_autoSelect;
-        bool m_useUDPMirror;
         bool m_useExpertMode;
         QPointer<QWidget> m_dialog;
         QList<QTextCodec *> m_codecs;
@@ -119,7 +116,6 @@ namespace Internal {
         QString m_motors;
         QString m_escs;
         QString m_props;
-        bool m_useSessionManaging;
     };
 } // namespace Internal
 } // namespace Core

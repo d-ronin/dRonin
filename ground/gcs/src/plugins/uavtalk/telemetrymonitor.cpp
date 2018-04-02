@@ -112,15 +112,15 @@ TelemetryMonitor::~TelemetryMonitor()
     // Before saying goodbye, set the GCS connection status to disconnected too:
     GCSTelemetryStats::DataFields gcsStats = gcsStatsObj->getData();
     gcsStats.Status = GCSTelemetryStats::STATUS_DISCONNECTED;
-    if (settings->useSessionManaging()) {
-        foreach (UAVObjectManager::ObjectMap map, objMngr->getObjects()) {
-            foreach (UAVObject *obj, map.values()) {
-                UAVDataObject *dobj = dynamic_cast<UAVDataObject *>(obj);
-                if (dobj)
-                    dobj->setIsPresentOnHardware(false);
-            }
+
+    foreach (UAVObjectManager::ObjectMap map, objMngr->getObjects()) {
+        foreach (UAVObject *obj, map.values()) {
+            UAVDataObject *dobj = dynamic_cast<UAVDataObject *>(obj);
+            if (dobj)
+                dobj->resetIsPresentOnHardware();
         }
     }
+
     // Set data
     gcsStatsObj->setData(gcsStats);
 }
@@ -489,7 +489,7 @@ void TelemetryMonitor::startSessionRetrieving(UAVObject *session)
             foreach (UAVObject *obj, map.values()) {
                 UAVDataObject *dobj = dynamic_cast<UAVDataObject *>(obj);
                 if (dobj)
-                    dobj->setIsPresentOnHardware(false);
+                    dobj->resetIsPresentOnHardware();
             }
         }
         currentIndex = 0;
@@ -622,18 +622,14 @@ void TelemetryMonitor::processStatsUpdates()
     if (gcsStats.Status == GCSTelemetryStats::STATUS_DISCONNECTED && gcsStats.Status != oldStatus) {
         statsTimer->setInterval(STATS_CONNECT_PERIOD_MS);
         connectionStatus = CON_DISCONNECTED;
-        ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-        Core::Internal::GeneralSettings *settings =
-            pm->getObject<Core::Internal::GeneralSettings>();
-        if (settings->useSessionManaging()) {
-            foreach (UAVObjectManager::ObjectMap map, objMngr->getObjects()) {
-                foreach (UAVObject *obj, map.values()) {
-                    UAVDataObject *dobj = dynamic_cast<UAVDataObject *>(obj);
-                    if (dobj)
-                        dobj->setIsPresentOnHardware(false);
-                }
+        foreach (UAVObjectManager::ObjectMap map, objMngr->getObjects()) {
+            foreach (UAVObject *obj, map.values()) {
+                UAVDataObject *dobj = dynamic_cast<UAVDataObject *>(obj);
+                if (dobj)
+                    dobj->resetIsPresentOnHardware();
             }
         }
+
         emit disconnected();
     }
 }

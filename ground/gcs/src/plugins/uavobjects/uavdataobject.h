@@ -50,7 +50,9 @@ public:
     virtual UAVDataObject *dirtyClone() = 0;
 
     bool getIsPresentOnHardware() const;
+    bool getPresenceKnown() const;
     void setIsPresentOnHardware(bool value);
+    void resetIsPresentOnHardware();
 
 signals:
     void presentOnHardwareChanged(UAVDataObject *);
@@ -59,7 +61,8 @@ signals:
 private:
     UAVMetaObject *mobj;
     bool isSet;
-    bool isPresentOnHardware;
+
+    enum presence { notPresent, unknownPresent, isPresent } isPresentOnHardware;
 };
 
 #endif // UAVDATAOBJECT_H
