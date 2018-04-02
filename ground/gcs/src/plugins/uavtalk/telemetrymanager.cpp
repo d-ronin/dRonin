@@ -47,7 +47,7 @@ void TelemetryManager::start(QIODevice *dev)
 {
     utalk = new UAVTalk(dev, objMngr);
     telemetry = new Telemetry(utalk, objMngr);
-    telemetryMon = new TelemetryMonitor(objMngr, telemetry, sessions);
+    telemetryMon = new TelemetryMonitor(objMngr, telemetry);
     connect(telemetryMon, &TelemetryMonitor::connected, this, &TelemetryManager::onConnect);
     connect(telemetryMon, &TelemetryMonitor::disconnected, this, &TelemetryManager::onDisconnect);
 }
@@ -55,7 +55,6 @@ void TelemetryManager::start(QIODevice *dev)
 void TelemetryManager::stop()
 {
     telemetryMon->disconnect(this);
-    sessions = telemetryMon->savedSessions();
     telemetryMon->deleteLater();
     telemetryMon = NULL;
     telemetry->deleteLater();
