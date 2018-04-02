@@ -160,7 +160,7 @@ int32_t TelemetryStart(void)
 
 	// Listen to objects of interest
 	GCSTelemetryStatsConnectQueue(telem_state.queue);
-    
+
 	struct pios_thread *telemetryTxTaskHandle;
 	struct pios_thread *telemetryRxTaskHandle;
 
@@ -501,9 +501,11 @@ static void reqCallback(void *ctx, uint32_t obj_id, uint16_t inst_id)
 		}
 	}
 
-	telem->reqs[i].valid = 1;
-	telem->reqs[i].obj_id = obj_id;
-	telem->reqs[i].inst_id = inst_id;
+	if (i < MAX_REQS_PENDING) {
+		telem->reqs[i].valid = 1;
+		telem->reqs[i].obj_id = obj_id;
+		telem->reqs[i].inst_id = inst_id;
+	}
 
 	// Unlock, to ensure new requests can come in OK.
 	PIOS_Mutex_Unlock(telem->reqack_mutex);
