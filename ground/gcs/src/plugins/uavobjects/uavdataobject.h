@@ -51,7 +51,9 @@ public:
 
     bool getIsPresentOnHardware() const;
     bool getPresenceKnown() const;
-    void setIsPresentOnHardware(bool value);
+    void setReceived();
+    bool getReceived();
+    void setIsPresentOnHardware(bool value = true);
     void resetIsPresentOnHardware();
 
 signals:
@@ -62,7 +64,8 @@ private:
     UAVMetaObject *mobj;
     bool isSet;
 
-    enum presence { notPresent, unknownPresent, isPresent } isPresentOnHardware;
+    enum presence { notPresent, unknownPresent, isPresent, isPresentAndReceived }
+                isPresentOnHardware;
 };
 
 #endif // UAVDATAOBJECT_H

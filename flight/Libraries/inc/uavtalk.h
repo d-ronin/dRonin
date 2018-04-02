@@ -58,7 +58,7 @@ typedef enum {UAVTALK_STATE_ERROR = 0, UAVTALK_STATE_SYNC, UAVTALK_STATE_TYPE, U
 UAVTalkConnection UAVTalkInitialize(void *ctx, UAVTalkOutputCb outputStream, UAVTalkAckCb ackCallback, UAVTalkReqCb reqCallback, UAVTalkFileCb fileCallback);
 int32_t UAVTalkSendObject(UAVTalkConnection connection, UAVObjHandle obj, uint16_t instId, uint8_t acked);
 int32_t UAVTalkSendObjectTimestamped(UAVTalkConnection connectionHandle, UAVObjHandle obj, uint16_t instId);
-int32_t UAVTalkSendNack(UAVTalkConnection connectionHandle, uint32_t objId);
+int32_t UAVTalkSendNack(UAVTalkConnection connectionHandle, uint32_t objId, uint16_t instId);
 void UAVTalkProcessInputStream(UAVTalkConnection connectionHandle, uint8_t *rxbytes,
 		int numbytes);
 UAVTalkRxState UAVTalkProcessInputStreamQuiet(UAVTalkConnection connection, uint8_t rxbyte);
