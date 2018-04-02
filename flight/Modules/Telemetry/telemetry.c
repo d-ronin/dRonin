@@ -37,7 +37,6 @@
 #include "flighttelemetrystats.h"
 #include "gcstelemetrystats.h"
 #include "modulesettings.h"
-#include "sessionmanaging.h"
 #include "pios_thread.h"
 #include "pios_mutex.h"
 #include "pios_queue.h"
@@ -131,8 +130,6 @@ static void updateTelemetryStats(telem_t telem);
 static void gcsTelemetryStatsUpdated();
 static void updateSettings();
 static uintptr_t getComPort();
-static void session_managing_updated(UAVObjEvent * ev, void *ctx, void *obj,
-		int len);
 static void update_object_instances(uint32_t obj_id, uint32_t inst_id);
 
 static int32_t fileReqCallback(void *ctx, uint8_t *buf,
@@ -184,8 +181,7 @@ int32_t TelemetryStart(void)
 int32_t TelemetryInitialize(void)
 {
 	if (FlightTelemetryStatsInitialize() == -1 ||
-			GCSTelemetryStatsInitialize() == -1 ||
-			SessionManagingInitialize() == -1) {
+			GCSTelemetryStatsInitialize() == -1) {
 		return -1;
 	}
 
@@ -204,8 +200,6 @@ int32_t TelemetryInitialize(void)
 	// Initialise UAVTalk
 	telem_state.uavTalkCon = UAVTalkInitialize(&telem_state, transmitData,
 			ackCallback, reqCallback, fileReqCallback);
-
-	SessionManagingConnectCallback(session_managing_updated);
 
 	//register the new uavo instance callback function in the uavobjectmanager
 	UAVObjRegisterNewInstanceCB(update_object_instances);
@@ -957,30 +951,6 @@ static uintptr_t getComPort()
 }
 
 /**
- * SessionManaging object updated callback
- */
-static void session_managing_updated(UAVObjEvent * ev, void *ctx, void *obj, int len)
-{
-	(void) ctx; (void) obj; (void) len;
-	if (ev->event == EV_UNPACKED) {
-		SessionManagingData sessionManaging;
-		SessionManagingGet(&sessionManaging);
-
-		if (sessionManaging.SessionID == 0) {
-			sessionManaging.ObjectID = 0;
-			sessionManaging.ObjectInstances = 0;
-			sessionManaging.NumberOfObjects = UAVObjCount();
-			sessionManaging.ObjectOfInterestIndex = 0;
-		} else {
-			uint8_t index = sessionManaging.ObjectOfInterestIndex;
-			sessionManaging.ObjectID = UAVObjIDByIndex(index);
-			sessionManaging.ObjectInstances = UAVObjGetNumInstances(UAVObjGetByID(sessionManaging.ObjectID));
-		}
-		SessionManagingSet(&sessionManaging);
-	}
-}
-
-/**
  * New UAVO object instance callback
  * This is called from the uavobjectmanager
  * \param[in] obj_id The id of the object which had a new instance created
@@ -988,12 +958,7 @@ static void session_managing_updated(UAVObjEvent * ev, void *ctx, void *obj, int
  */
 static void update_object_instances(uint32_t obj_id, uint32_t inst_id)
 {
-	SessionManagingData sessionManaging;
-	SessionManagingGet(&sessionManaging);
-	sessionManaging.ObjectID = obj_id;
-	sessionManaging.ObjectInstances = inst_id;
-	sessionManaging.SessionID = sessionManaging.SessionID + 1;
-	SessionManagingSet(&sessionManaging);
+	/* XXX just send the new instance, reqack. */
 }
 
 /**
