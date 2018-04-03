@@ -205,7 +205,7 @@ void TelemetryMonitor::retrieveNextObject()
         UAVDataObject *dobj = dynamic_cast<UAVDataObject *>(obj);
 
         if (dobj) {
-            if (dobj->getReceived()) {
+            if (dobj->getReceived() && dobj->isSingleInstance()) {
                 /* We got it already.  That's easy! */
                 continue;
             }
@@ -267,11 +267,28 @@ void TelemetryMonitor::transactionCompleted(UAVObject *obj, bool success, bool n
             if (dobj->isSingleInstance()) {
                 dobj->setIsPresentOnHardware(false);
             } else {
-                if (dobj->getInstID() == 0) {
+                int instId = dobj->getInstID();
+
+                if (instId <= 0) {
                     dobj->setIsPresentOnHardware(false);
                 } else {
-                    /* Multi-instance, shrink instance count down */
-                    objMngr->unRegisterObject(dobj);
+                    /* Multi-instance, shrink instance count down.  Inst
+                     * ID must be 1, so getNumInstances should be 2 or
+                     * larger */
+                    int idx;
+
+                    idx = objMngr->getNumInstances(dobj->getObjID());
+
+                    while (idx > instId) {
+                        idx--;
+                        qInfo() << QString("Got nak instID %1 removing %2").arg(instId).arg(idx);
+                        UAVObject *objR = objMngr->getObject(dobj->getObjID(),
+                                idx);
+                        UAVDataObject *dobjR = dynamic_cast<UAVDataObject *>(objR);
+                        if (dobjR) {
+                            objMngr->unRegisterObject(dobjR);
+                        }
+                    }
                 }
             }
         }
@@ -280,9 +297,20 @@ void TelemetryMonitor::transactionCompleted(UAVObject *obj, bool success, bool n
             /* multi-instance... temporarily register and enqueue next
              * instance
              */
-            UAVDataObject *instObj = dobj->clone(dobj->getInstID() + 1);
-            objMngr->registerObject(instObj);
-            queue.push(instObj);
+            int new_idx = dobj->getInstID() + 1;
+
+            UAVObject *instObj = objMngr->getObject(dobj->getObjID(),
+                    new_idx);
+
+            UAVDataObject *instdObj;
+            if (instObj == NULL)  {
+                instdObj = dobj->clone(new_idx);
+                objMngr->registerObject(instdObj);
+            } else {
+                instdObj = dynamic_cast<UAVDataObject *>(instObj);
+            }
+
+            queue.push(instdObj);
         }
     }
 
