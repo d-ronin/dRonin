@@ -259,17 +259,31 @@ void TelemetryMonitor::transactionCompleted(UAVObject *obj, bool success, bool n
                                       .arg(success));
     Q_UNUSED(success);
 
+    UAVDataObject *dobj = dynamic_cast<UAVDataObject *>(obj);
+
     if (nacked) {
         UAVDataObject *dobj = dynamic_cast<UAVDataObject *>(obj);
         if (dobj) {
             if (dobj->isSingleInstance()) {
                 dobj->setIsPresentOnHardware(false);
             } else {
-                /* XXX Multi-instance, shrink instance count down */
+                if (dobj->getInstID() == 0) {
+                    dobj->setIsPresentOnHardware(false);
+                } else {
+                    /* Multi-instance, shrink instance count down */
+                    objMngr->unRegisterObject(dobj);
+                }
             }
         }
-    } else {
-        /* XXX multi-instance... enqueue next instance */
+    } else if (success) {
+        if (dobj && (!dobj->isSingleInstance())) {
+            /* multi-instance... temporarily register and enqueue next
+             * instance
+             */
+            UAVDataObject *instObj = dobj->clone(dobj->getInstID() + 1);
+            objMngr->registerObject(instObj);
+            queue.push(instObj);
+        }
     }
 
     // Disconnect from sending object
