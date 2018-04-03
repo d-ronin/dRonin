@@ -231,6 +231,8 @@ void system_task()
 #endif
 
 	systemTaskHandle = PIOS_Thread_WrapCurrentThread("system");
+	PIOS_Thread_ChangePriority(TASK_PRIORITY);
+
 	TaskMonitorAdd(TASKINFO_RUNNING_SYSTEM, systemTaskHandle);
 
 	// Listen for SettingPersistance object updates, connect a callback function

@@ -83,13 +83,22 @@ struct pios_thread *PIOS_Thread_WrapCurrentThread(const char *namep)
 
 	if (thread) {
 		thread->threadp = chThdSelf();
+#if CH_USE_REGISTRY
+		thread->threadp->p_name = namep;
+#endif /* CH_USE_REGISTRY */
 	}
 
-#if CH_USE_REGISTRY
-	thread->threadp->p_name = namep;
-#endif /* CH_USE_REGISTRY */
-
 	return thread;
+}
+
+/**
+ * @brief Changes the priority of this thread.
+ *
+ * @param[in] prio The new priority.
+ */
+void PIOS_Thread_ChangePriority(enum pios_thread_prio_e prio)
+{
+	chThdSetPriority(prio);
 }
 
 /**

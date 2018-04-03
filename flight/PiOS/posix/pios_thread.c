@@ -73,6 +73,18 @@ struct pios_thread *PIOS_Thread_WrapCurrentThread(const char *namep)
 	return thread;
 }
 
+void PIOS_Thread_ChangePriority(enum pios_thread_prio_e prio)
+{
+	(void) prio;
+	extern bool are_realtime;
+#ifdef __linux__
+	if (are_realtime) {
+		int pri_val = 30 + prio * 5;
+		pthread_setschedprio(pthread_self(), pri_val);
+	}
+#endif
+}
+
 struct pios_thread *PIOS_Thread_Create(void (*fp)(void *), const char *namep, size_t stack_bytes, void *argp, enum pios_thread_prio_e prio)
 {
 	struct pios_thread *thread = malloc(sizeof(*thread));
@@ -196,7 +208,6 @@ bool PIOS_Thread_Period_Elapsed(const uint32_t prev_systime,
 
 	return increment_ms <= interval;
 }
-
 
 /**
   * @}
