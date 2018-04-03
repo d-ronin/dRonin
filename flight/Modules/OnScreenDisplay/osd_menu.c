@@ -1816,7 +1816,6 @@ void pidatt_menu(void)
 		draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
 		if (current_event == FSM_EVENT_RIGHT) {
 			UAVObjSave(StabilizationSettingsHandle(), 0);
-			UAVObjSave(ActuatorSettingsHandle(), 0);
 		}
 	}
 
@@ -2020,8 +2019,10 @@ void sticklimits_menu(void)
 	write_string("Save and Exit", MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
 	if (current_state == FSM_STATE_STICKLIMITS_SAVEEXIT) {
 		draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
-		if (current_event == FSM_EVENT_RIGHT)
+		if (current_event == FSM_EVENT_RIGHT) {
 			UAVObjSave(StabilizationSettingsHandle(), 0);
+			UAVObjSave(ActuatorSettingsHandle(), 0);
+		}
 	}
 
 	y_pos += MENU_LINE_SPACING;
