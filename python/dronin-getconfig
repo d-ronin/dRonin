@@ -38,7 +38,17 @@ def wait_till_less_than(num):
 
 #-------------------------------------------------------------------------------
 def main():
-    tStream = telemetry.get_telemetry_by_args(service_in_iter=False)
+    import argparse
+    parser = argparse.ArgumentParser(description="Dump flight controller settings to UAV file.")
+    parser.add_argument("-o", "--only-nondefault",
+            action   = "store_true",
+            default  = False,
+            dest     = "only_nondefault",
+            help     = "Only put the non-default settings in the UAV file")
+
+    tStream,args = telemetry.get_telemetry_by_args(service_in_iter=False,
+            arg_parser=parser)
+
     tStream.start_thread()
 
     settings_objects = tStream.uavo_defs.get_settings_objects()
@@ -68,7 +78,7 @@ def main():
     #for s in missing:
     #    print("No instance of %s" % (s))
 
-    print(tStream.uavo_defs.export_xml(sobjs))
+    print(tStream.uavo_defs.export_xml(sobjs, only_nondefault=args.only_nondefault))
 
 #-------------------------------------------------------------------------------
 
