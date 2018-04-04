@@ -26,6 +26,7 @@ WHEREAMI := $(dir $(lastword $(MAKEFILE_LIST)))
 TOP      := $(realpath $(WHEREAMI)/../../../)
 include $(TOP)/make/firmware-defs.mk
 
+EXTRAINCDIRS += $(PIOS)
 EXTRAINCDIRS += $(PIOS)/inc
 EXTRAINCDIRS  += $(PIOS)/posix/inc
 
@@ -40,5 +41,6 @@ SRC := $(PIOS)/Common/pios_flashfs_logfs.c
 SRC += $(PIOS)/Common/pios_flash.c
 SRC += $(PIOS)/posix/pios_flash_posix.c
 SRC += $(PIOS)/posix/pios_heap.c
+SRC += $(PIOS)/posix/pios_semaphore.c
 
 include $(TOP)/make/unittest.mk
