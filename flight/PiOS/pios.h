@@ -31,12 +31,12 @@
 #ifndef PIOS_H
 #define PIOS_H
 
+/* PIOS Feature Selection */
+#include "pios_config.h"
+
 #ifdef FLIGHT_POSIX
 #include <pios_posix.h>
 #endif
-
-/* PIOS Feature Selection */
-#include "pios_config.h"
 
 #if defined(PIOS_INCLUDE_CHIBIOS)
 /* @note    This is required because of difference in chip define between ChibiOS and ST libs.

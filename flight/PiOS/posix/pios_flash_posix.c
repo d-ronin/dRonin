@@ -7,6 +7,8 @@
 #include "pios_heap.h"
 #include "pios_flash_posix_priv.h"
 
+#include <pios_semaphore.h>
+
 enum flash_posix_magic {
 	FLASH_POSIX_MAGIC = 0x321dabc1,
 };
@@ -14,8 +16,9 @@ enum flash_posix_magic {
 struct flash_posix_dev {
 	enum flash_posix_magic magic;
 	const struct pios_flash_posix_cfg * cfg;
-	bool transaction_in_progress;
 	FILE * flash_file;
+
+	struct pios_semaphore *transaction_lock;
 };
 
 static struct flash_posix_dev * PIOS_Flash_Posix_Alloc(void)
@@ -54,7 +57,6 @@ int32_t PIOS_Flash_Posix_Init(uintptr_t * chip_id,
 	assert(flash_dev);
 
 	flash_dev->cfg = cfg;
-	flash_dev->transaction_in_progress = false;
 
 	if (!force_recreate) {
 		flash_dev->flash_file = fopen(PIOS_Flash_Posix_GetFName(), "r+");
@@ -84,6 +86,8 @@ int32_t PIOS_Flash_Posix_Init(uintptr_t * chip_id,
 		return -2;
 	}
 
+	flash_dev->transaction_lock = PIOS_Semaphore_Create();
+
 	*chip_id = (uintptr_t)flash_dev;
 
 	return 0;
@@ -107,32 +111,23 @@ void PIOS_Flash_Posix_Destroy(uintptr_t chip_id)
 
 static int32_t PIOS_Flash_Posix_StartTransaction(uintptr_t chip_id)
 {
-#if 0
 	struct flash_posix_dev * flash_dev = (struct flash_posix_dev *)chip_id;
 
-	/* TODO: Needs to be a semaphore like other platforms.  In the meantime
-	 * neutering this does nothing bad.
-	 *
-	 * Alternatively could choose to have a counter maintained using
-	 * atomics here.
-	 */
-	assert(!flash_dev->transaction_in_progress);
-
-	flash_dev->transaction_in_progress = true;
-#endif
+	if (PIOS_Semaphore_Take(flash_dev->transaction_lock,
+				PIOS_SEMAPHORE_TIMEOUT_MAX) != true) {
+		return -2;
+	}
 
 	return 0;
 }
 
 static int32_t PIOS_Flash_Posix_EndTransaction(uintptr_t chip_id)
 {
-#if 0
 	struct flash_posix_dev * flash_dev = (struct flash_posix_dev *)chip_id;
 
-	assert(flash_dev->transaction_in_progress);
-
-	flash_dev->transaction_in_progress = false;
-#endif
+	if (PIOS_Semaphore_Give(flash_dev->transaction_lock) != true) {
+		assert(false);
+	}
 
 	return 0;
 }
