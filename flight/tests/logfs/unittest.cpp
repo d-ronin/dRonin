@@ -78,15 +78,6 @@ extern struct flashfs_logfs_cfg flashfs_config_waypoints;
 class LogfsTestRaw : public testing::Test {
 protected:
   virtual void SetUp() {
-    /* create an empty, appropriately sized flash filesystem */
-    FILE * theflash = fopen("theflash.bin", "w");
-    uint8_t sector[flash_config.size_of_sector];
-    memset(sector, 0xFF, sizeof(sector));
-    for (uint32_t i = 0; i < flash_config.size_of_flash / flash_config.size_of_sector; i++) {
-      fwrite(sector, sizeof(sector), 1, theflash);
-    }
-    fclose(theflash);
-
     /* Set up obj1 */
     for (uint32_t i = 0; i < sizeof(obj1); i++) {
       obj1[i] = 0x10 + (i % 10);
@@ -111,6 +102,9 @@ protected:
     for (uint32_t i = 0; i < sizeof(obj4); i++) {
       obj4[i] = 0x40 + (i % 10);
     }
+
+    PIOS_Flash_Posix_Init(&pios_posix_flash_id, &flash_config, true);
+    PIOS_Flash_Posix_Destroy(pios_posix_flash_id);
   }
 
   virtual void TearDown() {
@@ -125,13 +119,13 @@ protected:
 };
 
 TEST_F(LogfsTestRaw, FlashInit) {
-  EXPECT_EQ(0, PIOS_Flash_Posix_Init(&pios_posix_flash_id, &flash_config));
+  EXPECT_EQ(0, PIOS_Flash_Posix_Init(&pios_posix_flash_id, &flash_config, false));
 
   PIOS_Flash_Posix_Destroy(pios_posix_flash_id);
 }
 
 TEST_F(LogfsTestRaw, LogfsInit) {
-  EXPECT_EQ(0, PIOS_Flash_Posix_Init(&pios_posix_flash_id, &flash_config));
+  EXPECT_EQ(0, PIOS_Flash_Posix_Init(&pios_posix_flash_id, &flash_config, false));
 
   /* Register the partition table */
   PIOS_FLASH_register_partition_table(pios_flash_partition_table, pios_flash_partition_table_size);
@@ -150,7 +144,7 @@ protected:
     LogfsTestRaw::SetUp();
 
     /* Init the flash and the flashfs so we don't need to repeat this in every test */
-    EXPECT_EQ(0, PIOS_Flash_Posix_Init(&pios_posix_flash_id, &flash_config));
+    EXPECT_EQ(0, PIOS_Flash_Posix_Init(&pios_posix_flash_id, &flash_config, false));
     EXPECT_EQ(0, PIOS_FLASHFS_Logfs_Init(&fs_id, &flashfs_config_settings, FLASH_PARTITION_LABEL_SETTINGS));
   }
 
@@ -339,7 +333,7 @@ protected:
     LogfsTestRaw::SetUp();
 
     /* Init the flash and the flashfs so we don't need to repeat this in every test */
-    EXPECT_EQ(0, PIOS_Flash_Posix_Init(&pios_posix_flash_id, &flash_config));
+    EXPECT_EQ(0, PIOS_Flash_Posix_Init(&pios_posix_flash_id, &flash_config, false));
     EXPECT_EQ(0, PIOS_FLASHFS_Logfs_Init(&fs_id_a, &flashfs_config_settings, FLASH_PARTITION_LABEL_SETTINGS));
     EXPECT_EQ(0, PIOS_FLASHFS_Logfs_Init(&fs_id_b, &flashfs_config_waypoints, FLASH_PARTITION_LABEL_AUTOTUNE));
   }

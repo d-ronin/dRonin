@@ -89,30 +89,13 @@ void PIOS_Board_Init(void) {
 	/* Delay system */
 	PIOS_DELAY_Init();
 
-	int32_t retval = PIOS_Flash_Posix_Init(&pios_posix_flash_id, &flash_config);
+	int32_t retval = PIOS_Flash_Posix_Init(&pios_posix_flash_id,
+			&flash_config, false);
+
 	if (retval != 0) {
-		printf("Flash file doesn't exist or is too small, creating a new one\n");
-		/* create an empty, appropriately sized flash filesystem */
-		FILE *theflash = fopen("theflash.bin", "w");
-		if (!theflash) {
-			perror("fopen(theflash.bin)");
-			exit(1);
-		}
-
-		uint8_t sector[flash_config.size_of_sector];
-		memset(sector, 0xFF, sizeof(sector));
-		for (uint32_t i = 0; i < flash_config.size_of_flash / flash_config.size_of_sector; i++) {
-			fwrite(sector, sizeof(sector), 1, theflash);
-		}
-		fclose(theflash);
-
-		retval = PIOS_Flash_Posix_Init(&pios_posix_flash_id, &flash_config);
-
-		if (retval != 0) {
-			fprintf(stderr, "Unable to initialize flash posix simulator: %d\n", retval);
-			exit(1);
-		}
-		
+		fprintf(stderr, "Unable to initialize posix flash driver: %d\n",
+				retval);
+		exit(1);
 	}
 
 	/* Register the partition table */
