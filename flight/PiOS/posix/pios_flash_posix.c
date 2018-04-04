@@ -27,9 +27,16 @@ static struct flash_posix_dev * PIOS_Flash_Posix_Alloc(void)
 	return flash_dev;
 }
 
+static const char *pios_flash_file_name = "theflash.bin";
+
 static const char *PIOS_Flash_Posix_GetFName()
 {
-	return "theflash.bin";
+	return pios_flash_file_name;
+}
+
+void PIOS_Flash_Posix_SetFName(const char *name)
+{
+	pios_flash_file_name = name;
 }
 
 int32_t PIOS_Flash_Posix_Init(uintptr_t * chip_id,

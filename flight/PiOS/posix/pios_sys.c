@@ -54,6 +54,7 @@
 #include "pios_com_priv.h"
 #include "pios_serial_priv.h"
 #include "pios_tcp_priv.h"
+#include "pios_flash_posix_priv.h"
 #include "pios_flightgear.h"
 #include "pios_thread.h"
 
@@ -101,32 +102,34 @@ pios_i2c_t external_i2c_adapter_id;
 int orig_stdout;
 
 static void Usage(char *cmdName) {
-	printf( "usage: %s [-f] [-r] [-m orientation] [-s spibase] [-d drvname:bus:id]\n"
-		"\t\t[-l logfile] [-I i2cdev] [-i drvname:bus] [-g port]"
+	printf( "usage: %s [-f] [-r] [-m orientation] [-s spibase]\n"
+		"\t\t[-d drvname:bus:id] [-l logfile] [-I i2cdev] [-i drvname:bus]\n"
+		"\t\t[-g port] [-c confflash]\n"
 		"\n"
-		"\t-f\tEnables floating point exception trapping mode\n"
-		"\t-r\tGoes realtime-class and pins all memory (requires root)\n"
-		"\t-l log\tWrites simulation data to a log\n"
-		"\t-g port\tStarts FlightGear driver on port\n"
+		"\t-f\t\t\tEnables floating point exception trapping mode\n"
+		"\t-r\t\t\tGoes realtime and pins all memory (requires root)\n"
+		"\t-l log\t\t\tWrites simulation data to a log\n"
+		"\t-g port\t\t\tStarts FlightGear driver on port\n"
 #ifdef PIOS_INCLUDE_SIMSENSORS_YASIM
-		"\t-y\tUse an external simulator (drhil yasim)\n"
+		"\t-y\t\t\tUse an external simulator (drhil yasim)\n"
 #endif
-		"\t-x time\tExit after time seconds\n"
+		"\t-x time\t\t\tExit after time seconds\n"
 #ifdef PIOS_INCLUDE_SERIAL
 		"\t-S drvname:serialpath\tStarts a serial driver on serialpath\n"
-		"\t\t\tAvailable drivers: gps msp lighttelemetry telemetry omnip\n"
+		"\t\t\tAvailable drivers: gps msp lighttelemetry telemetry omnip\n\n"
 #endif
 #ifdef PIOS_INCLUDE_SPI
-		"\t-s spibase\tConfigures a SPI interface on the base path\n"
+		"\t-s spibase\t\tConfigures a SPI interface on the base path\n"
 		"\t-d drvname:bus:id\tStarts driver drvname on bus/id\n"
-		"\t\t\tAvailable drivers: bmm150 bmx055 flyingpio ms5611\n"
+		"\t\t\tAvailable drivers: bmm150 bmx055 flyingpio ms5611\n\n"
 #endif
 #ifdef PIOS_INCLUDE_I2C
-		"\t-m orientation\tSets the orientation of an external mag\n"
-		"\t-I i2cdev\tConfigures an I2C interface on i2cdev\n"
-		"\t-i drvname:bus\tStarts a driver instance on bus\n"
-		"\t\t\tAvailable drivers: px4flow hmc5883 hmc5983 bmp280 ms5611\n"
+		"\t-m orientation\t\tSets the orientation of an external mag\n"
+		"\t-I i2cdev\t\tConfigures an I2C interface on i2cdev\n"
+		"\t-i drvname:bus\t\tStarts a driver instance on bus\n"
+		"\t\t\tAvailable drivers: px4flow hmc5883 hmc5983 bmp280 ms5611\n\n"
 #endif
+		"\t-c confflash\t\tspecify a filename to store config flash\n"
 		"",
 		cmdName);
 
@@ -462,13 +465,16 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 
 	bool first_arg = true;
 
-	while ((opt = getopt(argc, argv, "yfrx:g:l:s:d:S:I:i:m:")) != -1) {
+	while ((opt = getopt(argc, argv, "yfrx:g:l:s:d:S:I:i:m:c:")) != -1) {
 		switch (opt) {
 #ifdef PIOS_INCLUDE_SIMSENSORS_YASIM
 			case 'y':
 				use_yasim = true;
 				break;
 #endif
+			case 'c':
+				PIOS_Flash_Posix_SetFName(optarg);
+				break;
 			case 'f':
 				debug_fpe = true;
 				break;
