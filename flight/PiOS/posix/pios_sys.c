@@ -33,8 +33,6 @@
  * of this source file; otherwise redistribution is prohibited.
  */
 
-
-
 /* Project Includes */
 #if !defined(_GNU_SOURCE)
 #define _GNU_SOURCE

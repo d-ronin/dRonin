@@ -104,9 +104,6 @@ void PIOS_Board_Init(void) {
 	if (PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_config_settings, FLASH_PARTITION_LABEL_SETTINGS) != 0)
 		fprintf(stderr, "Unable to open the settings partition\n");
 
-	/* Initialize the task monitor library */
-	TaskMonitorInitialize();
-
 	/* Initialize UAVObject libraries */
 	UAVObjInitialize();
 	UAVObjectsInitializeAll();
@@ -114,9 +111,6 @@ void PIOS_Board_Init(void) {
 	/* Initialize the alarms library */
 	AlarmsInitialize();
 
-	/* Initialize the sparky object, because developers use this for dev
-	 * test. */
-	HwSparkyInitialize();
 	HwSimulationInitialize();
 
 	uintptr_t pios_tcp_telem_id;
