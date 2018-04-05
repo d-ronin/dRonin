@@ -104,7 +104,7 @@ static float get_thrust_source(ManualControlCommandData *manual_control_command,
 		bool always_fullrange);
 static void update_stabilization_desired(ManualControlCommandData * manual_control_command, ManualControlSettingsData * settings);
 static void set_flight_mode();
-static void process_transmitter_events(ManualControlCommandData * cmd, ManualControlSettingsData * settings, bool valid);
+static void process_transmitter_events(ManualControlCommandData * cmd, ManualControlSettingsData * settings, bool valid, bool settings_updated);
 static void set_manual_control_error(SystemAlarmsManualControlOptions errorCode);
 static float scaleChannel(int n, int16_t value);
 static bool validInputRange(int n, uint16_t value, uint16_t offset);
@@ -272,6 +272,7 @@ int32_t transmitter_control_update()
 	bool validChannel[MANUALCONTROLSETTINGS_CHANNELGROUPS_NUMELEM];
 
 	static float filter_rssi;
+	bool settings_updated_this_cycle = false;
 
 	if (settings_updated) {
 		perform_tc_settings_update();
@@ -281,6 +282,8 @@ int32_t transmitter_control_update()
 		 * Also do additonal validation .. e.g. a mostly-negative
 		 * throttle range doesn't make sense!
 		 */
+
+		settings_updated_this_cycle = true;
 	}
 
 	/* Update channel activity monitor */
@@ -525,7 +528,8 @@ int32_t transmitter_control_update()
 	// Process arming outside conditional so system will disarm when disconnected.  Notice this
 	// is processed in the _update method instead of _select method so the state system is always
 	// evalulated, even if not detected.
-	process_transmitter_events(&cmd, &settings, valid_input_detected);
+	process_transmitter_events(&cmd, &settings, valid_input_detected,
+			settings_updated_this_cycle);
 
 	// Update cmd object
 	ManualControlCommandSet(&cmd);
@@ -742,8 +746,9 @@ static bool check_receiver_timer(uint32_t threshold) {
  * @param[in] settings Settings indicating the necessary position
  * @param[in] scaled The scaled channels, used for checking arming
  * @param[in] valid If the input data is valid (i.e. transmitter is transmitting)
+ * @param[in] settings_updated True if settings changed this cycle
  */
-static void process_transmitter_events(ManualControlCommandData * cmd, ManualControlSettingsData * settings, bool valid)
+static void process_transmitter_events(ManualControlCommandData * cmd, ManualControlSettingsData * settings, bool valid, bool settings_updated)
 {
 	valid &= cmd->Connected == MANUALCONTROLCOMMAND_CONNECTED_TRUE;
 
@@ -800,6 +805,16 @@ static void process_transmitter_events(ManualControlCommandData * cmd, ManualCon
 		reset_receiver_timer();
 	}
 
+	if (settings_updated ||
+			(settings->Arming ==
+			 MANUALCONTROLSETTINGS_ARMING_ALWAYSDISARMED)) {
+		/* Make sure that we don't arm as a result of a settings
+		 * change.
+		 */
+		control_status = STATUS_INVALID_FOR_DISARMED;
+		return;
+	}
+
 	if (disarm_commanded(cmd, settings, low_throt)) {
 		/* Separate timer from the above */
 
@@ -829,7 +844,8 @@ static void process_transmitter_events(ManualControlCommandData * cmd, ManualCon
 		/* If the arming switch is flipped on, but we don't otherwise
 		 * qualify for arming, let the upper layer know.
 		 */
-		if (settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCHTHROTTLE) {
+		if (settings->Arming ==
+				MANUALCONTROLSETTINGS_ARMING_SWITCHTHROTTLE) {
 			if (cmd->ArmSwitch == MANUALCONTROLCOMMAND_ARMSWITCH_ARMED) {
 				control_status = STATUS_INVALID_FOR_DISARMED;
 				return;
