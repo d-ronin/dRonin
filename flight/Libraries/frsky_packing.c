@@ -152,15 +152,15 @@ bool frsky_encode_current(struct frsky_settings *frsky, uint32_t *value, bool te
  */
 bool frsky_encode_cells(struct frsky_settings *frsky, uint32_t *value, bool test_presence_only, uint32_t arg)
 {
-	if ((frsky->batt_cell_count == 0) || (frsky->batt_cell_count - 1) < (arg * 2))
-		return false;
-	if (test_presence_only)
-		return true;
-
 	uint8_t cellCount = 0;
 	FlightBatteryStateDetectedCellCountGet(&cellCount);
 	if(cellCount)
 		frsky->batt_cell_count = cellCount;
+
+	if ((frsky->batt_cell_count == 0) || (frsky->batt_cell_count - 1) < (arg * 2))
+		return false;
+	if (test_presence_only)
+		return true;
 
 	float voltage = 0;
 	FlightBatteryStateVoltageGet(&voltage);
