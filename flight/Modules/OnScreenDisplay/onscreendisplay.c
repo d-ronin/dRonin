@@ -634,65 +634,67 @@ void simple_artificial_horizon(float roll, float pitch, int16_t x, int16_t y,
 
 void draw_flight_mode(int x, int y, int xs, int ys, int va, int ha, int flags, int font)
 {
-	uint8_t mode;
+	SharedDefsFlightModeOptions mode;
 	FlightStatusFlightModeGet(&mode);
 
 	switch (mode)
 	{
-	case FLIGHTSTATUS_FLIGHTMODE_MANUAL:
+	case SHAREDDEFS_FLIGHTMODE_MANUAL:
 		write_string("MAN", x, y, xs, ys, va, ha, flags, font);
 		break;
-	case FLIGHTSTATUS_FLIGHTMODE_ACRO:
+	case SHAREDDEFS_FLIGHTMODE_ACRO:
 		write_string("ACRO", x, y, xs, ys, va, ha, flags, font);
 		break;
-	case FLIGHTSTATUS_FLIGHTMODE_ACROPLUS:
+	case SHAREDDEFS_FLIGHTMODE_ACROPLUS:
 		write_string("ACROPLUS", x, y, xs, ys, va, ha, flags, font);
 		break;
-	case FLIGHTSTATUS_FLIGHTMODE_ACRODYNE:
+	case SHAREDDEFS_FLIGHTMODE_ACRODYNE:
 		write_string("ACRODYNE", x, y, xs, ys, va, ha, flags, font);
 		break;
-	case FLIGHTSTATUS_FLIGHTMODE_LEVELING:
+	case SHAREDDEFS_FLIGHTMODE_LEVELING:
 		write_string("LEVEL", x, y, xs, ys, va, ha, flags, font);
 		break;
-	case FLIGHTSTATUS_FLIGHTMODE_HORIZON:
+	case SHAREDDEFS_FLIGHTMODE_HORIZON:
 		write_string("HOR", x, y, xs, ys, va, ha, flags, font);
 		break;
-	case FLIGHTSTATUS_FLIGHTMODE_AXISLOCK:
+	case SHAREDDEFS_FLIGHTMODE_AXISLOCK:
 		write_string("ALCK", x, y, xs, ys, va, ha, flags, font);
 		break;
-	case FLIGHTSTATUS_FLIGHTMODE_VIRTUALBAR:
+	case SHAREDDEFS_FLIGHTMODE_VIRTUALBAR:
 		write_string("VBAR", x, y, xs, ys, va, ha, flags, font);
 		break;
-	case FLIGHTSTATUS_FLIGHTMODE_STABILIZED1:
+	case SHAREDDEFS_FLIGHTMODE_STABILIZED1:
 		write_string("ST1", x, y, xs, ys, va, ha, flags, font);
 		break;
-	case FLIGHTSTATUS_FLIGHTMODE_STABILIZED2:
+	case SHAREDDEFS_FLIGHTMODE_STABILIZED2:
 		write_string("ST2", x, y, xs, ys, va, ha, flags, font);
 		break;
-	case FLIGHTSTATUS_FLIGHTMODE_STABILIZED3:
+	case SHAREDDEFS_FLIGHTMODE_STABILIZED3:
 		write_string("ST3", x, y, xs, ys, va, ha, flags, font);
 		break;
-	case FLIGHTSTATUS_FLIGHTMODE_AUTOTUNE:
+	case SHAREDDEFS_FLIGHTMODE_AUTOTUNE:
 		write_string("TUNE", x, y, xs, ys, va, ha, flags, font);
 		break;
-	case FLIGHTSTATUS_FLIGHTMODE_ALTITUDEHOLD:
+	case SHAREDDEFS_FLIGHTMODE_ALTITUDEHOLD:
 		write_string("AHLD", x, y, xs, ys, va, ha, flags, font);
 		break;
-	case FLIGHTSTATUS_FLIGHTMODE_POSITIONHOLD:
+	case SHAREDDEFS_FLIGHTMODE_POSITIONHOLD:
 		write_string("PHLD", x, y, xs, ys, va, ha, flags, font);
 		break;
-	case FLIGHTSTATUS_FLIGHTMODE_RETURNTOHOME:
+	case SHAREDDEFS_FLIGHTMODE_RETURNTOHOME:
 		write_string("RTH", x, y, xs, ys, va, ha, flags, font);
 		break;
-	case FLIGHTSTATUS_FLIGHTMODE_PATHPLANNER:
+	case SHAREDDEFS_FLIGHTMODE_PATHPLANNER:
 		write_string("PLAN", x, y, xs, ys, va, ha, flags, font);
 		break;
-	case FLIGHTSTATUS_FLIGHTMODE_FAILSAFE:
+	case SHAREDDEFS_FLIGHTMODE_FAILSAFE:
 		write_string("FAILSAFE", x, y, xs, ys, va, ha, flags, font);
 		break;
-	case FLIGHTSTATUS_FLIGHTMODE_TABLETCONTROL:
-		TabletInfoTabletModeDesiredGet(&mode);
-		switch (mode) {
+	case SHAREDDEFS_FLIGHTMODE_TABLETCONTROL:
+		{
+		TabletInfoTabletModeDesiredOptions tab_mode;
+		TabletInfoTabletModeDesiredGet(&tab_mode);
+		switch (tab_mode) {
 		case TABLETINFO_TABLETMODEDESIRED_POSITIONHOLD:
 			write_string("TAB PH", x, y, xs, ys, va, ha, flags, font);
 			break;
@@ -715,12 +717,16 @@ void draw_flight_mode(int x, int y, int xs, int ys, int va, int ha, int flags, i
 			write_string("TAB POI", x, y, xs, ys, va, ha, flags, font);
 			break;
 		}
+		}
 		break;
-	case FLIGHTSTATUS_FLIGHTMODE_LQG:
+	case SHAREDDEFS_FLIGHTMODE_LQG:
 		write_string("LQG-R", x, y, xs, ys, va, ha, flags, font);
 		break;
-	case FLIGHTSTATUS_FLIGHTMODE_LQGLEVELING:
+	case SHAREDDEFS_FLIGHTMODE_LQGLEVELING:
 		write_string("LQG-L", x, y, xs, ys, va, ha, flags, font);
+		break;
+	case SHAREDDEFS_FLIGHTMODE_FLIPOVERREV:
+		write_string("FLIPOVER", x, y, xs, ys, va, ha, flags, font);
 		break;
 	}
 }

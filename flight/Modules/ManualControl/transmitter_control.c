@@ -6,7 +6,7 @@
  * @{
  *
  * @file       transmitter_control.c
- * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2018
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2017
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @brief      Handles R/C link and flight mode.
@@ -561,9 +561,7 @@ int32_t transmitter_control_select(bool reset_controller)
 	case FLIGHTSTATUS_FLIGHTMODE_AUTOTUNE:
 	case FLIGHTSTATUS_FLIGHTMODE_LQG:
 	case FLIGHTSTATUS_FLIGHTMODE_LQGLEVELING:
-		update_stabilization_desired(&cmd, &settings);
-		break;
-	case FLIGHTSTATUS_FLIGHTMODE_ALTITUDEHOLD:
+	case FLIGHTSTATUS_FLIGHTMODE_FLIPOVERREV:
 		update_stabilization_desired(&cmd, &settings);
 		break;
 	case FLIGHTSTATUS_FLIGHTMODE_POSITIONHOLD:
@@ -1101,6 +1099,9 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
                                                STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDELQG,
                                                STABILIZATIONDESIRED_STABILIZATIONMODE_LQG };
 
+	const uint8_t FLIPOVER_SETTINGS[3] = {  STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL,
+                                       STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL,
+                                       STABILIZATIONDESIRED_STABILIZATIONMODE_DISABLED };
 	const uint8_t * stab_modes = ATTITUDE_SETTINGS;
 
 	uint8_t reprojection = STABILIZATIONDESIRED_REPROJECTIONMODE_NONE;
@@ -1167,6 +1168,10 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
 			break;
 		case FLIGHTSTATUS_FLIGHTMODE_LQGLEVELING:
 			stab_modes = ATTITUDELQG_SETTINGS;
+			break;
+		case FLIGHTSTATUS_FLIGHTMODE_FLIPOVERREV:
+			stab_modes = FLIPOVER_SETTINGS;
+			thrust_mode = STABILIZATIONDESIRED_THRUSTMODE_FLIPOVERMODETHRUSTREVERSED;
 			break;
 		default:
 			{
