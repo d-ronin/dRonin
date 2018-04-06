@@ -94,6 +94,7 @@ void PIOS_Thread_ChangePriority(enum pios_thread_prio_e prio);
 #ifdef FLIGHT_POSIX
 void PIOS_Thread_FakeClock_Tick(void);
 bool PIOS_Thread_FakeClock_IsActive(void);
+void PIOS_Thread_FakeClock_UpdateBarrier(uint32_t increment);
 #endif
 
 #endif /* PIOS_THREAD_H_ */

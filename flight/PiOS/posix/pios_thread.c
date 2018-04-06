@@ -149,17 +149,22 @@ static volatile uint32_t fake_clock;
 static pthread_cond_t fake_clock_cond = PTHREAD_COND_INITIALIZER;
 static pthread_mutex_t fake_clock_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+static volatile uint32_t fake_tick_barrier;
+
+void PIOS_Thread_FakeClock_UpdateBarrier(uint32_t increment)
+{
+	fake_tick_barrier = fake_clock + increment;
+}
+
 void PIOS_Thread_FakeClock_Tick(void)
 {
 	pthread_mutex_lock(&fake_clock_mutex);
 
-	if (!fake_clock) {
-		fake_clock = PIOS_Thread_Systime();
+	if ((!fake_tick_barrier) || (fake_tick_barrier != fake_clock)) {
+		fake_clock++;
+
+		pthread_cond_broadcast(&fake_clock_cond);
 	}
-
-	fake_clock++;
-
-	pthread_cond_broadcast(&fake_clock_cond);
 
 	pthread_mutex_unlock(&fake_clock_mutex);
 }
