@@ -86,7 +86,9 @@ static void gcsreceiver_updated(UAVObjEvent * ev, void *ctx, void *obj, int len)
 {
 	struct pios_gcsrcvr_dev *gcsrcvr_dev = global_gcsrcvr_dev;
 	if (ev->obj == GCSReceiverHandle()) {
+		PIOS_RCVR_Active();
 		GCSReceiverGet(&gcsreceiverdata);
+
 		gcsrcvr_dev->Fresh = true;
 	}
 }
