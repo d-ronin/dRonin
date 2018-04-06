@@ -36,6 +36,10 @@
 
 #include "pios_gcsrcvr_priv.h"
 
+#ifndef PIOS_GCSRCVR_TIMEOUT_MS
+#define PIOS_GCSRCVR_TIMEOUT_MS			350
+#endif
+
 static GCSReceiverData gcsreceiverdata;
 
 /* Provide a RCVR driver */
