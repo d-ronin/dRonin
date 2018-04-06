@@ -368,6 +368,27 @@ uint32_t randomize_int(uint32_t interval)
 }
 
 /**
+ * @brief Apply deadband to Roll/Pitch/Yaw channels
+ */
+void apply_channel_deadband(float *value, float deadband)
+{
+	if (deadband < 0.0001f) return; /* ignore tiny deadband value */
+	if (deadband >= 0.85f) return;	/* reject nonsensical db values */
+
+	if (fabsf(*value) < deadband) {
+		*value = 0.0f;
+	} else {
+		if (*value > 0.0f) {
+			*value -= deadband;
+		} else {
+			*value += deadband;
+		}
+
+		*value /= (1 - deadband);
+	}
+}
+
+/**
  * @}
  * @}
  */

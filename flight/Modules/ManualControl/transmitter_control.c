@@ -109,7 +109,6 @@ static void set_manual_control_error(SystemAlarmsManualControlOptions errorCode)
 static float scaleChannel(int n, int16_t value);
 static bool validInputRange(int n, uint16_t value, uint16_t offset);
 static uint32_t timeDifferenceMs(uint32_t start_time, uint32_t end_time);
-static void applyDeadband(float *value, float deadband);
 static void resetRcvrActivity(struct rcvr_activity_fsm * fsm);
 static bool updateRcvrActivity(struct rcvr_activity_fsm * fsm);
 static void set_loiter_command(ManualControlCommandData *cmd);
@@ -172,7 +171,7 @@ static float get_thrust_source(ManualControlCommandData *manual_control_command,
 
 	if (thrust_is_bidir) {
 		/* Thrust is bidirectional; apply a deadband and call it good */
-		applyDeadband(&thrust, settings.ThrustDeadband);
+		apply_channel_deadband(&thrust, settings.ThrustDeadband);
 
 		return thrust;
 	}
@@ -192,7 +191,7 @@ static float get_thrust_source(ManualControlCommandData *manual_control_command,
 	/* We want a -1..1 value, but thrust is squished into a 0..1 range. */
 	thrust = thrust * 2.0f - 1.0f;
 
-	applyDeadband(&thrust, settings.ThrustDeadband);
+	apply_channel_deadband(&thrust, settings.ThrustDeadband);
 
 	return thrust;
 }
@@ -491,9 +490,9 @@ int32_t transmitter_control_update()
 
 		// Apply deadband for Roll/Pitch/Yaw stick inputs
 		if (settings.Deadband) {
-			applyDeadband(&cmd.Roll, settings.Deadband);
-			applyDeadband(&cmd.Pitch, settings.Deadband);
-			applyDeadband(&cmd.Yaw, settings.Deadband);
+			apply_channel_deadband(&cmd.Roll, settings.Deadband);
+			apply_channel_deadband(&cmd.Pitch, settings.Deadband);
+			apply_channel_deadband(&cmd.Yaw, settings.Deadband);
 		}
 
 		if(cmd.Channel[MANUALCONTROLSETTINGS_CHANNELGROUPS_COLLECTIVE] != (uint16_t) PIOS_RCVR_INVALID &&
@@ -1305,27 +1304,6 @@ bool validInputRange(int n, uint16_t value, uint16_t offset)
 	}
 
 	return (value >= (min - offset) && value <= (max + offset));
-}
-
-/**
- * @brief Apply deadband to Roll/Pitch/Yaw channels
- */
-static void applyDeadband(float *value, float deadband)
-{
-	if (deadband < 0.0001f) return; /* ignore tiny deadband value */
-	if (deadband >= 0.85f) return;	/* reject nonsensical db values */
-
-	if (fabsf(*value) < deadband) {
-		*value = 0.0f;
-	} else {
-		if (*value > 0.0f) {
-			*value -= deadband;
-		} else {
-			*value += deadband;
-		}
-
-		*value /= (1 - deadband);
-	}
 }
 
 /**
