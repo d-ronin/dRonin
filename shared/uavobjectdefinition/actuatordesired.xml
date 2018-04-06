@@ -23,5 +23,12 @@
     <field defaultvalue="0" elements="1" name="SystemIdentCycle" type="uint16" units="samples">
       <description/>
     </field>
+    <field defaultvalue="FALSE" elements="1" name="FlipOverThrustMode" type="enum" units="">
+      <description>TRUE if special "only spin some motors" behavior is requested</description>
+      <options>
+        <option>FALSE</option>
+        <option>TRUE</option>
+      </options>
+    </field>
   </object>
 </xml>

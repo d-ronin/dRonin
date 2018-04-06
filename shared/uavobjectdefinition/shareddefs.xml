@@ -67,6 +67,8 @@
         <option>Altitude</option>
         <option>Vertical Speed</option>
         <option>Altitude With Stick Scaling</option>
+        <option>FlipOver Mode</option>
+        <option>FlipOver Mode Thrust Reversed</option>
       </options>
     </field>
     <field defaultvalue="Direct" elements="1" name="ThrustModeStabBank" parent="SharedDefs.ThrustMode" type="enum">
@@ -74,6 +76,8 @@
       <options>
         <option>Direct</option>
         <option>Altitude With Stick Scaling</option>
+        <option>FlipOver Mode</option>
+        <option>FlipOver Mode Thrust Reversed</option>
       </options>
     </field>
     <field defaultvalue="Uninitialised" elements="1" name="AlarmLevels" type="enum" units="">
