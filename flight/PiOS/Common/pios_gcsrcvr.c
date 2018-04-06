@@ -59,7 +59,7 @@ struct pios_gcsrcvr_dev {
 	enum pios_gcsrcvr_dev_magic magic;
 
 	uint16_t supv_timer;
-	bool Fresh;
+	volatile bool Fresh;
 };
 
 static struct pios_gcsrcvr_dev *global_gcsrcvr_dev;
@@ -148,10 +148,9 @@ static void PIOS_gcsrcvr_Supervisor(uintptr_t gcsrcvr_id) {
 		return;
 	}
 
-	/* 
-	 * RTC runs at 625Hz.
-	 */
-	if ((++gcsrcvr_dev->supv_timer) < (PIOS_GCSRCVR_TIMEOUT_MS * 1000 / 625)) {
+	/* Compare RTC ticks to timeout in ms */
+	if ((++gcsrcvr_dev->supv_timer) <
+			(PIOS_GCSRCVR_TIMEOUT_MS * 1000 / PIOS_RTC_Rate())) {
 		return;
 	}
 	gcsrcvr_dev->supv_timer = 0;
