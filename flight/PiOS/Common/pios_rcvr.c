@@ -143,6 +143,17 @@ void PIOS_RCVR_Active() {
       rcvr_last_wake = PIOS_DELAY_GetRaw();
       PIOS_Semaphore_Give(rcvr_activity);
     }
+#ifdef FLIGHT_POSIX
+    if (PIOS_Thread_FakeClock_IsActive()) {
+      static bool not_first;
+
+      if (not_first) {
+        PIOS_Thread_FakeClock_UpdateBarrier(95);
+      }
+
+      not_first = true;
+    }
+#endif
   }
 }
 
