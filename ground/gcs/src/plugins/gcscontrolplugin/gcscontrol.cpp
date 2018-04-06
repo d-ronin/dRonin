@@ -147,8 +147,12 @@ bool GCSControl::beginGCSControl()
     manControlSettingsUAVO->updated();
     connect(manControlSettingsUAVO, &UAVObject::objectUpdated, this, &GCSControl::objectsUpdated);
     hasControl = true;
-    for (quint8 x = 0; x < GCSReceiver::CHANNEL_NUMELEM; ++x)
-        setChannel(x, 0);
+
+    for (quint8 x = 0; x < NUM_CHANNELS; ++x) {
+        setChannel(channels[x], 0);
+    }
+
+    setChannel(ManualControlSettings::CHANNELGROUPS_ARMING, -1);
     receiverActivity.start();
     return true;
 }
