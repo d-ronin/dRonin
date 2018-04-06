@@ -1069,7 +1069,6 @@ static float channel_failsafe_value(int idx)
 		/* Other channel types-- camera.  Center them. */
 		return 0;
 	}
-
 }
 
 /**
