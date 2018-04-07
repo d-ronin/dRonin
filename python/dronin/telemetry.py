@@ -399,9 +399,11 @@ class TelemetryBase(metaclass=ABCMeta):
     def __handle_frames(self, frames):
         objs = []
 
-        if frames == b'':
+        if frames is None:
             self.eof = True
             self._close()
+        elif frames == b'':
+            return
         else:
             obj = self.uavtalk_generator.send(frames)
 
@@ -508,13 +510,13 @@ class TelemetryBase(metaclass=ABCMeta):
             data = self._receive(expire)
             self.__handle_frames(data)
 
+            if self.eof:
+                break
+
             if len(data):
                 break
 
             if (finish_time is not None) and (time.time() >= finish_time):
-                break
-
-            if self.eof:
                 break
 
     @abstractmethod
@@ -556,14 +558,23 @@ class BidirTelemetry(TelemetryBase):
     def _receive(self, finish_time):
         """ Fetch available data from file descriptor. """
 
+        if self.recv_buf is None:
+            return None
+
         # Always do some minimal IO if possible
         self._do_io(0)
 
-        while (len(self.recv_buf) < 1) and self._do_io(finish_time):
-            pass
+        if self.recv_buf is None:
+            return None
 
         if len(self.recv_buf) < 1:
+            self._do_io(finish_time)
+
+        if self.recv_buf is None:
             return None
+
+        if len(self.recv_buf) < 1:
+            return b''
 
         ret = self.recv_buf
         self.recv_buf = b''
@@ -620,6 +631,9 @@ class FDTelemetry(BidirTelemetry):
 
         did_stuff = False
 
+        if self.recv_buf is None:
+            return False
+
         if len(self.recv_buf) < 1024:
             rd_set.append(self.fd)
 
@@ -636,13 +650,13 @@ class FDTelemetry(BidirTelemetry):
         if r:
             # Shouldn't throw an exception-- they just told us
             # it was ready for read.
-            # TODO: Figure out why read sometimes fails when using sockets
             try:
                 chunk = os.read(self.fd, 1024)
                 if chunk == b'':
-                    raise RuntimeError("stream closed")
-
-                self.recv_buf = self.recv_buf + chunk
+                    if self.recv_buf == b'':
+                        self.recv_buf = None
+                else:
+                    self.recv_buf = self.recv_buf + chunk
 
                 did_stuff = True
             except OSError as err:
@@ -988,6 +1002,9 @@ class FileTelemetry(TelemetryBase):
         """ Fetch available data from file """
 
         buf = self.f.read(524288)   # 512k
+
+        if buf == b'':
+            return None
 
         return buf
 
