@@ -59,9 +59,7 @@
 #include "vtolpathfollowerstatus.h"
 
 // Various navigation constants
-const static float RTH_MIN_ALTITUDE = 15.f;  //!< Hover at least 15 m above home */
 const static float RTH_ALT_ERROR    = 0.8f;  //!< The altitude to come within for RTH */
-const static float RTH_MIN_RISE     = 1.5f;  //!< Always climb at least this much.
 const static float RTH_CLIMB_SPEED  = 1.0f;  //!< Climb at 1m/s 
 
 //! Events that can be be injected into the FSM and trigger state changes
@@ -641,12 +639,17 @@ static void go_enable_rise_here()
 
 	float down = positionActual.Down;
 
+	float tmp;
+
+	VtolPathFollowerSettingsReturnToHomeMinRiseGet(&tmp);
 	// Set the target altitude for MIN_RISE above our current alt
-	down -= RTH_MIN_RISE;
+	down -= tmp;
+
+	VtolPathFollowerSettingsReturnToHomeAltitudeGet(&tmp);
 
 	// But also make sure we return at a minimum of 15 m above home
-	if (down > -RTH_MIN_ALTITUDE)
-		down = -RTH_MIN_ALTITUDE;
+	if (down > -tmp)
+		down = -tmp;
 
 	hold_position(positionActual.North, positionActual.East, down);
 }
@@ -657,8 +660,12 @@ static void go_enable_rise_here()
 static void go_enable_pause_home_10s()
 {
 	float down = vtol_hold_position_ned[2];
-	if (down > - RTH_MIN_ALTITUDE)
-		down = -RTH_MIN_ALTITUDE;
+
+	float tmp;
+	VtolPathFollowerSettingsReturnToHomeAltitudeGet(&tmp);
+
+	if (down > -tmp)
+		down = -tmp;
 
 	hold_position(0, 0, down);
 }
@@ -681,9 +688,12 @@ static void go_enable_fly_home()
 	vtol_fsm_path_desired.End[1] = 0;
 	vtol_fsm_path_desired.End[2] = positionActual.Down;
 
-	if (positionActual.Down > -RTH_MIN_ALTITUDE) {
-		vtol_fsm_path_desired.Start[2] = -RTH_MIN_ALTITUDE;
-		vtol_fsm_path_desired.End[2] = -RTH_MIN_ALTITUDE;
+	float tmp;
+	VtolPathFollowerSettingsReturnToHomeAltitudeGet(&tmp);
+
+	if (positionActual.Down > -tmp) {
+		vtol_fsm_path_desired.Start[2] = -tmp;
+		vtol_fsm_path_desired.End[2] = -tmp;
 	}
 
 	/* Paranoia: set to 3.0f just in case calls below fail.  TODO: change
