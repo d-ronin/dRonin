@@ -30,6 +30,8 @@
 #include <pios.h>
 #include <pios_thread.h>
 
+#include <hwsimulation.h>
+
 struct pios_thread
 {
 	pthread_t thread;
@@ -158,13 +160,28 @@ void PIOS_Thread_FakeClock_UpdateBarrier(uint32_t increment)
 
 void PIOS_Thread_FakeClock_Tick(void)
 {
+	bool blocked = false;
+
 	pthread_mutex_lock(&fake_clock_mutex);
 
-	if ((!fake_tick_barrier) || (fake_tick_barrier != fake_clock)) {
-		fake_clock++;
+	while ((fake_tick_barrier) && (fake_tick_barrier == fake_clock)) {
+		if (!blocked) {
+			uint8_t val = 1;
+			HwSimulationFakeTickBlockedSet(&val);
+		}
 
-		pthread_cond_broadcast(&fake_clock_cond);
+		blocked = true;
+		usleep(250);
 	}
+
+	if (blocked) {
+		uint8_t val = 0;
+		HwSimulationFakeTickBlockedSet(&val);
+	}
+
+	fake_clock++;
+
+	pthread_cond_broadcast(&fake_clock_cond);
 
 	pthread_mutex_unlock(&fake_clock_mutex);
 }

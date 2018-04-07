@@ -145,13 +145,7 @@ void PIOS_RCVR_Active() {
     }
 #ifdef FLIGHT_POSIX
     if (PIOS_Thread_FakeClock_IsActive()) {
-      static bool not_first;
-
-      if (not_first) {
-        PIOS_Thread_FakeClock_UpdateBarrier(95);
-      }
-
-      not_first = true;
+      PIOS_Thread_FakeClock_UpdateBarrier(100);
     }
 #endif
   }
