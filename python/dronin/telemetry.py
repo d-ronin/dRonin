@@ -94,6 +94,8 @@ class TelemetryBase(metaclass=ABCMeta):
 
         self.first_handshake_needed = self.do_handshaking
 
+        self.iter_idx = 0
+
         if do_handshaking:
             self.GCSTelemetryStats = uavo_defs.find_by_name('UAVO_GCSTelemetryStats')
             self.FlightTelemetryStats = uavo_defs.find_by_name('UAVO_FlightTelemetryStats')
@@ -145,15 +147,15 @@ class TelemetryBase(metaclass=ABCMeta):
 
     def __iter__(self):
         """ Iterator service routine. """
-        iterIdx = 0
+        iter_idx = self.iter_idx
 
         self.cond.acquire()
 
         while True:
-            if iterIdx < len(self.uavo_list):
-                obj = self.uavo_list[iterIdx]
+            if iter_idx < len(self.uavo_list):
+                obj = self.uavo_list[iter_idx]
 
-                iterIdx += 1
+                iter_idx += 1
 
                 self.cond.release()
 
@@ -171,6 +173,8 @@ class TelemetryBase(metaclass=ABCMeta):
                     # wait for another thread to fill it in
                     self.cond.wait()
             else:
+                self.iter_idx = iter_idx
+                self.cond.release()
                 break
 
     def __make_handshake(self, handshake):
