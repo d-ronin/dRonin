@@ -662,6 +662,8 @@ void PIOS_SYS_Init(void)
 		exit(1);
 	}
 
+	setbuf(stderr, NULL);
+
 	char ser_text[PIOS_SYS_SERIAL_NUM_ASCII_LEN + 1];
 
 	int ret = PIOS_SYS_SerialNumberGet(ser_text);
