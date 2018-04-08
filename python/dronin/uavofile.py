@@ -3,7 +3,7 @@
 # Copyright (C) 2018 dRonin, http://dronin.org
 
 class UAVFileImport(dict):
-    def __init__(self, contents, uavo_defs=None, githash='HEAD', warnings_fatal=False):
+    def __init__(self, contents, uavo_defs=None, githash='HEAD', warnings_fatal=False, sparse_ok=True):
         try:
             import lxml.etree as etree
         except:
@@ -65,7 +65,7 @@ class UAVFileImport(dict):
                         break
 
                 if found_field is None:
-                    if not field_problem_expected:
+                    if not sparse_ok:
                         raise KeyError("Couldn't find field %s" % (of))
                     continue
 
