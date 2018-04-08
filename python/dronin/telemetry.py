@@ -587,8 +587,7 @@ class BidirTelemetry(TelemetryBase):
         with self.send_lock:
             self.send_buf += msg
 
-        if self.service_in_iter:
-            self._do_io(0)
+        self._do_io(0)
 
     @abstractmethod
     def _do_io(self, finish_time):
@@ -636,6 +635,9 @@ class FDTelemetry(BidirTelemetry):
 
         if len(self.recv_buf) < 1024:
             rd_set.append(self.fd)
+        elif len(self.send_buf) == 0:
+            # If we don't want I/O, return quick!
+            return True
 
         if len(self.send_buf) > 0:
             wr_set.append(self.write_fd)
@@ -647,32 +649,33 @@ class FDTelemetry(BidirTelemetry):
 
         r,w,e = select.select(rd_set, wr_set, [], tm)
 
-        if r:
-            # Shouldn't throw an exception-- they just told us
-            # it was ready for read.
-            try:
-                chunk = os.read(self.fd, 1024)
-                if chunk == b'':
-                    if self.recv_buf == b'':
-                        self.recv_buf = None
-                else:
-                    self.recv_buf = self.recv_buf + chunk
+        with self.cond:
+            if r:
+                # Shouldn't throw an exception-- they just told us
+                # it was ready for read.
+                try:
+                    chunk = os.read(self.fd, 1024)
+                    if chunk == b'':
+                        if self.recv_buf == b'':
+                            self.recv_buf = None
+                    else:
+                        self.recv_buf = self.recv_buf + chunk
 
-                did_stuff = True
-            except OSError as err:
-                # For some reason, we sometimes get a
-                # "Resource temporarily unavailable" error
-                if err.errno != errno.EAGAIN:
-                    raise
+                    did_stuff = True
+                except OSError as err:
+                    # For some reason, we sometimes get a
+                    # "Resource temporarily unavailable" error
+                    if err.errno != errno.EAGAIN:
+                        raise
 
-        if w:
-            with self.send_lock:
-                written = os.write(self.write_fd, self.send_buf)
+            if w:
+                with self.send_lock:
+                    written = os.write(self.write_fd, self.send_buf)
 
-                if written > 0:
-                    self.send_buf = self.send_buf[written:]
+                    if written > 0:
+                        self.send_buf = self.send_buf[written:]
 
-                did_stuff = True
+                    did_stuff = True
 
         return did_stuff
 
@@ -868,7 +871,7 @@ class HIDTelemetry(BidirTelemetry):
 
         BidirTelemetry.__init__(self, *args, **kwargs)
 
-    # Call select and do one set of IO operations.
+    # Do USB I/O operations.
     def _do_io(self, finish_time):
         import errno
 
