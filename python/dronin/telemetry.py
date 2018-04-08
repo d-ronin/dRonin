@@ -349,6 +349,22 @@ class TelemetryBase(metaclass=ABCMeta):
 
         self.send_object(save_req, req_ack=True)
 
+        for i in range(30):
+            try:
+                lv = self.last_values[save_obj]
+                if lv.ObjectID == obj._id:
+                    if lv.Operation == save_obj.ENUM_Operation['Completed']:
+                        return
+
+                    if lv.Operation != save_obj.ENUM_Operation['Save']:
+                        raise Exception("Did not save successfully - bad status")
+            except KeyError:
+                pass
+
+            time.sleep(0.05)
+
+        raise Exception("Did not save successfully - timeout")
+
     def save_objects(self, objs, *arg, **kwargs):
         for obj in objs:
             self.save_object(obj, *arg, **kwargs)
