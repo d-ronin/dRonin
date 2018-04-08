@@ -1102,7 +1102,7 @@ def _finish_telemetry_args(parser, args, service_in_iter, iter_blocks):
             githash=githash)
 
 def get_telemetry_by_args(desc="Process telemetry", service_in_iter=True,
-        iter_blocks=True, arg_parser=None):
+        iter_blocks=True, arg_parser=None, arguments=None):
     """ Parses command line to decide how to get a telemetry object. """
     # Setup the command line arguments.
 
@@ -1153,7 +1153,10 @@ def get_telemetry_by_args(desc="Process telemetry", service_in_iter=True,
             help  = "file, host:port, vid:pid, command, or serial port")
 
     # Parse the command-line.
-    args = parser.parse_args()
+    if arguments is None:
+        args = parser.parse_args()
+    else:
+        args = parser.parse_args(arguments)
 
     ret = _finish_telemetry_args(parser, args, service_in_iter, iter_blocks)
 
