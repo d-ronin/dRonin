@@ -1,0 +1,121 @@
+#!/usr/bin/env python3
+
+import unittest
+
+class SimulationTestCase(unittest.TestCase):
+    def setUp(self):
+        import signal
+
+        self.expected = self.expected_session_time()
+        self.timeout = int(self.expected * 1.5 + 1.5) + 1
+
+        signal.alarm(self.timeout)
+
+        from dronin import telemetry
+
+        if self.should_wipe_first():
+            import os
+
+            try:
+                os.remove('build/unittest.flash')
+            except FileNotFoundError:
+                pass
+
+        args = [ "-c", "./build/flightd/flightd -! -S telemetry:stdio -c build/unittest.flash" ]
+        t_stream = telemetry.get_telemetry_by_args(service_in_iter=False,
+                arguments = args)
+        t_stream.start_thread()
+        t_stream.wait_connection()
+
+        self.stream_iter = iter(t_stream)
+        self.t_stream = t_stream
+
+    def tearDown(self):
+        self.t_stream._close()
+
+        import signal
+
+        remaining = signal.alarm(0)
+        #print("Elapsed %d vs expected %f\n"%(self.timeout - remaining, self.expected))
+
+    def wait_for_tick(self):
+        for o in self.stream_iter:
+            if o.name=='UAVO_HwSimulation':
+                if o.FakeTickBlocked != 0:
+                    return True
+
+        # This is bad.  Got to end of stream, no tick.
+        return False
+
+    def expected_session_time(self):
+        return 9.0
+
+    def should_wipe_first(self):
+        return False
+
+class AAConfTests(SimulationTestCase):
+    def should_wipe_First(self):
+        return True
+
+    def testDoConfig(self):
+        from dronin import uavofile
+
+        t_stream = self.t_stream
+
+        with open("python/minsim.xml", "rb") as f:
+            objs = uavofile.UAVFileImport(uavo_defs=t_stream.uavo_defs, contents=f.read())
+
+        t_stream.save_objects(objs.values(), send_first=True)
+
+class SimpleSimTests(SimulationTestCase):
+    def testFiftyTicksOfDisarm(self):
+        t_stream = self.t_stream
+
+        gcs_rcvr_class = t_stream.uavo_defs.find_by_name("GCSReceiver")
+
+        # Invalid throttle channel should trigger receiver error.
+        gi = gcs_rcvr_class._make_to_send((0,5000,5000,5000,1000,0,0,0))
+
+        stream_iter = iter(t_stream)
+
+        for i in range(20):
+            t_stream.send_object(gi)
+
+            self.assertTrue(self.wait_for_tick(), "Failed waiting for tick")
+
+        alarms = t_stream.as_filtered_list('SystemAlarms', blocks=False)
+
+        for a in alarms:
+            self.assertEqual(a.ManualControl, a.ENUM_ManualControl['NoRx'],
+                    "Expected NoRx when invalid radio")
+
+        gi = gcs_rcvr_class._make_to_send((1000,5000,5000,5000,1000,0,0,0))
+
+        for i in range(30):
+            t_stream.send_object(gi)
+
+            self.assertTrue(self.wait_for_tick(), "Failed waiting for tick")
+
+        alarms = t_stream.as_filtered_list('SystemAlarms', blocks=False)
+        alarms = alarms[int(len(alarms)/2)+1:]
+
+        for a in alarms:
+            self.assertEqual(a.ManualControl, a.ENUM_ManualControl['None'],
+                    "Expected NoRx when invalid radio")
+
+        flightStatus = t_stream.as_filtered_list('FlightStatus', blocks=False)
+
+        for f in flightStatus:
+            self.assertEqual(f.Armed, f.ENUM_Armed['Disarmed'],
+                    "Expected to stay disarmed")
+
+        systemStats = t_stream.as_filtered_list('SystemStats', blocks=False)
+
+        last_flight_time = systemStats[-1].FlightTime
+
+        # We spent 5 seconds.  We expect a number between 4 and 5.5 seconds.
+        self.assertGreaterEqual(last_flight_time, 4000)
+        self.assertLessEqual(last_flight_time, 5500)
+
+if __name__ == "__main__":
+    unittest.main()
