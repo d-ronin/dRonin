@@ -710,7 +710,7 @@ class FDTelemetry(BidirTelemetry):
 
 class SubprocessTelemetry(FDTelemetry):
     """ TCP telemetry interface. """
-    def __init__(self, cmdline, shell=True, *args, **kwargs):
+    def __init__(self, cmdline, shell=False, *args, **kwargs):
         """ Creates a telemetry instance talking over TCP.
 
          - host: hostname to connect to (default localhost)
@@ -721,6 +721,10 @@ class SubprocessTelemetry(FDTelemetry):
         """
 
         import subprocess
+
+        if isinstance(cmdline, str):
+            import shlex
+            cmdline = shlex.split(cmdline)
 
         sp = subprocess.Popen(cmdline, stdout=subprocess.PIPE,
                 stdin=subprocess.PIPE, shell=shell)
@@ -742,6 +746,8 @@ class SubprocessTelemetry(FDTelemetry):
 
     def _close(self):
         self.sp.kill()
+        self.sp.wait(timeout=3)
+
 
 class NetworkTelemetry(FDTelemetry):
     """ TCP telemetry interface. """
