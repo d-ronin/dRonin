@@ -119,13 +119,9 @@ class TelemetryBase(metaclass=ABCMeta):
             if request is not None:
                 request.completed(None, obj._id)
 
-    def as_numpy_array(self, match_class, filter_cond=None, blocks=True):
-        """ Transforms all received instances of a given object to a numpy array.
-
-        match_class: the UAVO_* class you'd like to match.
-        """
-
-        import numpy as np
+    def as_filtered_list(self, match_class, filter_cond=None, blocks=True):
+        if isinstance(match_class, str):
+            match_class = self.uavo_defs.find_by_name(match_class)
 
         if blocks:
             to_iter = self
@@ -134,6 +130,23 @@ class TelemetryBase(metaclass=ABCMeta):
 
         # Find the subset of this list that is of the requested class
         filtered_list = [x for x in to_iter if isinstance(x, match_class)]
+
+        # Perform any additional requested filtering
+        if filter_cond is not None:
+            filtered_list = list(filter(filter_cond, filtered_list))
+
+        return filtered_list
+
+    def as_numpy_array(self, match_class, filter_cond=None, blocks=True):
+        """ Transforms all received instances of a given object to a numpy array.
+
+        match_class: the UAVO_* class you'd like to match.
+        """
+
+        import numpy as np
+
+        # Find the subset of this list that is of the requested class
+        filtered_list = self.as_filtered_list(match_class, filter_cond, blocks)
 
         # Perform any additional requested filtering
         if filter_cond is not None:
