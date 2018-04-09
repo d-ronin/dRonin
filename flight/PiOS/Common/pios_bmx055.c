@@ -264,25 +264,38 @@ int32_t PIOS_BMX055_SPI_Init(pios_bmx055_dev_t *dev, pios_spi_t spi_id,
 
 	if (ret) return ret;
 
-#if 0
-	/* Set up EXTI line */
-	PIOS_EXTI_Init(bmx_dev->cfg->exti_cfg);
+	if (bmx_dev->cfg->int_pin) {
+		dio_set_input(bmx_dev->cfg->int_pin, DIO_PULL_NONE);
 
-	/* Wait 20 ms for data ready interrupt and make sure it happens twice */
-	if (!bmx_dev->cfg->skip_startup_irq_check) {
-		for (int i=0; i<2; i++) {
-			uint32_t ref_val = bmx_dev->interrupt_count;
-			uint32_t raw_start = PIOS_DELAY_GetRaw();
+		ret = PIOS_BMX_WriteReg(bmx_dev->spi_slave_gyro,
+				BMX055_REG_GYRO_INT_EN_0,
+				128);
 
-			while (bmx_dev->interrupt_count == ref_val) {
-				if (PIOS_DELAY_DiffuS(raw_start) > 20000) {
-					PIOS_EXTI_DeInit(bmx_dev->cfg->exti_cfg);
-					return -PIOS_BMX_ERROR_NOIRQ;
+		if (ret) return ret;
+
+		ret = PIOS_BMX_WriteReg(bmx_dev->spi_slave_gyro,
+				BMX055_REG_GYRO_INT_EN_1,
+				12);
+
+		if (ret) return ret;
+
+		ret = PIOS_BMX_WriteReg(bmx_dev->spi_slave_gyro,
+				BMX055_REG_GYRO_INT_MAP_1,
+				1);
+
+		if (ret) return ret;
+
+		/* Wait 20 ms for data ready interrupt and make sure it happens
+		 * twice */
+		if (!bmx_dev->cfg->skip_startup_irq_check) {
+			for (int i=0; i<2; i++) {
+				if (!dio_wait(bmx_dev->cfg->int_pin, true, 20000)) {
+					DEBUG_PRINTF(2, "Missing interrupt!");
+					return -100;
 				}
 			}
 		}
 	}
-#endif
 
 	bmx_dev->task_handle = PIOS_Thread_Create(
 			PIOS_BMX_Task, "pios_bmx", PIOS_BMX_TASK_STACK,
@@ -293,8 +306,13 @@ int32_t PIOS_BMX055_SPI_Init(pios_bmx055_dev_t *dev, pios_spi_t spi_id,
 
 	PIOS_SENSORS_SetMaxGyro(2000);
 
-	PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_GYRO, 800);
-	PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_ACCEL, 800);
+	if (bmx_dev->cfg->int_pin) {
+		PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_GYRO, 1000);
+		PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_ACCEL, 1000);
+	} else {
+		PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_GYRO, 800);
+		PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_ACCEL, 800);
+	}
 
 	PIOS_SENSORS_Register(PIOS_SENSOR_ACCEL, bmx_dev->accel_queue);
 	PIOS_SENSORS_Register(PIOS_SENSOR_GYRO, bmx_dev->gyro_queue);
@@ -353,33 +371,16 @@ static int32_t PIOS_BMX_WriteReg(int slave, uint8_t address, uint8_t buffer)
 	return 0;
 }
 
-#if 0
-bool PIOS_BMX_IRQHandler(void)
-{
-	if (PIOS_BMX_Validate(bmx_dev) != 0)
-		return false;
-
-	bool woken = false;
-
-	bmx_dev->interrupt_count++;
-
-	PIOS_Semaphore_Give_FromISR(bmx_dev->data_ready_sema, &woken);
-
-	return woken;
-}
-#endif
-
 static void PIOS_BMX_Task(void *parameters)
 {
 	(void)parameters;
 
 	while (true) {
-#if 0
-		//Wait for data ready interrupt
-		if (PIOS_Semaphore_Take(bmx_dev->data_ready_sema, PIOS_SEMAPHORE_TIMEOUT_MAX) != true)
-			continue;
-#endif
-		PIOS_Thread_Sleep(1);		/* XXX */
+		if (!bmx_dev->cfg->int_pin) {
+			PIOS_Thread_Sleep(1);
+		} else {
+			dio_wait(bmx_dev->cfg->int_pin, true, 1000000);
+		}
 
 		// claim bus in high speed mode
 		if (PIOS_SPI_ClaimBus(bmx_dev->spi_id) != 0)

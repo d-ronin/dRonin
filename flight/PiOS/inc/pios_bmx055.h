@@ -29,6 +29,7 @@
 #define PIOS_BMX055_H
 
 #include "pios.h"
+#include <pios_dio.h>
 
 enum pios_bmx055_orientation { // clockwise rotation from board forward
 	PIOS_BMX_TOP_0DEG    = 0x00,
@@ -42,10 +43,10 @@ enum pios_bmx055_orientation { // clockwise rotation from board forward
 };
 
 struct pios_bmx055_cfg {
-//	const struct pios_exti_cfg *exti_cfg; /* Pointer to the EXTI configuration */
-
 	enum pios_bmx055_orientation orientation;
 	bool skip_startup_irq_check;
+
+	dio_tag_t int_pin;
 };
 
 typedef struct pios_bmx055_dev * pios_bmx055_dev_t;
@@ -57,14 +58,6 @@ typedef struct pios_bmx055_dev * pios_bmx055_dev_t;
 int32_t PIOS_BMX055_SPI_Init(pios_bmx055_dev_t *dev, pios_spi_t spi_id,
 		uint32_t slave_gyro, uint32_t slave_accel,
 		const struct pios_bmx055_cfg *cfg);
-
-#if 0
-/**
- * @brief The IMU interrupt handler.
- * Fetches new data from the IMU.
- */
-bool PIOS_BMX055_IRQHandler(void);
-#endif
 
 #endif /* PIOS_BMX055_H */
 
