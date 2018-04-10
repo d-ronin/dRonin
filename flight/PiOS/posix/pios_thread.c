@@ -179,7 +179,11 @@ void PIOS_Thread_FakeClock_Tick(void)
 		HwSimulationFakeTickBlockedSet(&val);
 	}
 
-	fake_clock++;
+	if (fake_clock == 0) {
+		fake_clock = PIOS_Thread_Systime() + 1;
+	} else {
+		fake_clock++;
+	}
 
 	pthread_cond_broadcast(&fake_clock_cond);
 
@@ -226,7 +230,7 @@ void PIOS_Thread_Sleep(uint32_t time_ms)
 
 		uint32_t expiration = fake_clock + time_ms;
 
-		while ((fake_clock - expiration) > 0x8000000) {
+		while ((fake_clock - expiration) > 0xF0000000) {
 			pthread_cond_wait(&fake_clock_cond,
 					&fake_clock_mutex);
 		}
