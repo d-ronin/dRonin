@@ -639,17 +639,17 @@ static void go_enable_rise_here()
 
 	float down = positionActual.Down;
 
-	float tmp;
+	float min_rise, rth_alt;
 
-	VtolPathFollowerSettingsReturnToHomeMinRiseGet(&tmp);
+	VtolPathFollowerSettingsReturnToHomeMinRiseGet(&min_rise);
+	VtolPathFollowerSettingsReturnToHomeAltitudeGet(&rth_alt);
+
 	// Set the target altitude for MIN_RISE above our current alt
-	down -= tmp;
-
-	VtolPathFollowerSettingsReturnToHomeAltitudeGet(&tmp);
+	down -= min_rise;
 
 	// But also make sure we return at a minimum of 15 m above home
-	if (down > -tmp)
-		down = -tmp;
+	if (down > -rth_alt)
+		down = -rth_alt;
 
 	hold_position(positionActual.North, positionActual.East, down);
 }
@@ -661,11 +661,11 @@ static void go_enable_pause_home_10s()
 {
 	float down = vtol_hold_position_ned[2];
 
-	float tmp;
-	VtolPathFollowerSettingsReturnToHomeAltitudeGet(&tmp);
+	float rth_alt;
+	VtolPathFollowerSettingsReturnToHomeAltitudeGet(&rth_alt);
 
-	if (down > -tmp)
-		down = -tmp;
+	if (down > -rth_alt)
+		down = -rth_alt;
 
 	hold_position(0, 0, down);
 }
@@ -688,12 +688,12 @@ static void go_enable_fly_home()
 	vtol_fsm_path_desired.End[1] = 0;
 	vtol_fsm_path_desired.End[2] = positionActual.Down;
 
-	float tmp;
-	VtolPathFollowerSettingsReturnToHomeAltitudeGet(&tmp);
+	float rth_alt;
+	VtolPathFollowerSettingsReturnToHomeAltitudeGet(&rth_alt);
 
-	if (positionActual.Down > -tmp) {
-		vtol_fsm_path_desired.Start[2] = -tmp;
-		vtol_fsm_path_desired.End[2] = -tmp;
+	if (positionActual.Down > -rth_alt) {
+		vtol_fsm_path_desired.Start[2] = -rth_alt;
+		vtol_fsm_path_desired.End[2] = -rth_alt;
 	}
 
 	/* Paranoia: set to 3.0f just in case calls below fail.  TODO: change
