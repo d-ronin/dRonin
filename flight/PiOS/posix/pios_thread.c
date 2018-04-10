@@ -155,7 +155,21 @@ static volatile uint32_t fake_tick_barrier;
 
 void PIOS_Thread_FakeClock_UpdateBarrier(uint32_t increment)
 {
+	pthread_mutex_lock(&fake_clock_mutex);
+
 	fake_tick_barrier = fake_clock + increment;
+	pthread_cond_broadcast(&fake_clock_cond);
+
+	pthread_mutex_unlock(&fake_clock_mutex);
+}
+
+static inline uint32_t PIOS_Thread_GetClock_Impl()
+{
+	struct timespec monotime;
+
+	clock_gettime(CLOCK_MONOTONIC, &monotime);
+
+	return monotime.tv_sec * 1000 + monotime.tv_nsec / 1000000;
 }
 
 void PIOS_Thread_FakeClock_Tick(void)
@@ -171,7 +185,8 @@ void PIOS_Thread_FakeClock_Tick(void)
 		}
 
 		blocked = true;
-		usleep(250);
+
+		pthread_cond_wait(&fake_clock_cond, &fake_clock_mutex);
 	}
 
 	if (blocked) {
@@ -180,7 +195,7 @@ void PIOS_Thread_FakeClock_Tick(void)
 	}
 
 	if (fake_clock == 0) {
-		fake_clock = PIOS_Thread_Systime() + 1;
+		fake_clock = PIOS_Thread_GetClock_Impl() + 1;
 	} else {
 		fake_clock++;
 	}
@@ -197,16 +212,11 @@ bool PIOS_Thread_FakeClock_IsActive(void)
 
 uint32_t PIOS_Thread_Systime(void)
 {
-	if (fake_clock) {
-		/* Doing some nice atomic reads here is OK */
-		return fake_clock;
+	uint32_t t = fake_clock;
+
+	if (!t) {
+		t = PIOS_Thread_GetClock_Impl();
 	}
-
-	struct timespec monotime;
-
-	clock_gettime(CLOCK_MONOTONIC, &monotime);
-
-	uint32_t t = monotime.tv_sec * 1000 + monotime.tv_nsec / 1000000;
 
 	static uint32_t base = 0;
 
@@ -230,7 +240,7 @@ void PIOS_Thread_Sleep(uint32_t time_ms)
 
 		uint32_t expiration = fake_clock + time_ms;
 
-		while ((fake_clock - expiration) > 0xF0000000) {
+		while ((expiration - fake_clock) <= time_ms) {
 			pthread_cond_wait(&fake_clock_cond,
 					&fake_clock_mutex);
 		}
