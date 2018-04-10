@@ -150,7 +150,7 @@ bool PIOS_Queue_Send(struct pios_queue *queuep,
 			if (PIOS_Queue_Send_Impl(queuep, itemp, 1)) {
 				return true;
 			}
-		} while ((timeout_ms != PIOS_QUEUE_TIMEOUT_MAX) &&
+		} while ((timeout_ms == PIOS_QUEUE_TIMEOUT_MAX) ||
 				(!PIOS_Thread_Period_Elapsed(start,
 							     timeout_ms)));
 
@@ -222,7 +222,7 @@ bool PIOS_Queue_Receive(struct pios_queue *queuep,
 			if (PIOS_Queue_Receive_Impl(queuep, itemp, 1)) {
 				return true;
 			}
-		} while ((timeout_ms != PIOS_QUEUE_TIMEOUT_MAX) &&
+		} while ((timeout_ms == PIOS_QUEUE_TIMEOUT_MAX) ||
 				(!PIOS_Thread_Period_Elapsed(start,
 							     timeout_ms)));
 
