@@ -237,14 +237,18 @@ void PIOS_Board_Init(void) {
 	/* Configure IO ports */
 
 #if defined(PIOS_INCLUDE_I2C)
-	if (PIOS_I2C_Init(&pios_i2c_mag_pressure_adapter_id, &pios_i2c_mag_pressure_adapter_cfg))
-		PIOS_DEBUG_Assert(0);
-
-	if (PIOS_I2C_CheckClear(pios_i2c_mag_pressure_adapter_id) != 0)
+	if ((!is_modified_clone) && PIOS_I2C_Init(&pios_i2c_mag_pressure_adapter_id, &pios_i2c_mag_pressure_adapter_cfg)) {
 		PIOS_HAL_CriticalError(PIOS_LED_HEARTBEAT, PIOS_HAL_PANIC_I2C_INT);
-	else
-		if (AlarmsGet(SYSTEMALARMS_ALARM_I2C) == SYSTEMALARMS_ALARM_UNINITIALISED)
+	}
+
+	if ((!is_modified_clone) &&
+			(PIOS_I2C_CheckClear(pios_i2c_mag_pressure_adapter_id) != 0)) {
+		PIOS_HAL_CriticalError(PIOS_LED_HEARTBEAT, PIOS_HAL_PANIC_I2C_INT);
+	} else if (!is_modified_clone) {
+		if (AlarmsGet(SYSTEMALARMS_ALARM_I2C) == SYSTEMALARMS_ALARM_UNINITIALISED) {
 			AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_OK);
+		}
+	}
 #endif  // PIOS_INCLUDE_I2C
 
 	HwRevolutionDSMxModeOptions hw_DSMxMode;
@@ -557,6 +561,10 @@ void PIOS_Board_Init(void) {
 	uint8_t hw_magnetometer;
 	HwRevolutionMagnetometerGet(&hw_magnetometer);
 
+	if (!pios_i2c_mag_pressure_adapter_id) {
+		hw_magnetometer = HWREVOLUTION_MAGNETOMETER_NONE;
+	}
+
 	switch (hw_magnetometer) {
 		case HWREVOLUTION_MAGNETOMETER_NONE:
 			break;
@@ -590,7 +598,7 @@ void PIOS_Board_Init(void) {
 	PIOS_WDG_Clear();
 
 #if defined(PIOS_INCLUDE_MS5611)
-	if ((PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_mag_pressure_adapter_id) != 0) || (PIOS_MS5611_Test() != 0)) {
+	if ((!pios_i2c_mag_pressure_adapter_id) || (PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_mag_pressure_adapter_id) != 0) || (PIOS_MS5611_Test() != 0)) {
 		if (!is_modified_clone) {
 			PIOS_HAL_CriticalError(PIOS_LED_HEARTBEAT, PIOS_HAL_PANIC_BARO);
 		}

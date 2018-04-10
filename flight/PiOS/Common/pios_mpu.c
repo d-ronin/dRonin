@@ -664,12 +664,17 @@ void PIOS_MPU_SetGyroBandwidth(uint16_t bandwidth)
 			filter = PIOS_ICM20608G_GYRO_LOWPASS_20_HZ;
 		else if (bandwidth <= 92)
 			filter = PIOS_ICM20608G_GYRO_LOWPASS_92_HZ;
+		else
+			filter = PIOS_ICM20608G_GYRO_LOWPASS_176_HZ;
+#if 0
+		/* Unsupported/higher sample rates */
 		else if (bandwidth <= 176)
 			filter = PIOS_ICM20608G_GYRO_LOWPASS_176_HZ;
 		else if (bandwidth <= 250)
 			filter = PIOS_ICM20608G_GYRO_LOWPASS_250_HZ;
 		else
 			filter = PIOS_ICM20608G_GYRO_LOWPASS_3281_HZ;
+#endif
 	}
 
 	PIOS_MPU_WriteReg(PIOS_MPU_DLPF_CFG_REG, filter);

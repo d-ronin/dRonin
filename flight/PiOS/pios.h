@@ -125,7 +125,7 @@
 #if defined(PIOS_INCLUDE_ETASV3)
 #include <pios_etasv3.h>
 #endif
-#if defined(PIOS_INCLUDE_BMP280)
+#if defined(PIOS_INCLUDE_BMP280) || defined(PIOS_INCLUDE_BMP280_SPI)
 #include <pios_bmp280.h>
 #endif
 #if defined(PIOS_INCLUDE_HCSR04)

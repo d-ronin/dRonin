@@ -281,9 +281,9 @@ static inline void PIOS_HAL_Err2811(bool on) {
 		} else {
 			PIOS_WS2811_set_all(pios_ws2811, 0, 32, 0);
 		}
-	}
 
-	PIOS_WS2811_trigger_update(pios_ws2811);
+		PIOS_WS2811_trigger_update(pios_ws2811);
+	}
 #endif
 }
 
