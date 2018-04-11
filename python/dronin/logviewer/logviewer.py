@@ -8,8 +8,6 @@ from dronin.logviewer.plotdockarea import PlotDockArea
 
 from dronin_pyqtgraph.dockarea import *
 
-import six
-
 def get_data_series(obj_name, fields):
     data = get_series(obj_name)
 

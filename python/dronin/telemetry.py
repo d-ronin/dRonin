@@ -18,9 +18,7 @@ import os
 
 from abc import ABCMeta, abstractmethod
 
-from six import with_metaclass
-
-class TelemetryBase(with_metaclass(ABCMeta)):
+class TelemetryBase(metaclass=ABCMeta):
     """
     Basic (abstract) implementation of telemetry used by all stream types.
     """
@@ -265,10 +263,10 @@ class TelemetryBase(with_metaclass(ABCMeta)):
             # Check for anything that needs retrying--- requests,
             # acked operations.  Do at most one thing per cycle.
 
-            for f in self.req_obj.values():
+            for f in list(self.req_obj.values()):
                 if f.expired():
                     self.req_obj.pop(f.key())
-                    f.completed(None, f._id)
+                    f.completed(None, f.obj._id)
                 elif f.time_to_resend():
                     key = f.key()
                     self._send(f.make_request())
@@ -637,7 +635,7 @@ class FDTelemetry(BidirTelemetry):
             # TODO: Figure out why read sometimes fails when using sockets
             try:
                 chunk = os.read(self.fd, 1024)
-                if chunk == '':
+                if chunk == b'':
                     raise RuntimeError("stream closed")
 
                 self.recv_buf = self.recv_buf + chunk
@@ -751,7 +749,7 @@ class SerialTelemetry(BidirTelemetry):
             try:
                 chunk = self.ser.read(1024)
 
-                if chunk != '':
+                if chunk != b'':
                     did_stuff = True
                     self.recv_buf = self.recv_buf + chunk
             except serial.serialutil.SerialException:
@@ -759,7 +757,7 @@ class SerialTelemetry(BidirTelemetry):
                 pass
 
             with self.send_lock:
-                if self.send_buf != '':
+                if self.send_buf != b'':
                     try:
                         written = self.ser.write(self.send_buf)
 
@@ -855,14 +853,13 @@ class HIDTelemetry(BidirTelemetry):
     # Call select and do one set of IO operations.
     def _do_io(self, finish_time):
         import errno
-        from six import int2byte, indexbytes, byte2int, iterbytes
 
         did_stuff = False
 
         to_block = 10   # Wait no more than 10ms first time around
 
         while not did_stuff:
-            chunk = ''
+            chunk = b''
 
             try:
                 raw = self.ep_in.read(64, timeout=to_block)
@@ -876,19 +873,19 @@ class HIDTelemetry(BidirTelemetry):
                 if e.errno != errno.ETIMEDOUT:
                     raise
 
-            if chunk != '':
+            if chunk != b'':
                 did_stuff = True
                 self.recv_buf = self.recv_buf + chunk
 
             with self.send_lock:
-                if self.send_buf != '':
+                if self.send_buf != b'':
                     to_write = len(self.send_buf)
 
                     if to_write > 60:
                         to_write = 60
 
                     try:
-                        buf = int2byte(1) + int2byte(to_write) + self.send_buf[0:to_write]
+                        buf = bytes((1, to_write)) + self.send_buf[0:to_write]
 
                         written = self.ep_out.write(buf) - 2
 
@@ -905,12 +902,12 @@ class HIDTelemetry(BidirTelemetry):
                     break
 
                 # if we have nothing left to send
-                if self.send_buf == '':
+                if self.send_buf == b'':
                     remaining = finish_time - now
 
                     to_block = int((remaining * 0.75) * 1000) + 25
             else:
-                if self.send_buf == '':
+                if self.send_buf == b'':
                     to_block = 2000
                 else:
                     to_block = 10
