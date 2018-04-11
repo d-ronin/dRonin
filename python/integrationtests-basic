@@ -23,7 +23,7 @@ class SimulationTestCase(unittest.TestCase):
 
         args = [ "-c", "./build/flightd/flightd -! -S telemetry:stdio -c build/unittest.flash" ]
         t_stream = telemetry.get_telemetry_by_args(service_in_iter=False,
-                arguments = args)
+                arguments=args)
         t_stream.start_thread()
         t_stream.wait_connection()
 
@@ -54,21 +54,22 @@ class SimulationTestCase(unittest.TestCase):
         return False
 
 class AAConfTests(SimulationTestCase):
-    def should_wipe_First(self):
+    def should_wipe_first(self):
         return True
 
-    def testDoConfig(self):
+    def test_do_config(self):
         from dronin import uavofile
 
         t_stream = self.t_stream
 
         with open("python/minsim.xml", "rb") as f:
-            objs = uavofile.UAVFileImport(uavo_defs=t_stream.uavo_defs, contents=f.read())
+            objs = uavofile.UAVFileImport(uavo_defs=t_stream.uavo_defs,
+                    contents=f.read())
 
         t_stream.save_objects(objs.values(), send_first=True)
 
 class SimpleSimTests(SimulationTestCase):
-    def testFiftyTicksOfDisarm(self):
+    def test_fifty_ticks_of_disarm(self):
         t_stream = self.t_stream
 
         gcs_rcvr_class = t_stream.uavo_defs.find_by_name("GCSReceiver")
