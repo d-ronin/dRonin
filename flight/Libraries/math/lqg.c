@@ -257,34 +257,40 @@ void lqr_calculate_covariance_2x2(float A[2][2], float B[2], float P[2][2], floa
 	float nP[2][2];
 	const float R = 1;
 
-	nP[0][0] = (Q00*R + A00*A00*P00*R + B0*B0*P00*Q00 + B1*B1*P11*Q00 +
-		A10*A10*P11*R + A00*A00*B1*B1*P00*P11 - A00*A00*B1*B1*P01*P10 +
-		A10*A10*B0*B0*P00*P11 - A10*A10*B0*B0*P01*P10 + A00*A10*P01*R +
-		A00*A10*P10*R + B0*B1*P01*Q00 + B0*B1*P10*Q00 - 2*A00*A10*B0*B1*P00*P11 +
-		2*A00*A10*B0*B1*P01*P10)
-		/
-		(R + B0*B0*P00 + B1*B1*P11 + B0*B1*P01 + B0*B1*P10);
+	float B0B0 = B0*B0;
+	float B1B1 = B1*B1;
+	float B0B1 = B0*B1;
+	float A00A00 = A00*A00;
+	float A01A01 = A01*A01;
+	float A11A11 = A11*A11;
+	float P01P10 = P01*P10;
+	float P00P11 = P00*P11;
 
-	nP[1][0] = (A00*A01*P00*R + A00*A11*P01*R + A01*A10*P10*R + A10*A11*P11*R +
-		A00*A01*B1*B1*P00*P11 - A00*A01*B1*B1*P01*P10 + A10*A11*B0*B0*P00*P11 - 
-		A10*A11*B0*B0*P01*P10 - A00*A11*B0*B1*P00*P11 + A00*A11*B0*B1*P01*P10 - 
-		A01*A10*B0*B1*P00*P11 + A01*A10*B0*B1*P01*P10)
-		/
-		(R + B0*B0*P00 + B1*B1*P11 + B0*B1*P01 + B0*B1*P10);
+	float div = (R + B0B0*P00 + B1B1*P11 + B0B1*(P01 + P10));
 
-	nP[0][1] = (A00*A01*P00*R + A01*A10*P01*R + A00*A11*P10*R + A10*A11*P11*R + 
-		A00*A01*B1*B1*P00*P11 - A00*A01*B1*B1*P01*P10 + A10*A11*B0*B0*P00*P11 - 
-		A10*A11*B0*B0*P01*P10 - A00*A11*B0*B1*P00*P11 + A00*A11*B0*B1*P01*P10 - 
-		A01*A10*B0*B1*P00*P11 + A01*A10*B0*B1*P01*P10)
-		/
-		(R + B0*B0*P00 + B1*B1*P11 + B0*B1*P01 + B0*B1*P10);
+	nP[0][0] = (Q00*R + P00*(A00A00*R + B0B0*Q00) +
+		B1B1*(P11*Q00 + A00A00*(P00P11 - P01P10)) +
+		B0B1*Q00*(P01 + P10))
+	    /
+	    div;
 
-	nP[1][1] = (Q11*R + A01*A01*P00*R + B0*B0*P00*Q11 + A11*A11*P11*R + B1*B1*P11*Q11 + 
-		A01*A01*B1*B1*P00*P11 - A01*A01*B1*B1*P01*P10 + A11*A11*B0*B0*P00*P11 - 
-		A11*A11*B0*B0*P01*P10 + A01*A11*P01*R + A01*A11*P10*R + B0*B1*P01*Q11 + 
-		B0*B1*P10*Q11 - 2*A01*A11*B0*B1*P00*P11 + 2*A01*A11*B0*B1*P01*P10)
+	float common = A01*(P00*R + B1B1*(P00P11 - P01P10)) - A11*B0B1*(P00P11 + P01P10);
+
+	nP[1][0] = (A00*(A11*P10*R + common))
+	    /
+	    div;
+
+	nP[0][1] = (A00*(A11*P01*R + common))
+	    /
+	    div;
+
+	nP[1][1] = (Q11*R + A01A01*P00*R + B0B0*P00*Q11 +
+		A11A11*(P11*R + B0B0*(P00P11 - P01P10)) +
+		B1B1*(P11*Q11 + A01A01*P00P11 - A01A01*P01P10) +
+		A01*A11*P01*R + A01*A11*P10*R + B0B1*P01*Q11 +
+		B0B1*(P10*Q11 - 2*A01*A11*P00P11 + 2*A01*A11*P01P10))
 		/
-		(R + B0*B0*P00 + B1*B1*P11 + B0*B1*P01 + B0*B1*P10);
+		div;
 
 	P00 = nP[0][0];
 	P01 = nP[0][1];
@@ -317,8 +323,11 @@ void lqr_calculate_gains_int(float A[2][2], float B[2], float P[2][2], float K[2
 {
 	const float R = 1;
 
-	K[0] = (A00*(B0*P00 + B1*P10) + A10*(B0*P01 + B1*P11))/(R + B0*(B0*P00 + B1*P10) + B1*(B0*P01 + B1*P11));
-	K[1] = (A01*(B0*P00 + B1*P10) + A11*(B0*P01 + B1*P11))/(R + B0*(B0*P00 + B1*P10) + B1*(B0*P01 + B1*P11));
+	float div = (R + B1*B1*P11 + B0*(B0*P00 + B1*(P01 + P10)));
+
+	K[0] = (A00*(B0*P00 + B1*P10)) / div;
+	K[1] = (A01*(B0*P00 + B1*P10) + A11*(B0*P01 + B1*P11)) / div;
+
 }
 
 /*
