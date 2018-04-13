@@ -115,6 +115,8 @@ void check_bor()
 }
 #endif
 
+void system_task();
+
 /**
  * Initialisation task.
  *
@@ -147,6 +149,9 @@ void initTask(void)
 
 	/* create all modules thread */
 	MODULE_TASKCREATE_ALL;
+
+	/* Explicitly invoke system task, in this thread stack. */
+	system_task();
 }
 
 /**

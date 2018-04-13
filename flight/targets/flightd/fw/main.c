@@ -42,13 +42,8 @@
 extern void PIOS_Board_Init(void);
 extern void Stack_Change(void);
 
-/* Local Variables */
-#define INIT_TASK_PRIORITY	PIOS_THREAD_PRIO_HIGHEST
-#define INIT_TASK_STACK		262144
-static struct pios_thread *initTaskHandle;
-
 /* Function Prototypes */
-static void initTask(void *parameters);
+static void initTask();
 
 static int g_argc;
 static char **g_argv;
@@ -83,24 +78,21 @@ int main(int argc, char *argv[]) {
 	boardInit();
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */
 
-	initTaskHandle = PIOS_Thread_Create(initTask, "init", INIT_TASK_STACK, NULL, INIT_TASK_PRIORITY);
-	PIOS_Assert(initTaskHandle != NULL);
-
-	PIOS_Thread_Sleep(PIOS_THREAD_TIMEOUT_MAX);
-
-	printf("Reached end of main\n");
+	initTask();
 
 	return 0;
 }
 
 MODULE_INITSYSTEM_DECLS;
 
+void system_task();
+
 /**
  * Initialization task.
  *
  * Runs board and module initialization, then terminates.
  */
-void initTask(void *parameters)
+void initTask()
 {
 	printf("Initialization task running\n");
 
@@ -120,10 +112,11 @@ void initTask(void *parameters)
 	/* create all modules thread */
 	MODULE_TASKCREATE_ALL;
 
-	printf("Initialization task completed\n");
+	printf("Initialization task completed-- invoking system task\n");
 
-	/* terminate this task */
-	PIOS_Thread_Delete(NULL);
+	system_task();
+
+	printf("System task exited?  Shouldn't happen.\n");
 }
 
 /**
