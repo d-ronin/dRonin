@@ -1092,7 +1092,7 @@ Leave at 50Hz for fixed wing.</string>
                 <item>
                  <widget class="QDoubleSpinBox" name="motorCurveFit">
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Motor curve fit can be used for correct for nonlinearity in motor output.  If you experience oscillation at high power but are otherwise well-tuned, consider lowering motor curve fit some.  Values between 0.5 (square-root) and 1.0 (no linearization) are sensible.  This is a more rational subtitute for Throttle PID Attenutation (TPA).&lt;/p&gt;&lt;p&gt;Note that some re-tuning may be required after changing &lt;/p&gt;&lt;p&gt;this value.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Motor curve fit can be used for correct for nonlinearity in motor output.  If you experience oscillation at high power but are otherwise well-tuned, consider lowering motor curve fit some.  Values between 0.5 (square-root) and 1.0 (no linearization) are sensible.  This is a more rational subtitute for Throttle PID Attenutation (TPA).&lt;/p&gt;&lt;p&gt;Note that some re-tuning may be required after changing this value.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="minimum">
                    <double>0.500000000000000</double>
@@ -1131,7 +1131,7 @@ Leave at 50Hz for fixed wing.</string>
                 <item>
                  <widget class="QDoubleSpinBox" name="motorPowerGain">
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Motor curve fit can be used for correct for nonlinearity in motor output.  If you experience oscillation at high power but are otherwise well-tuned, consider lowering motor curve fit some.  Values between 0.5 (square-root) and 1.0 (no linearization) are sensible.  This is a more rational subtitute for Throttle PID Attenutation (TPA).&lt;/p&gt;&lt;p&gt;Note that some re-tuning may be required after changing &lt;/p&gt;&lt;p&gt;this value.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Motor power limitation can be used to reduce the maximum values sent to motors. Provides "virtual KV" functionality; e.g. you can use 0.67 to drive 4S motors from 6S.  This setting is applied after the motor curve fit.&lt;/p&gt;&lt;p&gt;Note that some re-tuning may be required after changing this value.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="suffix">
                    <string>%</string>
