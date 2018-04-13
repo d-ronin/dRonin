@@ -149,6 +149,7 @@ void ConfigOutputWidget::enableControls(bool enable)
     m_config->channelOutTest->setEnabled(enable);
     m_config->calibrateESC->setEnabled(enable);
     m_config->motorCurveFit->setEnabled(enable);
+    m_config->motorPowerGain->setEnabled(enable);
 }
 
 ConfigOutputWidget::~ConfigOutputWidget()
@@ -483,6 +484,7 @@ void ConfigOutputWidget::refreshWidgetsValues(UAVObject *obj)
     }
 
     m_config->motorCurveFit->setValue(actuatorSettingsData.MotorInputOutputCurveFit);
+    m_config->motorPowerGain->setValue(actuatorSettingsData.MotorInputOutputGain * 100);
 
     // Get Channel ranges:
     QList<OutputChannelForm *> outputChannelForms = findChildren<OutputChannelForm *>();
@@ -603,6 +605,7 @@ void ConfigOutputWidget::updateObjectsFromWidgets()
             timerStringToFreq(m_config->cb_outputRate6->currentText());
 
         actuatorSettingsData.MotorInputOutputCurveFit = m_config->motorCurveFit->value();
+        actuatorSettingsData.MotorInputOutputGain = m_config->motorPowerGain->value() * 0.01;
 
         if (m_config->spinningArmed->isChecked() == true)
             actuatorSettingsData.MotorsSpinWhileArmed = ActuatorSettings::MOTORSSPINWHILEARMED_TRUE;

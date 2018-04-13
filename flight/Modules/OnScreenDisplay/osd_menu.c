@@ -37,6 +37,7 @@
 
 #ifdef OSD_USE_MENU
 
+#include "actuatorsettings.h"
 #include "flightstatus.h"
 #include "flightbatterystate.h"
 #include "flightbatterysettings.h"
@@ -216,7 +217,7 @@ enum menu_fsm_state {
 	FSM_STATE_STICKLIMITS_ROLLEXH,  /*!< Roll expo horizon */
 	FSM_STATE_STICKLIMITS_PITCHEXH, /*!< Pitch expo horizon */
 	FSM_STATE_STICKLIMITS_YAWEXH,   /*!< Yaw expo horizon */
-	FSM_STATE_STICKLIMITS_ACROINSANITYFACTOR, /*!< Acro insanity factor for AcroPlus */
+	FSM_STATE_STICKLIMITS_MOTORPOWER, /*!< Motor power gain scale */
 	FSM_STATE_STICKLIMITS_CAMERATILT, /*!< Reprojection Camera Tilt */
 	FSM_STATE_STICKLIMITS_SAVEEXIT, /*!< Save & Exit */
 	FSM_STATE_STICKLIMITS_EXIT,     /*!< Exit */
@@ -819,10 +820,10 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 		.menu_fn = sticklimits_menu,
 		.next_state = {
 			[FSM_EVENT_UP] = FSM_STATE_STICKLIMITS_PITCHEXH,
-			[FSM_EVENT_DOWN] = FSM_STATE_STICKLIMITS_ACROINSANITYFACTOR,
+			[FSM_EVENT_DOWN] = FSM_STATE_STICKLIMITS_MOTORPOWER,
 		},
 	},
-	[FSM_STATE_STICKLIMITS_ACROINSANITYFACTOR] = {
+	[FSM_STATE_STICKLIMITS_MOTORPOWER] = {
 		.menu_fn = sticklimits_menu,
 		.next_state = {
 			[FSM_EVENT_UP] = FSM_STATE_STICKLIMITS_YAWEXH,
@@ -832,7 +833,7 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 	[FSM_STATE_STICKLIMITS_CAMERATILT] = {
 		.menu_fn = sticklimits_menu,
 		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_STICKLIMITS_ACROINSANITYFACTOR,
+			[FSM_EVENT_UP] = FSM_STATE_STICKLIMITS_MOTORPOWER,
 			[FSM_EVENT_DOWN] = FSM_STATE_STICKLIMITS_SAVEEXIT,
 		},
 	},
@@ -1813,8 +1814,9 @@ void pidatt_menu(void)
 	write_string("Save and Exit", MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
 	if (current_state == FSM_STATE_PIDATT_SAVEEXIT) {
 		draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
-		if (current_event == FSM_EVENT_RIGHT)
+		if (current_event == FSM_EVENT_RIGHT) {
 			UAVObjSave(StabilizationSettingsHandle(), 0);
+		}
 	}
 
 	y_pos += MENU_LINE_SPACING;
@@ -1956,30 +1958,34 @@ void sticklimits_menu(void)
 			StabilizationSettingsHorizonExpoSet(expo_arr);
 	}
 
-	// Acro Insanity Factor
+	// Motor power scaling
 	{
-			float factor;
-			StabilizationSettingsAcroInsanityFactorGet(&factor);
+			float motor_gain;
+			ActuatorSettingsMotorInputOutputGainGet(&motor_gain);
+			motor_gain *= 100;
+
 			data_changed = false;
-			sprintf(tmp_str, "Acro Insanity Factor: %d", (int)factor);
+			sprintf(tmp_str, "Motor power scale: %d", (int)motor_gain);
 			write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
-			draw_hscale(225, GRAPHICS_RIGHT - 5, y_pos + 2, 0, 100, factor);
+			draw_hscale(225, GRAPHICS_RIGHT - 5, y_pos + 2, 50, 100, motor_gain);
 			if (my_state == current_state) {
 				draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
 				if (current_event == FSM_EVENT_RIGHT) {
-					factor = MIN(factor + 1, 100);
+					motor_gain = MIN(motor_gain + 1, 100);
 					data_changed = true;
 				}
 				if (current_event == FSM_EVENT_LEFT) {
-					factor = MAX(factor - 1, 0);
+					motor_gain = MAX(motor_gain - 1, 50);
 					data_changed = true;
 				}
 			}
 			my_state++;
 			y_pos += MENU_LINE_SPACING;
 
-		if (data_changed)
-			StabilizationSettingsAcroInsanityFactorSet(&factor);
+		if (data_changed) {
+			motor_gain /= 100;
+			ActuatorSettingsMotorInputOutputGainSet(&motor_gain);
+		}
 	}
 
 	// Reprojection Camera Tilt
@@ -2013,8 +2019,10 @@ void sticklimits_menu(void)
 	write_string("Save and Exit", MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
 	if (current_state == FSM_STATE_STICKLIMITS_SAVEEXIT) {
 		draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
-		if (current_event == FSM_EVENT_RIGHT)
+		if (current_event == FSM_EVENT_RIGHT) {
 			UAVObjSave(StabilizationSettingsHandle(), 0);
+			UAVObjSave(ActuatorSettingsHandle(), 0);
+		}
 	}
 
 	y_pos += MENU_LINE_SPACING;
