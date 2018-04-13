@@ -27,7 +27,6 @@
 #include <stdlib.h>
 
 #include <pios.h>
-#include <pios_semaphore.h>
 
 struct pios_semaphore {
 #define SEMAPHORE_MAGIC 0x616d6553	/* 'Sema' */

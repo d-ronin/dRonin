@@ -5,6 +5,8 @@
 
 #define NELEMENTS(x) (sizeof(x) / sizeof(*(x)))
 
+#include "pios.h"
+
 #include "pios_flashfs_logfs_priv.h"
 
 const struct flashfs_logfs_cfg flashfs_config_settings = {

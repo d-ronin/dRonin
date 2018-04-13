@@ -166,6 +166,7 @@ SRC += pios_debug.c
 SRC += pios_delay.c
 SRC += pios_fileout.c
 SRC += pios_flightgear.c
+SRC += pios_flash_posix.c
 SRC += pios_flyingpio.c
 SRC += pios_gcsrcvr.c
 SRC += pios_hal.c
@@ -187,9 +188,6 @@ SRC += pios_spi.c
 SRC += pios_sys.c
 SRC += pios_tcp.c
 SRC += pios_wdg.c
-
-## PIOS Hardware (Common)
-SRC += $(PIOSPOSIX)/../../tests/logfs/pios_flash_posix.c
 
 # List C source files here which must be compiled in ARM-Mode (no -mthumb).
 # use file-extension c for "c-only"-files
