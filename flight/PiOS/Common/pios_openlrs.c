@@ -738,7 +738,7 @@ static bool pios_openlrs_config_to_bind_data(pios_openlrs_t openlrs_dev)
 		openlrs_dev->bind_data.reserved[1] = 0;
 		openlrs_dev->bind_data.reserved[2] = 0;
 		openlrs_dev->bind_data.rf_frequency =
-			def_carrier_freq(HWSHARED_RFBAND_BOARDDEFAULT);
+			def_carrier_freq(openlrs_dev->band);
 		openlrs_dev->bind_data.rf_magic = randomize_int(0);
 		openlrs_dev->bind_data.rf_power = 7;
 		openlrs_dev->bind_data.rf_channel_spacing = 10;
