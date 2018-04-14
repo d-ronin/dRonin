@@ -1110,7 +1110,7 @@ $(foreach ut, $(ALL_UNITTESTS), $(eval $(call UT_TEMPLATE,$(ut))))
 .PHONY: python_ut_test
 python_ut_test:
 	$(V0) @echo "  PYTHON_UT integrationtests-basic"
-	$(V1) python/integrationtests-basic
+	$(V1) python/integrationtests-basic -v
 
 .PHONY: python_ut_ins
 python_ut_ins:

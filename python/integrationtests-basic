@@ -40,7 +40,7 @@ class SimulationTestCase(unittest.TestCase):
 
     def wait_for_tick(self):
         for o in self.stream_iter:
-            if o.name=='UAVO_HwSimulation':
+            if o.name == 'UAVO_HwSimulation':
                 if o.FakeTickBlocked != 0:
                     return True
 
@@ -62,7 +62,7 @@ class AAConfTests(SimulationTestCase):
 
         t_stream = self.t_stream
 
-        with open("python/minsim.xml", "rb") as f:
+        with open("python/minimum-sim-config.xml", "rb") as f:
             objs = uavofile.UAVFileImport(uavo_defs=t_stream.uavo_defs,
                     contents=f.read())
 
