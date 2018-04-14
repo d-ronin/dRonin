@@ -39,8 +39,6 @@
 #include "pios_queue.h"
 
 /* Private constants */
-#define BMP280_TASK_PRIORITY	PIOS_THREAD_PRIO_HIGHEST
-#define BMP280_TASK_STACK		512
 
 /* BMP280 Addresses */
 #define BMP280_I2C_ADDR		0x76  // 0x77
@@ -67,7 +65,9 @@
 /* Private methods */
 static int32_t PIOS_BMP280_Read(uint8_t address, uint8_t *buffer, uint8_t len);
 static int32_t PIOS_BMP280_WriteCommand(uint8_t address, uint8_t buffer);
-static void PIOS_BMP280_Task(void *parameters);
+
+static bool PIOS_BMP280_callback(void *ctx, void *output,
+		int ms_to_wait, int *next_call);
 
 /* Private types */
 
@@ -86,9 +86,6 @@ struct bmp280_dev {
 	pios_spi_t spi_id;
 	uint32_t spi_slave;
 #endif
-
-	struct pios_thread *task;
-	struct pios_queue *queue;
 
 	uint32_t compensatedPressure;
 	int32_t  compensatedTemperature;
@@ -130,12 +127,6 @@ static struct bmp280_dev *PIOS_BMP280_alloc(void)
 	*bmp280_dev = (struct bmp280_dev) {
 		.magic = PIOS_BMP280_DEV_MAGIC
 	};
-
-	bmp280_dev->queue = PIOS_Queue_Create(1, sizeof(struct pios_sensor_baro_data));
-	if (bmp280_dev->queue == NULL) {
-		PIOS_free(bmp280_dev);
-		return NULL;
-	}
 
 	bmp280_dev->busy = PIOS_Semaphore_Create();
 
@@ -203,12 +194,7 @@ static int32_t PIOS_BMP280_Common_Init(const struct pios_bmp280_cfg *cfg)
 	if (PIOS_BMP280_WriteCommand(BMP280_CONFIG, 0x00) != 0)
 		return -2;
 
-	dev->task = PIOS_Thread_Create(
-		PIOS_BMP280_Task, "pios_bmp280", BMP280_TASK_STACK, NULL, BMP280_TASK_PRIORITY);
-	if (dev->task == NULL)
-		return -3;
-
-	PIOS_SENSORS_Register(PIOS_SENSOR_BARO, dev->queue);
+	PIOS_SENSORS_RegisterCallback(PIOS_SENSOR_BARO, PIOS_BMP280_callback, dev);
 
 	return 0;
 }
@@ -540,37 +526,38 @@ int32_t PIOS_BMP280_Test()
 	return 0;
 }
 
-static void PIOS_BMP280_Task(void *parameters)
+static bool PIOS_BMP280_callback(void *ctx, void *output,
+		int ms_to_wait, int *next_call)
 {
+	struct bmp280_dev *dev = (struct bmp280_dev *)ctx;
+
+	PIOS_Assert(dev);
+	PIOS_Assert(output);
+
+	// Poll a bit faster than sampling rate
+	*next_call = PIOS_BMP280_GetDelay() * 3 / 5;
+
 	int32_t read_adc_result = 0;
 
 	PIOS_BMP280_StartADC();
 
-	struct pios_sensor_baro_data data = { };
+	PIOS_BMP280_ClaimDevice();
+	read_adc_result = PIOS_BMP280_ReadADC();
+	PIOS_BMP280_ReleaseDevice();
 
-	while (1) {
-		// Poll a bit faster than sampling rate
-		PIOS_Thread_Sleep(PIOS_BMP280_GetDelay() * 3 / 5);
-		PIOS_BMP280_ClaimDevice();
-		read_adc_result = PIOS_BMP280_ReadADC();
-		PIOS_BMP280_ReleaseDevice();
-
-		if (read_adc_result) {
-			continue;
-		}
-
-		// Compute the altitude from the pressure and temperature and send it out
-
-		data.pressure = ((float) dev->compensatedPressure) / 256.0f / 1000.0f;
-
-		float calc_alt = 44330.0f * (1.0f - powf(data.pressure / BMP280_P0, (1.0f / 5.255f)));
-
-		data.temperature = ((float) dev->compensatedTemperature) / 256.0f / 100.0f;
-
-		data.altitude = calc_alt;
-
-		PIOS_Queue_Send(dev->queue, (void*)&data, 0);
+	if (read_adc_result) {
+		return false;
 	}
+
+	struct pios_sensor_baro_data *data = (struct pios_sensor_baro_data *)output;
+
+	// Compute the altitude from the pressure and temperature and send it out
+	data->pressure = ((float) dev->compensatedPressure) / 256.0f / 1000.0f;
+	float calc_alt = 44330.0f * (1.0f - powf(data->pressure / BMP280_P0, (1.0f / 5.255f)));
+	data->temperature = ((float) dev->compensatedTemperature) / 256.0f / 100.0f;
+	data->altitude = calc_alt;
+
+	return true;
 }
 
 #endif /* PIOS_INCLUDE_BMP280 */
