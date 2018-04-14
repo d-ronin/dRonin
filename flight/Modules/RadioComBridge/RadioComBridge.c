@@ -773,7 +773,7 @@ static void TelemetryReqCallback(void *ctx, uint32_t obj_id, uint16_t inst_id)
 
 	// Send requested object if message is of type OBJ_REQ
 	if (!obj)
-		UAVTalkSendNack(data->telemUAVTalkCon, obj_id);
+		UAVTalkSendNack(data->telemUAVTalkCon, obj_id, inst_id);
 	else
 		UAVTalkSendObject(data->telemUAVTalkCon, obj, inst_id, false);
 }

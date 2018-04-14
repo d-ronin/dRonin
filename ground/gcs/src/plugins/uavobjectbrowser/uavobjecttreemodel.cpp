@@ -156,13 +156,18 @@ void UAVObjectTreeModel::instanceRemove(UAVObject *obj)
 
     ObjectTreeItem *existing = root->findDataObjectTreeItemByObjectId(obj->getObjID());
     if (existing) {
+        int itemIdx = 0;
         foreach (TreeItem *item, existing->treeChildren()) {
             InstanceTreeItem *inst = dynamic_cast<InstanceTreeItem *>(item);
             if (inst && inst->object() == obj) {
                 printf("removing an instance\n");
+
+                beginRemoveRows(index(inst->parent()), itemIdx, itemIdx);
                 inst->parent()->removeChild(inst);
                 inst->deleteLater();
+                endRemoveRows();
             }
+            ++itemIdx;
         }
     }
 }

@@ -46,7 +46,7 @@ static int32_t sendObject(UAVTalkConnectionData *connection, UAVObjHandle obj, u
 static int32_t sendSingleObject(UAVTalkConnectionData *connection, UAVObjHandle obj, uint16_t instId, uint8_t type);
 static int32_t receiveObject(UAVTalkConnectionData *connection);
 static int32_t sendBuf(UAVTalkConnection connectionHandle, uint8_t *buf, uint16_t len);
-static int32_t sendNack(UAVTalkConnectionData *connection, uint32_t objId);
+static int32_t sendNack(UAVTalkConnectionData *connection, uint32_t objId, uint16_t instId);
 
 /**
  * Initialize the UAVTalk library
@@ -832,7 +832,7 @@ static int32_t receiveObject(UAVTalkConnectionData *connection)
 			}
 		} else {
 			// We don't know this object, and we complain about it
-			sendNack(connection, objId);
+			sendNack(connection, objId, 0);
 			ret = -1;
 		}
 		break;
@@ -989,18 +989,21 @@ static int32_t sendSingleObject(UAVTalkConnectionData *connection, UAVObjHandle 
  * Send a NACK through the telemetry link.
  * \param[in] connection UAVTalkConnection to be used
  * \param[in] objId Object ID to send a NACK for
+ * \param[in] instId inst ID to send a NACK for-- 0 implies "all"
  * \return 0 Success
  * \return -1 Failure
  */
-int32_t UAVTalkSendNack(UAVTalkConnection connectionHandle, uint32_t objId)
+int32_t UAVTalkSendNack(UAVTalkConnection connectionHandle, uint32_t objId,
+		uint16_t instId)
 {
 	UAVTalkConnectionData *connection;
 	CHECKCONHANDLE(connectionHandle, connection, return -1);
 
-	return sendNack(connection, objId);
+	return sendNack(connection, objId, instId);
 }
 
-static int32_t sendNack(UAVTalkConnectionData *connection, uint32_t objId)
+static int32_t sendNack(UAVTalkConnectionData *connection, uint32_t objId,
+		uint16_t instId)
 {
 	int32_t dataOffset;
 
@@ -1016,6 +1019,13 @@ static int32_t sendNack(UAVTalkConnectionData *connection, uint32_t objId)
 	connection->txBuffer[7] = (uint8_t)((objId >> 24) & 0xFF);
 
 	dataOffset = 8;
+
+	if (instId) {
+		dataOffset += 2;
+
+		connection->txBuffer[8] = (uint8_t)(instId & 0xFF);
+		connection->txBuffer[9] = (uint8_t)((instId >> 8) & 0xFF);
+	}
 
 	// Store the packet length
 	connection->txBuffer[2] = (uint8_t)((dataOffset) & 0xFF);

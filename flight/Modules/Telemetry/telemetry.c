@@ -37,7 +37,6 @@
 #include "flighttelemetrystats.h"
 #include "gcstelemetrystats.h"
 #include "modulesettings.h"
-#include "sessionmanaging.h"
 #include "pios_thread.h"
 #include "pios_mutex.h"
 #include "pios_queue.h"
@@ -131,8 +130,6 @@ static void updateTelemetryStats(telem_t telem);
 static void gcsTelemetryStatsUpdated();
 static void updateSettings();
 static uintptr_t getComPort();
-static void session_managing_updated(UAVObjEvent * ev, void *ctx, void *obj,
-		int len);
 static void update_object_instances(uint32_t obj_id, uint32_t inst_id);
 
 static int32_t fileReqCallback(void *ctx, uint8_t *buf,
@@ -184,8 +181,7 @@ int32_t TelemetryStart(void)
 int32_t TelemetryInitialize(void)
 {
 	if (FlightTelemetryStatsInitialize() == -1 ||
-			GCSTelemetryStatsInitialize() == -1 ||
-			SessionManagingInitialize() == -1) {
+			GCSTelemetryStatsInitialize() == -1) {
 		return -1;
 	}
 
@@ -204,8 +200,6 @@ int32_t TelemetryInitialize(void)
 	// Initialise UAVTalk
 	telem_state.uavTalkCon = UAVTalkInitialize(&telem_state, transmitData,
 			ackCallback, reqCallback, fileReqCallback);
-
-	SessionManagingConnectCallback(session_managing_updated);
 
 	//register the new uavo instance callback function in the uavobjectmanager
 	UAVObjRegisterNewInstanceCB(update_object_instances);
@@ -359,18 +353,23 @@ static void ackResendOrTimeout(telem_t telem, int idx)
  *
  * \param[in] telem Telemetry subsystem handle
  */
-static void ackHousekeeping(telem_t telem)
+static bool ackHousekeeping(telem_t telem)
 {
+	bool did_something = false;
+
 	uint32_t tm = PIOS_Thread_Systime();
 
 	for (int i = 0; i < MAX_ACKS_PENDING; i++) {
 		if (telem->acks[i].obj) {
 			if (tm > telem->acks[i].timeout) {
 				ackResendOrTimeout(telem, i);
+
+				did_something = true;
 			}
 		}
 	}
 
+	return did_something;
 }
 
 /**
@@ -586,7 +585,7 @@ static void processObjEvent(telem_t telem, UAVObjEvent * ev)
 			if (success == -1) {
 				telem->tx_errors++;
 			}
-		} 
+		}
 
 		// If this is a metaobject then make necessary
 		// telemetry updates
@@ -599,44 +598,57 @@ static void processObjEvent(telem_t telem, UAVObjEvent * ev)
 	}
 }
 
-static void sendRequestedObjs(telem_t telem)
+static bool sendRequestedObjs(telem_t telem)
 {
 	// Must be called with the reqack mutex.
+	if (!telem->reqs[0].valid) {
+		return false;
+	}
 
-	while (telem->reqs[0].valid) {
-		struct pending_req preq = telem->reqs[0];
+	struct pending_req preq = telem->reqs[0];
 
-		/* Expensive, but for as little as this comes up,
-		 * who cares.
-		 */
-		int i;
+	/* Expensive, but for as little as this comes up,
+	 * who cares.
+	 */
+	int i;
 
-		for (i = 1; i < MAX_REQS_PENDING; i++) {
-			if (!telem->reqs[i].valid) {
-				break;
-			}
-			telem->reqs[i-1] = telem->reqs[i];
+	for (i = 1; i < MAX_REQS_PENDING; i++) {
+		if (!telem->reqs[i].valid) {
+			break;
 		}
+		telem->reqs[i-1] = telem->reqs[i];
+	}
 
-		telem->reqs[i-1].valid = 0;
+	telem->reqs[i-1].valid = 0;
 
-		// Unlock, to ensure new requests can come in OK.
-		PIOS_Mutex_Unlock(telem->reqack_mutex);
+	// Unlock, to ensure new requests can come in OK.
+	PIOS_Mutex_Unlock(telem->reqack_mutex);
 
-		// handle request
-		UAVObjHandle obj = UAVObjGetByID(preq.obj_id);
+	// handle request
+	UAVObjHandle obj = UAVObjGetByID(preq.obj_id);
 
-		// Send requested object if message is of type OBJ_REQ
-		if (!obj)
-			UAVTalkSendNack(telem->uavTalkCon, preq.obj_id);
-		else
+	// Send requested object if message is of type OBJ_REQ
+	if (!obj) {
+		UAVTalkSendNack(telem->uavTalkCon, preq.obj_id,
+				preq.inst_id);
+	} else {
+		if ((preq.inst_id == UAVOBJ_ALL_INSTANCES) ||
+		    (preq.inst_id < UAVObjGetNumInstances(obj))) {
 			UAVTalkSendObject(telem->uavTalkCon,
 					obj, preq.inst_id,
 					false);
-
-		PIOS_Mutex_Lock(telem->reqack_mutex,
-				PIOS_MUTEX_TIMEOUT_MAX);
+		} else {
+			UAVTalkSendNack(telem->uavTalkCon,
+					preq.obj_id,
+					preq.inst_id);
+		}
 	}
+
+
+	PIOS_Mutex_Lock(telem->reqack_mutex,
+			PIOS_MUTEX_TIMEOUT_MAX);
+
+	return true;
 }
 
 /**
@@ -656,13 +668,13 @@ static void telemetryTxTask(void *parameters)
 		bool retval;
 
 		// Wait for queue message or short timeout
-		retval = PIOS_Queue_Receive(telem->queue, &ev, 50);
+		retval = PIOS_Queue_Receive(telem->queue, &ev, 10);
 
 		PIOS_Mutex_Lock(telem->reqack_mutex,
 				PIOS_MUTEX_TIMEOUT_MAX);
 
-		sendRequestedObjs(telem);
-		ackHousekeeping(telem);
+		/* Short-circuit means sendRequestedObjs "wins" */
+		while (sendRequestedObjs(telem) || ackHousekeeping(telem));
 
 		PIOS_Mutex_Unlock(telem->reqack_mutex);
 
@@ -939,30 +951,6 @@ static uintptr_t getComPort()
 }
 
 /**
- * SessionManaging object updated callback
- */
-static void session_managing_updated(UAVObjEvent * ev, void *ctx, void *obj, int len)
-{
-	(void) ctx; (void) obj; (void) len;
-	if (ev->event == EV_UNPACKED) {
-		SessionManagingData sessionManaging;
-		SessionManagingGet(&sessionManaging);
-
-		if (sessionManaging.SessionID == 0) {
-			sessionManaging.ObjectID = 0;
-			sessionManaging.ObjectInstances = 0;
-			sessionManaging.NumberOfObjects = UAVObjCount();
-			sessionManaging.ObjectOfInterestIndex = 0;
-		} else {
-			uint8_t index = sessionManaging.ObjectOfInterestIndex;
-			sessionManaging.ObjectID = UAVObjIDByIndex(index);
-			sessionManaging.ObjectInstances = UAVObjGetNumInstances(UAVObjGetByID(sessionManaging.ObjectID));
-		}
-		SessionManagingSet(&sessionManaging);
-	}
-}
-
-/**
  * New UAVO object instance callback
  * This is called from the uavobjectmanager
  * \param[in] obj_id The id of the object which had a new instance created
@@ -970,12 +958,7 @@ static void session_managing_updated(UAVObjEvent * ev, void *ctx, void *obj, int
  */
 static void update_object_instances(uint32_t obj_id, uint32_t inst_id)
 {
-	SessionManagingData sessionManaging;
-	SessionManagingGet(&sessionManaging);
-	sessionManaging.ObjectID = obj_id;
-	sessionManaging.ObjectInstances = inst_id;
-	sessionManaging.SessionID = sessionManaging.SessionID + 1;
-	SessionManagingSet(&sessionManaging);
+	/* XXX just send the new instance, reqack. */
 }
 
 /**
