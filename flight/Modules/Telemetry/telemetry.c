@@ -826,7 +826,9 @@ static int32_t setUpdatePeriod(telem_t telem, UAVObjHandle obj,
  */
 static void gcsTelemetryStatsUpdated(telem_t telem)
 {
-	// XXX this is dumb.
+	// XXX this is dumb.  It needs to not be connected across global
+	// objects but "projected" so that multiple telemetry sessions
+	// can be supported.
 	FlightTelemetryStatsData flightStats;
 	GCSTelemetryStatsData gcsStats;
 	FlightTelemetryStatsGet(&flightStats);
