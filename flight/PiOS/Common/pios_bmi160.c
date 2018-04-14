@@ -663,6 +663,8 @@ static bool PIOS_BMI160_callback_gyro(void *ctx, void *output,
 		return false;
 	}
 
+	/* Only fail, if sensor data readout fails (-2). Temperature readouts are assumed
+	   to fail intermittently only, if at all, and failures don't taint main sensor data. */
 	if (PIOS_BMI160_parse_data(dev) < -1) {
 		return false;
 	}
