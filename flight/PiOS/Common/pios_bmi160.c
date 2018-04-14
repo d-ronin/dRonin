@@ -494,7 +494,10 @@ bool PIOS_BMI160_IRQHandler(void)
 	return need_yield;
 }
 
-
+/**
+ * @brief Reads out SPI and parses the data
+ * @returns 0 on success, -1 on temperature readout failure, -2 on sensor readout failure.
+ */
 static int PIOS_BMI160_parse_data(struct bmi160_dev *dev)
 {
 	enum {
@@ -519,11 +522,11 @@ static int PIOS_BMI160_parse_data(struct bmi160_dev *dev)
 			0, 0, 0, 0, 0, 0, 0};
 
 	if (PIOS_BMI160_ClaimBus() != 0)
-		return -1;
+		return -2;
 
 	if (PIOS_SPI_TransferBlock(dev->spi_id, bmi160_tx_buf, bmi160_rec_buf, BUFFER_SIZE) < 0) {
 		PIOS_BMI160_ReleaseBus();
-		return -1;
+		return -2;
 	}
 
 	PIOS_BMI160_ReleaseBus();
@@ -626,13 +629,13 @@ static int PIOS_BMI160_parse_data(struct bmi160_dev *dev)
 	// When this is done right after readin the accels / gyros
 	if (dev->temp_interleave_cnt % dev->cfg->temperature_interleaving == 0){
 		if (PIOS_BMI160_ClaimBus() != 0)
-			return 0;
+			return -1;
 
 		uint8_t bmi160_tx_buf[BUFFER_SIZE] = {BMI160_REG_TEMPERATURE_0 | 0x80, 0, 0, 0, 0, 0,
 				0, 0, 0, 0, 0, 0, 0};
 		if (PIOS_SPI_TransferBlock(dev->spi_id, bmi160_tx_buf, bmi160_rec_buf, 3) < 0) {
 			PIOS_BMI160_ReleaseBus();
-			return 0;
+			return -1;
 		}
 
 		PIOS_BMI160_ReleaseBus();
@@ -660,7 +663,7 @@ static bool PIOS_BMI160_callback_gyro(void *ctx, void *output,
 		return false;
 	}
 
-	if (PIOS_BMI160_parse_data(dev)) {
+	if (PIOS_BMI160_parse_data(dev) < -1) {
 		return false;
 	}
 
