@@ -610,25 +610,25 @@ static void simulateYasim()
 	}
 
 	uint32_t last_mag_time = 0;
-	if (PIOS_DELAY_DiffuS(last_mag_time) / 1.0e6 > MAG_PERIOD) {
+	if (PIOS_Thread_Period_Elapsed(last_mag_time, MAG_PERIOD)) {
 		simsensors_mag_set(homeLocation.Be, &Rbe);
 
-		last_mag_time = PIOS_DELAY_GetRaw();
+		last_mag_time = PIOS_Thread_Systime();
 	}
 
 	simsensors_baro_drift(&baro_offset);
 
 	// Update baro periodically
 	static uint32_t last_baro_time = 0;
-	if (PIOS_DELAY_DiffuS(last_baro_time) / 1.0e6 > BARO_PERIOD) {
+	if (PIOS_Thread_Period_Elapsed(last_baro_time, BARO_PERIOD)) {
 		simsensors_baro_set(status.alt, baro_offset);
-		last_baro_time = PIOS_DELAY_GetRaw();
+		last_baro_time = PIOS_Thread_Systime();
 	}
 
 	// Update GPS periodically
 	static uint32_t last_gps_time = 0;
 	static float gps_vel_drift[3] = {0,0,0};
-	if(PIOS_DELAY_DiffuS(last_gps_time) / 1.0e6 > GPS_PERIOD) {
+	if (PIOS_Thread_Period_Elapsed(last_gps_time, GPS_PERIOD)) {
 		// Use double precision here as simulating what GPS produces
 		double T[3];
 		T[0] = homeLocation.Altitude+6.378137E6f * DEG2RAD;
@@ -652,12 +652,12 @@ static void simulateYasim()
 		gpsPosition.Accuracy = 3.0;
 		gpsPosition.Status = GPSPOSITION_STATUS_FIX3D;
 		GPSPositionSet(&gpsPosition);
-		last_gps_time = PIOS_DELAY_GetRaw();
+		last_gps_time = PIOS_Thread_Systime();
 	}
 
 	// Update GPS Velocity measurements
 	static uint32_t last_gps_vel_time = 1000; // Delay by a millisecond
-	if(PIOS_DELAY_DiffuS(last_gps_vel_time) / 1.0e6 > GPS_PERIOD) {
+	if (PIOS_Thread_Period_Elapsed(last_gps_vel_time, GPS_PERIOD)) {
 		gps_vel_drift[0] = gps_vel_drift[0] * 0.65 + rand_gauss() / 5.0;
 		gps_vel_drift[1] = gps_vel_drift[1] * 0.65 + rand_gauss() / 5.0;
 		gps_vel_drift[2] = gps_vel_drift[2] * 0.65 + rand_gauss() / 5.0;
@@ -669,7 +669,7 @@ static void simulateYasim()
 		gpsVelocity.Down = status.vel[2] + gps_vel_drift[2];
 		gpsVelocity.Accuracy = 0.75;
 		GPSVelocitySet(&gpsVelocity);
-		last_gps_vel_time = PIOS_DELAY_GetRaw();
+		last_gps_vel_time = PIOS_Thread_Systime();
 	}
 
 	AttitudeSimulatedData attitudeSimulated;
@@ -767,9 +767,9 @@ static void simulateModelQuadcopter()
 
 	// Update baro periodically
 	static uint32_t last_baro_time = 0;
-	if(PIOS_DELAY_DiffuS(last_baro_time) / 1.0e6 > BARO_PERIOD) {
+	if (PIOS_Thread_Period_Elapsed(last_baro_time, BARO_PERIOD)) {
 		simsensors_baro_set(pos[2], baro_offset);
-		last_baro_time = PIOS_DELAY_GetRaw();
+		last_baro_time = PIOS_Thread_Systime();
 	}
 
 	HomeLocationData homeLocation;
@@ -790,7 +790,7 @@ static void simulateModelQuadcopter()
 
 	// Update GPS periodically
 	static uint32_t last_gps_time = 0;
-	if(PIOS_DELAY_DiffuS(last_gps_time) / 1.0e6 > GPS_PERIOD) {
+	if (PIOS_Thread_Period_Elapsed(last_gps_time, GPS_PERIOD)) {
 		// Use double precision here as simulating what GPS produces
 		double T[3];
 		T[0] = homeLocation.Altitude+6.378137E6f * DEG2RAD;
@@ -814,12 +814,12 @@ static void simulateModelQuadcopter()
 		gpsPosition.Accuracy = 3.0;
 		gpsPosition.Status = GPSPOSITION_STATUS_FIX3D;
 		GPSPositionSet(&gpsPosition);
-		last_gps_time = PIOS_DELAY_GetRaw();
+		last_gps_time = PIOS_Thread_Systime();
 	}
 
 	// Update GPS Velocity measurements
 	static uint32_t last_gps_vel_time = 1000; // Delay by a millisecond
-	if(PIOS_DELAY_DiffuS(last_gps_vel_time) / 1.0e6 > GPS_PERIOD) {
+	if (PIOS_Thread_Period_Elapsed(last_gps_vel_time, GPS_PERIOD)) {
 		GPSVelocityData gpsVelocity;
 		GPSVelocityGet(&gpsVelocity);
 		gpsVelocity.North = vel[0] + gps_vel_drift[0];
@@ -827,14 +827,14 @@ static void simulateModelQuadcopter()
 		gpsVelocity.Down = vel[2] + gps_vel_drift[2];
 		gpsVelocity.Accuracy = 0.75;
 		GPSVelocitySet(&gpsVelocity);
-		last_gps_vel_time = PIOS_DELAY_GetRaw();
+		last_gps_vel_time = PIOS_Thread_Systime();
 	}
 
 	// Update mag periodically
 	static uint32_t last_mag_time = 0;
-	if(PIOS_DELAY_DiffuS(last_mag_time) / 1.0e6 > MAG_PERIOD) {
+	if (PIOS_Thread_Period_Elapsed(last_mag_time, MAG_PERIOD)) {
 		simsensors_mag_set(homeLocation.Be, &Rbe);
-		last_mag_time = PIOS_DELAY_GetRaw();
+		last_mag_time = PIOS_Thread_Systime();
 	}
 
 	AttitudeSimulatedData attitudeSimulated;
@@ -992,21 +992,21 @@ static void simulateModelAirplane()
 
 	// Update baro periodically
 	static uint32_t last_baro_time = 0;
-	if(PIOS_DELAY_DiffuS(last_baro_time) / 1.0e6 > BARO_PERIOD) {
+	if (PIOS_Thread_Period_Elapsed(last_baro_time, BARO_PERIOD)) {
 		simsensors_baro_set(pos[2], baro_offset);
-		last_baro_time = PIOS_DELAY_GetRaw();
+		last_baro_time = PIOS_Thread_Systime();
 	}
 
 	// Update baro airpseed periodically
 	static uint32_t last_airspeed_time = 0;
-	if(PIOS_DELAY_DiffuS(last_airspeed_time) / 1.0e6 > BARO_PERIOD) {
+	if (PIOS_Thread_Period_Elapsed(last_airspeed_time, BARO_PERIOD)) {
 		BaroAirspeedData baroAirspeed;
 		baroAirspeed.BaroConnected = BAROAIRSPEED_BAROCONNECTED_TRUE;
 		baroAirspeed.CalibratedAirspeed = forwardAirspeed;
 		baroAirspeed.GPSAirspeed = forwardAirspeed;
 		baroAirspeed.TrueAirspeed = forwardAirspeed;
 		BaroAirspeedSet(&baroAirspeed);
-		last_airspeed_time = PIOS_DELAY_GetRaw();
+		last_airspeed_time = PIOS_Thread_Systime();
 	}
 
 	HomeLocationData homeLocation;
@@ -1027,7 +1027,7 @@ static void simulateModelAirplane()
 
 	// Update GPS periodically
 	static uint32_t last_gps_time = 0;
-	if(PIOS_DELAY_DiffuS(last_gps_time) / 1.0e6 > GPS_PERIOD) {
+	if (PIOS_Thread_Period_Elapsed(last_gps_time, GPS_PERIOD)) {
 		// Use double precision here as simulating what GPS produces
 		double T[3];
 		T[0] = homeLocation.Altitude+6.378137E6f * DEG2RAD;
@@ -1049,26 +1049,26 @@ static void simulateModelAirplane()
 		gpsPosition.Satellites = 7;
 		gpsPosition.PDOP = 1;
 		GPSPositionSet(&gpsPosition);
-		last_gps_time = PIOS_DELAY_GetRaw();
+		last_gps_time = PIOS_Thread_Systime();
 	}
 
 	// Update GPS Velocity measurements
 	static uint32_t last_gps_vel_time = 1000; // Delay by a millisecond
-	if(PIOS_DELAY_DiffuS(last_gps_vel_time) / 1.0e6 > GPS_PERIOD) {
+	if (PIOS_Thread_Period_Elapsed(last_gps_vel_time, GPS_PERIOD)) {
 		GPSVelocityData gpsVelocity;
 		GPSVelocityGet(&gpsVelocity);
 		gpsVelocity.North = vel[0] + gps_vel_drift[0];
 		gpsVelocity.East = vel[1] + gps_vel_drift[1];
 		gpsVelocity.Down = vel[2] + gps_vel_drift[2];
 		GPSVelocitySet(&gpsVelocity);
-		last_gps_vel_time = PIOS_DELAY_GetRaw();
+		last_gps_vel_time = PIOS_Thread_Systime();
 	}
 
 	// Update mag periodically
 	static uint32_t last_mag_time = 0;
-	if(PIOS_DELAY_DiffuS(last_mag_time) / 1.0e6 > MAG_PERIOD) {
+	if (PIOS_Thread_Period_Elapsed(last_mag_time, MAG_PERIOD)) {
 		simsensors_mag_set(homeLocation.Be, &Rbe);
-		last_mag_time = PIOS_DELAY_GetRaw();
+		last_mag_time = PIOS_Thread_Systime();
 	}
 
 	AttitudeSimulatedData attitudeSimulated;
@@ -1190,9 +1190,9 @@ static void simulateModelCar()
 
 	// Update baro periodically
 	static uint32_t last_baro_time = 0;
-	if(PIOS_DELAY_DiffuS(last_baro_time) / 1.0e6 > BARO_PERIOD) {
+	if (PIOS_Thread_Period_Elapsed(last_baro_time, BARO_PERIOD)) {
 		simsensors_baro_set(pos[2], baro_offset);
-		last_baro_time = PIOS_DELAY_GetRaw();
+		last_baro_time = PIOS_Thread_Systime();
 	}
 
 	HomeLocationData homeLocation;
@@ -1213,7 +1213,7 @@ static void simulateModelCar()
 
 	// Update GPS periodically
 	static uint32_t last_gps_time = 0;
-	if(PIOS_DELAY_DiffuS(last_gps_time) / 1.0e6 > GPS_PERIOD) {
+	if (PIOS_Thread_Period_Elapsed(last_gps_time, GPS_PERIOD)) {
 		// Use double precision here as simulating what GPS produces
 		double T[3];
 		T[0] = homeLocation.Altitude+6.378137E6f * DEG2RAD;
@@ -1235,26 +1235,26 @@ static void simulateModelCar()
 		gpsPosition.Satellites = 7;
 		gpsPosition.PDOP = 1;
 		GPSPositionSet(&gpsPosition);
-		last_gps_time = PIOS_DELAY_GetRaw();
+		last_gps_time = PIOS_Thread_Systime();
 	}
 
 	// Update GPS Velocity measurements
 	static uint32_t last_gps_vel_time = 1000; // Delay by a millisecond
-	if(PIOS_DELAY_DiffuS(last_gps_vel_time) / 1.0e6 > GPS_PERIOD) {
+	if (PIOS_Thread_Period_Elapsed(last_gps_vel_time, GPS_PERIOD)) {
 		GPSVelocityData gpsVelocity;
 		GPSVelocityGet(&gpsVelocity);
 		gpsVelocity.North = vel[0] + gps_vel_drift[0];
 		gpsVelocity.East = vel[1] + gps_vel_drift[1];
 		gpsVelocity.Down = vel[2] + gps_vel_drift[2];
 		GPSVelocitySet(&gpsVelocity);
-		last_gps_vel_time = PIOS_DELAY_GetRaw();
+		last_gps_vel_time = PIOS_Thread_Systime();
 	}
 
 	// Update mag periodically
 	static uint32_t last_mag_time = 0;
-	if(PIOS_DELAY_DiffuS(last_mag_time) / 1.0e6 > MAG_PERIOD) {
+	if (PIOS_Thread_Period_Elapsed(last_mag_time, MAG_PERIOD)) {
 		simsensors_mag_set(homeLocation.Be, &Rbe);
-		last_mag_time = PIOS_DELAY_GetRaw();
+		last_mag_time = PIOS_Thread_Systime();
 	}
 
 	AttitudeSimulatedData attitudeSimulated;

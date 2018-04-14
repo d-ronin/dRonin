@@ -828,7 +828,12 @@ static void stabilizationTask(void* parameters)
 					(dT_measured < dT_expected * 0.85f)) {
 				frequency_wrong = true;
 #ifdef FLIGHT_POSIX
-				printf("Stabilization: frequency wrong.  dT_measured=%f, expected=%f\n", dT_measured, dT_expected);
+				if (!PIOS_Thread_FakeClock_IsActive()) {
+					printf("Stabilization: frequency wrong.  dT_measured=%f, expected=%f\n",
+							dT_measured, dT_expected);
+				} else {
+					frequency_wrong = false;
+				}
 #endif
 			}
 		}

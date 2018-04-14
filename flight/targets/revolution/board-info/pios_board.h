@@ -193,7 +193,6 @@ extern max7456_dev_t pios_max7456_id;
 // See also pios_board.c
 //------------------------
 #define PIOS_RCVR_MAX_CHANNELS       12
-#define PIOS_GCSRCVR_TIMEOUT_MS      100
 
 //-------------------------
 // Receiver PPM input

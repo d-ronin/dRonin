@@ -98,7 +98,7 @@ void PIOS_Queue_Delete(struct pios_queue *queuep)
 	free(queuep);
 }
 
-bool PIOS_Queue_Send(struct pios_queue *queuep,
+static bool PIOS_Queue_Send_Impl(struct pios_queue *queuep,
 		const void *itemp, uint32_t timeout_ms)
 {
 	PIOS_Assert(queuep->magic == QUEUE_MAGIC);
@@ -138,6 +138,28 @@ bool PIOS_Queue_Send(struct pios_queue *queuep,
 	return true;
 }
 
+bool PIOS_Queue_Send(struct pios_queue *queuep,
+		const void *itemp, uint32_t timeout_ms)
+{
+	PIOS_Assert(queuep->magic == QUEUE_MAGIC);
+
+	if (PIOS_Thread_FakeClock_IsActive()) {
+		uint32_t start = PIOS_Thread_Systime();
+
+		do {
+			if (PIOS_Queue_Send_Impl(queuep, itemp, 1)) {
+				return true;
+			}
+		} while ((timeout_ms != PIOS_QUEUE_TIMEOUT_MAX) &&
+				(!PIOS_Thread_Period_Elapsed(start,
+							     timeout_ms)));
+
+		return false;
+	}
+
+	return PIOS_Queue_Send_Impl(queuep, itemp, timeout_ms);
+}
+
 bool PIOS_Queue_Send_FromISR(struct pios_queue *queuep,
 		const void *itemp, bool *wokenp)
 {
@@ -150,11 +172,9 @@ bool PIOS_Queue_Send_FromISR(struct pios_queue *queuep,
 	return ret;
 }
 
-bool PIOS_Queue_Receive(struct pios_queue *queuep,
+static bool PIOS_Queue_Receive_Impl(struct pios_queue *queuep,
 		void *itemp, uint32_t timeout_ms)
 {
-	PIOS_Assert(queuep->magic == QUEUE_MAGIC);
-
 	struct timespec abstime;
 
 	if (timeout_ms != PIOS_QUEUE_TIMEOUT_MAX) {
@@ -188,6 +208,28 @@ bool PIOS_Queue_Receive(struct pios_queue *queuep,
 	pthread_mutex_unlock(&queuep->mutex);
 
 	return true;
+}
+
+bool PIOS_Queue_Receive(struct pios_queue *queuep,
+		void *itemp, uint32_t timeout_ms)
+{
+	PIOS_Assert(queuep->magic == QUEUE_MAGIC);
+
+	if (PIOS_Thread_FakeClock_IsActive()) {
+		uint32_t start = PIOS_Thread_Systime();
+
+		do {
+			if (PIOS_Queue_Receive_Impl(queuep, itemp, 1)) {
+				return true;
+			}
+		} while ((timeout_ms != PIOS_QUEUE_TIMEOUT_MAX) &&
+				(!PIOS_Thread_Period_Elapsed(start,
+							     timeout_ms)));
+
+		return false;
+	}
+
+	return PIOS_Queue_Receive_Impl(queuep, itemp, timeout_ms);
 }
 
 size_t PIOS_Queue_GetItemSize(struct pios_queue *queuep)

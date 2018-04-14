@@ -91,6 +91,12 @@ bool PIOS_Thread_Period_Elapsed(const uint32_t prev_systime, const uint32_t incr
 struct pios_thread *PIOS_Thread_WrapCurrentThread(const char *namep);
 void PIOS_Thread_ChangePriority(enum pios_thread_prio_e prio);
 
+#ifdef FLIGHT_POSIX
+void PIOS_Thread_FakeClock_Tick(void);
+bool PIOS_Thread_FakeClock_IsActive(void);
+void PIOS_Thread_FakeClock_UpdateBarrier(uint32_t increment);
+#endif
+
 #endif /* PIOS_THREAD_H_ */
 
 /**

@@ -170,7 +170,6 @@ extern uintptr_t pios_rfm22b_id;
 // See also pios_board.c
 //------------------------
 #define PIOS_RCVR_MAX_CHANNELS       12
-#define PIOS_GCSRCVR_TIMEOUT_MS      100
 
 //-------------------------
 // Receiver PPM input
