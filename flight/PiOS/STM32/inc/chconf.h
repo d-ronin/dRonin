@@ -413,8 +413,8 @@
 /*
     Backwards compat for dRonin
 */
-#define halGetCounterValue() hal_lld_get_counter_value()
 #define hal_lld_get_counter_value()         DWT->CYCCNT
+#define halGetCounterValue() hal_lld_get_counter_value()
 
 // typedef uint32_t halrtcnt_t;
 
