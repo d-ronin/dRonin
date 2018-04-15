@@ -896,7 +896,6 @@ static inline char nibble_to_hex(uint8_t c)
 DONT_BUILD_IF(PIOS_SYS_SERIAL_NUM_BINARY_LEN * 2 != PIOS_SYS_SERIAL_NUM_ASCII_LEN,
 		serLenMismatch);
 
-
 /**
 * Returns the serial number as a string
 * param[out] str pointer to a string which can store PIOS_SYS_SERIAL_NUM_ASCII_LEN+1
