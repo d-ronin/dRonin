@@ -76,7 +76,6 @@ uintptr_t pios_uavo_settings_fs_id;
 
 uintptr_t pios_com_debug_id;
 uintptr_t pios_com_openlog_id;
-uintptr_t pios_com_telem_serial_id;
 uintptr_t pios_com_telem_usb_id;
 
 /**
@@ -118,7 +117,7 @@ void PIOS_Board_Init(void) {
 		PIOS_Assert(0);
 	}
 
-	if (PIOS_COM_Init(&pios_com_telem_serial_id, &pios_tcp_com_driver, pios_tcp_telem_id,
+	if (PIOS_COM_Init(&PIOS_COM_TELEM_USB, &pios_tcp_com_driver, pios_tcp_telem_id,
 			PIOS_COM_TELEM_TCP_RX_BUF_LEN,
 			PIOS_COM_TELEM_TCP_TX_BUF_LEN)) {
 		PIOS_Assert(0);
