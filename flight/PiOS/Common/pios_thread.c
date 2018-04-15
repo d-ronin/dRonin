@@ -282,8 +282,8 @@ uint32_t PIOS_Thread_Get_Stack_Usage(struct pios_thread *threadp)
 {
 	chSysLock();
 
-	uint32_t result = threadp->threadp->time;
-	threadp->threadp->time = 0;
+	uint32_t result = threadp->threadp->ticks_total;
+	threadp->threadp->ticks_total = 0;
 
 	chSysUnlock();
 
