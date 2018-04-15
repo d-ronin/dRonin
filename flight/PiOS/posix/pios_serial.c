@@ -41,9 +41,9 @@
 #include <sys/types.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <termios.h>
 #include <unistd.h>
 #ifdef PIOS_INCLUDE_SERIAL
+#include <termios.h>
 #include <linux/serial.h>
 #include <sys/ioctl.h>
 #endif
