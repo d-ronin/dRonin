@@ -32,6 +32,12 @@
 #include <stdint.h>		/* uintptr_t */
 #include <stdbool.h>		/* bool */
 
+#if defined(PIOS_INCLUDE_CHIBIOS)
+#if !defined(CH_CFG_USE_MEMCORE) || CH_CFG_USE_MEMCORE != TRUE
+#error "pios_heap: Need to use memcore with ChibiOS."
+#endif
+#endif
+
 #define DEBUG_MALLOC_FAILURES 0
 static volatile bool malloc_failed_flag = false;
 static void malloc_failed_hook(void)
@@ -52,6 +58,8 @@ bool PIOS_heap_malloc_failed_p(void)
 #if defined(PIOS_INCLUDE_RTOS)
 #include "pios_thread.h"
 #endif
+
+#if !defined(PIOS_INCLUDE_CHIBIOS) || defined(PIOS_INCLUDE_FASTHEAP)
 
 struct pios_heap {
 	const uintptr_t start_addr;
@@ -103,6 +111,10 @@ static size_t simple_get_free_bytes(struct pios_heap *heap)
 	return heap->end_addr - heap->free_addr;
 }
 
+#endif
+
+#if !defined(PIOS_INCLUDE_CHIBIOS)
+
 static void simple_extend_heap(struct pios_heap *heap, size_t bytes)
 {
 	heap->end_addr += bytes;
@@ -119,12 +131,16 @@ static struct pios_heap pios_standard_heap = {
 	.end_addr   = (const uintptr_t)&_eheap,
 	.free_addr  = (uintptr_t)&_sheap,
 };
-
+#endif
 
 void * pvPortMalloc(size_t size) __attribute__((alias ("PIOS_malloc"), weak));
 void * PIOS_malloc(size_t size)
 {
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	void *buf = chCoreAlloc(size);
+#else
 	void *buf = simple_malloc(&pios_standard_heap, size);
+#endif
 
 	if (buf == NULL)
 		malloc_failed_hook();
@@ -178,8 +194,10 @@ void PIOS_free(void * buf)
 		return simple_free(&pios_nodma_heap, buf);
 #endif	/* PIOS_INCLUDE_FASTHEAP */
 
+#if !defined(PIOS_INCLUDE_CHIBIOS)
 	if (is_ptr_in_heap_p(&pios_standard_heap, buf))
 		return simple_free(&pios_standard_heap, buf);
+#endif
 }
 
 size_t xPortGetFreeHeapSize(void) __attribute__((alias ("PIOS_heap_get_free_size")));
@@ -189,7 +207,11 @@ size_t PIOS_heap_get_free_size(void)
 	PIOS_Thread_Scheduler_Suspend();
 #endif	/* PIOS_INCLUDE_RTOS */
 
+#if defined(PIOS_INCLUDE_CHIBIOS)
+	size_t free_bytes = chCoreGetStatusX();
+#else
 	size_t free_bytes = simple_get_free_bytes(&pios_standard_heap);
+#endif
 
 #if defined(PIOS_INCLUDE_RTOS)
 	PIOS_Thread_Scheduler_Resume();
@@ -236,7 +258,9 @@ void PIOS_heap_increase_size(size_t bytes)
 	PIOS_Thread_Scheduler_Suspend();
 #endif	/* PIOS_INCLUDE_RTOS */
 
+#if !defined(PIOS_INCLUDE_CHIBIOS)
 	simple_extend_heap(&pios_standard_heap, bytes);
+#endif
 
 #if defined(PIOS_INCLUDE_RTOS)
 	PIOS_Thread_Scheduler_Resume();
