@@ -1,4 +1,3 @@
-###############################################################################
 # @file       Makefile
 # @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
 # @author     dRonin, http://dronin.org Copyright (C) 2015-2016
@@ -122,9 +121,6 @@ SRC += pios_hmc5983_i2c.c
 SRC += pios_ms5611.c
 SRC += pios_openlrs.c
 SRC += pios_openlrs_rcvr.c
-SRC += pios_rfm22b.c
-SRC += pios_rfm22b_com.c
-SRC += pios_rfm22b_rcvr.c
 
 # List C source files here which must be compiled in ARM-Mode (no -mthumb).
 # use file-extension c for "c-only"-files

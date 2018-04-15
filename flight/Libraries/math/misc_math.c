@@ -310,23 +310,61 @@ float linear_interpolate(float const input, float const * curve, uint8_t num_poi
 	return curve[idx1] * (1.0f - scale) + curve[idx2] * scale;
 }
 
+static uint32_t random_state[4] = { 0xdeadbeef, 0xfeedfeed, 0xcafebabe, 1234 };
 
-/**
- * Return a psedorandom integer from 0 to interval
- * Based on the Park-Miller-Carta Pseudo-Random Number Generator
- * http://www.firstpr.com.au/dsp/rand31/
- */
-uint16_t randomize_int(uint16_t interval)
+void randomize_addseed(uint32_t seed)
 {
-	static uint32_t seed = 1;
-	uint32_t hi, lo;
-	lo = 16807 * (seed & 0xFFFF);
-	hi = 16807 * (seed >> 16);
-	lo += (hi & 0x7FFF) << 16;
-	lo += hi >> 15;
-	if (lo > 0x7FFFFFFF) lo -= 0x7FFFFFFF;
-	seed = lo;
-	return (uint16_t)( ((float)interval * (float)lo) / (float)0x7FFFFFFF );
+	randomize_int(0);
+	random_state[0] ^= seed;
+}
+
+static uint32_t randomize_int32()
+{
+	/* TODO: Not re-entrant.  Need to think how best to handle this
+	 * once there's more users of this API.
+	 */
+
+	/* Xorshift 128 bit variant RNG */
+	uint32_t t = random_state[3] ^ (random_state[3] << 11);
+	t ^= t >> 8;
+	t ^= random_state[0] ^ (random_state[0] >> 19);
+
+	random_state[3] = random_state[2];
+	random_state[2] = random_state[1];
+	random_state[1] = random_state[0];
+	random_state[0] = t;
+
+	return t;
+}
+
+uint32_t randomize_int(uint32_t interval)
+{
+	/* TODO: This could improve a lot from constant static
+	 * value evaluation in the optimizer, so it may belong in
+	 * the header as inline...
+	 */
+	uint32_t thresh = UINT32_MAX;
+	uint32_t rand_val;
+
+	if (interval) {
+		uint32_t remainder = UINT32_MAX % interval;
+
+		if (remainder != (interval - 1)) {
+			thresh -= remainder + 1;
+		}
+	}
+
+	/* All of this junk is here so we can avoid biases by retrying
+	 * in the case of really large drawn numbers */
+	do {
+		rand_val = randomize_int32();
+	} while (rand_val > thresh);
+
+	if (interval == 0) {
+		return rand_val;
+	}
+
+	return rand_val % interval;
 }
 
 /**

@@ -127,26 +127,11 @@
     <field defaultvalue="Autodetect" elements="1" name="DSMxMode" parent="HwShared.DSMxMode" type="enum" units="mode">
       <description/>
     </field>
-    <field defaultvalue="Disabled" elements="1" name="Radio" parent="HwShared.RadioPort" type="enum" units="">
-      <description>Function for the radio port</description>
-    </field>
-    <field defaultvalue="0" display="hex" elements="1" name="CoordID" type="uint32" units="">
-      <description>ID of the coordinator to allow binding to. 0 indicates allow all connections</description>
-    </field>
-    <field defaultvalue="64000" elements="1" name="MaxRfSpeed" parent="HwShared.MaxRfSpeed" type="enum" units="bps">
-      <description>Maximum radio speed</description>
-    </field>
     <field defaultvalue="0" elements="1" name="MaxRfPower" parent="HwShared.MaxRfPower" type="enum" units="mW">
       <description>Maximum radio power</description>
     </field>
     <field defaultvalue="BoardDefault" elements="1" name="RfBand" parent="HwShared.RfBand" type="enum" units="MHz">
       <description>Radio frequency to use</description>
-    </field>
-    <field defaultvalue="0" elements="1" name="MinChannel" type="uint8" units="">
-      <description>Minimum channel to use</description>
-    </field>
-    <field defaultvalue="250" elements="1" limits="%BE:0:250" name="MaxChannel" type="uint8" units="">
-      <description>Maximum channel to use</description>
     </field>
     <field defaultvalue="1000" elements="1" name="GyroRange" type="enum" units="deg/s">
       <description>Maximum measurement range for the gyros, should never rotate faster than about 85% of this</description>

@@ -48,7 +48,6 @@
 #include "manualcontrolcommand.h"
 #include "manualcontrolsettings.h"
 #include "objectpersistence.h"
-#include "rfm22bstatus.h"
 #include "stabilizationsettings.h"
 #include "stateestimation.h"
 #include "systemsettings.h"
@@ -155,7 +154,6 @@ void system_task();
 
 static inline void updateStats();
 static inline void updateSystemAlarms();
-static inline void updateRfm22bStats();
 #if defined(WDG_STATS_DIAGNOSTICS)
 static inline void updateWDGstats();
 #endif
@@ -238,6 +236,10 @@ void system_task()
 	// Listen for SettingPersistance object updates, connect a callback function
 	ObjectPersistenceConnectQueue(objectPersistenceQueue);
 
+#if defined(PIOS_INCLUDE_WDG) && defined(PIOS_WDG_SYSTEM)
+	PIOS_WDG_RegisterFlag(PIOS_WDG_SYSTEM);
+#endif
+
 #ifndef NO_SENSORS
 	// Run this initially to make sure the configuration is checked
 	configuration_check();
@@ -255,6 +257,10 @@ void system_task()
 
 	// Main system loop
 	while (1) {
+#if defined(PIOS_INCLUDE_WDG) && defined(PIOS_WDG_SYSTEM)
+		PIOS_WDG_UpdateFlag(PIOS_WDG_SYSTEM);
+#endif
+
 		int32_t delayTime = processPeriodicUpdates();
 
 		UAVObjEvent ev;
@@ -275,6 +281,11 @@ void system_task()
  */
 static inline uint8_t indicate_error(const char **sequence)
 {
+#ifdef PIPXTREME
+	*sequence="t";	/* Dashes */
+	return SYSTEMALARMS_ALARM_WARNING;
+#else
+
 	SystemAlarmsData alarms;
 	SystemAlarmsGet(&alarms);
 
@@ -345,6 +356,7 @@ static inline uint8_t indicate_error(const char **sequence)
 	}
 
 	return worst_sev;
+#endif /* PIPXTREME */
 }
 #endif
 
@@ -421,15 +433,13 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 #endif
 
 	if (fourth) {
-		// Update the modem status, if present
-		updateRfm22bStats();
-
-#ifndef PIPXTREME
 		// Update the system statistics
 		updateStats();
 
+#ifndef PIPXTREME
 		// Update the system alarms
 		updateSystemAlarms();
+#endif /* PIPXTREME */
 
 #if defined(WDG_STATS_DIAGNOSTICS)
 		updateWDGstats();
@@ -439,11 +449,9 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 		// Update the task status object
 		TaskMonitorUpdateAll();
 #endif
-
-#endif /* PIPXTREME */
 	}
 
-#if !defined(PIPXTREME) && defined(PIOS_INCLUDE_ANNUNC)
+#if defined(PIOS_INCLUDE_ANNUNC)
 	// Figure out what we should be doing.
 
 	static const char *blink_string = NULL;
@@ -459,7 +467,6 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 #endif
 
 	// Evaluate all our possible annunciator sources.
-
 	// The most important: indicate_error / alarms
 
 	if (fourth) {
@@ -543,6 +550,7 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 
 		uint8_t buzzer_prio = blink_prio;
 
+#ifndef PIPXTREME
 		if (annunciatorSettings.ManualBuzzer !=
 				ANNUNCIATORSETTINGS_MANUALBUZZER_DISABLED) {
 			float acc[MANUALCONTROLCOMMAND_ACCESSORY_NUMELEM];
@@ -551,6 +559,7 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 			if (acc[annunciatorSettings.ManualBuzzer - 1] > 0.0f)
 				buzzer_prio = ANNUNCIATORSETTINGS_ANNUNCIATEANYTIME_HAIRONFIRE;
 		}
+#endif
 
 		(void) buzzer_prio;
 
@@ -606,7 +615,7 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 		((counter & 3) < 2));
 #endif /* SYSTEMMOD_RGBLED_SUPPORT */
 
-#endif  /* !PIPXTREME && PIOS_INCLUDE_ANNUNC */
+#endif  /* PIOS_INCLUDE_ANNUNC */
 }
 
 
@@ -617,8 +626,6 @@ static void objectUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj_data, int len
 {
 	(void) ctx; (void) obj_data; (void) len;
 
-	/* Handled in RadioComBridge on pipxtreme. */
-#ifndef PIPXTREME
 	ObjectPersistenceData objper;
 	UAVObjHandle obj;
 
@@ -680,7 +687,6 @@ static void objectUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj_data, int len
 				break;
 		}
 	}
-#endif
 }
 
 #ifndef NO_SENSORS
@@ -712,58 +718,6 @@ static void updateWDGstats()
 }
 #endif
 
-#ifdef PIPXTREME
-#define RFM22BSTATUSINST 0
-#else
-#define RFM22BSTATUSINST 1
-#endif
-
-static void updateRfm22bStats() {
-#if defined(PIOS_INCLUDE_RFM22B)
-	if (pios_rfm22b_id) {
-
-		// Update the RFM22BStatus UAVO
-		RFM22BStatusData rfm22bStatus;
-		RFM22BStatusInstGet(RFM22BSTATUSINST, &rfm22bStatus);
-
-		// Get the stats from the radio device
-		struct rfm22b_stats radio_stats;
-		PIOS_RFM22B_GetStats(pios_rfm22b_id, &radio_stats);
-
-		// Update the LInk status
-		static bool first_time = true;
-		static uint16_t prev_tx_count = 0;
-		static uint16_t prev_rx_count = 0;
-		rfm22bStatus.HeapRemaining = PIOS_heap_get_free_size();
-		rfm22bStatus.RxGood = radio_stats.rx_good;
-		rfm22bStatus.RxCorrected   = radio_stats.rx_corrected;
-		rfm22bStatus.RxErrors = radio_stats.rx_error;
-		rfm22bStatus.RxSyncMissed = radio_stats.rx_sync_missed;
-		rfm22bStatus.TxMissed = radio_stats.tx_missed;
-		rfm22bStatus.RxFailure     = radio_stats.rx_failure;
-		rfm22bStatus.Resets      = radio_stats.resets;
-		rfm22bStatus.Timeouts    = radio_stats.timeouts;
-		rfm22bStatus.RSSI        = radio_stats.rssi;
-		rfm22bStatus.LinkQuality = radio_stats.link_quality;
-		if (first_time) {
-			first_time = false;
-		} else {
-			uint16_t tx_count = radio_stats.tx_byte_count;
-			uint16_t rx_count = radio_stats.rx_byte_count;
-			uint16_t tx_bytes = (tx_count < prev_tx_count) ? (0xffff - prev_tx_count + tx_count) : (tx_count - prev_tx_count);
-			uint16_t rx_bytes = (rx_count < prev_rx_count) ? (0xffff - prev_rx_count + rx_count) : (rx_count - prev_rx_count);
-			rfm22bStatus.TXRate = (uint16_t)((float)(tx_bytes * 1000) / (SYSTEM_UPDATE_PERIOD_MS4TH));
-			rfm22bStatus.RXRate = (uint16_t)((float)(rx_bytes * 1000) / (SYSTEM_UPDATE_PERIOD_MS4TH));
-			prev_tx_count = tx_count;
-			prev_rx_count = rx_count;
-		}
-
-		rfm22bStatus.LinkState = radio_stats.link_state;
-		RFM22BStatusInstSet(RFM22BSTATUSINST, &rfm22bStatus);
-	}
-#endif /* if defined(PIOS_INCLUDE_RFM22B) */
-}
-
 /**
  * Called periodically to update the system stats
  */
@@ -789,7 +743,7 @@ static void updateStats()
 
 	uint32_t now = PIOS_Thread_Systime();
 	if (now > lastTickCount) {
-		float dT = (PIOS_Thread_Systime() - lastTickCount) / 1000.0f;
+		float dT = (now - lastTickCount) / 1000.0f;
 
 		// In the case of a slightly miscalibrated max idle count, make sure CPULoad does
 		// not go negative and set an alarm inappropriately.
@@ -996,6 +950,7 @@ static int32_t eventPeriodicCreate(UAVObjEvent* ev, UAVObjEventCallback cb, stru
 	objEntry->evInfo.ev.obj = ev->obj;
 	objEntry->evInfo.ev.instId = ev->instId;
 	objEntry->evInfo.ev.event = ev->event;
+	objEntry->evInfo.ev.throttle = NULL;
 	objEntry->evInfo.cb = cb;
 	objEntry->evInfo.queue = queue;
 	objEntry->updatePeriodMs = periodMs;

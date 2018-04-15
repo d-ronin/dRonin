@@ -43,9 +43,6 @@
 #include "hwsparky2.h"
 #include "manualcontrolsettings.h"
 #include "modulesettings.h"
-#include <rfm22bstatus.h>
-#include <rfm22breceiver.h>
-#include <pios_rfm22b_rcvr_priv.h>
 #include <pios_openlrs_rcvr_priv.h>
 
 
@@ -447,23 +444,16 @@ void PIOS_Board_Init(void) {
 			hw_DSMxMode,                         // dsm_mode
 			NULL);                               // sbus_cfg
 
-#if defined(PIOS_INCLUDE_RFM22B)
+#if defined(PIOS_INCLUDE_OPENLRS)
 	HwSparky2Data hwSparky2;
 	HwSparky2Get(&hwSparky2);
 
-	const struct pios_rfm22b_cfg *rfm22b_cfg = PIOS_BOARD_HW_DEFS_GetRfm22Cfg(bdinfo->board_rev);
-
 	const struct pios_openlrs_cfg *openlrs_cfg = PIOS_BOARD_HW_DEFS_GetOpenLRSCfg(bdinfo->board_rev);
 
-	PIOS_HAL_ConfigureRFM22B(hwSparky2.Radio, pios_spi_telem_flash_id,
+	PIOS_HAL_ConfigureRFM22B(pios_spi_telem_flash_id,
 			bdinfo->board_type, bdinfo->board_rev,
-			hwSparky2.MaxRfPower, hwSparky2.MaxRfSpeed,
-			hwSparky2.RfBand,
-			openlrs_cfg, rfm22b_cfg,
-			hwSparky2.MinChannel, hwSparky2.MaxChannel,
-			hwSparky2.CoordID, 1);
-
-#endif /* PIOS_INCLUDE_RFM22B */
+			hwSparky2.RfBand, openlrs_cfg, &openlrs_handle);
+#endif /* PIOS_INCLUDE_OPENLRS */
 
 	/* Configure the receiver port*/
 	uint8_t hw_rcvrport;

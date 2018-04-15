@@ -31,7 +31,6 @@
  */
 
 #include "revolution.h"
-#include "rfm22bstatus.h"
 
 #include "uavobjects/uavobjectmanager.h"
 #include "uavobjectutil/uavobjectutilmanager.h"
@@ -317,113 +316,10 @@ int Revolution::queryMaxGyroRate()
     return 2000;
 }
 
-/**
- * Get the RFM22b device ID this modem
- * @return RFM22B device ID or 0 if not supported
- */
-quint32 Revolution::getRfmID()
-{
-    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
-
-    // Flight controllers are instance 1
-    RFM22BStatus *rfm22bStatus = RFM22BStatus::GetInstance(uavoManager, 1);
-    Q_ASSERT(rfm22bStatus);
-    RFM22BStatus::DataFields rfm22b = rfm22bStatus->getData();
-
-    return rfm22b.DeviceID;
-}
-
-/**
- * Set the coordinator ID. If set to zero this device will
- * be a coordinator.
- * @return true if successful or false if not
- */
-bool Revolution::bindRadio(quint32 id, quint32 baud_rate, float rf_power,
-                           Core::IBoardType::LinkMode linkMode, quint8 min, quint8 max)
-{
-    HwRevolution::DataFields settings = getSettings()->getData();
-
-    settings.CoordID = id;
-
-    switch (baud_rate) {
-    case 9600:
-        settings.MaxRfSpeed = HwRevolution::MAXRFSPEED_9600;
-        break;
-    case 19200:
-        settings.MaxRfSpeed = HwRevolution::MAXRFSPEED_19200;
-        break;
-    case 32000:
-        settings.MaxRfSpeed = HwRevolution::MAXRFSPEED_32000;
-        break;
-    case 64000:
-        settings.MaxRfSpeed = HwRevolution::MAXRFSPEED_64000;
-        break;
-    case 100000:
-        settings.MaxRfSpeed = HwRevolution::MAXRFSPEED_100000;
-        break;
-    case 192000:
-        settings.MaxRfSpeed = HwRevolution::MAXRFSPEED_192000;
-        break;
-    }
-
-    // Round to an integer to use a switch statement
-    quint32 rf_power_100 = (rf_power * 100) + 0.5;
-    switch (rf_power_100) {
-    case 0:
-        settings.MaxRfPower = HwRevolution::MAXRFPOWER_0;
-        break;
-    case 125:
-        settings.MaxRfPower = HwRevolution::MAXRFPOWER_125;
-        break;
-    case 160:
-        settings.MaxRfPower = HwRevolution::MAXRFPOWER_16;
-        break;
-    case 316:
-        settings.MaxRfPower = HwRevolution::MAXRFPOWER_316;
-        break;
-    case 630:
-        settings.MaxRfPower = HwRevolution::MAXRFPOWER_63;
-        break;
-    case 1260:
-        settings.MaxRfPower = HwRevolution::MAXRFPOWER_126;
-        break;
-    case 2500:
-        settings.MaxRfPower = HwRevolution::MAXRFPOWER_25;
-        break;
-    case 5000:
-        settings.MaxRfPower = HwRevolution::MAXRFPOWER_50;
-        break;
-    case 10000:
-        settings.MaxRfPower = HwRevolution::MAXRFPOWER_100;
-        break;
-    }
-
-    switch (linkMode) {
-    case Core::IBoardType::LINK_TELEM:
-        settings.Radio = HwRevolution::RADIO_TELEM;
-        break;
-    case Core::IBoardType::LINK_TELEM_PPM:
-        settings.Radio = HwRevolution::RADIO_TELEMPPM;
-        break;
-    case Core::IBoardType::LINK_PPM:
-        settings.Radio = HwRevolution::RADIO_PPM;
-        break;
-    }
-
-    settings.MinChannel = min;
-    settings.MaxChannel = max;
-
-    getSettings()->setData(settings);
-    uavoUtilManager->saveObjectToFlash(getSettings());
-
-    return true;
-}
-
 QStringList Revolution::getAdcNames()
 {
     return QStringList() << "Pwr Sen Pin 3"
-                         << "Pwr Sen Pin 4";
+        << "Pwr Sen Pin 4";
 }
 
 bool Revolution::hasAnnunciator(AnnunciatorType annunc)

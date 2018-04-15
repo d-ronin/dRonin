@@ -48,9 +48,7 @@
 #include "hwrevolution.h"
 #include "manualcontrolsettings.h"
 #include "modulesettings.h"
-#include <rfm22bstatus.h>
 #include <pios_max7456.h>
-#include <pios_rfm22b_rcvr_priv.h>
 #include <pios_openlrs_rcvr_priv.h>
 
 #if defined(PIOS_INCLUDE_WS2811)
@@ -424,24 +422,18 @@ void PIOS_Board_Init(void) {
 			break;
 #endif
 
-#ifdef PIOS_INCLUDE_RFM22B
+#ifdef PIOS_INCLUDE_OPENLRS
 		case HWREVOLUTION_SPIPERIPHERAL_RADIO:
 			(void) 0;
 			const struct pios_openlrs_cfg *openlrs_cfg =PIOS_BOARD_HW_DEFS_GetOpenLRSCfg(bdinfo->board_rev);
-			const struct pios_rfm22b_cfg *rfm22b_cfg = PIOS_BOARD_HW_DEFS_GetRfm22Cfg(bdinfo->board_rev);
 
-			PIOS_HAL_ConfigureRFM22B(hwRevoMini.Radio,
-					pios_spi_telem_flash_id,
+			PIOS_HAL_ConfigureRFM22B(pios_spi_telem_flash_id,
 					bdinfo->board_type, bdinfo->board_rev,
-					hwRevoMini.MaxRfPower,
-					hwRevoMini.MaxRfSpeed,
 					hwRevoMini.RfBand,
-					openlrs_cfg, rfm22b_cfg,
-					hwRevoMini.MinChannel,
-					hwRevoMini.MaxChannel,
-					hwRevoMini.CoordID, 1);
+					openlrs_cfg,
+					&openlrs_handle);
 			break;
-#endif /* PIOS_INCLUDE_RFM22B */
+#endif /* PIOS_INCLUDE_OPENLRS */
 	}
 
 #ifdef PIOS_INCLUDE_WS2811

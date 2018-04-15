@@ -219,7 +219,7 @@ static int handle_serial_device(const char *optarg) {
 		PIOS_Modules_Enable(PIOS_MODULE_UAVOLIGHTTELEMETRYBRIDGE);
 		PIOS_COM_LIGHTTELEMETRY = com_id;
 	} else if (!strcmp(drv_name, "telemetry")) {
-		PIOS_COM_TELEM_RF = com_id;
+		PIOS_COM_TELEM_SER = com_id;
 #ifdef PIOS_INCLUDE_OMNIP
 	} else if (!strcmp(drv_name, "omnip")) {
 		omnip_dev_t dontcare;
@@ -669,6 +669,8 @@ void PIOS_SYS_Init(void)
 	if (ret == 0) {
 		printf("HW serial number-- hex: %s\n", ser_text);
 	}
+
+	/* TODO: initialize random number generator */
 
 #ifdef PIOS_INCLUDE_RTC
 	PIOS_RTC_Init();

@@ -325,11 +325,6 @@ int32_t transmitter_control_update()
 			value = PIOS_OpenLRS_RSSI_Get();
 #endif /* PIOS_INCLUDE_OPENLRS_RCVR */
 			break;
-		case MANUALCONTROLSETTINGS_RSSITYPE_RFM22B:
-#if defined(PIOS_INCLUDE_RFM22B)
-			value = PIOS_RFM22B_RSSI_Get();
-#endif /* PIOS_INCLUDE_RFM22B */
-			break;
 		default:
 			(void) 0 ;
 			int mapped = rssitype_to_channelgroup();

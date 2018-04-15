@@ -216,12 +216,6 @@ public:
     virtual int queryMaxGyroRate() { return -1; }
 
     /**
-     * Get the RFM22b device ID this modem
-     * @return RFM22B device ID or 0 if not supported
-     */
-    virtual quint32 getRfmID() { return 0; }
-
-    /**
      * Set the coordinator ID. If set to zero this device will
      * be a coordinator.
      * @param id - the ID of the coordinator to bind to, or 0 to make this
@@ -231,12 +225,6 @@ public:
      * @return true if successful or false if not
      */
     enum LinkMode { LINK_TELEM, LINK_TELEM_PPM, LINK_PPM };
-
-    virtual bool bindRadio(quint32 /*id*/, quint32 /*baud_rate*/, float /*rf_power*/,
-                           Core::IBoardType::LinkMode /*linkMode*/, quint8 /*min*/, quint8 /*max*/)
-    {
-        return false;
-    }
 
     /**
      * Check whether the board has USB

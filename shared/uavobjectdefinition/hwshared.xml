@@ -102,16 +102,6 @@
         <option>Disabled</option>
       </options>
     </field>
-    <field defaultvalue="Disabled" elements="1" name="RadioPort" type="enum" units="">
-      <description/>
-      <options>
-        <option>Disabled</option>
-        <option>Telem</option>
-        <option>Telem+PPM</option>
-        <option>PPM</option>
-        <option>OpenLRS</option>
-      </options>
-    </field>
     <field defaultvalue="64000" elements="1" name="MaxRfSpeed" type="enum" units="bps">
       <description>Maximum raw RF data speed in bits per second</description>
       <options>

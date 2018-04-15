@@ -31,10 +31,10 @@
 #include <pios.h>
 #include <openpilot.h>
 #include <board_hw_defs.c>
+#include <manualcontrolsettings.h>
 #include <modulesettings.h>
 #include <hwtaulink.h>
 #include <pios_hal.h>
-#include <rfm22bstatus.h>
 
 uintptr_t pios_com_telem_uart_bluetooth_id;
 #if defined(PIOS_INCLUDE_PPM)
@@ -99,9 +99,6 @@ void PIOS_Board_Init(void)
 #endif /* PIOS_INCLUDE_RTC */
 
 	HwTauLinkInitialize();
-#if defined(PIOS_INCLUDE_RFM22B)
-	RFM22BStatusInitialize();
-#endif /* PIOS_INCLUDE_RFM22B */
 
 #if defined(PIOS_INCLUDE_TIM)
 	/* Set up pulse timers */
@@ -166,16 +163,14 @@ void PIOS_Board_Init(void)
 
 	ModuleSettingsSet(&moduleSettings);
 
-	// Since we don't expose the ModuleSettings object from TauLink to the GCS
-	// we just map the baud rate from HwTauLink into this object
+#ifdef PIOS_INCLUDE_OPENLRS
+	const struct pios_openlrs_cfg *openlrs_cfg = PIOS_BOARD_HW_DEFS_GetOpenLRSCfg(bdinfo->board_rev);
 
-	const struct pios_rfm22b_cfg *rfm22b_cfg = PIOS_BOARD_HW_DEFS_GetRfm22Cfg(bdinfo->board_rev);
-	PIOS_HAL_ConfigureRFM22B(hwTauLink.Radio, pios_spi_rfm22b_id,
+	PIOS_HAL_ConfigureRFM22B(pios_spi_rfm22b_id,
 			bdinfo->board_type,
-			bdinfo->board_rev, hwTauLink.MaxRfPower,
-			hwTauLink.MaxRfSpeed, hwTauLink.RfBand, NULL, rfm22b_cfg,
-			hwTauLink.MinChannel, hwTauLink.MaxChannel,
-			hwTauLink.CoordID, 0);
+			bdinfo->board_rev,
+			hwTauLink.RfBand, openlrs_cfg, &openlrs_handle);
+#endif
 
 	if (bdinfo->board_rev == TAULINK_VERSION_MODULE) {
 		// Configure the main serial port function
@@ -243,6 +238,17 @@ void PIOS_Board_Init(void)
 		},
 	};
 
+#if defined(PIOS_INCLUDE_GCSRCVR)
+	GCSReceiverInitialize();
+	uintptr_t pios_gcsrcvr_id;
+	PIOS_GCSRCVR_Init(&pios_gcsrcvr_id);
+	uintptr_t pios_gcsrcvr_rcvr_id;
+	if (PIOS_RCVR_Init(&pios_gcsrcvr_rcvr_id, &pios_gcsrcvr_rcvr_driver, pios_gcsrcvr_id)) {
+		PIOS_Assert(0);
+	}
+	pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_GCS] = pios_gcsrcvr_rcvr_id;
+#endif    /* PIOS_INCLUDE_GCSRCVR */
+
 	switch (hwTauLink.PPMPort) {
 	case HWTAULINK_PPMPORT_PPM:
 	{
@@ -255,6 +261,7 @@ void PIOS_Board_Init(void)
 			PIOS_Assert(0);
 		}
 
+		pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_PPM] = pios_ppm_rcvr_id;
 #endif /* PIOS_INCLUDE_PPM */
 		break;
 	}

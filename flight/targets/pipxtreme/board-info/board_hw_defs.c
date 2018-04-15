@@ -60,48 +60,6 @@ static const struct pios_annunc pios_annuncs[] = {
 			},
 		},
 	},
-#ifdef PIOS_RFM22B_DEBUG_ON_TELEM
-	[PIOS_LED_D1] = {
-		.pin = {
-			.gpio = GPIOB,
-			.init = {
-				.GPIO_Pin   = GPIO_Pin_14,
-				.GPIO_Mode  = GPIO_Mode_Out_PP,
-				.GPIO_Speed = GPIO_Speed_50MHz,
-			},
-		},
-	},
-	[PIOS_LED_D2] = {
-		.pin = {
-			.gpio = GPIOB,
-			.init = {
-				.GPIO_Pin   = GPIO_Pin_15,
-				.GPIO_Mode  = GPIO_Mode_Out_PP,
-				.GPIO_Speed = GPIO_Speed_50MHz,
-			},
-		},
-	},
-	[PIOS_LED_D3] = {
-		.pin = {
-			.gpio = GPIOA,
-			.init = {
-				.GPIO_Pin   = GPIO_Pin_9,
-				.GPIO_Mode  = GPIO_Mode_Out_PP,
-				.GPIO_Speed = GPIO_Speed_50MHz,
-			},
-		},
-	},
-	[PIOS_LED_D4] = {
-		.pin = {
-			.gpio = GPIOA,
-			.init = {
-				.GPIO_Pin   = GPIO_Pin_10,
-				.GPIO_Mode  = GPIO_Mode_Out_PP,
-				.GPIO_Speed = GPIO_Speed_50MHz,
-			},
-		},
-	},
-#endif
 };
 
 static const struct pios_annunc_cfg pios_annunc_cfg = {
@@ -189,12 +147,18 @@ pios_spi_t pios_spi_rfm22b_id;
 
 #endif /* PIOS_INCLUDE_SPI */
 
-#if defined(PIOS_INCLUDE_RFM22B)
+#if defined(PIOS_INCLUDE_OPENLRS)
 
-#include <pios_rfm22b_priv.h>
+#include <pios_openlrs_priv.h>
+
+pios_openlrs_t openlrs_handle;
+
+static bool openlrs_int(void) {
+       return PIOS_OpenLRS_EXT_Int(openlrs_handle);
+}
 
 static const struct pios_exti_cfg pios_exti_rfm22b_cfg __exti_config = {
-	.vector = PIOS_RFM22_EXT_Int,
+	.vector = openlrs_int,
 	.line = EXTI_Line2,
 	.pin = {
 		.gpio = GPIOA,
@@ -221,18 +185,28 @@ static const struct pios_exti_cfg pios_exti_rfm22b_cfg __exti_config = {
 	},
 };
 
-#include <pios_rfm22b_priv.h>
+const struct stm32_gpio pios_openlrs_taulink_bind_button = {
+	.gpio = GPIOB,
+	.init =
+	{
+		.GPIO_Pin = GPIO_Pin_8,
+		.GPIO_Speed = GPIO_Speed_10MHz,
+		.GPIO_Mode  = GPIO_Mode_IPD,
+	},
+};
 
-struct pios_rfm22b_cfg pios_rfm22b_taulink_cfg = {
+const struct pios_openlrs_cfg pios_openlrs_taulink_cfg = {
 	.spi_cfg = &pios_spi_rfm22b_cfg,
 	.exti_cfg = &pios_exti_rfm22b_cfg,
-	.RFXtalCap = 0x7f,
-	.slave_num = 0,
 	.gpio_direction = GPIO0_TX_GPIO1_RX,
+
+	.bind_button = &pios_openlrs_taulink_bind_button,
+
+	.bind_active_high = true,
 };
 
 static const struct pios_exti_cfg pios_exti_rfm22b_cfg_module __exti_config = {
-	.vector = PIOS_RFM22_EXT_Int,
+	.vector = openlrs_int,
 	.line = EXTI_Line1,
 	.pin = {
 		.gpio = GPIOA,
@@ -259,25 +233,23 @@ static const struct pios_exti_cfg pios_exti_rfm22b_cfg_module __exti_config = {
 	},
 };
 
-struct pios_rfm22b_cfg pios_rfm22b_taulinkmodule_cfg = {
+struct pios_openlrs_cfg pios_openlrs_taulinkmodule_cfg = {
 	.spi_cfg = &pios_spi_rfm22b_cfg,
 	.exti_cfg = &pios_exti_rfm22b_cfg_module,
-	.RFXtalCap = 0x7f,
-	.slave_num = 0,
 	.gpio_direction = GPIO0_TX_GPIO1_RX,
 };
 
 //! Compatibility layer for various hardware revisions
-const struct pios_rfm22b_cfg * PIOS_BOARD_HW_DEFS_GetRfm22Cfg (uint32_t board_revision)
+const struct pios_openlrs_cfg * PIOS_BOARD_HW_DEFS_GetOpenLRSCfg (uint32_t board_revision)
 {
 	if (board_revision == TAULINK_VERSION_STICK)
-		return &pios_rfm22b_taulink_cfg;
+		return &pios_openlrs_taulink_cfg;
 	if (board_revision == TAULINK_VERSION_MODULE)
-		return &pios_rfm22b_taulinkmodule_cfg;
+		return &pios_openlrs_taulinkmodule_cfg;
 	return NULL;
 }
 
-#endif /* PIOS_INCLUDE_RFM22B */
+#endif /* PIOS_INCLUDE_OPENLRS */
 
 #if defined(PIOS_INCLUDE_ADC)
 
@@ -700,10 +672,9 @@ const struct pios_flash_partition * PIOS_BOARD_HW_DEFS_GetPartitionTable (uint32
 
 #endif	/* PIOS_INCLUDE_FLASH */
 
-#if defined(PIOS_INCLUDE_RFM22B)
-#include <pios_rfm22b_priv.h>
-
-#endif /* PIOS_INCLUDE_RFM22B */
+#if defined(PIOS_INCLUDE_GCSRCVR)
+#include "pios_gcsrcvr_priv.h"
+#endif   /* PIOS_INCLUDE_GCSRCVR */
 
 /**
  * @}

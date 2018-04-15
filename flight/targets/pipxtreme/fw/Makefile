@@ -34,28 +34,20 @@ include $(MAKE_INC_DIR)/firmware-defs.mk
 DEBUG ?= NO
 
 # Include objects that are just nice information to show
-STACK_DIAGNOSTICS ?= NO
-RATEDESIRED_DIAGNOSTICS ?= NO
 WDG_STATS_DIAGNOSTICS ?= NO
-DIAG_TASKS ?= NO
+DIAG_TASKS ?= YES
 
 #Or just turn on all the above diagnostics. WARNING: This consumes massive amounts of memory.
-ALL_DIGNOSTICS ?=NO
+ALL_DIAGNOSTICS ?=NO
 
 # Set to YES to build a FW version that will erase all flash memory
 ERASE_FLASH ?= NO
 # Set to YES to use the Servo output pins for debugging via scope or logic analyser
 ENABLE_DEBUG_PINS ?= NO
 
-# Set to Yes to enable the AUX UART which is mapped on the S1 (Tx) and S2 (Rx) servo outputs
-ENABLE_AUX_UART ?= NO
-
-USE_GPS ?= NO
-
-USE_I2C ?= YES
-
 # List of modules to include
 MODULES += ComUsbBridge
+MODULES += Telemetry
 MODULES += RadioComBridge
 MODULES += UAVOTaranis
 
@@ -93,10 +85,8 @@ SRC += $(OPUAVOBJ)/uavobjectmanager.c
 
 ## PIOS Hardware (STM32F10x)
 SRC += pios_sys.c
-SRC += pios_annunc.c
 SRC += pios_usart.c
 SRC += pios_flash_internal.c
-SRC += pios_exti.c
 SRC += pios_rtc.c
 SRC += pios_tim.c
 SRC += pios_bl_helper.c
@@ -109,38 +99,18 @@ SRC += pios_usb_cdc.c
 SRC += pios_usb_hid_istr.c
 SRC += pios_usb_hid_pwr.c
 SRC += pios_usb_board_data.c
-SRC += pios_usb_desc_hid_cdc.c
-SRC += pios_usb_desc_hid_only.c
-SRC += pios_usb_util.c
 
 ## PIOS Hardware (Common)
-SRC += pios_delay.c
-SRC += pios_crc.c
-SRC += pios_com.c
-SRC += pios_rcvr.c
-SRC += pios_flash.c
-SRC += pios_flashfs_logfs.c
+include $(PIOS)/pios_flight_library.mk
+
 SRC += printf-stdarg.c
-SRC += pios_rfm22b.c
-SRC += pios_rfm22b_com.c
-SRC += pios_heap.c
-SRC += pios_semaphore.c
-SRC += pios_mutex.c
-SRC += pios_thread.c
-SRC += pios_queue.c
-SRC += pios_hal.c
-SRC += pios_servo.c
-SRC += pios_modules.c
-SRC += pios_spi.c
-SRC += pios_irq.c
-SRC += pios_pwm.c
-SRC += pios_ppm.c
-SRC += pios_debug.c
-SRC += pios_wdg.c
-SRC += pios_reset.c
 
 ## Libraries for flight calculations
 SRC += taskmonitor.c
+
+## Radio
+SRC += pios_openlrs.c
+SRC += pios_openlrs_rcvr.c
 
 ## CMSIS for STM32
 include $(PIOSCOMMONLIB)/CMSIS/library.mk
@@ -235,19 +205,8 @@ CDEFS += -DUSE_$(BOARD)
 ifeq ($(ENABLE_DEBUG_PINS), YES)
 CDEFS += -DPIOS_ENABLE_DEBUG_PINS
 endif
-ifeq ($(ENABLE_AUX_UART), YES)
-CDEFS += -DPIOS_ENABLE_AUX_UART
-endif
 ifeq ($(ERASE_FLASH), YES)
 CDEFS += -DERASE_FLASH
-endif
-
-ifneq ($(USE_GPS), NO)
-CDEFS += -DUSE_GPS
-endif
-
-ifeq ($(USE_I2C), YES)
-CDEFS += -DUSE_I2C
 endif
 
 CDEFS += -DEE_BANK_BASE=$(EE_BANK_BASE)
@@ -288,19 +247,11 @@ ifeq ($(DEBUG),YES)
 CFLAGS += -DDEBUG
 endif
 
-ifneq (,$(filter YES,$(STACK_DIAGNOSTICS) $(ALL_DIGNOSTICS)))
-CFLAGS += -DSTACK_DIAGNOSTICS
-endif
-
-ifneq (,$(filter YES,$(RATEDESIRED_DIAGNOSTICS) $(ALL_DIGNOSTICS)))
-CFLAGS += -DRATEDESIRED_DIAGNOSTICS
-endif
-
-ifneq (,$(filter YES,$(WDG_STATS_DIAGNOSTICS) $(ALL_DIGNOSTICS)))
+ifneq (,$(filter YES,$(WDG_STATS_DIAGNOSTICS) $(ALL_DIAGNOSTICS)))
 CFLAGS += -DWDG_STATS_DIAGNOSTICS
 endif
 
-ifneq (,$(filter YES,$(DIAG_TASKS) $(ALL_DIGNOSTICS)))
+ifneq (,$(filter YES,$(DIAG_TASKS) $(ALL_DIAGNOSTICS)))
 CFLAGS += -DDIAG_TASKS
 endif
 

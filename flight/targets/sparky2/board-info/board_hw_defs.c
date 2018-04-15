@@ -225,109 +225,18 @@ static const struct pios_spi_cfg pios_spi_telem_flash_cfg = {
 
 pios_spi_t pios_spi_telem_flash_id;
 
-#if defined(PIOS_INCLUDE_RFM22B)
-#include <pios_rfm22b_priv.h>
-
-static const struct pios_exti_cfg pios_exti_rfm22b_pb7_cfg __exti_config = {
-	.vector = PIOS_RFM22_EXT_Int,
-	.line = EXTI_Line7,
-	.pin = {
-		.gpio = GPIOB,
-		.init = {
-			.GPIO_Pin = GPIO_Pin_7,
-			.GPIO_Speed = GPIO_Speed_100MHz,
-			.GPIO_Mode = GPIO_Mode_IN,
-			.GPIO_OType = GPIO_OType_OD,
-			.GPIO_PuPd = GPIO_PuPd_NOPULL,
-		},
-	},
-	.irq = {
-		.init = {
-			.NVIC_IRQChannel = EXTI9_5_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_LOW,
-			.NVIC_IRQChannelSubPriority = 0,
-			.NVIC_IRQChannelCmd = ENABLE,
-		},
-	},
-	.exti = {
-		.init = {
-			.EXTI_Line = EXTI_Line7, // matches above GPIO pin
-			.EXTI_Mode = EXTI_Mode_Interrupt,
-			.EXTI_Trigger = EXTI_Trigger_Falling,
-			.EXTI_LineCmd = ENABLE,
-		},
-	},
-};
-
-static const struct pios_exti_cfg pios_exti_rfm22b_pbd2_cfg __exti_config = {
-	.vector = PIOS_RFM22_EXT_Int,
-	.line = EXTI_Line2,
-	.pin = {
-		.gpio = GPIOD,
-		.init = {
-			.GPIO_Pin = GPIO_Pin_2,
-			.GPIO_Speed = GPIO_Speed_100MHz,
-			.GPIO_Mode = GPIO_Mode_IN,
-			.GPIO_OType = GPIO_OType_OD,
-			.GPIO_PuPd = GPIO_PuPd_NOPULL,
-		},
-	},
-	.irq = {
-		.init = {
-			.NVIC_IRQChannel = EXTI2_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_LOW,
-			.NVIC_IRQChannelSubPriority = 0,
-			.NVIC_IRQChannelCmd = ENABLE,
-		},
-	},
-	.exti = {
-		.init = {
-			.EXTI_Line = EXTI_Line2, // matches above GPIO pin
-			.EXTI_Mode = EXTI_Mode_Interrupt,
-			.EXTI_Trigger = EXTI_Trigger_Falling,
-			.EXTI_LineCmd = ENABLE,
-		},
-	},
-};
-
-const struct pios_rfm22b_cfg pios_rfm22b_pb7_cfg = {
-	.spi_cfg = &pios_spi_telem_flash_cfg,
-	.exti_cfg = &pios_exti_rfm22b_pb7_cfg,
-	.RFXtalCap = 0x7f,
-	.slave_num = 0,
-	.gpio_direction = GPIO0_TX_GPIO1_RX,
-};
-
-const struct pios_rfm22b_cfg pios_rfm22b_pd2_cfg = {
-	.spi_cfg = &pios_spi_telem_flash_cfg,
-	.exti_cfg = &pios_exti_rfm22b_pbd2_cfg,
-	.RFXtalCap = 0x7f,
-	.slave_num = 0,
-	.gpio_direction = GPIO0_TX_GPIO1_RX,
-};
-
-const struct pios_rfm22b_cfg * PIOS_BOARD_HW_DEFS_GetRfm22Cfg (uint32_t board_revision)
-{
-	switch(board_revision) {
-	case SPARKY2_V2_0:
-		return &pios_rfm22b_pd2_cfg;
-	case BRUSHEDSPARKY_V0_1:
-		return &pios_rfm22b_pd2_cfg;
-	case BRUSHEDSPARKY_V0_2:
-		return &pios_rfm22b_pb7_cfg;
-	}
-
-	PIOS_Assert(0);
-}
-
-#endif /* PIOS_INCLUDE_RFM22B */
-
 #if defined(PIOS_INCLUDE_OPENLRS)
 
 #include <pios_openlrs_priv.h>
 
+pios_openlrs_t openlrs_handle;
+
+static bool openlrs_int(void) {
+       return PIOS_OpenLRS_EXT_Int(openlrs_handle);
+}
+
 static const struct pios_exti_cfg pios_exti_openlrs_pb7_cfg __exti_config = {
-	.vector = PIOS_OpenLRS_EXT_Int,
+	.vector = openlrs_int,
 	.line = EXTI_Line7,
 	.pin = {
 		.gpio = GPIOB,
@@ -358,7 +267,7 @@ static const struct pios_exti_cfg pios_exti_openlrs_pb7_cfg __exti_config = {
 };
 
 static const struct pios_exti_cfg pios_exti_openlrs_pbd2_cfg __exti_config = {
-	.vector = PIOS_OpenLRS_EXT_Int,
+	.vector = openlrs_int,
 	.line = EXTI_Line2,
 	.pin = {
 		.gpio = GPIOD,
