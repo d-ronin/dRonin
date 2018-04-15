@@ -31,6 +31,7 @@
 #include "misc_math.h"
 
 #include "pios_config.h"
+#include "pios_hal.h"
 #include "uavobjectsinit.h"
 #include "systemmod.h"
 #include "pios_thread.h"
@@ -147,14 +148,15 @@ void initTask(void)
 	PIOS_SYS_SerialNumberGetBinary(serial);
 
 	for (int i = 0; i < PIOS_SYS_SERIAL_NUM_BINARY_LEN; i += 4) {
+		/* TODO: consider mixing in HRNG on F4 */
 		randomize_addseed(
 				(serial[i]) |
 				(serial[i+1] << 8) |
 				(serial[i+2] << 16) |
-				(serial[i+2] << 24));
+				(serial[i+3] << 24));
 	}
 
-	/* TODO: consider mixing in HRNG on F4 */
+	PIOS_HAL_InitUAVTalkReceiver();
 
 	/* board driver init */
 	PIOS_Board_Init();

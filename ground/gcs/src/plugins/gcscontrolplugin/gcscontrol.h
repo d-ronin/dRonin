@@ -31,7 +31,7 @@
 #include "gcscontrol_global.h"
 #include "manualcontrolsettings.h"
 #include "uavobjects/uavobjectmanager.h"
-#include "gcsreceiver.h"
+#include "uavtalkreceiver.h"
 #include "extensionsystem/pluginmanager.h"
 #include "QTimer"
 #include "gcscontrolgadgetfactory.h"
@@ -63,7 +63,7 @@ public slots:
 
 private:
     ManualControlSettings *manControlSettingsUAVO;
-    GCSReceiver *m_gcsReceiver;
+    UAVTalkReceiver *m_gcsReceiver;
     static bool firstInstance;
     ManualControlSettings::DataFields dataBackup;
     ManualControlSettings::Metadata metaBackup;

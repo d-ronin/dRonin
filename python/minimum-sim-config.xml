@@ -17,7 +17,7 @@
     </object>
     <object id="0xA4081E0C" name="ManualControlSettings">
       <field name="Arming" values="Switch+Throttle"/>
-      <field name="ChannelGroups" values="GCS,GCS,GCS,GCS,None,None,None,None,None,GCS"/>
+      <field name="ChannelGroups" values="UAVTalk,UAVTalk,UAVTalk,UAVTalk,None,None,None,None,None,UAVTalk"/>
       <field name="ChannelMax" values="9000,9000,9000,9000,2000,2000,2000,2000,2000,9000"/>
       <field name="ChannelNeutral" values="1800,5000,5000,5000,1500,1500,1500,1500,1500,5000"/>
       <field name="ChannelNumber" values="1,2,3,4,0,0,0,0,0,5"/>

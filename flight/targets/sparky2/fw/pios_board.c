@@ -475,17 +475,6 @@ void PIOS_Board_Init(void) {
 			hw_DSMxMode,                           // dsm_mode
 			get_sbus_cfg(bdinfo->board_rev));      // sbus_cfg
 
-#if defined(PIOS_INCLUDE_GCSRCVR)
-	GCSReceiverInitialize();
-	uintptr_t pios_gcsrcvr_id;
-	PIOS_GCSRCVR_Init(&pios_gcsrcvr_id);
-	uintptr_t pios_gcsrcvr_rcvr_id;
-	if (PIOS_RCVR_Init(&pios_gcsrcvr_rcvr_id, &pios_gcsrcvr_rcvr_driver, pios_gcsrcvr_id)) {
-		PIOS_Assert(0);
-	}
-	pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_GCS] = pios_gcsrcvr_rcvr_id;
-#endif	/* PIOS_INCLUDE_GCSRCVR */
-
 #ifndef PIOS_DEBUG_ENABLE_DEBUG_PINS
 	/* Set up the servo outputs */
 	PIOS_Servo_Init(&pios_servo_cfg);

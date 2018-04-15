@@ -133,6 +133,7 @@ void PIOS_HAL_ConfigureSerialSpeed(uintptr_t com_id,
 
 void PIOS_HAL_SetReceiver(int receiver_type, uintptr_t value);
 uintptr_t PIOS_HAL_GetReceiver(int receiver_type);
+void PIOS_HAL_InitUAVTalkReceiver();
 
 #ifdef PIOS_INCLUDE_DAC
 #include <pios_fskdac.h>

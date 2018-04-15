@@ -49,6 +49,10 @@
 #endif
 #endif
 
+#if defined(PIOS_INCLUDE_UAVTALKRCVR)
+#include <pios_uavtalkrcvr_priv.h>
+#endif
+
 #ifdef PIOS_INCLUDE_USART
 #include <pios_usart_priv.h>
 #include <pios_sbus_priv.h>
@@ -1426,3 +1430,21 @@ int PIOS_HAL_ConfigureDAC(dac_dev_t dac)
 	return 0;
 }
 #endif
+
+void PIOS_HAL_InitUAVTalkReceiver()
+{
+#if defined(PIOS_INCLUDE_UAVTALKRCVR)
+	UAVTalkReceiverInitialize();
+	uintptr_t pios_uavtalk_id;
+	PIOS_UAVTALKRCVR_Init(&pios_uavtalk_id);
+	uintptr_t pios_uavtalk_rcvr_id;
+	if (PIOS_RCVR_Init(&pios_uavtalk_rcvr_id,
+				&pios_uavtalk_rcvr_driver,
+				pios_uavtalk_id)) {
+		PIOS_Assert(0);
+	}
+
+	PIOS_HAL_SetReceiver(MANUALCONTROLSETTINGS_CHANNELGROUPS_UAVTALK,
+			pios_uavtalk_rcvr_id);
+#endif	/* PIOS_INCLUDE_UAVTALKRCVR */
+}
