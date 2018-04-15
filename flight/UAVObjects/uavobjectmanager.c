@@ -74,7 +74,7 @@ struct ObjectEventEntry {
 struct ObjectEventEntryThrottled {
 	struct ObjectEventEntry   entry; // MUST be first! So throttled entry can be interpreted as ObjectEventEntry
 
-	uint32_t                  due;
+	uint32_t                  when;
 	uint16_t                  interval;
 	volatile uint8_t          inhibited;
 };
@@ -1735,12 +1735,14 @@ static int32_t pumpOneEvent(UAVObjEvent msg, void *obj_data, int len) {
 					(struct ObjectEventEntryThrottled *) event;
 
 				uint32_t now = PIOS_Thread_Systime();
-				if (throtInfo->due > now) {
+
+				if (!PIOS_Thread_Period_Elapsed(throtInfo->when,
+							throtInfo->interval)) {
 					continue;
 				}
 
 				// Set time for next callback
-				throtInfo->due += ((now - throtInfo->due) / throtInfo->interval + 1) * throtInfo->interval;
+				throtInfo->when = now;
 
 				if (throtInfo->inhibited) {
 					continue;
@@ -2052,7 +2054,7 @@ static int32_t connectObj(UAVObjHandle obj_handle, struct pios_queue *queue,
 		throttled = (struct ObjectEventEntryThrottled *) event;
 
 		throttled->interval = interval;
-		throttled->due = PIOS_Thread_Systime() + randomize_int(throttled->interval);
+		throttled->when = PIOS_Thread_Systime() + randomize_int(throttled->interval);
 	}
 
 	LL_APPEND(obj->next_event, event);

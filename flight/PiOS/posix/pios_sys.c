@@ -115,10 +115,8 @@ static void Usage(char *cmdName) {
 		"\t-y\t\t\tUse an external simulator (drhil yasim)\n"
 #endif
 		"\t-x time\t\t\tExit after time seconds\n"
-#ifdef PIOS_INCLUDE_SERIAL
 		"\t-S drvname:serialpath\tStarts a serial driver on serialpath\n"
 		"\t\t\tAvailable drivers: gps msp lighttelemetry telemetry omnip\n\n"
-#endif
 #ifdef PIOS_INCLUDE_SPI
 		"\t-s spibase\t\tConfigures a SPI interface on the base path\n"
 		"\t-d drvname:bus:id\tStarts driver drvname on bus/id\n"
@@ -136,8 +134,6 @@ static void Usage(char *cmdName) {
 
 	exit(1);
 }
-
-#ifdef PIOS_INCLUDE_SERIAL
 
 #ifdef PIOS_INCLUDE_OMNIP
 #include <pios_omnip.h>
@@ -219,7 +215,7 @@ static int handle_serial_device(const char *optarg) {
 		PIOS_Modules_Enable(PIOS_MODULE_UAVOLIGHTTELEMETRYBRIDGE);
 		PIOS_COM_LIGHTTELEMETRY = com_id;
 	} else if (!strcmp(drv_name, "telemetry")) {
-		PIOS_COM_TELEM_SER = com_id;
+		PIOS_COM_TELEM_USB = com_id;
 #ifdef PIOS_INCLUDE_OMNIP
 	} else if (!strcmp(drv_name, "omnip")) {
 		omnip_dev_t dontcare;
@@ -238,7 +234,6 @@ static int handle_serial_device(const char *optarg) {
 fail:
 	return -1;
 }
-#endif
 
 #ifdef PIOS_INCLUDE_I2C
 static int handle_i2c_device(const char *optarg) {
@@ -511,7 +506,6 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 				first_arg = false;
 				break;
 			}
-#ifdef PIOS_INCLUDE_SERIAL
 			case 'S':
 				if (handle_serial_device(optarg)) {
 					printf("Couldn't init device\n");
@@ -519,7 +513,6 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 				}
 				first_arg = false;
 				break;
-#endif
 #ifdef PIOS_INCLUDE_I2C
 			case 'm':
 			{
@@ -661,6 +654,8 @@ void PIOS_SYS_Init(void)
 		perror("dup2");
 		exit(1);
 	}
+
+	setbuf(stderr, NULL);
 
 	char ser_text[PIOS_SYS_SERIAL_NUM_ASCII_LEN + 1];
 
@@ -900,7 +895,6 @@ static inline char nibble_to_hex(uint8_t c)
 
 DONT_BUILD_IF(PIOS_SYS_SERIAL_NUM_BINARY_LEN * 2 != PIOS_SYS_SERIAL_NUM_ASCII_LEN,
 		serLenMismatch);
-
 
 /**
 * Returns the serial number as a string

@@ -112,7 +112,7 @@ extern int32_t PIOS_GCSRCVR_Init(uintptr_t *gcsrcvr_id)
 	}
 
 	/* Register uavobj callback */
-	GCSReceiverConnectCallback (gcsreceiver_updated);
+	GCSReceiverConnectCallback(gcsreceiver_updated);
 
 	/* Register the failsafe timer callback. */
 	if (!PIOS_RTC_RegisterTickCallback(PIOS_gcsrcvr_Supervisor, (uintptr_t)gcsrcvr_dev)) {

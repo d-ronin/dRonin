@@ -151,7 +151,7 @@ class UAVOCollection(dict):
         content_list = []
 
         for file_name in glob.glob(os.path.join(path, '*.xml')):
-            with open(file_name, 'rU') as f:
+            with open(file_name, 'r', newline=None) as f:
                 content_list.append(f.read())
 
         self.from_file_contents(content_list)

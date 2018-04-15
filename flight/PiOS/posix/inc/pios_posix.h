@@ -32,6 +32,12 @@
 
 #include <time.h>
 
+#ifdef PIOS_INCLUDE_SIMSENSORS
+#ifndef TARGET_MAY_HAVE_BARO
+#define TARGET_MAY_HAVE_BARO
+#endif
+#endif
+
 #define FILEINFO FILE*
 
 #define PIOS_SERVO_NUM_OUTPUTS 8

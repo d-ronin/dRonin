@@ -15,7 +15,7 @@ try:
 except:
     import xml.etree.ElementTree as etree
 
-import time
+import time, array
 
 try:
     from struct import Struct, calcsize
@@ -442,6 +442,10 @@ def make_class(collection, xml_file, update_globals=True):
                     values = tuple(float(v) for v in info['defaultvalue'].split(','))
                     if info['type'] != 'float':
                         values = tuple(int(v) for v in values)
+                    else:
+                        # This is a hack, to get single precision values.
+                        values = array.array('f', values)
+                        values = tuple(v for v in values)
 
                 if len(values) == 1:
                     values = values[0]

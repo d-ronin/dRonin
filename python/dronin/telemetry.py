@@ -94,6 +94,8 @@ class TelemetryBase(metaclass=ABCMeta):
 
         self.first_handshake_needed = self.do_handshaking
 
+        self.iter_idx = 0
+
         if do_handshaking:
             self.GCSTelemetryStats = uavo_defs.find_by_name('UAVO_GCSTelemetryStats')
             self.FlightTelemetryStats = uavo_defs.find_by_name('UAVO_FlightTelemetryStats')
@@ -117,13 +119,9 @@ class TelemetryBase(metaclass=ABCMeta):
             if request is not None:
                 request.completed(None, obj._id)
 
-    def as_numpy_array(self, match_class, filter_cond=None, blocks=True):
-        """ Transforms all received instances of a given object to a numpy array.
-
-        match_class: the UAVO_* class you'd like to match.
-        """
-
-        import numpy as np
+    def as_filtered_list(self, match_class, filter_cond=None, blocks=True):
+        if isinstance(match_class, str):
+            match_class = self.uavo_defs.find_by_name(match_class)
 
         if blocks:
             to_iter = self
@@ -137,6 +135,23 @@ class TelemetryBase(metaclass=ABCMeta):
         if filter_cond is not None:
             filtered_list = list(filter(filter_cond, filtered_list))
 
+        return filtered_list
+
+    def as_numpy_array(self, match_class, filter_cond=None, blocks=True):
+        """ Transforms all received instances of a given object to a numpy array.
+
+        match_class: the UAVO_* class you'd like to match.
+        """
+
+        import numpy as np
+
+        # Find the subset of this list that is of the requested class
+        filtered_list = self.as_filtered_list(match_class, filter_cond, blocks)
+
+        # Perform any additional requested filtering
+        if filter_cond is not None:
+            filtered_list = list(filter(filter_cond, filtered_list))
+
         # Check for an empty list
         if filtered_list == []:
             return np.array([])
@@ -145,15 +160,15 @@ class TelemetryBase(metaclass=ABCMeta):
 
     def __iter__(self):
         """ Iterator service routine. """
-        iterIdx = 0
+        iter_idx = self.iter_idx
 
         self.cond.acquire()
 
         while True:
-            if iterIdx < len(self.uavo_list):
-                obj = self.uavo_list[iterIdx]
+            if iter_idx < len(self.uavo_list):
+                obj = self.uavo_list[iter_idx]
 
-                iterIdx += 1
+                iter_idx += 1
 
                 self.cond.release()
 
@@ -171,6 +186,8 @@ class TelemetryBase(metaclass=ABCMeta):
                     # wait for another thread to fill it in
                     self.cond.wait()
             else:
+                self.iter_idx = iter_idx
+                self.cond.release()
                 break
 
     def __make_handshake(self, handshake):
@@ -345,6 +362,22 @@ class TelemetryBase(metaclass=ABCMeta):
 
         self.send_object(save_req, req_ack=True)
 
+        for i in range(30):
+            try:
+                lv = self.last_values[save_obj]
+                if lv.ObjectID == obj._id:
+                    if lv.Operation == save_obj.ENUM_Operation['Completed']:
+                        return
+
+                    if lv.Operation != save_obj.ENUM_Operation['Save']:
+                        raise Exception("Did not save successfully - bad status")
+            except KeyError:
+                pass
+
+            time.sleep(0.05)
+
+        raise Exception("Did not save successfully - timeout")
+
     def save_objects(self, objs, *arg, **kwargs):
         for obj in objs:
             self.save_object(obj, *arg, **kwargs)
@@ -395,9 +428,11 @@ class TelemetryBase(metaclass=ABCMeta):
     def __handle_frames(self, frames):
         objs = []
 
-        if frames == b'':
+        if frames is None:
             self.eof = True
             self._close()
+        elif frames == b'':
+            return
         else:
             obj = self.uavtalk_generator.send(frames)
 
@@ -504,13 +539,13 @@ class TelemetryBase(metaclass=ABCMeta):
             data = self._receive(expire)
             self.__handle_frames(data)
 
+            if self.eof:
+                break
+
             if len(data):
                 break
 
             if (finish_time is not None) and (time.time() >= finish_time):
-                break
-
-            if self.eof:
                 break
 
     @abstractmethod
@@ -552,14 +587,23 @@ class BidirTelemetry(TelemetryBase):
     def _receive(self, finish_time):
         """ Fetch available data from file descriptor. """
 
+        if self.recv_buf is None:
+            return None
+
         # Always do some minimal IO if possible
         self._do_io(0)
 
-        while (len(self.recv_buf) < 1) and self._do_io(finish_time):
-            pass
+        if self.recv_buf is None:
+            return None
 
         if len(self.recv_buf) < 1:
+            self._do_io(finish_time)
+
+        if self.recv_buf is None:
             return None
+
+        if len(self.recv_buf) < 1:
+            return b''
 
         ret = self.recv_buf
         self.recv_buf = b''
@@ -572,8 +616,7 @@ class BidirTelemetry(TelemetryBase):
         with self.send_lock:
             self.send_buf += msg
 
-        if self.service_in_iter:
-            self._do_io(0)
+        self._do_io(0)
 
     @abstractmethod
     def _do_io(self, finish_time):
@@ -616,8 +659,14 @@ class FDTelemetry(BidirTelemetry):
 
         did_stuff = False
 
+        if self.recv_buf is None:
+            return False
+
         if len(self.recv_buf) < 1024:
             rd_set.append(self.fd)
+        elif len(self.send_buf) == 0:
+            # If we don't want I/O, return quick!
+            return True
 
         if len(self.send_buf) > 0:
             wr_set.append(self.write_fd)
@@ -629,38 +678,39 @@ class FDTelemetry(BidirTelemetry):
 
         r,w,e = select.select(rd_set, wr_set, [], tm)
 
-        if r:
-            # Shouldn't throw an exception-- they just told us
-            # it was ready for read.
-            # TODO: Figure out why read sometimes fails when using sockets
-            try:
-                chunk = os.read(self.fd, 1024)
-                if chunk == b'':
-                    raise RuntimeError("stream closed")
+        with self.cond:
+            if r:
+                # Shouldn't throw an exception-- they just told us
+                # it was ready for read.
+                try:
+                    chunk = os.read(self.fd, 1024)
+                    if chunk == b'':
+                        if self.recv_buf == b'':
+                            self.recv_buf = None
+                    else:
+                        self.recv_buf = self.recv_buf + chunk
 
-                self.recv_buf = self.recv_buf + chunk
+                    did_stuff = True
+                except OSError as err:
+                    # For some reason, we sometimes get a
+                    # "Resource temporarily unavailable" error
+                    if err.errno != errno.EAGAIN:
+                        raise
 
-                did_stuff = True
-            except OSError as err:
-                # For some reason, we sometimes get a
-                # "Resource temporarily unavailable" error
-                if err.errno != errno.EAGAIN:
-                    raise
+            if w:
+                with self.send_lock:
+                    written = os.write(self.write_fd, self.send_buf)
 
-        if w:
-            with self.send_lock:
-                written = os.write(self.write_fd, self.send_buf)
+                    if written > 0:
+                        self.send_buf = self.send_buf[written:]
 
-                if written > 0:
-                    self.send_buf = self.send_buf[written:]
-
-                did_stuff = True
+                    did_stuff = True
 
         return did_stuff
 
 class SubprocessTelemetry(FDTelemetry):
     """ TCP telemetry interface. """
-    def __init__(self, cmdline, shell=True, *args, **kwargs):
+    def __init__(self, cmdline, shell=False, *args, **kwargs):
         """ Creates a telemetry instance talking over TCP.
 
          - host: hostname to connect to (default localhost)
@@ -671,6 +721,10 @@ class SubprocessTelemetry(FDTelemetry):
         """
 
         import subprocess
+
+        if isinstance(cmdline, str):
+            import shlex
+            cmdline = shlex.split(cmdline)
 
         sp = subprocess.Popen(cmdline, stdout=subprocess.PIPE,
                 stdin=subprocess.PIPE, shell=shell)
@@ -692,6 +746,8 @@ class SubprocessTelemetry(FDTelemetry):
 
     def _close(self):
         self.sp.kill()
+        self.sp.wait(timeout=3)
+
 
 class NetworkTelemetry(FDTelemetry):
     """ TCP telemetry interface. """
@@ -850,7 +906,7 @@ class HIDTelemetry(BidirTelemetry):
 
         BidirTelemetry.__init__(self, *args, **kwargs)
 
-    # Call select and do one set of IO operations.
+    # Do USB I/O operations.
     def _do_io(self, finish_time):
         import errno
 
@@ -985,6 +1041,9 @@ class FileTelemetry(TelemetryBase):
 
         buf = self.f.read(524288)   # 512k
 
+        if buf == b'':
+            return None
+
         return buf
 
 def _finish_telemetry_args(parser, args, service_in_iter, iter_blocks):
@@ -1043,7 +1102,7 @@ def _finish_telemetry_args(parser, args, service_in_iter, iter_blocks):
             githash=githash)
 
 def get_telemetry_by_args(desc="Process telemetry", service_in_iter=True,
-        iter_blocks=True, arg_parser=None):
+        iter_blocks=True, arg_parser=None, arguments=None):
     """ Parses command line to decide how to get a telemetry object. """
     # Setup the command line arguments.
 
@@ -1094,7 +1153,10 @@ def get_telemetry_by_args(desc="Process telemetry", service_in_iter=True,
             help  = "file, host:port, vid:pid, command, or serial port")
 
     # Parse the command-line.
-    args = parser.parse_args()
+    if arguments is None:
+        args = parser.parse_args()
+    else:
+        args = parser.parse_args(arguments)
 
     ret = _finish_telemetry_args(parser, args, service_in_iter, iter_blocks)
 
