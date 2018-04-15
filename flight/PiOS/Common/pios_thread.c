@@ -83,8 +83,8 @@ struct pios_thread *PIOS_Thread_WrapCurrentThread(const char *namep)
 
 	if (thread) {
 		thread->threadp = chThdGetSelfX();
-#if CH_USE_REGISTRY
-		thread->threadp->p_name = namep;
+#if CH_CFG_USE_REGISTRY
+		thread->threadp->name = namep;
 #endif /* CH_USE_REGISTRY */
 	}
 
