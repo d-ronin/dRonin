@@ -275,7 +275,7 @@ static void telemetryRxTask( __attribute__ ((unused))
 {
 	// Task loop
 	while (1) {
-		uint32_t inputPort = PIOS_COM_TELEMETRY;
+		uint32_t inputPort = PIOS_COM_TELEM_SER;
 #ifdef PIOS_INCLUDE_WDG
 		PIOS_WDG_UpdateFlag(PIOS_WDG_TELEMETRY);
 #endif
@@ -327,7 +327,7 @@ static int32_t UAVTalkSendHandler(void *ctx, uint8_t * buf, int32_t length)
 	(void) ctx;
 
 	int32_t ret;
-	uint32_t outputPort = PIOS_COM_TELEMETRY;
+	uint32_t outputPort = PIOS_COM_TELEM_SER;
 
 #if defined(PIOS_INCLUDE_USB)
 	// Determine output port (USB takes priority over telemetry port)
