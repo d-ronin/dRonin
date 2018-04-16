@@ -60,6 +60,8 @@
 
 #include <pios_hal.h>
 
+#include <uavtalkreceiver.h>
+
 // ****************
 // Private constants
 
@@ -104,6 +106,16 @@ static void ProcessRadioStream(UAVTalkConnection inConnectionHandle,
 
 static RadioComBridgeData *data;
 
+static void NewReceiverData(UAVObjEvent * ev, void *ctx, void *obj, int len)
+{
+	(void) ctx; (void) obj; (void) len;
+
+	/* Selected local objects get crammed over the telem link. */
+
+	UAVTalkSendObject(data->telemUAVTalkCon, ev->obj, ev->instId,
+			false);
+}
+
 /**
  * @brief Start the module
  *
@@ -129,6 +141,8 @@ static int32_t RadioComBridgeStart(void)
 		data->radioRxTaskHandle =
 			PIOS_Thread_Create(radioRxTask, "radioRxTask",
 					STACK_SIZE_BYTES, NULL, TASK_PRIORITY);
+
+		UAVTalkReceiverConnectCallback(NewReceiverData);
 
 		return 0;
 	}
@@ -328,6 +342,7 @@ static int32_t UAVTalkSendHandler(void *ctx, uint8_t * buf, int32_t length)
 	} else {
 		ret = -1;
 	}
+
 	return ret;
 }
 
