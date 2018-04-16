@@ -386,6 +386,24 @@ static void ProcessLocalStream(UAVTalkConnection inConnectionHandle,
 	    UAVTalkProcessInputStreamQuiet(inConnectionHandle, rxbyte);
 
 	if (state == UAVTALK_STATE_COMPLETE) {
+		uint32_t objId = UAVTalkGetPacketObjId(inConnectionHandle);
+		switch (objId) {
+			// Ignore object...
+			// These objects are shadowed and are not sent over the
+			// transmitted over the radio link.
+			// - HWTauLink : No reconfiguring remote HW over radio
+			// link
+			// - UAVTalkReceiver : We generate this ourselves on
+			// the RX side and shouldn't forward it.
+			case HWTAULINK_OBJID:
+			case MetaObjectId(HWTAULINK_OBJID):
+			case UAVTALKRECEIVER_OBJID:
+			case MetaObjectId(UAVTALKRECEIVER_OBJID):
+				return;
+			default:
+				break;
+		}
+
 		// all packets are transparently relayed to the remote modem
 		// Incidentally this means that we fail requests for the
 		// radio stats and only telemeter them, but I consider this
@@ -421,10 +439,8 @@ static void ProcessRadioStream(UAVTalkConnection inConnectionHandle,
 		switch (objId) {
 		case HWTAULINK_OBJID:
 		case MetaObjectId(HWTAULINK_OBJID):
-			// Ignore object...
-			// These objects are shadowed by the modem and are not transmitted to the telemetry port
-			// - RFM22BSTATUS_OBJID : ground station will receive the OPLM link status instead
-			// - HWTAULINK_OBJID : ground station will read and write the OPLM settings instead
+		case UAVTALKRECEIVER_OBJID:
+		case MetaObjectId(UAVTALKRECEIVER_OBJID):
 			break;
 		case FLIGHTBATTERYSTATE_OBJID:
 		case FLIGHTSTATUS_OBJID:
