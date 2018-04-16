@@ -30,6 +30,8 @@
 #ifndef PIOS_DEBUG_H
 #define PIOS_DEBUG_H
 
+#include <assert.h>
+
 extern const char *PIOS_DEBUG_AssertMsg;
 
 void PIOS_DEBUG_Init(void);
@@ -39,12 +41,12 @@ void PIOS_DEBUG_PinValue8Bit(uint8_t value);
 void PIOS_DEBUG_PinValue4BitL(uint8_t value);
 void PIOS_DEBUG_Panic(const char *msg);
 
+#define PIOS_Assert(test) assert(test)
+
 #ifdef DEBUG
-#define PIOS_DEBUG_Assert(test) if (!(test)) PIOS_DEBUG_Panic(PIOS_DEBUG_AssertMsg);
-#define PIOS_Assert(test) PIOS_DEBUG_Assert(test)
+#define PIOS_DEBUG_Assert(test) PIOS_Assert(test)
 #else
 #define PIOS_DEBUG_Assert(test)
-#define PIOS_Assert(test) if (!(test)) while (1);
 #endif
 
 #endif /* PIOS_DEBUG_H */
