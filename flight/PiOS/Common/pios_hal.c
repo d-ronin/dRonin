@@ -1436,7 +1436,11 @@ void PIOS_HAL_InitUAVTalkReceiver()
 #if defined(PIOS_INCLUDE_UAVTALKRCVR)
 	UAVTalkReceiverInitialize();
 	uintptr_t pios_uavtalk_id;
-	PIOS_UAVTALKRCVR_Init(&pios_uavtalk_id);
+
+	if (PIOS_UAVTALKRCVR_Init(&pios_uavtalk_id)) {
+		PIOS_Assert(0);
+	}
+
 	uintptr_t pios_uavtalk_rcvr_id;
 	if (PIOS_RCVR_Init(&pios_uavtalk_rcvr_id,
 				&pios_uavtalk_rcvr_driver,
