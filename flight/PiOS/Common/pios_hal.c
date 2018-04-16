@@ -1079,7 +1079,9 @@ void PIOS_HAL_ConfigureRFM22B(pios_spi_t spi_dev,
 	/* XXX power limit here */
 	pios_openlrs_t openlrs_id;
 
-	PIOS_OpenLRS_Init(&openlrs_id, spi_dev, 0, openlrs_cfg, rf_band);
+	if (PIOS_OpenLRS_Init(&openlrs_id, spi_dev, 0, openlrs_cfg, rf_band)) {
+		return;
+	}
 
 	*handle = openlrs_id;
 
