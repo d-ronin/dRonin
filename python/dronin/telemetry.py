@@ -748,6 +748,8 @@ class SubprocessTelemetry(FDTelemetry):
         self.sp.kill()
         self.sp.wait(timeout=3)
 
+        if self.sp.returncode != 0 and self.sp.returncode != -9:
+            print(("WARNING: subproc ret code %d")%(self.sp.returncode))
 
 class NetworkTelemetry(FDTelemetry):
     """ TCP telemetry interface. """
