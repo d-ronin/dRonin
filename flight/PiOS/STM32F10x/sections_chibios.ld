@@ -210,5 +210,5 @@ SECTIONS
 PROVIDE(end = .);
 _end            = .;
 
-__heap_base__ = .;
-__heap_end__    = __ram_end__;
+__heap_base__ = _sheap;
+__heap_end__    = _eheap;
