@@ -965,8 +965,14 @@ static uintptr_t getComPort()
 	}
 #endif /* PIOS_COM_TELEM_USB */
 
+#ifndef PIPXTREME
+	/* Pipx: Don't ever natively telemeter over serial links, because
+	 * they might be connected to a FC and we might overwrite the FC's
+	 * objects with our own.
+	 */
 	if (PIOS_COM_Available(PIOS_COM_TELEM_SER))
 		return PIOS_COM_TELEM_SER;
+#endif
 
 	return 0;
 }
