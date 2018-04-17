@@ -391,6 +391,7 @@ UAVTalkRxState UAVTalkProcessInputStreamQuiet(UAVTalkConnection connectionHandle
 
 		// the CRC byte
 		if (rxbyte != iproc->cs) { // packet error - faulty CRC
+			connection->stats.rxCRC++;
 			iproc->state = UAVTALK_STATE_ERROR;
 			break;
 		}
@@ -407,7 +408,6 @@ UAVTalkRxState UAVTalkProcessInputStreamQuiet(UAVTalkConnection connectionHandle
 		break;
 
 	default:
-		connection->stats.rxErrors++;
 		iproc->state = UAVTALK_STATE_ERROR;
 	}
 
@@ -458,8 +458,6 @@ int32_t UAVTalkRelayPacket(UAVTalkConnection inConnectionHandle, UAVTalkConnecti
 
 	// The input packet must be completely parsed.
 	if (inIproc->state != UAVTALK_STATE_COMPLETE) {
-		inConnection->stats.rxErrors++;
-
 		return -1;
 	}
 
