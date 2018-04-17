@@ -484,13 +484,11 @@ int32_t UAVTalkRelayPacket(UAVTalkConnection inConnectionHandle, UAVTalkConnecti
 	outConnection->txBuffer[7] = (uint8_t)((inIproc->objId >> 24) & 0xFF);
 	int32_t headerLength = 8;
 
-	if (inIproc->obj) {
-		if (!UAVObjIsSingleInstance(inIproc->obj)) {
-			// Setup instance ID
-			outConnection->txBuffer[8] = (uint8_t)(inIproc->instId & 0xFF);
-			outConnection->txBuffer[9] = (uint8_t)((inIproc->instId >> 8) & 0xFF);
-			headerLength = 10;
-		}
+	if (inIproc->instanceLength) {
+		// Setup instance ID
+		outConnection->txBuffer[8] = (uint8_t)(inIproc->instId & 0xFF);
+		outConnection->txBuffer[9] = (uint8_t)((inIproc->instId >> 8) & 0xFF);
+		headerLength = 10;
 	}
 
 	// Copy data (if any)
