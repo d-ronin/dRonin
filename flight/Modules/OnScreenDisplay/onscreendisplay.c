@@ -725,7 +725,7 @@ void draw_flight_mode(int x, int y, int xs, int ys, int va, int ha, int flags, i
 	case SHAREDDEFS_FLIGHTMODE_LQGLEVELING:
 		write_string("LQG-L", x, y, xs, ys, va, ha, flags, font);
 		break;
-	case SHAREDDEFS_FLIGHTMODE_FLIPOVERREV:
+	case SHAREDDEFS_FLIGHTMODE_FLIPREVERSED:
 		write_string("FLIPOVER", x, y, xs, ys, va, ha, flags, font);
 		break;
 	}
