@@ -67,12 +67,12 @@ private:
     //! Get the handle to the ManualControlCommand object
     ManualControlCommand *getManualControlCommand();
 
-    //! Get the handle to the GCSReceiver object
+    //! Get the handle to the UAVTalkReceiver object
     GCSControl *getGcsControl();
 
     double constrain(double value);
 
-    //! Set the GCS Receiver object
+    //! Set the UAVTalkReceiver object
     void setGcsReceiver(double leftX, double leftY, double rightX,
             double rightY, double arming);
 

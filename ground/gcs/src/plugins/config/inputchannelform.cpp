@@ -2,7 +2,7 @@
 #include "ui_inputchannelform.h"
 
 #include "manualcontrolsettings.h"
-#include "gcsreceiver.h"
+#include "uavtalkreceiver.h"
 
 #include <coreplugin/iboardtype.h>
 #include <uavobjectutil/uavobjectutilmanager.h>
@@ -158,8 +158,8 @@ void inputChannelForm::groupUpdated()
         case ManualControlSettings::CHANNELGROUPS_OPENLRS:
             count = 8;
             break;
-        case ManualControlSettings::CHANNELGROUPS_GCS:
-            count = GCSReceiver::CHANNEL_NUMELEM;
+        case ManualControlSettings::CHANNELGROUPS_UAVTALK:
+            count = UAVTalkReceiver::CHANNEL_NUMELEM;
             break;
         case ManualControlSettings::CHANNELGROUPS_HOTTSUM:
             count = 32;

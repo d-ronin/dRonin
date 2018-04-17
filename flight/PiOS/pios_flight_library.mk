@@ -1,6 +1,6 @@
 SRC += pios_delay.c
 SRC += pios_exti.c
-SRC += pios_gcsrcvr.c
+SRC += pios_uavtalkrcvr.c
 SRC += pios_crc.c
 SRC += pios_com.c
 SRC += pios_dsm.c

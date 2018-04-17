@@ -1,5 +1,5 @@
 <xml>
-  <object name="GCSReceiver" settings="false" singleinstance="true">
+  <object name="UAVTalkReceiver" settings="false" singleinstance="true">
     <description>A receiver channel group carried over the telemetry link.</description>
     <access gcs="readwrite" flight="readwrite"/>
     <logging updatemode="manual" period="0"/>

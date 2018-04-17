@@ -469,15 +469,9 @@ void PIOS_I2C_external_er_irq_handler(void)
 #include "pios_com_priv.h"
 #endif	/* PIOS_INCLUDE_COM */
 
-#if defined(PIOS_INCLUDE_GCSRCVR)
-#include "pios_gcsrcvr_priv.h"
-#endif	/* PIOS_INCLUDE_GCSRCVR */
-
-
 #if defined(PIOS_INCLUDE_RCVR)
 #include "pios_rcvr_priv.h"
 #endif /* PIOS_INCLUDE_RCVR */
-
 
 #if defined(PIOS_INCLUDE_USB)
 #include "pios_usb_priv.h"

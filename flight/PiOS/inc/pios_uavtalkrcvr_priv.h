@@ -2,11 +2,11 @@
  ******************************************************************************
  * @addtogroup PIOS PIOS Core hardware abstraction layer
  * @{
- * @addtogroup   PIOS_GCSRCVR GCS Receiver Functions
- * @brief PIOS interface to read from GCS receiver port
+ * @addtogroup  PIOS_UAVTALKRCVR Receiver-over-UAVTALK Input Functions
+ * @brief	Code to read the channels within the Receiver UAVObject
  * @{
  *
- * @file       pios_gcsrcvr_priv.h
+ * @file       pios_uavtalkrcvr_priv.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
  * @brief      GCS receiver private functions
@@ -28,18 +28,18 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef PIOS_GCSRCVR_PRIV_H
-#define PIOS_GCSRCVR_PRIV_H
+#ifndef PIOS_UAVTALKRCVR_PRIV_H
+#define PIOS_UAVTALKRCVR_PRIV_H
 
 #include <pios.h>
 #include "uavobjectmanager.h"	/* UAVObj* */
-#include "gcsreceiver.h"
+#include "uavtalkreceiver.h"
 
-extern const struct pios_rcvr_driver pios_gcsrcvr_rcvr_driver;
+extern const struct pios_rcvr_driver pios_uavtalk_rcvr_driver;
 
-extern int32_t PIOS_GCSRCVR_Init(uintptr_t *gcsrcvr_id);
+extern int32_t PIOS_UAVTALKRCVR_Init(uintptr_t *gcsrcvr_id);
 
-#endif /* PIOS_GCSRCVR_PRIV_H */
+#endif /* PIOS_UAVTALKRCVR_PRIV_H */
 
 /**
  * @}
