@@ -76,6 +76,7 @@ DONT_BUILD_IF((MIXERSETTINGS_MIXER1VECTOR_NUMELEM - MIXERSETTINGS_MIXER1VECTOR_A
 
 #define MIXER_SCALE 128
 #define ACTUATOR_EPSILON 0.00001f
+#define THROTTLE_EPSILON 0.000001f
 
 // Private types
 
@@ -1209,7 +1210,23 @@ static void smithp_compensate(struct smith_predictor *m, float *desired_vect)
 			1);
 
 	for (int i = 0; i < MIXERSETTINGS_MIXER1VECTOR_NUMELEM; i++) {
-		desired_vect[i] += m->mix * (desired_vect[i] - inv[i]);
+		float v = m->mix * (desired_vect[i] - inv[i]);
+
+		if (i == MIXERSETTINGS_MIXER1VECTOR_THROTTLECURVE1) {
+			/* This predictive stuff is noisy and can apparently cause some feedback in the low throttle
+			region, that makes throttle eventually oscillate around the zero point under certain conditions.
+			This leads to funny business with the motors, e.g. grinding. */
+			float t = desired_vect[i];
+			if ((t >= THROTTLE_EPSILON && (t+v) < THROTTLE_EPSILON) ||
+			    (t <= -THROTTLE_EPSILON && (t+v) > -THROTTLE_EPSILON)) {
+					v = 0;
+				}
+			/* Also bound throttle. */
+			desired_vect[i] = bound_sym(desired_vect[i] + v, 1.0f);
+		} else {
+			desired_vect[i] += v;
+		}
+
 	}
 }
 
