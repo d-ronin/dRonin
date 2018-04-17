@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import unittest
+import time
 
 class SimulationTestCase(unittest.TestCase):
     def setUp(self):
@@ -29,6 +30,11 @@ class SimulationTestCase(unittest.TestCase):
 
         self.stream_iter = iter(t_stream)
         self.t_stream = t_stream
+        self.uavrcvr_class = t_stream.uavo_defs.find_by_name("UAVTalkReceiver")
+
+        self.tick_num = 0
+
+        self.begin_time = time.time()
 
     def tearDown(self):
         self.t_stream._close()
@@ -42,10 +48,23 @@ class SimulationTestCase(unittest.TestCase):
         for o in self.stream_iter:
             if o.name == 'UAVO_HwSimulation':
                 if o.FakeTickBlocked != 0:
+                    self.tick_num += 1
                     return True
 
         # This is bad.  Got to end of stream, no tick.
         return False
+
+    def send_control_values(self, values):
+        val_tup = tuple(values)
+
+        print(round(time.time() - self.begin_time, 2),
+                "send_control_values", self.tick_num, val_tup, flush=True)
+
+        gi = self.uavrcvr_class._make_to_send(val_tup)
+
+        self.t_stream.send_object(gi)
+
+        self.assertTrue(self.wait_for_tick(), "Failed waiting for tick")
 
     def expected_session_time(self):
         return 9.0
@@ -72,17 +91,10 @@ class SimpleSimTests(SimulationTestCase):
     def test_fifty_ticks_of_disarm(self):
         t_stream = self.t_stream
 
-        uav_rcvr_class = t_stream.uavo_defs.find_by_name("UAVTalkReceiver")
-
-        # Invalid throttle channel should trigger receiver error.
-        gi = uav_rcvr_class._make_to_send((0,5000,5000,5000,1000,0,0,0))
-
         stream_iter = iter(t_stream)
 
         for i in range(20):
-            t_stream.send_object(gi)
-
-            self.assertTrue(self.wait_for_tick(), "Failed waiting for tick")
+            self.send_control_values((0,5000,5000,5000,1000,0,0,0))
 
         alarms = t_stream.as_filtered_list('SystemAlarms', blocks=False)
 
@@ -90,12 +102,8 @@ class SimpleSimTests(SimulationTestCase):
             self.assertEqual(a.ManualControl, a.ENUM_ManualControl['NoRx'],
                     "Expected NoRx when invalid radio")
 
-        gi = uav_rcvr_class._make_to_send((1000,5000,5000,5000,1000,0,0,0))
-
         for i in range(30):
-            t_stream.send_object(gi)
-
-            self.assertTrue(self.wait_for_tick(), "Failed waiting for tick")
+            self.send_control_values((1000,5000,5000,5000,1000,0,0,0))
 
         alarms = t_stream.as_filtered_list('SystemAlarms', blocks=False)
         alarms = alarms[int(len(alarms)/2)+1:]
@@ -117,6 +125,53 @@ class SimpleSimTests(SimulationTestCase):
         # We spent 5 seconds.  We expect a number between 4 and 5.5 seconds.
         self.assertGreaterEqual(last_flight_time, 4000)
         self.assertLessEqual(last_flight_time, 5500)
+
+        # Up to 1.5 seconds of armed switch at zero throttle.
+        for i in range(15):
+            self.send_control_values((1000,5000,5000,5000,9000,0,0,0))
+
+            flightStatus = t_stream.last_values[t_stream.uavo_defs.find_by_name('FlightStatus')]
+
+            if flightStatus.Armed == flightStatus.ENUM_Armed['Armed']:
+                break
+
+        self.assertEqual(flightStatus.Armed, flightStatus.ENUM_Armed['Armed'],
+                "Expected to become armed")
+
+        self.assertGreater(i, 9, "Needs to take at least 1 second to arm")
+
+        # PositionActual is only telemetered once per second currently,
+        # so the following tests are very coarse.  Python API does not
+        # currently know how to deal with metaobjects.
+
+        # Apply positive throttle until we reach 10m altitude
+        for i in range(70):
+            self.send_control_values((6500,5000,5000,5000,9000,0,0,0))
+
+            positionActual = t_stream.last_values[t_stream.uavo_defs.find_by_name('PositionActual')]
+
+            if positionActual.Down > 2:
+                break
+            if positionActual.Down <= -10:
+                break
+
+        self.assertLessEqual(positionActual.Down, -10, "Needed to climb to 10m")
+        self.assertTrue(40 < i < 60) # Was 49.
+
+        # Send invalid values and make sure we failsafe / fall
+        for i in range(60):
+            self.send_control_values((6500,15000,5000,5000,1000,0,0,0))
+
+            positionActual = t_stream.last_values[t_stream.uavo_defs.find_by_name('PositionActual')]
+
+            if positionActual.Down > -1:
+                break
+
+        self.assertGreaterEqual(positionActual.Down, -1, "Should fall in failsafe")
+        self.assertTrue(10 < i < 40) # Was 29.
+
+    def expected_session_time(self):
+        return 40
 
 if __name__ == "__main__":
     unittest.main()
