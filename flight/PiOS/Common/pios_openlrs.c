@@ -674,6 +674,10 @@ static void pios_openlrs_config_to_port_config(pios_openlrs_t openlrs_dev)
 	OpenLRSData config;
 	OpenLRSGet(&config);
 
+	if (config.role == OPENLRS_ROLE_DISABLED) {
+		return;
+	}
+
 	switch (config.data_source) {
 		case OPENLRS_DATA_SOURCE_UAVOTELEMETRY:
 			if (config.role == OPENLRS_ROLE_TX) {
