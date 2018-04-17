@@ -691,7 +691,7 @@ void draw_flight_mode(int x, int y, int xs, int ys, int va, int ha, int flags, i
 		write_string("FAILSAFE", x, y, xs, ys, va, ha, flags, font);
 		break;
 	case SHAREDDEFS_FLIGHTMODE_TABLETCONTROL:
-		{
+		(void) 0;
 		TabletInfoTabletModeDesiredOptions tab_mode;
 		TabletInfoTabletModeDesiredGet(&tab_mode);
 		switch (tab_mode) {
@@ -716,7 +716,6 @@ void draw_flight_mode(int x, int y, int xs, int ys, int va, int ha, int flags, i
 		case TABLETINFO_TABLETMODEDESIRED_CAMERAPOI:
 			write_string("TAB POI", x, y, xs, ys, va, ha, flags, font);
 			break;
-		}
 		}
 		break;
 	case SHAREDDEFS_FLIGHTMODE_LQG:
