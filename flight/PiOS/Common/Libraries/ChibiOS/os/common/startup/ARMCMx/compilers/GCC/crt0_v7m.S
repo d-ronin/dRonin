@@ -52,6 +52,15 @@
 /* Module pre-compile time settings.                                         */
 /*===========================================================================*/
 
+/* dRonin: This if fixed upstream apparently, remove on upgrade to 18.x. */
+/**
+ * @brief   MSP register initialization.
+ * @details MSP is initialized to point to the proper main process tack.
+ */
+#if !defined(CRT0_FORCE_MSP_INIT) || defined(__DOXYGEN__)
+#define CRT0_FORCE_MSP_INIT                 TRUE
+#endif
+
 /**
  * @brief   VTOR special register initialization.
  * @details VTOR is initialized to point to the vectors table.
