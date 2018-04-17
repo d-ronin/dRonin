@@ -568,6 +568,10 @@ static float calculate_thrust(StabilizationDesiredThrustModeOptions mode,
 			vertspeed_desired = desired_thrust;
 			break;
 
+		case STABILIZATIONDESIRED_THRUSTMODE_FLIPOVERMODETHRUSTREVERSED:
+			desired_thrust = -desired_thrust;
+			break;
+
 		default:
 			break;
 	}
@@ -862,6 +866,10 @@ static void stabilizationTask(void* parameters)
 		actuatorDesired.Thrust = calculate_thrust(
 				stabDesired.ThrustMode, &flightStatus,
 				airframe_type, stabDesired.Thrust);
+
+		actuatorDesired.FlipOverThrustMode =
+			(stabDesired.ThrustMode == STABILIZATIONDESIRED_THRUSTMODE_FLIPOVERMODE) ||
+			(stabDesired.ThrustMode == STABILIZATIONDESIRED_THRUSTMODE_FLIPOVERMODETHRUSTREVERSED);
 
 		// Re-project axes if necessary prior to running stabilization algorithms.
 		uint8_t reprojection = stabDesired.ReprojectionMode;

@@ -54,8 +54,7 @@
 static int32_t check_safe_to_arm();
 
 //! Check a stabilization mode switch position for safety
-static int32_t check_stabilization_settings(int index, bool multirotor,
-		SharedDefsThrustModeStabBankOptions thrust_mode);
+static int32_t check_stabilization_settings(int index, bool multirotor);
 
 //! Check a stabilization mode switch position for safety
 static int32_t check_stabilization_rates();
@@ -118,7 +117,6 @@ int32_t configuration_check()
 	// modes
 	uint8_t num_modes;
 	uint8_t modes[MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_NUMELEM];
-	SharedDefsThrustModeStabBankOptions thrust_mode;
 	ManualControlSettingsFlightModeNumberGet(&num_modes);
 	ManualControlSettingsFlightModePositionGet(modes);
 
@@ -136,6 +134,7 @@ int32_t configuration_check()
 			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_HORIZON:
 			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_AXISLOCK:
 			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_VIRTUALBAR:
+			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_FLIPREVERSED:
 			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_FAILSAFE:
 				// always ok
 				break;
@@ -146,16 +145,13 @@ int32_t configuration_check()
 				}
 				break;
 			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_STABILIZED1:
-				ManualControlSettingsStabilization1ThrustGet(&thrust_mode);
-				error_code = (error_code == SYSTEMALARMS_CONFIGERROR_NONE) ? check_stabilization_settings(1, multirotor, thrust_mode) : error_code;
+				error_code = (error_code == SYSTEMALARMS_CONFIGERROR_NONE) ? check_stabilization_settings(1, multirotor) : error_code;
 				break;
 			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_STABILIZED2:
-				ManualControlSettingsStabilization2ThrustGet(&thrust_mode);
-				error_code = (error_code == SYSTEMALARMS_CONFIGERROR_NONE) ? check_stabilization_settings(2, multirotor, thrust_mode) : error_code;
+				error_code = (error_code == SYSTEMALARMS_CONFIGERROR_NONE) ? check_stabilization_settings(2, multirotor) : error_code;
 				break;
 			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_STABILIZED3:
-				ManualControlSettingsStabilization3ThrustGet(&thrust_mode);
-				error_code = (error_code == SYSTEMALARMS_CONFIGERROR_NONE) ? check_stabilization_settings(3, multirotor, thrust_mode) : error_code;
+				error_code = (error_code == SYSTEMALARMS_CONFIGERROR_NONE) ? check_stabilization_settings(3, multirotor) : error_code;
 				break;
 			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_AUTOTUNE:
 				if (!PIOS_Modules_IsEnabled(PIOS_MODULE_AUTOTUNE)) {
@@ -211,30 +207,35 @@ DONT_BUILD_IF(MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_NUMELEM != MANUALCONT
  * @param[in] index Which stabilization mode to check
  * @returns SYSTEMALARMS_CONFIGERROR_NONE or SYSTEMALARMS_CONFIGERROR_MULTIROTOR
  */
-static int32_t check_stabilization_settings(int index, bool multirotor,
-		SharedDefsThrustModeStabBankOptions thrust_mode)
+static int32_t check_stabilization_settings(int index, bool multirotor)
 {
 	uint8_t modes[MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_NUMELEM];
+	uint8_t thrust_mode;
 
 	// Get the different axis modes for this switch position
 	switch(index) {
 		case 1:
 			ManualControlSettingsStabilization1SettingsGet(modes);
+			ManualControlSettingsStabilization1ThrustGet(&thrust_mode);
 			break;
 		case 2:
 			ManualControlSettingsStabilization2SettingsGet(modes);
+			ManualControlSettingsStabilization2ThrustGet(&thrust_mode);
 			break;
 		case 3:
 			ManualControlSettingsStabilization3SettingsGet(modes);
+			ManualControlSettingsStabilization3ThrustGet(&thrust_mode);
 			break;
 		default:
 			return SYSTEMALARMS_CONFIGERROR_NONE;
 	}
 
 	// For multirotors verify that nothing is set to "disabled" or "manual"
-	if (multirotor) {
+	if (multirotor &&
+			(thrust_mode != MANUALCONTROLSETTINGS_STABILIZATION1THRUST_FLIPOVERMODE) &&
+			(thrust_mode != MANUALCONTROLSETTINGS_STABILIZATION1THRUST_FLIPOVERMODETHRUSTREVERSED)) {
 		for(uint32_t i = 0; i < NELEMENTS(modes); i++) {
-			if (modes[i] == MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_DISABLED || modes[i] == MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_MANUAL)
+			if ((modes[i] == MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_DISABLED || modes[i] == MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_MANUAL))
 				return SYSTEMALARMS_CONFIGERROR_MULTIROTOR;
 		}
 	}
@@ -309,6 +310,7 @@ static int32_t check_safe_to_arm()
 			case FLIGHTSTATUS_FLIGHTMODE_STABILIZED2:
 			case FLIGHTSTATUS_FLIGHTMODE_STABILIZED3:
 			case FLIGHTSTATUS_FLIGHTMODE_ALTITUDEHOLD:
+			case FLIGHTSTATUS_FLIGHTMODE_FLIPREVERSED:
 				break;
 			case FLIGHTSTATUS_FLIGHTMODE_LQG:
 			case FLIGHTSTATUS_FLIGHTMODE_LQGLEVELING:

@@ -69,6 +69,7 @@ void cubic_deadband_setup(float w, float b, float *m, float *r);
 float linear_interpolate(float const input, float const * curve, uint8_t num_points, const float input_min, const float input_max);
 void randomize_addseed(uint32_t seed);
 uint32_t randomize_int(uint32_t interval);
+void apply_channel_deadband(float *value, float deadband);
 
 /* Note--- current compiler chain has been verified to produce proper call
  * to fpclassify even when compiling with -ffast-math / -ffinite-math.

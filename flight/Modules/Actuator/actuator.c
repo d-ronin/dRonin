@@ -429,6 +429,7 @@ static void fill_desired_vector(
 static void post_process_scale_and_commit(float *motor_vect,
 		float *desired_vect, float dT,
 		bool armed, bool spin_while_armed, bool stabilize_now,
+		bool flip_over_mode,
 		float *maxpoweradd_bucket)
 {
 	float min_chan = INFINITY;
@@ -479,6 +480,10 @@ static void post_process_scale_and_commit(float *motor_vect,
 	 * decaying twice as fast if both are in play.
 	 */
 	float maxpoweradd = (*maxpoweradd_bucket) / hangtime_leakybucket_timeconstant;
+
+	if (flip_over_mode) {
+		maxpoweradd = 0;
+	}
 
 	bool neg_throttle = desired_vect[MIXERSETTINGS_MIXER1VECTOR_THROTTLECURVE1] < 0.0f;
 
@@ -597,7 +602,7 @@ static void post_process_scale_and_commit(float *motor_vect,
 			if (!armed) {
 				motor_vect[ct] = NAN;  // don't spin
 			} else if (!stabilize_now) {
-				if (!spin_while_armed) {
+				if ((!spin_while_armed) || (flip_over_mode)) {
 					/* No spin */
 					motor_vect[ct] = NAN;
 				} else {
@@ -618,7 +623,11 @@ static void post_process_scale_and_commit(float *motor_vect,
 					motor_vect[ct] *= actuatorSettings.MotorInputOutputGain;
 				} else {
 					/* Clip to minimum spin in this direction */
-					motor_vect[ct] = ACTUATOR_EPSILON;
+					if (!flip_over_mode) {
+						motor_vect[ct] = ACTUATOR_EPSILON;
+					} else {
+						motor_vect[ct] = NAN;
+					}
 				}
 
 				if (neg_throttle) {
@@ -660,7 +669,8 @@ static void post_process_scale_and_commit(float *motor_vect,
 
 static void normalize_input_data(uint32_t this_systime,
 		float (*desired_vect)[MIXERSETTINGS_MIXER1VECTOR_NUMELEM],
-		bool *armed, bool *spin_while_armed, bool *stabilize_now)
+		bool *armed, bool *spin_while_armed, bool *stabilize_now,
+		bool *flip_over_mode)
 {
 	static float manual_throt = -1;
 	float throttle_val = 0;
@@ -686,6 +696,7 @@ static void normalize_input_data(uint32_t this_systime,
 
 	*armed = flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED;
 	*spin_while_armed = actuatorSettings.MotorsSpinWhileArmed == ACTUATORSETTINGS_MOTORSSPINWHILEARMED_TRUE;
+	*flip_over_mode = desired.FlipOverThrustMode == ACTUATORDESIRED_FLIPOVERTHRUSTMODE_TRUE;
 
 	if (airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) {
 		// Helis set throttle from manual control's throttle value,
@@ -703,6 +714,18 @@ static void normalize_input_data(uint32_t this_systime,
 	}
 
 	*stabilize_now = throttle_val != 0.0f;
+
+	if (*flip_over_mode) {
+		apply_channel_deadband(&desired.Pitch, 0.25f);
+		apply_channel_deadband(&desired.Roll, 0.25f);
+		apply_channel_deadband(&desired.Yaw, 0.25f);
+
+		if ((desired.Pitch == 0) && (desired.Roll == 0) &&
+				(desired.Yaw == 0)) {
+			*stabilize_now = false;
+			throttle_val = 0.0f;
+		}
+	}
 
 	float val1 = throttle_val;
 
@@ -850,14 +873,15 @@ static void actuator_task(void* parameters)
 
 		float motor_vect[MAX_MIX_ACTUATORS];
 
-		bool armed, spin_while_armed, stabilize_now;
+		bool armed, spin_while_armed, stabilize_now, flip_over_mode;
 
 		/* Receive manual control and desired UAV objects.  Perform
 		 * arming / hangtime checks; form a vector with desired
 		 * axis actions.
 		 */
 		normalize_input_data(this_systime, &desired_vect, &armed,
-				&spin_while_armed, &stabilize_now);
+				&spin_while_armed, &stabilize_now,
+				&flip_over_mode);
 
 		/* Multiply the actuators x desired matrix by the
 		 * desired x 1 column vector. */
@@ -889,7 +913,7 @@ static void actuator_task(void* parameters)
 		 */
 		post_process_scale_and_commit(motor_vect, desired_vect,
 				dT, armed, spin_while_armed, stabilize_now,
-				&maxpoweradd_bucket);
+				flip_over_mode, &maxpoweradd_bucket);
 
 		/* If we got this far, everything is OK. */
 		AlarmsClear(SYSTEMALARMS_ALARM_ACTUATOR);

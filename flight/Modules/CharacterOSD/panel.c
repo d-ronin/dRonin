@@ -35,7 +35,6 @@
  * Altered for use on STM32 Flight controllers by dRonin
  */
 
-
 /*
  * This file is part of MultiOSD <https://github.com/UncleRus/MultiOSD>
  *
@@ -222,6 +221,9 @@ static void FLIGHTMODE_update(charosd_state_t state, uint8_t x, uint8_t y)
 		break;
 	case FLIGHTSTATUS_FLIGHTMODE_LQGLEVELING:
 		mode = "LQGA";
+		break;
+	case FLIGHTSTATUS_FLIGHTMODE_FLIPREVERSED:
+		mode = "FLIP";
 		break;
 	}
 
