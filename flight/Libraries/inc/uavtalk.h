@@ -63,7 +63,6 @@ int32_t UAVTalkSendNack(UAVTalkConnection connectionHandle, uint32_t objId, uint
 void UAVTalkProcessInputStream(UAVTalkConnection connectionHandle, uint8_t *rxbytes,
 		int numbytes);
 UAVTalkRxState UAVTalkProcessInputStreamQuiet(UAVTalkConnection connection, uint8_t rxbyte);
-UAVTalkRxState UAVTalkRelayInputStream(UAVTalkConnection connectionHandle, uint8_t rxbyte);
 int32_t UAVTalkRelayPacket(UAVTalkConnection inConnectionHandle, UAVTalkConnection outConnectionHandle);
 int32_t UAVTalkReceiveObject(UAVTalkConnection connectionHandle);
 void UAVTalkGetStats(UAVTalkConnection connection, UAVTalkStats *stats);
