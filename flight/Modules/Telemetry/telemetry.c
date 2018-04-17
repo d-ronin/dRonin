@@ -714,10 +714,12 @@ static void telemetryRxTask(void *parameters)
 
 			telem->rx_inhibited = false;
 
-			bytes_to_process = PIOS_COM_ReceiveBuffer(inputPort, serial_data, sizeof(serial_data), 100);
+			bytes_to_process = PIOS_COM_ReceiveBuffer(inputPort,
+					serial_data, sizeof(serial_data), 100);
 
 			if (bytes_to_process > 0) {
-				UAVTalkProcessInputStream(telem->uavTalkCon, serial_data, bytes_to_process);
+				UAVTalkProcessInputStream(telem->uavTalkCon,
+						serial_data, bytes_to_process);
 
 #if defined(PIOS_COM_TELEM_USB)
 				if (inputPort == PIOS_COM_TELEM_USB) {
@@ -726,7 +728,7 @@ static void telemetryRxTask(void *parameters)
 #endif
 			}
 		} else {
-			telem->rx_inhibited = true;
+			telem->rx_inhibited = telem->request_inhibit;
 			PIOS_Thread_Sleep(3);
 		}
 	}
@@ -982,8 +984,10 @@ extern void telemetry_set_inhibit(bool inhibit)
 		if (!telem_state.request_inhibit) {
 			telem_state.request_inhibit = true;
 
-			while (!telem_state.rx_inhibited);
-			while (!telem_state.tx_inhibited);
+			while ((!telem_state.rx_inhibited) ||
+					(!telem_state.tx_inhibited)) {
+				PIOS_Thread_Sleep(1);
+			}
 
 			/* XXX: Consider nulling out flighttelemetrystats
 			 * conn state.
@@ -993,8 +997,10 @@ extern void telemetry_set_inhibit(bool inhibit)
 		if (telem_state.request_inhibit) {
 			telem_state.request_inhibit = false;
 
-			while (telem_state.rx_inhibited);
-			while (telem_state.tx_inhibited);
+			while (telem_state.rx_inhibited ||
+					telem_state.tx_inhibited) {
+				PIOS_Thread_Sleep(1);
+			}
 		}
 	}
 }
