@@ -290,16 +290,13 @@ static int32_t SendBufferNonBlockingImpl(uintptr_t com_id, const uint8_t *buffer
 	uint16_t bytes_into_fifo = circ_queue_write_data(com_dev->tx,
 			buffer, len);
 
-	if (bytes_into_fifo > 0) {
-		/* More data has been put in the tx buffer, make sure the tx is started */
+	/* Make sure the tx is actually started */
+	if (com_dev->driver->tx_start) {
+		uint16_t tx_avail;
 
-		if (com_dev->driver->tx_start) {
-			uint16_t tx_avail;
-
-			circ_queue_read_pos(com_dev->tx, NULL, &tx_avail);
-			com_dev->driver->tx_start(com_dev->lower_id,
-						  tx_avail);
-		}
+		circ_queue_read_pos(com_dev->tx, NULL, &tx_avail);
+		com_dev->driver->tx_start(com_dev->lower_id,
+					  tx_avail);
 	}
 
 #if defined(PIOS_INCLUDE_RTOS)
