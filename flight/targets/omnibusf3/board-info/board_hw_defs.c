@@ -765,6 +765,16 @@ static const struct pios_ppm_cfg pios_ppm_cfg = {
 #include "pios_adc_priv.h"
 #include "pios_internal_adc_priv.h"
 
+uintptr_t pios_internal_adc_id;
+
+void DMA1_Channel1_IRQHandler(void) __attribute__((alias("PIOS_ADC_DMA_irq_handler")));
+
+void PIOS_ADC_DMA_irq_handler(void)
+{
+	/* Call into the generic code to handle the IRQ for this specific device */
+	PIOS_INTERNAL_ADC_DMA_Handler(pios_internal_adc_id);
+}
+
 //-------------------------
 // ADC
 // ADC0 : PA0 ADC1_IN1  VBat

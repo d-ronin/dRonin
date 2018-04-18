@@ -31,7 +31,12 @@
 #ifndef PIOS_INTERNAL_ADC_H
 #define PIOS_INTERNAL_ADC_H
 
-extern void PIOS_INTERNAL_ADC_DMA_Handler();
+#if defined(STM32F30X)
+/* TODO: transition other targets to work this way. */
+void PIOS_INTERNAL_ADC_DMA_Handler(uintptr_t internal_adc_id);
+#else
+void PIOS_INTERNAL_ADC_DMA_Handler();
+#endif
 
 #endif /* PIOS_INTERNAL_ADC_H */
 

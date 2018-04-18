@@ -745,6 +745,16 @@ static const struct pios_ppm_cfg pios_ppm_cfg = {
 #define DTFC_VOLTAGE_CALIBRATION_VALUE 90.9091f // mV/V
 #define DTFC_CURRENT_CALIBRATION_VALUE 24.95f // mV/A
 
+uintptr_t pios_internal_adc_id;
+
+void DMA2_Channel1_IRQHandler(void) __attribute__((alias("PIOS_ADC_DMA_irq_handler")));
+
+void PIOS_ADC_DMA_irq_handler(void)
+{
+	/* Call into the generic code to handle the IRQ for this specific device */
+	PIOS_INTERNAL_ADC_DMA_Handler(pios_internal_adc_id);
+}
+
 static const struct pios_internal_adc_cfg internal_adc_cfg = {
 	.dma = {
 		.irq = {
