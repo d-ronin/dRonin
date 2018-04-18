@@ -171,7 +171,16 @@ class SimpleSimTests(SimulationTestCase):
         self.assertTrue(10 < i < 40) # Was 29.
 
     def expected_session_time(self):
-        return 40
+        return 37
 
 if __name__ == "__main__":
+    import faulthandler
+    import signal
+
+    try:
+        faulthandler.enable()
+        faulthandler.register(signal.SIGALRM, chain=True)
+    except Exception:
+        pass
+
     unittest.main()
