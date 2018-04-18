@@ -34,7 +34,6 @@
 
 /* Major features */
 #define STABILIZATION_LQG
-
 #define OPENAEROVTOL
 
 /* Enable/Disable PiOS Modules */

@@ -31,6 +31,9 @@
 #ifndef PIOS_CONFIG_POSIX_H
 #define PIOS_CONFIG_POSIX_H
 
+/* Major features */
+#define STABILIZATION_LQG
+#define TRIFLIGHT
 
 /* Enable/Disable PiOS Modules */
 #define PIOS_INCLUDE_SYS

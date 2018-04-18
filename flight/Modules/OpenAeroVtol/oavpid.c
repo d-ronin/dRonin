@@ -51,7 +51,7 @@
 
 #if defined (PIOS_INCLUDE_BMI160)
 #define STANDARDLOOP 1600.0f  // Nominal Loop Rate 1600 Hz
-#elif defined (SPARKY1) || defined (DTFC)
+#elif defined (DTFC)
 #define STANDARDLOOP  500.0f  // Nominal Loop Rate 1000 Hz
 #else
 #define STANDARDLOOP 1000.0f  // Nominal Loop Rate  500 Hz

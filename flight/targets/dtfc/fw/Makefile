@@ -61,8 +61,9 @@ OPTMODULES += UAVOFrSKYSPortBridge
 OPTMODULES += Geofence
 OPTMODULES += Logging
 OPTMODULES += Storm32Bgc
-OPTMODULES += OpenAeroVtol
 OPTMODULES += UAVOCrossfireTelemetry
+OPTMODULES += OpenAeroVtol
+OPTMODULES += Triflight
 
 # Paths
 OPUAVOBJINC = $(OPUAVOBJ)/inc

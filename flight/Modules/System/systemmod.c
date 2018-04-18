@@ -159,7 +159,10 @@ static inline void updateRfm22bStats();
 static inline void updateWDGstats();
 #endif
 
+#ifdef TRIFLIGHT
 char *triflight_blink_string = NULL;
+#endif
+
 /**
  * Create the module task.
  * \returns 0 on success or -1 if initialization failed
@@ -481,6 +484,7 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 		FlightStatusData flightStatus;
 		FlightStatusGet(&flightStatus);
 
+#ifdef TRIFLIGHT
 		if (flightStatus.FlightMode == FLIGHTSTATUS_FLIGHTMODE_TAILTUNE) {
 			if ((blink_prio == 0) && (blink_state == 0)) {
 				if (triflight_blink_string != NULL) {
@@ -491,6 +495,7 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 			}
 		}
 		else
+#endif
 		{
 			if (candidate_prio > blink_prio) {
 				// Preempt!

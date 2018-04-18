@@ -54,7 +54,7 @@
 
 #if defined (PIOS_INCLUDE_BMI160)
 float LPF_lookup[8] = {52.58f, 26.46f, 13.38f, 7.09f, 4.16f, 3.09f, 2.83f, 1.00f};  // 1600 Hz
-#elif defined (SPARKY1) || defined (DTFC)
+#elif defined (DTFC)
 float LPF_lookup[8] = {16.43f,  8.27f,  4.18f, 2.22f, 1.30f, 1.00f, 1.00f, 1.00f};  //  500 Hz
 #else
 float LPF_lookup[8] = {32.86f, 16.54f,  8.36f, 4.43f, 2.60f, 1.93f, 1.77f, 1.00f};  // 1000 Hz

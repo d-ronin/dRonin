@@ -33,8 +33,6 @@
 
 /* Major features */
 
-#define OPENAEROVTOL
-
 /* Enable/Disable PiOS Modules */
 #define PIOS_INCLUDE_DMA_CB_SUBSCRIBING_FUNCTION
 
@@ -83,8 +81,6 @@
 #define CAMERASTAB_POI_MODE
 
 #define PIOS_INCLUDE_FASTHEAP
-
-#define SPARKY1
 
 #endif /* PIOS_CONFIG_H */
 

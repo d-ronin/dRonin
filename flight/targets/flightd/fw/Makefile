@@ -96,12 +96,14 @@ OPTMODULES += GPS
 OPTMODULES += UAVOLighttelemetryBridge
 OPTMODULES += UAVOMSPBridge
 
+OPTMODULES += Triflight
+
 # Paths
 OPUAVOBJINC = $(OPUAVOBJ)/inc
 PIOSINC = $(PIOS)/inc
 FLIGHTLIBINC = $(FLIGHTLIB)/inc
 MATHLIB = $(FLIGHTLIB)/math
-MATHLIBINC = $(MATHLIB)
+MATHLIBINC = $(FLIGHTLIB)/math
 CRYPTOLIB = $(FLIGHTLIB)/crypto
 CRYPTOLIBINC = $(CRYPTOLIB)
 PIOSPOSIX = $(PIOS)/posix
@@ -134,6 +136,7 @@ SRC += taskmonitor.c
 SRC += $(MATHLIB)/atmospheric_math.c
 SRC += $(MATHLIB)/coordinate_conversions.c
 SRC += $(MATHLIB)/misc_math.c
+SRC += $(MATHLIB)/lqg.c
 SRC += $(MATHLIB)/pid.c
 SRC += $(MATHLIB)/lpfilter.c
 SRC += $(MATHLIB)/smoothcontrol.c

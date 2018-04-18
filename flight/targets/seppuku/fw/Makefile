@@ -64,10 +64,11 @@ OPTMODULES += FlightStats
 OPTMODULES += Storm32Bgc
 OPTMODULES += VTXConfig
 OPTMODULES += OnScreenDisplay
-OPTMODULES += OpenAeroVtol
 OPTMODULES += UAVOCrossfireTelemetry
 OPTMODULES += Loadable
 OPTMODULES += Fault
+OPTMODULES += OpenAeroVtol
+OPTMODULES += Triflight
 
 # Paths
 OPUAVOBJINC = $(OPUAVOBJ)/inc

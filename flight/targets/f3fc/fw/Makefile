@@ -45,7 +45,7 @@ OPTMODULES += CameraStab
 OPTMODULES += Autotune
 OPTMODULES += TxPID
 OPTMODULES += AltitudeHold
-OPTMODULES += PathPlanner
+#OPTMODULES += PathPlanner
 OPTMODULES += VtolPathFollower
 OPTMODULES += UAVOMavlinkBridge
 OPTMODULES += UAVOMSPBridge
@@ -58,6 +58,7 @@ OPTMODULES += UAVOFrSKYSPortBridge
 OPTMODULES += Geofence
 OPTMODULES += Logging
 OPTMODULES += Storm32Bgc
+OPTMODULES += Triflight
 
 # Paths
 OPUAVOBJINC = $(OPUAVOBJ)/inc

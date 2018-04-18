@@ -38,8 +38,8 @@
 
 /* Major features */
 #define STABILIZATION_LQG
-
 #define OPENAEROVTOL
+#define TRIFLIGHT
 
 /* Enable/Disable PiOS Modules */
 #define PIOS_INCLUDE_DMA_CB_SUBSCRIBING_FUNCTION

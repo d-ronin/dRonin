@@ -38,6 +38,7 @@
 
 /* Major features */
 #define STABILIZATION_LQG
+#define TRIFLIGHT
 
 /* Enable/Disable PiOS Modules */
 #define PIOS_INCLUDE_FLASH_JEDEC

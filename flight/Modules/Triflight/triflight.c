@@ -253,7 +253,6 @@ float filterApplyPt1(float input, filterStatePt1_t *filter, float f_cut, float d
     return filter->state;
 }
 
-// HJI #if !defined(ARCH_POSIX) && !defined(ARCH_WIN32)
 /**
  *
  *
@@ -310,7 +309,6 @@ void feedbackServoStep(TriflightSettingsData *triflightSettings,
 
 	return;
 }
-// HJI #endif
 
  /**
  *
@@ -515,8 +513,6 @@ void virtualTailMotorStep(ActuatorSettingsData  *actuatorSettings,
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
-
-// HJI #if !defined(ARCH_POSIX) && !defined(ARCH_WIN32)
 
 #include "gyros.h"
 #include "manualcontrolcommand.h"
@@ -1023,8 +1019,6 @@ void triTailTuneStep(ActuatorSettingsData  *actuatorSettings,
 			break;
     }
 }
-
-// HJI #endif
 
 /**
  * @}

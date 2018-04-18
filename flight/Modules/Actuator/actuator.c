@@ -53,7 +53,8 @@
 #include "pios_queue.h"
 #include "misc_math.h"
 
-#include "triflight.h"
+#include "../Triflight/triflight.h"
+
 #include "triflightsettings.h"
 #include "triflightstatus.h"
 
@@ -114,7 +115,9 @@ static volatile bool oav_offsets_updated         = true;
 static volatile bool oav_settings_updated        = true;
 #endif
 
+#ifdef TRIFLIGHT
 static volatile bool triflight_settings_updated  = true;
+#endif
 
 static MixerSettingsMixer1TypeOptions types_mixer[MAX_MIX_ACTUATORS];
 
@@ -144,8 +147,10 @@ static OAVSettingsData       OAVSettings;
 static OAVStatusData         OAVStatus;
 #endif
 
+#ifdef TRIFLIGHT
 static TriflightSettingsData triflightSettings;
 static TriflightStatusData   triflightStatus;
+#endif
 
 static bool armed            = false;
 static bool spin_while_armed = false;
@@ -315,11 +320,13 @@ int32_t ActuatorInitialize()
 	OAVSettingsConnectCallbackCtx(UAVObjCbSetFlag, &oav_settings_updated);
 #endif
 
+#ifdef TRIFLIGHT
 	// Register for notifications of changes to TriFlightSettings
 	if (TriflightSettingsInitialize() == -1) {
 		return -1;
 	}
 	TriflightSettingsConnectCallbackCtx(UAVObjCbSetFlag, &triflight_settings_updated);
+#endif
 
 	// Listen for ActuatorDesired updates (Primary input to this module)
 	if (ActuatorDesiredInitialize()  == -1) {
@@ -340,9 +347,11 @@ int32_t ActuatorInitialize()
 	}
 #endif
 
+#ifdef TRIFLIGHT
 	if (TriflightStatusInitialize() == -1) {
 		return -1;
 	}
+#endif
 
 #if defined(MIXERSTATUS_DIAGNOSTICS)
 	// UAVO only used for inspecting the internal status of the mixer during debug
@@ -690,6 +699,7 @@ static void post_process_scale_and_commit(float *motor_vect,
 				active_command);
 	}
 
+#ifdef TRIFLIGHT
 	if (triflightStatus.Initialized == TRIFLIGHTSTATUS_INITIALIZED_TRUE)
 	{
 		triflightStatus.UncorrectedServoCmd = command.Channel[triflightStatus.ServoChannel];
@@ -719,11 +729,7 @@ static void post_process_scale_and_commit(float *motor_vect,
 			                 dT,
 			                 command.Channel[triflightStatus.ServoChannel]);
 		else
-// HJI #if !defined(ARCH_POSIX) && !defined(ARCH_WIN32)
 			feedbackServoStep(&triflightSettings, &triflightStatus, dT);
-// HJI #else
-// HJI 			triflightStatus.ServoAngle = 90.0f;
-// HJI #endif
 
 		// Compute tail motor correction
 		triflightStatus.MotorCorrection = triGetMotorCorrection(&actuatorSettings,
@@ -749,7 +755,6 @@ static void post_process_scale_and_commit(float *motor_vect,
 
 		dynamicYaw(&triflightSettings, &triflightStatus);
 
-// HJI #if !defined(ARCH_POSIX) && !defined(ARCH_WIN32)
 		triTailTuneStep(&actuatorSettings,
 		                &flightStatus,
 		                &triflightSettings,
@@ -757,10 +762,10 @@ static void post_process_scale_and_commit(float *motor_vect,
 		                &command.Channel[triflightStatus.ServoChannel],
 		                armed,
 		                dT);
-// HJI #endif
 
 		TriflightStatusSet(&triflightStatus);
 	}
+#endif
 
 	// Store update time
 	command.UpdateTime = 1000.0f*dT;
@@ -804,10 +809,12 @@ static void normalize_input_data(uint32_t this_systime,
 		flight_status_updated = false;
 	}
 
+#ifdef TRIFLIIGHT
 	if (triflightStatus.Initialized == TRIFLIGHTSTATUS_INITIALIZED_TRUE) {
 		desired.Yaw *= triflightStatus.DynamicYawGain;
 		desired.Yaw = bound_sym(desired.Yaw, 1.0f);
 	}
+#endif
 
 	if (manual_control_cmd_updated) {
 		// just pull out the throttle_val... and accessory0-2 and
@@ -912,7 +919,9 @@ static void actuator_task(void* parameters)
 		 */
 		if (actuator_settings_updated) {
 			actuator_settings_update();
+#ifdef TRIFLIGHT
 			triflight_settings_updated = true;
+#endif
 		}
 
 		if (flight_status_updated) {
@@ -923,8 +932,9 @@ static void actuator_task(void* parameters)
 		if (mixer_settings_updated) {
 			mixer_settings_updated = false;
 			SystemSettingsAirframeTypeGet(&airframe_type);
+#ifdef TRIFLIGHT
 			triflight_settings_updated = true;
-
+#endif
 			compute_mixer();
 
 			MixerSettingsThrottleCurve2Get(curve2);
@@ -979,6 +989,8 @@ static void actuator_task(void* parameters)
 		}
 
 #endif
+
+#ifdef TRIFLIGHT
 
 #define is_yaw_servo(b)  (mixerSettings.Mixer ## b ## Type ==  MIXERSETTINGS_MIXER ## b ## TYPE_SERVO)
 #define is_rear_motor(b) ((mixerSettings.Mixer ## b ## Type ==  MIXERSETTINGS_MIXER ## b ## TYPE_MOTOR) && \
@@ -1050,7 +1062,7 @@ static void actuator_task(void* parameters)
 
 			TriflightStatusSet(&triflightStatus);
 		}
-
+#endif
 		PIOS_WDG_UpdateFlag(PIOS_WDG_ACTUATOR);
 
 		UAVObjEvent ev;

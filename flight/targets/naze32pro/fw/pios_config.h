@@ -37,6 +37,7 @@
 #include <pios_flight_config.h>
 
 /* Major features */
+#define STABILIZATION_LQG
 
 /* Enable/Disable PiOS Modules */
 #define PIOS_INCLUDE_DMA_CB_SUBSCRIBING_FUNCTION

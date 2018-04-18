@@ -62,6 +62,7 @@ OPTMODULES += VTXConfig
 OPTMODULES += Storm32Bgc
 OPTMODULES += OnScreenDisplay
 OPTMODULES += UAVOCrossfireTelemetry
+OPTMODULES += Triflight
 
 # Paths
 OPUAVOBJINC = $(OPUAVOBJ)/inc

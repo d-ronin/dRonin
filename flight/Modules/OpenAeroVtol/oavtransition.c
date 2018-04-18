@@ -47,7 +47,7 @@
 
 #if defined (PIOS_INCLUDE_BMI160)
 #define TRANSITION_COUNT 16
-#elif defined (SPARKY1) || defined (DTFC)
+#elif defined (DTFC)
 #define TRANSITION_COUNT  5
 #else
 #define TRANSITION_COUNT 10
