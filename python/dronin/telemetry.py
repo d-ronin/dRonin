@@ -2,7 +2,7 @@
 Interface to telemetry streams -- log, network, or serial.
 
 Copyright (C) 2014-2015 Tau Labs, http://taulabs.org
-Copyright (C) 2015-2016 dRonin, http://dronin.org
+Copyright (C) 2015-2018 dRonin, http://dronin.org
 Licensed under the GNU LGPL version 2.1 or any later version (see COPYING.LESSER)
 """
 
@@ -17,6 +17,10 @@ from . import uavtalk, uavo_collection, uavo
 import os
 
 from abc import ABCMeta, abstractmethod
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 class TelemetryBase(metaclass=ABCMeta):
     """
@@ -224,14 +228,14 @@ class TelemetryBase(metaclass=ABCMeta):
 
             if obj.Status == obj.ENUM_Status['Disconnected']:
                 # Request handshake
-                #print("Disconnected")
+                logger.debug("FlightTelem: Disconnected")
                 send_obj = self.__make_handshake('HandshakeReq')
             elif obj.Status == obj.ENUM_Status['HandshakeAck']:
                 # Say connected
-                #print("Handshake ackd")
+                logger.debug("FlightTelem: Handshake Acked")
                 send_obj = self.__make_handshake('Connected')
             elif obj.Status == obj.ENUM_Status['Connected']:
-                #print("Connected")
+                logger.debug("FlightTelem: Connected")
                 send_obj = self.__make_handshake('Connected')
 
             self.send_object(send_obj)
@@ -326,7 +330,7 @@ class TelemetryBase(metaclass=ABCMeta):
                 return response[0]
 
     def filedata_callback(self, file_id, offset, eof, last_chunk, data):
-        #print("Offs %d fd=[%s]" % (offset, data.hex()))
+        logger.debug("filedata: Offs %d fd=[%s]" % (offset, data.hex()))
         with self.ack_cond:
             if self.file_id != file_id:
                 return
@@ -748,6 +752,8 @@ class SubprocessTelemetry(FDTelemetry):
         self.sp.kill()
         self.sp.wait(timeout=3)
 
+        if self.sp.returncode != 0 and self.sp.returncode != -9:
+            logger.warning("Subproc ret code %d"%(self.sp.returncode))
 
 class NetworkTelemetry(FDTelemetry):
     """ TCP telemetry interface. """
@@ -1008,7 +1014,6 @@ class FileTelemetry(TelemetryBase):
                     break;
 
             if not found:
-                print("Source file does not have a recognized header signature")
                 raise IOError("no header signature")
 
             # Determine the git hash that this log file is based on
@@ -1020,8 +1025,6 @@ class FileTelemetry(TelemetryBase):
             # For python3, convert from byte string.
             githash = githash.decode('latin-1')
 
-            print("Log file is based on git hash: %s" % githash)
-
             uavohash = self.f.readline()
             # divider only occurs on GCS-type streams.  This causes us to
             # miss first objects in telemetry-type streams
@@ -1030,6 +1033,8 @@ class FileTelemetry(TelemetryBase):
             TelemetryBase.__init__(self, iter_blocks=True,
                 do_handshaking=False, githash=githash, use_walltime=False,
                 *args, **kwargs)
+
+            logger.info("Log file is based on githash %s" % githash)
         else:
             TelemetryBase.__init__(self, iter_blocks=True,
                 do_handshaking=False, use_walltime=False, *args, **kwargs)
@@ -1101,6 +1106,10 @@ def _finish_telemetry_args(parser, args, service_in_iter, iter_blocks):
             service_in_iter=service_in_iter, iter_blocks=iter_blocks,
             githash=githash)
 
+def setup_logging(level):
+    FORMAT = '%(asctime)-15s %(name)-18s %(message)s'
+    logging.basicConfig(level=level, format=FORMAT)
+
 def get_telemetry_by_args(desc="Process telemetry", service_in_iter=True,
         iter_blocks=True, arg_parser=None, arguments=None):
     """ Parses command line to decide how to get a telemetry object. """
@@ -1149,6 +1158,13 @@ def get_telemetry_by_args(desc="Process telemetry", service_in_iter=True,
                         dest    = "hid",
                         help    = "use usb hid to communicate with FC")
 
+    parser.add_argument("-v", "--verbose",
+                        action  = "store_const",
+                        const   = logging.DEBUG,
+                        default = logging.INFO,
+                        dest    = "log_level",
+                        help    = "use usb hid to communicate with FC")
+
     parser.add_argument("source",
             help  = "file, host:port, vid:pid, command, or serial port")
 
@@ -1157,6 +1173,8 @@ def get_telemetry_by_args(desc="Process telemetry", service_in_iter=True,
         args = parser.parse_args()
     else:
         args = parser.parse_args(arguments)
+
+    setup_logging(args.log_level)
 
     ret = _finish_telemetry_args(parser, args, service_in_iter, iter_blocks)
 
