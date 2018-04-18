@@ -216,17 +216,13 @@ int main(int argc, char **argv)
     setrlimit(RLIMIT_NOFILE, &rl);
     QApplication::setAttribute(Qt::AA_DontCreateNativeWidgetSiblings, true);
 
-    if (QSysInfo::MacintoshVersion > QSysInfo::MV_10_8) {
-        // fix Mac OS X 10.9 (mavericks) font issue
-        // https://bugreports.qt-project.org/browse/QTBUG-32789
-        QFont::insertSubstitution(".Lucida Grande UI", "Lucida Grande");
+    QFont::insertSubstitution(".Lucida Grande UI", "Lucida Grande");
 
-        QSettings tmpSettings;
+    QSettings tmpSettings;
 
-        bool value = true;
+    bool value = true;
 
-        tmpSettings.setValue(QString("NSAppSleepDisabled"), value);
-    }
+    tmpSettings.setValue(QString("NSAppSleepDisabled"), value);
 #endif
 
     QApplication app(argc, argv);

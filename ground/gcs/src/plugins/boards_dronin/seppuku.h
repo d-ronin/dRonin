@@ -39,19 +39,19 @@ public:
     Seppuku();
     virtual ~Seppuku();
 
-    virtual QString shortName();
-    virtual QString boardDescription();
-    virtual bool queryCapabilities(BoardCapabilities capability);
-    virtual QPixmap getBoardPicture();
-    virtual QString getHwUAVO();
-    virtual bool isInputConfigurationSupported(Core::IBoardType::InputType type);
-    virtual bool setInputType(Core::IBoardType::InputType type);
-    virtual Core::IBoardType::InputType getInputType();
-    virtual int queryMaxGyroRate();
-    virtual QStringList getAdcNames();
-    virtual QString getConnectionDiagram();
-    virtual QWidget *getBoardConfiguration(QWidget *parent, bool connected);
-    virtual bool hasAnnunciator(AnnunciatorType annunc);
+    virtual QString shortName() override;
+    virtual QString boardDescription() override;
+    virtual bool queryCapabilities(BoardCapabilities capability) override;
+    virtual QPixmap getBoardPicture() override;
+    virtual QString getHwUAVO() override;
+    virtual bool isInputConfigurationSupported(Core::IBoardType::InputType type) override;
+    virtual bool setInputType(Core::IBoardType::InputType type) override;
+    virtual Core::IBoardType::InputType getInputType() override;
+    virtual int queryMaxGyroRate() override;
+    virtual QStringList getAdcNames() override;
+    virtual QString getConnectionDiagram() override;
+    virtual QWidget *getBoardConfiguration(QWidget *parent, bool connected) override;
+    virtual bool hasAnnunciator(AnnunciatorType annunc) override;
     virtual int onBoardRgbLeds() const override { return 1; }
 
 private:
