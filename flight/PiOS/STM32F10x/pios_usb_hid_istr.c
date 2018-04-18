@@ -48,7 +48,7 @@ EP1_OUT_Callback, EP2_OUT_Callback, EP3_OUT_Callback, EP4_OUT_Callback, EP5_OUT_
 *******************************************************************************/
 void USB_LP_CAN1_RX0_IRQHandler(void)	//USB_Istr(void)
 {
-
+	PIOS_IRQ_Prologue();
 	wIstr = _GetISTR();
 
 #if (IMR_MSK & ISTR_CTR)
@@ -140,6 +140,7 @@ void USB_LP_CAN1_RX0_IRQHandler(void)	//USB_Istr(void)
 #endif
 	}
 #endif
+	PIOS_IRQ_Epilogue();
 }				/* USB_Istr */
 
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
