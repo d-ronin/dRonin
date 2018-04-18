@@ -16,6 +16,9 @@ except:
     from .structshim import Struct
 
 import time
+import logging
+
+logger = logging.getLogger(__name__)
 
 __all__ = [ "send_object", "process_stream" ]
 
@@ -91,7 +94,6 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
         if len(buf) - buf_offset < 10240:
             past_bytes += buf_offset
 
-            #print "stitch pp=%d"%(len(pending_pieces))
             pending_pieces.insert(0, buf[buf_offset:])
             buf_offset = 0
 
@@ -112,19 +114,19 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
             if gcs_timestamps is None:
                 if ((logHdrLen > 1000) or ( overrideTimestamp > 100000000)):
                     if buf[buf_offset] == SYNC_VAL:
-                        print("Autodetect: no gcs-type timestamps")
+                        logger.info("Autodetect: no gcs-type timestamps")
                         gcs_timestamps = False
                     else:
-                        print("Autodetect: punting to next cycle")
+                        logger.debug("Autodetect: punting to next cycle")
                         buf_offset += 1
                         continue
                 else:
                     if buf[buf_offset + logheader_fmt.size] == SYNC_VAL:
-                        print("Autodetect: GCS-type timestamps likely")
+                        logger.info("Autodetect: gcs-type timestamps likely")
                         gcs_timestamps = True
                         buf_offset += logheader_fmt.size
                     else:
-                        print("Autodetect: punting to next cycle")
+                        logger.debug("Autodetect: punting to next cycle")
             else:
                 buf_offset += logheader_fmt.size
 
@@ -134,7 +136,7 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
         # sync(1) + type(1) + len(2) + objid(4)
 
         while (len(buf) < header_fmt.size + buf_offset) or (buf[buf_offset] != SYNC_VAL):
-            #print "waitingsync len=%d, offset=%d"%(len(buf), buf_offset)
+            logger.debug("waitingsync len=%d, offset=%d"%(len(buf), buf_offset))
 
             if len(buf) < header_fmt.size + 1 + buf_offset:
                 rx = yield None
@@ -155,21 +157,21 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
         (sync, pack_type, pack_len, objId) = header_fmt.unpack_from(buf, buf_offset)
 
         if (pack_type & TYPE_MASK) != TYPE_VER:
-            print("badver %x"%(pack_type))
+            logger.warning("Badver %x"%(pack_type))
             buf_offset += 1
             continue    # go to top to look for sync
 
         pack_type &= ~ TYPE_MASK
 
         if pack_len < MIN_HEADER_LENGTH or pack_len > MAX_HEADER_LENGTH + MAX_PAYLOAD_LENGTH:
-            print("badlen %d"%(pack_len))
+            logger.warning("badlen %d"%(pack_len))
             buf_offset += 1
             continue
 
         # Search for object.
         uavo_key = '{0:08x}'.format(objId)
         if not uavo_key in uavo_defs:
-            #print "Unknown object 0x" + uavo_key + " type = ", pack_type
+            logger.debug("Unknown object 0x%s type=%02x"%(uavo_key, pack_type))
             obj = None
         else:
             # XXX check length vs pack_len
@@ -196,7 +198,7 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
 
         # Check length and determine next state
         if obj_len >= MAX_PAYLOAD_LENGTH:
-            print("bad len-- bad xml?")
+            logger.critical("Bad len-- bad XML?")
             #should never happen; requires invalid uavo xml
             buf_offset += 1
             continue
@@ -209,7 +211,7 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
 
         # Check the lengths match
         if calc_size != pack_len:
-            print("mismatched size id=%s %d vs %d, type %d"%(uavo_key,
+            logger.warning("mismatched size id=%s %d vs %d, type %d"%(uavo_key,
                 calc_size, pack_len, pack_type))
 
             # packet error - mismatched packet size
@@ -237,7 +239,7 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
         recv_cs = buf[buf_offset + calc_size]
 
         if recv_cs != cs:
-            print("Bad crc. Got %d but wanted %d"%(recv_cs, cs))
+            nt("Bad crc. Got %d but wanted %d"%(recv_cs, cs))
 
             buf_offset += 1
 
@@ -274,7 +276,7 @@ def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
             if not (received % 10000):
                 if progress_callback is not None:
                     progress_callback(received, past_bytes + buf_offset + calc_size + 1)
-                print("received %d objs"%(received))
+                logger.info("received %d objs"%(received))
 
             next_recv = yield objInstance
         else:
