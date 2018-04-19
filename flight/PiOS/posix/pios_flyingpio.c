@@ -87,6 +87,8 @@ struct pios_flyingpio_dev {
 
 	volatile uint16_t adc_value[FPPROTO_MAX_ADCCHANS];
 						/**< ADC data */
+
+	uint8_t protocol;
 };
 
 #define MAX_CONSEC_ERRS 5
@@ -148,7 +150,7 @@ static int32_t PIOS_FLYINGPIO_Validate(struct pios_flyingpio_dev *dev)
 }
 
 int32_t PIOS_FLYINGPIO_SPI_Init(pios_flyingpio_dev_t *dev, pios_spi_t spi_id,
-		uint32_t slave_idx)
+		uint32_t slave_idx, uint8_t protocol)
 {
 	fpio_dev = PIOS_FLYINGPIO_Alloc();
 	if (fpio_dev == NULL)
@@ -157,6 +159,8 @@ int32_t PIOS_FLYINGPIO_SPI_Init(pios_flyingpio_dev_t *dev, pios_spi_t spi_id,
 
 	fpio_dev->spi_id = spi_id;
 	fpio_dev->spi_slave = slave_idx;
+
+	fpio_dev->protocol = protocol;
 
 	for (int i = 0; i < FPPROTO_MAX_RCCHANS; i++) {
 		// Just for a very short time; remote end will take this over
@@ -348,8 +352,7 @@ static int PIOS_FLYINGPIO_ActuatorSetMode(const uint16_t *out_rate,
 		cmd->actuators[i].max = true_max;
 	}
 
-	/* XXX needs to be specified / configured somewhere... */
-	cmd->receiver_protocol = HWSHARED_PORTTYPES_SBUS;
+	cmd->receiver_protocol = fpio_dev->protocol;
 
 	while (PIOS_FLYINGPIO_SendCmd(&actuator_cfg)) {	// retry until OK
 		PIOS_Thread_Sleep(5);
