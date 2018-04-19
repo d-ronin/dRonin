@@ -213,7 +213,6 @@ extern uintptr_t pios_com_debug_id;
 
 //-------------------------
 // ADC
-#define PIOS_ADC_SUB_DRIVER_MAX_INSTANCES       3
 #define PIOS_ADC_MAX_OVERSAMPLING		2
 #define VREF_PLUS				3.3
 

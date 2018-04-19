@@ -46,6 +46,10 @@ struct pios_adc_dev * pios_adc_dev;
 static struct pios_adc_dev * PIOS_ADC_Allocate(void);
 static bool PIOS_ADC_validate(struct pios_adc_dev *);
 
+#ifndef PIOS_ADC_SUB_DRIVER_MAX_INSTANCES
+#define PIOS_ADC_SUB_DRIVER_MAX_INSTANCES 2
+#endif
+
 /* Local Variables */
 static struct sub_device_list_ {
 	uint8_t number_of_devices;
