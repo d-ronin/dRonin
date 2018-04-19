@@ -1216,13 +1216,14 @@ static void smithp_compensate(struct smith_predictor *m, float *desired_vect)
 			/* This predictive stuff is noisy and can apparently cause some feedback in the low throttle
 			region, that makes throttle eventually oscillate around the zero point under certain conditions.
 			This leads to funny business with the motors, e.g. grinding. */
-			float t = desired_vect[i];
-			if ((t >= THROTTLE_EPSILON && (t+v) < THROTTLE_EPSILON) ||
-			    (t <= -THROTTLE_EPSILON && (t+v) > -THROTTLE_EPSILON)) {
-					v = 0;
-				}
-			/* Also bound throttle. */
-			desired_vect[i] = bound_sym(desired_vect[i] + v, 1.0f);
+			float r = desired_vect[i]+v;
+			float s = sign(desired_vect[i]);
+
+			/* Don't cross zero via prediction. Also bound throttle. */
+			if (sign(r) != s)
+				desired_vect[i] = s*THROTTLE_EPSILON;
+			else
+				desired_vect[i] = bound_sym(r, 1.0f);
 		} else {
 			desired_vect[i] += v;
 		}
