@@ -171,10 +171,9 @@ void ConfigOutputWidget::runChannelTests(bool state)
     if (state && ((systemAlarms.Alarm[SystemAlarms::ALARM_ACTUATOR] == SystemAlarms::ALARM_ERROR)
                   || (systemAlarms.Alarm[SystemAlarms::ALARM_ACTUATOR]
                       == SystemAlarms::ALARM_CRITICAL))) {
-        int ignored = QMessageBox::critical(this, tr("Actuator error"),
+        (void) QMessageBox::critical(this, tr("Actuator error"),
             tr("The actuator module is in an error state. "
                 "Please fix these before testing outputs."));
-        (void) ignored;
 
         // Unfortunately must cache this since callback will reoccur
         accInitialData = ActuatorCommand::GetInstance(getObjectManager())->getMetadata();

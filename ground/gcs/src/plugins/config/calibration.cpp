@@ -445,12 +445,10 @@ void Calibration::timeout()
 
     disconnect(&timer, &QTimer::timeout, this, &Calibration::timeout);
 
-    int reply =
-        QMessageBox::information((QWidget *)Core::ICore::instance()->mainWindow(),
-                tr("Calibration failed"),
-                tr("Calibration timed out before receiving required updates."));
-
-    (void) reply;
+    (void) QMessageBox::information(
+            (QWidget *)Core::ICore::instance()->mainWindow(),
+            tr("Calibration failed"),
+            tr("Calibration timed out before receiving required updates."));
 }
 
 /**

@@ -182,11 +182,9 @@ void ConfigPlugin::eraseFailed()
 
     disconnect(objper, &UAVObject::objectUpdated, this, &ConfigPlugin::eraseDone);
 
-    int ignored = QMessageBox::critical((QWidget *)Core::ICore::instance()->mainWindow(),
+    (void) QMessageBox::critical((QWidget *)Core::ICore::instance()->mainWindow(),
             tr("Error erasing settings"),
             tr("Power-cycle your board after removing all blades. Settings might be inconsistent."), QMessageBox::Ok);
-
-    (void) ignored;
 }
 
 void ConfigPlugin::eraseDone(UAVObject *obj)
