@@ -332,6 +332,10 @@ void ConfigAttitudeWidget::updateCalibrationEnabled()
         m_ui->cbCalibrateAccels->setChecked(have_accel);
         m_ui->cbCalibrateMags->setChecked(have_mag);
     }
+
+    if (have_accel || have_mag) {
+        configureSixPoint();
+    }
 }
 
 /**
