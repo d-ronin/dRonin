@@ -31,7 +31,6 @@
 #include "uavobjects/uavobjectmanager.h"
 #include "uavobjects/uavdataobject.h"
 
-#include <QFileDialog>
 #include <QtAlgorithms>
 #include <QStringList>
 

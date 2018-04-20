@@ -75,8 +75,12 @@ bool KmlExportPlugin::initialize(const QStringList &args, QString *errMsg)
 void KmlExportPlugin::exportToKML()
 {
     // Get input file
-    QString inputFileName = QFileDialog::getOpenFileName(NULL, tr("Open file"), QString(""),
-                                                         tr("dRonin Log Files (*.drlog *.tll)"));
+    //
+    QString inputFileName = QFileDialog::getOpenFileName(
+            (QWidget *)Core::ICore::instance()->mainWindow(),
+            tr("Open file"), QString(""),
+            tr("dRonin Log Files (*.drlog *.tll)"));
+
     if (inputFileName.isEmpty())
         return;
 
@@ -90,8 +94,10 @@ void KmlExportPlugin::exportToKML()
     // Get output file. Suggest to user that output have same base name and location as input file.
     while (proceed_flag == false) {
         outputFileName = QFileDialog::getSaveFileName(
-            NULL, tr("Export log"), inputFileName.split(".", QString::SkipEmptyParts).at(0),
-            filters);
+                (QWidget *)Core::ICore::instance()->mainWindow(),
+                tr("Export log"),
+                inputFileName.split(".", QString::SkipEmptyParts).at(0),
+                filters);
 
         if (outputFileName.isEmpty()) {
             qDebug() << "No KML file name given.";

@@ -35,7 +35,6 @@
 #include <QVBoxLayout>
 
 class ModelViewGadgetConfiguration;
-class QFileDialog;
 namespace Core {
 class IUAVGadgetConfiguration;
 }
