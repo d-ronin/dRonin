@@ -451,11 +451,17 @@ int main(int argc, char **argv)
             QString msg(QCoreApplication::tr(
                         "Some problems were encountered whilst loading the following plugins: "));
             msg.append(plugins.join(QStringLiteral(", ")));
-            QMessageBox msgBox(QMessageBox::Warning,
-                               QCoreApplication::tr("Plugin loader messages"),
-                               msg, QMessageBox::Ok);
-            msgBox.setDetailedText(errors.join(QStringLiteral("\n\n")));
-            msgBox.exec();
+
+            if (parser.values(doTestsOption).isEmpty()) {
+                QMessageBox msgBox(QMessageBox::Warning,
+                                   QCoreApplication::tr("Plugin loader messages"),
+                                   msg, QMessageBox::Ok);
+                msgBox.setDetailedText(errors.join(QStringLiteral("\n\n")));
+                msgBox.exec();
+            } else {
+                const char *errorstr = errors.join(QStringLiteral("\n\n")).toLocal8Bit().data();
+                qFatal("ERROR: Some plugins failed to load:\n%s\n", errorstr);
+            }
         }
     }
 
