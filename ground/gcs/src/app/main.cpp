@@ -442,7 +442,7 @@ int main(int argc, char **argv)
         QStringList errors, plugins;
         for (const auto p : pluginManager.plugins()) {
             if (p->hasError()) {
-                errors.append(p->errorString());
+                errors.append(QStringLiteral("%0:\n%1").arg(p->name(), p->errorString()));
                 plugins.append(p->name());
             }
         }
