@@ -62,6 +62,7 @@ SRC += pios_annunc.c
 SRC += pios_flash_internal.c
 
 ## PIOS Hardware (Common)
+SRC += pios_debug.c
 SRC += pios_delay.c
 SRC += pios_flash.c
 SRC += pios_heap.c

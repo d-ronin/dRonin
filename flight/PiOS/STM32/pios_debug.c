@@ -153,7 +153,7 @@ void PIOS_DEBUG_PinValue4BitL(uint8_t value)
  */
 void PIOS_DEBUG_Panic(const char *msg)
 {
-#ifdef PIOS_COM_DEBUG
+#if defined(PIOS_INCLUDE_COM) && defined(PIOS_COM_DEBUG)
 	register int *lr asm("lr");	// Link-register holds the PC of the caller
 	PIOS_COM_SendFormattedStringNonBlocking(PIOS_COM_DEBUG, "\r%s @0x%x\r", msg, lr);
 #endif

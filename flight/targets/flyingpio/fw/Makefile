@@ -72,6 +72,7 @@ SRC += main.c
 SRC += pios_adc.c
 SRC += pios_com.c
 SRC += pios_crc.c
+SRC += pios_debug.c
 SRC += pios_delay.c
 SRC += pios_hal.c
 SRC += pios_heap.c
