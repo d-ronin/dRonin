@@ -44,6 +44,24 @@ uintptr_t pios_com_telem_usb_id;
 
 void PIOS_Board_Init()
 {
+	const struct pios_servo_cfg * servo_cfg = &pios_servo_cfg;
+	const struct pios_tim_channel * channels = servo_cfg->channels;
+	uint8_t num_channels = servo_cfg->num_channels;
+	for (int i = 0; i < num_channels; i++) {
+		GPIO_InitTypeDef init = {
+			.GPIO_Pin = channels[i].pin.init.GPIO_Pin,
+			.GPIO_Speed = GPIO_Speed_2MHz,
+			.GPIO_Mode  = GPIO_Mode_OUT,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd  = GPIO_PuPd_DOWN
+		};
+
+		/* Nail all servo channels as outputs, LOW */
+		channels[i].pin.gpio->BSRR = channels[i].pin.init.GPIO_Pin << 16;
+		GPIO_Init(channels[i].pin.gpio, &init);
+		channels[i].pin.gpio->BSRR = channels[i].pin.init.GPIO_Pin << 16;
+	}
+
 	/* Delay system */
 	PIOS_DELAY_Init();
 

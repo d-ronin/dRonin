@@ -1,6 +1,6 @@
 BOARD_TYPE          := 0xCF
 BOARD_REVISION      := 0x02
-BOOTLOADER_VERSION  := 0x88
+BOOTLOADER_VERSION  := 0x89
 HW_TYPE             := 0x00		# seems to be unused
 
 CHIP                := STM32F303CCT
