@@ -259,6 +259,7 @@ static void PIOS_USART_RegisterTxCallback(uintptr_t usart_id, pios_com_callback 
 
 static void PIOS_USART_generic_irq_handler(uintptr_t usart_id)
 {
+	PIOS_IRQ_Prologue();
 	struct pios_usart_dev * usart_dev = (struct pios_usart_dev *)usart_id;
 
 	bool valid = PIOS_USART_validate(usart_dev);
@@ -303,6 +304,7 @@ static void PIOS_USART_generic_irq_handler(uintptr_t usart_id)
 			USART_ITConfig(usart_dev->cfg->regs, USART_IT_TXE, DISABLE);
 		}
 	}
+	PIOS_IRQ_Epilogue();
 }
 
 #endif
