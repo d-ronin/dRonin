@@ -158,6 +158,8 @@ void PIOS_DEBUG_Panic(const char *msg)
 	PIOS_COM_SendFormattedStringNonBlocking(PIOS_COM_DEBUG, "\r%s @0x%x\r", msg, lr);
 #endif
 
+	PIOS_IRQ_Disable();
+
 	// Stay put
 	while (1) ;
 }
