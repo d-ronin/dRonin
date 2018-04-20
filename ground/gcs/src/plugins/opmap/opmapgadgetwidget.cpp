@@ -1953,7 +1953,7 @@ void OPMapGadgetWidget::onClearWayPointsAct_triggered()
 {
 
     // First, ask to ensure this is what the user wants to do
-    QMessageBox msgBox;
+    QMessageBox msgBox(this);
     msgBox.setText(tr("Are you sure you want to clear waypoints?"));
     msgBox.setInformativeText(tr("All associated data will be lost."));
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);

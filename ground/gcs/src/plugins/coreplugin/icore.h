@@ -68,12 +68,6 @@ public:
     virtual bool showOptionsDialog(const QString &group = QString(),
                                    const QString &page = QString(), QWidget *parent = nullptr) = 0;
 
-    virtual bool showWarningWithOptions(const QString &title, const QString &text,
-                                        const QString &details = QString(),
-                                        const QString &settingsCategory = QString(),
-                                        const QString &settingsId = QString(),
-                                        QWidget *parent = nullptr) = 0;
-
     virtual ActionManager *actionManager() const = 0;
     virtual UniqueIDManager *uniqueIDManager() const = 0;
     virtual ModeManager *modeManager() const = 0;

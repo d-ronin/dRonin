@@ -30,6 +30,7 @@
 #include <QTextStream>
 #include <QMessageBox>
 
+#include <coreplugin/icore.h>
 #include <coreplugin/coreconstants.h>
 
 LogFile::LogFile(QObject *parent)
@@ -106,7 +107,7 @@ bool LogFile::open(OpenMode mode)
                 .replace("0x", ""); // See comment above for necessity for string replacements
 
         if (logUAVOHashString != uavoHash) {
-            QMessageBox msgBox;
+            QMessageBox msgBox((QWidget *) Core::ICore::instance()->mainWindow());
             msgBox.setText("Likely log file incompatibility.");
             msgBox.setInformativeText(QString("The log file was made with branch %1, UAVO hash %2. "
                                               "GCS will attempt to play the file.")
@@ -114,7 +115,7 @@ bool LogFile::open(OpenMode mode)
                                           .arg(logUAVOHashString));
             msgBox.exec();
         } else if (logGitHashString != gitHash) {
-            QMessageBox msgBox;
+            QMessageBox msgBox((QWidget *) Core::ICore::instance()->mainWindow());
             msgBox.setText("Possible log file incompatibility.");
             msgBox.setInformativeText(
                 QString("The log file was made with branch %1. GCS will attempt to play the file.")
@@ -131,7 +132,7 @@ bool LogFile::open(OpenMode mode)
 
         // Check if we reached the end of the file before finding the separation string
         if (cnt >= 10 || file.atEnd()) {
-            QMessageBox msgBox;
+            QMessageBox msgBox((QWidget *) Core::ICore::instance()->mainWindow());
             msgBox.setText("Corrupted file.");
             msgBox.setInformativeText("GCS cannot find the separation byte. GCS will attempt to "
                                       "play the file."); //<--TODO: add hyperlink to webpage with
@@ -292,7 +293,7 @@ bool LogFile::startReplay()
 
         // Check if timestamps are sequential.
         if (!timestampBuffer.isEmpty() && lastTimeStamp < timestampBuffer.last()) {
-            QMessageBox msgBox;
+            QMessageBox msgBox((QWidget *) Core::ICore::instance()->mainWindow());
             msgBox.setText("Corrupted file.");
             msgBox.setInformativeText("Timestamps are not sequential. Playback may have unexpected "
                                       "behavior"); //<--TODO: add hyperlink to webpage with better
@@ -309,7 +310,7 @@ bool LogFile::startReplay()
 
     // Check if any timestamps were successfully read
     if (timestampBuffer.size() == 0) {
-        QMessageBox msgBox;
+        QMessageBox msgBox((QWidget *) Core::ICore::instance()->mainWindow());
         msgBox.setText("Empty logfile.");
         msgBox.setInformativeText("No log data can be found.");
         msgBox.exec();

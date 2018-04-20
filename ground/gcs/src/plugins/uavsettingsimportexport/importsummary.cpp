@@ -198,7 +198,7 @@ void ImportSummaryDialog::doTheApplySaving()
     hide();
 
     if (!quiet) {
-        QMessageBox msgBox;
+        QMessageBox msgBox(this);
 
         msgBox.setText(tr("Settings saved to flash."));
 

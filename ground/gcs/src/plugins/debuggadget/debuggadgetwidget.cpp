@@ -70,7 +70,7 @@ void DebugGadgetWidget::saveLog()
         && (file.write(m_config->plainTextEdit->toHtml().toLatin1()) != -1)) {
         file.close();
     } else {
-        QMessageBox::critical(nullptr, tr("Log Save"), tr("Unable to save log: ") + fileName,
+        QMessageBox::critical(this, tr("Log Save"), tr("Unable to save log: ") + fileName,
                               QMessageBox::Ok);
         return;
     }

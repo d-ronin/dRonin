@@ -149,7 +149,8 @@ MainWindow::MainWindow()
             QMessageBox msgBox(QMessageBox::Warning, tr("Settings Not Saved"),
                                tr("Your settings file (%0) is not writable! "
                                   "All GCS configuration changes will be lost!")
-                                   .arg(Utils::PathUtils().getSettingsFilename()));
+                                   .arg(Utils::PathUtils().getSettingsFilename()),
+                                   QMessageBox::Ok, this);
             msgBox.exec();
         }
     }
@@ -1447,26 +1448,4 @@ void MainWindow::setFullScreen(bool on)
         // menuBar()->show();
         // statusBar()->show();
     }
-}
-
-// Display a warning with an additional button to open
-// the debugger settings dialog if settingsId is nonempty.
-
-bool MainWindow::showWarningWithOptions(const QString &title, const QString &text,
-                                        const QString &details, const QString &settingsCategory,
-                                        const QString &settingsId, QWidget *parent)
-{
-    if (parent == nullptr)
-        parent = this;
-    QMessageBox msgBox(QMessageBox::Warning, title, text, QMessageBox::Ok, parent);
-    if (details.isEmpty())
-        msgBox.setDetailedText(details);
-    QAbstractButton *settingsButton = nullptr;
-    if (!settingsId.isEmpty() || !settingsCategory.isEmpty())
-        settingsButton = msgBox.addButton(tr("Settings..."), QMessageBox::AcceptRole);
-    msgBox.exec();
-    if (settingsButton && msgBox.clickedButton() == settingsButton) {
-        return showOptionsDialog(settingsCategory, settingsId);
-    }
-    return false;
 }

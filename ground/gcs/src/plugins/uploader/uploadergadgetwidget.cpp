@@ -642,7 +642,7 @@ bool UploaderGadgetWidget::downloadSettings()
 
 bool UploaderGadgetWidget::askIfShouldContinue()
 {
-    QMessageBox msgBox;
+    QMessageBox msgBox(this);
     msgBox.setText(tr("Proceed without saving a configuration backup?"));
     msgBox.setInformativeText(tr("It is strongly encouraged that you save a backup of the "
                                  "configuration before proceeding with upgrade."));
@@ -830,7 +830,7 @@ void UploaderGadgetWidget::upgradeError(QString why)
     setUploaderStatus(uploader::DISCONNECTED);
 
     /* Pop up a proper error dialog */
-    QMessageBox msgBox;
+    QMessageBox msgBox(this);
 
     msgBox.setIcon(QMessageBox::Critical);
     msgBox.setText(tr("Automatic upgrade failed."));
@@ -1255,7 +1255,7 @@ void UploaderGadgetWidget::onExportButtonClick()
 
     /* make sure there's a setting partition */
     if (!haveSettingsPart()) {
-        QMessageBox msgBox;
+        QMessageBox msgBox(this);
 
         msgBox.setText(tr("No settings partition accessible; can't export."));
         msgBox.setInformativeText(tr("Please upgrade your bootloader."));
@@ -1268,7 +1268,7 @@ void UploaderGadgetWidget::onExportButtonClick()
     }
 
     /* get confirmation from user that using the cloud service is OK */
-    QMessageBox msgBox;
+    QMessageBox msgBox(this);
     msgBox.setText(tr("Do you wish to export the settings partition as an XML settings file?"));
     msgBox.setInformativeText(tr("This will send the raw configuration information to a dRonin "
                                  "cloud service for translation."));
@@ -1367,7 +1367,7 @@ void UploaderGadgetWidget::onBootloaderDetected()
                         break;
                     }
                 } else {
-                    QMessageBox msgBox;
+                    QMessageBox msgBox(this);
                     msgBox.setText(tr("There appears to be no valid firmware on your device.."));
                     msgBox.setInformativeText(tr("Do you want to install firmware?"));
                     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);

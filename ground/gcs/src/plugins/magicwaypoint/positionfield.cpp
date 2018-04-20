@@ -32,7 +32,6 @@
 #include <QTextEdit>
 #include <QVBoxLayout>
 #include <QPushButton>
-#include <QMessageBox>
 #include <QMouseEvent>
 #include <QtGlobal>
 

@@ -55,7 +55,7 @@ void TLEndPage::openInputWizard()
         getWizard()->close();
         configGadgetFactory->startInputWizard();
     } else {
-        QMessageBox msgBox;
+        QMessageBox msgBox(this);
         msgBox.setText(tr("Unable to open Input Wizard since the Config Plugin is not\nloaded in "
                           "the current workspace."));
         msgBox.setStandardButtons(QMessageBox::Ok);
