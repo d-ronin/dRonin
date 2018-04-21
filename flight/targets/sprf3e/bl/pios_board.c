@@ -56,7 +56,10 @@ void PIOS_Board_Init()
 			.GPIO_PuPd  = GPIO_PuPd_DOWN
 		};
 
-		/* Nail all servo channels as outputs, LOW */
+		/* Nail all servo channels as outputs, LOW.
+		 * Mostly for brushed clones of SPRF3E to ensure we don't
+		 * spin up (they should provide pulldowns, but meh.)
+		 */
 		channels[i].pin.gpio->BSRR = channels[i].pin.init.GPIO_Pin << 16;
 		GPIO_Init(channels[i].pin.gpio, &init);
 		channels[i].pin.gpio->BSRR = channels[i].pin.init.GPIO_Pin << 16;
