@@ -742,6 +742,14 @@ static bool check_receiver_timer(uint32_t threshold) {
  */
 static void process_transmitter_events(ManualControlCommandData * cmd, ManualControlSettingsData * settings, bool valid, bool settings_updated)
 {
+	if (settings->Arming == MANUALCONTROLSETTINGS_ARMING_ALWAYSDISARMED) {
+		/*
+		 * Disconnected is used to force a "disarmed" position being
+		 * reached before arming.  e.g. on config change.
+		 */
+		control_status = STATUS_DISCONNECTED;
+	}
+
 	valid &= cmd->Connected == MANUALCONTROLCOMMAND_CONNECTED_TRUE;
 
 	if (!valid || (cmd->Connected != MANUALCONTROLCOMMAND_CONNECTED_TRUE)) {
@@ -797,9 +805,7 @@ static void process_transmitter_events(ManualControlCommandData * cmd, ManualCon
 		reset_receiver_timer();
 	}
 
-	if (settings_updated ||
-			(settings->Arming ==
-			 MANUALCONTROLSETTINGS_ARMING_ALWAYSDISARMED)) {
+	if (settings_updated) {
 		/* Make sure that we don't arm as a result of a settings
 		 * change.
 		 */
