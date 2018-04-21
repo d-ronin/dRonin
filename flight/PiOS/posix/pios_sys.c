@@ -639,6 +639,7 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 				hw_argseen = false;
 				break;
 			}
+#if !(defined(_WIN32) || defined(WIN32) || defined(__MINGW32__))
 			case 'x':
 			{
 				int timeout = atoi(optarg);
@@ -646,6 +647,7 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 				alarm(timeout);
 				break;
 			}
+#endif
 
 			default:
 				Usage(argv[0]);
