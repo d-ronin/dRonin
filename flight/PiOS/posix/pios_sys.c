@@ -65,6 +65,7 @@
 #include "pios_rtc_priv.h"
 #endif
 
+#include "hwshared.h"
 #include "manualcontrolsettings.h"
 
 #include "sha1.h"
@@ -77,21 +78,23 @@ static bool debug_fpe=false;
 bool are_realtime = false;
 
 #ifdef PIOS_INCLUDE_SPI
-int num_spi = 0;
-pios_spi_t spi_devs[16];
+static int num_spi = 0;
+static pios_spi_t spi_devs[16];
 
 #include "pios_spi_posix_priv.h"
 #include "pios_ms5611_priv.h"
 #include "pios_bmm150_priv.h"
 #include "pios_bmx055_priv.h"
 #include "pios_flyingpio.h"
+
+static HwSharedPortTypesOptions rcvr_proto = HWSHARED_PORTTYPES_SBUS;
 #endif
 
 #ifdef PIOS_INCLUDE_I2C
-char mag_orientation = 255;
+static char mag_orientation = 255;
 
-int num_i2c = 0;
-pios_i2c_t i2c_devs[16];
+static int num_i2c = 0;
+static pios_i2c_t i2c_devs[16];
 
 pios_i2c_t external_i2c_adapter_id;
 
@@ -102,7 +105,7 @@ pios_i2c_t external_i2c_adapter_id;
 int orig_stdout;
 
 static void Usage(char *cmdName) {
-	printf( "usage: %s [-f] [-r] [-m orientation] [-s spibase]\n"
+	printf( "usage: %s [-f] [-r] [-m orientation] [-p proto] [-s spibase]\n"
 		"\t\t[-d drvname:bus:id] [-l logfile] [-I i2cdev] [-i drvname:bus]\n"
 		"\t\t[-g port] [-c confflash] [-x time] -!\n"
 		"\n"
@@ -118,6 +121,9 @@ static void Usage(char *cmdName) {
 		"\t-S drvname:serialpath\tStarts a serial driver on serialpath\n"
 		"\t\t\tAvailable drivers: gps msp lighttelemetry telemetry omnip\n\n"
 #ifdef PIOS_INCLUDE_SPI
+		"\t-p proto\t\tSpecify a flyingpio rcvr protocol\n"
+		"\t\t\tAvailable protocols: dsm hottsumd hottsumh sbus ppm\n"
+		"\t\t\t\t\tsrxl ibus\n\n"
 		"\t-s spibase\t\tConfigures a SPI interface on the base path\n"
 		"\t-d drvname:bus:id\tStarts driver drvname on bus/id\n"
 		"\t\t\tAvailable drivers: bmm150 bmx055 flyingpio ms5611\n\n"
@@ -299,6 +305,28 @@ fail:
 #endif
 
 #ifdef PIOS_INCLUDE_SPI
+static int handle_rcvr_protocol(const char *optarg) {
+	if (!strcmp(optarg, "dsm")) {
+		rcvr_proto = HWSHARED_PORTTYPES_DSM;
+	} else if (!strcmp(optarg, "hottsumd")) {
+		rcvr_proto = HWSHARED_PORTTYPES_HOTTSUMD;
+	} else if (!strcmp(optarg, "hottsumh")) {
+		rcvr_proto = HWSHARED_PORTTYPES_HOTTSUMH;
+	} else if (!strcmp(optarg, "sbus")) {
+		rcvr_proto = HWSHARED_PORTTYPES_SBUS;
+	} else if (!strcmp(optarg, "ppm")) {
+		rcvr_proto = HWSHARED_PORTTYPES_PPM;
+	} else if (!strcmp(optarg, "srxl")) {
+		rcvr_proto = HWSHARED_PORTTYPES_SRXL;
+	} else if (!strcmp(optarg, "ibus")) {
+		rcvr_proto = HWSHARED_PORTTYPES_IBUS;
+	} else {
+		return -1;
+	}
+
+	return 0;
+}
+
 static int handle_device(const char *optarg) {
 	char arg_copy[128];
 
@@ -367,7 +395,8 @@ static int handle_device(const char *optarg) {
 	} else if (!strcmp(drv_name, "flyingpio")) {
 		pios_flyingpio_dev_t dev;
 
-		int ret = PIOS_FLYINGPIO_SPI_Init(&dev, spi_devs[bus_num], dev_num);
+		int ret = PIOS_FLYINGPIO_SPI_Init(&dev, spi_devs[bus_num], dev_num,
+				rcvr_proto);
 
 		if (ret) goto fail;
 
@@ -459,9 +488,9 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 
 	int opt;
 
-	bool first_arg = true;
+	bool hw_argseen = true;
 
-	while ((opt = getopt(argc, argv, "!yfrx:g:l:s:d:S:I:i:m:c:")) != -1) {
+	while ((opt = getopt(argc, argv, "!yfrx:g:l:s:d:S:I:i:m:c:p:")) != -1) {
 		switch (opt) {
 #ifdef PIOS_INCLUDE_SIMSENSORS_YASIM
 			case 'y':
@@ -478,7 +507,7 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 				debug_fpe = true;
 				break;
 			case 'r':
-				if (!first_arg) {
+				if (!hw_argseen) {
 					printf("Realtime must be before hw\n");
 					exit(1);
 				}
@@ -503,7 +532,7 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 					printf("Couldn't init fileout com layer\n");
 					exit(1);
 				}
-				first_arg = false;
+				hw_argseen = false;
 				break;
 			}
 			case 'S':
@@ -511,14 +540,14 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 					printf("Couldn't init device\n");
 					exit(1);
 				}
-				first_arg = false;
+				hw_argseen = false;
 				break;
 #ifdef PIOS_INCLUDE_I2C
 			case 'm':
 			{
 				char *endptr;
 
-				if (!first_arg) {
+				if (!hw_argseen) {
 					printf("Mag orientation must be before hw\n");
 					exit(1);
 				}
@@ -549,7 +578,7 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 					printf("Couldn't init i2c device\n");
 					exit(1);
 				}
-				first_arg = false;
+				hw_argseen = false;
 				break;
 #endif
 #ifdef PIOS_INCLUDE_SPI
@@ -580,9 +609,22 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 
 				num_spi++;
 
-				first_arg = false;
+				hw_argseen = false;
 				break;
 			}
+			case 'p':
+				if (!hw_argseen) {
+					printf("Proto must be before hw\n");
+					exit(1);
+				}
+
+				if (handle_rcvr_protocol(optarg)) {
+					printf("Invalid receiver proto\n");
+					exit(1);
+				}
+
+				break;
+#endif
 			case 'g':
 			{
 				uint16_t port = atoi(optarg);
@@ -594,7 +636,7 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 					exit(1);
 				}
 
-				first_arg = false;
+				hw_argseen = false;
 				break;
 			}
 			case 'x':
@@ -604,7 +646,6 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 				alarm(timeout);
 				break;
 			}
-#endif
 
 			default:
 				Usage(argv[0]);

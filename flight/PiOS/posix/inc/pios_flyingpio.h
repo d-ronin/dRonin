@@ -34,8 +34,8 @@ typedef struct pios_flyingpio_dev * pios_flyingpio_dev_t;
  * @brief Initialize the FlyingPIO programmed-IO expander
  * @return 0 for success, -1 for failure to allocate
  */
-int32_t PIOS_FLYINGPIO_SPI_Init(pios_flyingpio_dev_t *dev,
-		pios_spi_t spi_id, uint32_t slave_idx);
+int32_t PIOS_FLYINGPIO_SPI_Init(pios_flyingpio_dev_t *dev, pios_spi_t spi_id,
+		uint32_t slave_idx, uint8_t protocol);
 
 /**
  * @brief Returns receiver data returned by flyingpio.
