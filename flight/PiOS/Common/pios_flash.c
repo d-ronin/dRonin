@@ -121,7 +121,7 @@ void PIOS_FLASH_register_partition_table(const struct pios_flash_partition parti
 		if (!pios_flash_partition_get_chip_extents(partition,
 								&chip_start_offset,
 								&chip_end_offset))
-			PIOS_Assert(0);
+			PIOS_Abort();
 
 		PIOS_Assert(partition->chip_offset == chip_start_offset);
 		PIOS_Assert(partition->size == (chip_end_offset - chip_start_offset + 1));
