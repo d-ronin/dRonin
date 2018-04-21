@@ -99,6 +99,7 @@ include $(PIOS)/STM32F4xx/library_chibios.mk
 # SRC += $(PIOS)/STM32F4xx/pios_video.c
 
 ## PIOS Hardware (Common)
+SRC += pios_debug.c
 SRC += pios_delay.c
 SRC += pios_exti.c
 SRC += pios_uavtalkrcvr.c
