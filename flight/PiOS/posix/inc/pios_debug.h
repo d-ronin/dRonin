@@ -30,6 +30,7 @@
 #ifndef PIOS_DEBUG_H
 #define PIOS_DEBUG_H
 
+#include <stdlib.h>
 #include <assert.h>
 
 extern const char *PIOS_DEBUG_AssertMsg;
@@ -48,6 +49,8 @@ void PIOS_DEBUG_Panic(const char *msg);
 #else
 #define PIOS_DEBUG_Assert(test)
 #endif
+
+#define PIOS_Abort() abort()
 
 #endif /* PIOS_DEBUG_H */
 

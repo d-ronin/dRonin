@@ -109,15 +109,21 @@ static void Usage(char *cmdName) {
 		"\t\t[-d drvname:bus:id] [-l logfile] [-I i2cdev] [-i drvname:bus]\n"
 		"\t\t[-g port] [-c confflash] [-x time] -!\n"
 		"\n"
+#if !(defined(_WIN32) || defined(WIN32) || defined(__MINGW32__))
 		"\t-f\t\t\tEnables floating point exception trapping mode\n"
+#endif
+#ifdef __linux__
 		"\t-r\t\t\tGoes realtime and pins all memory (requires root)\n"
+#endif
 		"\t-!\t\t\tUse a fake clock timebase gated by gcs/simsensors\n"
 		"\t-l log\t\t\tWrites simulation data to a log\n"
 		"\t-g port\t\t\tStarts FlightGear driver on port\n"
 #ifdef PIOS_INCLUDE_SIMSENSORS_YASIM
 		"\t-y\t\t\tUse an external simulator (drhil yasim)\n"
 #endif
+#if !(defined(_WIN32) || defined(WIN32) || defined(__MINGW32__))
 		"\t-x time\t\t\tExit after time seconds\n"
+#endif
 		"\t-S drvname:serialpath\tStarts a serial driver on serialpath\n"
 		"\t\t\tAvailable drivers: gps msp lighttelemetry telemetry omnip\n\n"
 #ifdef PIOS_INCLUDE_SPI
@@ -639,6 +645,7 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 				hw_argseen = false;
 				break;
 			}
+#if !(defined(_WIN32) || defined(WIN32) || defined(__MINGW32__))
 			case 'x':
 			{
 				int timeout = atoi(optarg);
@@ -646,6 +653,7 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 				alarm(timeout);
 				break;
 			}
+#endif
 
 			default:
 				Usage(argv[0]);
