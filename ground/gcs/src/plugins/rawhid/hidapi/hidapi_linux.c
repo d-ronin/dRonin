@@ -448,6 +448,13 @@ struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, 
 		raw_dev = udev_device_new_from_syspath(udev, sysfs_path);
 		dev_path = udev_device_get_devnode(raw_dev);
 
+                if (!dev_path) {
+                    /* We can't deal with this case, hope it is resolved
+                     * next cycle.
+                     */
+                    goto next;
+                }
+
 		struct hid_device_info *tmp =
 			remove_from_list_by_path(&prev_enumeration, dev_path);
 
@@ -506,7 +513,7 @@ struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, 
 
 			/* Fill out the record */
 			cur_dev->next = NULL;
-			cur_dev->path = dev_path? strdup(dev_path): NULL;
+			cur_dev->path = strdup(dev_path);
 
 			/* VID/PID */
 			cur_dev->vendor_id = dev_vid;
