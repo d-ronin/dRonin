@@ -27,7 +27,7 @@
  */
 
 #include "connectionmanager.h"
-
+#include <coreplugin/icore.h>
 #include <aggregation/aggregate.h>
 #include <coreplugin/iconnection.h>
 #include <coreplugin/idevice.h>
@@ -39,6 +39,7 @@
 #include <QHBoxLayout>
 #include <QComboBox>
 #include <QEventLoop>
+#include <QMainWindow>
 #include <alarmsmonitorwidget.h>
 
 namespace Core {
@@ -110,6 +111,7 @@ void ConnectionManager::init()
  */
 void ConnectionManager::connectDeviceFailed(DevListItem &device)
 {
+
     QString msg("<span style='color:red'>Failed</span> to connect device: ");
     if (device.device)
         msg.append(device.device->getDisplayName());
@@ -121,6 +123,8 @@ void ConnectionManager::connectDeviceFailed(DevListItem &device)
         msg.append("<br />Have you set udev rules?");
 #endif
 
+    QMessageBox msgFailedToConnect(
+            dynamic_cast <QWidget *> (Core::ICore::instance()->mainWindow()));
     msgFailedToConnect.setText(msg);
     msgFailedToConnect.open();
 }

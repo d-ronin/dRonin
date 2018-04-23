@@ -168,10 +168,6 @@ protected:
     // currently connected QIODevice
     QIODevice *m_ioDev;
 
-    // dialog box when connection to device fails, shared so we don't generate multiple boxes on
-    // failed attempts
-    QMessageBox msgFailedToConnect;
-
 private:
     bool connectDevice();
     bool polling;
