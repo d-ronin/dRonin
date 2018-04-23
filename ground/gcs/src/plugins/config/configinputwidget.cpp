@@ -43,7 +43,6 @@
 #include <QDesktopServices>
 #include <QUrl>
 #include <QMessageBox>
-#include <QMessageBox>
 
 #include <extensionsystem/pluginmanager.h>
 #include <uavobjectutil/uavobjectutilmanager.h>
@@ -407,7 +406,7 @@ void ConfigInputWidget::goToWizard()
     // Monitor for connection loss to reset wizard safely
     connect(telMngr, &TelemetryManager::disconnected, this, &ConfigInputWidget::wzCancel);
 
-    QMessageBox msgBox;
+    QMessageBox msgBox(this);
     msgBox.setText(tr("Arming Settings will be set to Always Disarmed for your safety."));
     msgBox.setDetailedText(tr("You will have to reconfigure the arming settings manually "
                               "when the wizard is finished. After the last step of the "

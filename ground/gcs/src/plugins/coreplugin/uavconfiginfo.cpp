@@ -104,6 +104,7 @@
 */
 
 #include "uavconfiginfo.h"
+#include "icore.h"
 #include <QMessageBox>
 
 #define VERSION_DEFAULT "0.0.0"
@@ -173,7 +174,7 @@ void UAVConfigInfo::read(QSettings *qs)
 
 bool UAVConfigInfo::askToAbort(int compat, QString message)
 {
-    QMessageBox msgBox;
+    QMessageBox msgBox((QWidget *) Core::ICore::instance()->mainWindow());
     msgBox.setInformativeText(tr("Do you want to continue the import?"));
     msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
 
@@ -221,7 +222,7 @@ bool UAVConfigInfo::askToAbort(int compat, QString message)
 
 void UAVConfigInfo::notify(QString message)
 {
-    QMessageBox msgBox;
+    QMessageBox msgBox((QWidget *) Core::ICore::instance()->mainWindow());
     msgBox.setText(message);
     msgBox.exec();
 }

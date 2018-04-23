@@ -34,6 +34,8 @@
 
 #include "physical_constants.h"
 
+#include <coreplugin/icore.h>
+
 #include "utils/coordinateconversions.h"
 #include <QMessageBox>
 #include <QDebug>
@@ -443,11 +445,10 @@ void Calibration::timeout()
 
     disconnect(&timer, &QTimer::timeout, this, &Calibration::timeout);
 
-    QMessageBox msgBox;
-    msgBox.setText(tr("Calibration timed out before receiving required updates."));
-    msgBox.setStandardButtons(QMessageBox::Ok);
-    msgBox.setDefaultButton(QMessageBox::Ok);
-    msgBox.exec();
+    (void) QMessageBox::information(
+            (QWidget *)Core::ICore::instance()->mainWindow(),
+            tr("Calibration failed"),
+            tr("Calibration timed out before receiving required updates."));
 }
 
 /**

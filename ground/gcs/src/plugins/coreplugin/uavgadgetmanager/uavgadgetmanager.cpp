@@ -59,7 +59,6 @@
 #include <QLayout>
 #include <QMainWindow>
 #include <QMenu>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QSplitter>
 #include <QStackedLayout>

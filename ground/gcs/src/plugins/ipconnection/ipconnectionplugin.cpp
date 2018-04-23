@@ -155,7 +155,9 @@ QIODevice *IPConnection::openDevice(Core::IDevice *device)
         delete ipSocket;
         ipSocket = nullptr;
 
-        QMessageBox msgBox(QMessageBox::Critical, tr("Connection Failed"), errorMsg);
+        QMessageBox msgBox(QMessageBox::Critical, tr("Connection Failed"),
+                errorMsg, QMessageBox::Ok,
+                (QWidget *) Core::ICore::instance()->mainWindow());
         msgBox.exec();
     }
 

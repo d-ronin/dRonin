@@ -88,7 +88,7 @@ void ImportExportGadgetWidget::on_exportButton_clicked()
 
     qDebug() << "Export pressed! Write to file " << QFileInfo(file).absoluteFilePath();
 
-    QMessageBox msgBox;
+    QMessageBox msgBox(this);
     QDir dir = QFileInfo(file).absoluteDir();
     if (!dir.exists()) {
         msgBox.setText(tr("Can't write file ") + QFileInfo(file).absoluteFilePath()
@@ -163,7 +163,7 @@ void ImportExportGadgetWidget::on_importButton_clicked()
 
     qDebug() << "Import pressed! Read from file " << QFileInfo(file).absoluteFilePath();
 
-    QMessageBox msgBox;
+    QMessageBox msgBox(this);
     if (!QFileInfo(file).isReadable()) {
         msgBox.setText(tr("Can't read file ") + QFileInfo(file).absoluteFilePath());
         msgBox.exec();
@@ -210,7 +210,7 @@ void ImportExportGadgetWidget::on_helpButton_clicked()
 
 void ImportExportGadgetWidget::on_resetButton_clicked()
 {
-    QMessageBox msgBox;
+    QMessageBox msgBox(this);
     msgBox.setText(tr("All your settings will be deleted!"));
     msgBox.setInformativeText(tr("You must restart the GCS in order to activate the changes."));
     msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);

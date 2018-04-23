@@ -36,7 +36,6 @@
 #include <QPushButton>
 #include <QBrush>
 #include <math.h>
-#include <QMessageBox>
 
 /**
  Constructor

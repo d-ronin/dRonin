@@ -36,7 +36,6 @@
 #include <QList>
 #include <QTextBrowser>
 #include "utils/pathutils.h"
-#include <QMessageBox>
 #include "utils/mytabbedstackwidget.h"
 #include "../uavobjectwidgetutils/configtaskwidget.h"
 

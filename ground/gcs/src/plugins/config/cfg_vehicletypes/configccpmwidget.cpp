@@ -1012,11 +1012,8 @@ void ConfigCcpmWidget::showEvent(QShowEvent *event)
 
 void ConfigCcpmWidget::SwashLvlStartButtonPressed()
 {
-    QMessageBox msgBox;
-    int i;
-    msgBox.setText("<h1>Swashplate Leveling Routine</h1>");
-    msgBox.setInformativeText(
-        "<b>You are about to start the Swashplate levelling routine.</b><p>This process will start "
+    QMessageBox msgBox(QMessageBox::Information, tr("Swashplate Leveling Routine"),
+        tr("<b>You are about to start the Swashplate levelling routine.</b><p>This process will start "
         "by downloading the current configuration from the GCS to the OP hardware and will adjust "
         "your configuration at various stages.<p>The final state of your system should match the "
         "current configuration in the GCS config gadget.<p>Please ensure all ccpm settings in the "
@@ -1024,10 +1021,9 @@ void ConfigCcpmWidget::SwashLvlStartButtonPressed()
         "your OP board may not match the GCS configuration.<p><i>After completing this process, "
         "please check all settings before attempting to fly.</i><p><font color=red><b>Please "
         "disconnect your motor to ensure it will not spin up.</b></font><p><hr><i>Do you wish to "
-        "proceed?</i>");
-    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+        "proceed?</i>"), QMessageBox::Yes | QMessageBox::Cancel, this);
+
     msgBox.setDefaultButton(QMessageBox::Cancel);
-    msgBox.setIcon(QMessageBox::Information);
     int ret = msgBox.exec();
 
     UAVObjectField *MinField;
@@ -1094,7 +1090,7 @@ void ConfigCcpmWidget::SwashLvlStartButtonPressed()
         }
 
         // min,neutral,max values for the servos
-        for (i = 0; i < CCPM_MAX_SWASH_SERVOS; i++) {
+        for (uint8_t i = 0; i < CCPM_MAX_SWASH_SERVOS; i++) {
             oldSwashLvlConfiguration.Min[i] =
                 MinField->getValue(oldSwashLvlConfiguration.ServoChannels[i]).toInt();
             oldSwashLvlConfiguration.Neutral[i] =

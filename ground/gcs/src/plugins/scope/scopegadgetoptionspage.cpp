@@ -27,6 +27,7 @@
 
 #include "scopegadgetoptionspage.h"
 
+#include <coreplugin/icore.h>
 #include "extensionsystem/pluginmanager.h"
 #include "uavobjects/uavobjectmanager.h"
 #include "uavobjects/uavdataobject.h"
@@ -525,7 +526,7 @@ void ScopeGadgetOptionsPage::on_btnApply2dCurve_clicked()
     // Apply curve settings
     QListWidgetItem *listWidgetItem = options_page->lst2dCurves->currentItem();
     if (listWidgetItem == NULL) {
-        QMessageBox msgBox;
+        QMessageBox msgBox((QWidget *) Core::ICore::instance()->mainWindow());
         msgBox.setText(tr("No curve selected."));
         msgBox.setInformativeText(tr("Please select a curve or generate one with the "
                                      "+"

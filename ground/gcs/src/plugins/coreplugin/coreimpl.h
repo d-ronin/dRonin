@@ -44,11 +44,6 @@ namespace Internal {
 
         bool showOptionsDialog(const QString &group = QString(), const QString &page = QString(),
                                QWidget *parent = nullptr);
-        bool showWarningWithOptions(const QString &title, const QString &text,
-                                    const QString &details = QString(),
-                                    const QString &settingsCategory = QString(),
-                                    const QString &settingsId = QString(), QWidget *parent = nullptr);
-
         ActionManager *actionManager() const;
         UniqueIDManager *uniqueIDManager() const;
         ConnectionManager *connectionManager() const;

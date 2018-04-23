@@ -70,7 +70,7 @@ void BiasCalibrationPage::enableButtons(bool enable)
 void BiasCalibrationPage::performCalibration()
 {
     if (!getWizard()->getConnectionManager()->isConnected()) {
-        QMessageBox msgBox;
+        QMessageBox msgBox(this);
         msgBox.setText(tr("A flight controller must be connected to your computer to perform bias "
                           "calculations.\nPlease connect your flight controller to your computer "
                           "and try again."));
@@ -128,7 +128,7 @@ void BiasCalibrationPage::calibrationTimeout()
 {
     stopCalibration();
 
-    QMessageBox msgBox;
+    QMessageBox msgBox(this);
     msgBox.setText(tr("Calibration timed out"));
     msgBox.setStandardButtons(QMessageBox::Ok);
     msgBox.setDefaultButton(QMessageBox::Ok);

@@ -60,7 +60,6 @@
 #include <QDesktopServices>
 #include <QFileDialog>
 #include <QList>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QStringList>
 #include <QTextEdit>

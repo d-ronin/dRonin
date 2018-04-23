@@ -42,7 +42,6 @@
 #include "cache.h"
 #include <QTextCodec>
 #include "cmath"
-#include <QtWidgets/QMessageBox>
 #include "QDomElement"
 
 namespace core {
