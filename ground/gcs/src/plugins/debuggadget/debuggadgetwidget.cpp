@@ -58,10 +58,10 @@ DebugGadgetWidget::~DebugGadgetWidget()
 void DebugGadgetWidget::saveLog()
 {
     QString fileName = QFileDialog::getSaveFileName(
-        nullptr, tr("Save log File As"),
-        QString("gcs-debug-log-%0.html")
+            this, tr("Save log File As"),
+            QString("gcs-debug-log-%0.html")
             .arg(QDateTime::currentDateTime().toString("yyyyMMdd-hhmmss")),
-        tr("HTML (*.html)"));
+            tr("HTML (*.html)"));
     if (fileName.isEmpty())
         return;
 

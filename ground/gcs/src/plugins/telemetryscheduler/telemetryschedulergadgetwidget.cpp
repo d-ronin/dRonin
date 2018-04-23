@@ -301,9 +301,10 @@ void TelemetrySchedulerGadgetWidget::saveTelemetryToFile()
 {
     QString file = filename;
     QString filter = tr("Telemetry Scheduler file (*.xml)");
-    file = QFileDialog::getSaveFileName(nullptr, tr("Save Telemetry Schedule to file .."),
-                                        QFileInfo(file).absoluteFilePath(), filter, &filter)
-               .trimmed();
+    file = QFileDialog::getSaveFileName(this,
+            tr("Save Telemetry Schedule to file .."),
+            QFileInfo(file).absoluteFilePath(), filter, &filter).trimmed();
+
     if (file.isEmpty()) {
         return;
     }
@@ -523,9 +524,9 @@ void TelemetrySchedulerGadgetWidget::loadTelemetryFromFile()
     // ask for file name
     QString file = filename;
     QString filter = tr("Telemetry Scheduler file (*.xml)");
-    file = QFileDialog::getOpenFileName(nullptr, tr("Load Telemetry Schedule from file .."),
-                                        QFileInfo(file).absoluteFilePath(), filter)
-               .trimmed();
+    file = QFileDialog::getOpenFileName(this,
+            tr("Load Telemetry Schedule from file .."),
+            QFileInfo(file).absoluteFilePath(), filter).trimmed();
     if (file.isEmpty()) {
         return;
     }

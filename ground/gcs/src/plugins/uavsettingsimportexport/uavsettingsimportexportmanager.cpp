@@ -247,7 +247,9 @@ void UAVSettingsImportExportManager::importUAVSettings()
     // ask for file name
     QString fileName;
     QString filters = tr("UAVObjects XML files (*.uav);; XML files (*.xml)");
-    fileName = QFileDialog::getOpenFileName(nullptr, tr("Import UAV Settings"), "", filters);
+    fileName = QFileDialog::getOpenFileName(
+            (QWidget *)Core::ICore::instance()->mainWindow(),
+            tr("Import UAV Settings"), "", filters);
     if (fileName.isEmpty()) {
         return;
     }
@@ -462,7 +464,10 @@ void UAVSettingsImportExportManager::exportUAVSettings()
     QString fileName;
     QString filters = tr("UAVObjects XML files (*.uav)");
 
-    fileName = QFileDialog::getSaveFileName(nullptr, tr("Save UAVSettings File As"), "", filters);
+    fileName = QFileDialog::getSaveFileName(
+            (QWidget *)Core::ICore::instance()->mainWindow(),
+            tr("Save UAVSettings File As"), "", filters);
+
     if (fileName.isEmpty()) {
         return;
     }
@@ -502,7 +507,9 @@ void UAVSettingsImportExportManager::exportUAVData()
     QString fileName;
     QString filters = tr("UAVObjects XML files (*.uav)");
 
-    fileName = QFileDialog::getSaveFileName(nullptr, tr("Save UAVData File As"), "", filters);
+    fileName = QFileDialog::getSaveFileName(
+            (QWidget *)Core::ICore::instance()->mainWindow(),
+            tr("Save UAVData File As"), "", filters);
     if (fileName.isEmpty()) {
         return;
     }
