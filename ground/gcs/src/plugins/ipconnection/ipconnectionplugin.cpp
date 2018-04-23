@@ -157,7 +157,7 @@ QIODevice *IPConnection::openDevice(Core::IDevice *device)
 
         QMessageBox msgBox(QMessageBox::Critical, tr("Connection Failed"),
                 errorMsg, QMessageBox::Ok,
-                (QWidget *) Core::ICore::instance()->mainWindow());
+                static_cast <QWidget *> (Core::ICore::instance()->mainWindow()));
         msgBox.exec();
     }
 

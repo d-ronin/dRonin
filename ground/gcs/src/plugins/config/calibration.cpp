@@ -37,6 +37,7 @@
 #include <coreplugin/icore.h>
 
 #include "utils/coordinateconversions.h"
+#include <QMainWindow>
 #include <QMessageBox>
 #include <QDebug>
 #include <QThread>
@@ -446,7 +447,7 @@ void Calibration::timeout()
     disconnect(&timer, &QTimer::timeout, this, &Calibration::timeout);
 
     (void) QMessageBox::information(
-            (QWidget *)Core::ICore::instance()->mainWindow(),
+            dynamic_cast <QWidget *> (Core::ICore::instance()->mainWindow()),
             tr("Calibration failed"),
             tr("Calibration timed out before receiving required updates."));
 }

@@ -108,7 +108,7 @@ void FlightLogDownload::updateReceived()
 
     switch (logging.Operation) {
     case LoggingStats::OPERATION_IDLE:
-        log.append((char *)logging.FileSector, LoggingStats::FILESECTOR_NUMELEM);
+        log.append(reinterpret_cast <char *> (logging.FileSector), LoggingStats::FILESECTOR_NUMELEM);
         logging.Operation = LoggingStats::OPERATION_DOWNLOAD;
         logging.FileSectorNum++;
         loggingStats->setData(logging);
@@ -119,7 +119,7 @@ void FlightLogDownload::updateReceived()
         ui->lb_operationStatus->setText("Downloading...");
         break;
     case LoggingStats::OPERATION_COMPLETE: {
-        log.append((char *)logging.FileSector, LoggingStats::FILESECTOR_NUMELEM);
+        log.append(reinterpret_cast <char *> (logging.FileSector), LoggingStats::FILESECTOR_NUMELEM);
 
         dl_state = DL_IDLE;
 

@@ -77,7 +77,7 @@ void KmlExportPlugin::exportToKML()
     // Get input file
     //
     QString inputFileName = QFileDialog::getOpenFileName(
-            (QWidget *)Core::ICore::instance()->mainWindow(),
+            static_cast <QWidget *> (Core::ICore::instance)()->mainWindow(),
             tr("Open file"), QString(""),
             tr("dRonin Log Files (*.drlog *.tll)"));
 
@@ -94,7 +94,7 @@ void KmlExportPlugin::exportToKML()
     // Get output file. Suggest to user that output have same base name and location as input file.
     while (proceed_flag == false) {
         outputFileName = QFileDialog::getSaveFileName(
-                (QWidget *)Core::ICore::instance()->mainWindow(),
+                static_cast <QWidget *> (Core::ICore::instance)()->mainWindow(),
                 tr("Export log"),
                 inputFileName.split(".", QString::SkipEmptyParts).at(0),
                 filters);

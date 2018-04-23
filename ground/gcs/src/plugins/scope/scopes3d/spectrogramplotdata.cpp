@@ -130,7 +130,7 @@ void SpectrogramData::plotNewData(PlotData *plot3dData, ScopeConfig *scopeConfig
             if (newVal != 0) {
                 rightAxis->setColorMap(
                     QwtInterval(0, newVal),
-                    new ColorMap(((SpectrogramScopeConfig *)scopeConfig)->getColorMap()));
+                    new ColorMap((dynamic_cast <SpectrogramScopeConfig *> (scopeConfig))->getColorMap()));
                 scopeGadgetWidget->setAxisScale(QwtPlot::yRight, 0, newVal);
             }
         }

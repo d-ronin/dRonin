@@ -130,7 +130,7 @@ SpectrogramScopeConfig::~SpectrogramScopeConfig()
 ScopeConfig *SpectrogramScopeConfig::cloneScope(ScopeConfig *originalScope)
 {
     SpectrogramScopeConfig *originalSpectrogramScopeConfig =
-        (SpectrogramScopeConfig *)originalScope;
+        dynamic_cast <SpectrogramScopeConfig *> (originalScope);
     SpectrogramScopeConfig *cloneObj = new SpectrogramScopeConfig();
 
     cloneObj->timeHorizon = originalSpectrogramScopeConfig->timeHorizon;

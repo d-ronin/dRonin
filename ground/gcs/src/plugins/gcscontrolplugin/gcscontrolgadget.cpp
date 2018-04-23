@@ -268,7 +268,7 @@ void GCSControlGadget::buttonState(ButtonNumber number, bool pressed)
         UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
         UAVDataObject *obj =
             dynamic_cast<UAVDataObject *>(objManager->getObject(QString("ManualControlCommand")));
-        bool currentCGSControl = ((GCSControlGadgetWidget *)m_widget)->getGCSControl();
+        bool currentCGSControl = (dynamic_cast <GCSControlGadgetWidget *> (m_widget))->getGCSControl();
 
         switch (buttonSettings[number].ActionID) {
         case 1: // increase
@@ -340,7 +340,7 @@ void GCSControlGadget::buttonState(ButtonNumber number, bool pressed)
             case 2: // GCS Control
                 // Toggle the GCS Control checkbox, its built in signalling will handle the update
                 // to OP
-                ((GCSControlGadgetWidget *)m_widget)->setGCSControl(!currentCGSControl);
+                (dynamic_cast <GCSControlGadgetWidget *> (m_widget))->setGCSControl(!currentCGSControl);
 
                 break;
             }

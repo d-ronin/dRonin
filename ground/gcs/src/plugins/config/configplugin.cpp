@@ -27,6 +27,7 @@
 #include "configplugin.h"
 #include "configgadgetfactory.h"
 #include <QtPlugin>
+#include <QMainWindow>
 #include <QStringList>
 #include <QTimer>
 #include <extensionsystem/pluginmanager.h>
@@ -139,7 +140,8 @@ void ConfigPlugin::onAutopilotDisconnect()
   */
 void ConfigPlugin::eraseAllSettings()
 {
-    QMessageBox msgBox((QWidget *)Core::ICore::instance()->mainWindow());
+    QMessageBox msgBox(
+            dynamic_cast <QWidget *> (Core::ICore::instance()->mainWindow()));
     msgBox.setText(tr("Are you sure you want to erase all board settings?."));
     msgBox.setInformativeText(tr("All settings stored in your board flash will be deleted."));
     msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
@@ -182,7 +184,8 @@ void ConfigPlugin::eraseFailed()
 
     disconnect(objper, &UAVObject::objectUpdated, this, &ConfigPlugin::eraseDone);
 
-    (void) QMessageBox::critical((QWidget *)Core::ICore::instance()->mainWindow(),
+    (void) QMessageBox::critical(
+            dynamic_cast <QWidget *> (Core::ICore::instance()->mainWindow()),
             tr("Error erasing settings"),
             tr("Power-cycle your board after removing all blades. Settings might be inconsistent."), QMessageBox::Ok);
 }
@@ -190,7 +193,8 @@ void ConfigPlugin::eraseFailed()
 void ConfigPlugin::eraseDone(UAVObject *obj)
 {
     Q_UNUSED(obj)
-    QMessageBox msgBox((QWidget *)Core::ICore::instance()->mainWindow());
+    QMessageBox msgBox(
+            dynamic_cast <QWidget *> (Core::ICore::instance()->mainWindow()));
     ObjectPersistence *objper = ObjectPersistence::GetInstance(getObjectManager());
     ObjectPersistence::DataFields data = objper->getData();
     Q_ASSERT(obj->getInstID() == objper->getInstID());

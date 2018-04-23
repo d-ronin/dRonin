@@ -58,7 +58,7 @@ public:
     ~GCSControlGadget();
 
     QList<int> context() const { return m_context; }
-    QWidget *widget() { return (QWidget *)m_widget; }
+    QWidget *widget() { return reinterpret_cast <QWidget *> (m_widget); }
     QString contextHelpId() const { return QString(); }
 
     void loadConfiguration(IUAVGadgetConfiguration *config);

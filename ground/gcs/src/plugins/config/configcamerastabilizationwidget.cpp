@@ -241,7 +241,7 @@ void ConfigCameraStabilizationWidget::defaultRequestedSlot(int group)
     // values of an object and then use them to set a widget state.
     //
     // HwSettings *hwSettings = HwSettings::GetInstance(getObjectManager());
-    // HwSettings *hwSettingsDefault=(HwSettings*)hwSettings->dirtyClone();
+    // HwSettings *hwSettingsDefault=dynamic_cast <HwSettings*> (hwSettings)->dirtyClone();
     // HwSettings::DataFields hwSettingsData = hwSettingsDefault->getData();
     // m_camerastabilization->enableCameraStabilization->setChecked(
     //    hwSettingsData.OptionalModules[HwSettings::OPTIONALMODULES_CAMERASTAB] ==

@@ -263,7 +263,7 @@ void UAVObjectUtilManager::objectPersistenceUpdated(UAVObject *obj)
         return;
     }
 
-    ObjectPersistence::DataFields objectPersistence = ((ObjectPersistence *)obj)->getData();
+    ObjectPersistence::DataFields objectPersistence = (static_cast <ObjectPersistence *> (obj))->getData();
 
     if (objectPersistence.Operation == ObjectPersistence::OPERATION_ERROR) {
         failureTimer.stop();

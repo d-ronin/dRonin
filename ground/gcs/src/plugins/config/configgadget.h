@@ -53,7 +53,7 @@ public:
     ConfigGadget(QString classId, ConfigGadgetWidget *widget, QWidget *parent = nullptr);
     ~ConfigGadget();
 
-    QWidget *widget() { return (QWidget *)m_widget; }
+    QWidget *widget() { return reinterpret_cast <QWidget *> (m_widget); }
     void loadConfiguration(IUAVGadgetConfiguration *config);
 
 private:

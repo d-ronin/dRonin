@@ -131,7 +131,7 @@ bool DFUObject::UploadData(qint32 const &numberOfBytes, QByteArray &data)
         message.v.xfer_cont.current_packet_number = ntohl(packetcount);
         char *pointer = data.data();
         pointer = pointer + 4 * 14 * packetcount;
-        CopyWords(pointer, (char *)message.v.xfer_cont.data, packetsize * 4);
+        CopyWords(pointer, reinterpret_cast <char *> (message.v.xfer_cont.data), packetsize * 4);
         int result = SendData(message);
         if (result < 1)
             return false;
@@ -292,7 +292,7 @@ retry:
             size = msg.lastPacketCount * 4;
         else
             size = 14 * 4;
-        fw->append((char *)message.v.xfer_cont.data, size);
+        fw->append(reinterpret_cast <char *> (message.v.xfer_cont.data), size);
 
         numTries = 3;
     }
@@ -673,7 +673,7 @@ quint32 DFUObject::CRC32WideFast(quint32 Crc, quint32 Size, quint32 *Buffer)
                                               0x350C9B64, 0x31CD86D3, 0x3C8EA00A, 0x384FBDBD
         };
 
-        Crc = Crc ^ *((quint32 *)Buffer); // Apply all 32-bits
+        Crc = Crc ^ *(reinterpret_cast <quint32 *> (Buffer)); // Apply all 32-bits
 
         Buffer += 1;
 
@@ -717,11 +717,10 @@ quint32 DFUObject::CRCFromQBArray(QByteArray array, quint32 Size)
     }
 
     int maxSize = ((quint32)array.length() > Size) ? Size : array.length();
+
     // Large firmwares require defining super large arrays,
-    // so better to malloc them. I did run into stack overflows here
-    // with devices with large firmwares (1MB) (E. Lafargue), hence
-    // this approach.
-    quint32 *t = (quint32 *)malloc(Size);
+    // so better to malloc them.
+    quint32 *t = reinterpret_cast <quint32 *> (malloc(Size));
     for (int x = 0; x < maxSize / 4; x++) {
         quint32 aux = 0;
         aux = (char)array[x * 4 + 3] & 0xFF;
@@ -733,7 +732,7 @@ quint32 DFUObject::CRCFromQBArray(QByteArray array, quint32 Size)
         aux += (char)array[x * 4 + 0] & 0xFF;
         t[x] = aux;
     }
-    quint32 crc = DFUObject::CRC32WideFast(0xFFFFFFFF, Size / 4, (quint32 *)t);
+    quint32 crc = DFUObject::CRC32WideFast(0xFFFFFFFF, Size / 4, reinterpret_cast <quint32 *> (t));
     free(t);
     return crc;
 }
@@ -756,7 +755,7 @@ int DFUObject::SendData(bl_messages data)
     int ret;
 
     for (int i = 0; i < 10; i++) {
-        ret = hid_write(m_hidHandle, (unsigned char *)array, BUF_LEN);
+        ret = hid_write(m_hidHandle, reinterpret_cast <unsigned char *> (array), BUF_LEN);
 
         if (ret < 0) {
             qDebug() << "hid_write returned error" << ret;
@@ -781,7 +780,7 @@ int DFUObject::ReceiveData(bl_messages &data, int timeoutMS)
     }
 
     char array[sizeof(bl_messages) + 1];
-    int received = hid_read_timeout(m_hidHandle, (unsigned char *)array, BUF_LEN, timeoutMS);
+    int received = hid_read_timeout(m_hidHandle, reinterpret_cast <unsigned char *> (array), BUF_LEN, timeoutMS);
     memcpy(&data, array + 1, sizeof(bl_messages));
     return received;
 }

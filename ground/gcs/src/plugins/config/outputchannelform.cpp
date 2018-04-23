@@ -321,7 +321,7 @@ void OutputChannelForm::sendChannelTest(int value)
 {
     int in_value = value;
 
-    QSlider *ob = (QSlider *)QObject::sender();
+    QSlider *ob = dynamic_cast <QSlider *> (QObject::sender());
     if (!ob)
         return;
 

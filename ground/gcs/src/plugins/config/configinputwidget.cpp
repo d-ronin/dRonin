@@ -1338,7 +1338,7 @@ void ConfigInputWidget::moveTxControls()
             m_txArrows->setVisible(!m_txArrows->isVisible());
         } else if (item == m_txFlightMode) {
             QGraphicsSvgItem *svg;
-            svg = (QGraphicsSvgItem *)item;
+            svg = static_cast <QGraphicsSvgItem *> (item);
             if (svg) {
                 if (svg->elementId() == "flightModeCenter") {
                     if (growing) {
@@ -1360,7 +1360,7 @@ void ConfigInputWidget::moveTxControls()
             }
         } else if (item == m_txArming) {
             QGraphicsSvgItem *svg;
-            svg = (QGraphicsSvgItem *)item;
+            svg = static_cast <QGraphicsSvgItem *> (item);
             if (svg) {
                 if (svg->elementId() == "armedswitchleft") {
                     svg->setElementId("armedswitchright");

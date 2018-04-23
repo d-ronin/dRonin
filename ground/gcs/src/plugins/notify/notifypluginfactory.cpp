@@ -45,7 +45,7 @@ NotifyPluginFactory::~NotifyPluginFactory()
 Core::IUAVGadget *NotifyPluginFactory::createGadget(QWidget *parent)
 {
     //  NotifyPluginWidget* gadgetWidget = new NotifyPluginWidget(parent);
-    return (Core::IUAVGadget *)0; // new NotifyPlugin(QString("NotifyPlugin"), gadgetWidget,
+    return nullptr; // new NotifyPlugin(QString("NotifyPlugin"), gadgetWidget,
                                   // parent);
 }
 

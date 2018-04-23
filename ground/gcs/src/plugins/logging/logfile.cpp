@@ -28,6 +28,7 @@
 #include <QDebug>
 #include <QtGlobal>
 #include <QTextStream>
+#include <QMainWindow>
 #include <QMessageBox>
 
 #include <coreplugin/icore.h>
@@ -107,7 +108,8 @@ bool LogFile::open(OpenMode mode)
                 .replace("0x", ""); // See comment above for necessity for string replacements
 
         if (logUAVOHashString != uavoHash) {
-            QMessageBox msgBox((QWidget *) Core::ICore::instance()->mainWindow());
+            QMessageBox msgBox(
+                    dynamic_cast <QWidget *> (Core::ICore::instance()->mainWindow()));
             msgBox.setText("Likely log file incompatibility.");
             msgBox.setInformativeText(QString("The log file was made with branch %1, UAVO hash %2. "
                                               "GCS will attempt to play the file.")
@@ -115,7 +117,8 @@ bool LogFile::open(OpenMode mode)
                                           .arg(logUAVOHashString));
             msgBox.exec();
         } else if (logGitHashString != gitHash) {
-            QMessageBox msgBox((QWidget *) Core::ICore::instance()->mainWindow());
+            QMessageBox msgBox(
+                    dynamic_cast <QWidget *> (Core::ICore::instance()->mainWindow()));
             msgBox.setText("Possible log file incompatibility.");
             msgBox.setInformativeText(
                 QString("The log file was made with branch %1. GCS will attempt to play the file.")
@@ -132,7 +135,8 @@ bool LogFile::open(OpenMode mode)
 
         // Check if we reached the end of the file before finding the separation string
         if (cnt >= 10 || file.atEnd()) {
-            QMessageBox msgBox((QWidget *) Core::ICore::instance()->mainWindow());
+            QMessageBox msgBox(
+                    dynamic_cast <QWidget *> (Core::ICore::instance()->mainWindow()));
             msgBox.setText("Corrupted file.");
             msgBox.setInformativeText("GCS cannot find the separation byte. GCS will attempt to "
                                       "play the file."); //<--TODO: add hyperlink to webpage with
@@ -173,8 +177,8 @@ qint64 LogFile::writeData(const char *data, qint64 dataSize)
 
     quint32 timeStamp = myTime.elapsed();
 
-    file.write((char *)&timeStamp, sizeof(timeStamp));
-    file.write((char *)&dataSize, sizeof(dataSize));
+    file.write(reinterpret_cast <char *> (&timeStamp), sizeof(timeStamp));
+    file.write(reinterpret_cast <char *> (&dataSize), sizeof(dataSize));
 
     qint64 written = file.write(data, dataSize);
     if (written != -1)
@@ -217,7 +221,7 @@ void LogFile::timerFired()
 
             file.seek(lastTimeStampPos + sizeof(lastTimeStamp));
 
-            file.read((char *)&dataSize, sizeof(dataSize));
+            file.read(reinterpret_cast <char *> (&dataSize), sizeof(dataSize));
 
             if (dataSize < 1 || dataSize > (1024 * 1024)) {
                 qDebug() << "Error: Logfile corrupted! Unlikely packet size: " << dataSize << "\n";
@@ -273,8 +277,8 @@ bool LogFile::startReplay()
         timestampPos.append(file.pos());
 
         // Read timestamp and logfile packet size
-        file.read((char *)&lastTimeStamp, sizeof(lastTimeStamp));
-        file.read((char *)&dataSize, sizeof(dataSize));
+        file.read(reinterpret_cast <char *> (&lastTimeStamp), sizeof(lastTimeStamp));
+        file.read(reinterpret_cast <char *> (&dataSize), sizeof(dataSize));
 
         // Check if dataSize sync bytes are correct.
         // TODO: LIKELY AS NOT, THIS WILL FAIL TO RESYNC BECAUSE THERE IS TOO LITTLE INFORMATION IN
@@ -293,7 +297,8 @@ bool LogFile::startReplay()
 
         // Check if timestamps are sequential.
         if (!timestampBuffer.isEmpty() && lastTimeStamp < timestampBuffer.last()) {
-            QMessageBox msgBox((QWidget *) Core::ICore::instance()->mainWindow());
+            QMessageBox msgBox(
+                    dynamic_cast <QWidget *> (Core::ICore::instance()->mainWindow()));
             msgBox.setText("Corrupted file.");
             msgBox.setInformativeText("Timestamps are not sequential. Playback may have unexpected "
                                       "behavior"); //<--TODO: add hyperlink to webpage with better
@@ -310,7 +315,8 @@ bool LogFile::startReplay()
 
     // Check if any timestamps were successfully read
     if (timestampBuffer.size() == 0) {
-        QMessageBox msgBox((QWidget *) Core::ICore::instance()->mainWindow());
+        QMessageBox msgBox(
+                dynamic_cast <QWidget *> (Core::ICore::instance()->mainWindow()));
         msgBox.setText("Empty logfile.");
         msgBox.setInformativeText("No log data can be found.");
         msgBox.exec();

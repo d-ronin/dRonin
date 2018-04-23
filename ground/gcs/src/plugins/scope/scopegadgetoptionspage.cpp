@@ -41,6 +41,7 @@
 
 #include <qpalette.h>
 #include <QMessageBox>
+#include <QMainWindow>
 
 ScopeGadgetOptionsPage::ScopeGadgetOptionsPage(ScopeGadgetConfiguration *config, QObject *parent)
     : IOptionsPage(parent)
@@ -526,7 +527,7 @@ void ScopeGadgetOptionsPage::on_btnApply2dCurve_clicked()
     // Apply curve settings
     QListWidgetItem *listWidgetItem = options_page->lst2dCurves->currentItem();
     if (listWidgetItem == NULL) {
-        QMessageBox msgBox((QWidget *) Core::ICore::instance()->mainWindow());
+        QMessageBox msgBox(dynamic_cast <QWidget *> (Core::ICore::instance()->mainWindow()));
         msgBox.setText(tr("No curve selected."));
         msgBox.setInformativeText(tr("Please select a curve or generate one with the "
                                      "+"

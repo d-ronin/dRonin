@@ -153,7 +153,7 @@ void NotifyItemDelegate::selectRow(const QString &text)
 
     QComboBox *combo = qobject_cast<QComboBox *>(sender());
     QTableWidget *table = new QTableWidget;
-    table = (QTableWidget *)(combo->parent());
+    table = dynamic_cast <QTableWidget *> (combo->parent());
 
     qNotifyDebug() << table->columnCount();
     qNotifyDebug() << table->rowCount();

@@ -1100,7 +1100,7 @@ void ConfigCcpmWidget::SwashLvlStartButtonPressed()
         }
 
         // copy to new Actuator settings.
-        memcpy((void *)&newSwashLvlConfiguration, (void *)&oldSwashLvlConfiguration,
+        memcpy(&newSwashLvlConfiguration, &oldSwashLvlConfiguration,
                sizeof(SwashplateServoSettingsStruct));
 
         // goto the first step

@@ -351,7 +351,7 @@ bool UAVObjectGeneratorFlight::process_object(ObjectInfo* info)
 							.arg( info->name )
 							.arg( info->fields[n]->name ) );
 				setgetfields.append( QString("{\r\n") );
-				setgetfields.append( QString("\tUAVObjSetDataField(%1Handle(), (void*)New%2, offsetof( %1Data, %2), sizeof(%3));\r\n")
+				setgetfields.append( QString("\tUAVObjSetDataField(%1Handle(), (void *) New%2, offsetof( %1Data, %2), sizeof(%3));\r\n")
 							.arg( info->name )
 							.arg( info->fields[n]->name )
 							.arg( fieldTypeStrC[info->fields[n]->type] ) );
@@ -363,7 +363,7 @@ bool UAVObjectGeneratorFlight::process_object(ObjectInfo* info)
 							.arg( info->name )
 							.arg( info->fields[n]->name ));
 				setgetfields.append( QString("{\r\n") );
-				setgetfields.append( QString("\tUAVObjGetDataField(%1Handle(), (void*)New%2, offsetof( %1Data, %2), sizeof(%3));\r\n")
+				setgetfields.append( QString("\tUAVObjGetDataField(%1Handle(), (void *) New%2, offsetof( %1Data, %2), sizeof(%3));\r\n")
 							.arg( info->name )
 							.arg( info->fields[n]->name )
 							.arg( fieldTypeStrC[info->fields[n]->type] ) );
@@ -379,7 +379,7 @@ bool UAVObjectGeneratorFlight::process_object(ObjectInfo* info)
 								.arg( info->name )
 								.arg( info->fields[n]->name ) );
 				setgetfields.append( QString("{\r\n") );
-				setgetfields.append( QString("\tUAVObjSetDataField(%1Handle(), (void*)New%2, offsetof( %1Data, %2), %3*sizeof(%4));\r\n")
+				setgetfields.append( QString("\tUAVObjSetDataField(%1Handle(), (void *) New%2, offsetof( %1Data, %2), %3*sizeof(%4));\r\n")
 								.arg( info->name )
 								.arg( info->fields[n]->name )
 								.arg( info->fields[n]->numElements )
@@ -392,7 +392,7 @@ bool UAVObjectGeneratorFlight::process_object(ObjectInfo* info)
 								.arg( info->name )
 								.arg( info->fields[n]->name ) );
 				setgetfields.append( QString("{\r\n") );
-				setgetfields.append( QString("\tUAVObjGetDataField(%1Handle(), (void*)New%2, offsetof( %1Data, %2), %3*sizeof(%4));\r\n")
+				setgetfields.append( QString("\tUAVObjGetDataField(%1Handle(), (void *) New%2, offsetof( %1Data, %2), %3*sizeof(%4));\r\n")
 								.arg( info->name )
 								.arg( info->fields[n]->name )
 								.arg( info->fields[n]->numElements )

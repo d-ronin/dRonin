@@ -296,8 +296,8 @@ bool KmlExport::preparseLogFile()
         timestampPos.append(logFile.pos());
 
         // Read timestamp and logfile packet size
-        logFile.read((char *)&lastTimeStamp, sizeof(lastTimeStamp));
-        logFile.read((char *)&dataSize, sizeof(dataSize));
+        logFile.read(reinterpret_cast <char *> (&lastTimeStamp), sizeof(lastTimeStamp));
+        logFile.read(reinterpret_cast <char *> (&dataSize), sizeof(dataSize));
 
         // Check if dataSize sync bytes are correct.
         // TODO: LIKELY AS NOT, THIS WILL FAIL TO RESYNC BECAUSE THERE IS TOO LITTLE INFORMATION IN
@@ -374,8 +374,8 @@ void KmlExport::parseLogFile()
         }
 
         // Read timestamp and logfile packet size
-        logFile.read((char *)&timeStamp, sizeof(timeStamp));
-        logFile.read((char *)&packetSize, sizeof(packetSize));
+        logFile.read(reinterpret_cast <char *> (&timeStamp), sizeof(timeStamp));
+        logFile.read(reinterpret_cast <char *> (&packetSize), sizeof(packetSize));
 
         if (packetSize < 1 || packetSize > (1024 * 1024)) {
             qDebug() << "Error: Logfile corrupted! Unlikely packet size: " << packetSize << "\n";

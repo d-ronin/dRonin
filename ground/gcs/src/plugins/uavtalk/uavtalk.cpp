@@ -118,7 +118,7 @@ void UAVTalk::processInputStream()
             startOffset = 0;
         }
 
-        int bytes = io->read((char *) (rxBuffer + filledBytes),
+        int bytes = io->read(reinterpret_cast <char *> (rxBuffer + filledBytes),
                 sizeof(rxBuffer) - filledBytes);
 
         if (bytes <= 0) {
@@ -187,7 +187,7 @@ bool UAVTalk::objectTransaction(UAVObject *obj, quint8 type, bool allInstances)
  */
 bool UAVTalk::receiveFileChunk(quint32 fileId, quint8 *data, quint32 length)
 {
-    UAVTalkFileData *hdr = (UAVTalkFileData *) data;
+    UAVTalkFileData *hdr = reinterpret_cast <UAVTalkFileData *> (data);
 
     if (length < sizeof(*hdr)) {
         return false;
@@ -219,7 +219,7 @@ bool UAVTalk::processInput()
         return false;
     }
 
-    UAVTalkHeader *hdr = (UAVTalkHeader *) (rxBuffer + startOffset);
+    UAVTalkHeader *hdr = reinterpret_cast <UAVTalkHeader *> (rxBuffer + startOffset);
 
     /* Basic framing checks.  If these fail, skip forward one byte and retry
      * to capture stream sync.
@@ -578,7 +578,7 @@ bool UAVTalk::transmitFrame(quint32 length, bool incrTxObj)
     txBuffer[length] = updateCRC(0, txBuffer, length);
 
     if (!io.isNull() && io->isWritable() && io->bytesToWrite() < TX_BACKLOG_SIZE) {
-        io->write((const char *)txBuffer, length + CHECKSUM_LENGTH);
+        io->write(reinterpret_cast <const char *> (txBuffer), length + CHECKSUM_LENGTH);
     } else {
         UAVTALK_QXTLOG_DEBUG("UAVTalk: TX refused");
         ++stats.txErrors;

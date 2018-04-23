@@ -140,7 +140,7 @@ HistogramScopeConfig::~HistogramScopeConfig()
  */
 ScopeConfig *HistogramScopeConfig::cloneScope(ScopeConfig *originalScope)
 {
-    HistogramScopeConfig *originalHistogramScopeConfig = (HistogramScopeConfig *)originalScope;
+    HistogramScopeConfig *originalHistogramScopeConfig = reinterpret_cast <HistogramScopeConfig *> (originalScope);
     HistogramScopeConfig *cloneObj = new HistogramScopeConfig();
 
     cloneObj->binWidth = originalHistogramScopeConfig->binWidth;

@@ -35,6 +35,7 @@
 #include <QStringList>
 #include <QDebug>
 #include <QCheckBox>
+#include <QMainWindow>
 #include "importsummary.h"
 
 // for menu item
@@ -112,7 +113,7 @@ bool UAVSettingsImportExportManager::importUAVSettings(const QByteArray &setting
     QDomDocument doc("UAVObjects");
 
     if (!doc.setContent(settings)) {
-        QMessageBox msgBox((QWidget *) Core::ICore::instance()->mainWindow());
+        QMessageBox msgBox(dynamic_cast <QWidget *> (Core::ICore::instance()->mainWindow()));
         msgBox.setText(tr("File Parsing Failed."));
         msgBox.setInformativeText(tr("This file is not a correct XML file"));
         msgBox.setStandardButtons(QMessageBox::Ok);
@@ -128,7 +129,7 @@ bool UAVSettingsImportExportManager::importUAVSettings(const QByteArray &setting
         root = root.firstChildElement("settings");
     }
     if (root.isNull() || (root.tagName() != "settings")) {
-        QMessageBox msgBox((QWidget *) Core::ICore::instance()->mainWindow());
+        QMessageBox msgBox(dynamic_cast <QWidget *> (Core::ICore::instance()->mainWindow()));
         msgBox.setText(tr("Wrong file contents"));
         msgBox.setInformativeText(tr("This file does not contain correct UAVSettings"));
         msgBox.setStandardButtons(QMessageBox::Ok);
@@ -138,7 +139,7 @@ bool UAVSettingsImportExportManager::importUAVSettings(const QByteArray &setting
 
     // We are now ok: setup the import summary dialog & update it as we
     // go along.
-    ImportSummaryDialog swui((QWidget *)Core::ICore::instance()->mainWindow(), quiet);
+    ImportSummaryDialog swui(dynamic_cast <QWidget *> (Core::ICore::instance()->mainWindow()), quiet);
 
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *boardObjManager = pm->getObject<UAVObjectManager>();
@@ -228,7 +229,8 @@ bool UAVSettingsImportExportManager::importUAVSettings(const QByteArray &setting
     qDebug() << "End import";
 
     if (swui.numLines() < 1) {
-        QMessageBox::critical((QWidget *)Core::ICore::instance()->mainWindow(),
+        QMessageBox::critical(
+                dynamic_cast <QWidget *> (Core::ICore::instance()->mainWindow()),
                 tr("Unable to import settings"),
                 tr("No settings found in XML dump; the flight controller settings may have been blank."), QMessageBox::Ok);
         /* This is a termination condition-- no settings found. */
@@ -248,7 +250,7 @@ void UAVSettingsImportExportManager::importUAVSettings()
     QString fileName;
     QString filters = tr("UAVObjects XML files (*.uav);; XML files (*.xml)");
     fileName = QFileDialog::getOpenFileName(
-            (QWidget *)Core::ICore::instance()->mainWindow(),
+            dynamic_cast <QWidget *> (Core::ICore::instance()->mainWindow()),
             tr("Import UAV Settings"), "", filters);
     if (fileName.isEmpty()) {
         return;
@@ -465,7 +467,7 @@ void UAVSettingsImportExportManager::exportUAVSettings()
     QString filters = tr("UAVObjects XML files (*.uav)");
 
     fileName = QFileDialog::getSaveFileName(
-            (QWidget *)Core::ICore::instance()->mainWindow(),
+            dynamic_cast <QWidget *> (Core::ICore::instance()->mainWindow()),
             tr("Save UAVSettings File As"), "", filters);
 
     if (fileName.isEmpty()) {
@@ -488,13 +490,15 @@ void UAVSettingsImportExportManager::exportUAVSettings()
     if (file.open(QIODevice::WriteOnly) && (file.write(xml.toLatin1()) != -1)) {
         file.close();
     } else {
-        QMessageBox::critical((QWidget *)Core::ICore::instance()->mainWindow(),
+        QMessageBox::critical(
+                dynamic_cast <QWidget *> (Core::ICore::instance()->mainWindow()),
                 tr("UAV Settings Export"),
                 tr("Unable to save settings: ") + fileName, QMessageBox::Ok);
         return;
     }
 
-    QMessageBox msgBox((QWidget *) Core::ICore::instance()->mainWindow());
+    QMessageBox msgBox(
+            dynamic_cast <QWidget *> (Core::ICore::instance()->mainWindow()));
     msgBox.setText(tr("Settings saved."));
     msgBox.setStandardButtons(QMessageBox::Ok);
     msgBox.exec();
@@ -508,7 +512,7 @@ void UAVSettingsImportExportManager::exportUAVData()
     QString filters = tr("UAVObjects XML files (*.uav)");
 
     fileName = QFileDialog::getSaveFileName(
-            (QWidget *)Core::ICore::instance()->mainWindow(),
+            dynamic_cast <QWidget *> (Core::ICore::instance()->mainWindow()),
             tr("Save UAVData File As"), "", filters);
     if (fileName.isEmpty()) {
         return;
@@ -530,13 +534,15 @@ void UAVSettingsImportExportManager::exportUAVData()
     if (file.open(QIODevice::WriteOnly) && (file.write(xml.toLatin1()) != -1)) {
         file.close();
     } else {
-        QMessageBox::critical((QWidget *)Core::ICore::instance()->mainWindow(),
+        QMessageBox::critical(
+                dynamic_cast <QWidget *> (Core::ICore::instance()->mainWindow()),
                 tr("UAV Data Export"), tr("Unable to save data: ") + fileName,
                               QMessageBox::Ok);
         return;
     }
 
-    QMessageBox msgBox((QWidget *) Core::ICore::instance()->mainWindow());
+    QMessageBox msgBox(
+            dynamic_cast <QWidget *> (Core::ICore::instance()->mainWindow()));
     msgBox.setText(tr("Data saved."));
     msgBox.setStandardButtons(QMessageBox::Ok);
     msgBox.exec();

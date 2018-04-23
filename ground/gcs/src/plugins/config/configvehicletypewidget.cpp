@@ -642,7 +642,7 @@ void ConfigVehicleTypeWidget::updateCustomAirframeUI()
     for (int channel = 0; channel < (int)(ActuatorCommand::CHANNEL_NUMELEM); channel++) {
         UAVObjectField *field = mixerSettings->getField(mixerTypes.at(channel));
         if (field) {
-            QComboBox *q = (QComboBox *)m_aircraft->customMixerTable->cellWidget(0, channel);
+            QComboBox *q = static_cast <QComboBox *> (m_aircraft->customMixerTable->cellWidget(0, channel));
             if (q) {
                 QString s = field->getValue().toString();
                 setComboCurrentIndex(q, q->findText(s));
@@ -703,7 +703,7 @@ void ConfigVehicleTypeWidget::updateObjectsFromWidgets()
     } else {
         // Update the table:
         for (int channel = 0; channel < (int)(ActuatorCommand::CHANNEL_NUMELEM); channel++) {
-            QComboBox *q = (QComboBox *)m_aircraft->customMixerTable->cellWidget(0, channel);
+            QComboBox *q = static_cast <QComboBox *> (m_aircraft->customMixerTable->cellWidget(0, channel));
             if (q->currentText() == "Disabled")
                 vconfig->setMixerType(mixerSettings, channel, MixerSettings::MIXER1TYPE_DISABLED);
             else if (q->currentText() == "Motor")

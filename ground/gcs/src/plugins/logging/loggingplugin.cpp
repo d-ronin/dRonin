@@ -40,6 +40,7 @@
 #include <QFileDialog>
 #include <QList>
 #include <QErrorMessage>
+#include <QMainWindow>
 #include <QWriteLocker>
 
 #include <extensionsystem/pluginmanager.h>
@@ -79,7 +80,7 @@ QIODevice *LoggingConnection::openDevice(IDevice *deviceName)
     }
 
     QString fileName = QFileDialog::getOpenFileName(
-            (QWidget *)Core::ICore::instance()->mainWindow(),
+            dynamic_cast <QWidget *> (Core::ICore::instance()->mainWindow()),
             tr("Open file"), QString(""),
             tr("dRonin Log Files (*.drlog *.tll)"));
 
@@ -370,10 +371,10 @@ void LoggingPlugin::toggleLogging()
     if (state == IDLE) {
 
         QString fileName = QFileDialog::getSaveFileName(
-                (QWidget *)Core::ICore::instance()->mainWindow(),
+                dynamic_cast <QWidget *> (Core::ICore::instance()->mainWindow()),
                 tr("Start Log"), QDir::homePath() + QDir::separator()
-                + tr("dRonin-%0.drlog")
-                .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss")),
+                    + tr("dRonin-%0.drlog")
+                    .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss")),
                 tr("dRonin Log (*.drlog)"));
 
         if (fileName.isEmpty())

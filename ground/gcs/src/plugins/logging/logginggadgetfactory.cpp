@@ -26,12 +26,13 @@
 #include "logginggadgetfactory.h"
 #include "logginggadgetwidget.h"
 #include "logginggadget.h"
+#include "loggingplugin.h"
 #include <coreplugin/iuavgadget.h>
 
 LoggingGadgetFactory::LoggingGadgetFactory(QObject *parent)
     : IUAVGadgetFactory(QString("LoggingGadget"), tr("Logging"), parent)
 {
-    loggingPlugin = (LoggingPlugin *)parent;
+    loggingPlugin = dynamic_cast <LoggingPlugin *> (parent);
 }
 
 LoggingGadgetFactory::~LoggingGadgetFactory()
