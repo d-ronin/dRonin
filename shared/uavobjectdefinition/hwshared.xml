@@ -102,18 +102,6 @@
         <option>Disabled</option>
       </options>
     </field>
-    <field defaultvalue="64000" elements="1" name="MaxRfSpeed" type="enum" units="bps">
-      <description>Maximum raw RF data speed in bits per second</description>
-      <options>
-        <!-- Ordering must match the ordering of options in the rfm22b module -->
-        <option>9600</option>
-        <option>19200</option>
-        <option>32000</option>
-        <option>64000</option>
-        <option>100000</option>
-        <option>192000</option>
-      </options>
-    </field>
     <field defaultvalue="1.25" elements="1" name="MaxRfPower" type="enum" units="mW">
       <description>Maximum RF power in milliwatts</description>
       <options>
