@@ -757,8 +757,11 @@ bool UAVObjectUtilManager::firmwareHashMatchesGcs()
 bool UAVObjectUtilManager::boardConfigured()
 {
     auto actuatorSettings = ActuatorSettings::GetInstance(obm);
-    if (!actuatorSettings)
+    if (!actuatorSettings) 
         return true; // this might seem odd, but matches the API description
+
+    if (!actuatorSettings->getIsPresentOnHardware())
+        return true; // Maybe pipx, maybe mismatched fw ver...
 
     auto minField = actuatorSettings->getField("ChannelMin");
     auto maxField = actuatorSettings->getField("ChannelMax");
