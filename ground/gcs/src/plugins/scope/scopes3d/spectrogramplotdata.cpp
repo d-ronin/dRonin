@@ -130,7 +130,8 @@ void SpectrogramData::plotNewData(PlotData *plot3dData, ScopeConfig *scopeConfig
             if (newVal != 0) {
                 rightAxis->setColorMap(
                     QwtInterval(0, newVal),
-                    new ColorMap(((SpectrogramScopeConfig *)scopeConfig)->getColorMap()));
+                    new ColorMap(
+                        (dynamic_cast<SpectrogramScopeConfig *>(scopeConfig))->getColorMap()));
                 scopeGadgetWidget->setAxisScale(QwtPlot::yRight, 0, newVal);
             }
         }
@@ -170,9 +171,9 @@ bool SpectrogramData::append(UAVObject *multiObj)
             list.size() * list.front()->getField(uavFieldName)->getNumElements();
 
         /* Check if the instance has a samples field as this will override the windowWidth
-        *  Field can be used in objects that have dynamic size
-        *  like the case of the Vibration Analysis modeule
-        */
+         *  Field can be used in objects that have dynamic size
+         *  like the case of the Vibration Analysis modeule
+         */
         QList<UAVObjectField *> fieldList = multiObj->getFields();
         foreach (UAVObjectField *field, fieldList) {
             if (field->getType() == UAVObjectField::INT16 && field->getName() == "samples") {

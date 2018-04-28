@@ -52,7 +52,7 @@ $(NAME)::$(NAME)(): UAVDataObject(OBJID, ISSINGLEINST, ISSETTINGS, NAME)
     QList<UAVObjectField*> fields;
 $(FIELDSINIT)
     // Initialize object
-    initializeFields(fields, (quint8*)&data, NUMBYTES);
+    initializeFields(fields, reinterpret_cast <quint8 *> (&data), NUMBYTES);
     // Set the default field values
     setDefaultFieldValues();
     // Set the object description

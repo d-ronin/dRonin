@@ -58,7 +58,7 @@ public:
     ~GCSControlGadget();
 
     QList<int> context() const { return m_context; }
-    QWidget *widget() { return (QWidget *)m_widget; }
+    QWidget *widget() { return reinterpret_cast<QWidget *>(m_widget); }
     QString contextHelpId() const { return QString(); }
 
     void loadConfiguration(IUAVGadgetConfiguration *config);
@@ -73,8 +73,7 @@ private:
     double constrain(double value);
 
     //! Set the UAVTalkReceiver object
-    void setGcsReceiver(double leftX, double leftY, double rightX,
-            double rightY, double arming);
+    void setGcsReceiver(double leftX, double leftY, double rightX, double rightY, double arming);
 
     QTime joystickTime;
     GCSControlGadgetWidget *m_widget;
@@ -106,7 +105,8 @@ signals:
 
 protected slots:
     void manualControlCommandUpdated(UAVObject *);
-    void sticksChangedLocally(double leftX, double leftY, double rightX, double rightY, double arming);
+    void sticksChangedLocally(double leftX, double leftY, double rightX, double rightY,
+                              double arming);
     void flightModeChanged(ManualControlSettings::FlightModePositionOptions mode);
     //! Enable or disable sending data
     void enableControl(bool enable);

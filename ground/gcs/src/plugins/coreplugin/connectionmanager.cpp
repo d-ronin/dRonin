@@ -27,7 +27,7 @@
  */
 
 #include "connectionmanager.h"
-
+#include <coreplugin/icore.h>
 #include <aggregation/aggregate.h>
 #include <coreplugin/iconnection.h>
 #include <coreplugin/idevice.h>
@@ -39,6 +39,7 @@
 #include <QHBoxLayout>
 #include <QComboBox>
 #include <QEventLoop>
+#include <QMainWindow>
 #include <alarmsmonitorwidget.h>
 
 namespace Core {
@@ -110,6 +111,7 @@ void ConnectionManager::init()
  */
 void ConnectionManager::connectDeviceFailed(DevListItem &device)
 {
+
     QString msg("<span style='color:red'>Failed</span> to connect device: ");
     if (device.device)
         msg.append(device.device->getDisplayName());
@@ -121,13 +123,14 @@ void ConnectionManager::connectDeviceFailed(DevListItem &device)
         msg.append("<br />Have you set udev rules?");
 #endif
 
+    QMessageBox msgFailedToConnect(dynamic_cast<QWidget *>(Core::ICore::instance()->mainWindow()));
     msgFailedToConnect.setText(msg);
     msgFailedToConnect.open();
 }
 
 /**
-*   Method called when the user clicks the "Connect" button
-*/
+ *   Method called when the user clicks the "Connect" button
+ */
 bool ConnectionManager::connectDevice(DevListItem device)
 {
     if (!device.connection) {
@@ -171,9 +174,9 @@ bool ConnectionManager::connectDevice(DevListItem device)
 }
 
 /**
-*   Method called by plugins who want to force a disconnection.
-*   Used by Uploader gadget for instance.
-*/
+ *   Method called by plugins who want to force a disconnection.
+ *   Used by Uploader gadget for instance.
+ */
 bool ConnectionManager::disconnectDevice()
 {
     // tell the monitor widget we're disconnected
@@ -217,8 +220,8 @@ bool ConnectionManager::disconnectDevice()
 }
 
 /**
-*   Slot called when a plugin added an object to the core pool
-*/
+ *   Slot called when a plugin added an object to the core pool
+ */
 void ConnectionManager::objectAdded(QObject *obj)
 {
     // Check if a plugin added a connection object to the pool
@@ -263,8 +266,8 @@ void ConnectionManager::onConnectionDestroyed(QObject *obj)
 }
 
 /**
-*   Slot called when the user clicks the connect/disconnect button
-*/
+ *   Slot called when the user clicks the connect/disconnect button
+ */
 void ConnectionManager::onConnectClicked()
 {
     // Check if we have a ioDev already created:
@@ -284,8 +287,8 @@ void ConnectionManager::onConnectClicked()
 }
 
 /**
-*   Slot called when the telemetry is connected
-*/
+ *   Slot called when the telemetry is connected
+ */
 void ConnectionManager::telemetryConnected()
 {
     qDebug() << "TelemetryMonitor: connected";
@@ -298,8 +301,8 @@ void ConnectionManager::telemetryConnected()
 }
 
 /**
-*   Slot called when the telemetry is disconnected
-*/
+ *   Slot called when the telemetry is disconnected
+ */
 void ConnectionManager::telemetryDisconnected()
 {
     qDebug() << "TelemetryMonitor: disconnected";
@@ -316,8 +319,8 @@ void ConnectionManager::telemetryDisconnected()
 }
 
 /**
-*   Slot called when the telemetry rates are updated
-*/
+ *   Slot called when the telemetry rates are updated
+ */
 void ConnectionManager::telemetryUpdated(double txRate, double rxRate)
 {
     m_monitorWidget->updateTelemetry(txRate, rxRate);
@@ -344,8 +347,8 @@ void ConnectionManager::reconnectCheckSlot()
 }
 
 /**
-*   Find a device by its displayed (visible on screen) name
-*/
+ *   Find a device by its displayed (visible on screen) name
+ */
 DevListItem ConnectionManager::findDevice(const QString &devName)
 {
     foreach (DevListItem d, m_devList) {
@@ -361,10 +364,10 @@ DevListItem ConnectionManager::findDevice(const QString &devName)
 }
 
 /**
-*   Tells every connection plugin to stop polling for devices if they
-*   are doing that.
-*
-*/
+ *   Tells every connection plugin to stop polling for devices if they
+ *   are doing that.
+ *
+ */
 void ConnectionManager::suspendPolling()
 {
     foreach (IConnection *cnx, m_connectionsList) {
@@ -377,9 +380,9 @@ void ConnectionManager::suspendPolling()
 }
 
 /**
-*   Tells every connection plugin to resume polling for devices if they
-*   are doing that.
-*/
+ *   Tells every connection plugin to resume polling for devices if they
+ *   are doing that.
+ */
 void ConnectionManager::resumePolling()
 {
     foreach (IConnection *cnx, m_connectionsList) {
@@ -392,8 +395,8 @@ void ConnectionManager::resumePolling()
 }
 
 /**
-*   Returns true if autoconnection is enabled
-*/
+ *   Returns true if autoconnection is enabled
+ */
 bool ConnectionManager::getAutoconnect()
 {
     return m_mainWindow->generalSettings()->autoConnect();
@@ -447,11 +450,11 @@ void ConnectionManager::updateConnectionList(IConnection *connection)
 }
 
 /**
-*   Register a device from a specific connection plugin
-*   @param devN contains the connection shortname + device name which is diplayed in the tooltip
-*  @param disp is the name that is displayed in the dropdown menu
-*  @param name is the actual device name
-*/
+ *   Register a device from a specific connection plugin
+ *   @param devN contains the connection shortname + device name which is diplayed in the tooltip
+ *  @param disp is the name that is displayed in the dropdown menu
+ *  @param name is the actual device name
+ */
 void ConnectionManager::registerDevice(IConnection *conn, IDevice *device)
 {
     DevListItem d(conn, device);
@@ -459,10 +462,10 @@ void ConnectionManager::registerDevice(IConnection *conn, IDevice *device)
 }
 
 /**
-*   A device plugin notified us that its device list has changed
-*   (eg: user plug/unplug a usb device)
-*   \param[in] connection Connection type which signaled the update
-*/
+ *   A device plugin notified us that its device list has changed
+ *   (eg: user plug/unplug a usb device)
+ *   \param[in] connection Connection type which signaled the update
+ */
 void ConnectionManager::devChanged(IConnection *connection)
 {
     if (!ExtensionSystem::PluginManager::instance()->allPluginsLoaded()) {

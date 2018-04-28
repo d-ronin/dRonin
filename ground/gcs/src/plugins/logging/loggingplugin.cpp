@@ -40,6 +40,7 @@
 #include <QFileDialog>
 #include <QList>
 #include <QErrorMessage>
+#include <QMainWindow>
 #include <QWriteLocker>
 
 #include <extensionsystem/pluginmanager.h>
@@ -54,9 +55,7 @@ LoggingConnection::LoggingConnection()
     logDevice.setName("Logfile replay...");
 }
 
-LoggingConnection::~LoggingConnection()
-{
-}
+LoggingConnection::~LoggingConnection() {}
 
 void LoggingConnection::onEnumerationChanged()
 {
@@ -79,9 +78,8 @@ QIODevice *LoggingConnection::openDevice(IDevice *deviceName)
     }
 
     QString fileName = QFileDialog::getOpenFileName(
-            (QWidget *)Core::ICore::instance()->mainWindow(),
-            tr("Open file"), QString(""),
-            tr("dRonin Log Files (*.drlog *.tll)"));
+        dynamic_cast<QWidget *>(Core::ICore::instance()->mainWindow()), tr("Open file"),
+        QString(""), tr("dRonin Log Files (*.drlog *.tll)"));
 
     if (!fileName.isNull()) {
         startReplay(fileName);
@@ -123,16 +121,14 @@ QString LoggingConnection::shortName()
 /**
  * @brief LoggingThread::~LoggingThread Destructor
  */
-LoggingThread::~LoggingThread()
-{
-}
+LoggingThread::~LoggingThread() {}
 
 /**
-  * Sets the file to use for logging and takes the parent plugin
-  * to connect to stop logging signal
-  * @param[in] file File name to write to
-  * @param[in] parent plugin
-  */
+ * Sets the file to use for logging and takes the parent plugin
+ * to connect to stop logging signal
+ * @param[in] file File name to write to
+ * @param[in] parent plugin
+ */
 bool LoggingThread::openFile(QString file, LoggingPlugin *parent)
 {
     logFile.setFileName(file);
@@ -149,11 +145,11 @@ bool LoggingThread::openFile(QString file, LoggingPlugin *parent)
 };
 
 /**
-  * Logs an object update to the file.  Data format is the
-  * timestamp as a 32 bit uint counting ms from start of
-  * file writing (flight time will be embedded in stream),
-  * then object packet size, then the packed UAVObject.
-  */
+ * Logs an object update to the file.  Data format is the
+ * timestamp as a 32 bit uint counting ms from start of
+ * file writing (flight time will be embedded in stream),
+ * then object packet size, then the packed UAVObject.
+ */
 void LoggingThread::objectUpdated(UAVObject *obj)
 {
     QWriteLocker locker(&lock);
@@ -162,9 +158,9 @@ void LoggingThread::objectUpdated(UAVObject *obj)
 };
 
 /**
-  * Connect signals from all the objects updates to the write routine then
-  * run event loop
-  */
+ * Connect signals from all the objects updates to the write routine then
+ * run event loop
+ */
 void LoggingThread::run()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
@@ -198,8 +194,8 @@ void LoggingThread::run()
 }
 
 /**
-  * Pass this command to the correct thread then close the file
-  */
+ * Pass this command to the correct thread then close the file
+ */
 void LoggingThread::stopLogging()
 {
     QWriteLocker locker(&lock);
@@ -312,8 +308,8 @@ LoggingPlugin::~LoggingPlugin()
 }
 
 /**
-  * Add Logging plugin to File menu
-  */
+ * Add Logging plugin to File menu
+ */
 bool LoggingPlugin::initialize(const QStringList &args, QString *errMsg)
 {
     Q_UNUSED(args);
@@ -326,8 +322,8 @@ bool LoggingPlugin::initialize(const QStringList &args, QString *errMsg)
     Core::ActionContainer *ac = am->actionContainer(Core::Constants::M_TOOLS);
 
     // Command to start logging
-    cmdLogging = am->registerAction(new QAction(this), "LoggingPlugin.Logging", QList<int>()
-                                        << Core::Constants::C_GLOBAL_ID);
+    cmdLogging = am->registerAction(new QAction(this), "LoggingPlugin.Logging",
+                                    QList<int>() << Core::Constants::C_GLOBAL_ID);
     cmdLogging->setDefaultKeySequence(QKeySequence("Ctrl+L"));
     cmdLogging->action()->setText("Start logging...");
 
@@ -338,8 +334,8 @@ bool LoggingPlugin::initialize(const QStringList &args, QString *errMsg)
     connect(cmdLogging->action(), SIGNAL(triggered(bool)), this, SLOT(toggleLogging()));
 
     // Command to downlaod log
-    cmdDownload = am->registerAction(new QAction(this), "LoggingPlugin.Download", QList<int>()
-                                         << Core::Constants::C_GLOBAL_ID);
+    cmdDownload = am->registerAction(new QAction(this), "LoggingPlugin.Download",
+                                     QList<int>() << Core::Constants::C_GLOBAL_ID);
     cmdDownload->setDefaultKeySequence(QKeySequence("Ctrl+D"));
     cmdDownload->action()->setText("Download log...");
     ac->addAction(cmdDownload, "Logging");
@@ -362,19 +358,19 @@ void LoggingPlugin::downloadLog()
 }
 
 /**
-  * The action that is triggered by the menu item which opens the
-  * file and begins logging if successful
-  */
+ * The action that is triggered by the menu item which opens the
+ * file and begins logging if successful
+ */
 void LoggingPlugin::toggleLogging()
 {
     if (state == IDLE) {
 
         QString fileName = QFileDialog::getSaveFileName(
-                (QWidget *)Core::ICore::instance()->mainWindow(),
-                tr("Start Log"), QDir::homePath() + QDir::separator()
+            dynamic_cast<QWidget *>(Core::ICore::instance()->mainWindow()), tr("Start Log"),
+            QDir::homePath() + QDir::separator()
                 + tr("dRonin-%0.drlog")
-                .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss")),
-                tr("dRonin Log (*.drlog)"));
+                      .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss")),
+            tr("dRonin Log (*.drlog)"));
 
         if (fileName.isEmpty())
             return;
@@ -389,8 +385,8 @@ void LoggingPlugin::toggleLogging()
 }
 
 /**
-  * Starts the logging thread to a certain file
-  */
+ * Starts the logging thread to a certain file
+ */
 void LoggingPlugin::startLogging(QString file)
 {
     qDebug() << "Logging to " << file;
@@ -411,8 +407,8 @@ void LoggingPlugin::startLogging(QString file)
 }
 
 /**
-  * Send the stop logging signal to the LoggingThread
-  */
+ * Send the stop logging signal to the LoggingThread
+ */
 void LoggingPlugin::stopLogging()
 {
     emit stopLoggingSignal();
@@ -420,9 +416,9 @@ void LoggingPlugin::stopLogging()
 }
 
 /**
-  * Receive the logging stopped signal from the LoggingThread
-  * and change status to not logging
-  */
+ * Receive the logging stopped signal from the LoggingThread
+ * and change status to not logging
+ */
 void LoggingPlugin::loggingStopped()
 {
     if (state == LOGGING)
@@ -435,8 +431,8 @@ void LoggingPlugin::loggingStopped()
 }
 
 /**
-  * Received the replay stopped signal from the LogFile
-  */
+ * Received the replay stopped signal from the LogFile
+ */
 void LoggingPlugin::replayStopped()
 {
     state = IDLE;
@@ -444,8 +440,8 @@ void LoggingPlugin::replayStopped()
 }
 
 /**
-  * Received the replay started signal from the LogFile
-  */
+ * Received the replay started signal from the LogFile
+ */
 void LoggingPlugin::replayStarted()
 {
     state = REPLAY;

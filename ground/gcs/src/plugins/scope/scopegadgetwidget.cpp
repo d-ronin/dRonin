@@ -318,7 +318,7 @@ void ScopeGadgetWidget::addLegend()
         QVariant itemInfo = QwtPlot::itemToInfo(item);
         QWidget *w = m_legend->legendWidget(itemInfo);
         if (w && w->inherits("QwtLegendLabel"))
-            ((QwtLegendLabel *)w)->setChecked(!on);
+            (dynamic_cast<QwtLegendLabel *>(w))->setChecked(!on);
     }
 
     connect(m_legend, &QwtLegend::checked, this, &ScopeGadgetWidget::showCurve);

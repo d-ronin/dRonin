@@ -181,15 +181,15 @@ void UAVObjectUtilManager::saveNextObject()
 }
 
 /**
-  * @brief Process the transactionCompleted message from Telemetry indicating request sent
+ * @brief Process the transactionCompleted message from Telemetry indicating request sent
  * successfully
-  * @param[in] The object just transacted.  Must be ObjectPersistance
-  * @param[in] success Indicates that the transaction did not time out
-  *
-  * After a failed transaction (usually timeout) simply drops the save request and emits a failure
-  * signal (saveCompleted with 'false').  After a succesful
-  * transaction it will then wait for a "save completed" update from the autopilot.
-  */
+ * @param[in] The object just transacted.  Must be ObjectPersistance
+ * @param[in] success Indicates that the transaction did not time out
+ *
+ * After a failed transaction (usually timeout) simply drops the save request and emits a failure
+ * signal (saveCompleted with 'false').  After a succesful
+ * transaction it will then wait for a "save completed" update from the autopilot.
+ */
 void UAVObjectUtilManager::objectPersistenceTransactionCompleted(UAVObject *obj, bool success)
 {
     if (success) {
@@ -226,9 +226,9 @@ void UAVObjectUtilManager::objectPersistenceTransactionCompleted(UAVObject *obj,
 }
 
 /**
-  * @brief Object persistence operation failed, i.e. we never got an update
-  * from the board saying "completed". This method is only called when we get a timeout.
-  */
+ * @brief Object persistence operation failed, i.e. we never got an update
+ * from the board saying "completed". This method is only called when we get a timeout.
+ */
 void UAVObjectUtilManager::objectPersistenceOperationFailed()
 {
     if (saveState == AWAITING_COMPLETED) {
@@ -249,10 +249,10 @@ void UAVObjectUtilManager::objectPersistenceOperationFailed()
 }
 
 /**
-  * @brief Process the ObjectPersistence updated message to confirm the right object saved
-  * then requests next object be saved.
-  * @param[in] The object just received.  Must be ObjectPersistance
-  */
+ * @brief Process the ObjectPersistence updated message to confirm the right object saved
+ * then requests next object be saved.
+ * @param[in] The object just received.  Must be ObjectPersistance
+ */
 void UAVObjectUtilManager::objectPersistenceUpdated(UAVObject *obj)
 {
     Q_ASSERT(obj);
@@ -263,7 +263,8 @@ void UAVObjectUtilManager::objectPersistenceUpdated(UAVObject *obj)
         return;
     }
 
-    ObjectPersistence::DataFields objectPersistence = ((ObjectPersistence *)obj)->getData();
+    ObjectPersistence::DataFields objectPersistence =
+        (static_cast<ObjectPersistence *>(obj))->getData();
 
     if (objectPersistence.Operation == ObjectPersistence::OPERATION_ERROR) {
         failureTimer.stop();
@@ -470,8 +471,8 @@ void UAVObjectUtilManager::metadataTransactionCompleted(UAVObject *uavoObject, b
 }
 
 /**
-  * Helper function that makes sure FirmwareIAP is updated and then returns the data
-  */
+ * Helper function that makes sure FirmwareIAP is updated and then returns the data
+ */
 FirmwareIAPObj::DataFields UAVObjectUtilManager::getFirmwareIap()
 {
     FirmwareIAPObj::DataFields dummy = {};
@@ -485,12 +486,12 @@ FirmwareIAPObj::DataFields UAVObjectUtilManager::getFirmwareIap()
 }
 
 /**
-  * Get the UAV Board model, for anyone interested. Return format is:
-  * (Board Type << 8) + BoardRevision.
-  *
-  *  NOTE: Should get deprecated as a public method now, in favour
-  *  of getBoardType and subsequent board capability queries.
-  */
+ * Get the UAV Board model, for anyone interested. Return format is:
+ * (Board Type << 8) + BoardRevision.
+ *
+ *  NOTE: Should get deprecated as a public method now, in favour
+ *  of getBoardType and subsequent board capability queries.
+ */
 int UAVObjectUtilManager::getBoardModel()
 {
     FirmwareIAPObj::DataFields firmwareIapData = getFirmwareIap();
@@ -520,8 +521,8 @@ Core::IBoardType *UAVObjectUtilManager::getBoardType()
 }
 
 /**
-  * Get the UAV Board CPU Serial Number, for anyone interested. Return format is a byte array
-  */
+ * Get the UAV Board CPU Serial Number, for anyone interested. Return format is a byte array
+ */
 QByteArray UAVObjectUtilManager::getBoardCPUSerial()
 {
     QByteArray cpuSerial;
@@ -540,8 +541,8 @@ quint32 UAVObjectUtilManager::getFirmwareCRC()
 }
 
 /**
-  * Get the UAV Board Description, for anyone interested.
-  */
+ * Get the UAV Board Description, for anyone interested.
+ */
 QByteArray UAVObjectUtilManager::getBoardDescription()
 {
     QByteArray ret;

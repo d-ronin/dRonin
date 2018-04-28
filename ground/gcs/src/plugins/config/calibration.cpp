@@ -37,6 +37,7 @@
 #include <coreplugin/icore.h>
 
 #include "utils/coordinateconversions.h"
+#include <QMainWindow>
 #include <QMessageBox>
 #include <QDebug>
 #include <QThread>
@@ -74,9 +75,7 @@ Calibration::Calibration()
 {
 }
 
-Calibration::~Calibration()
-{
-}
+Calibration::~Calibration() {}
 
 /**
  * @brief Calibration::initialize Configure whether to calibrate the magnetometer
@@ -445,10 +444,9 @@ void Calibration::timeout()
 
     disconnect(&timer, &QTimer::timeout, this, &Calibration::timeout);
 
-    (void) QMessageBox::information(
-            (QWidget *)Core::ICore::instance()->mainWindow(),
-            tr("Calibration failed"),
-            tr("Calibration timed out before receiving required updates."));
+    (void)QMessageBox::information(dynamic_cast<QWidget *>(Core::ICore::instance()->mainWindow()),
+                                   tr("Calibration failed"),
+                                   tr("Calibration timed out before receiving required updates."));
 }
 
 /**
@@ -531,11 +529,11 @@ void Calibration::doStartLeveling()
 }
 
 /**
-  * Called by the "Start" button.  Sets up the meta data and enables the
-  * buttons to perform six point calibration of the magnetometer (optionally
-  * accel) to compute the scale and bias of this sensor based on the current
-  * home location magnetic strength.
-  */
+ * Called by the "Start" button.  Sets up the meta data and enables the
+ * buttons to perform six point calibration of the magnetometer (optionally
+ * accel) to compute the scale and bias of this sensor based on the current
+ * home location magnetic strength.
+ */
 void Calibration::doStartSixPoint()
 {
     // Save initial sensor settings
@@ -652,8 +650,8 @@ void Calibration::doCancelSixPoint()
 }
 
 /**
-  * Tells the calibration utility the UAV is in position and to collect data.
-  */
+ * Tells the calibration utility the UAV is in position and to collect data.
+ */
 void Calibration::doSaveSixPointPosition()
 {
     switch (calibration_state) {
@@ -1013,10 +1011,10 @@ bool Calibration::storeLevelingMeasurement(UAVObject *obj)
 }
 
 /**
-  * Grab a sample of accel or mag data while in this position and
-  * store it for averaging.
-  * @return true If enough data is averaged at this position
-  */
+ * Grab a sample of accel or mag data while in this position and
+ * store it for averaging.
+ * @return true If enough data is averaged at this position
+ */
 bool Calibration::storeSixPointMeasurement(UAVObject *obj, int position)
 {
     // Position is specified 1-6, but used as an index
@@ -1110,9 +1108,9 @@ void Calibration::configureTempCurves(TempCompCurve *x, TempCompCurve *y, TempCo
 }
 
 /**
-  * Grab a sample of gyro data with the temperautre
-  * @return true If enough data is averaged at this position
-  */
+ * Grab a sample of gyro data with the temperautre
+ * @return true If enough data is averaged at this position
+ */
 bool Calibration::storeTempCalMeasurement(UAVObject *obj)
 {
     if (obj->getObjID() == Gyros::OBJID) {
@@ -1316,9 +1314,9 @@ UAVObjectUtilManager *Calibration::getObjectUtilManager()
 }
 
 /**
-  * Computes the scale and bias for the accelerometer and mag once all the data
-  * has been collected in 6 positions.
-  */
+ * Computes the scale and bias for the accelerometer and mag once all the data
+ * has been collected in 6 positions.
+ */
 int Calibration::computeScaleBias()
 {
     SensorSettings *sensorSettings = SensorSettings::GetInstance(getObjectManager());

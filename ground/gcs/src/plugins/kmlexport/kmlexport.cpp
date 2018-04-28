@@ -183,21 +183,21 @@ bool KmlExport::exportToKML()
     if (QFileInfo(outputFileName).suffix().toLower() == "kmz") {
         if (!kmlengine::KmzFile::WriteKmz(outputFileName.toStdString().c_str(), kml_data)) {
             qDebug() << "KMZ write failed: " << outputFileName;
-            QMessageBox::critical(Core::ICore::instance()->mainWindow(),
-                    "KMZ write failed", "Failed to write KMZ file.");
+            QMessageBox::critical(Core::ICore::instance()->mainWindow(), "KMZ write failed",
+                                  "Failed to write KMZ file.");
             return false;
         }
     } else if (QFileInfo(outputFileName).suffix().toLower() == "kml") {
         if (!kmlbase::File::WriteStringToFile(kml_data, outputFileName.toStdString())) {
             qDebug() << "KML write failed: " << outputFileName;
-            QMessageBox::critical(Core::ICore::instance()->mainWindow(),
-                    "KML write failed", "Failed to write KML file.");
+            QMessageBox::critical(Core::ICore::instance()->mainWindow(), "KML write failed",
+                                  "Failed to write KML file.");
             return false;
         }
     } else {
         qDebug() << "Write failed. Invalid file name:" << outputFileName;
-        QMessageBox::critical(Core::ICore::instance()->mainWindow(),
-                "Write failed", "Failed to write file. Invalid filename");
+        QMessageBox::critical(Core::ICore::instance()->mainWindow(), "Write failed",
+                              "Failed to write file. Invalid filename");
         return false;
     }
 
@@ -266,7 +266,7 @@ bool KmlExport::open()
         msgBox.setText("Corrupted file.");
         msgBox.setInformativeText("GCS cannot find the separation byte. GCS will attempt to export "
                                   "the file."); //<--TODO: add hyperlink to webpage with better
-                                                //description.
+                                                // description.
         msgBox.exec();
 
         // Since we could not find the file separator, we need to return to the beginning of the
@@ -296,8 +296,8 @@ bool KmlExport::preparseLogFile()
         timestampPos.append(logFile.pos());
 
         // Read timestamp and logfile packet size
-        logFile.read((char *)&lastTimeStamp, sizeof(lastTimeStamp));
-        logFile.read((char *)&dataSize, sizeof(dataSize));
+        logFile.read(reinterpret_cast<char *>(&lastTimeStamp), sizeof(lastTimeStamp));
+        logFile.read(reinterpret_cast<char *>(&dataSize), sizeof(dataSize));
 
         // Check if dataSize sync bytes are correct.
         // TODO: LIKELY AS NOT, THIS WILL FAIL TO RESYNC BECAUSE THERE IS TOO LITTLE INFORMATION IN
@@ -320,7 +320,7 @@ bool KmlExport::preparseLogFile()
             msgBox.setText("Corrupted file.");
             msgBox.setInformativeText("Timestamps are not sequential. Playback may have unexpected "
                                       "behavior"); //<--TODO: add hyperlink to webpage with better
-                                                   //description.
+                                                   // description.
             msgBox.exec();
 
             qDebug() << "Timestamp: " << timestampBuffer.last() << " " << lastTimeStamp;
@@ -374,13 +374,13 @@ void KmlExport::parseLogFile()
         }
 
         // Read timestamp and logfile packet size
-        logFile.read((char *)&timeStamp, sizeof(timeStamp));
-        logFile.read((char *)&packetSize, sizeof(packetSize));
+        logFile.read(reinterpret_cast<char *>(&timeStamp), sizeof(timeStamp));
+        logFile.read(reinterpret_cast<char *>(&packetSize), sizeof(packetSize));
 
         if (packetSize < 1 || packetSize > (1024 * 1024)) {
             qDebug() << "Error: Logfile corrupted! Unlikely packet size: " << packetSize << "\n";
-            QMessageBox::critical(Core::ICore::instance()->mainWindow(),
-                "Corrupted file",
+            QMessageBox::critical(
+                Core::ICore::instance()->mainWindow(), "Corrupted file",
                 "Incorrect packet size. Stopping export. Data up to this point will be saved.");
 
             break;

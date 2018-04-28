@@ -29,6 +29,7 @@
 #include "homelocation.h"
 #include <QFile>
 #include <QDomDocument>
+#include <QMainWindow>
 #include <QMessageBox>
 #include <waypoint.h>
 #include <coreplugin/icore.h>
@@ -351,8 +352,8 @@ bool FlightDataModel::writeToFile(QString fileName)
     QFile file(fileName);
 
     if (!file.open(QIODevice::WriteOnly)) {
-        QMessageBox::information((QWidget *)Core::ICore::instance()->mainWindow(),
-                tr("Unable to open file"), file.errorString());
+        QMessageBox::information(dynamic_cast<QWidget *>(Core::ICore::instance()->mainWindow()),
+                                 tr("Unable to open file"), file.errorString());
         return false;
     }
     QDataStream out(&file);
@@ -441,7 +442,7 @@ bool FlightDataModel::writeToFile(QString fileName)
 
 void FlightDataModel::showErrorDialog(const char *title, const char *message)
 {
-    QMessageBox msgBox((QWidget *)Core::ICore::instance()->mainWindow());
+    QMessageBox msgBox(dynamic_cast<QWidget *>(Core::ICore::instance()->mainWindow()));
     msgBox.setText(tr(title));
     msgBox.setInformativeText(tr(message));
     msgBox.setStandardButtons(QMessageBox::Ok);

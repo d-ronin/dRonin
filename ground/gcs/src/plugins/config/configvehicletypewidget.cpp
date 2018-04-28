@@ -341,8 +341,9 @@ void ConfigVehicleTypeWidget::switchAirframeType(int index)
         m_aircraft->customMixerTable->resizeColumnsToContents();
         for (int i = 0; i < (int)(ActuatorCommand::CHANNEL_NUMELEM); i++) {
             m_aircraft->customMixerTable->setColumnWidth(
-                i, (m_aircraft->customMixerTable->width()
-                    - m_aircraft->customMixerTable->verticalHeader()->width())
+                i,
+                (m_aircraft->customMixerTable->width()
+                 - m_aircraft->customMixerTable->verticalHeader()->width())
                     / 10);
         }
         Q_FALLTHROUGH();
@@ -367,8 +368,9 @@ void ConfigVehicleTypeWidget::showEvent(QShowEvent *event)
     m_aircraft->customMixerTable->resizeColumnsToContents();
     for (int i = 0; i < (int)(ActuatorCommand::CHANNEL_NUMELEM); i++) {
         m_aircraft->customMixerTable->setColumnWidth(
-            i, (m_aircraft->customMixerTable->width()
-                - m_aircraft->customMixerTable->verticalHeader()->width())
+            i,
+            (m_aircraft->customMixerTable->width()
+             - m_aircraft->customMixerTable->verticalHeader()->width())
                 / 10);
     }
 }
@@ -384,8 +386,9 @@ void ConfigVehicleTypeWidget::resizeEvent(QResizeEvent *event)
     m_aircraft->customMixerTable->resizeColumnsToContents();
     for (int i = 0; i < (int)(ActuatorCommand::CHANNEL_NUMELEM); i++) {
         m_aircraft->customMixerTable->setColumnWidth(
-            i, (m_aircraft->customMixerTable->width()
-                - m_aircraft->customMixerTable->verticalHeader()->width())
+            i,
+            (m_aircraft->customMixerTable->width()
+             - m_aircraft->customMixerTable->verticalHeader()->width())
                 / 10);
     }
 }
@@ -424,8 +427,8 @@ void ConfigVehicleTypeWidget::toggleRudder2(int index)
 }
 
 /**************************
-  * Aircraft settings
-  **************************/
+ * Aircraft settings
+ **************************/
 /**
   Refreshes the current value of the SystemSettings which holds the aircraft type
   */
@@ -457,19 +460,17 @@ void ConfigVehicleTypeWidget::refreshWidgetsValues(UAVObject *obj)
     QList<double> curveValues;
 
     // Setup all Throttle2 curves for all types of airframe
-    vconfig->getThrottleCurve(mixerSettings,
-            MixerSettings::MIXER1VECTOR_THROTTLECURVE2,
-            &curveValues);
+    vconfig->getThrottleCurve(mixerSettings, MixerSettings::MIXER1VECTOR_THROTTLECURVE2,
+                              &curveValues);
 
     if (!vconfig->isValidThrottleCurve(&curveValues)) {
         for (int i = 0; i < curveValues.count(); i++) {
-            curveValues[i] = 1.0 * ((double) i / curveValues.count());
+            curveValues[i] = 1.0 * ((double)i / curveValues.count());
         }
 
-        vconfig->setThrottleCurve(mixerSettings,
-                MixerSettings::MIXER1VECTOR_THROTTLECURVE2,
-                curveValues);
-    } 
+        vconfig->setThrottleCurve(mixerSettings, MixerSettings::MIXER1VECTOR_THROTTLECURVE2,
+                                  curveValues);
+    }
 
     // Load the Settings for vehicle frames:
     switch (frameType) {
@@ -642,7 +643,8 @@ void ConfigVehicleTypeWidget::updateCustomAirframeUI()
     for (int channel = 0; channel < (int)(ActuatorCommand::CHANNEL_NUMELEM); channel++) {
         UAVObjectField *field = mixerSettings->getField(mixerTypes.at(channel));
         if (field) {
-            QComboBox *q = (QComboBox *)m_aircraft->customMixerTable->cellWidget(0, channel);
+            QComboBox *q =
+                static_cast<QComboBox *>(m_aircraft->customMixerTable->cellWidget(0, channel));
             if (q) {
                 QString s = field->getValue().toString();
                 setComboCurrentIndex(q, q->findText(s));
@@ -703,7 +705,8 @@ void ConfigVehicleTypeWidget::updateObjectsFromWidgets()
     } else {
         // Update the table:
         for (int channel = 0; channel < (int)(ActuatorCommand::CHANNEL_NUMELEM); channel++) {
-            QComboBox *q = (QComboBox *)m_aircraft->customMixerTable->cellWidget(0, channel);
+            QComboBox *q =
+                static_cast<QComboBox *>(m_aircraft->customMixerTable->cellWidget(0, channel));
             if (q->currentText() == "Disabled")
                 vconfig->setMixerType(mixerSettings, channel, MixerSettings::MIXER1TYPE_DISABLED);
             else if (q->currentText() == "Motor")

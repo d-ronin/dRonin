@@ -456,8 +456,9 @@ void ConfigCcpmWidget::UpdateType()
     m_ccpm->ccpmAdvancedSettingsTable->resizeColumnsToContents();
     for (int i = 0; i < 6; i++) {
         m_ccpm->ccpmAdvancedSettingsTable->setColumnWidth(
-            i, (m_ccpm->ccpmAdvancedSettingsTable->width()
-                - m_ccpm->ccpmAdvancedSettingsTable->verticalHeader()->width())
+            i,
+            (m_ccpm->ccpmAdvancedSettingsTable->width()
+             - m_ccpm->ccpmAdvancedSettingsTable->verticalHeader()->width())
                 / 6);
     }
 
@@ -991,8 +992,9 @@ void ConfigCcpmWidget::resizeEvent(QResizeEvent *event)
     m_ccpm->ccpmAdvancedSettingsTable->resizeColumnsToContents();
     for (int i = 0; i < 6; i++) {
         m_ccpm->ccpmAdvancedSettingsTable->setColumnWidth(
-            i, (m_ccpm->ccpmAdvancedSettingsTable->width()
-                - m_ccpm->ccpmAdvancedSettingsTable->verticalHeader()->width())
+            i,
+            (m_ccpm->ccpmAdvancedSettingsTable->width()
+             - m_ccpm->ccpmAdvancedSettingsTable->verticalHeader()->width())
                 / 6);
     }
     ccpmSwashplateRedraw();
@@ -1003,8 +1005,9 @@ void ConfigCcpmWidget::showEvent(QShowEvent *event)
     m_ccpm->ccpmAdvancedSettingsTable->resizeColumnsToContents();
     for (int i = 0; i < 6; i++) {
         m_ccpm->ccpmAdvancedSettingsTable->setColumnWidth(
-            i, (m_ccpm->ccpmAdvancedSettingsTable->width()
-                - m_ccpm->ccpmAdvancedSettingsTable->verticalHeader()->width())
+            i,
+            (m_ccpm->ccpmAdvancedSettingsTable->width()
+             - m_ccpm->ccpmAdvancedSettingsTable->verticalHeader()->width())
                 / 6);
     }
     ccpmSwashplateRedraw();
@@ -1100,7 +1103,7 @@ void ConfigCcpmWidget::SwashLvlStartButtonPressed()
         }
 
         // copy to new Actuator settings.
-        memcpy((void *)&newSwashLvlConfiguration, (void *)&oldSwashLvlConfiguration,
+        memcpy(&newSwashLvlConfiguration, &oldSwashLvlConfiguration,
                sizeof(SwashplateServoSettingsStruct));
 
         // goto the first step

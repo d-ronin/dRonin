@@ -30,6 +30,7 @@
 #include "generalsettings.h"
 
 #include <coreplugin/icore.h>
+#include <QMainWindow>
 #include <QMessageBox>
 #include <QtCore/QDir>
 #include <QtCore/QLibraryInfo>
@@ -245,7 +246,8 @@ void GeneralSettings::setLanguage(const QString &locale)
     if (m_language != locale) {
         if (!locale.isEmpty()) {
             QMessageBox::information(
-                (QWidget *)Core::ICore::instance()->mainWindow(), tr("Restart required"),
+                dynamic_cast<QWidget *>(Core::ICore::instance()->mainWindow()),
+                tr("Restart required"),
                 tr("The language change will take effect after a restart of the GCS."));
         }
         m_language = locale;
