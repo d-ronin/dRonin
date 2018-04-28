@@ -573,18 +573,12 @@ void Telemetry::processObjectQueue()
         return;
     }
 
-    // Check if a connection has been established, only process GCSTelemetryStats updates
-    // (used to establish the connection)
+    // Check if a connection has been established, only process
+    // GCSTelemetryStats updates (used to establish the connection)
     GCSTelemetryStats::DataFields gcsStats = gcsStatsObj->getData();
     if (gcsStats.Status != GCSTelemetryStats::STATUS_CONNECTED) {
         objQueue.clear();
-        if (objInfo.obj->getObjID() != GCSTelemetryStats::OBJID
-            && objInfo.obj->getObjID() != HwTauLink::OBJID
-            && objInfo.obj->getObjID() != ObjectPersistence::OBJID) {
-            // If Telemetry is not connected, then all transactions fail except
-            // - GCSTelemetryStats (to establish connection)
-            // - HwTauLink (to configure the modem)
-            // - ObjectPersistence (to save modem configuration)
+        if (objInfo.obj->getObjID() != GCSTelemetryStats::OBJID) {
             objInfo.obj->emitTransactionCompleted(false);
             objInfo.obj->emitTransactionCompleted(false, false);
             return;
