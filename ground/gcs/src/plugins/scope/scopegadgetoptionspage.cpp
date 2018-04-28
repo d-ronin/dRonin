@@ -527,7 +527,7 @@ void ScopeGadgetOptionsPage::on_btnApply2dCurve_clicked()
     // Apply curve settings
     QListWidgetItem *listWidgetItem = options_page->lst2dCurves->currentItem();
     if (listWidgetItem == NULL) {
-        QMessageBox msgBox(dynamic_cast <QWidget *> (Core::ICore::instance()->mainWindow()));
+        QMessageBox msgBox(dynamic_cast<QWidget *>(Core::ICore::instance()->mainWindow()));
         msgBox.setText(tr("No curve selected."));
         msgBox.setInformativeText(tr("Please select a curve or generate one with the "
                                      "+"
@@ -634,9 +634,7 @@ void ScopeGadgetOptionsPage::setPlot2dCurveProperties(QListWidgetItem *listWidge
 }
 
 // TODO: Document why finish() is here and what it's supposed to do. Clearly nothing right now.
-void ScopeGadgetOptionsPage::finish()
-{
-}
+void ScopeGadgetOptionsPage::finish() {}
 
 /**
  * @brief ScopeGadgetOptionsPage::on_lst2dCurves_currentRowChanged When a different plot

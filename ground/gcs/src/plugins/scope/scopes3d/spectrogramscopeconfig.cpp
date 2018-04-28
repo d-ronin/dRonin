@@ -118,9 +118,7 @@ SpectrogramScopeConfig::SpectrogramScopeConfig(Ui::ScopeGadgetOptionsPage *optio
     m_spectrogramSourceConfigs.append(newPlotCurveConfigs);
 }
 
-SpectrogramScopeConfig::~SpectrogramScopeConfig()
-{
-}
+SpectrogramScopeConfig::~SpectrogramScopeConfig() {}
 
 /**
  * @brief SpectrogramScopeConfig::cloneScope Clones scope from existing GUI configuration
@@ -130,7 +128,7 @@ SpectrogramScopeConfig::~SpectrogramScopeConfig()
 ScopeConfig *SpectrogramScopeConfig::cloneScope(ScopeConfig *originalScope)
 {
     SpectrogramScopeConfig *originalSpectrogramScopeConfig =
-        dynamic_cast <SpectrogramScopeConfig *> (originalScope);
+        dynamic_cast<SpectrogramScopeConfig *>(originalScope);
     SpectrogramScopeConfig *cloneObj = new SpectrogramScopeConfig();
 
     cloneObj->timeHorizon = originalSpectrogramScopeConfig->timeHorizon;

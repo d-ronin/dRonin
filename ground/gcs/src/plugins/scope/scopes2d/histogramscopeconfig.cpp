@@ -129,9 +129,7 @@ HistogramScopeConfig::HistogramScopeConfig(Ui::ScopeGadgetOptionsPage *options_p
     }
 }
 
-HistogramScopeConfig::~HistogramScopeConfig()
-{
-}
+HistogramScopeConfig::~HistogramScopeConfig() {}
 
 /**
  * @brief HistogramScopeConfig::cloneScope Clones scope from existing GUI configuration
@@ -140,7 +138,8 @@ HistogramScopeConfig::~HistogramScopeConfig()
  */
 ScopeConfig *HistogramScopeConfig::cloneScope(ScopeConfig *originalScope)
 {
-    HistogramScopeConfig *originalHistogramScopeConfig = reinterpret_cast <HistogramScopeConfig *> (originalScope);
+    HistogramScopeConfig *originalHistogramScopeConfig =
+        reinterpret_cast<HistogramScopeConfig *>(originalScope);
     HistogramScopeConfig *cloneObj = new HistogramScopeConfig();
 
     cloneObj->binWidth = originalHistogramScopeConfig->binWidth;

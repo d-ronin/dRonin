@@ -38,9 +38,7 @@
 
 #include "kmlexport.h"
 
-KmlExportPlugin::KmlExportPlugin()
-{
-}
+KmlExportPlugin::KmlExportPlugin() {}
 
 /**
  * Add KmlExport option to the tools menu
@@ -55,8 +53,8 @@ bool KmlExportPlugin::initialize(const QStringList &args, QString *errMsg)
     Core::ActionContainer *ac = am->actionContainer(Core::Constants::M_TOOLS);
 
     // Command to convert log file to KML
-    exportToKmlCmd = am->registerAction(new QAction(this), "KmlExport.ExportToKML", QList<int>()
-                                            << Core::Constants::C_GLOBAL_ID);
+    exportToKmlCmd = am->registerAction(new QAction(this), "KmlExport.ExportToKML",
+                                        QList<int>() << Core::Constants::C_GLOBAL_ID);
     exportToKmlCmd->action()->setText("Export logfile to KML");
 
     ac->menu()->addSeparator();
@@ -77,9 +75,8 @@ void KmlExportPlugin::exportToKML()
     // Get input file
     //
     QString inputFileName = QFileDialog::getOpenFileName(
-            static_cast <QWidget *> (Core::ICore::instance)()->mainWindow(),
-            tr("Open file"), QString(""),
-            tr("dRonin Log Files (*.drlog *.tll)"));
+        static_cast<QWidget *>(Core::ICore::instance)()->mainWindow(), tr("Open file"), QString(""),
+        tr("dRonin Log Files (*.drlog *.tll)"));
 
     if (inputFileName.isEmpty())
         return;
@@ -94,10 +91,8 @@ void KmlExportPlugin::exportToKML()
     // Get output file. Suggest to user that output have same base name and location as input file.
     while (proceed_flag == false) {
         outputFileName = QFileDialog::getSaveFileName(
-                static_cast <QWidget *> (Core::ICore::instance)()->mainWindow(),
-                tr("Export log"),
-                inputFileName.split(".", QString::SkipEmptyParts).at(0),
-                filters);
+            static_cast<QWidget *>(Core::ICore::instance)()->mainWindow(), tr("Export log"),
+            inputFileName.split(".", QString::SkipEmptyParts).at(0), filters);
 
         if (outputFileName.isEmpty()) {
             qDebug() << "No KML file name given.";
@@ -130,9 +125,7 @@ void KmlExportPlugin::exportToKML()
     kmlExport.exportToKML();
 }
 
-void KmlExportPlugin::extensionsInitialized()
-{
-}
+void KmlExportPlugin::extensionsInitialized() {}
 
 void KmlExportPlugin::shutdown()
 {

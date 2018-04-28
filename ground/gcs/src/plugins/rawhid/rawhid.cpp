@@ -83,7 +83,7 @@ void RawHIDReadThread::run()
 
             // Note: Preprocess the USB packets in this OS independent code
             // First byte is report ID, second byte is the number of valid bytes
-            m_readBuffer.append(reinterpret_cast <char *> (&buffer[2]), buffer[1]);
+            m_readBuffer.append(reinterpret_cast<char *>(&buffer[2]), buffer[1]);
 
             if (needSignal) {
                 emit readyToRead();
@@ -124,9 +124,7 @@ RawHIDWriteThread::RawHIDWriteThread(hid_device *handle)
 {
 }
 
-RawHIDWriteThread::~RawHIDWriteThread()
-{
-}
+RawHIDWriteThread::~RawHIDWriteThread() {}
 
 void RawHIDWriteThread::run()
 {

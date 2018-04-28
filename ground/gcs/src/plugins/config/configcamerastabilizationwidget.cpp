@@ -47,7 +47,8 @@ ConfigCameraStabilizationWidget::ConfigCameraStabilizationWidget(QWidget *parent
     // These widgets don't have direct relation to UAVObjects
     // and need special processing
     QComboBox *outputs[] = {
-        m_camerastabilization->rollChannel, m_camerastabilization->pitchChannel,
+        m_camerastabilization->rollChannel,
+        m_camerastabilization->pitchChannel,
         m_camerastabilization->yawChannel,
 
     };
@@ -249,7 +250,8 @@ void ConfigCameraStabilizationWidget::defaultRequestedSlot(int group)
 
     // For outputs we set them all to none, so don't use any UAVObject to get defaults
     QComboBox *outputs[] = {
-        m_camerastabilization->rollChannel, m_camerastabilization->pitchChannel,
+        m_camerastabilization->rollChannel,
+        m_camerastabilization->pitchChannel,
         m_camerastabilization->yawChannel,
     };
     const int NUM_OUTPUTS = sizeof(outputs) / sizeof(outputs[0]);

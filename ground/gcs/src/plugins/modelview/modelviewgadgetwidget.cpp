@@ -77,9 +77,7 @@ ModelViewGadgetWidget::ModelViewGadgetWidget(QWidget *parent)
             QOverload<>::of(&ModelViewGadgetWidget::updateAttitude));
 }
 
-ModelViewGadgetWidget::~ModelViewGadgetWidget()
-{
-}
+ModelViewGadgetWidget::~ModelViewGadgetWidget() {}
 
 void ModelViewGadgetWidget::setAcFilename(QString acf)
 {
@@ -240,8 +238,8 @@ void ModelViewGadgetWidget::mousePressEvent(QMouseEvent *e)
     case (Qt::RightButton):
         printf("VBO enabled: %s, VBO supported: %s, VBO used: %s\n", vboEnable ? "yes" : "no",
                GLC_State::vboSupported() ? "yes" : "no", GLC_State::vboUsed() ? "yes" : "no");
-        printf("Renderer - %s \n", reinterpret_cast <const char *> (glGetString(GL_RENDERER)));
-        printf("Extensions - %s\n", reinterpret_cast <const char *> (glGetString(GL_EXTENSIONS)));
+        printf("Renderer - %s \n", reinterpret_cast<const char *>(glGetString(GL_RENDERER)));
+        printf("Extensions - %s\n", reinterpret_cast<const char *>(glGetString(GL_EXTENSIONS)));
         break;
     default:
         break;

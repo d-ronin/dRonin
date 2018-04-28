@@ -61,9 +61,7 @@ PfdQmlGadgetWidget::PfdQmlGadgetWidget(QWindow *parent)
     engine()->rootContext()->setContextProperty("qmlWidget", this);
 }
 
-PfdQmlGadgetWidget::~PfdQmlGadgetWidget()
-{
-}
+PfdQmlGadgetWidget::~PfdQmlGadgetWidget() {}
 
 /**
  * @brief PfdQmlGadgetWidget::exportUAVOInstance Makes the UAVO available inside the QML. This works

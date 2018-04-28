@@ -65,9 +65,9 @@ void Animation::drawBlendedImage(QPainter *painter, QRect rect, float alpha)
         const uchar *back_data = m_primaryImage.bits();
         const uchar *front_data = m_secondaryImage.bits();
         for (int sy = 0; sy < sh; sy++) {
-            quint32 *mixed = reinterpret_cast <quint32 *> (mixed_data);
-            const quint32 *back = reinterpret_cast <const quint32 *> (back_data);
-            const quint32 *front = reinterpret_cast <const quint32 *> (front_data);
+            quint32 *mixed = reinterpret_cast<quint32 *>(mixed_data);
+            const quint32 *back = reinterpret_cast<const quint32 *>(back_data);
+            const quint32 *front = reinterpret_cast<const quint32 *>(front_data);
             for (int sx = 0; sx < sw; sx++) {
                 quint32 bp = back[sx];
                 quint32 fp = front[sx];

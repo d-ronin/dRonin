@@ -160,16 +160,16 @@ void GCSControlGadget::manualControlCommandUpdated(UAVObject *obj)
 /**
   Update the manual commands - maps depending on mode
   */
-void GCSControlGadget::sticksChangedLocally(double leftX, double leftY,
-                                            double rightX, double rightY,
-                                            double arming)
+void GCSControlGadget::sticksChangedLocally(double leftX, double leftY, double rightX,
+                                            double rightY, double arming)
 {
     if (enableSending)
         setGcsReceiver(leftX, leftY, rightX, rightY, arming);
 }
 
 //! Set the GCS Receiver object
-void GCSControlGadget::setGcsReceiver(double leftX, double leftY, double rightX, double rightY, double arming)
+void GCSControlGadget::setGcsReceiver(double leftX, double leftY, double rightX, double rightY,
+                                      double arming)
 {
     GCSControl *ctr = getGcsControl();
     Q_ASSERT(ctr);
@@ -268,7 +268,8 @@ void GCSControlGadget::buttonState(ButtonNumber number, bool pressed)
         UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
         UAVDataObject *obj =
             dynamic_cast<UAVDataObject *>(objManager->getObject(QString("ManualControlCommand")));
-        bool currentCGSControl = (dynamic_cast <GCSControlGadgetWidget *> (m_widget))->getGCSControl();
+        bool currentCGSControl =
+            (dynamic_cast<GCSControlGadgetWidget *>(m_widget))->getGCSControl();
 
         switch (buttonSettings[number].ActionID) {
         case 1: // increase
@@ -340,7 +341,8 @@ void GCSControlGadget::buttonState(ButtonNumber number, bool pressed)
             case 2: // GCS Control
                 // Toggle the GCS Control checkbox, its built in signalling will handle the update
                 // to OP
-                (dynamic_cast <GCSControlGadgetWidget *> (m_widget))->setGCSControl(!currentCGSControl);
+                (dynamic_cast<GCSControlGadgetWidget *>(m_widget))
+                    ->setGCSControl(!currentCGSControl);
 
                 break;
             }

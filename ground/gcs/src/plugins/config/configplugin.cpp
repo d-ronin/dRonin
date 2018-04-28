@@ -59,8 +59,8 @@ bool ConfigPlugin::initialize(const QStringList &args, QString *errMsg)
     Core::ActionContainer *ac = am->actionContainer(Core::Constants::M_TOOLS);
 
     // Command to erase all settings from the board
-    cmd = am->registerAction(new QAction(this), "ConfigPlugin.EraseAll", QList<int>()
-                                 << Core::Constants::C_GLOBAL_ID);
+    cmd = am->registerAction(new QAction(this), "ConfigPlugin.EraseAll",
+                             QList<int>() << Core::Constants::C_GLOBAL_ID);
     cmd->action()->setText(tr("Erase all settings from board..."));
 
     ac->menu()->addSeparator();
@@ -84,8 +84,8 @@ bool ConfigPlugin::initialize(const QStringList &args, QString *errMsg)
 }
 
 /**
-  * @brief Return handle to object manager
-  */
+ * @brief Return handle to object manager
+ */
 UAVObjectManager *ConfigPlugin::getObjectManager()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
@@ -94,9 +94,7 @@ UAVObjectManager *ConfigPlugin::getObjectManager()
     return objMngr;
 }
 
-void ConfigPlugin::extensionsInitialized()
-{
-}
+void ConfigPlugin::extensionsInitialized() {}
 
 void ConfigPlugin::shutdown()
 {
@@ -104,8 +102,8 @@ void ConfigPlugin::shutdown()
 }
 
 /**
-  * Enable the menu entry when the autopilot connects
-  */
+ * Enable the menu entry when the autopilot connects
+ */
 void ConfigPlugin::onAutopilotConnect()
 {
     // erase action
@@ -128,20 +126,19 @@ void ConfigPlugin::onAutopilotConnect()
 }
 
 /**
-  * Enable the menu entry when the autopilot connects
-  */
+ * Enable the menu entry when the autopilot connects
+ */
 void ConfigPlugin::onAutopilotDisconnect()
 {
     cmd->action()->setEnabled(false);
 }
 
 /**
-  * Erase all settings from the board
-  */
+ * Erase all settings from the board
+ */
 void ConfigPlugin::eraseAllSettings()
 {
-    QMessageBox msgBox(
-            dynamic_cast <QWidget *> (Core::ICore::instance()->mainWindow()));
+    QMessageBox msgBox(dynamic_cast<QWidget *>(Core::ICore::instance()->mainWindow()));
     msgBox.setText(tr("Are you sure you want to erase all board settings?."));
     msgBox.setInformativeText(tr("All settings stored in your board flash will be deleted."));
     msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
@@ -184,17 +181,17 @@ void ConfigPlugin::eraseFailed()
 
     disconnect(objper, &UAVObject::objectUpdated, this, &ConfigPlugin::eraseDone);
 
-    (void) QMessageBox::critical(
-            dynamic_cast <QWidget *> (Core::ICore::instance()->mainWindow()),
-            tr("Error erasing settings"),
-            tr("Power-cycle your board after removing all blades. Settings might be inconsistent."), QMessageBox::Ok);
+    (void)QMessageBox::critical(
+        dynamic_cast<QWidget *>(Core::ICore::instance()->mainWindow()),
+        tr("Error erasing settings"),
+        tr("Power-cycle your board after removing all blades. Settings might be inconsistent."),
+        QMessageBox::Ok);
 }
 
 void ConfigPlugin::eraseDone(UAVObject *obj)
 {
     Q_UNUSED(obj)
-    QMessageBox msgBox(
-            dynamic_cast <QWidget *> (Core::ICore::instance()->mainWindow()));
+    QMessageBox msgBox(dynamic_cast<QWidget *>(Core::ICore::instance()->mainWindow()));
     ObjectPersistence *objper = ObjectPersistence::GetInstance(getObjectManager());
     ObjectPersistence::DataFields data = objper->getData();
     Q_ASSERT(obj->getInstID() == objper->getInstID());

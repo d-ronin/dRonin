@@ -32,12 +32,10 @@
 LoggingGadgetFactory::LoggingGadgetFactory(QObject *parent)
     : IUAVGadgetFactory(QString("LoggingGadget"), tr("Logging"), parent)
 {
-    loggingPlugin = dynamic_cast <LoggingPlugin *> (parent);
+    loggingPlugin = dynamic_cast<LoggingPlugin *>(parent);
 }
 
-LoggingGadgetFactory::~LoggingGadgetFactory()
-{
-}
+LoggingGadgetFactory::~LoggingGadgetFactory() {}
 
 IUAVGadget *LoggingGadgetFactory::createGadget(QWidget *parent)
 {

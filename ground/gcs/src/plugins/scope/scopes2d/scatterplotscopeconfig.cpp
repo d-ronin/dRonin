@@ -129,9 +129,7 @@ Scatterplot2dScopeConfig::Scatterplot2dScopeConfig(Ui::ScopeGadgetOptionsPage *o
     }
 }
 
-Scatterplot2dScopeConfig::~Scatterplot2dScopeConfig()
-{
-}
+Scatterplot2dScopeConfig::~Scatterplot2dScopeConfig() {}
 
 /**
  * @brief Scatterplot2dScopeConfig::cloneScope Clones scope from existing GUI configuration
@@ -141,7 +139,7 @@ Scatterplot2dScopeConfig::~Scatterplot2dScopeConfig()
 ScopeConfig *Scatterplot2dScopeConfig::cloneScope(ScopeConfig *originalScope)
 {
     Scatterplot2dScopeConfig *originalScatterplot2dScopeConfig =
-        dynamic_cast <Scatterplot2dScopeConfig *> (originalScope);
+        dynamic_cast<Scatterplot2dScopeConfig *>(originalScope);
     Scatterplot2dScopeConfig *cloneObj = new Scatterplot2dScopeConfig();
 
     cloneObj->m_refreshInterval = originalScatterplot2dScopeConfig->m_refreshInterval;

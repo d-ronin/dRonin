@@ -391,9 +391,7 @@ void ConfigInputWidget::resetTxControls()
     m_txArrows->setVisible(false);
 }
 
-ConfigInputWidget::~ConfigInputWidget()
-{
-}
+ConfigInputWidget::~ConfigInputWidget() {}
 
 void ConfigInputWidget::resizeEvent(QResizeEvent *event)
 {
@@ -889,8 +887,8 @@ void ConfigInputWidget::fastMdata()
 }
 
 /**
-  * Restore previous update settings for manual control data
-  */
+ * Restore previous update settings for manual control data
+ */
 void ConfigInputWidget::restoreMdata()
 {
     foreach (QString objName, originalMetaData.keys()) {
@@ -901,8 +899,8 @@ void ConfigInputWidget::restoreMdata()
 }
 
 /**
-  * Set the display to indicate which channel the person should move
-  */
+ * Set the display to indicate which channel the person should move
+ */
 void ConfigInputWidget::setChannel(int newChan)
 {
     if (newChan == ManualControlSettings::CHANNELGROUPS_COLLECTIVE)
@@ -950,9 +948,9 @@ void ConfigInputWidget::setChannel(int newChan)
 }
 
 /**
-  * Unfortunately order of channel should be different in different conditions.  Selects
-  * next channel based on heli or acro mode
-  */
+ * Unfortunately order of channel should be different in different conditions.  Selects
+ * next channel based on heli or acro mode
+ */
 void ConfigInputWidget::nextChannel()
 {
     QList<int> order = (transmitterType == heli) ? heliChannelOrder : acroChannelOrder;
@@ -971,9 +969,9 @@ void ConfigInputWidget::nextChannel()
 }
 
 /**
-  * Unfortunately order of channel should be different in different conditions.  Selects
-  * previous channel based on heli or acro mode
-  */
+ * Unfortunately order of channel should be different in different conditions.  Selects
+ * previous channel based on heli or acro mode
+ */
 void ConfigInputWidget::prevChannel()
 {
     QList<int> order = transmitterType == heli ? heliChannelOrder : acroChannelOrder;
@@ -1338,7 +1336,7 @@ void ConfigInputWidget::moveTxControls()
             m_txArrows->setVisible(!m_txArrows->isVisible());
         } else if (item == m_txFlightMode) {
             QGraphicsSvgItem *svg;
-            svg = static_cast <QGraphicsSvgItem *> (item);
+            svg = static_cast<QGraphicsSvgItem *>(item);
             if (svg) {
                 if (svg->elementId() == "flightModeCenter") {
                     if (growing) {
@@ -1360,7 +1358,7 @@ void ConfigInputWidget::moveTxControls()
             }
         } else if (item == m_txArming) {
             QGraphicsSvgItem *svg;
-            svg = static_cast <QGraphicsSvgItem *> (item);
+            svg = static_cast<QGraphicsSvgItem *>(item);
             if (svg) {
                 if (svg->elementId() == "armedswitchleft") {
                     svg->setElementId("armedswitchright");
@@ -1571,8 +1569,9 @@ void ConfigInputWidget::invertControls()
                 manualSettingsObj->getField("ChannelNumber")->getElementNames().indexOf(cb->text());
             if ((cb->isChecked()
                  && (manualSettingsData.ChannelMax[index] > manualSettingsData.ChannelMin[index]))
-                || (!cb->isChecked() && (manualSettingsData.ChannelMax[index]
-                                         < manualSettingsData.ChannelMin[index]))) {
+                || (!cb->isChecked()
+                    && (manualSettingsData.ChannelMax[index]
+                        < manualSettingsData.ChannelMin[index]))) {
                 qint16 aux;
                 aux = manualSettingsData.ChannelMax[index];
                 manualSettingsData.ChannelMax[index] = manualSettingsData.ChannelMin[index];
@@ -1938,8 +1937,8 @@ void ConfigInputWidget::checkArmingConfig()
 
     // check hangtime, recommend switch arming if enabled
     bool hangtime = false;
-    StabilizationSettings *stabilizationSettings =
-        qobject_cast<StabilizationSettings *>(getObjectManager()->getObject(StabilizationSettings::NAME));
+    StabilizationSettings *stabilizationSettings = qobject_cast<StabilizationSettings *>(
+        getObjectManager()->getObject(StabilizationSettings::NAME));
     Q_ASSERT(stabilizationSettings);
     if (stabilizationSettings)
         hangtime = stabilizationSettings->getLowPowerStabilizationMaxTime() > 0;
