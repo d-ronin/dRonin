@@ -759,6 +759,9 @@ static bool pios_openlrs_config_to_bind_data(pios_openlrs_t openlrs_dev)
 		openlrs_dev->bind_data.modem_params = 3;
 		openlrs_dev->bind_data.flags = 10; /* Telemetry + 8 channels */
 
+		/* Use dR extensions and pass telem by default */
+		openlrs_dev->bind_data.ext_flags = EXT_FLAG_FASTDATA;
+
 		for (uint32_t i = 0; i < OPENLRS_HOPCHANNEL_NUMELEM; i++) {
 			/* Generate 7 channels by default. */
 			if (i < 7) {
@@ -836,6 +839,18 @@ static bool pios_openlrs_bind_data_to_config(pios_openlrs_t openlrs_dev)
 			binding.beacon_frequency = openlrs_dev->beacon_frequency;
 			binding.beacon_delay = openlrs_dev->beacon_delay;
 			binding.beacon_period = openlrs_dev->beacon_period;
+
+			if ((openlrs_dev->bind_data.ext_flags &
+					EXT_FLAG_FASTDATA) &&
+					(binding.data_source ==
+					 OPENLRS_DATA_SOURCE_DISABLED)) {
+				/* If we're bound to someone with dRLRS
+				 * extensions, assume we're passing telem.
+				 */
+				binding.data_source =
+					OPENLRS_DATA_SOURCE_UAVOTELEMETRY;
+			}
+
 			OpenLRSSet(&binding);
 			UAVObjSave(OpenLRSHandle(), 0);
 
