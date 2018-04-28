@@ -1302,10 +1302,10 @@ void PIOS_OpenLRS_RegisterRcvr(pios_openlrs_t openlrs_dev,
  * @param[in] slave_num  The SPI bus slave number.
  * @param[in] cfg  The device configuration.
  */
-int32_t PIOS_OpenLRS_Init(pios_openlrs_t *openlrs_id,
-		pios_spi_t spi_id, uint32_t slave_num,
-		const struct pios_openlrs_cfg *cfg,
-		HwSharedRfBandOptions rf_band)
+int32_t PIOS_OpenLRS_Init(pios_openlrs_t *openlrs_id, pios_spi_t spi_id,
+		uint32_t slave_num, const struct pios_openlrs_cfg *cfg,
+		HwSharedRfBandOptions rf_band,
+		HwSharedMaxRfPowerOptions rf_power)
 {
 	PIOS_DEBUG_Assert(rfm22b_id);
 	PIOS_DEBUG_Assert(cfg);
@@ -1320,8 +1320,9 @@ int32_t PIOS_OpenLRS_Init(pios_openlrs_t *openlrs_id,
 	openlrs_dev->slave_num = slave_num;
 	openlrs_dev->spi_id = spi_id;
 
-	// and the frequency
+	// and the rf limitations
 	openlrs_dev->band = rf_band;
+	openlrs_dev->max_power = rf_power;
 
 	// Before initializing everything, make sure device found
 	uint8_t device_type = rfm22_read(openlrs_dev, RFM22_DEVICE_TYPE) & RFM22_DT_MASK;
@@ -1355,6 +1356,16 @@ int32_t PIOS_OpenLRS_Init(pios_openlrs_t *openlrs_id,
 
 int32_t PIOS_OpenLRS_Start(pios_openlrs_t openlrs_dev)
 {
+	if (openlrs_dev->max_power == HWSHARED_MAXRFPOWER_0) {
+		/* Refuse to init if we're not allowed to transmit.
+		 *
+		 * TODO: This rejects even when we have bind data
+		 * that would result in us never transmitting...
+		 * But that seems like a corner case anyways.
+		 */
+		return -1;
+	}
+
 	// Initialize the external interrupt.
 	PIOS_EXTI_Init(openlrs_dev->cfg.exti_cfg);
 
@@ -2021,6 +2032,11 @@ static void rfm22_beacon_send(pios_openlrs_t openlrs_dev, bool static_tone)
 static void rfm22_tx_packet(pios_openlrs_t openlrs_dev, void *pkt,
 		uint8_t size)
 {
+	if (openlrs_dev->max_power == HWSHARED_MAXRFPOWER_0) {
+		/* Refuse to transmit in this case. */
+		return;
+	}
+
 	openlrs_dev->rf_mode = Transmit;
 
 	rfm22_claim_bus(openlrs_dev);
@@ -2146,6 +2162,11 @@ static void rfm22_rx_reset(pios_openlrs_t openlrs_dev, bool pause_long)
 	rfm22_release_bus(openlrs_dev);
 }
 
+DONT_BUILD_IF(HWSHARED_MAXRFPOWER_MAXOPTVAL != 8, InvRfPowerOptions);
+DONT_BUILD_IF(HWSHARED_MAXRFPOWER_0 != 0, InvRfPowerOptions2);
+DONT_BUILD_IF(HWSHARED_MAXRFPOWER_125 != 1, InvRfPowerOptions3);
+DONT_BUILD_IF(HWSHARED_MAXRFPOWER_100 != 8, InvRfPowerOptions4);
+
 static void rfm22_init(pios_openlrs_t openlrs_dev, uint8_t isbind)
 {
 	DEBUG_PRINTF(2,"rfm22_init %d\r\n", isbind);
@@ -2220,9 +2241,17 @@ static void rfm22_init(pios_openlrs_t openlrs_dev, uint8_t isbind)
 	rfm22_write(openlrs_dev, RFM22_header_enable0, 0xff);    // all the bit to be checked
 
 	if (isbind) {
-		rfm22_write(openlrs_dev, RFM22_tx_power, BINDING_POWER);
+		/* These rely on:
+		 * A) OpenLRS not initing if maxpower = 0.
+		 * B) The DONT_BUILD_IFs above being true and the MaxRfPower
+		 * being in sync with module capabilities.
+		 */
+		rfm22_write(openlrs_dev, RFM22_tx_power,
+				MIN(openlrs_dev->max_power - 1, BINDING_POWER));
 	} else {
-		rfm22_write(openlrs_dev, RFM22_tx_power, openlrs_dev->bind_data.rf_power);
+		rfm22_write(openlrs_dev, RFM22_tx_power,
+				MIN(openlrs_dev->max_power - 1,
+					openlrs_dev->bind_data.rf_power));
 	}
 
 	rfm22_write(openlrs_dev, RFM22_frequency_hopping_step_size, openlrs_dev->bind_data.rf_channel_spacing);   // channel spacing

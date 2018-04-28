@@ -1075,15 +1075,16 @@ void PIOS_HAL_ConfigureHID(HwSharedUSB_HIDPortOptions port_type,
 void PIOS_HAL_ConfigureRFM22B(pios_spi_t spi_dev,
 		uint8_t board_type, uint8_t board_rev,
 		HwSharedRfBandOptions rf_band,
+		HwSharedMaxRfPowerOptions rf_power,
 		const struct pios_openlrs_cfg *openlrs_cfg,
 		pios_openlrs_t *handle)
 {
 	OpenLRSInitialize();
 
-	/* XXX power limit here */
 	pios_openlrs_t openlrs_id;
 
-	if (PIOS_OpenLRS_Init(&openlrs_id, spi_dev, 0, openlrs_cfg, rf_band)) {
+	if (PIOS_OpenLRS_Init(&openlrs_id, spi_dev, 0, openlrs_cfg, rf_band,
+				rf_power)) {
 		return;
 	}
 

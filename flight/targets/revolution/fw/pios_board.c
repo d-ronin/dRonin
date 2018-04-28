@@ -419,6 +419,7 @@ void PIOS_Board_Init(void) {
 			PIOS_HAL_ConfigureRFM22B(pios_spi_telem_flash_id,
 					bdinfo->board_type, bdinfo->board_rev,
 					hwRevoMini.RfBand,
+					hwRevoMini.MaxRfPower,
 					openlrs_cfg,
 					&openlrs_handle);
 			break;
