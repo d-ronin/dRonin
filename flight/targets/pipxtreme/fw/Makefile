@@ -50,6 +50,7 @@ MODULES += ComUsbBridge
 MODULES += Telemetry
 MODULES += RadioComBridge
 MODULES += UAVOTaranis
+MODULES += FirmwareIAP
 
 # Paths
 OPUAVOBJINC = $(OPUAVOBJ)/inc
@@ -85,6 +86,7 @@ SRC += $(OPUAVOBJ)/uavobjectmanager.c
 
 ## PIOS Hardware (STM32F10x)
 SRC += pios_sys.c
+SRC += pios_iap.c
 SRC += pios_usart.c
 SRC += pios_flash_internal.c
 SRC += pios_rtc.c

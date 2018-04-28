@@ -33,6 +33,7 @@
 
 /* Enable/Disable PiOS Modules */
 #define PIOS_INCLUDE_ANNUNC
+#define PIOS_INCLUDE_IAP
 #define PIOS_INCLUDE_RCVR
 #define PIOS_INCLUDE_TIM
 #define PIOS_INCLUDE_OPENLRS
