@@ -763,9 +763,13 @@ static bool pios_openlrs_config_to_bind_data(pios_openlrs_t openlrs_dev)
 			/* Generate 7 channels by default. */
 			if (i < 7) {
 				/* At spacing of 10KHz, this is from 435.250 
-				 * to 437.5 */
+				 * to 437.480.
+				 *
+				 * Also ensure channels are unique by
+				 * getting 3 LSB from hop idx
+				 */
 				openlrs_dev->bind_data.hopchannel[i] =
-					randomize_int(225) + 25;
+					(randomize_int(27) << 3) + 25 + i;
 			} else {
 				openlrs_dev->bind_data.hopchannel[i] = 0;
 			}
