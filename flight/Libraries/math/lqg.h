@@ -42,11 +42,11 @@ extern rtkf_t rtkf_create(float beta, float tau, float Ts, float R, float Q1, fl
 extern void rtkf_stabilize_covariance(rtkf_t rtkf, int iterations);
 extern bool rtkf_is_solved(rtkf_t rtkf);
 
-extern lqr_t lqr_create(float beta, float tau, float Ts, float q1, float q2);
+extern lqr_t lqr_create(float beta, float tau, float Ts, float q1, float q2, float r);
 extern void lqr_stabilize_covariance(lqr_t lqr, int iterations);
 extern bool lqr_is_solved(lqr_t lqr);
 
-extern void lqr_update(lqr_t lqr, float q1, float q2);
+extern void lqr_update(lqr_t lqr, float q1, float q2, float r);
 extern void lqr_get_gains(lqr_t lqg, float K[2]);
 
 extern lqg_t lqg_create(rtkf_t rtkf, lqr_t lqr);
