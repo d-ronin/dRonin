@@ -65,7 +65,7 @@ QString TauLink::shortName()
 
 QString TauLink::boardDescription()
 {
-    return QString("The TauLink radio modem");
+    return QString("The OpLink/TauLink radio modem");
 }
 
 //! Return which capabilities this board has

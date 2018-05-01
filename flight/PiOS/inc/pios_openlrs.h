@@ -58,7 +58,8 @@ typedef struct pios_openlrs_dev *pios_openlrs_t;
 
 int32_t PIOS_OpenLRS_Init(pios_openlrs_t *openlrs_id, pios_spi_t spi_id,
 		uint32_t slave_num, const struct pios_openlrs_cfg *cfg,
-		HwSharedRfBandOptions rf_band);
+		HwSharedRfBandOptions rf_band,
+		HwSharedMaxRfPowerOptions rf_power);
 
 int32_t PIOS_OpenLRS_Start(pios_openlrs_t openlrs_id);
 

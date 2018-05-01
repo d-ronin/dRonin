@@ -1,6 +1,5 @@
 <RCC>
     <qresource prefix="/openpilot">
-        <file>images/pipx.svg</file>
         <file>images/revo-connection-diagram.svg</file>
         <file>images/revolution.png</file>
     </qresource>

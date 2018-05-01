@@ -160,6 +160,7 @@ struct pios_openlrs_dev {
 	uint32_t slave_num;
 
 	HwSharedRfBandOptions band;
+	HwSharedMaxRfPowerOptions max_power;
 
 	// The task handle
 	struct pios_thread *taskHandle;

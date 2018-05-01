@@ -37,6 +37,8 @@
 #include <pios_openlrs_priv.h>
 #include <pios_openlrs_rcvr_priv.h>
 
+#include <uavtalkreceiver.h>
+
 #define PIOS_OPENLRS_RCVR_TIMEOUT_MS  100
 
 /* Provide a RCVR driver */
@@ -125,7 +127,7 @@ int32_t PIOS_OpenLRS_Rcvr_UpdateChannels(uintptr_t openlrs_rcvr_id, int16_t *cha
 		return -1;
 	}
 
-	for (uint32_t i = 0; i < OPENLRS_PPM_NUM_CHANNELS; i++) {
+	for (int i = 0; i < OPENLRS_PPM_NUM_CHANNELS; i++) {
 		openlrs_rcvr_dev->channels[i] = channels[i];
 	}
 
@@ -134,6 +136,22 @@ int32_t PIOS_OpenLRS_Rcvr_UpdateChannels(uintptr_t openlrs_rcvr_id, int16_t *cha
 
 	// let supervisor know we have new data
 	openlrs_rcvr_dev->fresh = true;
+
+#ifdef PIPXTREME
+	/* We're a RX on pipx.  This means that the channel data should go
+	 * over a radio link.  Update the UAVTalkReceiver object, as that's
+	 * the only use for the channel data.
+	 */
+
+	UAVTalkReceiverData urcvr = {};
+
+	for (int i = 0; (i < UAVTALKRECEIVER_CHANNEL_NUMELEM) &&
+			(i < OPENLRS_PPM_NUM_CHANNELS) ; i++) {
+		urcvr.Channel[i] = channels[i];
+	}
+
+	UAVTalkReceiverSet(&urcvr);
+#endif
 
 	return 0;
 }
@@ -147,7 +165,6 @@ int32_t PIOS_OpenLRS_Rcvr_UpdateChannels(uintptr_t openlrs_rcvr_id, int16_t *cha
  */
 static int32_t PIOS_OpenLRS_Rcvr_Get(uintptr_t openlrs_rcvr_id, uint8_t channel)
 {
-
 	if (channel >= OPENLRS_PPM_NUM_CHANNELS) {
 		/* channel is out of range */
 		return PIOS_RCVR_INVALID;

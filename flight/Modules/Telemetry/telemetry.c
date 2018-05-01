@@ -110,10 +110,6 @@ struct telemetry_state {
 
 static struct telemetry_state telem_state = { };
 
-#if defined(PIOS_COM_TELEM_USB)
-static volatile uint32_t usb_timeout_time;
-#endif
-
 typedef struct telemetry_state *telem_t;
 
 // Private functions
@@ -134,6 +130,7 @@ static void gcsTelemetryStatsUpdated();
 static void updateSettings();
 static uintptr_t getComPort();
 static void update_object_instances(uint32_t obj_id, uint32_t inst_id);
+static bool processUsbActivity(bool seen_active);
 
 static int32_t fileReqCallback(void *ctx, uint8_t *buf,
                 uint32_t file_id, uint32_t offset, uint32_t len);
@@ -699,52 +696,6 @@ static void telemetryTxTask(void *parameters)
 	}
 }
 
-#if defined(PIOS_COM_TELEM_USB)
-/**
- * Updates the USB activity timer, and returns whether we should use USB this
- * time around.
- * \param[in] seen_active true if we have seen activity on the USB port this time
- * \return true if we should use usb, false if not.
- */
-static bool processUsbActivity(bool seen_active)
-{
-	uint32_t this_systime = PIOS_Thread_Systime();
-	uint32_t fixedup_time = this_systime +
-		USB_ACTIVITY_TIMEOUT_MS;
-
-	if (seen_active) {
-		if (fixedup_time < this_systime) {
-			// (mostly) handle wrap.
-			usb_timeout_time = UINT32_MAX;
-		} else {
-			usb_timeout_time = fixedup_time;
-		}
-
-		return true;
-	}
-
-	uint32_t usb_time = usb_timeout_time;
-
-	if (this_systime >= usb_time) {
-		usb_timeout_time = 0;
-
-		return false;
-	}
-
-	/* If the timeout is too far in the future ...
-	 * (because of the above wrap case..)  */
-	if (fixedup_time < usb_time) {
-		if (fixedup_time > this_systime) {
-			/* and we're not wrapped, then fixup the
-			 * time. */
-			usb_timeout_time = fixedup_time;
-		}
-	}
-
-	return true;
-}
-#endif // PIOS_COM_TELEM_USB
-
 /**
  * Telemetry transmit task. Processes queue events and periodic updates.
  */
@@ -763,10 +714,12 @@ static void telemetryRxTask(void *parameters)
 
 			telem->rx_inhibited = false;
 
-			bytes_to_process = PIOS_COM_ReceiveBuffer(inputPort, serial_data, sizeof(serial_data), 100);
+			bytes_to_process = PIOS_COM_ReceiveBuffer(inputPort,
+					serial_data, sizeof(serial_data), 100);
 
 			if (bytes_to_process > 0) {
-				UAVTalkProcessInputStream(telem->uavTalkCon, serial_data, bytes_to_process);
+				UAVTalkProcessInputStream(telem->uavTalkCon,
+						serial_data, bytes_to_process);
 
 #if defined(PIOS_COM_TELEM_USB)
 				if (inputPort == PIOS_COM_TELEM_USB) {
@@ -775,7 +728,7 @@ static void telemetryRxTask(void *parameters)
 #endif
 			}
 		} else {
-			telem->rx_inhibited = true;
+			telem->rx_inhibited = telem->request_inhibit;
 			PIOS_Thread_Sleep(3);
 		}
 	}
@@ -946,6 +899,39 @@ static void updateSettings()
 	}
 }
 
+#if defined(PIOS_COM_TELEM_USB)
+/**
+ * Updates the USB activity timer, and returns whether we should use USB this
+ * time around.
+ * \param[in] seen_active true if we have seen activity on the USB port this time
+ * \return true if we should use usb, false if not.
+ */
+static bool processUsbActivity(bool seen_active)
+{
+	static volatile uint32_t usb_last_active;
+
+	if (seen_active) {
+		usb_last_active = PIOS_Thread_Systime();
+
+		return true;
+	}
+
+	if (usb_last_active) {
+		if (!PIOS_Thread_Period_Elapsed(usb_last_active,
+					USB_ACTIVITY_TIMEOUT_MS)) {
+			return true;
+		} else {
+			/* "Latch" expiration so it doesn't become true
+			 * again.
+			 */
+			usb_last_active = 0;
+		}
+	}
+
+	return false;
+}
+#endif // PIOS_COM_TELEM_USB
+
 /**
  * Determine input/output com port as highest priority available
  */
@@ -962,11 +948,21 @@ static uintptr_t getComPort()
 		if (processUsbActivity(rx_pending)) {
 			return PIOS_COM_TELEM_USB;
 		}
+
+		if (!PIOS_COM_Available(PIOS_COM_TELEM_SER)) {
+			return PIOS_COM_TELEM_USB;
+		}
 	}
 #endif /* PIOS_COM_TELEM_USB */
 
+#ifndef PIPXTREME
+	/* Pipx: Don't ever natively telemeter over serial links, because
+	 * they might be connected to a FC and we might overwrite the FC's
+	 * objects with our own.
+	 */
 	if (PIOS_COM_Available(PIOS_COM_TELEM_SER))
 		return PIOS_COM_TELEM_SER;
+#endif
 
 	return 0;
 }
@@ -988,8 +984,10 @@ extern void telemetry_set_inhibit(bool inhibit)
 		if (!telem_state.request_inhibit) {
 			telem_state.request_inhibit = true;
 
-			while (!telem_state.rx_inhibited);
-			while (!telem_state.tx_inhibited);
+			while ((!telem_state.rx_inhibited) ||
+					(!telem_state.tx_inhibited)) {
+				PIOS_Thread_Sleep(1);
+			}
 
 			/* XXX: Consider nulling out flighttelemetrystats
 			 * conn state.
@@ -999,8 +997,10 @@ extern void telemetry_set_inhibit(bool inhibit)
 		if (telem_state.request_inhibit) {
 			telem_state.request_inhibit = false;
 
-			while (telem_state.rx_inhibited);
-			while (telem_state.tx_inhibited);
+			while (telem_state.rx_inhibited ||
+					telem_state.tx_inhibited) {
+				PIOS_Thread_Sleep(1);
+			}
 		}
 	}
 }

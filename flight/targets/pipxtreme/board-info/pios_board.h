@@ -166,7 +166,6 @@ extern uintptr_t pios_com_debug_id;
 extern uintptr_t pios_com_frsky_sport_id;
 #define PIOS_COM_TELEM_USB         (pios_com_telem_usb_id)
 #define PIOS_COM_VCP               (pios_com_vcp_id)
-#define PIOS_COM_TELEMETRY         (pios_com_telem_serial_id)
 #define PIOS_COM_BRIDGE            (pios_com_bridge_id)
 #define PIOS_COM_RADIOBRIDGE       (pios_com_rf_id)
 #define PIOS_PPM_RECEIVER          (pios_ppm_rcvr_id)
