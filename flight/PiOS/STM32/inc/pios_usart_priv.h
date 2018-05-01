@@ -34,6 +34,9 @@
 #include <pios_stm32.h>
 #include "pios_usart.h"
 
+#define PIOS_USART_ALLOW_RECEIVE_DMA	0x1
+#define PIOS_USART_ALLOW_TRANSMIT_DMA	0x2
+
 extern const struct pios_com_driver pios_usart_com_driver;
 
 #if defined(STM32F4XX)
@@ -63,6 +66,7 @@ struct pios_usart_params {
 	bool tx_invert;
 	bool rxtx_swap;
 	bool single_wire;
+	uint8_t flags;
 };
 
 extern int32_t PIOS_USART_Init(uintptr_t * usart_id, const struct pios_usart_cfg * cfg, struct pios_usart_params * params);

@@ -226,7 +226,7 @@ int32_t PIOS_USART_Init(uintptr_t * usart_id, const struct pios_usart_cfg * cfg,
 	// FIXME XXX Clear / reset uart here - sends NUL char else
 
 	/* Check DMA transmit configuration and prepare DMA. */
-	if (cfg->dma_send) {
+	if (cfg->dma_send && (params->flags & PIOS_USART_ALLOW_TRANSMIT_DMA)) {
 		usart_dev->dma_send_buffer = (uint32_t)PIOS_malloc(PIOS_USART_DMA_SEND_BUFFER_SZ);
 
 		if (usart_dev->dma_send_buffer) {
@@ -237,7 +237,7 @@ int32_t PIOS_USART_Init(uintptr_t * usart_id, const struct pios_usart_cfg * cfg,
 	}
 
 	/* Check DMA receive configuration, and setup and start DMA. */
-	if (cfg->dma_recv) {
+	if (cfg->dma_recv && (params->flags & PIOS_USART_ALLOW_RECEIVE_DMA)) {
 		usart_dev->dma_recv_buffer = (uint32_t)PIOS_malloc(PIOS_USART_DMA_RECV_BUFFER_SZ);
 
 		if (usart_dev->dma_recv_buffer) {
