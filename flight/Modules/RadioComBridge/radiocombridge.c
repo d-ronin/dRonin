@@ -69,7 +69,9 @@
 #define TASK_PRIORITY     PIOS_THREAD_PRIO_LOW
 #define MAX_RETRIES       2
 #define MAX_PORT_DELAY    200
+#define COMSTATS_INJECT   400
 #define RETRY_TIMEOUT_MS  150
+#define USB_ACTIVITY_TIMEOUT_MS 6000
 
 // ****************
 // Private types
@@ -112,8 +114,71 @@ static void NewReceiverData(UAVObjEvent * ev, void *ctx, void *obj, int len)
 
 	/* Selected local objects get crammed over the telem link. */
 
-	UAVTalkSendObject(data->telemUAVTalkCon, ev->obj, ev->instId,
-			false);
+	// Temporarily disabled, while work on airside radio continues XXX
+//	UAVTalkSendObject(data->telemUAVTalkCon, ev->obj, ev->instId,
+//			false);
+}
+
+#if defined(PIOS_COM_TELEM_USB)
+/**
+ * Updates the USB activity timer, and returns whether we should use USB this
+ * time around.
+ * \param[in] seen_active true if we have seen activity on the USB port this time
+ * \return true if we should use usb, false if not.
+ */
+static bool processUsbActivity(bool seen_active)
+{
+	static volatile uint32_t usb_last_active;
+
+	if (seen_active) {
+		usb_last_active = PIOS_Thread_Systime();
+
+		return true;
+	}
+
+	if (usb_last_active) {
+		if (!PIOS_Thread_Period_Elapsed(usb_last_active,
+					USB_ACTIVITY_TIMEOUT_MS)) {
+			return true;
+		} else {
+			/* "Latch" expiration so it doesn't become true
+			 * again.
+			 */
+			usb_last_active = 0;
+		}
+	}
+
+	return false;
+}
+#endif // PIOS_COM_TELEM_USB
+
+/**
+ * Determine input/output com port as highest priority available
+ */
+static uintptr_t getComPort()
+{
+#if defined(PIOS_COM_TELEM_USB)
+	if (PIOS_COM_Available(PIOS_COM_TELEM_USB)) {
+		/* Let's further qualify this.  If there's anything spooled
+		 * up for RX, bump the activity time.
+		 */
+
+		bool rx_pending = PIOS_COM_GetNumReceiveBytesPending(PIOS_COM_TELEM_USB) > 0;
+
+		if (processUsbActivity(rx_pending)) {
+			return PIOS_COM_TELEM_USB;
+		}
+
+		if (!PIOS_COM_Available(PIOS_COM_TELEM_SER)) {
+			return PIOS_COM_TELEM_USB;
+		}
+	}
+#endif /* PIOS_COM_TELEM_USB */
+
+	if (PIOS_COM_Available(PIOS_COM_TELEM_SER))
+		return PIOS_COM_TELEM_SER;
+
+	return 0;
 }
 
 /**
@@ -167,6 +232,14 @@ static int32_t RadioComBridgeInitialize(void)
 		return -1;
 	}
 
+	if ((FlightBatteryStateInitialize() == -1) ||
+			(FlightStatusInitialize() == -1) ||
+			(PositionActualInitialize() == -1) ||
+			(VelocityActualInitialize() == -1) ||
+			(BaroAltitudeInitialize() == -1)) {
+		return -1;
+	}
+
 	// Initialise UAVTalk
 	data->telemUAVTalkCon = UAVTalkInitialize(data, &UAVTalkSendHandler,
 			NULL, NULL, NULL);
@@ -184,7 +257,6 @@ MODULE_INITCALL(RadioComBridgeInitialize, RadioComBridgeStart);
 /**
  * Update telemetry statistics
  */
-#if 0
 static void updateRadioComBridgeStats()
 {
 	UAVTalkStats telemetryUAVTalkStats;
@@ -202,25 +274,27 @@ static void updateRadioComBridgeStats()
 
 	// Update stats object
 	radioComBridgeStats.TelemetryTxBytes +=
-	    telemetryUAVTalkStats.txBytes;
+		telemetryUAVTalkStats.txBytes;
 	radioComBridgeStats.TelemetryTxFailures +=
-	    telemetryUAVTalkStats.txErrors;
+		telemetryUAVTalkStats.txErrors;
 
 	radioComBridgeStats.TelemetryRxBytes +=
-	    telemetryUAVTalkStats.rxBytes;
+		telemetryUAVTalkStats.rxBytes;
 	radioComBridgeStats.TelemetryRxFailures +=
-	    telemetryUAVTalkStats.rxErrors;
+		telemetryUAVTalkStats.rxErrors;
+	radioComBridgeStats.TelemetryRxCrcErrors +=
+		telemetryUAVTalkStats.rxCRC;
 
 	radioComBridgeStats.RadioTxBytes += radioUAVTalkStats.txBytes;
 	radioComBridgeStats.RadioTxFailures += radioUAVTalkStats.txErrors;
 
 	radioComBridgeStats.RadioRxBytes += radioUAVTalkStats.rxBytes;
 	radioComBridgeStats.RadioRxFailures += radioUAVTalkStats.rxErrors;
+	radioComBridgeStats.RadioRxCrcErrors += radioUAVTalkStats.rxCRC;
 
 	// Update stats object data
 	RadioComBridgeStatsSet(&radioComBridgeStats);
 }
-#endif
 
 /**
  * @brief Radio rx task.  Receive data packets from the radio and pass them on.
@@ -230,6 +304,8 @@ static void updateRadioComBridgeStats()
 static void radioRxTask( __attribute__ ((unused))
 			void *parameters)
 {
+	uint32_t time_since_inject = PIOS_Thread_Systime();
+
 	// Task loop
 	while (1) {
 #ifdef PIOS_INCLUDE_WDG
@@ -253,14 +329,22 @@ static void radioRxTask( __attribute__ ((unused))
 				}
 			}
 
-			/* XXX periodically inject ComBridgeStats to downstream */
-			/* XXX periodically inject sessionmanaging to downstream */
+			/* periodically inject ComBridgeStats to downstream */
+			if (PIOS_Thread_Period_Elapsed(time_since_inject,
+						COMSTATS_INJECT)) {
+				time_since_inject = PIOS_Thread_Systime();
+
+				updateRadioComBridgeStats();
+
+				UAVTalkSendObject(data->telemUAVTalkCon,
+						RadioComBridgeStatsHandle(),
+						0, false);
+			}
 		} else {
 			/* hand port to telemetry */
 			data->have_port = false;
-			PIOS_Thread_Sleep(5);
+			PIOS_Thread_Sleep(MAX_PORT_DELAY + 5);
 			telemetry_set_inhibit(false);
-			PIOS_Thread_Sleep(5);
 		}
 	}
 }
@@ -275,22 +359,26 @@ static void telemetryRxTask( __attribute__ ((unused))
 {
 	// Task loop
 	while (1) {
-		uint32_t inputPort = PIOS_COM_TELEM_SER;
+		uint32_t inputPort = getComPort();
+
 #ifdef PIOS_INCLUDE_WDG
 		PIOS_WDG_UpdateFlag(PIOS_WDG_TELEMETRY);
 #endif
 
 		if ((!PIOS_COM_Available(PIOS_COM_RADIOBRIDGE)) ||
 				(!data->have_port)) {
+#ifndef PIPXTREME
 			PIOS_Thread_Sleep(5);
 			continue;
+#else
+			/* PIPXtreme telemetry never touches serial
+			 * port for safety, so we can continue to
+			 * use it happily.
+			 */
+			inputPort = PIOS_COM_TELEM_SER;
+#endif
 		}
-#if defined(PIOS_INCLUDE_USB)
-		// Determine output port (USB takes priority over telemetry port)
-		if (PIOS_COM_Available(PIOS_COM_TELEM_USB)) {
-			inputPort = PIOS_COM_TELEM_USB;
-		}
-#endif /* PIOS_INCLUDE_USB */
+
 		if (inputPort) {
 			uint8_t serial_data[32];
 			uint16_t bytes_to_process =
@@ -298,10 +386,13 @@ static void telemetryRxTask( __attribute__ ((unused))
 						   sizeof(serial_data),
 						   MAX_PORT_DELAY);
 
-			if (data->have_port && (bytes_to_process > 0)) {
-				PIOS_ANNUNC_Toggle(PIOS_LED_RX);
+			if (bytes_to_process > 0) {
+				if (inputPort == PIOS_COM_TELEM_USB) {
+					processUsbActivity(true);
+				}
+
 				for (uint8_t i = 0; i < bytes_to_process;
-				     i++) {
+						i++) {
 					ProcessLocalStream(
 						data->telemUAVTalkCon,
 						data->radioUAVTalkCon,
@@ -327,14 +418,7 @@ static int32_t UAVTalkSendHandler(void *ctx, uint8_t * buf, int32_t length)
 	(void) ctx;
 
 	int32_t ret;
-	uint32_t outputPort = PIOS_COM_TELEM_SER;
-
-#if defined(PIOS_INCLUDE_USB)
-	// Determine output port (USB takes priority over telemetry port)
-	if (PIOS_COM_Available(PIOS_COM_TELEM_USB)) {
-		outputPort = PIOS_COM_TELEM_USB;
-	}
-#endif /* PIOS_INCLUDE_USB */
+	uint32_t outputPort = getComPort();
 
 	if (outputPort) {
 		ret = PIOS_COM_SendBufferStallTimeout(outputPort, buf, length,
@@ -386,6 +470,8 @@ static void ProcessLocalStream(UAVTalkConnection inConnectionHandle,
 	    UAVTalkProcessInputStreamQuiet(inConnectionHandle, rxbyte);
 
 	if (state == UAVTALK_STATE_COMPLETE) {
+		PIOS_ANNUNC_Toggle(PIOS_LED_RX);
+
 		uint32_t objId = UAVTalkGetPacketObjId(inConnectionHandle);
 		switch (objId) {
 			// Ignore object...
@@ -427,12 +513,12 @@ static void ProcessRadioStream(UAVTalkConnection inConnectionHandle,
 	UAVTalkRxState state =
 	    UAVTalkProcessInputStreamQuiet(inConnectionHandle, rxbyte);
 
-	if (!data->have_port) {
-		telemetry_set_inhibit(true);
-		data->have_port = true;
-	}
-
 	if (state == UAVTALK_STATE_COMPLETE) {
+		if (!data->have_port) {
+			telemetry_set_inhibit(true);
+			data->have_port = true;
+		}
+
 		// We only want to unpack certain objects from the remote modem
 		// Similarly we only want to relay certain objects to the telemetry port
 		uint32_t objId = UAVTalkGetPacketObjId(inConnectionHandle);
