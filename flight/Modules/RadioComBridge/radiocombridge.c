@@ -523,25 +523,25 @@ static void ProcessRadioStream(UAVTalkConnection inConnectionHandle,
 		// Similarly we only want to relay certain objects to the telemetry port
 		uint32_t objId = UAVTalkGetPacketObjId(inConnectionHandle);
 		switch (objId) {
-		case HWTAULINK_OBJID:
-		case MetaObjectId(HWTAULINK_OBJID):
-		case UAVTALKRECEIVER_OBJID:
-		case MetaObjectId(UAVTALKRECEIVER_OBJID):
-			break;
-		case FLIGHTBATTERYSTATE_OBJID:
-		case FLIGHTSTATUS_OBJID:
-		case POSITIONACTUAL_OBJID:
-		case VELOCITYACTUAL_OBJID:
-		case BAROALTITUDE_OBJID:
-			// process / store locally for relaying to taranis
-			UAVTalkReceiveObject(inConnectionHandle);
-			UAVTalkRelayPacket(inConnectionHandle, outConnectionHandle);
-			break;
-		default:
-			// all other packets are relayed to the telemetry port
-			UAVTalkRelayPacket(inConnectionHandle,
-					   outConnectionHandle);
-			break;
+			case HWTAULINK_OBJID:
+			case MetaObjectId(HWTAULINK_OBJID):
+			case UAVTALKRECEIVER_OBJID:
+			case MetaObjectId(UAVTALKRECEIVER_OBJID):
+				break;
+			case FLIGHTBATTERYSTATE_OBJID:
+			case FLIGHTSTATUS_OBJID:
+			case POSITIONACTUAL_OBJID:
+			case VELOCITYACTUAL_OBJID:
+			case BAROALTITUDE_OBJID:
+				// process / store locally for relaying to taranis
+				UAVTalkReceiveObject(inConnectionHandle);
+				UAVTalkRelayPacket(inConnectionHandle, outConnectionHandle);
+				break;
+			default:
+				// all other packets are relayed to the telemetry port
+				UAVTalkRelayPacket(inConnectionHandle,
+						outConnectionHandle);
+				break;
 		}
 	}
 }
