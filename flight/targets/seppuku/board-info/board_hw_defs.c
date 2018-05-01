@@ -754,11 +754,11 @@ static const struct pios_usart_cfg pios_usart6_cfg = {
 
 void DMA2_Stream2_IRQHandler(void)
 {
-	PIOS_USART_dma_irq_rx_handler(&pios_usart6_cfg);
+	PIOS_USART_6_dmarx_irq_handler();
 }
 void DMA2_Stream7_IRQHandler(void)
 {
-	PIOS_USART_dma_irq_tx_handler(&pios_usart6_cfg);
+	PIOS_USART_6_dmatx_irq_handler();
 }
 
 #endif  /* PIOS_INCLUDE_USART */
