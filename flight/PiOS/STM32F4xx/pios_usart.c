@@ -153,6 +153,7 @@ static void PIOS_USART_6_irq_handler (void)
 	PIOS_IRQ_Epilogue();
 }
 
+
 /**
 * Initialise a single USART device
 */
@@ -435,42 +436,20 @@ static void PIOS_USART_generic_irq_handler(uintptr_t usart_id)
 	}
 }
 
-static uintptr_t PIOS_USART_GetDevice(const struct pios_usart_cfg *cfg)
+void PIOS_USART_dma_irq_tx_handler(uintptr_t usart_id)
 {
-	PIOS_Assert(cfg);
-
-	switch((uint32_t)cfg->regs) {
-		case (uint32_t)USART1:
-			return PIOS_USART_1_id;
-		case (uint32_t)USART2:
-			return PIOS_USART_2_id;
-		case (uint32_t)USART3:
-			return PIOS_USART_3_id;
-		case (uint32_t)UART4:
-			return PIOS_USART_4_id;
-		case (uint32_t)UART5:
-			return PIOS_USART_5_id;
-		case (uint32_t)USART6:
-			return PIOS_USART_6_id;
-		default:
-			return 0;
-	}
-}
-
-void PIOS_USART_dma_irq_tx_handler(const struct pios_usart_cfg *cfg)
-{
-	PIOS_IRQ_Prologue();
-
-	struct pios_usart_dev *usart_dev = (struct pios_usart_dev*)PIOS_USART_GetDevice(cfg);
+	struct pios_usart_dev *usart_dev = (struct pios_usart_dev*)usart_id;
 	if (!usart_dev)
-		goto get_out;
+		return;
 
-	struct pios_usart_dma_cfg *dmacfg = usart_dev->cfg->dma_send;
+	const struct pios_usart_cfg *cfg = usart_dev->cfg;
+
+	struct pios_usart_dma_cfg *dmacfg = cfg->dma_send;
 	PIOS_Assert(dmacfg);
 
 	if (DMA_GetFlagStatus(dmacfg->stream, dmacfg->tcif) == SET) {
 		/* TX handler*/
-		USART_DMACmd(usart_dev->cfg->regs, USART_DMAReq_Tx, DISABLE);
+		USART_DMACmd(cfg->regs, USART_DMAReq_Tx, DISABLE);
 
 		DMA_Cmd(dmacfg->stream, DISABLE);
 		while (DMA_GetCmdStatus(dmacfg->stream) == ENABLE) ;
@@ -480,20 +459,15 @@ void PIOS_USART_dma_irq_tx_handler(const struct pios_usart_cfg *cfg)
 		DMA_ClearFlag(dmacfg->stream, dmacfg->tcif);
 
 		/* Re-enable TXE interrupt, which kicks off the next data transfer, if there's stuff. */
-		USART_ITConfig(usart_dev->cfg->regs, USART_IT_TXE, ENABLE);
+		USART_ITConfig(cfg->regs, USART_IT_TXE, ENABLE);
 	}
-
-get_out:
-	PIOS_IRQ_Epilogue();
 }
 
-void PIOS_USART_dma_irq_rx_handler(const struct pios_usart_cfg *cfg)
+void PIOS_USART_dma_irq_rx_handler(uintptr_t usart_id)
 {
-	PIOS_IRQ_Prologue();
-
-	struct pios_usart_dev *usart_dev = (struct pios_usart_dev*)PIOS_USART_GetDevice(cfg);
+	struct pios_usart_dev *usart_dev = (struct pios_usart_dev*)usart_id;
 	if (!usart_dev)
-		goto get_out;
+		return;
 
 	struct pios_usart_dma_cfg *dmacfg = usart_dev->cfg->dma_recv;
 	PIOS_Assert(dmacfg);
@@ -522,8 +496,83 @@ void PIOS_USART_dma_irq_rx_handler(const struct pios_usart_cfg *cfg)
 		DMA_SetCurrDataCounter(dmacfg->stream, PIOS_USART_DMA_RECV_BUFFER_SZ);
 		DMA_Cmd(dmacfg->stream, ENABLE);
 	}
+}
 
-get_out:
+void PIOS_USART_1_dmarx_irq_handler(void)
+{
+	PIOS_IRQ_Prologue();
+	PIOS_USART_dma_irq_rx_handler(PIOS_USART_1_id);
+	PIOS_IRQ_Epilogue();
+}
+void PIOS_USART_1_dmatx_irq_handler(void)
+{
+	PIOS_IRQ_Prologue();
+	PIOS_USART_dma_irq_tx_handler(PIOS_USART_1_id);
+	PIOS_IRQ_Epilogue();
+}
+
+void PIOS_USART_2_dmarx_irq_handler(void)
+{
+	PIOS_IRQ_Prologue();
+	PIOS_USART_dma_irq_rx_handler(PIOS_USART_2_id);
+	PIOS_IRQ_Epilogue();
+}
+void PIOS_USART_2_dmatx_irq_handler(void)
+{
+	PIOS_IRQ_Prologue();
+	PIOS_USART_dma_irq_tx_handler(PIOS_USART_2_id);
+	PIOS_IRQ_Epilogue();
+}
+
+void PIOS_USART_3_dmarx_irq_handler(void)
+{
+	PIOS_IRQ_Prologue();
+	PIOS_USART_dma_irq_rx_handler(PIOS_USART_3_id);
+	PIOS_IRQ_Epilogue();
+}
+void PIOS_USART_3_dmatx_irq_handler(void)
+{
+	PIOS_IRQ_Prologue();
+	PIOS_USART_dma_irq_tx_handler(PIOS_USART_3_id);
+	PIOS_IRQ_Epilogue();
+}
+
+void PIOS_USART_4_dmarx_irq_handler(void)
+{
+	PIOS_IRQ_Prologue();
+	PIOS_USART_dma_irq_rx_handler(PIOS_USART_4_id);
+	PIOS_IRQ_Epilogue();
+}
+void PIOS_USART_4_dmatx_irq_handler(void)
+{
+	PIOS_IRQ_Prologue();
+	PIOS_USART_dma_irq_tx_handler(PIOS_USART_4_id);
+	PIOS_IRQ_Epilogue();
+}
+
+void PIOS_USART_5_dmarx_irq_handler(void)
+{
+	PIOS_IRQ_Prologue();
+	PIOS_USART_dma_irq_rx_handler(PIOS_USART_5_id);
+	PIOS_IRQ_Epilogue();
+}
+void PIOS_USART_5_dmatx_irq_handler(void)
+{
+	PIOS_IRQ_Prologue();
+	PIOS_USART_dma_irq_tx_handler(PIOS_USART_5_id);
+	PIOS_IRQ_Epilogue();
+}
+
+void PIOS_USART_6_dmarx_irq_handler(void)
+{
+	PIOS_IRQ_Prologue();
+	PIOS_USART_dma_irq_rx_handler(PIOS_USART_6_id);
+	PIOS_IRQ_Epilogue();
+}
+void PIOS_USART_6_dmatx_irq_handler(void)
+{
+	PIOS_IRQ_Prologue();
+	PIOS_USART_dma_irq_tx_handler(PIOS_USART_6_id);
 	PIOS_IRQ_Epilogue();
 }
 

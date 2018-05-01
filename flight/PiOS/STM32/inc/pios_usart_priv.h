@@ -69,8 +69,25 @@ extern int32_t PIOS_USART_Init(uintptr_t * usart_id, const struct pios_usart_cfg
 extern const struct pios_usart_cfg * PIOS_USART_GetConfig(uintptr_t usart_id);
 
 #if defined(STM32F4XX)
-extern void PIOS_USART_dma_irq_tx_handler(const struct pios_usart_cfg *cfg);
-extern void PIOS_USART_dma_irq_rx_handler(const struct pios_usart_cfg *cfg);
+
+extern void PIOS_USART_1_dmarx_irq_handler(void);
+extern void PIOS_USART_1_dmatx_irq_handler(void);
+
+extern void PIOS_USART_2_dmarx_irq_handler(void);
+extern void PIOS_USART_2_dmatx_irq_handler(void);
+
+extern void PIOS_USART_3_dmarx_irq_handler(void);
+extern void PIOS_USART_3_dmatx_irq_handler(void);
+
+extern void PIOS_USART_4_dmarx_irq_handler(void);
+extern void PIOS_USART_4_dmatx_irq_handler(void);
+
+extern void PIOS_USART_5_dmarx_irq_handler(void);
+extern void PIOS_USART_5_dmatx_irq_handler(void);
+
+extern void PIOS_USART_6_dmarx_irq_handler(void);
+extern void PIOS_USART_6_dmatx_irq_handler(void);
+
 #endif
 
 #endif /* PIOS_USART_PRIV_H */
