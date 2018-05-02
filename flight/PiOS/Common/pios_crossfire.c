@@ -332,8 +332,8 @@ static void PIOS_Crossfire_Supervisor(uintptr_t context)
 	if (++dev->rx_timer > 1)
 		PIOS_Crossfire_ResetBuffer(dev);
 
-	// Failsafe after 50ms.
-	if (++dev->failsafe_timer > 32)
+	// Failsafe after 250ms.
+	if (++dev->failsafe_timer > 156)
 		PIOS_Crossfire_SetAllChannels(dev, PIOS_RCVR_TIMEOUT);
 }
 
