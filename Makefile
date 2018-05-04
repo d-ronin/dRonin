@@ -1038,7 +1038,7 @@ $(eval $(call FLIGHTD_TEMPLATE,flightd,flightd,'fltd'))
 #
 ##############################
 
-ALL_UNITTESTS := logfs misc_math coordinate_conversions error_correcting dsm timeutils
+ALL_UNITTESTS := logfs misc_math coordinate_conversions dsm timeutils
 ALL_OTHER_UNITTESTS := python_ut_test
 
 # Don't automatically run unit tests on non-Linux plats.
