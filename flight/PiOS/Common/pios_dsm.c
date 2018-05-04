@@ -38,8 +38,6 @@
 #error PIOS_INCLUDE_RTC must be used to use DSM
 #endif
 
-/* Forward Declarations */
-static int32_t PIOS_DSM_Get(uintptr_t rcvr_id, uint8_t channel);
 static uint16_t PIOS_DSM_RxInCallback(uintptr_t context,
 				      uint8_t *buf,
 				      uint16_t buf_len,
@@ -47,10 +45,13 @@ static uint16_t PIOS_DSM_RxInCallback(uintptr_t context,
 				      bool *need_yield);
 static void PIOS_DSM_Supervisor(uintptr_t dsm_id);
 
-/* Local Variables */
+#if defined(PIOS_INCLUDE_RCVR)
+static int32_t PIOS_DSM_Get(uintptr_t rcvr_id, uint8_t channel);
+
 const struct pios_rcvr_driver pios_dsm_rcvr_driver = {
 	.read = PIOS_DSM_Get,
 };
+#endif
 
 enum dsm_resolution {
 	DSM_UNKNOWN, DSM_10BIT, DSM_11BIT
@@ -103,6 +104,7 @@ static bool PIOS_DSM_Validate(struct pios_dsm_dev *dsm_dev)
 /* Try to bind DSMx satellite using specified number of pulses */
 static void PIOS_DSM_Bind(struct pios_dsm_dev *dsm_dev, uint8_t num_pulses)
 {
+#ifndef FLIGHT_POSIX
 	const struct pios_dsm_cfg *cfg = dsm_dev->cfg;
 
 	GPIO_InitTypeDef GPIO_InitStructure = cfg->bind.init;
@@ -130,6 +132,9 @@ static void PIOS_DSM_Bind(struct pios_dsm_dev *dsm_dev, uint8_t num_pulses)
 	}
 	/* RX line, set input and wait for data */
 	GPIO_Init(cfg->bind.gpio, &GPIO_InitStructure);
+#else
+	(void) dsm_dev;  (void) num_pulses;
+#endif
 }
 
 /* Reset channels in case of lost signal or explicit failsafe receiver flag */
@@ -286,7 +291,9 @@ static void PIOS_DSM_UpdateState(struct pios_dsm_dev *dsm_dev, uint8_t byte)
 				if (!PIOS_DSM_UnrollChannels(dsm_dev)) {
 					/* data looking good */
 					state->failsafe_timer = 0;
+#ifdef PIOS_INCLUDE_RCVR
 					PIOS_RCVR_ActiveFromISR();
+#endif
 				}
 
 				/* prepare for the next frame */
@@ -401,6 +408,7 @@ static uint16_t PIOS_DSM_RxInCallback(uintptr_t context,
  * \output PIOS_RCVR_TIMEOUT failsafe condition or missing receiver
  * \output >=0 channel value
  */
+#if defined(PIOS_INCLUDE_RCVR)
 static int32_t PIOS_DSM_Get(uintptr_t rcvr_id, uint8_t channel)
 {
 	struct pios_dsm_dev *dsm_dev = (struct pios_dsm_dev *)rcvr_id;
@@ -415,6 +423,7 @@ static int32_t PIOS_DSM_Get(uintptr_t rcvr_id, uint8_t channel)
 	/* may also be PIOS_RCVR_TIMEOUT set by other function */
 	return dsm_dev->state.channel_data[channel];
 }
+#endif
 
 /**
  * Input data supervisor is called periodically and provides

@@ -1,6 +1,6 @@
 ###############################################################################
 # @file       Makefile
-# @author     Tau Labs, http://taulabs.org, Copyright (C) 2014
+# @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
 # @addtogroup 
 # @{
 # @addtogroup 
@@ -26,12 +26,24 @@ WHEREAMI := $(dir $(lastword $(MAKEFILE_LIST)))
 TOP      := $(realpath $(WHEREAMI)/../../../)
 include $(TOP)/make/firmware-defs.mk
 
+EXTRAINCDIRS += $(OPUAVOBJ)/inc
+EXTRAINCDIRS += $(OPUAVSYNTHDIR)
+EXTRAINCDIRS += $(PIOS)/posix/inc
+EXTRAINCDIRS += $(PIOS)/inc
+EXTRAINCDIRS += $(PIOS)
+
 CFLAGS += -O0
-CFLAGS += -Wall
+CFLAGS += -Wall -Werror
 CFLAGS += -g
 CFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS)) -I.
+CFLAGS += -D_GNU_SOURCE
 
 CONLYFLAGS += -std=gnu99
 
+SRC += $(PIOS)/posix/pios_heap.c
+SRC += $(PIOS)/posix/pios_semaphore.c
+SRC += $(PIOS)/posix/pios_delay.c
+SRC += $(PIOS)/posix/pios_rtc.c
+SRC += $(PIOS)/posix/pios_thread.c
 
 include $(TOP)/make/unittest.mk

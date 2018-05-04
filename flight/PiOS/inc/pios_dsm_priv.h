@@ -33,8 +33,11 @@
 #define PIOS_DSM_PRIV_H
 
 #include <pios.h>
+
+#ifndef FLIGHT_POSIX
 #include <pios_stm32.h>
 #include <pios_usart_priv.h>
+#endif
 
 // for HwSharedDSMxModeOptions
 #include <uavobjectmanager.h>
@@ -115,7 +118,11 @@
 
 /* DSM receiver instance configuration */
 struct pios_dsm_cfg {
+#ifndef FLIGHT_POSIX
 	struct stm32_gpio bind;
+#else
+	char unused;
+#endif
 };
 
 extern const struct pios_rcvr_driver pios_dsm_rcvr_driver;

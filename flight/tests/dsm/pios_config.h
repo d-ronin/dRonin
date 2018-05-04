@@ -1,0 +1,6 @@
+#define PIOS_NO_HW
+#define FLIGHT_POSIX
+
+#define PIOS_INCLUDE_DSM
+#define PIOS_INCLUDE_RTC
+#define PIOS_DSM_NUM_INPUTS 12
