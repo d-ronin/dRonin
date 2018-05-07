@@ -37,6 +37,7 @@
 #include "configoutputwidget.h"
 #include "configstabilizationwidget.h"
 #include "configosdwidget.h"
+#include "configradiowidget.h"
 #include "configmodulewidget.h"
 #include "configautotunewidget.h"
 #include "configcamerastabilizationwidget.h"
@@ -197,6 +198,17 @@ void ConfigGadgetWidget::deferredLoader()
         break;
 
     case 12:
+        icon = new QIcon();
+        icon->addFile(":/configgadget/images/osd_normal.png", QSize(), QIcon::Normal, QIcon::Off);
+        icon->addFile(":/configgadget/images/osd_selected.png", QSize(), QIcon::Selected,
+                      QIcon::Off);
+        qwd = new ConfigRadioWidget(this);
+        ftw->insertTab(ConfigGadgetWidget::radio, qwd, *icon, QString("Radio"));
+        // Hide Radio if not applicable, else show
+        ftw->setHidden(ConfigGadgetWidget::radio, true);
+        break;
+
+    case 13:
     default:
         // *********************
         // Listen to autopilot connection events
@@ -276,11 +288,11 @@ void ConfigGadgetWidget::onAutopilotDisconnect()
 
 void ConfigGadgetWidget::onAutopilotConnect()
 {
-
     QIcon *icon;
     QWidget *qwd;
 
     bool hasOSD = false;
+    bool hasRadio = false;
 
     int index = ftw->currentIndex();
 
@@ -319,6 +331,12 @@ void ConfigGadgetWidget::onAutopilotConnect()
             } else if (lastTabIndex == ConfigGadgetWidget::osd) {
                 lastTabIndex = ConfigGadgetWidget::hardware;
             }
+
+            if (board->queryCapabilities(Core::IBoardType::BOARD_CAPABILITIES_RADIO)) {
+                hasRadio = true;
+            } else if (lastTabIndex == ConfigGadgetWidget::radio) {
+                lastTabIndex = ConfigGadgetWidget::hardware;
+            }
         }
 
         if (!valid_board) {
@@ -348,6 +366,7 @@ void ConfigGadgetWidget::onAutopilotConnect()
 
     // Hide OSD if not applicable, else show
     ftw->setHidden(ConfigGadgetWidget::osd, !hasOSD);
+    ftw->setHidden(ConfigGadgetWidget::radio, !hasRadio);
 
     ftw->setCurrentIndex(lastTabIndex);
 
