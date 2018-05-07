@@ -765,7 +765,7 @@ static bool pios_openlrs_config_to_bind_data(pios_openlrs_t openlrs_dev)
 		for (uint32_t i = 0; i < OPENLRS_HOPCHANNEL_NUMELEM; i++) {
 			/* Generate 7 channels by default. */
 			if (i < 7) {
-				/* At spacing of 10KHz, this is from 435.250 
+				/* At spacing of 10KHz, this is from 435.250
 				 * to 437.480.
 				 *
 				 * Also ensure channels are unique by
@@ -1086,7 +1086,7 @@ static bool pios_openlrs_rx_frame(pios_openlrs_t openlrs_dev, uint8_t rssi)
 		} else {
 			tx_buf[0] ^= 0x40; // Swap telem sequence
 			openlrs_dev->telem_len = pios_openlrs_form_telemetry(
-					openlrs_dev, tx_buf, rssi, false, 
+					openlrs_dev, tx_buf, rssi, false,
 					ctrl_size - size);
 		}
 
@@ -1174,9 +1174,21 @@ static void pios_openlrs_rx_after_receive(pios_openlrs_t openlrs_dev,
 		/* We lost packet, execute normally timed hop */
 		openlrs_dev->numberOfLostPackets++;
 		openlrs_dev->lastPacketTimeUs += interval;
-	} else if ((openlrs_dev->numberOfLostPackets >= openlrs_dev->hopcount) &&
-			(PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs) >
+	} else if ((PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs) <
 			(interval * (openlrs_dev->hopcount + 1)))) {
+#if defined(PIOS_LED_LINK)
+		PIOS_ANNUNC_Off(PIOS_LED_LINK);
+#endif /* PIOS_LED_LINK */
+
+		/* Don't have link; dwell on this channel to give a chance
+		 * for resync.
+		 */
+		willhop = false;
+	} else {
+		/* We don't have link and have been on this channel a
+		 * long time; time to do a hop. (Because the channel
+		 * may be blocked preventing resync).
+		 */
 		DEBUG_PRINTF(2,"OLRS WARN: Trying to sync\r\n");
 
 		// hop slowly to allow resync with TX
@@ -1185,28 +1197,15 @@ static void pios_openlrs_rx_after_receive(pios_openlrs_t openlrs_dev,
 		if (!openlrs_dev->linkLossTimeMs) {
 			openlrs_dev->linkLossTimeMs = timeMs;
 		}
-	} else {
-		/* Don't have link, but it's not time for slow hop yet */
-		willhop = false;
 	}
 
-	if (openlrs_dev->link_acquired && openlrs_dev->numberOfLostPackets) {
-#if defined(PIOS_LED_LINK)
-		PIOS_ANNUNC_Off(PIOS_LED_LINK);
-#endif /* PIOS_LED_LINK */
-
-		if (openlrs_dev->failsafeDelay &&
-				(openlrs_status.FailsafeActive == OPENLRSSTATUS_FAILSAFEACTIVE_INACTIVE) &&
-				((timeMs - openlrs_dev->linkLossTimeMs) > ((uint32_t) openlrs_dev->failsafeDelay))) {
-			DEBUG_PRINTF(2,"Failsafe activated: %d %d\r\n", timeMs, openlrs_dev->linkLossTimeMs);
-			openlrs_status.FailsafeActive = OPENLRSSTATUS_FAILSAFEACTIVE_ACTIVE;
-
-			openlrs_dev->nextBeaconTimeMs = (timeMs + 1000UL * openlrs_dev->beacon_delay) | 1; //beacon activating...
-		}
-
-		if ((openlrs_dev->beacon_frequency) && (openlrs_dev->nextBeaconTimeMs) &&
-				((timeMs - openlrs_dev->nextBeaconTimeMs) < 0x80000000)) {
-
+	if (openlrs_dev->link_acquired && openlrs_dev->linkLossTimeMs) {
+		if (!openlrs_dev->nextBeaconTimeMs) {
+			openlrs_dev->nextBeaconTimeMs = timeMs +
+				openlrs_dev->beacon_delay * 1000UL;
+		} else if ((openlrs_dev->beacon_frequency) &&
+				((timeMs - openlrs_dev->nextBeaconTimeMs)
+				 < 0x80000000)) {
 			// Indicate that the beacon is now active so we can
 			// trigger extra ones by RF.
 			openlrs_dev->beacon_armed = true;
