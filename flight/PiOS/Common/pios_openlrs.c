@@ -784,8 +784,6 @@ static bool pios_openlrs_config_to_bind_data(pios_openlrs_t openlrs_dev)
 	openlrs_dev->beacon_delay = binding.beacon_delay;
 	openlrs_dev->beacon_period = binding.beacon_period;
 
-	openlrs_dev->failsafeDelay = binding.failsafe_delay;
-
 	openlrs_dev->scale_min = binding.tx_scale_min;
 	openlrs_dev->scale_max = binding.tx_scale_max;
 
@@ -1164,7 +1162,6 @@ static void pios_openlrs_rx_after_receive(pios_openlrs_t openlrs_dev,
 		openlrs_dev->link_acquired = true;
 
 		openlrs_dev->beacon_armed = false;
-		openlrs_status.FailsafeActive = OPENLRSSTATUS_FAILSAFEACTIVE_INACTIVE;
 		openlrs_dev->numberOfLostPackets = 0;
 		openlrs_dev->nextBeaconTimeMs = 0;
 
@@ -1240,35 +1237,31 @@ static void pios_openlrs_rx_after_receive(pios_openlrs_t openlrs_dev,
 
 uint8_t PIOS_OpenLRS_RSSI_Get(void)
 {
-	if (openlrs_status.FailsafeActive == OPENLRSSTATUS_FAILSAFEACTIVE_ACTIVE) {
+	// Check object handle exists
+	if (OpenLRSHandle() == NULL)
 		return 0;
-	} else {
-		// Check object handle exists
-		if (OpenLRSHandle() == NULL)
+
+	uint8_t rssi_type;
+	OpenLRSRSSI_TypeGet(&rssi_type);
+
+	uint16_t LQ = count_set_bits(openlrs_status.LinkQuality & 0x7fff);
+
+	switch (rssi_type) {
+	case OPENLRS_RSSI_TYPE_COMBINED:
+		if (LQ == 15) {
+			return (openlrs_status.LastRSSI >> 1)+128;
+		} else if (LQ == 0) {
 			return 0;
-
-		uint8_t rssi_type;
-		OpenLRSRSSI_TypeGet(&rssi_type);
-
-		uint16_t LQ = count_set_bits(openlrs_status.LinkQuality & 0x7fff);
-
-		switch (rssi_type) {
-		case OPENLRS_RSSI_TYPE_COMBINED:
-			if (LQ == 15) {
-				return (openlrs_status.LastRSSI >> 1)+128;
-			} else if (LQ == 0) {
-				return 0;
-			} else {
-				return LQ * 9 +
-					(openlrs_status.LastRSSI >> 5);
-			}
-		case OPENLRS_RSSI_TYPE_RSSI:
-			return openlrs_status.LastRSSI;
-		case OPENLRS_RSSI_TYPE_LINKQUALITY:
-			return LQ << 4;
-		default:
-			return 0;
+		} else {
+			return LQ * 9 +
+				(openlrs_status.LastRSSI >> 5);
 		}
+	case OPENLRS_RSSI_TYPE_RSSI:
+		return openlrs_status.LastRSSI;
+	case OPENLRS_RSSI_TYPE_LINKQUALITY:
+		return LQ << 4;
+	default:
+		return 0;
 	}
 }
 

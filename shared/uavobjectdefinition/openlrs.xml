@@ -64,16 +64,13 @@
       <description>Extended flags</description>
     </field>
     <field defaultvalue="462712500" elements="1" name="beacon_frequency" type="uint32" units="">
-      <description>Beacon Frequency</description>
+      <description>When link is lost, a series of tones is played periodically on this frequency.  The default value is FRS channel 7.</description>
     </field>
-    <field defaultvalue="30" elements="1" name="beacon_delay" type="uint8" units="s">
-      <description>Beacon Delay</description>
+    <field defaultvalue="10" elements="1" name="beacon_delay" type="uint8" units="s">
+      <description>After link is lost, wait this long before sending beacon on beacon_frequency</description>
     </field>
     <field defaultvalue="15" elements="1" name="beacon_period" type="uint8" units="s">
-      <description>Beacon Period</description>
-    </field>
-    <field defaultvalue="1000" elements="1" name="failsafe_delay" type="uint32" units="ms">
-      <description>Fail-safe Delay</description>
+      <description>Beacons are repeated at this interval, or may be triggered manually by transmitting on this frequency.</description>
     </field>
     <field defaultvalue="Combined" elements="1" name="RSSI_Type" type="enum" units="function">
       <description>RSSI Type</description>
