@@ -25,7 +25,7 @@
     <field defaultvalue="2000" elements="1" name="tx_scale_max" type="uint16" units="">
       <description>Maximum value for tx scaling (corresponds to 100% stick travel in positive direction)</description>
     </field>
-    <field defaultvalue="3" elements="1" name="tx_startup_bind_duration" type="uint8" units="seconds">
+    <field defaultvalue="0" elements="1" name="tx_startup_bind_duration" type="uint8" units="seconds">
       <description>How long the transmitter should wait for binding at startup.</description>
     </field>
     <field defaultvalue="90" elements="1" name="tx_bind_button_duration" type="uint8" units="seconds">
