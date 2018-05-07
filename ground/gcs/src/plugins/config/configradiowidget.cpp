@@ -28,10 +28,12 @@
 #include <extensionsystem/pluginmanager.h>
 #include <coreplugin/generalsettings.h>
 
+#include "ui_integratedradio.h"
+
 ConfigRadioWidget::ConfigRadioWidget(QWidget *parent)
     : ConfigTaskWidget(parent)
 {
-    ui = new Ui::Radio();
+    ui = new Ui::radio();
     ui->setupUi(this);
 
     // Load UAVObjects to widget relations from UI file

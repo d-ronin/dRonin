@@ -33,7 +33,7 @@
 #include "uavobjects/uavobject.h"
 
 namespace Ui {
-class Radio;
+class radio;
 }
 
 class ConfigRadioWidget : public ConfigTaskWidget
@@ -47,7 +47,7 @@ public:
 private slots:
 
 private:
-    Ui::Radio *ui;
+    Ui::radio *ui;
 
 protected:
     void resizeEvent(QResizeEvent *event);
