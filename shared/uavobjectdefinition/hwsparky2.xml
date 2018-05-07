@@ -84,7 +84,7 @@
     <field defaultvalue="Autodetect" elements="1" name="DSMxMode" parent="HwShared.DSMxMode" type="enum" units="mode">
       <description/>
     </field>
-    <field defaultvalue="1.25" elements="1" name="MaxRfPower" parent="HwShared.MaxRfPower" type="enum" units="mW">
+    <field defaultvalue="100" elements="1" name="MaxRfPower" parent="HwShared.MaxRfPower" type="enum" units="mW">
       <description>Maximum radio power</description>
     </field>
     <field defaultvalue="BoardDefault" elements="1" name="RfBand" parent="HwShared.RfBand" type="enum" units="MHz">
