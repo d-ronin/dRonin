@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>903</width>
-    <height>800</height>
+    <width>924</width>
+    <height>872</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -32,6 +32,18 @@
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
         <widget class="QScrollArea" name="scrollArea">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>1</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="horizontalScrollBarPolicy">
+          <enum>Qt::ScrollBarAlwaysOff</enum>
+         </property>
+         <property name="sizeAdjustPolicy">
+          <enum>QAbstractScrollArea::AdjustIgnored</enum>
+         </property>
          <property name="widgetResizable">
           <bool>true</bool>
          </property>
@@ -40,8 +52,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>853</width>
-            <height>677</height>
+            <width>874</width>
+            <height>721</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -55,29 +67,12 @@
                <layout class="QGridLayout" name="gridLayout_5">
                 <item row="0" column="0">
                  <layout class="QGridLayout" name="gridLayout_3">
-                  <item row="2" column="0">
-                   <widget class="QLabel" name="label_10">
-                    <property name="text">
-                     <string>RSSI source:</string>
-                    </property>
-                   </widget>
-                  </item>
                   <item row="1" column="2">
                    <widget class="QComboBox" name="cb_tel_source">
                     <property name="objrelation" stdset="0">
                      <stringlist notr="true">
                       <string>objname:OpenLRS</string>
                       <string>fieldname:data_source</string>
-                     </stringlist>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="2" column="2">
-                   <widget class="QComboBox" name="cb_rssi_source">
-                    <property name="objrelation" stdset="0">
-                     <stringlist notr="true">
-                      <string>objname:OpenLRS</string>
-                      <string>fieldname:RSSI_Type</string>
                      </stringlist>
                     </property>
                    </widget>
@@ -98,7 +93,7 @@
                   <item row="1" column="0">
                    <widget class="QLabel" name="label_11">
                     <property name="text">
-                     <string>Telemetry data source:</string>
+                     <string>Telemetry data type:</string>
                     </property>
                    </widget>
                   </item>
@@ -109,7 +104,24 @@
                     </property>
                    </widget>
                   </item>
-                  <item row="0" column="2" colspan="2">
+                  <item row="1" column="4">
+                   <widget class="QLabel" name="label_10">
+                    <property name="text">
+                     <string>RSSI source:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="5">
+                   <widget class="QComboBox" name="cb_rssi_source">
+                    <property name="objrelation" stdset="0">
+                     <stringlist notr="true">
+                      <string>objname:OpenLRS</string>
+                      <string>fieldname:RSSI_Type</string>
+                     </stringlist>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="2" colspan="4">
                    <layout class="QHBoxLayout" name="horizontalLayout_3">
                     <property name="rightMargin">
                      <number>20</number>
@@ -160,6 +172,834 @@
                    </layout>
                   </item>
                  </layout>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_7">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Expanding</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>1</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_4">
+             <property name="title">
+              <string>Binding Settings (Automatically received by RX on binding; auto-generated by TX)</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_8">
+              <item>
+               <layout class="QGridLayout" name="gridLayout_9">
+                <property name="bottomMargin">
+                 <number>4</number>
+                </property>
+                <item row="1" column="1">
+                 <widget class="QComboBox" name="cb_link_speed">
+                  <property name="objrelation" stdset="0">
+                   <stringlist notr="true">
+                    <string>objname:OpenLRS</string>
+                    <string>fieldname:modem_params</string>
+                   </stringlist>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QLabel" name="label_17">
+                  <property name="text">
+                   <string>Link speed:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QComboBox" name="cb_link_power">
+                  <property name="objrelation" stdset="0">
+                   <stringlist notr="true">
+                    <string>objname:OpenLRS</string>
+                    <string>fieldname:rf_power</string>
+                   </stringlist>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="2">
+                 <spacer name="horizontalSpacer_8">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item row="2" column="4">
+                 <widget class="QLabel" name="label_2">
+                  <property name="text">
+                   <string>12</string>
+                  </property>
+                  <property name="wordWrap">
+                   <bool>true</bool>
+                  </property>
+                  <property name="objrelation" stdset="0">
+                   <stringlist>
+                    <string>objname:OpenLRS</string>
+                    <string>fieldname:ext_flags</string>
+                   </stringlist>
+                  </property>
+                 </widget>
+                </item>
+                <item row="3" column="1">
+                 <widget class="QSpinBox" name="spinBox_10">
+                  <property name="suffix">
+                   <string> KHz</string>
+                  </property>
+                  <property name="maximum">
+                   <number>200</number>
+                  </property>
+                  <property name="singleStep">
+                   <number>10</number>
+                  </property>
+                  <property name="value">
+                   <number>10</number>
+                  </property>
+                  <property name="objrelation" stdset="0">
+                   <stringlist notr="true">
+                    <string>objname:OpenLRS</string>
+                    <string>fieldname:rf_channel_spacing</string>
+                    <string>scale:0.1</string>
+                   </stringlist>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="4">
+                 <widget class="QLabel" name="label">
+                  <property name="text">
+                   <string>12</string>
+                  </property>
+                  <property name="wordWrap">
+                   <bool>true</bool>
+                  </property>
+                  <property name="objrelation" stdset="0">
+                   <stringlist>
+                    <string>objname:OpenLRS</string>
+                    <string>fieldname:flags</string>
+                   </stringlist>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="1">
+                 <widget class="QDoubleSpinBox" name="doubleSpinBox_2">
+                  <property name="suffix">
+                   <string> MHz</string>
+                  </property>
+                  <property name="decimals">
+                   <number>4</number>
+                  </property>
+                  <property name="minimum">
+                   <double>400.000000000000000</double>
+                  </property>
+                  <property name="maximum">
+                   <double>1000.000000000000000</double>
+                  </property>
+                  <property name="singleStep">
+                   <double>0.002500000000000</double>
+                  </property>
+                  <property name="objrelation" stdset="0">
+                   <stringlist notr="true">
+                    <string>objname:OpenLRS</string>
+                    <string>fieldname:rf_frequency</string>
+                    <string>scale:1000000</string>
+                   </stringlist>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_15">
+                  <property name="text">
+                   <string>Link power:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="3">
+                 <widget class="QLabel" name="label_20">
+                  <property name="text">
+                   <string>Flags:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="3">
+                 <widget class="QLabel" name="label_18">
+                  <property name="text">
+                   <string>Magic number:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="3">
+                 <widget class="QLabel" name="label_21">
+                  <property name="text">
+                   <string>Extended flags:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="0">
+                 <widget class="QLabel" name="label_23">
+                  <property name="text">
+                   <string>Base frequency:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="3" column="0">
+                 <widget class="QLabel" name="label_26">
+                  <property name="text">
+                   <string>Channel spacing:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="4">
+                 <widget class="QLabel" name="label_3">
+                  <property name="text">
+                   <string>123456789</string>
+                  </property>
+                  <property name="wordWrap">
+                   <bool>true</bool>
+                  </property>
+                  <property name="objrelation" stdset="0">
+                   <stringlist>
+                    <string>objname:OpenLRS</string>
+                    <string>fieldname:rf_magic</string>
+                   </stringlist>
+                  </property>
+                 </widget>
+                </item>
+                <item row="4" column="0">
+                 <widget class="QLabel" name="label_43">
+                  <property name="text">
+                   <string>Hop channels:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="4" column="1" colspan="4">
+                 <layout class="QHBoxLayout" name="horizontalLayout_2">
+                  <item>
+                   <widget class="QLabel" name="label_44">
+                    <property name="text">
+                     <string>12</string>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
+                    </property>
+                    <property name="margin">
+                     <number>3</number>
+                    </property>
+                    <property name="objrelation" stdset="0">
+                     <stringlist>
+                      <string>objname:OpenLRS</string>
+                      <string>fieldname:hopchannel</string>
+                      <string>element:0</string>
+                     </stringlist>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_45">
+                    <property name="text">
+                     <string>12</string>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
+                    </property>
+                    <property name="margin">
+                     <number>3</number>
+                    </property>
+                    <property name="objrelation" stdset="0">
+                     <stringlist>
+                      <string>objname:OpenLRS</string>
+                      <string>fieldname:hopchannel</string>
+                      <string>element:1</string>
+                     </stringlist>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_46">
+                    <property name="text">
+                     <string>12</string>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
+                    </property>
+                    <property name="margin">
+                     <number>3</number>
+                    </property>
+                    <property name="objrelation" stdset="0">
+                     <stringlist>
+                      <string>objname:OpenLRS</string>
+                      <string>fieldname:hopchannel</string>
+                      <string>element:2</string>
+                     </stringlist>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_47">
+                    <property name="text">
+                     <string>12</string>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
+                    </property>
+                    <property name="margin">
+                     <number>3</number>
+                    </property>
+                    <property name="objrelation" stdset="0">
+                     <stringlist>
+                      <string>objname:OpenLRS</string>
+                      <string>fieldname:hopchannel</string>
+                      <string>element:3</string>
+                     </stringlist>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_48">
+                    <property name="text">
+                     <string>12</string>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
+                    </property>
+                    <property name="margin">
+                     <number>3</number>
+                    </property>
+                    <property name="objrelation" stdset="0">
+                     <stringlist>
+                      <string>objname:OpenLRS</string>
+                      <string>fieldname:hopchannel</string>
+                      <string>element:4</string>
+                     </stringlist>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_49">
+                    <property name="text">
+                     <string>12</string>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
+                    </property>
+                    <property name="margin">
+                     <number>3</number>
+                    </property>
+                    <property name="objrelation" stdset="0">
+                     <stringlist>
+                      <string>objname:OpenLRS</string>
+                      <string>fieldname:hopchannel</string>
+                      <string>element:5</string>
+                     </stringlist>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_50">
+                    <property name="text">
+                     <string>12</string>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
+                    </property>
+                    <property name="margin">
+                     <number>3</number>
+                    </property>
+                    <property name="objrelation" stdset="0">
+                     <stringlist>
+                      <string>objname:OpenLRS</string>
+                      <string>fieldname:hopchannel</string>
+                      <string>element:6</string>
+                     </stringlist>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_51">
+                    <property name="text">
+                     <string>12</string>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
+                    </property>
+                    <property name="margin">
+                     <number>3</number>
+                    </property>
+                    <property name="objrelation" stdset="0">
+                     <stringlist>
+                      <string>objname:OpenLRS</string>
+                      <string>fieldname:hopchannel</string>
+                      <string>element:7</string>
+                     </stringlist>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_52">
+                    <property name="text">
+                     <string>12</string>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
+                    </property>
+                    <property name="margin">
+                     <number>3</number>
+                    </property>
+                    <property name="objrelation" stdset="0">
+                     <stringlist>
+                      <string>objname:OpenLRS</string>
+                      <string>fieldname:hopchannel</string>
+                      <string>element:8</string>
+                     </stringlist>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_53">
+                    <property name="text">
+                     <string>12</string>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
+                    </property>
+                    <property name="margin">
+                     <number>3</number>
+                    </property>
+                    <property name="objrelation" stdset="0">
+                     <stringlist>
+                      <string>objname:OpenLRS</string>
+                      <string>fieldname:hopchannel</string>
+                      <string>element:9</string>
+                     </stringlist>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_54">
+                    <property name="text">
+                     <string>12</string>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
+                    </property>
+                    <property name="margin">
+                     <number>3</number>
+                    </property>
+                    <property name="objrelation" stdset="0">
+                     <stringlist>
+                      <string>objname:OpenLRS</string>
+                      <string>fieldname:hopchannel</string>
+                      <string>element:10</string>
+                     </stringlist>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_55">
+                    <property name="text">
+                     <string>12</string>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
+                    </property>
+                    <property name="margin">
+                     <number>3</number>
+                    </property>
+                    <property name="objrelation" stdset="0">
+                     <stringlist>
+                      <string>objname:OpenLRS</string>
+                      <string>fieldname:hopchannel</string>
+                      <string>element:11</string>
+                     </stringlist>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item row="5" column="1" colspan="4">
+                 <layout class="QHBoxLayout" name="horizontalLayout_5">
+                  <item>
+                   <widget class="QLabel" name="label_56">
+                    <property name="text">
+                     <string>12</string>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
+                    </property>
+                    <property name="margin">
+                     <number>3</number>
+                    </property>
+                    <property name="objrelation" stdset="0">
+                     <stringlist>
+                      <string>objname:OpenLRS</string>
+                      <string>fieldname:hopchannel</string>
+                      <string>element:12</string>
+                     </stringlist>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_57">
+                    <property name="text">
+                     <string>12</string>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
+                    </property>
+                    <property name="margin">
+                     <number>3</number>
+                    </property>
+                    <property name="objrelation" stdset="0">
+                     <stringlist>
+                      <string>objname:OpenLRS</string>
+                      <string>fieldname:hopchannel</string>
+                      <string>element:13</string>
+                     </stringlist>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_58">
+                    <property name="text">
+                     <string>12</string>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
+                    </property>
+                    <property name="margin">
+                     <number>3</number>
+                    </property>
+                    <property name="objrelation" stdset="0">
+                     <stringlist>
+                      <string>objname:OpenLRS</string>
+                      <string>fieldname:hopchannel</string>
+                      <string>element:14</string>
+                     </stringlist>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_59">
+                    <property name="text">
+                     <string>12</string>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
+                    </property>
+                    <property name="margin">
+                     <number>3</number>
+                    </property>
+                    <property name="objrelation" stdset="0">
+                     <stringlist>
+                      <string>objname:OpenLRS</string>
+                      <string>fieldname:hopchannel</string>
+                      <string>element:15</string>
+                     </stringlist>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_60">
+                    <property name="text">
+                     <string>12</string>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
+                    </property>
+                    <property name="margin">
+                     <number>3</number>
+                    </property>
+                    <property name="objrelation" stdset="0">
+                     <stringlist>
+                      <string>objname:OpenLRS</string>
+                      <string>fieldname:hopchannel</string>
+                      <string>element:16</string>
+                     </stringlist>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_61">
+                    <property name="text">
+                     <string>12</string>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
+                    </property>
+                    <property name="margin">
+                     <number>3</number>
+                    </property>
+                    <property name="objrelation" stdset="0">
+                     <stringlist>
+                      <string>objname:OpenLRS</string>
+                      <string>fieldname:hopchannel</string>
+                      <string>element:17</string>
+                     </stringlist>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_62">
+                    <property name="text">
+                     <string>12</string>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
+                    </property>
+                    <property name="margin">
+                     <number>3</number>
+                    </property>
+                    <property name="objrelation" stdset="0">
+                     <stringlist>
+                      <string>objname:OpenLRS</string>
+                      <string>fieldname:hopchannel</string>
+                      <string>element:18</string>
+                     </stringlist>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_63">
+                    <property name="text">
+                     <string>12</string>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
+                    </property>
+                    <property name="margin">
+                     <number>3</number>
+                    </property>
+                    <property name="objrelation" stdset="0">
+                     <stringlist>
+                      <string>objname:OpenLRS</string>
+                      <string>fieldname:hopchannel</string>
+                      <string>element:19</string>
+                     </stringlist>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_64">
+                    <property name="text">
+                     <string>12</string>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
+                    </property>
+                    <property name="margin">
+                     <number>3</number>
+                    </property>
+                    <property name="objrelation" stdset="0">
+                     <stringlist>
+                      <string>objname:OpenLRS</string>
+                      <string>fieldname:hopchannel</string>
+                      <string>element:20</string>
+                     </stringlist>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_65">
+                    <property name="text">
+                     <string>12</string>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
+                    </property>
+                    <property name="margin">
+                     <number>3</number>
+                    </property>
+                    <property name="objrelation" stdset="0">
+                     <stringlist>
+                      <string>objname:OpenLRS</string>
+                      <string>fieldname:hopchannel</string>
+                      <string>element:21</string>
+                     </stringlist>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_66">
+                    <property name="text">
+                     <string>12</string>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
+                    </property>
+                    <property name="margin">
+                     <number>3</number>
+                    </property>
+                    <property name="objrelation" stdset="0">
+                     <stringlist>
+                      <string>objname:OpenLRS</string>
+                      <string>fieldname:hopchannel</string>
+                      <string>element:22</string>
+                     </stringlist>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_67">
+                    <property name="text">
+                     <string>12</string>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
+                    </property>
+                    <property name="margin">
+                     <number>3</number>
+                    </property>
+                    <property name="objrelation" stdset="0">
+                     <stringlist>
+                      <string>objname:OpenLRS</string>
+                      <string>fieldname:hopchannel</string>
+                      <string>element:23</string>
+                     </stringlist>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_3">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Expanding</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>1</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupTxSettings">
+             <property name="title">
+              <string>Transmitter-only Settings</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_4">
+              <item>
+               <layout class="QGridLayout" name="gridLayout_4">
+                <property name="bottomMargin">
+                 <number>4</number>
+                </property>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_12">
+                  <property name="text">
+                   <string>Bind duration at power-on:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="2">
+                 <spacer name="horizontalSpacer_6">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QLabel" name="label_22">
+                  <property name="text">
+                   <string>Control source minimum:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QSpinBox" name="spinBox_6">
+                  <property name="suffix">
+                   <string> s</string>
+                  </property>
+                  <property name="objrelation" stdset="0">
+                   <stringlist notr="true">
+                    <string>objname:OpenLRS</string>
+                    <string>fieldname:tx_startup_bind_duration</string>
+                   </stringlist>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="4">
+                 <widget class="QComboBox" name="cb_control_source">
+                  <property name="objrelation" stdset="0">
+                   <stringlist notr="true">
+                    <string>objname:OpenLRS</string>
+                    <string>fieldname:tx_source</string>
+                   </stringlist>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="3">
+                 <widget class="QLabel" name="label_19">
+                  <property name="text">
+                   <string>Control source:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="3">
+                 <widget class="QLabel" name="label_24">
+                  <property name="text">
+                   <string>Control source maximum:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="1">
+                 <widget class="QSpinBox" name="spinBox_8">
+                  <property name="maximum">
+                   <number>32000</number>
+                  </property>
+                  <property name="objrelation" stdset="0">
+                   <stringlist notr="true">
+                    <string>objname:OpenLRS</string>
+                    <string>fieldname:tx_scale_min</string>
+                   </stringlist>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="4">
+                 <widget class="QSpinBox" name="spinBox_9">
+                  <property name="maximum">
+                   <number>32000</number>
+                  </property>
+                  <property name="objrelation" stdset="0">
+                   <stringlist notr="true">
+                    <string>objname:OpenLRS</string>
+                    <string>fieldname:tx_scale_max</string>
+                   </stringlist>
+                  </property>
+                 </widget>
                 </item>
                </layout>
               </item>
@@ -269,162 +1109,30 @@
             </widget>
            </item>
            <item>
-            <widget class="QGroupBox" name="groupTxSettings">
-             <property name="title">
-              <string>Transmitter-only Settings</string>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_4">
-              <item>
-               <layout class="QGridLayout" name="gridLayout_4">
-                <property name="bottomMargin">
-                 <number>4</number>
-                </property>
-                <item row="0" column="0">
-                 <widget class="QLabel" name="label_12">
-                  <property name="text">
-                   <string>Bind duration at power-on:</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="2">
-                 <spacer name="horizontalSpacer_6">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>40</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-                <item row="1" column="0">
-                 <widget class="QLabel" name="label_22">
-                  <property name="text">
-                   <string>Control source minimum:</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="1">
-                 <widget class="QSpinBox" name="spinBox_6">
-                  <property name="suffix">
-                   <string> s</string>
-                  </property>
-                  <property name="objrelation" stdset="0">
-                   <stringlist notr="true">
-                    <string>objname:OpenLRS</string>
-                    <string>fieldname:tx_startup_bind_duration</string>
-                   </stringlist>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="4">
-                 <widget class="QComboBox" name="cb_control_source">
-                  <property name="objrelation" stdset="0">
-                   <stringlist notr="true">
-                    <string>objname:OpenLRS</string>
-                    <string>fieldname:tx_source</string>
-                   </stringlist>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="3">
-                 <widget class="QLabel" name="label_19">
-                  <property name="text">
-                   <string>Control source:</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="3">
-                 <widget class="QLabel" name="label_24">
-                  <property name="text">
-                   <string>Control source maximum:</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="1">
-                 <widget class="QSpinBox" name="spinBox_8">
-                  <property name="maximum">
-                   <number>32000</number>
-                  </property>
-                  <property name="objrelation" stdset="0">
-                   <stringlist notr="true">
-                    <string>objname:OpenLRS</string>
-                    <string>fieldname:tx_scale_min</string>
-                   </stringlist>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="4">
-                 <widget class="QSpinBox" name="spinBox_9">
-                  <property name="maximum">
-                   <number>32000</number>
-                  </property>
-                  <property name="objrelation" stdset="0">
-                   <stringlist notr="true">
-                    <string>objname:OpenLRS</string>
-                    <string>fieldname:tx_scale_max</string>
-                   </stringlist>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
-            <widget class="QGroupBox" name="groupBox_4">
-             <property name="title">
-              <string>Binding Settings (Automatically received by RX on binding; auto-generated by TX)</string>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_8">
-              <item>
-               <layout class="QGridLayout" name="gridLayout_9">
-                <property name="bottomMargin">
-                 <number>4</number>
-                </property>
-                <item row="1" column="0">
-                 <widget class="QLabel" name="label_23">
-                  <property name="text">
-                   <string>TBD XXX </string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="1">
-                 <spacer name="horizontalSpacer_8">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>40</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-               </layout>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
-            <spacer name="verticalSpacer_3">
+            <spacer name="verticalSpacer_6">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Expanding</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
                <width>20</width>
-               <height>40</height>
+               <height>1</height>
               </size>
              </property>
             </spacer>
            </item>
           </layout>
          </widget>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-style:italic; color:#a40000;&quot;&gt;Must reset radio and FC to apply changes.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
         </widget>
        </item>
       </layout>
