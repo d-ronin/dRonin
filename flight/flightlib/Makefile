@@ -82,7 +82,6 @@ SRC += $(wildcard $(FLIGHTLIB)/math/*.c)
 SRC += $(wildcard $(FLIGHTLIB)/mavlink/*.c)
 SRC += $(wildcard $(FLIGHTLIB)/mgrs/*.c)
 SRC += $(wildcard $(FLIGHTLIB)/msp/*.c)
-SRC += $(wildcard $(FLIGHTLIB)/rscode/*.c)
 
 NO_AUTO_UAVO = YES
 
