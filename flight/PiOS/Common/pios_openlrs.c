@@ -117,7 +117,16 @@ const struct rfm22_modem_regs {
  * 71 = 0x23 modulation mode -- FIFO, GFSK
  */
 
-#define OPENLRS_BIND_PARAMS 1	/* 9600 params */
+DONT_BUILD_IF(OPENLRS_MODEM_PARAMS_4800 != 0, InvModemParams);
+DONT_BUILD_IF(OPENLRS_MODEM_PARAMS_9600 != 1, InvModemParams2);
+DONT_BUILD_IF(OPENLRS_MODEM_PARAMS_19200 != 2, InvModemParams3);
+DONT_BUILD_IF(OPENLRS_MODEM_PARAMS_57600 != 3, InvModemParams4);
+DONT_BUILD_IF(OPENLRS_MODEM_PARAMS_125000 != 4, InvModemParams5);
+DONT_BUILD_IF(OPENLRS_MODEM_PARAMS_MAXOPTVAL != 4, InvModemParams6);
+
+#define OPENLRS_BIND_PARAMS (OPENLRS_MODEM_PARAMS_9600)
+#define BINDING_POWER (OPENLRS_RF_POWER_50 - 1)
+		// not lowest since may fail to tx with amp
 
 static uint8_t count_set_bits(uint16_t x)
 {
@@ -721,27 +730,31 @@ static void pios_openlrs_config_to_port_config(pios_openlrs_t openlrs_dev)
 
 static bool pios_openlrs_config_to_bind_data(pios_openlrs_t openlrs_dev)
 {
-	OpenLRSData binding;
-	OpenLRSGet(&binding);
+	OpenLRSData config;
+	OpenLRSGet(&config);
 
 	bool inited = false;
 
-	if (binding.version == BINDING_VERSION) {
+	if ((config.version == BINDING_VERSION) &&
+			(config.rf_power > OPENLRS_RF_POWER_0)) {
 		openlrs_dev->bind_data.hdr = 'b';
-		openlrs_dev->bind_data.version = binding.version;
+		openlrs_dev->bind_data.version = config.version;
 		openlrs_dev->bind_data.reserved[0] = 0;
 		openlrs_dev->bind_data.reserved[1] = 0;
 		openlrs_dev->bind_data.reserved[2] = 0;
-		openlrs_dev->bind_data.rf_frequency = binding.rf_frequency;
-		openlrs_dev->bind_data.rf_magic = binding.rf_magic;
-		openlrs_dev->bind_data.rf_power = binding.rf_power;
-		openlrs_dev->bind_data.rf_channel_spacing = binding.rf_channel_spacing;
-		openlrs_dev->bind_data.modem_params = binding.modem_params;
-		openlrs_dev->bind_data.flags = binding.flags;
-		openlrs_dev->bind_data.ext_flags = binding.ext_flags;
+		openlrs_dev->bind_data.rf_frequency = config.rf_frequency;
+		openlrs_dev->bind_data.rf_magic = config.rf_magic;
+		openlrs_dev->bind_data.rf_power = config.rf_power - 1;
+		openlrs_dev->bind_data.rf_channel_spacing = config.rf_channel_spacing;
+
+		if (config.modem_params <= OPENLRS_MODEM_PARAMS_MAXOPTVAL) {
+			openlrs_dev->bind_data.modem_params = config.modem_params;
+		}
+		openlrs_dev->bind_data.flags = config.flags;
+		openlrs_dev->bind_data.ext_flags = config.ext_flags;
 		for (uint32_t i = 0; i < OPENLRS_HOPCHANNEL_NUMELEM; i++)
-			openlrs_dev->bind_data.hopchannel[i] = binding.hopchannel[i];
-	} else if (binding.role == OPENLRS_ROLE_TX) {
+			openlrs_dev->bind_data.hopchannel[i] = config.hopchannel[i];
+	} else if (config.role == OPENLRS_ROLE_TX) {
 		inited = true;
 
 		/* Create valid bind data */
@@ -753,10 +766,11 @@ static bool pios_openlrs_config_to_bind_data(pios_openlrs_t openlrs_dev)
 		openlrs_dev->bind_data.rf_frequency =
 			def_carrier_freq(openlrs_dev->band);
 		openlrs_dev->bind_data.rf_magic = randomize_int(0);
-		openlrs_dev->bind_data.rf_power = 7;
+		openlrs_dev->bind_data.rf_power = OPENLRS_RF_POWER_100 - 1;
 		openlrs_dev->bind_data.rf_channel_spacing = 1;
 			/* Unit is * 10KHz */
-		openlrs_dev->bind_data.modem_params = 3;
+		openlrs_dev->bind_data.modem_params =
+			OPENLRS_MODEM_PARAMS_57600;
 		openlrs_dev->bind_data.flags = 10; /* Telemetry + 8 channels */
 
 		/* Use dR extensions and pass telem by default */
@@ -780,16 +794,16 @@ static bool pios_openlrs_config_to_bind_data(pios_openlrs_t openlrs_dev)
 	}
 
 	// Also copy beacon settings over to device config.
-	openlrs_dev->beacon_frequency = binding.beacon_frequency;
-	openlrs_dev->beacon_delay = binding.beacon_delay;
-	openlrs_dev->beacon_period = binding.beacon_period;
+	openlrs_dev->beacon_frequency = config.beacon_frequency;
+	openlrs_dev->beacon_delay = config.beacon_delay;
+	openlrs_dev->beacon_period = config.beacon_period;
 
-	openlrs_dev->scale_min = binding.tx_scale_min;
-	openlrs_dev->scale_max = binding.tx_scale_max;
+	openlrs_dev->scale_min = config.tx_scale_min;
+	openlrs_dev->scale_max = config.tx_scale_max;
 
-	openlrs_dev->tx_source = binding.tx_source;
-	openlrs_dev->tx_startup_bind_duration = binding.tx_startup_bind_duration;
-	openlrs_dev->tx_bind_button_duration = binding.tx_bind_button_duration;
+	openlrs_dev->tx_source = config.tx_source;
+	openlrs_dev->tx_startup_bind_duration = config.tx_startup_bind_duration;
+	openlrs_dev->tx_bind_button_duration = config.tx_bind_button_duration;
 
 	return inited;
 }
@@ -822,12 +836,23 @@ static bool pios_openlrs_bind_data_to_config(pios_openlrs_t openlrs_dev)
 #endif /* PIOS_INCLUDE_DEBUG_CONSOLE */
 
 		if (openlrs_dev->bind_data.version == BINDING_VERSION) {
+			if (openlrs_dev->bind_data.rf_power >=
+					OPENLRS_RF_POWER_MAXOPTVAL) {
+				/* >= because offset by 1 */
+				return false;
+			}
+
+			if (openlrs_dev->bind_data.modem_params >
+					OPENLRS_MODEM_PARAMS_MAXOPTVAL) {
+				return false;
+			}
+
 			OpenLRSData binding;
 			OpenLRSGet(&binding);
 			binding.version = openlrs_dev->bind_data.version;
 			binding.rf_frequency = openlrs_dev->bind_data.rf_frequency;
 			binding.rf_magic = openlrs_dev->bind_data.rf_magic;
-			binding.rf_power = openlrs_dev->bind_data.rf_power;
+			binding.rf_power = openlrs_dev->bind_data.rf_power + 1;
 			binding.rf_channel_spacing = openlrs_dev->bind_data.rf_channel_spacing;
 			binding.modem_params = openlrs_dev->bind_data.modem_params;
 			binding.flags = openlrs_dev->bind_data.flags;

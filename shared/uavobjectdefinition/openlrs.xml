@@ -45,17 +45,24 @@
     <field defaultvalue="0" elements="1" name="rf_magic" type="uint32" units="">
       <description>Radio Magic.  This constant ensures that we only exchange frames wth radios we are bound with.</description>
     </field>
-    <field defaultvalue="0" elements="1" name="rf_power" type="uint8" units="">
+    <field defaultvalue="0" elements="1" name="rf_power" parent="HwShared.MaxRfPower" type="enum" units="mW">
       <description>Radio Power</description>
     </field>
-    <field defaultvalue="0" elements="1" name="rf_channel_spacing" type="uint8" units="">
-      <description>Channel spacing in kilohertz.</description>
+    <field defaultvalue="0" elements="1" name="rf_channel_spacing" type="uint8" units="*10KHz">
+      <description>Channel spacing</description>
     </field>
     <field defaultvalue="0" elements="24" name="hopchannel" type="uint8" units="">
       <description>Array of hop channels.  First zero terminates list.</description>
     </field>
-    <field defaultvalue="0" elements="1" name="modem_params" type="uint8" units="">
-      <description>Modem parameters: this sets the link speed</description>
+    <field defaultvalue="9600" elements="1" name="modem_params" type="enum" units="bps">
+      <description>Modem parameters: this sets the raw underlying link speed</description>
+      <options>
+        <option>4800</option>
+        <option>9600</option>
+        <option>19200</option>
+        <option>57600</option>
+        <option>125000</option>
+      </options>
     </field>
     <field defaultvalue="0" elements="1" name="flags" type="uint8" units="">
       <description>Flags sets the channel mappings and whether telemetry is present.</description>
