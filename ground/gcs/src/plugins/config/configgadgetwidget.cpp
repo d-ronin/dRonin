@@ -199,8 +199,8 @@ void ConfigGadgetWidget::deferredLoader()
 
     case 12:
         icon = new QIcon();
-        icon->addFile(":/configgadget/images/osd_normal.png", QSize(), QIcon::Normal, QIcon::Off);
-        icon->addFile(":/configgadget/images/osd_selected.png", QSize(), QIcon::Selected,
+        icon->addFile(":/configgadget/images/radio_normal.png", QSize(), QIcon::Normal, QIcon::Off);
+        icon->addFile(":/configgadget/images/radio_selected.png", QSize(), QIcon::Selected,
                       QIcon::Off);
         qwd = new ConfigRadioWidget(this);
         ftw->insertTab(ConfigGadgetWidget::radio, qwd, *icon, QString("Radio"));
