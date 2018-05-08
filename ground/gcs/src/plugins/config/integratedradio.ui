@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>903</width>
-    <height>735</height>
+    <height>800</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -31,106 +31,369 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
-        <widget class="QGroupBox" name="groupBox_2">
-         <property name="title">
-          <string>General Settings</string>
+        <widget class="QScrollArea" name="scrollArea">
+         <property name="widgetResizable">
+          <bool>true</bool>
          </property>
-         <layout class="QGridLayout" name="gridLayout_2">
-          <item row="1" column="1">
-           <layout class="QGridLayout" name="gridLayout_5">
-            <item row="0" column="0">
-             <layout class="QGridLayout" name="gridLayout_3">
-              <item row="2" column="0">
-               <widget class="QLabel" name="label_10">
-                <property name="text">
-                 <string>RSSI source:</string>
-                </property>
-               </widget>
+         <widget class="QWidget" name="scrollAreaWidgetContents">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>853</width>
+            <height>677</height>
+           </rect>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_9">
+           <item>
+            <widget class="QGroupBox" name="groupBox_2">
+             <property name="title">
+              <string>General Settings</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_2">
+              <item row="1" column="1">
+               <layout class="QGridLayout" name="gridLayout_5">
+                <item row="0" column="0">
+                 <layout class="QGridLayout" name="gridLayout_3">
+                  <item row="2" column="0">
+                   <widget class="QLabel" name="label_10">
+                    <property name="text">
+                     <string>RSSI source:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="2">
+                   <widget class="QComboBox" name="cb_tel_source">
+                    <property name="objrelation" stdset="0">
+                     <stringlist notr="true">
+                      <string>objname:OpenLRS</string>
+                      <string>fieldname:data_source</string>
+                     </stringlist>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="2">
+                   <widget class="QComboBox" name="cb_rssi_source">
+                    <property name="objrelation" stdset="0">
+                     <stringlist notr="true">
+                      <string>objname:OpenLRS</string>
+                      <string>fieldname:RSSI_Type</string>
+                     </stringlist>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="3">
+                   <spacer name="horizontalSpacer_2">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item row="1" column="0">
+                   <widget class="QLabel" name="label_11">
+                    <property name="text">
+                     <string>Telemetry data source:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="0">
+                   <widget class="QLabel" name="label_6">
+                    <property name="text">
+                     <string>Radio role:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="2" colspan="2">
+                   <layout class="QHBoxLayout" name="horizontalLayout_3">
+                    <property name="rightMargin">
+                     <number>20</number>
+                    </property>
+                    <item>
+                     <widget class="QRadioButton" name="rb_disabled">
+                      <property name="text">
+                       <string>Disabled</string>
+                      </property>
+                      <attribute name="buttonGroup">
+                       <string notr="true">buttonGroup</string>
+                      </attribute>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QRadioButton" name="rb_rx">
+                      <property name="text">
+                       <string>Rx (aircraft-side)</string>
+                      </property>
+                      <attribute name="buttonGroup">
+                       <string notr="true">buttonGroup</string>
+                      </attribute>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QRadioButton" name="rb_tx">
+                      <property name="text">
+                       <string>Tx (transmits control data)</string>
+                      </property>
+                      <attribute name="buttonGroup">
+                       <string notr="true">buttonGroup</string>
+                      </attribute>
+                     </widget>
+                    </item>
+                    <item>
+                     <spacer name="horizontalSpacer_3">
+                      <property name="orientation">
+                       <enum>Qt::Horizontal</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>40</width>
+                        <height>20</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
               </item>
-              <item row="1" column="2">
-               <widget class="QComboBox" name="cb_tel_source">
-                <property name="objrelation" stdset="0">
-                 <stringlist notr="true">
-                  <string>objname:OpenLRS</string>
-                  <string>fieldname:data_source</string>
-                 </stringlist>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupRxSettings">
+             <property name="title">
+              <string>Receiver-only Settings</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_3">
+              <item>
+               <layout class="QGridLayout" name="gridLayout">
+                <property name="bottomMargin">
+                 <number>0</number>
                 </property>
-               </widget>
-              </item>
-              <item row="2" column="2">
-               <widget class="QComboBox" name="cb_rssi_source">
-                <property name="objrelation" stdset="0">
-                 <stringlist notr="true">
-                  <string>objname:OpenLRS</string>
-                  <string>fieldname:RSSI_Type</string>
-                 </stringlist>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="3">
-               <spacer name="horizontalSpacer_2">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_11">
-                <property name="text">
-                 <string>Telemetry data source:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="0">
-               <widget class="QLabel" name="label_6">
-                <property name="text">
-                 <string>Radio role:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="2" colspan="2">
-               <layout class="QHBoxLayout" name="horizontalLayout_3">
-                <property name="rightMargin">
-                 <number>20</number>
-                </property>
-                <item>
-                 <widget class="QRadioButton" name="rb_disabled">
+                <item row="2" column="2">
+                 <widget class="QLabel" name="label_13">
                   <property name="text">
-                   <string>Disabled</string>
+                   <string>Beacon interval:</string>
                   </property>
-                  <attribute name="buttonGroup">
-                   <string notr="true">buttonGroup</string>
-                  </attribute>
                  </widget>
                 </item>
-                <item>
-                 <widget class="QRadioButton" name="rb_rx">
-                  <property name="text">
-                   <string>Rx (aircraft-side)</string>
+                <item row="1" column="3">
+                 <widget class="QSpinBox" name="spinBox">
+                  <property name="suffix">
+                   <string> s</string>
                   </property>
-                  <attribute name="buttonGroup">
-                   <string notr="true">buttonGroup</string>
-                  </attribute>
+                  <property name="objrelation" stdset="0">
+                   <stringlist notr="true">
+                    <string>objname:OpenLRS</string>
+                    <string>fieldname:beacon_delay</string>
+                   </stringlist>
+                  </property>
                  </widget>
                 </item>
-                <item>
-                 <widget class="QRadioButton" name="rb_tx">
+                <item row="1" column="2">
+                 <widget class="QLabel" name="label_9">
                   <property name="text">
-                   <string>Tx (transmits control data)</string>
+                   <string>Beacon initial delay:</string>
                   </property>
-                  <attribute name="buttonGroup">
-                   <string notr="true">buttonGroup</string>
-                  </attribute>
                  </widget>
                 </item>
-                <item>
-                 <spacer name="horizontalSpacer_3">
+                <item row="2" column="3">
+                 <widget class="QSpinBox" name="spinBox_2">
+                  <property name="suffix">
+                   <string> s</string>
+                  </property>
+                  <property name="objrelation" stdset="0">
+                   <stringlist notr="true">
+                    <string>objname:OpenLRS</string>
+                    <string>fieldname:beacon_period</string>
+                   </stringlist>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="6">
+                 <widget class="QDoubleSpinBox" name="doubleSpinBox">
+                  <property name="suffix">
+                   <string> MHz</string>
+                  </property>
+                  <property name="decimals">
+                   <number>4</number>
+                  </property>
+                  <property name="minimum">
+                   <double>400.000000000000000</double>
+                  </property>
+                  <property name="maximum">
+                   <double>1000.000000000000000</double>
+                  </property>
+                  <property name="singleStep">
+                   <double>0.002500000000000</double>
+                  </property>
+                  <property name="objrelation" stdset="0">
+                   <stringlist notr="true">
+                    <string>objname:OpenLRS</string>
+                    <string>fieldname:beacon_frequency</string>
+                    <string>scale:1000000</string>
+                   </stringlist>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="4">
+                 <spacer name="horizontalSpacer_9">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item row="1" column="5">
+                 <widget class="QLabel" name="label_14">
+                  <property name="text">
+                   <string>Beacon frequency:</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupTxSettings">
+             <property name="title">
+              <string>Transmitter-only Settings</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_4">
+              <item>
+               <layout class="QGridLayout" name="gridLayout_4">
+                <property name="bottomMargin">
+                 <number>4</number>
+                </property>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_12">
+                  <property name="text">
+                   <string>Bind duration at power-on:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="2">
+                 <spacer name="horizontalSpacer_6">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QLabel" name="label_22">
+                  <property name="text">
+                   <string>Control source minimum:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QSpinBox" name="spinBox_6">
+                  <property name="suffix">
+                   <string> s</string>
+                  </property>
+                  <property name="objrelation" stdset="0">
+                   <stringlist notr="true">
+                    <string>objname:OpenLRS</string>
+                    <string>fieldname:tx_startup_bind_duration</string>
+                   </stringlist>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="4">
+                 <widget class="QComboBox" name="cb_control_source">
+                  <property name="objrelation" stdset="0">
+                   <stringlist notr="true">
+                    <string>objname:OpenLRS</string>
+                    <string>fieldname:tx_source</string>
+                   </stringlist>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="3">
+                 <widget class="QLabel" name="label_19">
+                  <property name="text">
+                   <string>Control source:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="3">
+                 <widget class="QLabel" name="label_24">
+                  <property name="text">
+                   <string>Control source maximum:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="1">
+                 <widget class="QSpinBox" name="spinBox_8">
+                  <property name="maximum">
+                   <number>32000</number>
+                  </property>
+                  <property name="objrelation" stdset="0">
+                   <stringlist notr="true">
+                    <string>objname:OpenLRS</string>
+                    <string>fieldname:tx_scale_min</string>
+                   </stringlist>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="4">
+                 <widget class="QSpinBox" name="spinBox_9">
+                  <property name="maximum">
+                   <number>32000</number>
+                  </property>
+                  <property name="objrelation" stdset="0">
+                   <stringlist notr="true">
+                    <string>objname:OpenLRS</string>
+                    <string>fieldname:tx_scale_max</string>
+                   </stringlist>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_4">
+             <property name="title">
+              <string>Binding Settings (Automatically received by RX on binding; auto-generated by TX)</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_8">
+              <item>
+               <layout class="QGridLayout" name="gridLayout_9">
+                <property name="bottomMargin">
+                 <number>4</number>
+                </property>
+                <item row="1" column="0">
+                 <widget class="QLabel" name="label_23">
+                  <property name="text">
+                   <string>TBD XXX </string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <spacer name="horizontalSpacer_8">
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
                   </property>
@@ -145,131 +408,28 @@
                </layout>
               </item>
              </layout>
-            </item>
-           </layout>
-          </item>
-         </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_3">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
         </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBox">
-         <property name="title">
-          <string>Receiver-only Settings</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_3">
-          <item>
-           <layout class="QGridLayout" name="gridLayout">
-            <property name="bottomMargin">
-             <number>0</number>
-            </property>
-            <item row="2" column="2">
-             <widget class="QLabel" name="label_13">
-              <property name="text">
-               <string>Beacon interval:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="4">
-             <spacer name="horizontalSpacer_4">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item row="1" column="3">
-             <widget class="QSpinBox" name="spinBox"/>
-            </item>
-            <item row="1" column="2">
-             <widget class="QLabel" name="label_9">
-              <property name="text">
-               <string>Beacon initial delay:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="3">
-             <widget class="QSpinBox" name="spinBox_2"/>
-            </item>
-            <item row="3" column="2">
-             <widget class="QLabel" name="label_14">
-              <property name="text">
-               <string>Beacon frequency:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="3">
-             <widget class="QDoubleSpinBox" name="doubleSpinBox">
-              <property name="suffix">
-               <string> MHz</string>
-              </property>
-              <property name="decimals">
-               <number>4</number>
-              </property>
-              <property name="minimum">
-               <double>400.000000000000000</double>
-              </property>
-              <property name="maximum">
-               <double>1000.000000000000000</double>
-              </property>
-              <property name="singleStep">
-               <double>0.002500000000000</double>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBox_3">
-         <property name="title">
-          <string>Transmitter-only Settings</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_4">
-          <item>
-           <layout class="QGridLayout" name="gridLayout_4"/>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <spacer name="verticalSpacer_3">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
        </item>
       </layout>
      </widget>
     </widget>
-   </item>
-   <item>
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeType">
-      <enum>QSizePolicy::Preferred</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>20</height>
-      </size>
-     </property>
-    </spacer>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
@@ -299,14 +459,6 @@
          <width>16777215</width>
          <height>16777215</height>
         </size>
-       </property>
-       <property name="toolTip">
-        <string>Reloads saved CameraStabilization settings  except output channels
-from board into GCS. Useful if you have accidentally changed some
-settings.
-
-Loaded settings are not applied automatically. You have to click the
-Apply or Save button afterwards.</string>
        </property>
        <property name="text">
         <string>Reload Board Data</string>

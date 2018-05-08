@@ -45,7 +45,9 @@ public:
     ~ConfigRadioWidget();
 
 private slots:
-
+    void roleChanged(bool);
+    void refreshWidgetsValues(UAVObject *obj);
+    void updateObjectsFromWidgets();
 private:
     Ui::radio *ui;
 
