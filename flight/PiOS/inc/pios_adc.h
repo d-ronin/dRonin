@@ -44,7 +44,6 @@ struct pios_adc_driver {
 };
 
 /* Public Functions */
-extern int32_t PIOS_ADC_DevicePinGet(uintptr_t adc_id, uint32_t device_pin);
 extern bool PIOS_ADC_Available(uintptr_t adc_id, uint32_t device_pin);
 extern int32_t PIOS_ADC_GetChannelRaw(uint32_t channel);
 extern float PIOS_ADC_GetChannelVolt(uint32_t channel);

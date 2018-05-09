@@ -115,25 +115,6 @@ int32_t PIOS_ADC_Init(uintptr_t *adc_id, const struct pios_adc_driver *driver, u
 }
 
 /**
- * @brief Gets the ADC value of the given pin of the device
- * \param[in] adc_id pointer to the device to read from
- * \param[in] device_pin pin from device to be read
- * \return the value of the pin or -1 if error
- */
-int32_t PIOS_ADC_DevicePinGet(uintptr_t adc_id, uint32_t device_pin)
-{
-	struct pios_adc_dev * adc_dev = (struct pios_adc_dev *) adc_id;
-
-	if (!PIOS_ADC_validate(adc_dev)) {
-		return -1;
-	}
-	if (adc_dev->driver->get_pin)
-		return (adc_dev->driver->get_pin)(adc_dev->lower_id, device_pin);
-	else
-		return -1;
-}
-
-/**
  * @brief Checks if a given pin is available on the given device
  * \param[in] adc_id handle of the device to read
  * \param[in] device_pin pin to check if available
