@@ -335,7 +335,14 @@
       </widget>
      </item>
      <item>
-      <widget class="QComboBox" name="CBCurve2Source"/>
+      <widget class="QComboBox" name="CBCurve2Source">
+       <property name="objrelation" stdset="0">
+        <stringlist>
+         <string>objname:MixerSettings</string>
+         <string>fieldname:Curve2Source</string>
+        </stringlist>
+       </property>
+      </widget>
      </item>
      <item>
       <spacer name="horizontalSpacer">

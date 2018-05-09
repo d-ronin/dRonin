@@ -167,7 +167,7 @@ ConfigCcpmWidget::ConfigCcpmWidget(QWidget *parent)
     // refreshAirframeWidgetsValues triggers a whole cascade of curve-related calls
     // need set the collective curve info after this point to make it stick
     // tell mixercurve this is a pitch curve
-    m_ccpm->PitchCurve->setMixerType(MixerCurve::MIXERCURVE_OTHER);
+    m_ccpm->PitchCurve->setMixerType(MixerCurve::MIXERCURVE_OTHER, false);
     m_ccpm->PitchCurve->initLinearCurve(5, 1.0, -1.0);
 
     UpdateType();
