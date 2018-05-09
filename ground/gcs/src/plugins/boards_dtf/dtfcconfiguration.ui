@@ -20,6 +20,18 @@
    <string>Form</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
+   <property name="leftMargin">
+    <number>12</number>
+   </property>
+   <property name="topMargin">
+    <number>12</number>
+   </property>
+   <property name="rightMargin">
+    <number>12</number>
+   </property>
+   <property name="bottomMargin">
+    <number>12</number>
+   </property>
    <item>
     <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
@@ -734,6 +746,7 @@
  </tabstops>
  <resources>
   <include location="dtfuhf.qrc"/>
+  <include location="../coreplugin/core.qrc"/>
   <include location="../coreplugin/core.qrc"/>
  </resources>
  <connections/>
