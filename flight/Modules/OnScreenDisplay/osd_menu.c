@@ -1512,6 +1512,14 @@ void filter_menu(void)
 	}
 }
 
+static const char *nullstrwrap(const char *str)
+{
+	if (str)
+		return str;
+
+	return "";
+}
+
 void flightmode_menu(void)
 {
 	int y_pos = MENU_LINE_Y;
@@ -1553,27 +1561,27 @@ void flightmode_menu(void)
 		}
 		switch (s) {
 			case FSM_STATE_FMODE_1:
-				sprintf(tmp_str, "Position 1: %s", fmode_strings[FlightModePosition[0]]);
+				sprintf(tmp_str, "Position 1: %s", nullstrwrap(fmode_strings[FlightModePosition[0]]));
 				write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
 				break;
 			case FSM_STATE_FMODE_2:
-				sprintf(tmp_str, "Position 2: %s", fmode_strings[FlightModePosition[1]]);
+				sprintf(tmp_str, "Position 2: %s", nullstrwrap(fmode_strings[FlightModePosition[1]]));
 				write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
 				break;
 			case FSM_STATE_FMODE_3:
-				sprintf(tmp_str, "Position 3: %s", fmode_strings[FlightModePosition[2]]);
+				sprintf(tmp_str, "Position 3: %s", nullstrwrap(fmode_strings[FlightModePosition[2]]));
 				write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
 				break;
 			case FSM_STATE_FMODE_4:
-				sprintf(tmp_str, "Position 4: %s", fmode_strings[FlightModePosition[3]]);
+				sprintf(tmp_str, "Position 4: %s", nullstrwrap(fmode_strings[FlightModePosition[3]]));
 				write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
 				break;
 			case FSM_STATE_FMODE_5:
-				sprintf(tmp_str, "Position 5: %s", fmode_strings[FlightModePosition[4]]);
+				sprintf(tmp_str, "Position 5: %s", nullstrwrap(fmode_strings[FlightModePosition[4]]));
 				write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
 				break;
 			case FSM_STATE_FMODE_6:
-				sprintf(tmp_str, "Position 6: %s", fmode_strings[FlightModePosition[5]]);
+				sprintf(tmp_str, "Position 6: %s", nullstrwrap(fmode_strings[FlightModePosition[5]]));
 				write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
 				break;
 			case FSM_STATE_FMODE_SAVEEXIT:
