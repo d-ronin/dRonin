@@ -252,10 +252,9 @@ bool rtkf_is_solved(rtkf_t rtkf)
 
 	P = A'PA - A'PB (R+B'PB)^-1 B'PA + Q
 */
-void lqr_calculate_covariance_2x2(float A[2][2], float B[2], float P[2][2], float Q[2][2])
+void lqr_calculate_covariance_2x2(float A[2][2], float B[2], float P[2][2], float Q[2][2], float R)
 {
 	float nP[2][2];
-	const float R = 1;
 
 	float B0B0 = B0*B0;
 	float B1B1 = B1*B1;
@@ -306,6 +305,7 @@ struct lqr_state {
 	float B[2];
 	float K[2];
 	float P[2][2];
+	float R;
 	float Q[2][2];
 	float u;
 
@@ -319,15 +319,12 @@ struct lqr_state {
 
 	K = (R + B'PB)^-1 B'PA
 */
-void lqr_calculate_gains_int(float A[2][2], float B[2], float P[2][2], float K[2])
+void lqr_calculate_gains_int(float A[2][2], float B[2], float P[2][2], float K[2], float R)
 {
-	const float R = 1;
-
 	float div = (R + B1*B1*P11 + B0*(B0*P00 + B1*(P01 + P10)));
 
 	K[0] = (A00*(B0*P00 + B1*P10)) / div;
 	K[1] = (A01*(B0*P00 + B1*P10) + A11*(B0*P01 + B1*P11)) / div;
-
 }
 
 /*
@@ -353,10 +350,10 @@ void lqr_stabilize_covariance(lqr_t lqr, int iterations)
 	PIOS_Assert(lqr);
 
 	for (int i = 0; i < iterations; i++) {
-		lqr_calculate_covariance_2x2(lqr->A, lqr->B, lqr->P, lqr->Q);
+		lqr_calculate_covariance_2x2(lqr->A, lqr->B, lqr->P, lqr->Q, lqr->R);
 	}
 
-	lqr_calculate_gains_int(lqr->A, lqr->B, lqr->P, lqr->K);
+	lqr_calculate_gains_int(lqr->A, lqr->B, lqr->P, lqr->K, lqr->R);
 
 	lqr->solver_iterations += iterations;
 }
@@ -393,7 +390,7 @@ void lqr_initialize_matrices_int(float A[2][2], float B[2], float beta, float ta
 
 	Current workable values for 5" miniquads seems to be Q1 = 0.00001, Q2 = 0.00013333.
 */
-lqr_t lqr_create(float beta, float tau, float Ts, float q1, float q2)
+lqr_t lqr_create(float beta, float tau, float Ts, float q1, float q2, float r)
 {
 	struct lqr_state *state = PIOS_malloc_no_dma(sizeof(*state));
 	PIOS_Assert(state);
@@ -402,6 +399,7 @@ lqr_t lqr_create(float beta, float tau, float Ts, float q1, float q2)
 	lqr_initialize_matrices_int(state->A, state->B, expf(beta), tau, Ts);
 	state->Q00 = q1;
 	state->Q11 = q2*expf(beta);
+	state->R = r;
 
 	state->beta = beta;
 	state->tau = tau;
@@ -409,12 +407,13 @@ lqr_t lqr_create(float beta, float tau, float Ts, float q1, float q2)
 	return state;
 }
 
-void lqr_update(lqr_t lqr, float q1, float q2)
+void lqr_update(lqr_t lqr, float q1, float q2, float r)
 {
 	PIOS_Assert(lqr);
 
 	lqr->Q00 = q1;
 	lqr->Q11 = q2*expf(lqr->beta);
+	lqr->R = r;
 	lqr->solver_iterations = 0;
 }
 

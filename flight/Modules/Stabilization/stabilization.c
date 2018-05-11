@@ -438,18 +438,14 @@ static void initialize_lqg_controllers(float dT)
 				/* Update Q matrix. */
 				lqr_t lqr = lqg_get_lqr(lqg[i]);
 				lqr_update(lqr, 
-						lqgSettings.LQR[i == YAW ? LQGSETTINGS_LQR_YAWQ1 : LQGSETTINGS_LQR_Q1],
-						lqgSettings.LQR[i == YAW ? LQGSETTINGS_LQR_YAWQ2 : LQGSETTINGS_LQR_Q2]
+						lqgSettings.LQRegulator[i == YAW ? LQGSETTINGS_LQREGULATOR_YAWQ1 : LQGSETTINGS_LQREGULATOR_Q1],
+						lqgSettings.LQRegulator[i == YAW ? LQGSETTINGS_LQREGULATOR_YAWQ2 : LQGSETTINGS_LQREGULATOR_Q2],
+						lqgSettings.LQRegulator[i == YAW ? LQGSETTINGS_LQREGULATOR_YAWR : LQGSETTINGS_LQREGULATOR_R]
 					);
 			} else {
 				/* Initial setup. */
 				float beta = sysIdent.Beta[i];
 				float tau = (sysIdent.Tau[0] + sysIdent.Tau[1]) * 0.5f;
-
-				if (i == YAW)
-				{
-					beta += lqgSettings.LQR[LQGSETTINGS_LQR_YAWBETAOFFSET];
-				}
 
 				if (tau > 0.001f && beta > 6) {
 					rtkf_t rtkf = rtkf_create(beta, tau, dT, 
@@ -460,8 +456,9 @@ static void initialize_lqg_controllers(float dT)
 							lqgSettings.RTKF[LQGSETTINGS_RTKF_BIASLIMIT]
 						);
 					lqr_t lqr = lqr_create(beta, tau, dT,
-							lqgSettings.LQR[i == YAW ? LQGSETTINGS_LQR_YAWQ1 : LQGSETTINGS_LQR_Q1],
-							lqgSettings.LQR[i == YAW ? LQGSETTINGS_LQR_YAWQ2 : LQGSETTINGS_LQR_Q2]
+							lqgSettings.LQRegulator[i == YAW ? LQGSETTINGS_LQREGULATOR_YAWQ1 : LQGSETTINGS_LQREGULATOR_Q1],
+							lqgSettings.LQRegulator[i == YAW ? LQGSETTINGS_LQREGULATOR_YAWQ2 : LQGSETTINGS_LQREGULATOR_Q2],
+							lqgSettings.LQRegulator[i == YAW ? LQGSETTINGS_LQREGULATOR_YAWR : LQGSETTINGS_LQREGULATOR_R]
 						);
 					lqg[i] = lqg_create(rtkf, lqr);
 				}
