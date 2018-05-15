@@ -300,7 +300,7 @@ class TelemetryBase(metaclass=ABCMeta):
 
         response = []
 
-        def default_cb(val):
+        def default_cb(val, id_val):
             with self.cond:
                 response.append(val)
                 # cond is awfully overloaded, but... the number of waiters
