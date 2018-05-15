@@ -1734,15 +1734,13 @@ static int32_t pumpOneEvent(UAVObjEvent msg, void *obj_data, int len) {
 				struct ObjectEventEntryThrottled *throtInfo =
 					(struct ObjectEventEntryThrottled *) event;
 
-				uint32_t now = PIOS_Thread_Systime();
-
 				if (!PIOS_Thread_Period_Elapsed(throtInfo->when,
 							throtInfo->interval)) {
 					continue;
 				}
 
 				// Set time for next callback
-				throtInfo->when = now;
+				throtInfo->when = PIOS_Thread_Systime();
 
 				if (throtInfo->inhibited) {
 					continue;
