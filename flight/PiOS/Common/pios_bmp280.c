@@ -154,15 +154,6 @@ static int32_t PIOS_BMP280_Common_Init(const struct pios_bmp280_cfg *cfg)
 	dev->cfg = cfg;
 
 	uint8_t data[24];
-	uint16_t ref_digT1;
-	if (PIOS_BMP280_Read(BMP280_CAL_ADDR, data, 2) != 0)
-		return -2;
-
-	/* Ignore first result */
-	if (PIOS_BMP280_Read(BMP280_CAL_ADDR, data, 2) != 0)
-		return -2;
-
-	ref_digT1 = (data[ 1] << 8) | data[ 0];
 
 	if (PIOS_BMP280_Read(BMP280_CAL_ADDR, data, 24) != 0)
 		return -2;
@@ -180,13 +171,8 @@ static int32_t PIOS_BMP280_Common_Init(const struct pios_bmp280_cfg *cfg)
 	dev->digP8 = (data[21] << 8) | data[20];
 	dev->digP9 = (data[23] << 8) | data[22];
 
-	if (ref_digT1 != dev->digT1) {
-		/* Values inconsistent, so no good device detect */
-		return -10;
-	}
-
-	if ((ref_digT1 == dev->digT2) &&
-			(ref_digT1 == dev->digP1)) {
+	if ((dev->digT1 == dev->digT2) &&
+			(dev->digT1 == dev->digP1)) {
 		/* Values invariant, so no good device detect */
 		return -11;
 	}
@@ -198,37 +184,6 @@ static int32_t PIOS_BMP280_Common_Init(const struct pios_bmp280_cfg *cfg)
 
 	return 0;
 }
-
-/**
- * Initialise the BMP280 sensor
- */
-#ifndef PIOS_EXCLUDE_BMP280_I2C
-int32_t PIOS_BMP280_Init(const struct pios_bmp280_cfg *cfg, pios_i2c_t i2c_device)
-{
-	dev = (struct bmp280_dev *) PIOS_BMP280_alloc();
-	if (dev == NULL)
-		return -1;
-
-	dev->i2c_id = i2c_device;
-
-	return PIOS_BMP280_Common_Init(cfg);
-}
-#endif /* PIOS_EXCLUDE_BMP280_I2C */
-
-#ifdef PIOS_INCLUDE_BMP280_SPI
-int32_t PIOS_BMP280_SPI_Init(const struct pios_bmp280_cfg *cfg, pios_spi_t spi_device,
-	uint32_t spi_slave)
-{
-	dev = (struct bmp280_dev *) PIOS_BMP280_alloc();
-	if (dev == NULL)
-		return -1;
-
-	dev->spi_id = spi_device;
-	dev->spi_slave = spi_slave;
-
-	return PIOS_BMP280_Common_Init(cfg);
-}
-#endif /* PIOS_INCLUDE_BMP280_SPI */
 
 /**
  * Claim the BMP280 device semaphore.
@@ -348,6 +303,28 @@ static int32_t PIOS_BMP280_ReadADC()
 	return 0;
 }
 
+static inline int32_t PIOS_BMP280_CheckData(const uint8_t *data,
+		const uint8_t *data_b)
+{
+	int i;
+
+	/* Verify we got consistent results */
+	for (i = 0; i < 6; i++) {
+		if (data[i] != data_b[i]) {
+			return -3;
+		}
+	}
+
+	/* Verify the probed data varies */
+	for (i = 1; i < 6; i++) {
+		if (data[i] != data[0]) {
+			return 0;
+		}
+	}
+
+	return -4;
+}
+
 #ifndef PIOS_EXCLUDE_BMP280_I2C
 static int32_t PIOS_BMP280_I2C_Read(pios_i2c_t i2c_id,
 		uint8_t address, uint8_t *buffer, uint8_t len)
@@ -385,6 +362,39 @@ static int32_t PIOS_BMP280_I2C_Write(pios_i2c_t i2c_id,
 	};
 
 	return PIOS_I2C_Transfer(i2c_id, txn_list, NELEMENTS(txn_list));
+}
+
+/**
+ * Initialise the BMP280 sensor
+ */
+int32_t PIOS_BMP280_Init(const struct pios_bmp280_cfg *cfg, pios_i2c_t i2c_device)
+{
+	uint8_t data[6];
+	uint8_t data_b[6];
+
+	/* Ignore first result */
+	if (PIOS_BMP280_I2C_Read(i2c_device, BMP280_CAL_ADDR, data, 6) != 0)
+		return -2;
+
+	if (PIOS_BMP280_I2C_Read(i2c_device, BMP280_CAL_ADDR, data, 6) != 0)
+		return -2;
+
+	if (PIOS_BMP280_I2C_Read(i2c_device, BMP280_CAL_ADDR, data_b, 6) != 0)
+		return -2;
+
+	int ret = PIOS_BMP280_CheckData(data, data_b);
+
+	if (ret) {
+		return ret;
+	}
+
+	dev = (struct bmp280_dev *) PIOS_BMP280_alloc();
+	if (dev == NULL)
+		return -1;
+
+	dev->i2c_id = i2c_device;
+
+	return PIOS_BMP280_Common_Init(cfg);
 }
 #endif /* PIOS_EXCLUDE_BMP280_I2C */
 
@@ -435,6 +445,42 @@ static int32_t PIOS_BMP280_SPI_Write(pios_spi_t spi_id, uint32_t spi_slave,
 
 	return ret;
 }
+
+int32_t PIOS_BMP280_SPI_Init(const struct pios_bmp280_cfg *cfg, pios_spi_t spi_device,
+	uint32_t spi_slave)
+{
+	uint8_t data[6];
+	uint8_t data_b[6];
+
+	/* Ignore first result */
+	if (PIOS_BMP280_SPI_Read(spi_device, spi_slave,
+				BMP280_CAL_ADDR, data, 6) != 0)
+		return -2;
+
+	if (PIOS_BMP280_SPI_Read(spi_device, spi_slave,
+				BMP280_CAL_ADDR, data, 6) != 0)
+		return -2;
+
+	if (PIOS_BMP280_SPI_Read(spi_device, spi_slave,
+				BMP280_CAL_ADDR, data_b, 6) != 0)
+		return -2;
+
+	int ret = PIOS_BMP280_CheckData(data, data_b);
+
+	if (ret) {
+		return ret;
+	}
+
+	dev = (struct bmp280_dev *) PIOS_BMP280_alloc();
+	if (dev == NULL)
+		return -1;
+
+	dev->spi_id = spi_device;
+	dev->spi_slave = spi_slave;
+
+	return PIOS_BMP280_Common_Init(cfg);
+}
+
 #endif /* PIOS_INCLUDE_BMP280_SPI */
 
 /*
