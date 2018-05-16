@@ -115,25 +115,6 @@ int32_t PIOS_ADC_Init(uintptr_t *adc_id, const struct pios_adc_driver *driver, u
 }
 
 /**
- * @brief Checks if a given pin is available on the given device
- * \param[in] adc_id handle of the device to read
- * \param[in] device_pin pin to check if available
- * \return true if available
- */
-bool PIOS_ADC_Available(uintptr_t adc_id, uint32_t device_pin)
-{
-	struct pios_adc_dev *adc_dev = (struct pios_adc_dev *) adc_id;
-
-	if (!PIOS_ADC_validate(adc_dev)) {
-		return false;
-	}
-	if (adc_dev->driver->available)
-		return (adc_dev->driver->available)(adc_dev->lower_id, device_pin);
-	else
-		return false;
-}
-
-/**
  * @brief Reads from an ADC channel
  * this is an abstraction of the lower devices
  * channels are sequentially added from the lower devices available pins

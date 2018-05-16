@@ -54,13 +54,11 @@ const struct pios_rcvr_driver pios_flyingpio_rcvr_driver = {
         .read = PIOS_FLYINGPIO_Receiver_Get,
 };
 
-static bool PIOS_FLYINGPIO_ADC_Available(uintptr_t dev_int, uint32_t pin);
 static int32_t PIOS_FLYINGPIO_ADC_PinGet(uintptr_t dev_int, uint32_t pin);
 static uint8_t PIOS_FLYINGPIO_ADC_NumberOfChannels(uintptr_t dev_int);
 static float PIOS_FLYINGPIO_ADC_LSB_Voltage(uintptr_t dev_int);
 
 const struct pios_adc_driver pios_flyingpio_adc_driver = {
-		.available = PIOS_FLYINGPIO_ADC_Available,
 		.get_pin = PIOS_FLYINGPIO_ADC_PinGet,
 		.number_of_channels = PIOS_FLYINGPIO_ADC_NumberOfChannels,
 		.lsb_voltage = PIOS_FLYINGPIO_ADC_LSB_Voltage,
@@ -375,14 +373,6 @@ int32_t PIOS_FLYINGPIO_Receiver_Get(uintptr_t dev_int, uint8_t channel)
 	}
 
 	return dev->rcvr_value[channel];
-}
-
-static bool PIOS_FLYINGPIO_ADC_Available(uintptr_t dev_int, uint32_t pin) {
-	if (pin >= FPPROTO_MAX_ADCCHANS) {
-		return false;
-	}
-
-	return true;
 }
 
 static int32_t PIOS_FLYINGPIO_ADC_PinGet(uintptr_t dev_int, uint32_t pin) {
