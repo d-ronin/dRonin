@@ -277,6 +277,13 @@ int32_t PIOS_I2C_Init(pios_i2c_t *i2c_id, const struct pios_i2c_adapter_cfg *cfg
 	/* Initialize the state machine */
 	i2c_adapter_fsm_init(i2c_adapter);
 
+	if (PIOS_I2C_CheckClear(i2c_adapter)) {
+		/* Check for sanity before returning adapter and
+		 * initing interrupts
+		 */
+		goto out_fail;
+	}
+
 	*i2c_id = i2c_adapter;
 
 	/* Configure and enable I2C interrupts */
