@@ -587,6 +587,16 @@ void PIOS_Board_Init(void) {
 	//I2C is slow, sensor init as well, reset watchdog to prevent reset here
 	PIOS_WDG_Clear();
 
+#if defined(PIOS_INCLUDE_BMP280) && !defined(PIOS_EXCLUDE_BMP280_I2C)
+	/* BMP280 I2C onboard support on clones */
+	if (is_modified_clone &&
+			(pios_i2c_mag_pressure_adapter_id) &&
+			(!PIOS_SENSORS_IsRegistered(PIOS_SENSOR_BARO))) {
+		PIOS_BMP280_Init(&pios_bmp280_cfg,
+				pios_i2c_mag_pressure_adapter_id);
+	}
+#endif /* defined(PIOS_INCLUDE_BMP280) && !defined(PIOS_EXCLUDE_BMP280_I2C) */
+
 #endif    /* PIOS_INCLUDE_I2C */
 
 #ifdef PIOS_INCLUDE_SPI
