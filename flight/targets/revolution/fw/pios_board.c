@@ -235,14 +235,11 @@ void PIOS_Board_Init(void) {
 	/* Configure IO ports */
 
 #if defined(PIOS_INCLUDE_I2C)
-	if ((!is_modified_clone) && PIOS_I2C_Init(&pios_i2c_mag_pressure_adapter_id, &pios_i2c_mag_pressure_adapter_cfg)) {
-		PIOS_HAL_CriticalError(PIOS_LED_HEARTBEAT, PIOS_HAL_PANIC_I2C_INT);
-	}
-
-	if ((!is_modified_clone) &&
-			(PIOS_I2C_CheckClear(pios_i2c_mag_pressure_adapter_id) != 0)) {
-		PIOS_HAL_CriticalError(PIOS_LED_HEARTBEAT, PIOS_HAL_PANIC_I2C_INT);
-	} else if (!is_modified_clone) {
+	if (PIOS_I2C_Init(&pios_i2c_mag_pressure_adapter_id, &pios_i2c_mag_pressure_adapter_cfg)) {
+		if (!is_modified_clone) {
+			PIOS_HAL_CriticalError(PIOS_LED_HEARTBEAT, PIOS_HAL_PANIC_I2C_INT);
+		}
+	} else {
 		if (AlarmsGet(SYSTEMALARMS_ALARM_I2C) == SYSTEMALARMS_ALARM_UNINITIALISED) {
 			AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_OK);
 		}
