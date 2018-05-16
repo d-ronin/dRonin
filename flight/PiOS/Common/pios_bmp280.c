@@ -349,7 +349,8 @@ static int32_t PIOS_BMP280_ReadADC()
 }
 
 #ifndef PIOS_EXCLUDE_BMP280_I2C
-static int32_t PIOS_BMP280_I2C_Read(uint8_t address, uint8_t *buffer, uint8_t len)
+static int32_t PIOS_BMP280_I2C_Read(pios_i2c_t i2c_id,
+		uint8_t address, uint8_t *buffer, uint8_t len)
 {
 	const struct pios_i2c_txn txn_list[] = {
 		{
@@ -369,10 +370,11 @@ static int32_t PIOS_BMP280_I2C_Read(uint8_t address, uint8_t *buffer, uint8_t le
 		 }
 	};
 
-	return PIOS_I2C_Transfer(dev->i2c_id, txn_list, NELEMENTS(txn_list));
+	return PIOS_I2C_Transfer(i2c_id, txn_list, NELEMENTS(txn_list));
 }
 
-static int32_t PIOS_BMP280_I2C_Write(uint8_t *buffer, uint8_t len) {
+static int32_t PIOS_BMP280_I2C_Write(pios_i2c_t i2c_id,
+		uint8_t *buffer, uint8_t len) {
 	const struct pios_i2c_txn txn_list[] = {
 		{
 		 .info = __func__,
@@ -384,52 +386,54 @@ static int32_t PIOS_BMP280_I2C_Write(uint8_t *buffer, uint8_t len) {
 		,
 	};
 
-	return PIOS_I2C_Transfer(dev->i2c_id, txn_list, NELEMENTS(txn_list));
+	return PIOS_I2C_Transfer(i2c_id, txn_list, NELEMENTS(txn_list));
 }
 #endif /* PIOS_EXCLUDE_BMP280_I2C */
 
 #ifdef PIOS_INCLUDE_BMP280_SPI
-static int32_t PIOS_BMP280_ClaimBus(struct bmp280_dev *bmp_dev)
+static int32_t PIOS_BMP280_ClaimBus(pios_spi_t spi_id, uint32_t spi_slave)
 {
-	if (PIOS_SPI_ClaimBus(bmp_dev->spi_id) != 0)
+	if (PIOS_SPI_ClaimBus(spi_id) != 0)
 		return -2;
 
 	PIOS_DELAY_WaituS(1);
-	PIOS_SPI_RC_PinSet(bmp_dev->spi_id, bmp_dev->spi_slave, false);
+	PIOS_SPI_RC_PinSet(spi_id, spi_slave, false);
 	PIOS_DELAY_WaituS(1);
 
-	PIOS_SPI_SetClockSpeed(bmp_dev->spi_id, PIOS_BMP_SPI_SPEED);
+	PIOS_SPI_SetClockSpeed(spi_id, PIOS_BMP_SPI_SPEED);
 
 	return 0;
 }
 
-static void PIOS_BMP280_ReleaseBus(struct bmp280_dev *bmp_dev)
+static void PIOS_BMP280_ReleaseBus(pios_spi_t spi_id, uint32_t spi_slave)
 {
-	PIOS_SPI_RC_PinSet(bmp_dev->spi_id, bmp_dev->spi_slave, true);
+	PIOS_SPI_RC_PinSet(spi_id, spi_slave, true);
 
-	PIOS_SPI_ReleaseBus(bmp_dev->spi_id);
+	PIOS_SPI_ReleaseBus(spi_id);
 }
 
-static int32_t PIOS_BMP280_SPI_Read(uint8_t address, uint8_t *buffer, uint8_t len) {
-	if (PIOS_BMP280_ClaimBus(dev) != 0)
+static int32_t PIOS_BMP280_SPI_Read(pios_spi_t spi_id, uint32_t spi_slave,
+		uint8_t address, uint8_t *buffer, uint8_t len) {
+	if (PIOS_BMP280_ClaimBus(spi_id, spi_slave) != 0)
 		return -1;
 
-	PIOS_SPI_TransferByte(dev->spi_id, 0x80 | address);
+	PIOS_SPI_TransferByte(spi_id, 0x80 | address);
 
-	int ret = PIOS_SPI_TransferBlock(dev->spi_id, NULL, buffer, len);
+	int ret = PIOS_SPI_TransferBlock(spi_id, NULL, buffer, len);
 
-	PIOS_BMP280_ReleaseBus(dev);
+	PIOS_BMP280_ReleaseBus(spi_id, spi_slave);
 
 	return ret;
 }
 
-static int32_t PIOS_BMP280_SPI_Write(uint8_t *buffer, uint8_t len) {
-	if (PIOS_BMP280_ClaimBus(dev) != 0)
+static int32_t PIOS_BMP280_SPI_Write(pios_spi_t spi_id, uint32_t spi_slave,
+		uint8_t *buffer, uint8_t len) {
+	if (PIOS_BMP280_ClaimBus(spi_id, spi_slave) != 0)
 		return -1;
 
-	int ret = PIOS_SPI_TransferBlock(dev->spi_id, buffer, NULL, len);
+	int ret = PIOS_SPI_TransferBlock(spi_id, buffer, NULL, len);
 
-	PIOS_BMP280_ReleaseBus(dev);
+	PIOS_BMP280_ReleaseBus(spi_id, spi_slave);
 
 	return ret;
 }
@@ -450,11 +454,12 @@ static int32_t PIOS_BMP280_Read(uint8_t address, uint8_t *buffer, uint8_t len)
 	if (0) {
 #ifndef PIOS_EXCLUDE_BMP280_I2C
 	} else if (dev->i2c_id) {
-		return PIOS_BMP280_I2C_Read(address, buffer, len);
+		return PIOS_BMP280_I2C_Read(dev->i2c_id, address, buffer, len);
 #endif
 #ifdef PIOS_INCLUDE_BMP280_SPI
 	} else if (dev->spi_id) {
-		return PIOS_BMP280_SPI_Read(address, buffer, len);
+		return PIOS_BMP280_SPI_Read(dev->spi_id, dev->spi_slave,
+				address, buffer, len);
 #endif
 	}
 
@@ -481,12 +486,14 @@ static int32_t PIOS_BMP280_WriteCommand(uint8_t address, uint8_t buffer)
 	if (0) {
 #ifndef PIOS_EXCLUDE_BMP280_I2C
 	} else if (dev->i2c_id) {
-		return PIOS_BMP280_I2C_Write(data, sizeof(data));
+		return PIOS_BMP280_I2C_Write(dev->i2c_id,
+				data, sizeof(data));
 #endif
 #ifdef PIOS_INCLUDE_BMP280_SPI
 	} else if (dev->spi_id) {
 		data[0] &= 0x7f;	/* Clear high bit */
-		return PIOS_BMP280_SPI_Write(data, sizeof(data));
+		return PIOS_BMP280_SPI_Write(dev->spi_id, dev->spi_slave,
+				data, sizeof(data));
 #endif
 	}
 
