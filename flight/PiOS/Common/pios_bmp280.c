@@ -359,15 +359,14 @@ static int32_t PIOS_BMP280_I2C_Read(pios_i2c_t i2c_id,
 			.rw = PIOS_I2C_TXN_WRITE,
 			.len = 1,
 			.buf = &address,
-		}
-		,
+		},
 		{
-		 .info = __func__,
-		 .addr = BMP280_I2C_ADDR,
-		 .rw = PIOS_I2C_TXN_READ,
-		 .len = len,
-		 .buf = buffer,
-		 }
+			.info = __func__,
+			.addr = BMP280_I2C_ADDR,
+			.rw = PIOS_I2C_TXN_READ,
+			.len = len,
+			.buf = buffer,
+		}
 	};
 
 	return PIOS_I2C_Transfer(i2c_id, txn_list, NELEMENTS(txn_list));
@@ -377,13 +376,12 @@ static int32_t PIOS_BMP280_I2C_Write(pios_i2c_t i2c_id,
 		uint8_t *buffer, uint8_t len) {
 	const struct pios_i2c_txn txn_list[] = {
 		{
-		 .info = __func__,
-		 .addr = BMP280_I2C_ADDR,
-		 .rw = PIOS_I2C_TXN_WRITE,
-		 .len = len,
-		 .buf = buffer,
-		 }
-		,
+			.info = __func__,
+			.addr = BMP280_I2C_ADDR,
+			.rw = PIOS_I2C_TXN_WRITE,
+			.len = len,
+			.buf = buffer,
+		}
 	};
 
 	return PIOS_I2C_Transfer(i2c_id, txn_list, NELEMENTS(txn_list));
