@@ -46,8 +46,16 @@
 
 */
 
-#define RTKF_SOLUTION_LIMIT			150
-#define LQR_SOLUTION_LIMIT			1000
+#define SOLVER_MIN					100
+#define SOLVER_MAX					5000
+
+/*
+	Applies to torque and bias parts.
+
+	Beta 7.5 and Tau 50ms solves RTKF in 3077 iterations and the LQR is 1267 iterations.
+	Beta 10.5 and Tau 15ms solves RTKF in 298 iterations and the LQR in 156 iterations.
+*/
+#define SOLVER_DELTA_EPSILON		0.000000001f
 
 /* Bullshit to quickly make copypasta of MATLAB answers work. */
 #define P00 P[0][0]
@@ -99,8 +107,9 @@
 	K = PH' (R+HPH')^-1
 	P = (I-KH) P
 */
-void rtkf_calculate_covariance_3x3(float A[3][3], float K[3], float P[3][3], float Q[3][3], float R)
+bool rtkf_calculate_covariance_3x3(float A[3][3], float K[3], float P[3][3], float Q[3][3], float R)
 {
+	bool solved = false;
 	float nP[3][3];
 
 	nP[0][0] = Q00 + A00*(A00*P00 + A01*P10 + A02*P20) + A01*(A00*P01 + A01*P11 + A02*P21) + A02*(A00*P02 + A01*P12 + A02*P22);
@@ -119,9 +128,17 @@ void rtkf_calculate_covariance_3x3(float A[3][3], float K[3], float P[3][3], flo
 
 	float S = P00 + R;
 
+	float nK[2];
+
 	K0 = P00/S;
-	K1 = P10/S;
-	K2 = P20/S;
+	nK[0] = P10/S;
+	nK[1] = P20/S;
+
+	if (fabsf(K1 - nK[0]) <= SOLVER_DELTA_EPSILON && fabsf(K2 - nK[1]) <= SOLVER_DELTA_EPSILON)
+		solved = true;
+
+	K1 = nK[0];
+	K2 = nK[1];
 
 	P10 = P10 - K1*P00;
 	P11 = P11 - K1*P01;
@@ -134,6 +151,8 @@ void rtkf_calculate_covariance_3x3(float A[3][3], float K[3], float P[3][3], flo
 	P00 = P00 - K0*P00;
 	P01 = P01 - K0*P01;
 	P02 = P02 - K0*P02;
+
+	return solved;
  }
 
 struct rtkf_state {
@@ -160,10 +179,17 @@ struct rtkf_state {
  void rtkf_stabilize_covariance(rtkf_t rtkf, int iterations)
  {
  	PIOS_Assert(rtkf);
- 	for (int i = 0; i < iterations; i++) {
- 		rtkf_calculate_covariance_3x3(rtkf->A, rtkf->K, rtkf->P, rtkf->Q, rtkf->R);
+
+	if (rtkf->solver_iterations < 0)
+		return;
+
+	for (int i = 0; i < iterations; i++) {
+		rtkf->solver_iterations++;
+		if (rtkf->solver_iterations > SOLVER_MAX || (rtkf_calculate_covariance_3x3(rtkf->A, rtkf->K, rtkf->P, rtkf->Q, rtkf->R) && rtkf->solver_iterations > SOLVER_MIN)) {
+			rtkf->solver_iterations = -1;
+			break;
+		}
  	}
- 	rtkf->solver_iterations += iterations;
  }
 
 /*
@@ -244,15 +270,21 @@ rtkf_t rtkf_create(float beta, float tau, float Ts, float R, float q1, float q2,
 
 bool rtkf_is_solved(rtkf_t rtkf)
 {
-	return rtkf->solver_iterations >= RTKF_SOLUTION_LIMIT;
+	/* Solver starts at 0, counting up. Solver sets value to -1 when done. */
+	return rtkf->solver_iterations < 0;
 }
 
 /*
 	LQR covariance cycle.
 
 	P = A'PA - A'PB (R+B'PB)^-1 B'PA + Q
+
+	K = (R + B'PB)^-1 B'PA
+
+	TODO: Should redo and optimize the math of this, after folding gains calculation into this.
+	      Because of obvious substitutions.
 */
-void lqr_calculate_covariance_2x2(float A[2][2], float B[2], float P[2][2], float Q[2][2], float R)
+bool lqr_calculate_covariance_2x2(float A[2][2], float B[2], float K[2], float P[2][2], float Q[2][2], float R)
 {
 	float nP[2][2];
 
@@ -295,6 +327,22 @@ void lqr_calculate_covariance_2x2(float A[2][2], float B[2], float P[2][2], floa
 	P01 = nP[0][1];
 	P10 = nP[1][0];
 	P11 = nP[1][1];
+
+	bool solved = false;
+
+	div = (R + B1*B1*P11 + B0*(B0*P00 + B1*(P01 + P10)));
+	float nK[2];
+
+	nK[0] = (A00*(B0*P00 + B1*P10)) / div;
+	nK[1] = (A01*(B0*P00 + B1*P10) + A11*(B0*P01 + B1*P11)) / div;
+
+	if (fabsf(K0 - nK[0]) <= SOLVER_DELTA_EPSILON && fabsf(K0 - nK[1]) <= SOLVER_DELTA_EPSILON)
+		solved = true;
+
+	K0 = nK[0];
+	K1 = nK[1];
+
+	return solved;
 }
 
 struct lqr_state {
@@ -313,19 +361,6 @@ struct lqr_state {
 	float tau;
 
 };
-
-/*
-	Calculate gains for LQR.
-
-	K = (R + B'PB)^-1 B'PA
-*/
-void lqr_calculate_gains_int(float A[2][2], float B[2], float P[2][2], float K[2], float R)
-{
-	float div = (R + B1*B1*P11 + B0*(B0*P00 + B1*(P01 + P10)));
-
-	K[0] = (A00*(B0*P00 + B1*P10)) / div;
-	K[1] = (A01*(B0*P00 + B1*P10) + A11*(B0*P01 + B1*P11)) / div;
-}
 
 /*
 	Repeat the LQR covariance cycle for as much iterations needed.
@@ -349,18 +384,22 @@ void lqr_stabilize_covariance(lqr_t lqr, int iterations)
 {
 	PIOS_Assert(lqr);
 
+	if (lqr->solver_iterations < 0)
+		return;
+
 	for (int i = 0; i < iterations; i++) {
-		lqr_calculate_covariance_2x2(lqr->A, lqr->B, lqr->P, lqr->Q, lqr->R);
+		lqr->solver_iterations++;
+		if (lqr->solver_iterations > SOLVER_MAX || (lqr_calculate_covariance_2x2(lqr->A, lqr->B, lqr->K, lqr->P, lqr->Q, lqr->R) && lqr->solver_iterations > SOLVER_MIN)) {
+			lqr->solver_iterations = -1;
+			break;
+		}
 	}
-
-	lqr_calculate_gains_int(lqr->A, lqr->B, lqr->P, lqr->K, lqr->R);
-
-	lqr->solver_iterations += iterations;
 }
 
 bool lqr_is_solved(lqr_t lqr)
 {
-	return lqr->solver_iterations >= LQR_SOLUTION_LIMIT;
+	/* Solver starts at 0, counting up. Solver sets value to -1 when done. */
+	return lqr->solver_iterations < 0;
 }
 
 /*
