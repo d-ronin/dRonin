@@ -30,14 +30,19 @@
 #error "pios_thread.c requires PIOS_INCLUDE_CHIBIOS"
 #endif
 
+#if !defined(CH_CFG_USE_MEMCORE) || CH_CFG_USE_MEMCORE != TRUE
+#error "pios_thread: Need to use memcore with ChibiOS."
+#endif
+
 #if defined(PIOS_INCLUDE_CHIBIOS)
 struct pios_thread
 {
-	Thread *threadp;
+	thread_t *threadp;
+	uint32_t *stack;
 };
 
-#define CVT_MS2ST(msec) ((systime_t)(((((uint32_t)(msec)) * ((uint64_t)CH_FREQUENCY) - 1UL) / 1000UL) + 1UL))
-#define CVT_ST2MS(n) (((((n) - 1ULL) * 1000ULL) / ((uint64_t)CH_FREQUENCY)) + 1UL)
+#define CVT_MS2ST(msec) ((systime_t)(((((uint32_t)(msec)) * ((uint64_t)CH_CFG_ST_FREQUENCY) - 1UL) / 1000UL) + 1UL))
+#define CVT_ST2MS(n) (((((n) - 1ULL) * 1000ULL) / ((uint64_t)CH_CFG_ST_FREQUENCY)) + 1UL)
 
 /**
  * Compute size that is at rounded up to the nearest
@@ -48,26 +53,6 @@ static uint32_t ceil_size(uint32_t size)
 	const uint32_t a = sizeof(stkalign_t);
 	size = size + (a - size % a);
 	return size;
-}
-/**
- * ChibiOS stack expects alignment (both start and end)
- * to 8 byte boundaries. This makes sure to allocate enough
- * memory and return an address that has the requested size
- * or more with these constraints.
- */
-static uint8_t * align8_alloc(uint32_t size)
-{
-	// round size up to at nearest multiple of 8 + 4 bytes to guarantee
-	// sufficient size within. This is because PIOS_malloc only guarantees
-	// uintptr_t alignment which is 4 bytes.
-	size = size + sizeof(uintptr_t);
-	uint8_t *wap = PIOS_malloc(size);
-
-	// shift start point to nearest 8 byte boundary.
-	uint32_t pad = ((uint32_t) wap) % sizeof(stkalign_t);
-	wap = wap + pad;
-
-	return wap;
 }
 
 /**
@@ -82,9 +67,12 @@ struct pios_thread *PIOS_Thread_WrapCurrentThread(const char *namep)
 	struct pios_thread *thread = PIOS_malloc_no_dma(sizeof(struct pios_thread));
 
 	if (thread) {
-		thread->threadp = chThdSelf();
-#if CH_USE_REGISTRY
-		thread->threadp->p_name = namep;
+		thread->threadp = chThdGetSelfX();
+
+		extern uint32_t __main_thread_stack_base__;
+		thread->stack = &__main_thread_stack_base__;
+#if CH_CFG_USE_REGISTRY
+		thread->threadp->name = namep;
 #endif /* CH_USE_REGISTRY */
 	}
 
@@ -122,14 +110,14 @@ struct pios_thread *PIOS_Thread_Create(void (*fp)(void *), const char *namep, si
 
 	// Use special functions to ensure ChibiOS stack requirements
 	stack_bytes = ceil_size(stack_bytes);
-	uint8_t *wap = align8_alloc(stack_bytes);
+	uint8_t *wap = chCoreAllocAligned(stack_bytes, PORT_STACK_ALIGN);
 	if (wap == NULL)
 	{
 		PIOS_free(thread);
 		return NULL;
 	}
 
-	thread->threadp = chThdCreateStatic(wap, stack_bytes, prio, (msg_t (*)(void *))fp, argp);
+	thread->threadp = chThdCreateStatic(wap, stack_bytes, prio, (tfunc_t)fp, argp);
 	if (thread->threadp == NULL)
 	{
 		PIOS_free(thread);
@@ -137,14 +125,18 @@ struct pios_thread *PIOS_Thread_Create(void (*fp)(void *), const char *namep, si
 		return NULL;
 	}
 
-#if CH_USE_REGISTRY
-	thread->threadp->p_name = namep;
-#endif /* CH_USE_REGISTRY */
+#if CH_CFG_USE_REGISTRY
+	thread->threadp->name = namep;
+#endif /* CH_CFG_USE_REGISTRY */
+
+	/* Newer ChibiOS versions store the thread struct at the bottom of the stack allocation
+	   instead of the top. */
+	thread->stack = (uint32_t*)wap;
 
 	return thread;
 }
 
-#if (CH_USE_WAITEXIT == TRUE)
+#if (CH_CFG_USE_WAITEXIT == TRUE)
 /**
  *
  * @brief   Destroys an instance of @p struct pios_thread.
@@ -166,7 +158,7 @@ void PIOS_Thread_Delete(struct pios_thread *threadp)
 }
 #else
 #error "PIOS_Thread_Delete requires CH_USE_WAITEXIT to be defined TRUE"
-#endif /* (CH_USE_WAITEXIT == TRUE) */
+#endif /* (CH_CFG_USE_WAITEXIT == TRUE) */
 
 /**
  *
@@ -177,7 +169,7 @@ void PIOS_Thread_Delete(struct pios_thread *threadp)
  */
 uint32_t PIOS_Thread_Systime(void)
 {
-	return (uint32_t)CVT_ST2MS(chTimeNow());
+	return (uint32_t)CVT_ST2MS(chVTGetSystemTime());
 }
 
 /**
@@ -214,7 +206,7 @@ void PIOS_Thread_Sleep_Until(uint32_t *previous_ms, uint32_t increment_ms)
 
 	chSysLock();
 
-	systime_t now = chTimeNow();
+	systime_t now = chVTGetSystemTime();
 	systime_t sleep_time = future - now;
 
 	if (sleep_time > increment_st) {
@@ -241,7 +233,7 @@ void PIOS_Thread_Sleep_Until(uint32_t *previous_ms, uint32_t increment_ms)
 bool PIOS_Thread_Period_Elapsed(const uint32_t prev_systime, const uint32_t increment_ms)
 {
 	/* TODO: make PIOS_Thread_Systime return opaque type to avoid ms conversion */
-	return CVT_MS2ST(increment_ms) <= chTimeElapsedSince(CVT_MS2ST(prev_systime));
+	return CVT_MS2ST(increment_ms) <= chVTTimeElapsedSinceX(CVT_MS2ST(prev_systime));
 }
 
 /**
@@ -255,13 +247,13 @@ bool PIOS_Thread_Period_Elapsed(const uint32_t prev_systime, const uint32_t incr
 uint32_t PIOS_Thread_Get_Stack_Usage(struct pios_thread *threadp)
 {
 #if CH_DBG_FILL_THREADS
-	uint32_t *stack = (uint32_t*)((size_t)threadp->threadp + sizeof(*threadp->threadp));
+	uint32_t *stack = threadp->stack;
 	uint32_t *stklimit = stack;
 	while (*stack ==
-			((CH_STACK_FILL_VALUE << 24) |
-			(CH_STACK_FILL_VALUE << 16) |
-			(CH_STACK_FILL_VALUE << 8) |
-			(CH_STACK_FILL_VALUE << 0)))
+			((CH_DBG_STACK_FILL_VALUE << 24) |
+			(CH_DBG_STACK_FILL_VALUE << 16) |
+			(CH_DBG_STACK_FILL_VALUE << 8) |
+			(CH_DBG_STACK_FILL_VALUE << 0)))
 		++stack;
 	return (stack - stklimit) * 4;
 #else

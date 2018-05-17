@@ -1,5 +1,5 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
 */
 
 /**
- * @file    templates/hal_lld.h
- * @brief   HAL subsystem low level driver header template.
+ * @file    hal_lld.h
+ * @brief   PLATFORM HAL subsystem low level driver header.
  *
  * @addtogroup HAL
  * @{
@@ -30,20 +30,21 @@
 /*===========================================================================*/
 
 /**
- * @brief   Defines the support for realtime counters in the HAL.
- */
-#define HAL_IMPLEMENTS_COUNTERS TRUE
-
-/**
- * @name    Platform identification
+ * @name    Platform identification macros
  * @{
  */
-#define PLATFORM_NAME           ""
+#define PLATFORM_NAME           "templates"
 /** @} */
 
 /*===========================================================================*/
 /* Driver pre-compile time settings.                                         */
 /*===========================================================================*/
+
+/**
+ * @name    PLATFORM configuration options
+ * @{
+ */
+/** @} */
 
 /*===========================================================================*/
 /* Derived constants and error checks.                                       */
@@ -60,42 +61,9 @@
 /* Driver data structures and types.                                         */
 /*===========================================================================*/
 
-/**
- * @brief   Type representing a system clock frequency.
- */
-typedef uint32_t halclock_t;
-
-/**
- * @brief   Type of the realtime free counter value.
- */
-typedef uint32_t halrtcnt_t;
-
 /*===========================================================================*/
 /* Driver macros.                                                            */
 /*===========================================================================*/
-
-/**
- * @brief   Returns the current value of the system free running counter.
- * @note    This service is implemented by returning the content of the
- *          DWT_CYCCNT register.
- *
- * @return              The value of the system free running counter of
- *                      type halrtcnt_t.
- *
- * @notapi
- */
-#define hal_lld_get_counter_value()         0
-
-/**
- * @brief   Realtime counter frequency.
- * @note    The DWT_CYCCNT register is incremented directly by the system
- *          clock so this function returns STM32_HCLK.
- *
- * @return              The realtime counter frequency of type halclock_t.
- *
- * @notapi
- */
-#define hal_lld_get_counter_frequency()     0
 
 /*===========================================================================*/
 /* External declarations.                                                    */

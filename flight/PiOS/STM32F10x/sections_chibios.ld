@@ -29,17 +29,17 @@ __ram_start__           = ORIGIN(ram);
 __ram_size__            = LENGTH(ram);
 __ram_end__             = __ram_start__ + __ram_size__;
 
-ENTRY(ResetHandler)
+ENTRY(Reset_Handler)
 
 SECTIONS
 {
     . = 0;
     _text = .;
 
-    startup : ALIGN(16) SUBALIGN(16)
+    .vectors : ALIGN(16) SUBALIGN(16)
     {
         PROVIDE (pios_isr_vector_table_base = .);
-        KEEP(*(vectors))
+        KEEP(*(.vectors))
     } > flash
 
     constructors : ALIGN(4) SUBALIGN(4)
@@ -60,7 +60,6 @@ SECTIONS
 
     .text : ALIGN(16) SUBALIGN(16)
     {
-        *(.text.startup.*)
         *(.text)
         *(.text.*)
         *(.rodata)
@@ -143,9 +142,9 @@ SECTIONS
     {
         PROVIDE(_cmm_start = .);
         . = ALIGN(4);
-        *(.bss.mainthread.*)
+        *(.bss.ch)
         . = ALIGN(4);
-        *(.bss._idle_thread_wa)
+        *(.bss.ch_idle_thread_wa)
         . = ALIGN(4);
         *(.bss.rlist)
         . = ALIGN(4);
@@ -164,6 +163,8 @@ SECTIONS
     {
         . = ALIGN(4);
         PROVIDE(_data = .);
+        _textdata_start = LOADADDR(.data);
+        _data_start = .;
         *(.data)
         . = ALIGN(4);
         *(.data.*)
@@ -171,6 +172,7 @@ SECTIONS
         *(.ramtext)
         . = ALIGN(4);
         PROVIDE(_edata = .);
+        _data_end = .;
     } > ram AT > flash
 
     .bss (NOLOAD) :
@@ -208,5 +210,5 @@ SECTIONS
 PROVIDE(end = .);
 _end            = .;
 
-__heap_base__   = _end;
-__heap_end__    = __ram_end__;
+__heap_base__ = _sheap;
+__heap_end__    = _eheap;

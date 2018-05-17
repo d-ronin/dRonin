@@ -5,7 +5,6 @@
 /* disk I/O modules and attach it to FatFs module with common interface. */
 /*-----------------------------------------------------------------------*/
 
-#include "ch.h"
 #include "hal.h"
 #include "ffconf.h"
 #include "diskio.h"
@@ -23,7 +22,6 @@ extern SDCDriver SDCD1;
 #endif
 
 #if HAL_USE_RTC
-#include "chrtclib.h"
 extern RTCDriver RTCD1;
 #endif
 
@@ -39,12 +37,12 @@ extern RTCDriver RTCD1;
 /* Inidialize a Drive                                                    */
 
 DSTATUS disk_initialize (
-    BYTE drv                /* Physical drive nmuber (0..) */
+    BYTE pdrv         /* Physical drive number (0..) */
 )
 {
   DSTATUS stat;
 
-  switch (drv) {
+  switch (pdrv) {
 #if HAL_USE_MMC_SPI
   case MMC:
     stat = 0;
@@ -65,7 +63,7 @@ DSTATUS disk_initialize (
     return stat;
 #endif
   }
-  return STA_NODISK;
+  return STA_NOINIT;
 }
 
 
@@ -74,12 +72,12 @@ DSTATUS disk_initialize (
 /* Return Disk Status                                                    */
 
 DSTATUS disk_status (
-    BYTE drv        /* Physical drive nmuber (0..) */
+    BYTE pdrv         /* Physical drive number (0..) */
 )
 {
   DSTATUS stat;
 
-  switch (drv) {
+  switch (pdrv) {
 #if HAL_USE_MMC_SPI
   case MMC:
     stat = 0;
@@ -100,7 +98,7 @@ DSTATUS disk_status (
     return stat;
 #endif
   }
-  return STA_NODISK;
+  return STA_NOINIT;
 }
 
 
@@ -109,13 +107,13 @@ DSTATUS disk_status (
 /* Read Sector(s)                                                        */
 
 DRESULT disk_read (
-    BYTE drv,        /* Physical drive nmuber (0..) */
-    BYTE *buff,        /* Data buffer to store read data */
-    DWORD sector,    /* Sector address (LBA) */
-    BYTE count        /* Number of sectors to read (1..255) */
+    BYTE pdrv,        /* Physical drive number (0..) */
+    BYTE *buff,       /* Data buffer to store read data */
+    DWORD sector,     /* Sector address (LBA) */
+    UINT count        /* Number of sectors to read (1..255) */
 )
 {
-  switch (drv) {
+  switch (pdrv) {
 #if HAL_USE_MMC_SPI
   case MMC:
     if (blkGetDriverState(&MMCD1) != BLK_READY)
@@ -148,15 +146,15 @@ DRESULT disk_read (
 /*-----------------------------------------------------------------------*/
 /* Write Sector(s)                                                       */
 
-#if _READONLY == 0
+#if !FF_FS_READONLY
 DRESULT disk_write (
-    BYTE drv,            /* Physical drive nmuber (0..) */
-    const BYTE *buff,    /* Data to be written */
-    DWORD sector,        /* Sector address (LBA) */
-    BYTE count            /* Number of sectors to write (1..255) */
+    BYTE pdrv,        /* Physical drive number (0..) */
+    const BYTE *buff, /* Data to be written */
+    DWORD sector,     /* Sector address (LBA) */
+    UINT count        /* Number of sectors to write (1..255) */
 )
 {
-  switch (drv) {
+  switch (pdrv) {
 #if HAL_USE_MMC_SPI
   case MMC:
     if (blkGetDriverState(&MMCD1) != BLK_READY)
@@ -185,7 +183,7 @@ DRESULT disk_write (
   }
   return RES_PARERR;
 }
-#endif /* _READONLY */
+#endif /* _FS_READONLY */
 
 
 
@@ -193,22 +191,26 @@ DRESULT disk_write (
 /* Miscellaneous Functions                                               */
 
 DRESULT disk_ioctl (
-    BYTE drv,        /* Physical drive nmuber (0..) */
-    BYTE ctrl,        /* Control code */
+    BYTE pdrv,        /* Physical drive number (0..) */
+    BYTE cmd,         /* Control code */
     void *buff        /* Buffer to send/receive control data */
 )
 {
-  switch (drv) {
+  (void)buff;
+
+  switch (pdrv) {
 #if HAL_USE_MMC_SPI
   case MMC:
-    switch (ctrl) {
+    switch (cmd) {
     case CTRL_SYNC:
         return RES_OK;
+#if FF_MAX_SS > FF_MIN_SS
     case GET_SECTOR_SIZE:
         *((WORD *)buff) = MMCSD_BLOCK_SIZE;
         return RES_OK;
-#if _USE_ERASE
-    case CTRL_ERASE_SECTOR:
+#endif
+#if FF_USE_TRIM
+    case CTRL_TRIM:
         mmcErase(&MMCD1, *((DWORD *)buff), *((DWORD *)buff + 1));
         return RES_OK;
 #endif
@@ -217,20 +219,22 @@ DRESULT disk_ioctl (
     }
 #else
   case SDC:
-    switch (ctrl) {
+    switch (cmd) {
     case CTRL_SYNC:
         return RES_OK;
     case GET_SECTOR_COUNT:
         *((DWORD *)buff) = mmcsdGetCardCapacity(&SDCD1);
         return RES_OK;
+#if FF_MAX_SS > FF_MIN_SS
     case GET_SECTOR_SIZE:
         *((WORD *)buff) = MMCSD_BLOCK_SIZE;
         return RES_OK;
+#endif
     case GET_BLOCK_SIZE:
         *((DWORD *)buff) = 256; /* 512b blocks in one erase block */
         return RES_OK;
-#if _USE_ERASE
-    case CTRL_ERASE_SECTOR:
+#if FF_USE_TRIM
+    case CTRL_TRIM:
         sdcErase(&SDCD1, *((DWORD *)buff), *((DWORD *)buff + 1));
         return RES_OK;
 #endif
@@ -244,11 +248,11 @@ DRESULT disk_ioctl (
 
 DWORD get_fattime(void) {
 #if HAL_USE_RTC
-    return rtcGetTimeFat(&RTCD1);
+    RTCDateTime timespec;
+
+    rtcGetTime(&RTCD1, &timespec);
+    return rtcConvertDateTimeToFAT(&timespec);
 #else
     return ((uint32_t)0 | (1 << 16)) | (1 << 21); /* wrong but valid time */
 #endif
 }
-
-
-

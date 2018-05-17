@@ -10,7 +10,7 @@ PIOS_DEVLIB			:=	$(dir $(lastword $(MAKEFILE_LIST)))
 #
 # Linker script depending on STM32 type
 #
-ifneq "$(findstring STM32F40_41xxx,$(STM32_TYPE))" ""
+ifneq "$(findstring STM32F405xx,$(STM32_TYPE))" ""
 LINKER_SCRIPTS_APP	 =	$(PIOS_DEVLIB)/sections_chibios.ld
 else ifneq "$(findstring STM32F446xx,$(STM32_TYPE))" ""
 LINKER_SCRIPTS_APP	 =	$(PIOS_DEVLIB)/sections_chibios_STM32F446xx.ld
@@ -18,6 +18,11 @@ else
 $(error No linker script found for $(STM32_TYPE))
 endif
 
+#
+# ChibiOS settings
+#
+CDEFS += -DCRT1_AREAS_NUMBER=0
+ADEFS += -DCRT0_INIT_RAM_AREAS=FALSE
 
 #
 # Compiler options implied by the F4xx

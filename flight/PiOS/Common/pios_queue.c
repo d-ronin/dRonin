@@ -36,8 +36,8 @@
 
 struct pios_queue
 {
-	Mailbox mb;
-	MemoryPool mp;
+	mailbox_t mb;
+	memory_pool_t mp;
 	void *mpb;
 };
 
@@ -64,12 +64,12 @@ struct pios_queue *PIOS_Queue_Create(size_t queue_length, size_t item_size)
 		PIOS_free(queuep);
 		return NULL;
 	}
-	chPoolInit(&queuep->mp, item_size, NULL);
+	chPoolObjectInit(&queuep->mp, item_size, NULL);
 	chPoolLoadArray(&queuep->mp, queuep->mpb, queue_length + PIOS_QUEUE_MAX_WAITERS);
 
 	/* Create the mailbox. */
 	msg_t *mb_buf = PIOS_malloc_no_dma(sizeof(msg_t) * queue_length);
-	chMBInit(&queuep->mb, mb_buf, queue_length);
+	chMBObjectInit(&queuep->mb, mb_buf, queue_length);
 
 	return queuep;
 }
@@ -104,7 +104,7 @@ bool PIOS_Queue_Send(struct pios_queue *queuep, const void *itemp, uint32_t time
 	if (buf == NULL)
 		return false;
 
-	memcpy(buf, itemp, queuep->mp.mp_object_size);
+	memcpy(buf, itemp, queuep->mp.object_size);
 
 	systime_t timeout;
 	if (timeout_ms == PIOS_QUEUE_TIMEOUT_MAX)
@@ -116,7 +116,7 @@ bool PIOS_Queue_Send(struct pios_queue *queuep, const void *itemp, uint32_t time
 
 	msg_t result = chMBPost(&queuep->mb, (msg_t)buf, timeout);
 
-	if (result != RDY_OK)
+	if (result != MSG_OK)
 	{
 		chPoolFree(&queuep->mp, buf);
 		return false;
@@ -138,26 +138,26 @@ bool PIOS_Queue_Send(struct pios_queue *queuep, const void *itemp, uint32_t time
  */
 bool PIOS_Queue_Send_FromISR(struct pios_queue *queuep, const void *itemp, bool *wokenp)
 {
-	chSysLockFromIsr();
+	chSysLockFromISR();
 	void *buf = chPoolAllocI(&queuep->mp);
 	if (buf == NULL)
 	{
-		chSysUnlockFromIsr();
+		chSysUnlockFromISR();
 		return false;
 	}
 
-	memcpy(buf, itemp, queuep->mp.mp_object_size);
+	memcpy(buf, itemp, queuep->mp.object_size);
 
 	msg_t result = chMBPostI(&queuep->mb, (msg_t)buf);
 
-	if (result != RDY_OK)
+	if (result != MSG_OK)
 	{
 		chPoolFreeI(&queuep->mp, buf);
-		chSysUnlockFromIsr();
+		chSysUnlockFromISR();
 		return false;
 	}
 
-	chSysUnlockFromIsr();
+	chSysUnlockFromISR();
 
 	return true;
 }
@@ -187,10 +187,10 @@ bool PIOS_Queue_Receive(struct pios_queue *queuep, void *itemp, uint32_t timeout
 
 	msg_t result = chMBFetch(&queuep->mb, &buf, timeout);
 
-	if (result != RDY_OK)
+	if (result != MSG_OK)
 		return false;
 
-	memcpy(itemp, (void*)buf, queuep->mp.mp_object_size);
+	memcpy(itemp, (void*)buf, queuep->mp.object_size);
 
 	chPoolFree(&queuep->mp, (void*)buf);
 
@@ -208,7 +208,7 @@ bool PIOS_Queue_Receive(struct pios_queue *queuep, void *itemp, uint32_t timeout
 size_t PIOS_Queue_GetItemSize(struct pios_queue *queuep)
 {
 	PIOS_Assert(queuep);
-	return queuep->mp.mp_object_size;
+	return queuep->mp.object_size;
 }
 
 #endif /* defined(PIOS_INCLUDE_CHIBIOS) */

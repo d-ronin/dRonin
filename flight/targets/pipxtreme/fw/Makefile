@@ -221,7 +221,7 @@ CDEFS += $(foreach MOD, $(notdir $(MODULES)), -DMODULE_$(MOD)_BUILTIN)
 # Place project-specific -D and/or -U options for
 # Assembler with preprocessor here.
 #ADEFS = -DUSE_IRQ_ASM_WRAPPER
-ADEFS = -D__ASSEMBLY__
+ADEFS += -D__ASSEMBLY__
 
 # Compiler flag to set the C Standard level.
 # c89   - "ANSI" C

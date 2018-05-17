@@ -46,7 +46,11 @@ EP1_OUT_Callback, EP2_OUT_Callback, EP3_OUT_Callback, EP4_OUT_Callback, EP5_OUT_
 * Output         :
 * Return         :
 *******************************************************************************/
+#if STM32_HAS_USB
+void USB_LP_IRQHandler(void)	//USB_Istr(void)
+#else
 void USB_LP_CAN1_RX0_IRQHandler(void)	//USB_Istr(void)
+#endif
 {
 	PIOS_IRQ_Prologue();
 

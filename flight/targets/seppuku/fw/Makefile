@@ -193,6 +193,9 @@ CDEFS += -DARM_MATH_ROUNDING
 CDEFS += -D__FPU_PRESENT=1
 CDEFS += -DUNALIGNED_SUPPORT_DISABLE
 CFLAGS += -D$(STM32_TYPE)
+ifneq ($(STM32_SUBTYPE),)
+CFLAGS += -D$(STM32_SUBTYPE)
+endif
 
 # Debugging format.
 DEBUGF = dwarf-2
@@ -221,7 +224,7 @@ CDEFS += ${BUILTIN_DEFS}
 # Place project-specific -D and/or -U options for
 # Assembler with preprocessor here.
 #ADEFS = -DUSE_IRQ_ASM_WRAPPER
-ADEFS = -D__ASSEMBLY__
+ADEFS += -D__ASSEMBLY__
 
 # Compiler flag to set the C Standard level.
 # c89   - "ANSI" C

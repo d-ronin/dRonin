@@ -13,6 +13,12 @@ PIOS_DEVLIB			:=	$(dir $(lastword $(MAKEFILE_LIST)))
 LINKER_SCRIPTS_APP	 =	$(PIOS_DEVLIB)/sections_chibios.ld
 
 #
+# ChibiOS settings
+#
+CDEFS += -DCRT1_AREAS_NUMBER=0
+ADEFS += -DCRT0_INIT_RAM_AREAS=FALSE
+
+#
 # Compiler options implied by the F30x
 #
 CDEFS				+= -DSTM32F30X

@@ -211,6 +211,9 @@ CDEFS += -DUNALIGNED_SUPPORT_DISABLE
 # This is not the best place for these.  Really should abstract out
 # to the board file or something
 CFLAGS += -D$(STM32_TYPE)
+ifneq ($(STM32_SUBTYPE),)
+CFLAGS += -D$(STM32_SUBTYPE)
+endif
 CFLAGS += -DMEM_SIZE=1024000000
 
 # Output format. (can be ihex or binary or both)
@@ -246,7 +249,7 @@ CDEFS += ${BUILTIN_DEFS}
 # Place project-specific -D and/or -U options for
 # Assembler with preprocessor here.
 #ADEFS = -DUSE_IRQ_ASM_WRAPPER
-ADEFS = -D__ASSEMBLY__
+ADEFS += -D__ASSEMBLY__
 
 # Compiler flag to set the C Standard level.
 # c89   - "ANSI" C

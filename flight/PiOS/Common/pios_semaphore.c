@@ -29,7 +29,7 @@
 struct pios_semaphore
 {
 #if defined(PIOS_INCLUDE_CHIBIOS)
-	BinarySemaphore sema;
+	binary_semaphore_t sema;
 #else
 	uint32_t sema_count;
 #endif
@@ -54,7 +54,7 @@ struct pios_semaphore *PIOS_Semaphore_Create(void)
 	/*
 	 * The initial state of a binary semaphore is "given".
 	 */
-	chBSemInit(&sema->sema, false);
+	chBSemObjectInit(&sema->sema, false);
 
 	return sema;
 }
@@ -74,11 +74,11 @@ bool PIOS_Semaphore_Take(struct pios_semaphore *sema, uint32_t timeout_ms)
 	PIOS_Assert(sema != NULL);
 
 	if (timeout_ms == PIOS_SEMAPHORE_TIMEOUT_MAX)
-		return chBSemWait(&sema->sema) == RDY_OK;
+		return chBSemWait(&sema->sema) == MSG_OK;
 	else if (timeout_ms == 0)
-		return chBSemWaitTimeout(&sema->sema, TIME_IMMEDIATE) == RDY_OK;
+		return chBSemWaitTimeout(&sema->sema, TIME_IMMEDIATE) == MSG_OK;
 	else
-		return chBSemWaitTimeout(&sema->sema, MS2ST(timeout_ms)) == RDY_OK;
+		return chBSemWaitTimeout(&sema->sema, MS2ST(timeout_ms)) == MSG_OK;
 }
 
 /**
@@ -131,9 +131,9 @@ bool PIOS_Semaphore_Give_FromISR(struct pios_semaphore *sema, bool *woken)
 	PIOS_Assert(sema != NULL);
 	PIOS_Assert(woken != NULL);
 
-	chSysLockFromIsr();
+	chSysLockFromISR();
 	chBSemSignalI(&sema->sema);
-	chSysUnlockFromIsr();
+	chSysUnlockFromISR();
 
 	return true;
 }

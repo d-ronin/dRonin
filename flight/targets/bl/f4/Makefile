@@ -71,7 +71,7 @@ SRC += pios_usbhook.c
 SRC += startup.c
 SRC += vectors_stm32f4xx.c
 
-ifneq "$(findstring STM32F40_41xxx,$(STM32_TYPE))" ""
+ifneq "$(findstring STM32F405xx,$(STM32_TYPE))" ""
 LINKER_SCRIPTS_BL	 =	$(PIOS_DEVLIB)/link_STM32F4xx_BL_memory.ld \
                         $(PIOS_DEVLIB)/link_STM32F4xx_sections.ld
 else ifneq "$(findstring STM32F446xx,$(STM32_TYPE))" ""
@@ -140,6 +140,9 @@ ADEFS = -D__ASSEMBLY__
 #
 # Flags for C and C++ (arm-elf-gcc/arm-elf-g++)
 CFLAGS += -D$(STM32_TYPE)
+ifneq ($(STM32_SUBTYPE),)
+CFLAGS += -D$(STM32_SUBTYPE)
+endif
 
 CFLAGS += -gdwarf-2
 CFLAGS += -Os -fconserve-stack
