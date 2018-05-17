@@ -76,22 +76,37 @@ class process_stream:
         self.pending_pieces = []
         self.buf_offset = 0
         self.past_bytes = 0
+        self.pending_len = 0
         self.eof = False
 
     def new_data(self, data):
-        b_len = len(self.buf)
-
         self.pending_pieces.append(data)
+        self.pending_len += len(data)
+
+    def want_more_data(self):
+        if self.eof:
+            return False
+
+        if self.pending_len > 16384:
+            return False
+
+        if len(self.buf) - self.buf_offset > 16384:
+            return False
+
+        return True
 
     def set_eof(self):
         self.eof = True
+
+    def is_eof(self):
+        return self.eof
 
     def _compact(self):
         # If we don't have sufficient data buffered, join up any chunks we've
         # been given.
         #
         # 512 chosen here to be bigger than any plausible UAVO
-        if len(self.buf) - self.buf_offset < 512:
+        if (len(self.buf) - self.buf_offset < 512) and len(self.pending_pieces):
             self.past_bytes += self.buf_offset
 
             self.pending_pieces.insert(0, self.buf[self.buf_offset:])
@@ -99,6 +114,11 @@ class process_stream:
 
             self.buf = b''.join(self.pending_pieces)
             self.pending_pieces = []
+            self.pending_len = 0
+
+            return True
+
+        return False
 
     def __iter__(self):
         """Generator function that parses uavotalk stream.
@@ -115,16 +135,13 @@ class process_stream:
 
         while True:
             if self.gcs_timestamps is None or self.gcs_timestamps == True:
-                self._compact()
-
                 while len(self.buf) < (header_fmt.size + logheader_fmt.size +
                         self.buf_offset):
-                    if self.eof:
-                        return
+                    if not self._compact():
+                        if self.eof:
+                            return
 
-                    yield None
-
-                    self._compact()
+                        yield None
 
                 overrideTimestamp, logHdrLen = logheader_fmt.unpack_from(self.buf, self.buf_offset)
 
@@ -157,12 +174,11 @@ class process_stream:
                 logger.debug("waitingsync len=%d, offset=%d"%(len(self.buf), self.buf_offset))
 
                 if len(self.buf) < header_fmt.size + 1 + self.buf_offset:
-                    if self.eof:
-                        return
+                    if not self._compact():
+                        if self.eof:
+                            return
 
-                    yield None
-
-                    self._compact()
+                        yield None
 
                 try:
                     self.buf_offset = self.buf.index(SYNC_VAL, self.buf_offset)
@@ -243,12 +259,11 @@ class process_stream:
             # enough data.
             # +1 here is for CRC-8
             while len(self.buf) - self.buf_offset < calc_size + 1:
-                if self.eof:
-                    return
+                if not self._compact():
+                    if self.eof:
+                        return
 
-                yield None
-
-                self._compact()
+                    yield None
 
             # check the CRC byte
 
@@ -258,7 +273,7 @@ class process_stream:
             if recv_cs != cs:
                 logger.warning("Bad crc. Got %d but wanted %d"%(recv_cs, cs))
 
-                buf_offset += 1
+                self.buf_offset += 1
 
                 continue
 
