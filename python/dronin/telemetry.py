@@ -32,7 +32,7 @@ class TelemetryBase(metaclass=ABCMeta):
             gcs_timestamps=False, name=None, progress_callback=None):
 
         """Instantiates a telemetry instance.  Called only by derived classes.
-         - githash: revision control id of the UAVO's used to communicate.
+         - githash: revision control id of the UAVOs used to communicate.
              if unspecified, we use the version in this source tree.
          - service_in_iter: whether the actual iterator should service the
              connection/read the file.  If you don't specify this, you probably
@@ -1035,7 +1035,7 @@ def _finish_telemetry_args(parser, args, service_in_iter, iter_blocks):
         # If we specify the log header no need to attempt to parse it
         githash = args.githash
     else:
-        parse_header = True # only for files
+        parse_header = args.parse_header # only for files
 
     from dronin import telemetry
 
@@ -1109,6 +1109,12 @@ def get_telemetry_by_args(desc="Process telemetry", service_in_iter=True,
                         action  = "store",
                         dest    = "githash",
                         help    = "override githash for UAVO XML definitions")
+
+    parser.add_argument("--no-parse-header",
+                        action  = "store_false",
+                        dest    = "parse_header",
+                        default = True,
+                        help    = "Indicate not to parse the header to get githash")
 
     parser.add_argument("-s", "--serial",
                         action  = "store_true",
