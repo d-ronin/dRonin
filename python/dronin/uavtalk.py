@@ -60,256 +60,268 @@ crc_table = [
     0xde, 0xd9, 0xd0, 0xd7, 0xc2, 0xc5, 0xcc, 0xcb, 0xe6, 0xe1, 0xe8, 0xef, 0xfa, 0xfd, 0xf4, 0xf3
 ]
 
-def process_stream(uavo_defs, use_walltime=False, gcs_timestamps=None,
-        progress_callback=None, ack_callback=None, reqack_callback=None,
-        nack_callback=None, filedata_callback=None):
-    """Generator function that parses uavotalk stream.
+class process_stream:
+    def __init__(self, uavo_defs, use_walltime=False, gcs_timestamps=None,
+            progress_callback=None, ack_callback=None, reqack_callback=None,
+            nack_callback=None, filedata_callback=None):
+        self.uavo_defs = uavo_defs
+        self.use_walltime = use_walltime
+        self.gcs_timestamps = gcs_timestamps
+        self.progress_callback = progress_callback
+        self.ack_callback = ack_callback
+        self.reqack_callback = reqack_callback
+        self.nack_callback = nack_callback
+        self.filedata_callback = filedata_callback
+        self.buf = b''
+        self.pending_pieces = []
+        self.buf_offset = 0
+        self.past_bytes = 0
+        self.eof = False
 
-    You are expected to send more bytes, or '' to it, until EOF.  Then send
-    None.  After that, you may continue to receive objects back because of
-    buffering."""
+    def new_data(self, data):
+        b_len = len(self.buf)
 
-    # These are used for accounting for timestamp wraparound
-    timestamp_base = 0
-    last_timestamp = 0
+        self.pending_pieces.append(data)
 
-    received = 0
+    def set_eof(self):
+        self.eof = True
 
-    buf = b''
-    buf_offset = 0
-
-    past_bytes = 0
-
-    pending_pieces = []
-
-    while True:
+    def _compact(self):
         # If we don't have sufficient data buffered, join up any chunks we've
-        # been given to ensure pending_pieces is empty for the rest of this loop.
+        # been given.
         #
-        # in other words, don't mix the pending_pieces drain model and the
-        # buffer concatenation model within a loop iteration.
-        #
-        # 10k chosen here to be bigger than any plausible uavo; could calculate
-        # this instead from our known uav objects
-        if len(buf) - buf_offset < 10240:
-            past_bytes += buf_offset
+        # 512 chosen here to be bigger than any plausible UAVO
+        if len(self.buf) - self.buf_offset < 512:
+            self.past_bytes += self.buf_offset
 
-            pending_pieces.insert(0, buf[buf_offset:])
-            buf_offset = 0
+            self.pending_pieces.insert(0, self.buf[self.buf_offset:])
+            self.buf_offset = 0
 
-            buf = b''.join(pending_pieces)
-            pending_pieces = []
+            self.buf = b''.join(self.pending_pieces)
+            self.pending_pieces = []
 
-        if gcs_timestamps is None or gcs_timestamps == True:
-            while len(buf) < (header_fmt.size + logheader_fmt.size + buf_offset):
-                rx = yield None
+    def __iter__(self):
+        """Generator function that parses uavotalk stream.
 
-                if rx is None:
-                    return
+        You are expected to send more bytes, or '' to it, until EOF.  Then send
+        None.  After that, you may continue to receive objects back because of
+        buffering."""
 
-                buf = buf + rx
+        # These are used for accounting for timestamp wraparound
+        timestamp_base = 0
+        last_timestamp = 0
 
-            overrideTimestamp, logHdrLen = logheader_fmt.unpack_from(buf,buf_offset)
+        received = 0
 
-            if gcs_timestamps is None:
-                if ((logHdrLen > 1000) or ( overrideTimestamp > 100000000)):
-                    if buf[buf_offset] == SYNC_VAL:
-                        logger.info("Autodetect: no gcs-type timestamps")
-                        gcs_timestamps = False
+        while True:
+            if self.gcs_timestamps is None or self.gcs_timestamps == True:
+                self._compact()
+
+                while len(self.buf) < (header_fmt.size + logheader_fmt.size +
+                        self.buf_offset):
+                    if self.eof:
+                        return
+
+                    yield None
+
+                    self._compact()
+
+                overrideTimestamp, logHdrLen = logheader_fmt.unpack_from(self.buf, self.buf_offset)
+
+                if self.gcs_timestamps is None:
+                    if ((logHdrLen > 1000) or ( overrideTimestamp > 100000000)):
+                        if self.buf[self.buf_offset] == SYNC_VAL:
+                            logger.info("Autodetect: no gcs-type timestamps")
+                            self.gcs_timestamps = False
+                        else:
+                            logger.debug("Autodetect: punting to next cycle")
+                            self.buf_offset += 1
+                            continue
                     else:
-                        logger.debug("Autodetect: punting to next cycle")
-                        buf_offset += 1
-                        continue
+                        if self.buf[self.buf_offset + logheader_fmt.size] == SYNC_VAL:
+                            logger.info("Autodetect: gcs-type timestamps likely")
+                            self.gcs_timestamps = True
+                            self.buf_offset += logheader_fmt.size
+                        else:
+                            logger.debug("Autodetect: punting to next cycle")
                 else:
-                    if buf[buf_offset + logheader_fmt.size] == SYNC_VAL:
-                        logger.info("Autodetect: gcs-type timestamps likely")
-                        gcs_timestamps = True
-                        buf_offset += logheader_fmt.size
-                    else:
-                        logger.debug("Autodetect: punting to next cycle")
+                    self.buf_offset += logheader_fmt.size
+
+            # Ensure we have enough room for all the
+            # plain required fields to avoid duplicating
+            # this code lots.
+            # sync(1) + type(1) + len(2) + objid(4)
+
+            while ((len(self.buf) < header_fmt.size + self.buf_offset) or
+                    (self.buf[self.buf_offset] != SYNC_VAL)):
+                logger.debug("waitingsync len=%d, offset=%d"%(len(self.buf), self.buf_offset))
+
+                if len(self.buf) < header_fmt.size + 1 + self.buf_offset:
+                    if self.eof:
+                        return
+
+                    yield None
+
+                    self._compact()
+
+                try:
+                    self.buf_offset = self.buf.index(SYNC_VAL, self.buf_offset)
+                except ValueError:
+                    # No sync value
+                    self.past_bytes += len(self.buf)
+                    self.buf = b''
+                    self.buf_offset = 0
+
+            (sync, pack_type, pack_len, objId) = header_fmt.unpack_from(self.buf, self.buf_offset)
+
+            if (pack_type & TYPE_MASK) != TYPE_VER:
+                logger.warning("Badver %x"%(pack_type))
+                self.buf_offset += 1
+                continue    # go to top to look for sync
+
+            pack_type &= ~ TYPE_MASK
+
+            if pack_len < MIN_HEADER_LENGTH or pack_len > MAX_HEADER_LENGTH + MAX_PAYLOAD_LENGTH:
+                logger.warning("badlen %d"%(pack_len))
+                self.buf_offset += 1
+                continue
+
+            # Search for object.
+            uavo_key = '{0:08x}'.format(objId)
+            if not uavo_key in self.uavo_defs:
+                logger.debug("Unknown object 0x%s type=%02x"%(uavo_key, pack_type))
+                obj = None
             else:
-                buf_offset += logheader_fmt.size
+                # XXX check length vs pack_len
+                obj = self.uavo_defs[uavo_key]
 
-        # Ensure we have enough room for all the
-        # plain required fields to avoid duplicating
-        # this code lots.
-        # sync(1) + type(1) + len(2) + objid(4)
+            instance_len = 0
 
-        while (len(buf) < header_fmt.size + buf_offset) or (buf[buf_offset] != SYNC_VAL):
-            logger.debug("waitingsync len=%d, offset=%d"%(len(buf), buf_offset))
+            # Determine data length
+            if (pack_type == TYPE_OBJ_REQ) or (pack_type == TYPE_ACK) or (pack_type == TYPE_NACK):
+                obj_len = 0
+                timestamp_len = 0
 
-            if len(buf) < header_fmt.size + 1 + buf_offset:
-                rx = yield None
+                if obj is not None and not obj._single:
+                    instance_len = 2
 
-                if rx is None:
-                    #end of stream, stopiteration
+            else:
+                if obj is not None:
+                    timestamp_len = timestamp_fmt.size if pack_type == TYPE_OBJ_TS or pack_type == TYPE_OBJ_ACK_TS else 0
+                    obj_len = obj.get_size_of_data()
+                else:
+                    # we don't know anything, so fudge to keep sync.
+                    timestamp_len = 0
+                    obj_len = pack_len - header_fmt.size
+
+            # Check length and determine next state
+            if obj_len >= MAX_PAYLOAD_LENGTH:
+                logger.critical("Bad len-- bad XML?")
+                #should never happen; requires invalid uavo xml
+                self.buf_offset += 1
+                continue
+
+            # calc_size, AKA timestamp, and obj data
+            # as appropriate, plus our current header
+            # also equivalent to the offset of the CRC in the packet
+
+            calc_size = header_fmt.size + instance_len + timestamp_len + obj_len
+
+            # Check the lengths match
+            if calc_size != pack_len:
+                logger.warning("mismatched size id=%s %d vs %d, type %d"%(uavo_key,
+                    calc_size, pack_len, pack_type))
+
+                # packet error - mismatched packet size
+                # Consume a byte to try syncing right after where we
+                # did...
+                self.buf_offset += 1
+                continue
+
+            # OK, at this point we are seriously hoping to receive
+            # a packet.  Time for another loop to make sure we have
+            # enough data.
+            # +1 here is for CRC-8
+            while len(self.buf) - self.buf_offset < calc_size + 1:
+                if self.eof:
                     return
 
-                buf = buf + rx
+                yield None
 
-            try:
-                buf_offset = buf.index(SYNC_VAL, buf_offset)
-            except ValueError:
-                # No sync value
-                buf = b''
-                buf_offset = 0
+                self._compact()
 
-        (sync, pack_type, pack_len, objId) = header_fmt.unpack_from(buf, buf_offset)
+            # check the CRC byte
 
-        if (pack_type & TYPE_MASK) != TYPE_VER:
-            logger.warning("Badver %x"%(pack_type))
-            buf_offset += 1
-            continue    # go to top to look for sync
+            cs = calcCRC(self.buf[self.buf_offset:calc_size+self.buf_offset])
+            recv_cs = self.buf[self.buf_offset + calc_size]
 
-        pack_type &= ~ TYPE_MASK
+            if recv_cs != cs:
+                logger.warning("Bad crc. Got %d but wanted %d"%(recv_cs, cs))
 
-        if pack_len < MIN_HEADER_LENGTH or pack_len > MAX_HEADER_LENGTH + MAX_PAYLOAD_LENGTH:
-            logger.warning("badlen %d"%(pack_len))
-            buf_offset += 1
-            continue
+                buf_offset += 1
 
-        # Search for object.
-        uavo_key = '{0:08x}'.format(objId)
-        if not uavo_key in uavo_defs:
-            logger.debug("Unknown object 0x%s type=%02x"%(uavo_key, pack_type))
-            obj = None
-        else:
-            # XXX check length vs pack_len
-            obj = uavo_defs[uavo_key]
+                continue
 
-        instance_len = 0
-
-        # Determine data length
-        if (pack_type == TYPE_OBJ_REQ) or (pack_type == TYPE_ACK) or (pack_type == TYPE_NACK):
-            obj_len = 0
-            timestamp_len = 0
-
-            if obj is not None and not obj._single:
-                instance_len = 2
-
-        else:
-            if obj is not None:
-                timestamp_len = timestamp_fmt.size if pack_type == TYPE_OBJ_TS or pack_type == TYPE_OBJ_ACK_TS else 0
-                obj_len = obj.get_size_of_data()
+            if instance_len:
+                instance_id = instance_fmt.unpack_from(buf, header_fmt.size + buf_offset)[0]
             else:
-                # we don't know anything, so fudge to keep sync.
-                timestamp_len = 0
-                obj_len = pack_len - header_fmt.size
+                instance_id = None
 
-        # Check length and determine next state
-        if obj_len >= MAX_PAYLOAD_LENGTH:
-            logger.critical("Bad len-- bad XML?")
-            #should never happen; requires invalid uavo xml
-            buf_offset += 1
-            continue
+            if timestamp_len:
+                # pull the timestamp from the packet
+                timestamp = timestamp_fmt.unpack_from(self.buf, header_fmt.size + instance_len + self.buf_offset)[0]
 
-        # calc_size, AKA timestamp, and obj data
-        # as appropriate, plus our current header
-        # also equivalent to the offset of the CRC in the packet
+                # handle wraparound
+                if timestamp < last_timestamp:
+                    timestamp_base = timestamp_base + 65536
+                last_timestamp = timestamp
+                timestamp += timestamp_base
+            else:
+                timestamp = last_timestamp
 
-        calc_size = header_fmt.size + instance_len + timestamp_len + obj_len
+            if self.use_walltime:
+                timestamp = int(time.time()*1000.0)
 
-        # Check the lengths match
-        if calc_size != pack_len:
-            logger.warning("mismatched size id=%s %d vs %d, type %d"%(uavo_key,
-                calc_size, pack_len, pack_type))
+            if self.gcs_timestamps:
+                timestamp = overrideTimestamp
 
-            # packet error - mismatched packet size
-            # Consume a byte to try syncing right after where we
-            # did...
-            buf_offset += 1
-            continue
+            data_offset = header_fmt.size + instance_len + timestamp_len + self.buf_offset
 
-        # OK, at this point we are seriously hoping to receive
-        # a packet.  Time for another loop to make sure we have
-        # enough data.
-        # +1 here is for CRC-8
-        while len(buf) < calc_size + 1 + buf_offset:
-            rx = yield None
+            self.buf_offset += calc_size + 1
 
-            if rx is None:
-                #end of stream, stopiteration
-                return
+            if (obj_len > 0) and (obj is not None):
+                objInstance = obj.from_bytes(self.buf, timestamp, offset=data_offset)
+                received += 1
+                if not (received % 10000):
+                    if self.progress_callback is not None:
+                        self.progress_callback(received, self.past_bytes + self.buf_offset)
+                    logger.info("received %d objs"%(received))
 
-            buf += rx
+                yield objInstance
 
-        # check the CRC byte
+            if (obj is not None) and (pack_type == TYPE_ACK):
+                if self.ack_callback is not None:
+                    self.ack_callback(obj)
 
-        cs = calcCRC(buf[buf_offset:calc_size+buf_offset])
-        recv_cs = buf[buf_offset + calc_size]
+            if (obj is not None) and ((pack_type == TYPE_OBJ_ACK) or (pack_type == TYPE_OBJ_ACK_TS)):
+                if self.reqack_callback is not None:
+                    self.reqack_callback(obj)
 
-        if recv_cs != cs:
-            print("Bad crc. Got %d but wanted %d"%(recv_cs, cs))
+            if (obj is not None) and (pack_type == TYPE_NACK):
+                if self.nack_callback is not None:
+                    self.nack_callback(obj)
 
-            buf_offset += 1
+            if (pack_type == TYPE_FILEDATA):
+                if (filedata_callback is not None) and (obj_len >= fileresp_fmt.size):
+                    (file_offset, file_flags) = fileresp_fmt.unpack_from(buf, data_offset)
 
-            continue
+                    data_offset += fileresp_fmt.size
+                    obj_len -= fileresp_fmt.size
 
-        if instance_len:
-            instance_id = instance_fmt.unpack_from(buf, header_fmt.size + buf_offset)[0]
-        else:
-            instance_id = None
-
-        if timestamp_len:
-            # pull the timestamp from the packet
-            timestamp = timestamp_fmt.unpack_from(buf, header_fmt.size + instance_len + buf_offset)[0]
-
-            # handle wraparound
-            if timestamp < last_timestamp:
-                timestamp_base = timestamp_base + 65536
-            last_timestamp = timestamp
-            timestamp += timestamp_base
-        else:
-            timestamp = last_timestamp
-
-        if use_walltime:
-            timestamp = int(time.time()*1000.0)
-
-        if gcs_timestamps:
-            timestamp = overrideTimestamp
-
-        data_offset = header_fmt.size + instance_len + timestamp_len + buf_offset
-
-        if (obj_len > 0) and (obj is not None):
-            objInstance = obj.from_bytes(buf, timestamp, offset=data_offset)
-            received += 1
-            if not (received % 10000):
-                if progress_callback is not None:
-                    progress_callback(received, past_bytes + buf_offset + calc_size + 1)
-                logger.info("received %d objs"%(received))
-
-            next_recv = yield objInstance
-        else:
-            next_recv = None
-
-        if (obj is not None) and (pack_type == TYPE_ACK):
-            if ack_callback is not None:
-                ack_callback(obj)
-
-        if (obj is not None) and ((pack_type == TYPE_OBJ_ACK) or (pack_type == TYPE_OBJ_ACK_TS)):
-            if reqack_callback is not None:
-                reqack_callback(obj)
-
-        if (obj is not None) and (pack_type == TYPE_NACK):
-            if nack_callback is not None:
-                nack_callback(obj)
-
-        if (pack_type == TYPE_FILEDATA):
-            if (filedata_callback is not None) and (obj_len >= fileresp_fmt.size):
-                (file_offset, file_flags) = fileresp_fmt.unpack_from(buf, data_offset)
-
-                data_offset += fileresp_fmt.size
-                obj_len -= fileresp_fmt.size
-
-                filedata_callback(objId, file_offset,
-                        file_flags & FILEDATA_EOF != 0,
-                        file_flags & FILEDATA_LAST != 0,
-                        buf[data_offset : data_offset + obj_len])
-
-        buf_offset += calc_size + 1
-
-        if next_recv is not None and next_recv != '':
-            pending_pieces.append(next_recv)
+                    filedata_callback(objId, file_offset,
+                            file_flags & FILEDATA_EOF != 0,
+                            file_flags & FILEDATA_LAST != 0,
+                            buf[data_offset : data_offset + obj_len])
 
 def send_object(obj, req_ack=False):
     """Generates a string containing a UAVTalk packet describing this object"""

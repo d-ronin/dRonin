@@ -62,7 +62,7 @@ class TelemetryBase(metaclass=ABCMeta):
 
         self.uavo_defs = uavo_defs
 
-        self.uavtalk_generator = uavtalk.process_stream(uavo_defs,
+        self.uavtalk = uavtalk.process_stream(uavo_defs,
             use_walltime=use_walltime, gcs_timestamps=gcs_timestamps,
             progress_callback=progress_callback,
             ack_callback=self.gotack_callback,
@@ -70,8 +70,7 @@ class TelemetryBase(metaclass=ABCMeta):
             reqack_callback=self.reqack_callback,
             filedata_callback=self.filedata_callback)
 
-        # Kick the generator off to a sane start.
-        self.uavtalk_generator.send(None)
+        self.uavtalk_generator = iter(self.uavtalk)
 
         self.uavo_list = []
 
@@ -438,7 +437,9 @@ class TelemetryBase(metaclass=ABCMeta):
         elif frames == b'':
             return
         else:
-            obj = self.uavtalk_generator.send(frames)
+            self.uavtalk.new_data(frames)
+
+            obj = next(self.uavtalk_generator)
 
             while obj:
                 if self.do_handshaking:
@@ -446,7 +447,7 @@ class TelemetryBase(metaclass=ABCMeta):
 
                 objs.append(obj)
 
-                obj = self.uavtalk_generator.send(b'')
+                obj = next(self.uavtalk_generator)
 
         # Only traverse the lock when we've processed everything in this
         # batch.
