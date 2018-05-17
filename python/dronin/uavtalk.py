@@ -87,10 +87,7 @@ class process_stream:
         if self.eof:
             return False
 
-        if self.pending_len > 16384:
-            return False
-
-        if len(self.buf) - self.buf_offset > 16384:
+        if (self.pending_len + len(self.buf) - self.buf_offset) > 32768:
             return False
 
         return True
@@ -120,6 +117,20 @@ class process_stream:
 
         return False
 
+    def available_bytes(self):
+        return len(self.buf) - self.buf_offset
+
+    def ensure_available(self, amount):
+        while self.available_bytes() < amount:
+            if self._compact():
+                continue
+
+            # Request yield
+            return True
+
+        # No need to yield, we have what we need
+        return False
+
     def __iter__(self):
         """Generator function that parses uavotalk stream.
 
@@ -135,13 +146,12 @@ class process_stream:
 
         while True:
             if self.gcs_timestamps is None or self.gcs_timestamps == True:
-                while len(self.buf) < (header_fmt.size + logheader_fmt.size +
+                while self.ensure_available(header_fmt.size + logheader_fmt.size +
                         self.buf_offset):
-                    if not self._compact():
-                        if self.eof:
-                            return
+                    if self.eof:
+                        return
 
-                        yield None
+                    yield None
 
                 overrideTimestamp, logHdrLen = logheader_fmt.unpack_from(self.buf, self.buf_offset)
 
@@ -168,25 +178,20 @@ class process_stream:
             # plain required fields to avoid duplicating
             # this code lots.
             # sync(1) + type(1) + len(2) + objid(4)
-
-            while ((len(self.buf) < header_fmt.size + self.buf_offset) or
-                    (self.buf[self.buf_offset] != SYNC_VAL)):
+            while (self.available_bytes() < header_fmt.size) or (self.buf[self.buf_offset] != SYNC_VAL):
                 logger.debug("waitingsync len=%d, offset=%d"%(len(self.buf), self.buf_offset))
 
-                if len(self.buf) < header_fmt.size + 1 + self.buf_offset:
-                    if not self._compact():
-                        if self.eof:
-                            return
+                while self.ensure_available(header_fmt.size):
+                    if self.eof:
+                        return
 
-                        yield None
+                    yield None
 
                 try:
                     self.buf_offset = self.buf.index(SYNC_VAL, self.buf_offset)
                 except ValueError:
                     # No sync value
-                    self.past_bytes += len(self.buf)
-                    self.buf = b''
-                    self.buf_offset = 0
+                    self.buf_offset = len(self.buf)
 
             (sync, pack_type, pack_len, objId) = header_fmt.unpack_from(self.buf, self.buf_offset)
 
@@ -258,12 +263,11 @@ class process_stream:
             # a packet.  Time for another loop to make sure we have
             # enough data.
             # +1 here is for CRC-8
-            while len(self.buf) - self.buf_offset < calc_size + 1:
-                if not self._compact():
-                    if self.eof:
-                        return
+            while self.ensure_available(calc_size + 1):
+                if self.eof:
+                    return
 
-                    yield None
+                yield None
 
             # check the CRC byte
 
