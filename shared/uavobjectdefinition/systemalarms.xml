@@ -54,6 +54,7 @@
         <option>NavFilter</option>
         <option>UnsafeToArm</option>
         <option>LQG</option>
+        <option>Throttle</option>
         <option>Undefined</option>
         <option>None</option>
       </options>

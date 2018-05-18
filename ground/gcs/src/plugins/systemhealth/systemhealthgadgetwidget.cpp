@@ -337,6 +337,10 @@ QString SystemHealthGadgetWidget::getAlarmDescriptionFileName(const QString item
             alarmDescriptionFileName =
                 QString(":/systemhealth/html/SystemConfiguration-Error-LQG.html");
             break;
+        case SystemAlarms::CONFIGERROR_THROTTLE:
+            alarmDescriptionFileName =
+                QString(":/systemhealth/html/SystemConfiguration-Warning-Throttle.html");
+            break;
         case SystemAlarms::CONFIGERROR_UNDEFINED:
             alarmDescriptionFileName =
                 QString(":/systemhealth/html/SystemConfiguration-Undefined.html");
