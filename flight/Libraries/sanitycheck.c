@@ -84,7 +84,7 @@ bool lqg_sysident_check()
 int32_t configuration_check()
 {
 	SystemAlarmsConfigErrorOptions error_code = SYSTEMALARMS_CONFIGERROR_NONE;
-	
+
 	// For when modules are not running we should explicitly check the objects are
 	// valid
 	if (ManualControlSettingsHandle() == NULL ||
@@ -186,6 +186,14 @@ int32_t configuration_check()
 		}
 	}
 
+	/* Throttle check. */
+	if (multirotor) {
+		uint8_t g[MANUALCONTROLSETTINGS_CHANNELNUMBER_NUMELEM];
+		ManualControlSettingsChannelGroupsGet(g);
+		if (g[MANUALCONTROLSETTINGS_CHANNELGROUPS_COLLECTIVE] != MANUALCONTROLSETTINGS_CHANNELGROUPS_NONE)
+			error_code = SYSTEMALARMS_CONFIGERROR_THROTTLE;
+	}
+
 	// Check the stabilization rates are within what the sensors can track
 	error_code = (error_code == SYSTEMALARMS_CONFIGERROR_NONE) ? check_stabilization_rates() : error_code;
 
@@ -274,7 +282,7 @@ static int32_t check_stabilization_settings(int index, bool multirotor)
 	}
 
 
-	// Warning: This assumes that certain conditions in the XML file are met.  That 
+	// Warning: This assumes that certain conditions in the XML file are met.  That
 	// MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_DISABLED has the same numeric value for each channel
 	// and is the same for STABILIZATIONDESIRED_STABILIZATIONMODE_DISABLED
 
@@ -420,6 +428,9 @@ void set_config_error(SystemAlarmsConfigErrorOptions error_code)
 	case SYSTEMALARMS_CONFIGERROR_UNSAFETOARM:
 	case SYSTEMALARMS_CONFIGERROR_LQG:
 		severity = SYSTEMALARMS_ALARM_ERROR;
+		break;
+	case SYSTEMALARMS_CONFIGERROR_THROTTLE:
+		severity = SYSTEMALARMS_ALARM_WARNING;
 		break;
 	}
 
