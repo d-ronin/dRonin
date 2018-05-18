@@ -438,7 +438,7 @@ static void initialize_lqg_controllers(float dT)
 			if (lqg[i]) {
 				/* Update Q matrix. */
 				lqr_t lqr = lqg_get_lqr(lqg[i]);
-				lqr_update(lqr, 
+				lqr_update(lqr,
 						lqgSettings.LQRegulator[i == YAW ? LQGSETTINGS_LQREGULATOR_YAWQ1 : LQGSETTINGS_LQREGULATOR_Q1],
 						lqgSettings.LQRegulator[i == YAW ? LQGSETTINGS_LQREGULATOR_YAWQ2 : LQGSETTINGS_LQREGULATOR_Q2],
 						lqgSettings.LQRegulator[i == YAW ? LQGSETTINGS_LQREGULATOR_YAWR : LQGSETTINGS_LQREGULATOR_R]
@@ -449,7 +449,7 @@ static void initialize_lqg_controllers(float dT)
 				float tau = (sysIdent.Tau[0] + sysIdent.Tau[1]) * 0.5f;
 
 				if (tau > 0.001f && beta >= 6) {
-					rtkf_t rtkf = rtkf_create(beta, tau, dT, 
+					rtkf_t rtkf = rtkf_create(beta, tau, dT,
 							lqgSettings.RTKF[i == YAW ? LQGSETTINGS_RTKF_YAWR : LQGSETTINGS_RTKF_R],
 							lqgSettings.RTKF[LQGSETTINGS_RTKF_Q1],
 							lqgSettings.RTKF[LQGSETTINGS_RTKF_Q2],
@@ -956,20 +956,32 @@ static void stabilizationTask(void* parameters)
 			/* Solve for LQG, if it's configured for an axis. */
 			if (lqg[i]) {
 				int status = lqg_solver_status(lqg[i]);
-				if (status == LQG_SOLVER_FAILED) {
-					/* Values don't converge in time, probably bogus. Light up the Christmas three. */
-					SystemAlarmsConfigErrorOptions err;
-					SystemAlarmsConfigErrorGet(&err);
-					if (err != SYSTEMALARMS_CONFIGERROR_LQG) {
-						err = SYSTEMALARMS_CONFIGERROR_LQG;
-						SystemAlarmsConfigErrorSet(&err);
-						AlarmsSet(SYSTEMALARMS_ALARM_SYSTEMCONFIGURATION, SYSTEMALARMS_ALARM_ERROR);
-					}
-				} else if (status == LQG_SOLVER_RUNNING) {
-					lqg_run_covariance(lqg[i], 1);
-					dump_lqg_solution(lqg[i], i);
-				} else {
-					/* LQG_SOLVER_DONE */
+				SystemAlarmsConfigErrorOptions err;
+				SystemAlarmsConfigErrorGet(&err);
+				switch(status) {
+					case LQG_SOLVER_RUNNING:
+						lqg_run_covariance(lqg[i], 1);
+						dump_lqg_solution(lqg[i], i);
+						/* Drop to failed, because we want to set the LQG config error during that time, anyway,
+						   to prevent arming. */
+					case LQG_SOLVER_FAILED:
+						/* Values don't converge in time, probably bogus. Light up the Christmas three. */
+						if (err != SYSTEMALARMS_CONFIGERROR_LQG) {
+							err = SYSTEMALARMS_CONFIGERROR_LQG;
+							SystemAlarmsConfigErrorSet(&err);
+							AlarmsSet(SYSTEMALARMS_ALARM_SYSTEMCONFIGURATION, SYSTEMALARMS_ALARM_ERROR);
+						}
+						break;
+					case LQG_SOLVER_DONE:
+						/* Clear the error, everything's ready to go. */
+						if (err == SYSTEMALARMS_CONFIGERROR_LQG) {
+							err = SYSTEMALARMS_CONFIGERROR_NONE;
+							SystemAlarmsConfigErrorSet(&err);
+							AlarmsClear(SYSTEMALARMS_ALARM_SYSTEMCONFIGURATION);
+						}
+						break;
+					default:
+						PIOS_Assert(0);
 				}
 			}
 		}
