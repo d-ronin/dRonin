@@ -152,18 +152,18 @@ static void generate_status_message(int *resp_len)
 
 	resp->valid_messages_recvd = msg_num;
 
-	for (int i=0; i<FPPROTO_MAX_RCCHANS; i++) {
+	for (int i = 0; i < FPPROTO_MAX_RCCHANS; i++) {
 		if (pios_rcvr_group_map[0]) {
 			resp->chan_data[i] =
 				/* 1-offset vs 0-offset grr */
-				PIOS_RCVR_Read(pios_rcvr_group_map[0], i+1);
+				PIOS_RCVR_Read(pios_rcvr_group_map[0], i + 1);
 		} else {
 			resp->chan_data[i] = PIOS_RCVR_NODRIVER;
 		}
 	}
 
-	for (int i=0; i<FPPROTO_MAX_ADCCHANS; i++) {
-		resp->adc_data[i] = PIOS_ADC_DevicePinGet(adc_id, i);
+	for (int i = 0; i < FPPROTO_MAX_ADCCHANS; i++) {
+		resp->adc_data[i] = PIOS_ADC_GetChannelRaw(i);
 	}
 
 	flyingpi_calc_crc(&tx_buf, true, resp_len);

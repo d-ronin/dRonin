@@ -215,16 +215,6 @@ extern uintptr_t pios_com_debug_id;
 // ADC0 : PA4 ADC2_IN1 Voltage sense
 // ADC1 : PA5 ADC2_IN2 Current sense
 //-------------------------
-#define PIOS_INTERNAL_ADC_MAX_INSTANCES          4
-#define PIOS_INTERNAL_ADC_COUNT                  4
-#define PIOS_INTERNAL_ADC_MAPPING                { ADC1, ADC2, ADC3, ADC4 }
-
-#if defined(PIOS_INCLUDE_ADC)
-extern uintptr_t pios_internal_adc_id;
-#define PIOS_INTERNAL_ADC                               (pios_internal_adc_id)
-#endif
-#define PIOS_ADC_SUB_DRIVER_MAX_INSTANCES       3
-
 #define VREF_PLUS				3.3
 
 //-------------------------

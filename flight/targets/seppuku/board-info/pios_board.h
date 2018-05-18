@@ -215,8 +215,6 @@ extern ws2811_dev_t pios_ws2811;
 //-------------------------
 // ADC
 //-------------------------
-#define PIOS_ADC_SUB_DRIVER_MAX_INSTANCES       3
-
 #define PIOS_ADC_MAX_OVERSAMPLING       4
 #define VREF_PLUS                     3.3
 

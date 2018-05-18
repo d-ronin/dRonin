@@ -9,6 +9,7 @@
  * @file       pios_adc.h
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2018
  * @brief      ADC layer functions header
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -38,14 +39,11 @@
 struct pios_adc_driver {
 	void (*init)(uintptr_t id);
 	int32_t (*get_pin)(uintptr_t id, uint32_t pin);
-	bool (*available)(uintptr_t id, uint32_t device_pin);
 	uint8_t (*number_of_channels)(uintptr_t id);
 	float (*lsb_voltage)(uintptr_t id);
 };
 
 /* Public Functions */
-extern int32_t PIOS_ADC_DevicePinGet(uintptr_t adc_id, uint32_t device_pin);
-extern bool PIOS_ADC_Available(uintptr_t adc_id, uint32_t device_pin);
 extern int32_t PIOS_ADC_GetChannelRaw(uint32_t channel);
 extern float PIOS_ADC_GetChannelVolt(uint32_t channel);
 

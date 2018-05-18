@@ -72,11 +72,9 @@ static void init_adc(void);
 #endif
 static int32_t PIOS_INTERNAL_ADC_PinGet(uintptr_t internal_adc_id, uint32_t pin);
 static uint8_t PIOS_INTERNAL_ADC_Number_of_Channels(uintptr_t internal_adc_id);
-static bool PIOS_INTERNAL_ADC_Available(uintptr_t adc_id, uint32_t device_pin);
 static float PIOS_INTERNAL_ADC_LSB_Voltage(uintptr_t internal_adc_id);
 
 const struct pios_adc_driver pios_internal_adc_driver = {
-                .available      = PIOS_INTERNAL_ADC_Available,
                 .get_pin        = PIOS_INTERNAL_ADC_PinGet,
                 .number_of_channels = PIOS_INTERNAL_ADC_Number_of_Channels,
                 .lsb_voltage = PIOS_INTERNAL_ADC_LSB_Voltage,
@@ -366,21 +364,6 @@ void PIOS_INTERNAL_ADC_DMA_Handler(void)
 
 out:
 	PIOS_IRQ_Epilogue();
-}
-
-/**
-  * @brief Checks if a given pin is available on the given device
-  * \param[in] adc_id handle of the device to read
-  * \param[in] device_pin pin to check if available
-  * \return true if available
-  */
-static bool PIOS_INTERNAL_ADC_Available(uintptr_t internal_adc_id, uint32_t device_pin) {
-	struct pios_internal_adc_dev * adc_dev = (struct pios_internal_adc_dev *)internal_adc_id;
-	if(!PIOS_INTERNAL_ADC_validate(adc_dev)) {
-			return 0;
-	}
-	/* Check if pin exists */
-	return (!(device_pin >= adc_dev->cfg->adc_pin_count));
 }
 
 /**
