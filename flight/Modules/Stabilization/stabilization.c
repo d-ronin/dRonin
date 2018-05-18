@@ -62,6 +62,7 @@
 #include "lqgsettings.h"
 #include "rtkfestimate.h"
 #include "lqgsolution.h"
+#include "systemalarms.h"
 
 #include "altitudeholdsettings.h"
 #include "altitudeholdstate.h"
@@ -447,7 +448,7 @@ static void initialize_lqg_controllers(float dT)
 				float beta = sysIdent.Beta[i];
 				float tau = (sysIdent.Tau[0] + sysIdent.Tau[1]) * 0.5f;
 
-				if (tau > 0.001f && beta > 6) {
+				if (tau > 0.001f && beta >= 6) {
 					rtkf_t rtkf = rtkf_create(beta, tau, dT, 
 							lqgSettings.RTKF[i == YAW ? LQGSETTINGS_RTKF_YAWR : LQGSETTINGS_RTKF_R],
 							lqgSettings.RTKF[LQGSETTINGS_RTKF_Q1],
@@ -469,7 +470,7 @@ static void initialize_lqg_controllers(float dT)
 
 static void dump_lqg_solution(lqg_t lqg, int axis)
 {
-	if (lqg_is_solved(lqg)) {
+	if (lqg_solver_status(lqg) == LQG_SOLVER_DONE) {
 		LQGSolutionData lqgsol;
 		LQGSolutionGet(&lqgsol);
 
@@ -953,9 +954,23 @@ static void stabilizationTask(void* parameters)
 
 		for (int i = 0; i < MAX_AXES; i++) {
 			/* Solve for LQG, if it's configured for an axis. */
-			if (lqg[i] && !lqg_is_solved(lqg[i])) {
-				lqg_run_covariance(lqg[i], 1);
-				dump_lqg_solution(lqg[i], i);
+			if (lqg[i]) {
+				int status = lqg_solver_status(lqg[i]);
+				if (status == LQG_SOLVER_FAILED) {
+					/* Values don't converge in time, probably bogus. Light up the Christmas three. */
+					SystemAlarmsConfigErrorOptions err;
+					SystemAlarmsConfigErrorGet(&err);
+					if (err != SYSTEMALARMS_CONFIGERROR_LQG) {
+						err = SYSTEMALARMS_CONFIGERROR_LQG;
+						SystemAlarmsConfigErrorSet(&err);
+						AlarmsSet(SYSTEMALARMS_ALARM_SYSTEMCONFIGURATION, SYSTEMALARMS_ALARM_ERROR);
+					}
+				} else if (status == LQG_SOLVER_RUNNING) {
+					lqg_run_covariance(lqg[i], 1);
+					dump_lqg_solution(lqg[i], i);
+				} else {
+					/* LQG_SOLVER_DONE */
+				}
 			}
 		}
 #endif
@@ -975,7 +990,7 @@ static void stabilizationTask(void* parameters)
 
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_LQG:
 #if defined(STABILIZATION_LQG)
-					if (lqg[i] && lqg_is_solved(lqg[i])) {
+					if (lqg[i] && (lqg_solver_status(lqg[i]) == LQG_SOLVER_DONE)) {
 						if (reinit) {
 							lqg_set_x0(lqg[i], gyro_filtered[i]);
 						}
@@ -1083,7 +1098,7 @@ static void stabilizationTask(void* parameters)
 
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDELQG:
 #if defined(STABILIZATION_LQG)
-					if (lqg[i] && lqg_is_solved(lqg[i])) {
+					if (lqg[i] && (lqg_solver_status(lqg[i]) == LQG_SOLVER_DONE)) {
 						if (reinit) {
 							pids[PID_GROUP_ATT + i].iAccumulator = 0;
 							lqg_set_x0(lqg[i], gyro_filtered[i]);
