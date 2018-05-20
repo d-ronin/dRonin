@@ -108,7 +108,8 @@ static void ProcessRadioStream(UAVTalkConnection inConnectionHandle,
 
 static RadioComBridgeData *data;
 
-static void NewReceiverData(UAVObjEvent * ev, void *ctx, void *obj, int len)
+static void NewReceiverData(const UAVObjEvent *ev,
+		void *ctx, void *obj, int len)
 {
 	(void) ctx; (void) obj; (void) len;
 

@@ -1557,7 +1557,8 @@ int32_t UAVObjDisconnectQueue(UAVObjHandle obj_handle, struct pios_queue *queue)
  *
  * \param[in] ctx The event callback context
  */
-void UAVObjCbSetFlag(UAVObjEvent *objEv, void *ctx, void *obj, int len) {
+void UAVObjCbSetFlag(const UAVObjEvent *objEv, void *ctx, void *obj, int len)
+{
 	volatile uint8_t *flag = ctx;
 
 	*flag = 1;
@@ -1575,7 +1576,8 @@ void UAVObjCbSetFlag(UAVObjEvent *objEv, void *ctx, void *obj, int len) {
  * \param[in] obj The pointer to the raw object data.
  * \param[in] len The length of data to copy.
  */
-void UAVObjCbCopyData(UAVObjEvent *objEv, void *ctx, void *obj, int len) {
+void UAVObjCbCopyData(const UAVObjEvent *objEv, void *ctx, void *obj, int len)
+{
 	memcpy(ctx, obj, len);
 }
 
@@ -1670,22 +1672,22 @@ void UAVObjIterate(void (*iterator) (UAVObjHandle obj))
 
 /* type signature must match invokeCallback below, with 4 or fewer args */
 static void __attribute__((used)) realInvokeCallback(struct ObjectEventEntry *event,
-		UAVObjEvent *msg, void *obj_data, int len);
+		const UAVObjEvent *msg, void *obj_data, int len);
 
 static void realInvokeCallback(struct ObjectEventEntry *event,
-		UAVObjEvent *msg, void *obj_data, int len) {
+		const UAVObjEvent *msg, void *obj_data, int len) {
 	event->cb(msg, event->cbInfo.cbCtx, obj_data, len);
 }
 
 #if (!defined(FLIGHT_POSIX)) && defined(__arm__)
-static void invokeCallback(struct ObjectEventEntry *event, UAVObjEvent *msg,
-		void *obj_data, int len) {
+static void invokeCallback(struct ObjectEventEntry *event,
+		const UAVObjEvent *msg, void *obj_data, int len) {
 	/* If we're inlined, we need to force these to the right parameter
 	 * slots.  If we show up in a call they're already there.  This
 	 * convinces gcc to do the right thing.
 	 */
 	register struct ObjectEventEntry *my_event asm("r0") = event;
-	register UAVObjEvent *my_msg asm("r1") = msg;
+	register const UAVObjEvent *my_msg asm("r1") = msg;
 	register void *my_obj_data asm("r2") = obj_data;
 	register int my_len asm("r3") = len;
 
@@ -1719,18 +1721,20 @@ static void invokeCallback(struct ObjectEventEntry *event, UAVObjEvent *msg,
 #define invokeCallback realInvokeCallback
 #endif
 
-/* First argument is deliberately not a pointer to get a copy of msg */
-static int32_t pumpOneEvent(UAVObjEvent msg, void *obj_data, int len) {
+static int32_t pumpOneEvent(UAVObjEvent *msg, void *obj_data, int len) {
 	// Go through each object and push the event message in the queue (if event is activated for the queue)
 	struct ObjectEventEntry *event;
-	LL_FOREACH(msg.obj->next_event, event) {
+	LL_FOREACH(msg->obj->next_event, event) {
 		if (event->eventMask == 0
-				|| (event->eventMask & msg.event) != 0) {
+				|| (event->eventMask & msg->event) != 0) {
 			struct ObjectEventEntryThrottled *throtInfo =
 				(struct ObjectEventEntryThrottled *) event;
 
 			if (event->hasThrottle) {
-				// This is a throttled event (triggered with a spacing of at least "interval" ms)
+				// This is a throttled event
+				// (triggered with a spacing of at least
+				// "interval" ms).  Also, it enforces "one in
+				// queue" semantics.
 				struct ObjectEventEntryThrottled *throtInfo =
 					(struct ObjectEventEntryThrottled *) event;
 
@@ -1746,30 +1750,30 @@ static int32_t pumpOneEvent(UAVObjEvent msg, void *obj_data, int len) {
 					continue;
 				}
 
-				msg.throttle = throtInfo;
+				msg->throttle = throtInfo;
 			} else {
-				msg.throttle = NULL;
+				msg->throttle = NULL;
 			}
 
 			// Invoke callback (from event task) if a valid one is registered
 			if (event->cb) {
 				// invoke callback directly; callbacks must be well behaved
-				invokeCallback(event, &msg, obj_data, len);
+				invokeCallback(event, msg, obj_data, len);
 			} else if (event->cbInfo.queue) {
 				if (event->hasThrottle) {
 					throtInfo->inhibited = 1;
 				}
 				// Send to queue if a valid queue is registered
 				// will not block
-				if (PIOS_Queue_Send(event->cbInfo.queue, &msg, 0) != true) {
-					stats.lastQueueErrorID = UAVObjGetID(msg.obj);
+				if (PIOS_Queue_Send(event->cbInfo.queue, msg, 0) != true) {
+					stats.lastQueueErrorID =
+						UAVObjGetID(msg->obj);
 					++stats.eventQueueErrors;
 					if (event->hasThrottle) {
 						throtInfo->inhibited = 0;
 					}
 				}
 			}
-
 		}
 	}
 
@@ -1854,7 +1858,7 @@ static int32_t sendEvent(struct UAVOBase * obj, uint16_t instId,
 			in_progress = pending_events[num_pending].msg.obj;
 
 			/* And pump the event. */
-			pumpOneEvent(pending_events[num_pending].msg,
+			pumpOneEvent(&pending_events[num_pending].msg,
 				pending_events[num_pending].obj_data,
 				pending_events[num_pending].len);
 		}

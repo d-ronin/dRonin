@@ -86,7 +86,8 @@ static struct pios_uavtalkrcvr_dev *PIOS_uavtalkrcvr_alloc(void)
 	return(uavtalkrcvr_dev);
 }
 
-static void uavreceiver_updated(UAVObjEvent * ev, void *ctx, void *obj, int len)
+static void uavreceiver_updated(const UAVObjEvent *ev,
+		void *ctx, void *obj, int len)
 {
 	struct pios_uavtalkrcvr_dev *uavtalkrcvr_dev = global_uavtalkrcvr_dev;
 	if (ev->obj == UAVTalkReceiverHandle()) {

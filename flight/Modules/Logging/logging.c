@@ -482,7 +482,8 @@ static int32_t send_data_nonblock(void *ctx, uint8_t *data, int32_t length)
  * @brief Callback for adding an object to the logging queue
  * @param ev the event
  */
-static void obj_updated_callback(UAVObjEvent * ev, void* cb_ctx, void *uavo_data, int uavo_len)
+static void obj_updated_callback(const UAVObjEvent *ev, void *cb_ctx,
+		void *uavo_data, int uavo_len)
 {
 	(void) cb_ctx; (void) uavo_data; (void) uavo_len;
 

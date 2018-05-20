@@ -127,7 +127,7 @@ typedef struct {
  * will be executed in the event task. The ev parameter should be copied if needed
  * after the function returns.
  */
-typedef void (*UAVObjEventCallback)(UAVObjEvent* ev, void* cb_ctx,
+typedef void (*UAVObjEventCallback)(const UAVObjEvent *ev, void* cb_ctx,
 	void *uavo_data, int uavo_len);
 
 /**
@@ -214,8 +214,8 @@ void UAVObjIterate(void (*iterator)(UAVObjHandle obj));
 int32_t getEventMask(UAVObjHandle obj_handle, struct pios_queue *queue);
 uint8_t UAVObjCount();
 uint32_t UAVObjIDByIndex(uint8_t index);
-void UAVObjCbSetFlag(UAVObjEvent *objEv, void *ctx, void *obj, int len);
-void UAVObjCbCopyData(UAVObjEvent *objEv, void *ctx, void *obj, int len);
+void UAVObjCbSetFlag(const UAVObjEvent *objEv, void *ctx, void *obj, int len);
+void UAVObjCbCopyData(const UAVObjEvent *objEv, void *ctx, void *obj, int len);
 
 #endif // UAVOBJECTMANAGER_H
 

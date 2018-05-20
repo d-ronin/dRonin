@@ -49,8 +49,10 @@
 // Private variables
 
 // Private functions
-static void settingsUpdated(UAVObjEvent* ev, void *ctx, void *obj, int len);
-static void checkPosition(UAVObjEvent* ev, void *ctx, void *obj, int len);
+static void settingsUpdated(const UAVObjEvent *ev,
+		void *ctx, void *obj, int len);
+static void checkPosition(const UAVObjEvent *ev,
+		void *ctx, void *obj, int len);
 
 // Private variables
 static GeoFenceSettingsData *geofenceSettings;
@@ -121,7 +123,8 @@ MODULE_INITCALL(GeofenceInitialize, GeofenceStart);
  * Periodic callback that processes changes in position and
  * sets the alarm.
  */
-static void checkPosition(UAVObjEvent* ev, void *ctx, void *obj, int len)
+static void checkPosition(const UAVObjEvent *ev,
+		void *ctx, void *obj, int len)
 {
 	(void) ev; (void) ctx; (void) obj; (void) len;
 	if (PositionActualHandle()) {
@@ -144,7 +147,8 @@ static void checkPosition(UAVObjEvent* ev, void *ctx, void *obj, int len)
 /**
  * Update the settings
  */
-static void settingsUpdated(UAVObjEvent* ev, void *ctx, void *obj, int len)
+static void settingsUpdated(const UAVObjEvent *ev,
+		void *ctx, void *obj, int len)
 {
 	(void) ev; (void) ctx; (void) obj; (void) len;
 	GeoFenceSettingsGet(geofenceSettings);
