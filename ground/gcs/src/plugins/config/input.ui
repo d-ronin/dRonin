@@ -64,8 +64,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>865</width>
-            <height>589</height>
+            <width>867</width>
+            <height>580</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout">
@@ -108,7 +108,7 @@
               <item>
                <widget class="QStackedWidget" name="stackedWidget">
                 <property name="currentIndex">
-                 <number>1</number>
+                 <number>0</number>
                 </property>
                 <widget class="QWidget" name="advancedPage">
                  <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -299,6 +299,14 @@
                    </layout>
                   </item>
                   <item>
+                   <widget class="QGroupBox" name="gbChannelWarnings">
+                    <property name="title">
+                     <string>Warnings</string>
+                    </property>
+                    <layout class="QVBoxLayout" name="verticalLayout_14"/>
+                   </widget>
+                  </item>
+                  <item>
                    <spacer name="verticalSpacer_2">
                     <property name="orientation">
                      <enum>Qt::Vertical</enum>
@@ -456,8 +464,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>865</width>
-            <height>589</height>
+            <width>867</width>
+            <height>580</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_13">
@@ -1590,8 +1598,8 @@ margin:1px;</string>
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>865</width>
-            <height>589</height>
+            <width>867</width>
+            <height>580</height>
            </rect>
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout_2">

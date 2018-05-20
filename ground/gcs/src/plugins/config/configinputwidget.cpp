@@ -128,6 +128,12 @@ ConfigInputWidget::ConfigInputWidget(QWidget *parent)
         addUAVObjectToWidgetRelation("ManualControlSettings", "ChannelNeutral",
                                      inpForm->ui->channelNeutral, index);
 
+        // we warn the user if collective is assigned on multirotors (it's a rare config)
+        if (index == ManualControlSettings::CHANNELGROUPS_COLLECTIVE) {
+            connect(inpForm, &inputChannelForm::assignmentChanged,
+                    this, &ConfigInputWidget::checkCollective);
+        }
+
         int index2 = manualCommandObj->getField("Channel")->getElementNames().indexOf(name);
         if (index2 >= 0) {
             addUAVObjectToWidgetRelation("ManualControlCommand", "Channel",
@@ -2053,4 +2059,29 @@ void ConfigInputWidget::fillArmingComboBox()
     m_config->cbArmMethod->clear();
     foreach (const ArmingMethod &method, armingMethods)
         m_config->cbArmMethod->addItem(method.armName, method.method);
+}
+
+void ConfigInputWidget::checkCollective()
+{
+    auto inputForm = qobject_cast<inputChannelForm *>(sender());
+    if (!inputForm) {
+        qWarning() << "invalid sender";
+        Q_ASSERT(false);
+        return;
+    }
+
+    clearWarnings(m_config->gbChannelWarnings, inputForm);
+
+    if (!inputForm->assigned())
+        return;
+
+    SystemSettings *sys =
+        qobject_cast<SystemSettings *>(getObjectManager()->getObject(SystemSettings::NAME));
+    Q_ASSERT(sys);
+    const quint8 vehicle = sys->getAirframeType();
+
+    if (vehicle != SystemSettings::AIRFRAMETYPE_HELICP) {
+        addWarning(m_config->gbChannelWarnings, inputForm,
+                   QStringLiteral("Collective is normally not used for this vehicle type, are you sure?"));
+    }
 }
