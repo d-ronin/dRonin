@@ -248,6 +248,7 @@ private slots:
     void checkReprojection();
     void updateArmingConfig(UAVObject *manualControlSettings);
     void timeoutCheckboxChanged();
+    void checkCollective();
 
 protected:
     void resizeEvent(QResizeEvent *event);

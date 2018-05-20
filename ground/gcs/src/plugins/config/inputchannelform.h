@@ -19,6 +19,11 @@ public:
     ~inputChannelForm();
     friend class ConfigInputWidget;
     void setName(QString &name);
+    bool assigned();
+
+Q_SIGNALS:
+    void assignmentChanged();
+
 private slots:
     void minMaxUpdated();
     void groupUpdated();

@@ -246,6 +246,8 @@ void inputChannelForm::groupUpdated()
         if (selected > 0 && selected <= count)
             ui->channelNumberDropdown->setCurrentIndex(selected);
     }
+
+    Q_EMIT assignmentChanged();
 }
 
 /**
@@ -262,6 +264,7 @@ void inputChannelForm::channelDropdownUpdated(int newval)
 void inputChannelForm::channelNumberUpdated(int newval)
 {
     ui->channelNumberDropdown->setCurrentIndex(newval);
+    Q_EMIT assignmentChanged();
 }
 
 /**
@@ -277,4 +280,13 @@ void inputChannelForm::reverseChannel()
     if (ui->channelName->text() == "Throttle") // this is bad... but...
         neutral = max - (neutral - min);
     ui->channelNeutral->setValue(neutral);
+}
+
+/**
+ * @brief Is an input assigned to this channel?
+ */
+bool inputChannelForm::assigned()
+{
+    return ui->channelGroup->currentIndex() != ManualControlSettings::CHANNELGROUPS_NONE
+            && ui->channelNumber->value() > 0;
 }
