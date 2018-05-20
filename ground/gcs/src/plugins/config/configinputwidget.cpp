@@ -2082,6 +2082,6 @@ void ConfigInputWidget::checkCollective()
 
     if (vehicle != SystemSettings::AIRFRAMETYPE_HELICP) {
         addWarning(m_config->gbChannelWarnings, inputForm,
-                   QStringLiteral("Collective is normally not used for this vehicle type, are you sure?"));
+                   tr("Collective is normally not used for this vehicle type, are you sure?"));
     }
 }
