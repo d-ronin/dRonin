@@ -120,7 +120,7 @@ typedef struct {
 	struct ObjectEventEntryThrottled *throttle;
 
 	uint16_t instId;
-} UAVObjEvent;
+} __attribute__((packed)) UAVObjEvent;
 
 /**
  * Event callback, this function is called when an event is invoked. The function
