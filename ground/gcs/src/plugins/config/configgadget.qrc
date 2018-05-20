@@ -21,6 +21,8 @@
         <file>images/autotune_normal.png</file>
         <file>images/txpid_selected.png</file>
         <file>images/txpid_normal.png</file>
+        <file>images/radio_selected.png</file>
+        <file>images/radio_normal.png</file>
         <file>images/camstab_selected.png</file>
         <file>images/camstab_normal.png</file>
         <file>images/swap.svg</file>

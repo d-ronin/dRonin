@@ -117,7 +117,16 @@ const struct rfm22_modem_regs {
  * 71 = 0x23 modulation mode -- FIFO, GFSK
  */
 
-#define OPENLRS_BIND_PARAMS 1	/* 9600 params */
+DONT_BUILD_IF(OPENLRS_MODEM_PARAMS_4800 != 0, InvModemParams);
+DONT_BUILD_IF(OPENLRS_MODEM_PARAMS_9600 != 1, InvModemParams2);
+DONT_BUILD_IF(OPENLRS_MODEM_PARAMS_19200 != 2, InvModemParams3);
+DONT_BUILD_IF(OPENLRS_MODEM_PARAMS_57600 != 3, InvModemParams4);
+DONT_BUILD_IF(OPENLRS_MODEM_PARAMS_125000 != 4, InvModemParams5);
+DONT_BUILD_IF(OPENLRS_MODEM_PARAMS_MAXOPTVAL != 4, InvModemParams6);
+
+#define OPENLRS_BIND_PARAMS (OPENLRS_MODEM_PARAMS_9600)
+#define BINDING_POWER (OPENLRS_RF_POWER_50 - 1)
+		// not lowest since may fail to tx with amp
 
 static uint8_t count_set_bits(uint16_t x)
 {
@@ -721,27 +730,31 @@ static void pios_openlrs_config_to_port_config(pios_openlrs_t openlrs_dev)
 
 static bool pios_openlrs_config_to_bind_data(pios_openlrs_t openlrs_dev)
 {
-	OpenLRSData binding;
-	OpenLRSGet(&binding);
+	OpenLRSData config;
+	OpenLRSGet(&config);
 
 	bool inited = false;
 
-	if (binding.version == BINDING_VERSION) {
+	if ((config.version == BINDING_VERSION) &&
+			(config.rf_power > OPENLRS_RF_POWER_0)) {
 		openlrs_dev->bind_data.hdr = 'b';
-		openlrs_dev->bind_data.version = binding.version;
+		openlrs_dev->bind_data.version = config.version;
 		openlrs_dev->bind_data.reserved[0] = 0;
 		openlrs_dev->bind_data.reserved[1] = 0;
 		openlrs_dev->bind_data.reserved[2] = 0;
-		openlrs_dev->bind_data.rf_frequency = binding.rf_frequency;
-		openlrs_dev->bind_data.rf_magic = binding.rf_magic;
-		openlrs_dev->bind_data.rf_power = binding.rf_power;
-		openlrs_dev->bind_data.rf_channel_spacing = binding.rf_channel_spacing;
-		openlrs_dev->bind_data.modem_params = binding.modem_params;
-		openlrs_dev->bind_data.flags = binding.flags;
-		openlrs_dev->bind_data.ext_flags = binding.ext_flags;
+		openlrs_dev->bind_data.rf_frequency = config.rf_frequency;
+		openlrs_dev->bind_data.rf_magic = config.rf_magic;
+		openlrs_dev->bind_data.rf_power = config.rf_power - 1;
+		openlrs_dev->bind_data.rf_channel_spacing = config.rf_channel_spacing;
+
+		if (config.modem_params <= OPENLRS_MODEM_PARAMS_MAXOPTVAL) {
+			openlrs_dev->bind_data.modem_params = config.modem_params;
+		}
+		openlrs_dev->bind_data.flags = config.flags;
+		openlrs_dev->bind_data.ext_flags = config.ext_flags;
 		for (uint32_t i = 0; i < OPENLRS_HOPCHANNEL_NUMELEM; i++)
-			openlrs_dev->bind_data.hopchannel[i] = binding.hopchannel[i];
-	} else if (binding.role == OPENLRS_ROLE_TX) {
+			openlrs_dev->bind_data.hopchannel[i] = config.hopchannel[i];
+	} else if (config.role == OPENLRS_ROLE_TX) {
 		inited = true;
 
 		/* Create valid bind data */
@@ -753,10 +766,11 @@ static bool pios_openlrs_config_to_bind_data(pios_openlrs_t openlrs_dev)
 		openlrs_dev->bind_data.rf_frequency =
 			def_carrier_freq(openlrs_dev->band);
 		openlrs_dev->bind_data.rf_magic = randomize_int(0);
-		openlrs_dev->bind_data.rf_power = 7;
+		openlrs_dev->bind_data.rf_power = OPENLRS_RF_POWER_100 - 1;
 		openlrs_dev->bind_data.rf_channel_spacing = 1;
 			/* Unit is * 10KHz */
-		openlrs_dev->bind_data.modem_params = 3;
+		openlrs_dev->bind_data.modem_params =
+			OPENLRS_MODEM_PARAMS_57600;
 		openlrs_dev->bind_data.flags = 10; /* Telemetry + 8 channels */
 
 		/* Use dR extensions and pass telem by default */
@@ -765,7 +779,7 @@ static bool pios_openlrs_config_to_bind_data(pios_openlrs_t openlrs_dev)
 		for (uint32_t i = 0; i < OPENLRS_HOPCHANNEL_NUMELEM; i++) {
 			/* Generate 7 channels by default. */
 			if (i < 7) {
-				/* At spacing of 10KHz, this is from 435.250 
+				/* At spacing of 10KHz, this is from 435.250
 				 * to 437.480.
 				 *
 				 * Also ensure channels are unique by
@@ -780,18 +794,16 @@ static bool pios_openlrs_config_to_bind_data(pios_openlrs_t openlrs_dev)
 	}
 
 	// Also copy beacon settings over to device config.
-	openlrs_dev->beacon_frequency = binding.beacon_frequency;
-	openlrs_dev->beacon_delay = binding.beacon_delay;
-	openlrs_dev->beacon_period = binding.beacon_period;
+	openlrs_dev->beacon_frequency = config.beacon_frequency;
+	openlrs_dev->beacon_delay = config.beacon_delay;
+	openlrs_dev->beacon_period = config.beacon_period;
 
-	openlrs_dev->failsafeDelay = binding.failsafe_delay;
+	openlrs_dev->scale_min = config.tx_scale_min;
+	openlrs_dev->scale_max = config.tx_scale_max;
 
-	openlrs_dev->scale_min = binding.tx_scale_min;
-	openlrs_dev->scale_max = binding.tx_scale_max;
-
-	openlrs_dev->tx_source = binding.tx_source;
-	openlrs_dev->tx_startup_bind_duration = binding.tx_startup_bind_duration;
-	openlrs_dev->tx_bind_button_duration = binding.tx_bind_button_duration;
+	openlrs_dev->tx_source = config.tx_source;
+	openlrs_dev->tx_startup_bind_duration = config.tx_startup_bind_duration;
+	openlrs_dev->tx_bind_button_duration = config.tx_bind_button_duration;
 
 	return inited;
 }
@@ -824,12 +836,23 @@ static bool pios_openlrs_bind_data_to_config(pios_openlrs_t openlrs_dev)
 #endif /* PIOS_INCLUDE_DEBUG_CONSOLE */
 
 		if (openlrs_dev->bind_data.version == BINDING_VERSION) {
+			if (openlrs_dev->bind_data.rf_power >=
+					OPENLRS_RF_POWER_MAXOPTVAL) {
+				/* >= because offset by 1 */
+				return false;
+			}
+
+			if (openlrs_dev->bind_data.modem_params >
+					OPENLRS_MODEM_PARAMS_MAXOPTVAL) {
+				return false;
+			}
+
 			OpenLRSData binding;
 			OpenLRSGet(&binding);
 			binding.version = openlrs_dev->bind_data.version;
 			binding.rf_frequency = openlrs_dev->bind_data.rf_frequency;
 			binding.rf_magic = openlrs_dev->bind_data.rf_magic;
-			binding.rf_power = openlrs_dev->bind_data.rf_power;
+			binding.rf_power = openlrs_dev->bind_data.rf_power + 1;
 			binding.rf_channel_spacing = openlrs_dev->bind_data.rf_channel_spacing;
 			binding.modem_params = openlrs_dev->bind_data.modem_params;
 			binding.flags = openlrs_dev->bind_data.flags;
@@ -1088,7 +1111,7 @@ static bool pios_openlrs_rx_frame(pios_openlrs_t openlrs_dev, uint8_t rssi)
 		} else {
 			tx_buf[0] ^= 0x40; // Swap telem sequence
 			openlrs_dev->telem_len = pios_openlrs_form_telemetry(
-					openlrs_dev, tx_buf, rssi, false, 
+					openlrs_dev, tx_buf, rssi, false,
 					ctrl_size - size);
 		}
 
@@ -1164,7 +1187,6 @@ static void pios_openlrs_rx_after_receive(pios_openlrs_t openlrs_dev,
 		openlrs_dev->link_acquired = true;
 
 		openlrs_dev->beacon_armed = false;
-		openlrs_status.FailsafeActive = OPENLRSSTATUS_FAILSAFEACTIVE_INACTIVE;
 		openlrs_dev->numberOfLostPackets = 0;
 		openlrs_dev->nextBeaconTimeMs = 0;
 
@@ -1177,9 +1199,21 @@ static void pios_openlrs_rx_after_receive(pios_openlrs_t openlrs_dev,
 		/* We lost packet, execute normally timed hop */
 		openlrs_dev->numberOfLostPackets++;
 		openlrs_dev->lastPacketTimeUs += interval;
-	} else if ((openlrs_dev->numberOfLostPackets >= openlrs_dev->hopcount) &&
-			(PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs) >
+	} else if ((PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs) <
 			(interval * (openlrs_dev->hopcount + 1)))) {
+#if defined(PIOS_LED_LINK)
+		PIOS_ANNUNC_Off(PIOS_LED_LINK);
+#endif /* PIOS_LED_LINK */
+
+		/* Don't have link; dwell on this channel to give a chance
+		 * for resync.
+		 */
+		willhop = false;
+	} else {
+		/* We don't have link and have been on this channel a
+		 * long time; time to do a hop. (Because the channel
+		 * may be blocked preventing resync).
+		 */
 		DEBUG_PRINTF(2,"OLRS WARN: Trying to sync\r\n");
 
 		// hop slowly to allow resync with TX
@@ -1188,28 +1222,15 @@ static void pios_openlrs_rx_after_receive(pios_openlrs_t openlrs_dev,
 		if (!openlrs_dev->linkLossTimeMs) {
 			openlrs_dev->linkLossTimeMs = timeMs;
 		}
-	} else {
-		/* Don't have link, but it's not time for slow hop yet */
-		willhop = false;
 	}
 
-	if (openlrs_dev->link_acquired && openlrs_dev->numberOfLostPackets) {
-#if defined(PIOS_LED_LINK)
-		PIOS_ANNUNC_Off(PIOS_LED_LINK);
-#endif /* PIOS_LED_LINK */
-
-		if (openlrs_dev->failsafeDelay &&
-				(openlrs_status.FailsafeActive == OPENLRSSTATUS_FAILSAFEACTIVE_INACTIVE) &&
-				((timeMs - openlrs_dev->linkLossTimeMs) > ((uint32_t) openlrs_dev->failsafeDelay))) {
-			DEBUG_PRINTF(2,"Failsafe activated: %d %d\r\n", timeMs, openlrs_dev->linkLossTimeMs);
-			openlrs_status.FailsafeActive = OPENLRSSTATUS_FAILSAFEACTIVE_ACTIVE;
-
-			openlrs_dev->nextBeaconTimeMs = (timeMs + 1000UL * openlrs_dev->beacon_delay) | 1; //beacon activating...
-		}
-
-		if ((openlrs_dev->beacon_frequency) && (openlrs_dev->nextBeaconTimeMs) &&
-				((timeMs - openlrs_dev->nextBeaconTimeMs) < 0x80000000)) {
-
+	if (openlrs_dev->link_acquired && openlrs_dev->linkLossTimeMs) {
+		if (!openlrs_dev->nextBeaconTimeMs) {
+			openlrs_dev->nextBeaconTimeMs = timeMs +
+				openlrs_dev->beacon_delay * 1000UL;
+		} else if ((openlrs_dev->beacon_frequency) &&
+				((timeMs - openlrs_dev->nextBeaconTimeMs)
+				 < 0x80000000)) {
 			// Indicate that the beacon is now active so we can
 			// trigger extra ones by RF.
 			openlrs_dev->beacon_armed = true;
@@ -1240,35 +1261,31 @@ static void pios_openlrs_rx_after_receive(pios_openlrs_t openlrs_dev,
 
 uint8_t PIOS_OpenLRS_RSSI_Get(void)
 {
-	if (openlrs_status.FailsafeActive == OPENLRSSTATUS_FAILSAFEACTIVE_ACTIVE) {
+	// Check object handle exists
+	if (OpenLRSHandle() == NULL)
 		return 0;
-	} else {
-		// Check object handle exists
-		if (OpenLRSHandle() == NULL)
+
+	uint8_t rssi_type;
+	OpenLRSRSSI_TypeGet(&rssi_type);
+
+	uint16_t LQ = count_set_bits(openlrs_status.LinkQuality & 0x7fff);
+
+	switch (rssi_type) {
+	case OPENLRS_RSSI_TYPE_COMBINED:
+		if (LQ == 15) {
+			return (openlrs_status.LastRSSI >> 1)+128;
+		} else if (LQ == 0) {
 			return 0;
-
-		uint8_t rssi_type;
-		OpenLRSRSSI_TypeGet(&rssi_type);
-
-		uint16_t LQ = count_set_bits(openlrs_status.LinkQuality & 0x7fff);
-
-		switch (rssi_type) {
-		case OPENLRS_RSSI_TYPE_COMBINED:
-			if (LQ == 15) {
-				return (openlrs_status.LastRSSI >> 1)+128;
-			} else if (LQ == 0) {
-				return 0;
-			} else {
-				return LQ * 9 +
-					(openlrs_status.LastRSSI >> 5);
-			}
-		case OPENLRS_RSSI_TYPE_RSSI:
-			return openlrs_status.LastRSSI;
-		case OPENLRS_RSSI_TYPE_LINKQUALITY:
-			return LQ << 4;
-		default:
-			return 0;
+		} else {
+			return LQ * 9 +
+				(openlrs_status.LastRSSI >> 5);
 		}
+	case OPENLRS_RSSI_TYPE_RSSI:
+		return openlrs_status.LastRSSI;
+	case OPENLRS_RSSI_TYPE_LINKQUALITY:
+		return LQ << 4;
+	default:
+		return 0;
 	}
 }
 

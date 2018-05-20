@@ -95,8 +95,6 @@ extern const struct pios_com_driver pios_openlrs_com_driver;
 #define DEFAULT_BEACON_DEADTIME 30 // time to wait until go into beacon mode (30s)
 #define DEFAULT_BEACON_INTERVAL 10 // interval between beacon transmits (10s)
 
-#define BINDING_POWER     0x06 // not lowest since may result fail with RFM23BP
-
 #define TELEMETRY_PACKETSIZE 9
 
 #define BIND_MAGIC (0xDEC1BE15 + (OPENLRSNG_VERSION & 0xfff0))

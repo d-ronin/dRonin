@@ -11,12 +11,5 @@
     <field defaultvalue="0" elements="1" name="LinkQuality" type="uint16" units="">
       <description/>
     </field>
-    <field defaultvalue="Inactive" elements="1" name="FailsafeActive" type="enum" units="function">
-      <description/>
-      <options>
-        <option>Inactive</option>
-        <option>Active</option>
-      </options>
-    </field>
   </object>
 </xml>

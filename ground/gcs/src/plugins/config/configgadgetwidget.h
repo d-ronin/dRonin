@@ -59,7 +59,8 @@ public:
         camerastabilization,
         txpid,
         autotune,
-        osd
+        osd,
+        radio
     };
     void startInputWizard();
     void changeTab(int i);

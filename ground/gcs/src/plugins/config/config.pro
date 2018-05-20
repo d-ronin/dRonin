@@ -54,6 +54,7 @@ HEADERS += calibration.h \
     vehicletrim.h \
     configmodulewidget.h \
     configosdwidget.h \
+    configradiowidget.h \
     expocurve.h \
     qreadonlycheckbox.h
 
@@ -87,6 +88,7 @@ SOURCES += calibration.cpp \
     vehicletrim.cpp \
     configmodulewidget.cpp \
     configosdwidget.cpp \
+    configradiowidget.cpp \
     expocurve.cpp
 
 FORMS += airframe.ui \
@@ -105,6 +107,7 @@ FORMS += airframe.ui \
     modules.ui \
     osd.ui \
     osdpage.ui \
+    integratedradio.ui \
     autotunebeginning.ui \
     autotuneproperties.ui \
     autotunesliders.ui \
