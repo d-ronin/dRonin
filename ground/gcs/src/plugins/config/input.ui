@@ -300,6 +300,11 @@
                   </item>
                   <item>
                    <widget class="QGroupBox" name="gbChannelWarnings">
+                    <property name="styleSheet">
+                     <string notr="true">* &gt; QLabel {
+	color: red;
+}</string>
+                    </property>
                     <property name="title">
                      <string>Warnings</string>
                     </property>
