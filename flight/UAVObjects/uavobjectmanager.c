@@ -176,7 +176,7 @@ struct UAVOMulti {
 #define InstanceData(instance) (void*)instance
 
 // Private functions
-static int32_t sendEvent(struct UAVOBase * obj, uint16_t instId,
+static int32_t sendEvent(struct UAVOBase *obj, uint16_t instId,
 			UAVObjEventType event, void *obj_data, int len);
 static InstanceHandle createInstance(struct UAVOData * obj, uint16_t instId);
 static InstanceHandle getInstance(struct UAVOData * obj, uint16_t instId);
@@ -1671,22 +1671,23 @@ void UAVObjIterate(void (*iterator) (UAVObjHandle obj))
 }
 
 /* type signature must match invokeCallback below, with 4 or fewer args */
-static void __attribute__((used)) realInvokeCallback(struct ObjectEventEntry *event,
+static void __attribute__((used)) realInvokeCallback(
+		const struct ObjectEventEntry *event,
 		const UAVObjEvent *msg, void *obj_data, int len);
 
-static void realInvokeCallback(struct ObjectEventEntry *event,
+static void realInvokeCallback(const struct ObjectEventEntry *event,
 		const UAVObjEvent *msg, void *obj_data, int len) {
 	event->cb(msg, event->cbInfo.cbCtx, obj_data, len);
 }
 
 #if (!defined(FLIGHT_POSIX)) && defined(__arm__)
-static void invokeCallback(struct ObjectEventEntry *event,
+static void invokeCallback(const struct ObjectEventEntry *event,
 		const UAVObjEvent *msg, void *obj_data, int len) {
 	/* If we're inlined, we need to force these to the right parameter
 	 * slots.  If we show up in a call they're already there.  This
 	 * convinces gcc to do the right thing.
 	 */
-	register struct ObjectEventEntry *my_event asm("r0") = event;
+	register const struct ObjectEventEntry *my_event asm("r0") = event;
 	register const UAVObjEvent *my_msg asm("r1") = msg;
 	register void *my_obj_data asm("r2") = obj_data;
 	register int my_len asm("r3") = len;
