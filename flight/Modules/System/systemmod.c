@@ -140,14 +140,21 @@ static volatile bool config_check_needed;
 static const char * volatile custom_blink_string;
 
 // Private functions
-static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len);
-static void objectUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len);
+static void systemPeriodicCb(const UAVObjEvent *ev,
+		void *ctx, void *obj_data, int len);
+static void objectUpdatedCb(const UAVObjEvent *ev,
+		void *ctx, void *obj, int len);
 static uint32_t processPeriodicUpdates();
-static int32_t eventPeriodicCreate(UAVObjEvent* ev, UAVObjEventCallback cb, struct pios_queue *queue, uint16_t periodMs);
-static int32_t eventPeriodicUpdate(UAVObjEvent* ev, UAVObjEventCallback cb, struct pios_queue *queue, uint16_t periodMs);
+static int32_t eventPeriodicCreate(UAVObjEvent *ev,
+		UAVObjEventCallback cb, struct pios_queue *queue,
+		uint16_t periodMs);
+static int32_t eventPeriodicUpdate(UAVObjEvent *ev,
+		UAVObjEventCallback cb, struct pios_queue *queue,
+		uint16_t periodMs);
 
 #ifndef NO_SENSORS
-static void configurationUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len);
+static void configurationUpdatedCb(const UAVObjEvent *ev,
+		void *ctx, void *obj, int len);
 #endif
 
 void system_task();
@@ -412,7 +419,9 @@ void system_annunc_custom_string(const char *string)
 	custom_blink_string = string;
 }
 
-static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len) {
+static void systemPeriodicCb(const UAVObjEvent *ev,
+		void *ctx, void *obj_data, int len)
+{
 	(void) ev; (void) ctx; (void) obj_data; (void) len;
 
 	static unsigned int counter=0;
@@ -622,7 +631,8 @@ static void systemPeriodicCb(UAVObjEvent *ev, void *ctx, void *obj_data, int len
 /**
  * Function called in response to object updates
  */
-static void objectUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj_data, int len)
+static void objectUpdatedCb(const UAVObjEvent *ev,
+		void *ctx, void *obj_data, int len)
 {
 	(void) ctx; (void) obj_data; (void) len;
 
@@ -694,7 +704,8 @@ static void objectUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj_data, int len
  * Called whenever a critical configuration component changes
  */
 
-static void configurationUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len)
+static void configurationUpdatedCb(const UAVObjEvent *ev,
+		void *ctx, void *obj, int len)
 {
 	(void) ev; (void) ctx; (void) obj; (void) len;
 	config_check_needed = true;

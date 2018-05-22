@@ -66,10 +66,11 @@ uintptr_t pios_uavo_settings_fs_id;
 ws2811_dev_t pios_ws2811;
 
 /**
- * settingdUpdatedCb()
+ * settingsUpdatedCb()
  * Called when RE1 hardware settings are updated
  */
-static void settingdUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len)
+static void settingsUpdatedCb(const UAVObjEvent *ev,
+		void *ctx, void *obj, int len)
 {
 	(void) ev; (void) ctx; (void) len;
 
@@ -158,7 +159,7 @@ void PIOS_Board_Init(void) {
 	HwBrainRE1Initialize();
 
 	/* Connect callback to update FPGA settings when UAVO changes */
-	HwBrainRE1ConnectCallback(settingdUpdatedCb);
+	HwBrainRE1ConnectCallback(settingsUpdatedCb);
 
 	/* Set the HW revision, this also invokes the callback */
 	uint8_t hw_rev = PIOS_RE1FPGA_GetHWRevision();
