@@ -52,6 +52,8 @@ standalone: $(STANDALONE_DEPENDENCIES)
 	@echo Searching and copying used Qt5 libraries
 	$(V1) find $(BUILD_DIR)/ground/gcs/bin/drgcs.bin $(BUILD_DIR)/ground/gcs/lib/dr/plugins/dRonin/*.so -exec ldd {} \; \
 	| sed -e '/^[^\t]/ d; s/^\t\(.* => \)\?\([^ ]*\) (.*/\2/g'| grep "Qt5" | grep -v "build/ground" | sort | uniq | xargs -I '{}' cp -v -f '{}' $(BUILD_DIR)/ground/gcs/lib/dr
+	@echo "Removing Qt JPEG2000 plugin libqjp2.so (unmet jasper dep on Debian based systems)"
+	$(V1) rm -f $(BUILD_DIR)/ground/gcs/lib/dr/qtplugins/imageformats/libqjp2.so | true
 	@echo Copying qt.conf file
 	$(V1) cp -v $(ROOT_DIR)/package/linux/assets/qt.conf $(BUILD_DIR)/ground/gcs/bin/
 	$(V1) sed -i -e "$(SED_SUBSTITUTE)" $(BUILD_DIR)/ground/gcs/bin/qt.conf
