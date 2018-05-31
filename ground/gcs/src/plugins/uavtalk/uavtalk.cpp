@@ -118,8 +118,8 @@ void UAVTalk::processInputStream()
             startOffset = 0;
         }
 
-        int bytes = io->read((char *) (rxBuffer + filledBytes),
-                sizeof(rxBuffer) - filledBytes);
+        int bytes = io->read(reinterpret_cast<char *>(rxBuffer + filledBytes),
+                             sizeof(rxBuffer) - filledBytes);
 
         if (bytes <= 0) {
             return;
@@ -187,7 +187,7 @@ bool UAVTalk::objectTransaction(UAVObject *obj, quint8 type, bool allInstances)
  */
 bool UAVTalk::receiveFileChunk(quint32 fileId, quint8 *data, quint32 length)
 {
-    UAVTalkFileData *hdr = (UAVTalkFileData *) data;
+    UAVTalkFileData *hdr = reinterpret_cast<UAVTalkFileData *>(data);
 
     if (length < sizeof(*hdr)) {
         return false;
@@ -196,12 +196,11 @@ bool UAVTalk::receiveFileChunk(quint32 fileId, quint8 *data, quint32 length)
     data += sizeof(*hdr);
     length -= sizeof(*hdr);
 
-    //qDebug() << "Received file chunk, file=" << fileId << ", offset = " <<
+    // qDebug() << "Received file chunk, file=" << fileId << ", offset = " <<
     //    hdr->offset << ", len=" << length << ", flags=" << hdr->flags;
 
-    emit fileDataReceived(fileId, hdr->offset, data, length,
-            !!(hdr->flags & FILEDATA_FLAG_EOF),
-            !!(hdr->flags & FILEDATA_FLAG_LAST));
+    emit fileDataReceived(fileId, hdr->offset, data, length, !!(hdr->flags & FILEDATA_FLAG_EOF),
+                          !!(hdr->flags & FILEDATA_FLAG_LAST));
 
     return true;
 }
@@ -219,7 +218,7 @@ bool UAVTalk::processInput()
         return false;
     }
 
-    UAVTalkHeader *hdr = (UAVTalkHeader *) (rxBuffer + startOffset);
+    UAVTalkHeader *hdr = reinterpret_cast<UAVTalkHeader *>(rxBuffer + startOffset);
 
     /* Basic framing checks.  If these fail, skip forward one byte and retry
      * to capture stream sync.
@@ -245,7 +244,7 @@ bool UAVTalk::processInput()
         return true;
     }
 
-    /* OK, let's ensure we have enough bytes for the whole frame. 
+    /* OK, let's ensure we have enough bytes for the whole frame.
      * Size doesn't include CRC, so add one.
      */
 
@@ -303,10 +302,14 @@ bool UAVTalk::processInput()
     quint16 rxInstId = 0;
 
     if (!rxObj->isSingleInstance()) {
-        rxInstId = *(payload++);
-        rxInstId |= *(payload++) << 8;
+        if ((rxType != TYPE_NACK) || (payloadBytes == 2)) {
+            /* Receiving the instid is optional on an nack-- can just mean
+             * "nack everything" */
+            rxInstId = *(payload++);
+            rxInstId |= *(payload++) << 8;
 
-        payloadBytes -= 2;
+            payloadBytes -= 2;
+        }
     }
 
     /* XXX timestamps */
@@ -346,8 +349,8 @@ bool UAVTalk::processInput()
  * \param[in] length Buffer length
  * \return Success (true), Failure (false)
  */
-bool UAVTalk::receiveObject(quint8 type, quint32 objId, quint16 instId,
-        quint8 *data, quint32 length)
+bool UAVTalk::receiveObject(quint8 type, quint32 objId, quint16 instId, quint8 *data,
+                            quint32 length)
 {
     Q_UNUSED(length);
     UAVObject *obj = nullptr;
@@ -385,8 +388,6 @@ bool UAVTalk::receiveObject(quint8 type, quint32 objId, quint16 instId,
                 UAVTALK_QXTLOG_DEBUG(QString("[uavtalk.cpp  ] Received an acknowledged UAVObject "
                                              "update for a UAVObject we don't know about:")
                                          .arg(obj->getName()));
-                // UAVTALK Protocol update 2013.07.10 (E. Lafargue): send a NACK packet for this
-                // ObjID
                 transmitNack(objId);
                 error = true;
             }
@@ -413,25 +414,28 @@ bool UAVTalk::receiveObject(quint8 type, quint32 objId, quint16 instId,
         break;
     case TYPE_NACK: // We have received a NACK for an object that does not exist on the remote end.
         // (but should exist on our end)
-        // All instances, not allowed for NACK messages
-        if (!allInstances) {
-            // Get object
-            obj = objMngr->getObject(objId, instId);
-            // Check if object exists:
-            if (obj != nullptr) {
-                UAVTALK_QXTLOG_DEBUG(
-                    QString("[uavtalk.cpp  ] The %0 UAVObject does not exist on the remote end, "
-                            "got a Nack")
-                        .arg(obj->getName()
-                             + QString(QString(" 0x") + QString::number(objId, 16).toUpper())));
-                emit nackReceived(obj);
-            } else {
-                UAVTALK_QXTLOG_DEBUG(
-                    QString("[uavtalk.cpp  ] Critical error: Received a Nack for an unknown "
-                            "UAVObject:%0")
-                        .arg(QString(QString("0x") + QString::number(objId, 16).toUpper())));
-                error = true;
-            }
+        // All instances, if nacked, are substantially the same as the first
+        // inst being nack'd.
+        if (allInstances) {
+            instId = 0;
+        }
+
+        // Get object
+        obj = objMngr->getObject(objId, instId);
+        // Check if object exists:
+        if (obj != nullptr) {
+            UAVTALK_QXTLOG_DEBUG(
+                QString("[uavtalk.cpp  ] The %0 UAVObject does not exist on the remote end, "
+                        "got a Nack")
+                    .arg(obj->getName()
+                         + QString(QString(" 0x") + QString::number(objId, 16).toUpper())));
+            emit nackReceived(obj);
+        } else {
+            UAVTALK_QXTLOG_DEBUG(
+                QString("[uavtalk.cpp  ] Critical error: Received a Nack for an unknown "
+                        "UAVObject:%0")
+                    .arg(QString(QString("0x") + QString::number(objId, 16).toUpper())));
+            error = true;
         }
         break;
     case TYPE_ACK: // We have received a ACK, supposedly after sending an object with OBJ_ACK
@@ -573,7 +577,7 @@ bool UAVTalk::transmitFrame(quint32 length, bool incrTxObj)
     txBuffer[length] = updateCRC(0, txBuffer, length);
 
     if (!io.isNull() && io->isWritable() && io->bytesToWrite() < TX_BACKLOG_SIZE) {
-        io->write((const char *)txBuffer, length + CHECKSUM_LENGTH);
+        io->write(reinterpret_cast<const char *>(txBuffer), length + CHECKSUM_LENGTH);
     } else {
         UAVTALK_QXTLOG_DEBUG("UAVTalk: TX refused");
         ++stats.txErrors;

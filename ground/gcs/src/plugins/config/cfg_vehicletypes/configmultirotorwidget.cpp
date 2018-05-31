@@ -34,7 +34,6 @@
 #include <QComboBox>
 #include <QBrush>
 #include <math.h>
-#include <QMessageBox>
 
 #include "actuatorcommand.h"
 #include "mixersettings.h"

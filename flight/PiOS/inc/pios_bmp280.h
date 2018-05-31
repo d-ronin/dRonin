@@ -33,7 +33,7 @@
 
 #include <pios.h>
 
-#if defined(PIOS_INCLUDE_BMP280)
+#if defined(PIOS_INCLUDE_BMP280) || defined(PIOS_INCLUDE_BMP280_SPI)
 #ifndef TARGET_MAY_HAVE_BARO
 #define TARGET_MAY_HAVE_BARO
 #endif

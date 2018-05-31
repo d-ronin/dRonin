@@ -41,7 +41,6 @@
 #include <QtCore/QtPlugin>
 #include <QAction>
 #include <QMenu>
-#include <QMessageBox>
 #include <QPushButton>
 
 using namespace Welcome::Internal;

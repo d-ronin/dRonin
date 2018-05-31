@@ -103,8 +103,7 @@ static float hangtime_leakybucket_timeconstant = 0.3f;
 // set true to ensure they're fetched on first run
 static volatile bool flight_status_updated = true;
 static volatile bool manual_control_cmd_updated = true;
-static volatile bool actuator_settings_updated = true;
-static volatile bool mixer_settings_updated = true;
+static volatile bool settings_updated = true;
 
 #ifdef OPENAEROVTOL
 static volatile bool oav_curves_updated          = true;
@@ -155,6 +154,7 @@ static TriflightStatusData   triflightStatus;
 static bool armed            = false;
 static bool spin_while_armed = false;
 static bool stabilize_now    = false;
+static bool flip_over_mode   = false; 
 
 // Private functions
 static void actuator_task(void* parameters);
@@ -274,13 +274,19 @@ int32_t ActuatorInitialize()
 	if (ActuatorSettingsInitialize()  == -1) {
 		return -1;
 	}
-	ActuatorSettingsConnectCallbackCtx(UAVObjCbSetFlag, &actuator_settings_updated);
+	ActuatorSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_updated);
 
 	// Register for notification of changes to MixerSettings
 	if (MixerSettingsInitialize()  == -1) {
 		return -1;
 	}
-	MixerSettingsConnectCallbackCtx(UAVObjCbSetFlag, &mixer_settings_updated);
+
+	MixerSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_updated);
+
+	if (SystemSettingsInitialize()  == -1) {
+		return -1;
+	}
+	SystemSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_updated);
 
 #ifdef OPENAEROVTOL
 	// Register for notifications of changes to OAVCurves
@@ -421,7 +427,8 @@ static float get_curve2_source(ActuatorDesiredData *desired,
 
 static void compute_one_mixer(int mixnum,
 		int16_t (*vals)[MIXERSETTINGS_MIXER1VECTOR_NUMELEM],
-		MixerSettingsMixer1TypeOptions type)
+		MixerSettingsMixer1TypeOptions type,
+		float scale_adjustment)
 {
 	types_mixer[mixnum] = type;
 
@@ -437,14 +444,46 @@ static void compute_one_mixer(int mixnum,
 		for (int i = 0; i < MIXERSETTINGS_MIXER1VECTOR_NUMELEM; i++) {
 			motor_mixer[mixnum+i] = (*vals)[i] * (1.0f / MIXER_SCALE);
 		}
+
+		if (type == MIXERSETTINGS_MIXER1TYPE_MOTOR) {
+			/*
+			 * We have motor scale management so that we can
+			 * limit the maximum command sent to a motor,
+			 * allowing the use of e.g. 2700kV motors in 6S
+			 * builds at a lower duty cycle.
+			 *
+			 * However, it's desirable to adjust this limitation
+			 * parameter in the field, and it commutes with the
+			 * PIDs.  Therefore, scale the mixer, to MOTOR
+			 * OUTPUTS ONLY, for roll/pitch/yaw to give the
+			 * same control authority irrespective of
+			 * motor scale setting.
+			 */
+			motor_mixer[mixnum + MIXERSETTINGS_MIXER1VECTOR_ROLL] *=
+				scale_adjustment;
+			motor_mixer[mixnum + MIXERSETTINGS_MIXER1VECTOR_PITCH] *=
+				scale_adjustment;
+			motor_mixer[mixnum + MIXERSETTINGS_MIXER1VECTOR_YAW] *=
+				scale_adjustment;
+		}
 	}
 }
 
 /* Here be dragons */
-#define compute_one_token_paste(b) compute_one_mixer(b-1, &mixerSettings.Mixer ## b ## Vector, mixerSettings.Mixer ## b ## Type)
+#define compute_one_token_paste(b) compute_one_mixer(b-1, &mixerSettings.Mixer ## b ## Vector, mixerSettings.Mixer ## b ## Type, scale_adjustment)
 
 static void compute_mixer()
 {
+	float scale_adjustment = 1.0f;
+	const float output_gain = actuatorSettings.MotorInputOutputGain;
+	const float curve_fit = actuatorSettings.MotorInputOutputCurveFit;
+
+	if ((output_gain < 1.0f) && (output_gain >= 0.01f)) {
+		scale_adjustment = powf(1 / output_gain, 1 / curve_fit);
+	}
+
+// HJI	MixerSettingsData mixerSettings;
+
 	MixerSettingsGet(&mixerSettings);
 
 #if MAX_MIX_ACTUATORS > 0
@@ -498,6 +537,7 @@ static void fill_desired_vector(
 static void post_process_scale_and_commit(float *motor_vect,
 		float *desired_vect, float dT,
 		bool armed, bool spin_while_armed, bool stabilize_now,
+		bool flip_over_mode,
 		float *maxpoweradd_bucket)
 {
 	float min_chan = INFINITY;
@@ -548,6 +588,10 @@ static void post_process_scale_and_commit(float *motor_vect,
 	 * decaying twice as fast if both are in play.
 	 */
 	float maxpoweradd = (*maxpoweradd_bucket) / hangtime_leakybucket_timeconstant;
+
+	if (flip_over_mode) {
+		maxpoweradd = 0;
+	}
 
 	bool neg_throttle = desired_vect[MIXERSETTINGS_MIXER1VECTOR_THROTTLECURVE1] < 0.0f;
 
@@ -666,7 +710,7 @@ static void post_process_scale_and_commit(float *motor_vect,
 			if (!armed) {
 				motor_vect[ct] = NAN;  // don't spin
 			} else if (!stabilize_now) {
-				if (!spin_while_armed) {
+				if ((!spin_while_armed) || (flip_over_mode)) {
 					/* No spin */
 					motor_vect[ct] = NAN;
 				} else {
@@ -684,9 +728,14 @@ static void post_process_scale_and_commit(float *motor_vect,
 					// Apply curve fitting, mapping the input to the propeller output.
 
 					motor_vect[ct] = powapprox(motor_vect[ct], actuatorSettings.MotorInputOutputCurveFit);
+					motor_vect[ct] *= actuatorSettings.MotorInputOutputGain;
 				} else {
 					/* Clip to minimum spin in this direction */
+					if (!flip_over_mode) {
 					motor_vect[ct] = ACTUATOR_EPSILON;
+					} else {
+						motor_vect[ct] = NAN;
+				}
 				}
 
 				if (neg_throttle) {
@@ -796,7 +845,8 @@ static void post_process_scale_and_commit(float *motor_vect,
 
 static void normalize_input_data(uint32_t this_systime,
 		float (*desired_vect)[MIXERSETTINGS_MIXER1VECTOR_NUMELEM],
-		bool *armed, bool *spin_while_armed, bool *stabilize_now)
+		bool *armed, bool *spin_while_armed, bool *stabilize_now,
+		bool *flip_over_mode)
 {
 	static float manual_throt = -1;
 	float throttle_val = 0;
@@ -827,6 +877,7 @@ static void normalize_input_data(uint32_t this_systime,
 
 	*armed = flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMED;
 	*spin_while_armed = actuatorSettings.MotorsSpinWhileArmed == ACTUATORSETTINGS_MOTORSSPINWHILEARMED_TRUE;
+	*flip_over_mode = desired.FlipOverThrustMode == ACTUATORDESIRED_FLIPOVERTHRUSTMODE_TRUE;
 
 	if (airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_HELICP) {
 		// Helis set throttle from manual control's throttle value,
@@ -845,6 +896,18 @@ static void normalize_input_data(uint32_t this_systime,
 
 	*stabilize_now = throttle_val != 0.0f;
 
+	if (*flip_over_mode) {
+		apply_channel_deadband(&desired.Pitch, 0.25f);
+		apply_channel_deadband(&desired.Roll, 0.25f);
+		apply_channel_deadband(&desired.Yaw, 0.25f);
+
+		if ((desired.Pitch == 0) && (desired.Roll == 0) &&
+				(desired.Yaw == 0)) {
+			*stabilize_now = false;
+			throttle_val = 0.0f;
+		}
+	}
+
 	float val1 = throttle_val;
 
 	//The source for the secondary curve is selectable
@@ -858,7 +921,6 @@ static void normalize_input_data(uint32_t this_systime,
 
 static void actuator_settings_update()
 {
-	actuator_settings_updated = false;
 	ActuatorSettingsGet(&actuatorSettings);
 
 	PIOS_Servo_SetMode(actuatorSettings.TimerUpdateFreq,
@@ -917,13 +979,17 @@ static void actuator_task(void* parameters)
 		/* If settings objects have changed, update our internal
 		 * state appropriately.
 		 */
-		if (actuator_settings_updated) {
+		if (settings_updated) {
 			actuator_settings_update();
-#ifdef TRIFLIGHT
-			triflight_settings_updated = true;
-#endif
-		}
-
+			
+			SystemSettingsAirframeTypeGet(&airframe_type);
+			
+			compute_mixer();
+			
+			MixerSettingsThrottleCurve2Get(curve2);
+			MixerSettingsCurve2SourceGet(&curve2_src);
+			
+/* HJI
 		if (flight_status_updated) {
 			FlightStatusGet(&flightStatus);
 			flight_status_updated = false;
@@ -931,14 +997,11 @@ static void actuator_task(void* parameters)
 
 		if (mixer_settings_updated) {
 			mixer_settings_updated = false;
-			SystemSettingsAirframeTypeGet(&airframe_type);
+HJI */			
 #ifdef TRIFLIGHT
 			triflight_settings_updated = true;
 #endif
-			compute_mixer();
-
-			MixerSettingsThrottleCurve2Get(curve2);
-			MixerSettingsCurve2SourceGet(&curve2_src);
+			settings_updated = false;
 		}
 
 #ifdef OPENAEROVTOL
@@ -1168,7 +1231,8 @@ static void actuator_task(void* parameters)
 		 * axis actions.
 		 */
 		normalize_input_data(this_systime, &desired_vect, &armed,
-				&spin_while_armed, &stabilize_now);
+				&spin_while_armed, &stabilize_now,
+				&flip_over_mode);
 
 		/* Multiply the actuators x desired matrix by the
 		 * desired x 1 column vector. */
@@ -1202,7 +1266,7 @@ static void actuator_task(void* parameters)
 		 */
 		post_process_scale_and_commit(motor_vect, desired_vect,
 				dT, armed, spin_while_armed, stabilize_now,
-				&maxpoweradd_bucket);
+				flip_over_mode, &maxpoweradd_bucket);
 
 		/* If we got this far, everything is OK. */
 		AlarmsClear(SYSTEMALARMS_ALARM_ACTUATOR);
@@ -1382,7 +1446,6 @@ static float channel_failsafe_value(int idx)
 		/* Other channel types-- camera.  Center them. */
 		return 0;
 	}
-
 }
 
 /**

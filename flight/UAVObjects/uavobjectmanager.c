@@ -57,7 +57,7 @@ extern uintptr_t pios_uavo_settings_fs_id;
  */
 
 /** opaque type for instances **/
-typedef void* InstanceHandle; 
+typedef void* InstanceHandle;
 
 struct ObjectEventEntry {
 	union {
@@ -74,8 +74,9 @@ struct ObjectEventEntry {
 struct ObjectEventEntryThrottled {
 	struct ObjectEventEntry   entry; // MUST be first! So throttled entry can be interpreted as ObjectEventEntry
 
-	uint32_t                  due;
+	uint32_t                  when;
 	uint16_t                  interval;
+	volatile uint8_t          inhibited;
 };
 
 /*
@@ -130,7 +131,7 @@ struct UAVOSingle {
 	struct UAVOData   uavo;
 
 	uint8_t           instance0[];
-	/* 
+	/*
 	 * Additional space will be malloc'd here to hold the
 	 * the data for this instance.
 	 */
@@ -140,7 +141,7 @@ struct UAVOSingle {
 struct UAVOMultiInst {
 	struct UAVOMultiInst * next;
 	uint8_t                instance[];
-	/* 
+	/*
 	 * Additional space will be malloc'd here to hold the
 	 * the data for this instance.
 	 */
@@ -345,7 +346,7 @@ static struct UAVOData * UAVObjAllocMulti(uint32_t num_bytes)
  * \return Object handle, or NULL if failure.
  * \return
  */
-UAVObjHandle UAVObjRegister(uint32_t id, 
+UAVObjHandle UAVObjRegister(uint32_t id,
 			int32_t isSingleInstance, int32_t isSettings,
 			uint32_t num_bytes,
 			UAVObjInitializeCallback initCb)
@@ -1293,7 +1294,7 @@ int32_t UAVObjGetInstanceDataField(UAVObjHandle obj_handle, uint16_t instId, voi
 		if ((size + offset) > obj->instance_size) {
 			goto unlock_exit;
 		}
-		
+
 		// Set data
 		memcpy(dataOut, InstanceData(instEntry) + offset, size);
 	}
@@ -1485,8 +1486,8 @@ void UAVObjSetGcsTelemetryUpdateMode(UAVObjMetadata* metadata, UAVObjUpdateMode 
 /**
  * Check if an object is read only
  * \param[in] obj The object handle
- * \return 
- *   \arg 0 if not read only 
+ * \return
+ *   \arg 0 if not read only
  *   \arg 1 if read only
  *   \arg -1 if unable to get meta data
  */
@@ -1724,19 +1725,32 @@ static int32_t pumpOneEvent(UAVObjEvent msg, void *obj_data, int len) {
 	struct ObjectEventEntry *event;
 	LL_FOREACH(msg.obj->next_event, event) {
 		if (event->eventMask == 0
-			|| (event->eventMask & msg.event) != 0) {
+				|| (event->eventMask & msg.event) != 0) {
+			struct ObjectEventEntryThrottled *throtInfo =
+				(struct ObjectEventEntryThrottled *) event;
+
 			if (event->hasThrottle) {
 				// This is a throttled event (triggered with a spacing of at least "interval" ms)
 				struct ObjectEventEntryThrottled *throtInfo =
 					(struct ObjectEventEntryThrottled *) event;
 
 				uint32_t now = PIOS_Thread_Systime();
-				if (throtInfo->due > now){
+
+				if (!PIOS_Thread_Period_Elapsed(throtInfo->when,
+							throtInfo->interval)) {
 					continue;
 				}
 
 				// Set time for next callback
-				throtInfo->due += ((now - throtInfo->due) / throtInfo->interval + 1) * throtInfo->interval;
+				throtInfo->when = now;
+
+				if (throtInfo->inhibited) {
+					continue;
+				}
+
+				msg.throttle = throtInfo;
+			} else {
+				msg.throttle = NULL;
 			}
 
 			// Invoke callback (from event task) if a valid one is registered
@@ -1744,11 +1758,17 @@ static int32_t pumpOneEvent(UAVObjEvent msg, void *obj_data, int len) {
 				// invoke callback directly; callbacks must be well behaved
 				invokeCallback(event, &msg, obj_data, len);
 			} else if (event->cbInfo.queue) {
+				if (event->hasThrottle) {
+					throtInfo->inhibited = 1;
+				}
 				// Send to queue if a valid queue is registered
 				// will not block
 				if (PIOS_Queue_Send(event->cbInfo.queue, &msg, 0) != true) {
 					stats.lastQueueErrorID = UAVObjGetID(msg.obj);
 					++stats.eventQueueErrors;
+					if (event->hasThrottle) {
+						throtInfo->inhibited = 0;
+					}
 				}
 			}
 
@@ -2034,7 +2054,7 @@ static int32_t connectObj(UAVObjHandle obj_handle, struct pios_queue *queue,
 		throttled = (struct ObjectEventEntryThrottled *) event;
 
 		throttled->interval = interval;
-		throttled->due = PIOS_Thread_Systime() + randomize_int(throttled->interval);
+		throttled->when = PIOS_Thread_Systime() + randomize_int(throttled->interval);
 	}
 
 	LL_APPEND(obj->next_event, event);
@@ -2152,6 +2172,17 @@ uint32_t UAVObjIDByIndex(uint8_t index)
 	// Release lock
 	PIOS_Recursive_Mutex_Unlock(mutex);
 	return 0;
+}
+
+/**
+ * Unblocks a throttled event-- allows it to be inserted into queues once
+ * again.
+ */
+void UAVObjUnblockThrottle(struct ObjectEventEntryThrottled *throttled)
+{
+	if (throttled) {
+		throttled->inhibited = 0;
+	}
 }
 
 /**

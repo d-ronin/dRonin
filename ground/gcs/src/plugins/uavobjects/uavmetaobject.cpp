@@ -61,7 +61,8 @@ UAVMetaObject::UAVMetaObject(quint32 objID, const QString &name, UAVObject *pare
                                      1, QStringList(), QList<int>()));
     // Initialize parent
     UAVObject::initialize(0);
-    UAVObject::initializeFields(fields, (quint8 *)&parentMetadata, sizeof(Metadata));
+    UAVObject::initializeFields(fields, reinterpret_cast<quint8 *>(&parentMetadata),
+                                sizeof(Metadata));
     // Setup metadata of parent
     parentMetadata = parent->getDefaultMetadata();
 }

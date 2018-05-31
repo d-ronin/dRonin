@@ -37,31 +37,18 @@
 #include "uavobjectsinit.h"
 #include "systemmod.h"
 #include "pios_thread.h"
+#include "pios_hal.h"
 
 /* Prototype of PIOS_Board_Init() function */
 extern void PIOS_Board_Init(void);
 extern void Stack_Change(void);
 
-/* Local Variables */
-#define INIT_TASK_PRIORITY	PIOS_THREAD_PRIO_HIGHEST
-#define INIT_TASK_STACK		262144
-static struct pios_thread *initTaskHandle;
-
 /* Function Prototypes */
-static void initTask(void *parameters);
+static void initTask();
 
 static int g_argc;
 static char **g_argv;
 
-/**
- * dRonin Main function:
- *
- * Initialize PiOS<BR>
- * Create the "System" task (SystemModInitializein Modules/System/systemmod.c) <BR>
- * Start the RTOS Scheduler<BR>
- * If something goes wrong, blink LED1 and LED2 every 100ms
- *
- */
 int main(int argc, char *argv[]) {
 	setvbuf(stdout, NULL, _IONBF, 1);
 	printf("Beginning simulation environment\n");
@@ -73,46 +60,39 @@ int main(int argc, char *argv[]) {
 	g_argc = argc;
 	g_argv = argv;
 
-	/* NOTE: Do NOT modify the following start-up sequence */
 	PIOS_heap_initialize_blocks();
 
-#if defined(PIOS_INCLUDE_CHIBIOS)
-	halInit();
-	chSysInit();
-
-	boardInit();
-#endif /* defined(PIOS_INCLUDE_CHIBIOS) */
-
-	initTaskHandle = PIOS_Thread_Create(initTask, "init", INIT_TASK_STACK, NULL, INIT_TASK_PRIORITY);
-	PIOS_Assert(initTaskHandle != NULL);
-
-	PIOS_Thread_Sleep(PIOS_THREAD_TIMEOUT_MAX);
-
-	printf("Reached end of main\n");
+	initTask();
 
 	return 0;
 }
 
 MODULE_INITSYSTEM_DECLS;
 
+void system_task();
+
 /**
  * Initialization task.
  *
  * Runs board and module initialization, then terminates.
  */
-void initTask(void *parameters)
+void initTask()
 {
 	printf("Initialization task running\n");
 
 	PIOS_SYS_Init();
 
+	UAVObjInitialize();
+
+	/* Initialize the task monitor library */
+	TaskMonitorInitialize();
+
+	PIOS_HAL_InitUAVTalkReceiver();
+
+	PIOS_SYS_Args(g_argc, g_argv);
+
 	/* board driver init */
 	PIOS_Board_Init();
-
-	/* SYS_Init on host runs in init task, so we can use allocator etc.
-	 * after Board_Init because hardware inited here may rely upon
-	 * task monitor, etc. */
-	PIOS_SYS_Args(g_argc, g_argv);
 
 	/* Initialize modules */
 	MODULE_INITIALISE_ALL(PIOS_WDG_Clear);
@@ -120,10 +100,11 @@ void initTask(void *parameters)
 	/* create all modules thread */
 	MODULE_TASKCREATE_ALL;
 
-	printf("Initialization task completed\n");
+	printf("Initialization task completed-- invoking system task\n");
 
-	/* terminate this task */
-	PIOS_Thread_Delete(NULL);
+	system_task();
+
+	printf("System task exited?  Shouldn't happen.\n");
 }
 
 /**

@@ -1,4 +1,3 @@
-###############################################################################
 # @file       Makefile
 # @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2015
 # @author     dRonin, http://dronin.org Copyright (C) 2015-2016
@@ -70,8 +69,6 @@ PIOSINC = $(PIOS)/inc
 FLIGHTLIBINC = $(FLIGHTLIB)/inc
 MATHLIB = $(FLIGHTLIB)/math
 MATHLIBINC = $(FLIGHTLIB)/math
-RSCODE = $(FLIGHTLIB)/rscode
-RSCODEINC = $(FLIGHTLIB)/rscode
 PIOSSTM32F4XX = $(PIOS)/STM32F4xx
 PIOSCOMMON = $(PIOS)/Common
 PIOSCOMMONLIB = $(PIOSCOMMON)/Libraries
@@ -122,9 +119,6 @@ SRC += pios_hmc5983_i2c.c
 SRC += pios_ms5611.c
 SRC += pios_openlrs.c
 SRC += pios_openlrs_rcvr.c
-SRC += pios_rfm22b.c
-SRC += pios_rfm22b_com.c
-SRC += pios_rfm22b_rcvr.c
 
 # List C source files here which must be compiled in ARM-Mode (no -mthumb).
 # use file-extension c for "c-only"-files
@@ -164,7 +158,6 @@ EXTRAINCDIRS  += $(OPUAVOBJINC)
 EXTRAINCDIRS  += $(UAVOBJSYNTHDIR)
 EXTRAINCDIRS  += $(FLIGHTLIBINC)
 EXTRAINCDIRS  += $(MATHLIBINC)
-EXTRAINCDIRS  += $(RSCODEINC)
 EXTRAINCDIRS  += $(PIOSSTM32F4XX)
 EXTRAINCDIRS  += $(PIOSCOMMON)
 EXTRAINCDIRS  += $(STMSPDINCDIR)
@@ -173,7 +166,6 @@ EXTRAINCDIRS  += $(OPUAVSYNTHDIR)
 EXTRAINCDIRS  += $(BOOTINC)
 EXTRAINCDIRS  += $(DEBUG_CM3_DIR_INC)
 EXTRAINCDIRS  += $(MAVLINKINC)
-
 
 # List any extra directories to look for library files here.
 # Also add directories where the linker should search for

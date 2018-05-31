@@ -43,7 +43,10 @@ UAVDataObject::UAVDataObject(quint32 objID, bool isSingleInst, bool isSet, const
 {
     mobj = NULL;
     this->isSet = isSet;
-    this->isPresentOnHardware = false;
+    this->isPresentOnHardware = unknownPresent;
+
+    connect(this, &UAVObject::objectUnpacked,
+            this, &UAVDataObject::setIsPresentOnHardware);
 }
 
 /**
@@ -100,17 +103,59 @@ UAVMetaObject *UAVDataObject::getMetaObject()
 {
     return mobj;
 }
+
+bool UAVDataObject::getPresenceKnown() const
+{
+    return (isPresentOnHardware != unknownPresent);
+}
+
 bool UAVDataObject::getIsPresentOnHardware() const
 {
-    return isPresentOnHardware;
+    return (isPresentOnHardware == isPresent) ||
+        (isPresentOnHardware == isPresentAndReceived);
+}
+
+void UAVDataObject::setReceived()
+{
+    bool temp = getIsPresentOnHardware();
+
+    isPresentOnHardware = isPresentAndReceived;
+
+    if (temp != getIsPresentOnHardware()) {
+        emit presentOnHardwareChanged(this);
+        emit presentOnHardwareChanged(true);
+    }
+}
+
+bool UAVDataObject::getReceived()
+{
+    return (isPresentOnHardware == isPresentAndReceived);
 }
 
 void UAVDataObject::setIsPresentOnHardware(bool value)
 {
-    bool temp = isPresentOnHardware;
-    isPresentOnHardware = value;
-    if (temp != isPresentOnHardware) {
+    bool temp = getIsPresentOnHardware();
+
+    if (value) {
+        isPresentOnHardware = isPresent;
+    } else {
+        isPresentOnHardware = notPresent;
+    }
+
+    if (temp != getIsPresentOnHardware()) {
         emit presentOnHardwareChanged(this);
-        emit presentOnHardwareChanged(isPresentOnHardware);
+        emit presentOnHardwareChanged(value);
+    }
+}
+
+void UAVDataObject::resetIsPresentOnHardware()
+{
+    enum presence old = isPresentOnHardware;
+
+    isPresentOnHardware = unknownPresent;
+
+    if (old == isPresent) {
+        emit presentOnHardwareChanged(this);
+        emit presentOnHardwareChanged(false);
     }
 }

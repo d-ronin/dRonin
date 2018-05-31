@@ -13,18 +13,18 @@
 * @see        The GNU Public License (GPL) Version 3
 *
 *****************************************************************************/
-/* 
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+/*
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
@@ -35,10 +35,14 @@
 
 #ifdef PIOS_INCLUDE_OPENLRS
 
+extern const struct pios_com_driver pios_openlrs_com_driver;
+
+#include "openlrs.h"
+
 #define OPENLRSNG_VERSION 0x0382
- 
+
 #define MAXHOPS      24
-#define OPENLRS_PPM_NUM_CHANNELS 16
+#define OPENLRS_PPM_NUM_CHANNELS 20
 
 // Factory setting values, modify via the CLI
 
@@ -68,14 +72,18 @@
 #define TELEMETRY_FRSKY     0x10 // covers smartport if used with &
 #define TELEMETRY_SMARTPORT 0x18
 #define TELEMETRY_MASK      0x18
+#define CHANNELS_4          0x00
 #define CHANNELS_4_4        0x01
 #define CHANNELS_8          0x02
 #define CHANNELS_8_4        0x03
 #define CHANNELS_12         0x04
 #define CHANNELS_12_4       0x05
 #define CHANNELS_16         0x06
+#define CHANNELS_16_4       0x07
+
 #define DIVERSITY_ENABLED   0x80
 #define DEFAULT_FLAGS       (CHANNELS_8 | TELEMETRY_PASSTHRU)
+#define EXT_FLAG_FASTDATA   0x80
 
 // helper macro for European PMR channels
 #define EU_PMR_CH(x) (445993750L + 12500L * (x)) // valid for ch1-ch8
@@ -113,89 +121,106 @@
 #define RFM22_DEVICE_TYPE                         0x00  // R
 #define RFM22_DT_MASK                             0x1F
 
+const static uint8_t openlrs_pktsizes[8] = { 6, 7, 11, 12, 16, 17, 21, 22 };
+#define MAX_PACKET_SIZE 22
+
 struct bind_data {
-  uint8_t version;
-  uint32_t serial_baudrate;
-  uint32_t rf_frequency;
-  uint32_t rf_magic;
-  uint8_t rf_power;
-  uint8_t rf_channel_spacing;
-  uint8_t hopchannel[MAXHOPS];
-  uint8_t modem_params;
-  uint8_t flags;
+	uint8_t hdr;
+	uint8_t version;
+
+	/* This was serial_baudrate, which we don't use.  It's an RX parameter
+	 * and not really something specific to the link.
+	 */
+	uint8_t reserved[3];
+	uint8_t ext_flags;
+
+	uint32_t rf_frequency;
+	uint32_t rf_magic;
+	uint8_t rf_power;
+	uint8_t rf_channel_spacing;
+	uint8_t hopchannel[MAXHOPS];
+	uint8_t modem_params;
+	uint8_t flags;
 } __attribute__((packed));
 
 enum RF_MODE {
-  Available, Transmit, Receive, Transmitted, Received,
+	Available, Transmit, Receive, Transmitted, Received,
 };
 
 enum pios_openlrs_dev_magic {
-  PIOS_OPENLRS_DEV_MAGIC = 0x18c97ab6,
+	PIOS_OPENLRS_DEV_MAGIC = 0x18c97ab6,
 };
 
 struct pios_openlrs_dev {
-  enum pios_openlrs_dev_magic magic;
-  struct pios_openlrs_cfg cfg;
+	enum pios_openlrs_dev_magic magic;
+	struct pios_openlrs_cfg cfg;
 
-  // The SPI bus information
-  pios_spi_t spi_id;
-  uint32_t slave_num;
+	// The SPI bus information
+	pios_spi_t spi_id;
+	uint32_t slave_num;
 
-  HwSharedRfBandOptions band;
+	HwSharedRfBandOptions band;
+	HwSharedMaxRfPowerOptions max_power;
 
-  // The task handle
-  struct pios_thread *taskHandle;
+	// The task handle
+	struct pios_thread *taskHandle;
 
-  // The COM callback functions.
-  pios_com_callback rx_in_cb;
-  uint32_t rx_in_context;
-  pios_com_callback tx_out_cb;
-  uint32_t tx_out_context;
+	// The COM callback functions.
+	// Expected to be nailed down prior to PIOS_OpenLRS_Start.
+	// (Not volatile, etc.).
+	pios_com_callback rx_in_cb;
+	uintptr_t rx_in_context;
+	pios_com_callback tx_out_cb;
+	uintptr_t tx_out_context;
 
-  // The event queue handle
-  struct pios_semaphore *sema_isr;
+	// The event queue handle
+	struct pios_semaphore *sema_isr;
 
-  // The PPM buffer
-  int16_t ppm[OPENLRS_PPM_NUM_CHANNELS];
+	// The channel value buffer
+	int16_t ppm[OPENLRS_PPM_NUM_CHANNELS];
 
-  // RFM22B RCVR interface
-  uintptr_t openlrs_rcvr_id;
+	// RFM22B RCVR interface
+	uintptr_t openlrs_rcvr_id;
 
-  // Flag to indicate if link every acquired
-  bool link_acquired;
+	// Active bound information data
+	struct bind_data bind_data;
 
-  // Active bound information data
-  struct bind_data bind_data;
+	// Beacon settings
+	uint32_t beacon_frequency;
+	uint8_t beacon_delay;
+	uint8_t beacon_period;
+	bool beacon_armed;
 
-  // Beacon settings
-  uint32_t beacon_frequency;
-  uint8_t beacon_delay;
-  uint8_t beacon_period;
-  bool beacon_armed;
+	// Flag to indicate if link ever acquired
+	bool link_acquired;
 
-  enum RF_MODE rf_mode;
-  uint32_t rf_channel;
+	volatile enum RF_MODE rf_mode;
+	uint32_t rf_channel;
 
-  uint8_t it_status1;
-  uint8_t it_status2;
+	uint8_t it_status1;
+	uint8_t it_status2;
 
-  uint8_t rx_buf[64];
-  uint8_t tx_buf[9];
+	// Variables from OpenLRS for radio control
+	uint8_t hopcount;
+	uint32_t lastPacketTimeUs;
+	uint32_t numberOfLostPackets;
+	uint16_t lastAFCCvalue;
+	uint32_t nextBeaconTimeMs;
+	uint32_t linkLossTimeMs;
+	uint32_t failsafeDelay;
+	uint32_t beacon_rssi_avg;
 
-  // Variables from OpenLRS for radio control
-  uint8_t hopcount;
-  uint32_t lastPacketTimeUs;
-  uint32_t numberOfLostPackets;
-  uint16_t lastAFCCvalue;
-  uint32_t lastRSSITimeUs;
-  bool willhop;
-  uint32_t nextBeaconTimeMs;
-  uint32_t linkLossTimeMs;
-  uint32_t failsafeDelay;
-  uint32_t beacon_rssi_avg;
+	// Scaling values for input controls in transmitter path
+	uint16_t scale_min, scale_max;
+
+	OpenLRStx_sourceOptions tx_source;
+	bool tx_ok_to_telemeter;
+	uint8_t tx_prev_rxtelem_hdr;
+	uint8_t tx_startup_bind_duration;
+	uint8_t tx_bind_button_duration;
+	uint8_t telem_len;
+	uint8_t tx_buf[MAX_PACKET_SIZE];
 };
-
-bool PIOS_OpenLRS_EXT_Int(void);
 
 #endif /* PIOS_INCLUDE_OPENLRS */
 

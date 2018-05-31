@@ -87,7 +87,7 @@ public:
     IUAVGadgetConfiguration *clone();
 
 private:
-    //! Indicate whether the gadget sends commands via GCS Receiver or overriding ManualControlCommand
+    //! Indicate whether the gadget sends commands via UAVTalkReceiver or overriding ManualControlCommand
     bool gcsReceiverMode;
 
     //! Mode1 to Mode4

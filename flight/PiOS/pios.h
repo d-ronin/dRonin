@@ -31,12 +31,12 @@
 #ifndef PIOS_H
 #define PIOS_H
 
+/* PIOS Feature Selection */
+#include "pios_config.h"
+
 #ifdef FLIGHT_POSIX
 #include <pios_posix.h>
 #endif
-
-/* PIOS Feature Selection */
-#include "pios_config.h"
 
 #if defined(PIOS_INCLUDE_CHIBIOS)
 /* @note    This is required because of difference in chip define between ChibiOS and ST libs.
@@ -125,7 +125,7 @@
 #if defined(PIOS_INCLUDE_ETASV3)
 #include <pios_etasv3.h>
 #endif
-#if defined(PIOS_INCLUDE_BMP280)
+#if defined(PIOS_INCLUDE_BMP280) || defined(PIOS_INCLUDE_BMP280_SPI)
 #include <pios_bmp280.h>
 #endif
 #if defined(PIOS_INCLUDE_HCSR04)
@@ -167,13 +167,6 @@
 
 #if defined(PIOS_INCLUDE_USB)
 #include <pios_usb.h>
-#endif
-
-#if defined(PIOS_INCLUDE_RFM22B)
-#include <pios_rfm22b.h>
-#ifdef PIOS_INCLUDE_RFM22B_COM
-#include <pios_rfm22b_com.h>
-#endif
 #endif
 
 #if defined(PIOS_INCLUDE_IBUS)

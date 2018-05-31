@@ -129,7 +129,7 @@ class UAVOCollection(dict):
                 pass
 
             try:
-                from six.moves.urllib.request import urlopen
+                from urllib.request import urlopen
 
                 # TODO -- this can be bundled into a single request and unrolled.
                 web_data = urlopen("http://dronin-autotown.appspot.com/uavos/%s" % (h))
@@ -151,7 +151,7 @@ class UAVOCollection(dict):
         content_list = []
 
         for file_name in glob.glob(os.path.join(path, '*.xml')):
-            with open(file_name, 'rU') as f:
+            with open(file_name, 'r', newline=None) as f:
                 content_list.append(f.read())
 
         self.from_file_contents(content_list)

@@ -216,17 +216,13 @@ int main(int argc, char **argv)
     setrlimit(RLIMIT_NOFILE, &rl);
     QApplication::setAttribute(Qt::AA_DontCreateNativeWidgetSiblings, true);
 
-    if (QSysInfo::MacintoshVersion > QSysInfo::MV_10_8) {
-        // fix Mac OS X 10.9 (mavericks) font issue
-        // https://bugreports.qt-project.org/browse/QTBUG-32789
-        QFont::insertSubstitution(".Lucida Grande UI", "Lucida Grande");
+    QFont::insertSubstitution(".Lucida Grande UI", "Lucida Grande");
 
-        QSettings tmpSettings;
+    QSettings tmpSettings;
 
-        bool value = true;
+    bool value = true;
 
-        tmpSettings.setValue(QString("NSAppSleepDisabled"), value);
-    }
+    tmpSettings.setValue(QString("NSAppSleepDisabled"), value);
 #endif
 
     QApplication app(argc, argv);
@@ -446,7 +442,7 @@ int main(int argc, char **argv)
         QStringList errors, plugins;
         for (const auto p : pluginManager.plugins()) {
             if (p->hasError()) {
-                errors.append(p->errorString());
+                errors.append(QStringLiteral("%0:\n%1").arg(p->name(), p->errorString()));
                 plugins.append(p->name());
             }
         }
@@ -455,11 +451,17 @@ int main(int argc, char **argv)
             QString msg(QCoreApplication::tr(
                         "Some problems were encountered whilst loading the following plugins: "));
             msg.append(plugins.join(QStringLiteral(", ")));
-            QMessageBox msgBox(QMessageBox::Warning,
-                               QCoreApplication::tr("Plugin loader messages"),
-                               msg, QMessageBox::Ok);
-            msgBox.setDetailedText(errors.join(QStringLiteral("\n\n")));
-            msgBox.exec();
+
+            if (parser.values(doTestsOption).isEmpty()) {
+                QMessageBox msgBox(QMessageBox::Warning,
+                                   QCoreApplication::tr("Plugin loader messages"),
+                                   msg, QMessageBox::Ok);
+                msgBox.setDetailedText(errors.join(QStringLiteral("\n\n")));
+                msgBox.exec();
+            } else {
+                const char *errorstr = errors.join(QStringLiteral("\n\n")).toLocal8Bit().data();
+                qFatal("ERROR: Some plugins failed to load:\n%s\n", errorstr);
+            }
         }
     }
 

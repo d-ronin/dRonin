@@ -53,7 +53,7 @@
 #define PIOS_TCP_RX_BUFFER_SIZE		PIOS_COM_BUFFER_SIZE
 #define PIOS_SERIAL_RX_BUFFER_SIZE		PIOS_COM_BUFFER_SIZE
 
-extern uintptr_t pios_com_telem_rf_id;
+extern uintptr_t pios_com_telem_serial_id;
 extern uintptr_t pios_com_telem_usb_id;
 extern uintptr_t pios_com_gps_id;
 extern uintptr_t pios_com_debug_id;
@@ -61,15 +61,12 @@ extern uintptr_t pios_com_openlog_id;
 extern uintptr_t pios_com_lighttelemetry_id;
 extern uintptr_t pios_com_msp_id;
 
-#define PIOS_COM_TELEM_RF                       (pios_com_telem_rf_id)
 #define PIOS_COM_TELEM_USB                      (pios_com_telem_usb_id)
 #define PIOS_COM_GPS                            (pios_com_gps_id)
 #define PIOS_COM_MSP                            (pios_com_msp_id)
 #define PIOS_COM_DEBUG                          (pios_com_debug_id)
 #define PIOS_COM_OPENLOG                        (pios_com_openlog_id)
 #define PIOS_COM_LIGHTTELEMETRY                 (pios_com_lighttelemetry_id)
-
-#define PIOS_GCSRCVR_TIMEOUT_MS 200
 
 #ifndef DEBUG_LEVEL
 #define DEBUG_LEVEL 2

@@ -48,9 +48,7 @@
 #include "hwrevolution.h"
 #include "manualcontrolsettings.h"
 #include "modulesettings.h"
-#include <rfm22bstatus.h>
 #include <pios_max7456.h>
-#include <pios_rfm22b_rcvr_priv.h>
 #include <pios_openlrs_rcvr_priv.h>
 
 #if defined(PIOS_INCLUDE_WS2811)
@@ -237,14 +235,18 @@ void PIOS_Board_Init(void) {
 	/* Configure IO ports */
 
 #if defined(PIOS_INCLUDE_I2C)
-	if (PIOS_I2C_Init(&pios_i2c_mag_pressure_adapter_id, &pios_i2c_mag_pressure_adapter_cfg))
-		PIOS_DEBUG_Assert(0);
-
-	if (PIOS_I2C_CheckClear(pios_i2c_mag_pressure_adapter_id) != 0)
+	if ((!is_modified_clone) && PIOS_I2C_Init(&pios_i2c_mag_pressure_adapter_id, &pios_i2c_mag_pressure_adapter_cfg)) {
 		PIOS_HAL_CriticalError(PIOS_LED_HEARTBEAT, PIOS_HAL_PANIC_I2C_INT);
-	else
-		if (AlarmsGet(SYSTEMALARMS_ALARM_I2C) == SYSTEMALARMS_ALARM_UNINITIALISED)
+	}
+
+	if ((!is_modified_clone) &&
+			(PIOS_I2C_CheckClear(pios_i2c_mag_pressure_adapter_id) != 0)) {
+		PIOS_HAL_CriticalError(PIOS_LED_HEARTBEAT, PIOS_HAL_PANIC_I2C_INT);
+	} else if (!is_modified_clone) {
+		if (AlarmsGet(SYSTEMALARMS_ALARM_I2C) == SYSTEMALARMS_ALARM_UNINITIALISED) {
 			AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_OK);
+		}
+	}
 #endif  // PIOS_INCLUDE_I2C
 
 	HwRevolutionDSMxModeOptions hw_DSMxMode;
@@ -359,17 +361,6 @@ void PIOS_Board_Init(void) {
 				NULL);                               // sbus_cfg
 	}
 
-#if defined(PIOS_INCLUDE_GCSRCVR)
-	GCSReceiverInitialize();
-	uintptr_t pios_gcsrcvr_id;
-	PIOS_GCSRCVR_Init(&pios_gcsrcvr_id);
-	uintptr_t pios_gcsrcvr_rcvr_id;
-	if (PIOS_RCVR_Init(&pios_gcsrcvr_rcvr_id, &pios_gcsrcvr_rcvr_driver, pios_gcsrcvr_id)) {
-		PIOS_Assert(0);
-	}
-	pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_GCS] = pios_gcsrcvr_rcvr_id;
-#endif	/* PIOS_INCLUDE_GCSRCVR */
-
 #ifndef PIOS_DEBUG_ENABLE_DEBUG_PINS
 	switch (hw_rxport) {
 	case HWREVOLUTION_RXPORT_DISABLED:
@@ -420,24 +411,19 @@ void PIOS_Board_Init(void) {
 			break;
 #endif
 
-#ifdef PIOS_INCLUDE_RFM22B
+#ifdef PIOS_INCLUDE_OPENLRS
 		case HWREVOLUTION_SPIPERIPHERAL_RADIO:
 			(void) 0;
 			const struct pios_openlrs_cfg *openlrs_cfg =PIOS_BOARD_HW_DEFS_GetOpenLRSCfg(bdinfo->board_rev);
-			const struct pios_rfm22b_cfg *rfm22b_cfg = PIOS_BOARD_HW_DEFS_GetRfm22Cfg(bdinfo->board_rev);
 
-			PIOS_HAL_ConfigureRFM22B(hwRevoMini.Radio,
-					pios_spi_telem_flash_id,
+			PIOS_HAL_ConfigureRFM22B(pios_spi_telem_flash_id,
 					bdinfo->board_type, bdinfo->board_rev,
-					hwRevoMini.MaxRfPower,
-					hwRevoMini.MaxRfSpeed,
 					hwRevoMini.RfBand,
-					openlrs_cfg, rfm22b_cfg,
-					hwRevoMini.MinChannel,
-					hwRevoMini.MaxChannel,
-					hwRevoMini.CoordID, 1);
+					hwRevoMini.MaxRfPower,
+					openlrs_cfg,
+					&openlrs_handle);
 			break;
-#endif /* PIOS_INCLUDE_RFM22B */
+#endif /* PIOS_INCLUDE_OPENLRS */
 	}
 
 #ifdef PIOS_INCLUDE_WS2811
@@ -557,6 +543,10 @@ void PIOS_Board_Init(void) {
 	uint8_t hw_magnetometer;
 	HwRevolutionMagnetometerGet(&hw_magnetometer);
 
+	if (!pios_i2c_mag_pressure_adapter_id) {
+		hw_magnetometer = HWREVOLUTION_MAGNETOMETER_NONE;
+	}
+
 	switch (hw_magnetometer) {
 		case HWREVOLUTION_MAGNETOMETER_NONE:
 			break;
@@ -590,7 +580,7 @@ void PIOS_Board_Init(void) {
 	PIOS_WDG_Clear();
 
 #if defined(PIOS_INCLUDE_MS5611)
-	if ((PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_mag_pressure_adapter_id) != 0) || (PIOS_MS5611_Test() != 0)) {
+	if ((!pios_i2c_mag_pressure_adapter_id) || (PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_mag_pressure_adapter_id) != 0) || (PIOS_MS5611_Test() != 0)) {
 		if (!is_modified_clone) {
 			PIOS_HAL_CriticalError(PIOS_LED_HEARTBEAT, PIOS_HAL_PANIC_BARO);
 		}

@@ -52,7 +52,6 @@
 #include "positionactual.h"
 #include "velocityactual.h"
 #include "flightstatus.h"
-#include "rfm22bstatus.h"
 
 #if defined(PIOS_INCLUDE_TARANIS_SPORT)
 
@@ -122,27 +121,17 @@ static struct frsky_sport_telemetry *frsky;
  */
 static bool frsky_encode_rssi(struct frsky_settings *frsky, uint32_t *value, bool test_presence_only, uint32_t arg)
 {
-	uint8_t local_link_quality, local_link_connected;
+#if 0
+	uint8_t local_link_quality = 0, local_link_connected = 0; /* XXX */
 
 	RFM22BStatusLinkStateGet(&local_link_connected);
 	RFM22BStatusLinkQualityGet(&local_link_quality);
 
 	RFM22BStatusData rfm22bStatus;
 	RFM22BStatusInstGet(1, &rfm22bStatus);
+#endif
 
-	if (local_link_connected == RFM22BSTATUS_LINKSTATE_CONNECTED) {
-		// report whichever link quality is worse
-		*value = (rfm22bStatus.LinkQuality < local_link_quality) ? rfm22bStatus.LinkQuality : local_link_quality;
-		
-		// Rescale to values that match Taranis
-		if (*value < 64) {
-			*value = 0;
-		} else {
-			*value = (*value - 64) * 100 / 64;
-		}
-	} else {
-		*value = 0;
-	}
+	*value = 0;
 
 	return true;
 }

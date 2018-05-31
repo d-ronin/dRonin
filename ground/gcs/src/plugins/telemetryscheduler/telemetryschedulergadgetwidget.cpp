@@ -301,9 +301,10 @@ void TelemetrySchedulerGadgetWidget::saveTelemetryToFile()
 {
     QString file = filename;
     QString filter = tr("Telemetry Scheduler file (*.xml)");
-    file = QFileDialog::getSaveFileName(nullptr, tr("Save Telemetry Schedule to file .."),
-                                        QFileInfo(file).absoluteFilePath(), filter, &filter)
-               .trimmed();
+    file = QFileDialog::getSaveFileName(this,
+            tr("Save Telemetry Schedule to file .."),
+            QFileInfo(file).absoluteFilePath(), filter, &filter).trimmed();
+
     if (file.isEmpty()) {
         return;
     }
@@ -371,7 +372,7 @@ void TelemetrySchedulerGadgetWidget::saveTelemetryToFile()
         if (file.open(QIODevice::WriteOnly) && (file.write(xml.toLatin1()) != -1)) {
             file.close();
         } else {
-            QMessageBox::critical(nullptr, tr("UAV Data Export"), tr("Unable to save data: ") + filename,
+            QMessageBox::critical(this, tr("UAV Data Export"), tr("Unable to save data: ") + filename,
                                   QMessageBox::Ok);
             return;
         }
@@ -523,16 +524,16 @@ void TelemetrySchedulerGadgetWidget::loadTelemetryFromFile()
     // ask for file name
     QString file = filename;
     QString filter = tr("Telemetry Scheduler file (*.xml)");
-    file = QFileDialog::getOpenFileName(nullptr, tr("Load Telemetry Schedule from file .."),
-                                        QFileInfo(file).absoluteFilePath(), filter)
-               .trimmed();
+    file = QFileDialog::getOpenFileName(this,
+            tr("Load Telemetry Schedule from file .."),
+            QFileInfo(file).absoluteFilePath(), filter).trimmed();
     if (file.isEmpty()) {
         return;
     }
 
     filename = file;
 
-    QMessageBox msgBox;
+    QMessageBox msgBox(this);
     if (!QFileInfo(file).isReadable()) {
         msgBox.setText(tr("Can't read file ") + QFileInfo(file).absoluteFilePath());
         msgBox.exec();
@@ -548,7 +549,7 @@ void TelemetrySchedulerGadgetWidget::importTelemetryConfiguration(const QString 
     QDomDocument doc("TelemetryScheduler");
     file.open(QFile::ReadOnly | QFile::Text);
     if (!doc.setContent(file.readAll())) {
-        QMessageBox msgBox;
+        QMessageBox msgBox(this);
         msgBox.setText(tr("File Parsing Failed."));
         msgBox.setInformativeText(tr("This file is not a correct XML file"));
         msgBox.setStandardButtons(QMessageBox::Ok);
@@ -566,7 +567,7 @@ void TelemetrySchedulerGadgetWidget::importTelemetryConfiguration(const QString 
 
     // Check that this a good file
     if (root.isNull() || (root.tagName() != "headings")) {
-        QMessageBox msgBox;
+        QMessageBox msgBox(this);
         msgBox.setText(tr("Wrong file contents"));
         msgBox.setInformativeText(tr("This file does not contain correct telemetry settings"));
         msgBox.setStandardButtons(QMessageBox::Ok);
@@ -610,7 +611,7 @@ void TelemetrySchedulerGadgetWidget::importTelemetryConfiguration(const QString 
         root = root.firstChildElement("settings");
     }
     if (root.isNull() || (root.tagName() != "settings")) {
-        QMessageBox msgBox;
+        QMessageBox msgBox(this);
         msgBox.setText(tr("Wrong file contents"));
         msgBox.setInformativeText(tr("This file does not contain correct telemetry settings"));
         msgBox.setStandardButtons(QMessageBox::Ok);
@@ -729,7 +730,7 @@ void TelemetrySchedulerGadgetWidget::customMenuRequested(QPoint pos)
         return;
     text.toInt(&ok);
     if (!ok) {
-        QMessageBox msgBox;
+        QMessageBox msgBox(this);
         msgBox.setText("Value must be numeric");
         msgBox.exec();
         return;

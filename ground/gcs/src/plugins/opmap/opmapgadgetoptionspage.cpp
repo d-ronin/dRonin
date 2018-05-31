@@ -33,7 +33,6 @@
 #include <QDoubleSpinBox>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
-#include <QFileDialog>
 
 #include "tlmapcontrol/tlmapcontrol.h"
 #include "utils/pathutils.h"

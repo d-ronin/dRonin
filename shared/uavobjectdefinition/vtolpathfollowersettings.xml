@@ -106,5 +106,11 @@
     <field defaultvalue="3.0" elements="1" name="ReturnToHomeVel" type="float" units="m/s">
       <description>Return To Home velocity</description>
     </field>
+    <field defaultvalue="1.5" elements="1" name="ReturnToHomeMinRise" type="float" units="m">
+      <description>Return To Home will always initially climb by this amount.</description>
+    </field>
+    <field defaultvalue="15" elements="1" name="ReturnToHomeAltitude" type="float" units="m">
+      <description>Return To Home will always climb by this amount over the home altitude (or MinRise from the current location, whichever is more).  Units are meters ABOVE home.</description>
+    </field>
   </object>
 </xml>

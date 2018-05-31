@@ -376,7 +376,7 @@ void SetupWizard::boardIgnorePrompt()
 
     QMessageBox prompt(QMessageBox::Question, tr("Setup Wizard Cancelled"),
                        tr("Would you like to prevent the setup wizard from automatically opening"
-                       " for the remainder of this session?"), QMessageBox::Yes | QMessageBox::No);
+                       " for the remainder of this session?"), QMessageBox::Yes | QMessageBox::No, this);
     if (prompt.exec() == QMessageBox::No)
         return;
 

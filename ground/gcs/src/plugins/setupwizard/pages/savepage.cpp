@@ -58,7 +58,7 @@ bool SavePage::isComplete() const
 void SavePage::writeToController()
 {
     if (!getWizard()->getConnectionManager()->isConnected()) {
-        QMessageBox msgBox;
+        QMessageBox msgBox(this);
         msgBox.setText(tr("An OpenPilot controller must be connected to your computer to save the "
                           "configuration.\nPlease connect your OpenPilot controller to your "
                           "computer and try again."));

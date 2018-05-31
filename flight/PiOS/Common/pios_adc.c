@@ -27,6 +27,7 @@
  */
 
 #include "pios.h"
+#ifdef PIOS_INCLUDE_ADC
 
 // Private types
 enum pios_adc_dev_magic {
@@ -202,6 +203,8 @@ float PIOS_ADC_GetChannelVolt(uint32_t channel)
 	}
 	return -1;
 }
+#endif
+
 /**
  * @}
  * @}

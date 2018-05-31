@@ -28,7 +28,6 @@
 #include "systemhealthgadgetconfiguration.h"
 #include "ui_systemhealthgadgetoptionspage.h"
 
-#include <QFileDialog>
 #include <QtAlgorithms>
 #include <QStringList>
 

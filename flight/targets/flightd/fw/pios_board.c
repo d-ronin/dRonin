@@ -48,7 +48,6 @@
 
 #include "pios_hal.h"
 #include "pios_rcvr_priv.h"
-#include "pios_gcsrcvr_priv.h"
 #include "pios_queue.h"
 
 void Stack_Change() {
@@ -76,7 +75,6 @@ uintptr_t pios_uavo_settings_fs_id;
 
 uintptr_t pios_com_debug_id;
 uintptr_t pios_com_openlog_id;
-uintptr_t pios_com_telem_rf_id;
 uintptr_t pios_com_telem_usb_id;
 
 /**
@@ -89,30 +87,13 @@ void PIOS_Board_Init(void) {
 	/* Delay system */
 	PIOS_DELAY_Init();
 
-	int32_t retval = PIOS_Flash_Posix_Init(&pios_posix_flash_id, &flash_config);
+	int32_t retval = PIOS_Flash_Posix_Init(&pios_posix_flash_id,
+			&flash_config, false);
+
 	if (retval != 0) {
-		printf("Flash file doesn't exist or is too small, creating a new one\n");
-		/* create an empty, appropriately sized flash filesystem */
-		FILE *theflash = fopen("theflash.bin", "w");
-		if (!theflash) {
-			perror("fopen(theflash.bin)");
-			exit(1);
-		}
-
-		uint8_t sector[flash_config.size_of_sector];
-		memset(sector, 0xFF, sizeof(sector));
-		for (uint32_t i = 0; i < flash_config.size_of_flash / flash_config.size_of_sector; i++) {
-			fwrite(sector, sizeof(sector), 1, theflash);
-		}
-		fclose(theflash);
-
-		retval = PIOS_Flash_Posix_Init(&pios_posix_flash_id, &flash_config);
-
-		if (retval != 0) {
-			fprintf(stderr, "Unable to initialize flash posix simulator: %d\n", retval);
-			exit(1);
-		}
-		
+		fprintf(stderr, "Unable to initialize posix flash driver: %d\n",
+				retval);
+		exit(1);
 	}
 
 	/* Register the partition table */
@@ -121,45 +102,28 @@ void PIOS_Board_Init(void) {
 	if (PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_config_settings, FLASH_PARTITION_LABEL_SETTINGS) != 0)
 		fprintf(stderr, "Unable to open the settings partition\n");
 
-	/* Initialize the task monitor library */
-	TaskMonitorInitialize();
-
 	/* Initialize UAVObject libraries */
-	UAVObjInitialize();
 	UAVObjectsInitializeAll();
 
 	/* Initialize the alarms library */
 	AlarmsInitialize();
 
-	/* Initialize the sparky object, because developers use this for dev
-	 * test. */
-	HwSparkyInitialize();
 	HwSimulationInitialize();
 
-	uintptr_t pios_tcp_telem_id;
-	if (PIOS_TCP_Init(&pios_tcp_telem_id, &pios_tcp_telem_cfg)) {
-		PIOS_Assert(0);
-	}
+	if (!PIOS_COM_TELEM_USB) {
+		uintptr_t pios_tcp_telem_id;
 
-	if (PIOS_COM_Init(&pios_com_telem_usb_id,
-				&pios_tcp_com_driver, pios_tcp_telem_id,
-				PIOS_COM_TELEM_TCP_RX_BUF_LEN,
-				PIOS_COM_TELEM_TCP_TX_BUF_LEN)) {
-		PIOS_Assert(0);
-	}
+		if (PIOS_TCP_Init(&pios_tcp_telem_id, &pios_tcp_telem_cfg)) {
+			PIOS_Assert(0);
+		}
 
-#if defined(PIOS_INCLUDE_GCSRCVR)
-	GCSReceiverInitialize();
-	uintptr_t pios_gcsrcvr_id;
-	PIOS_GCSRCVR_Init(&pios_gcsrcvr_id);
-	uintptr_t pios_gcsrcvr_rcvr_id;
-	if (PIOS_RCVR_Init(&pios_gcsrcvr_rcvr_id, &pios_gcsrcvr_rcvr_driver, pios_gcsrcvr_id)) {
-		PIOS_Assert(0);
+		if (PIOS_COM_Init(&PIOS_COM_TELEM_USB,
+					&pios_tcp_com_driver, pios_tcp_telem_id,
+					PIOS_COM_TELEM_TCP_RX_BUF_LEN,
+					PIOS_COM_TELEM_TCP_TX_BUF_LEN)) {
+			PIOS_Assert(0);
+		}
 	}
-
-	PIOS_HAL_SetReceiver(MANUALCONTROLSETTINGS_CHANNELGROUPS_GCS,
-		pios_gcsrcvr_rcvr_id);
-#endif	/* PIOS_INCLUDE_GCSRCVR */
 
 	printf("Completed PIOS_Board_Init\n");
 }

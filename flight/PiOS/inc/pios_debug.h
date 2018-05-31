@@ -49,8 +49,10 @@ void PIOS_DEBUG_Panic(const char *msg) __attribute__((noreturn));
 #define PIOS_Assert(test) PIOS_DEBUG_Assert(test)
 #else
 #define PIOS_DEBUG_Assert(test) do { } while(0)
-#define PIOS_Assert(test) do { if (!(test)) while (1); } while (0)
+#define PIOS_Assert(test) do { if (!(test)) PIOS_DEBUG_Panic(NULL); } while (0)
 #endif
+
+#define PIOS_Abort() PIOS_Assert(0)
 
 #endif /* PIOS_DEBUG_H */
 

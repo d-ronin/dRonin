@@ -37,10 +37,6 @@ TelemetryManager::TelemetryManager()
     objMngr = pm->getObject<UAVObjectManager>();
 
     settings = pm->getObject<Core::Internal::GeneralSettings>();
-    connect(settings, &Core::Internal::GeneralSettings::generalSettingsChanged, this,
-            &TelemetryManager::onGeneralSettingsChanged);
-    connect(pm, &ExtensionSystem::PluginManager::pluginsLoadEnded, this,
-            &TelemetryManager::onGeneralSettingsChanged);
 }
 
 TelemetryManager::~TelemetryManager()
@@ -51,7 +47,7 @@ void TelemetryManager::start(QIODevice *dev)
 {
     utalk = new UAVTalk(dev, objMngr);
     telemetry = new Telemetry(utalk, objMngr);
-    telemetryMon = new TelemetryMonitor(objMngr, telemetry, sessions);
+    telemetryMon = new TelemetryMonitor(objMngr, telemetry);
     connect(telemetryMon, &TelemetryMonitor::connected, this, &TelemetryManager::onConnect);
     connect(telemetryMon, &TelemetryMonitor::disconnected, this, &TelemetryManager::onDisconnect);
 }
@@ -59,7 +55,6 @@ void TelemetryManager::start(QIODevice *dev)
 void TelemetryManager::stop()
 {
     telemetryMon->disconnect(this);
-    sessions = telemetryMon->savedSessions();
     telemetryMon->deleteLater();
     telemetryMon = NULL;
     telemetry->deleteLater();
@@ -81,21 +76,6 @@ void TelemetryManager::onDisconnect()
     m_connected = false;
     emit disconnected();
     emit connectedChanged(m_connected);
-}
-
-void TelemetryManager::onGeneralSettingsChanged()
-{
-    if (!settings->useSessionManaging()) {
-        foreach (UAVObjectManager::ObjectMap map, objMngr->getObjects()) {
-            foreach (UAVObject *obj, map.values()) {
-                UAVDataObject *dobj = dynamic_cast<UAVDataObject *>(obj);
-                if (dobj) {
-                    dobj->setIsPresentOnHardware(false);
-                    dobj->setIsPresentOnHardware(true);
-                }
-            }
-        }
-    }
 }
 
 QByteArray *TelemetryManager::downloadFile(quint32 fileId, quint32 maxSize,

@@ -8,23 +8,23 @@
 *
 * @file       pios_openlrs.c
 * @author     Tau Labs, http://taulabs.org, Copyright (C) 2015
-* @author     dRonin, http://dronin.org Copyright (C) 2015
+* @author     dRonin, http://dronin.org Copyright (C) 2015-2018
 * @brief      Implements an OpenLRS driver for the RFM22B
 * @see	      The GNU Public License (GPL) Version 3
 *
 *****************************************************************************/
-/* 
- * This program is free software; you can redistribute it and/or modify 
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation; either version 3 of the License, or 
+/*
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
- * 
- * You should have received a copy of the GNU General Public License along 
+ *
+ * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
@@ -32,6 +32,8 @@
 
 #ifdef PIOS_INCLUDE_OPENLRS
 
+#include <pios_hal.h>	/* for rcvr_group_map in tx path */
+#include <pios_inlinedelay.h>
 #include <pios_thread.h>
 #include <pios_spi_priv.h>
 #include <pios_openlrs_priv.h>
@@ -39,139 +41,250 @@
 #include <taskmonitor.h>
 #include <taskinfo.h>
 
+#include <misc_math.h>
+
+#include <pios_com_priv.h>
+
 #include "openlrs.h"
 #include "flightstatus.h"
 #include "flightbatterystate.h"
+#include "manualcontrolsettings.h"
 #include "openlrsstatus.h"
 
 #include "pios_rfm22b_regs.h"
 
-#define STACK_SIZE_BYTES                 800
-#define TASK_PRIORITY                    PIOS_THREAD_PRIO_NORMAL
+#define STACK_SIZE_BYTES                 900
+#define TASK_PRIORITY                    PIOS_THREAD_PRIO_HIGH
 
+#define RF22B_PWRSTATE_POWERDOWN    0x00
+#define RF22B_PWRSTATE_READY        (RFM22_opfc1_xton | RFM22_opfc1_pllon)
+#define RF22B_PWRSTATE_RX           (RFM22_opfc1_rxon | RFM22_opfc1_xton)
+#define RF22B_PWRSTATE_TX           (RFM22_opfc1_txon | RFM22_opfc1_xton)
 
-static void rx_reset(struct pios_openlrs_dev *openlrs_dev);
-static void rfmSetCarrierFrequency(struct pios_openlrs_dev *openlrs_dev, uint32_t f);
-static uint8_t rfmGetRSSI(struct pios_openlrs_dev *openlrs_dev);
-static void to_rx_mode(struct pios_openlrs_dev *openlrs_dev);
-static void tx_packet(struct pios_openlrs_dev *openlrs_dev, uint8_t* pkt, uint8_t size);
 static OpenLRSStatusData openlrs_status;
 
-static struct pios_openlrs_dev * pios_openlrs_alloc();
-static bool pios_openlrs_validate(struct pios_openlrs_dev *openlrs_dev);
+static pios_openlrs_t pios_openlrs_alloc();
+static bool pios_openlrs_validate(pios_openlrs_t openlrs_dev);
+static void pios_openlrs_rx_task(void *parameters);
+static void pios_openlrs_tx_task(void *parameters);
+static void pios_openlrs_do_hop(pios_openlrs_t openlrs_dev);
+
+static void rfm22_init(pios_openlrs_t openlrs_dev, uint8_t isbind);
+static void rfm22_disable(pios_openlrs_t openlrs_dev);
+static void rfm22_set_frequency(pios_openlrs_t openlrs_dev, uint32_t f);
+static uint8_t rfm22_get_rssi(pios_openlrs_t openlrs_dev);
+static void rfm22_tx_packet(pios_openlrs_t openlrs_dev,
+		void *pkt, uint8_t size);
+static bool rfm22_rx_packet(pios_openlrs_t openlrs_dev,
+		void *whence, uint32_t size);
+static int rfm22_rx_packet_variable(pios_openlrs_t openlrs_dev,
+		void *whence, uint32_t max_size);
+static void rfm22_set_channel(pios_openlrs_t openlrs_dev, uint8_t ch);
+static void rfm22_rx_reset(pios_openlrs_t openlrs_dev, bool pause_long);
+static void rfm22_check_hang(pios_openlrs_t openlrs_dev);
 
 // SPI read/write functions
-static void rfm22_assertCs(struct pios_openlrs_dev *openlrs_dev);
-static void rfm22_deassertCs(struct pios_openlrs_dev *openlrs_dev);
-static void rfm22_claimBus(struct pios_openlrs_dev *openlrs_dev);
-static void rfm22_releaseBus(struct pios_openlrs_dev *openlrs_dev);
-static void rfm22_write_claim(struct pios_openlrs_dev *openlrs_dev,
-			      uint8_t addr, uint8_t data);
-static void rfm22_write(struct pios_openlrs_dev *openlrs_dev, uint8_t addr,
-			uint8_t data);
-static uint8_t rfm22_read_claim(struct pios_openlrs_dev *openlrs_dev,
-			  uint8_t addr);
-static uint8_t rfm22_read(struct pios_openlrs_dev *openlrs_dev,
-			  uint8_t addr);
+static void rfm22_assert_cs(pios_openlrs_t openlrs_dev);
+static void rfm22_deassert_cs(pios_openlrs_t openlrs_dev);
+static void rfm22_claim_bus(pios_openlrs_t openlrs_dev);
+static void rfm22_release_bus(pios_openlrs_t openlrs_dev);
+static void rfm22_write_claim(pios_openlrs_t openlrs_dev,
+		uint8_t addr, uint8_t data);
+static void rfm22_write(pios_openlrs_t openlrs_dev, uint8_t addr,
+		uint8_t data);
+static uint8_t rfm22_read_claim(pios_openlrs_t openlrs_dev,
+		uint8_t addr);
+static uint8_t rfm22_read(pios_openlrs_t openlrs_dev,
+		uint8_t addr);
+static void rfm22_get_it_status(pios_openlrs_t openlrs_dev);
+static void rfm22_beacon_send(pios_openlrs_t openlrs_dev, bool static_tone);
 
 // Private constants
 const struct rfm22_modem_regs {
-  uint32_t bps;
-  uint8_t  r_1c, r_1d, r_1e, r_20, r_21, r_22, r_23, r_24, r_25, r_2a, r_6e, r_6f, r_70, r_71, r_72;
+	uint32_t bps;
+	uint8_t r_1c, r_1d, r_1e, r_20, r_21, r_22, r_23, r_24, r_25, r_2a, r_6e, r_6f, r_70, r_71, r_72;
 } modem_params[] = {
-  { 4800, 0x1a, 0x40, 0x0a, 0xa1, 0x20, 0x4e, 0xa5, 0x00, 0x1b, 0x1e, 0x27, 0x52, 0x2c, 0x23, 0x30 }, // 50000 0x00
-  { 9600, 0x05, 0x40, 0x0a, 0xa1, 0x20, 0x4e, 0xa5, 0x00, 0x20, 0x24, 0x4e, 0xa5, 0x2c, 0x23, 0x30 }, // 25000 0x00
-  { 19200, 0x06, 0x40, 0x0a, 0xd0, 0x00, 0x9d, 0x49, 0x00, 0x7b, 0x28, 0x9d, 0x49, 0x2c, 0x23, 0x30 }, // 25000 0x01
-  { 57600, 0x05, 0x40, 0x0a, 0x45, 0x01, 0xd7, 0xdc, 0x03, 0xb8, 0x1e, 0x0e, 0xbf, 0x00, 0x23, 0x2e },
-  { 125000, 0x8a, 0x40, 0x0a, 0x60, 0x01, 0x55, 0x55, 0x02, 0xad, 0x1e, 0x20, 0x00, 0x00, 0x23, 0xc8 },
+	{ 4800, 0x1a, 0x40, 0x0a, 0xa1, 0x20, 0x4e, 0xa5, 0x00, 0x1b, 0x1e, 0x27, 0x52, 0x2c, 0x23, 0x30 }, // 50000 0x00
+	{ 9600, 0x05, 0x40, 0x0a, 0xa1, 0x20, 0x4e, 0xa5, 0x00, 0x20, 0x24, 0x4e, 0xa5, 0x2c, 0x23, 0x30 }, // 25000 0x00
+	{ 19200, 0x06, 0x40, 0x0a, 0xd0, 0x00, 0x9d, 0x49, 0x00, 0x7b, 0x28, 0x9d, 0x49, 0x2c, 0x23, 0x30 }, // 25000 0x01
+	{ 57600, 0x05, 0x40, 0x0a, 0x45, 0x01, 0xd7, 0xdc, 0x03, 0xb8, 0x1e, 0x0e, 0xbf, 0x00, 0x23, 0x2e },
+	{ 125000, 0x8a, 0x40, 0x0a, 0x60, 0x01, 0x55, 0x55, 0x02, 0xad, 0x1e, 0x20, 0x00, 0x00, 0x23, 0xc8 },
 };
 
-const static uint8_t pktsizes[8] = { 0, 7, 11, 12, 16, 17, 21, 0 };
+/* invariants
+ * 1D = 0x40 AFC enabled, gearshift = 000000
+ * 20 = 0x0a clock recovery oversampling rate = 0x0a, min value 0x08
+ * 71 = 0x23 modulation mode -- FIFO, GFSK
+ */
 
-static const uint8_t OUT_FF[64] = {
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
+#define OPENLRS_BIND_PARAMS 1	/* 9600 params */
+
+static uint8_t count_set_bits(uint16_t x)
+{
+	return __builtin_popcount(x);
+}
+
+static bool wait_interrupt_until(pios_openlrs_t openlrs_dev, uint32_t expiry,
+		uint8_t *rssi)
+{
+	bool taken = false;
+
+	uint8_t our_rssi;
+
+	do {
+		if (rssi) {
+			our_rssi = rfm22_get_rssi(openlrs_dev);
+		}
+
+		taken = PIOS_Semaphore_Take(openlrs_dev->sema_isr, 1);
+	} while ((!taken) && (!PIOS_DELAY_GetuSExpired(expiry)));
+
+	if (taken && rssi) {
+		*rssi = our_rssi;
+	}
+
+	return taken;
+}
+
+static bool wait_interrupt(pios_openlrs_t openlrs_dev, uint32_t delay)
+{
+	uint32_t expiry = delay + PIOS_DELAY_GetuS();
+	return wait_interrupt_until(openlrs_dev, expiry, NULL);
+}
+
+static void olrs_bind_rx(uintptr_t olrs_id, pios_com_callback rx_in_cb,
+		uintptr_t context)
+{
+	pios_openlrs_t openlrs_dev = (pios_openlrs_t) olrs_id;
+
+	PIOS_Assert(pios_openlrs_validate(openlrs_dev));
+
+	openlrs_dev->rx_in_cb = rx_in_cb;
+	openlrs_dev->rx_in_context = context;
+}
+
+static void olrs_bind_tx(uintptr_t olrs_id, pios_com_callback tx_out_cb,
+		uintptr_t context)
+{
+	pios_openlrs_t openlrs_dev = (pios_openlrs_t) olrs_id;
+
+	PIOS_Assert(pios_openlrs_validate(openlrs_dev));
+
+	openlrs_dev->tx_out_cb = tx_out_cb;
+	openlrs_dev->tx_out_context = context;
+}
+
+static bool olrs_available(uintptr_t olrs_id)
+{
+	pios_openlrs_t openlrs_dev = (pios_openlrs_t) olrs_id;
+
+	PIOS_Assert(pios_openlrs_validate(openlrs_dev));
+
+	if (openlrs_dev->linkLossTimeMs) {
+		return false;
+	}
+
+	if (!openlrs_dev->link_acquired) {
+		return false;
+	}
+
+	return true;
+}
+
+const struct pios_com_driver pios_openlrs_com_driver = {
+	.bind_tx_cb = olrs_bind_tx,
+	.bind_rx_cb = olrs_bind_rx,
+	.available  = olrs_available,
 };
 
-const uint8_t default_hop_list[] = {DEFAULT_HOPLIST};
+const uint32_t packet_rssi_time_us = 2700;
 
-const uint32_t packet_advance_time_us = 1500;
-const uint32_t packet_timeout_us = 1000;
-
-const struct rfm22_modem_regs bind_params =
-{ 9600, 0x05, 0x40, 0x0a, 0xa1, 0x20, 0x4e, 0xa5, 0x00, 0x20, 0x24, 0x4e, 0xa5, 0x2c, 0x23, 0x30 };
-
-static uint32_t minFreq(HwSharedRfBandOptions band) {
+static uint32_t min_freq(HwSharedRfBandOptions band)
+{
 	switch (band) {
-		default:
-		case HWSHARED_RFBAND_433:
-			return MIN_RFM_FREQUENCY_433;
-		case HWSHARED_RFBAND_868:
-			return MIN_RFM_FREQUENCY_868;
-		case HWSHARED_RFBAND_915:
-			return MIN_RFM_FREQUENCY_915;
+	default:
+	case HWSHARED_RFBAND_433:
+		return MIN_RFM_FREQUENCY_433;
+	case HWSHARED_RFBAND_868:
+		return MIN_RFM_FREQUENCY_868;
+	case HWSHARED_RFBAND_915:
+		return MIN_RFM_FREQUENCY_915;
 	}
 }
 
-static uint32_t maxFreq(HwSharedRfBandOptions band) {
+static uint32_t max_freq(HwSharedRfBandOptions band)
+{
 	switch (band) {
-		default:
-		case HWSHARED_RFBAND_433:
-			return MAX_RFM_FREQUENCY_433;
-		case HWSHARED_RFBAND_868:
-			return MAX_RFM_FREQUENCY_868;
-		case HWSHARED_RFBAND_915:
-			return MAX_RFM_FREQUENCY_915;
+	default:
+	case HWSHARED_RFBAND_433:
+		return MAX_RFM_FREQUENCY_433;
+	case HWSHARED_RFBAND_868:
+		return MAX_RFM_FREQUENCY_868;
+	case HWSHARED_RFBAND_915:
+		return MAX_RFM_FREQUENCY_915;
 	}
 }
 
-static uint32_t defCarrierFreq(HwSharedRfBandOptions band) {
+static uint32_t def_carrier_freq(HwSharedRfBandOptions band)
+{
 	switch (band) {
-		default:
-		case HWSHARED_RFBAND_433:
-			return DEFAULT_CARRIER_FREQUENCY_433;
-		case HWSHARED_RFBAND_868:
-			return DEFAULT_CARRIER_FREQUENCY_868;
-		case HWSHARED_RFBAND_915:
-			return DEFAULT_CARRIER_FREQUENCY_915;
+	default:
+	case HWSHARED_RFBAND_433:
+		return DEFAULT_CARRIER_FREQUENCY_433;
+	case HWSHARED_RFBAND_868:
+		return DEFAULT_CARRIER_FREQUENCY_868;
+	case HWSHARED_RFBAND_915:
+		return DEFAULT_CARRIER_FREQUENCY_915;
 	}
 }
 
-static uint32_t bindingFreq(HwSharedRfBandOptions band) {
+static uint32_t binding_freq(HwSharedRfBandOptions band)
+{
 	switch (band) {
-		default:
-		case HWSHARED_RFBAND_433:
-			return BINDING_FREQUENCY_433;
-		case HWSHARED_RFBAND_868:
-			return BINDING_FREQUENCY_868;
-		case HWSHARED_RFBAND_915:
-			return BINDING_FREQUENCY_915;
+	default:
+	case HWSHARED_RFBAND_433:
+		return BINDING_FREQUENCY_433;
+	case HWSHARED_RFBAND_868:
+		return BINDING_FREQUENCY_868;
+	case HWSHARED_RFBAND_915:
+		return BINDING_FREQUENCY_915;
 	}
 }
 
 /*****************************************************************************
-* OpenLRS data formatting utilities
-*****************************************************************************/
+ * OpenLRS data formatting utilities
+ *****************************************************************************/
 
-static uint8_t getPacketSize(struct bind_data *bd)
+static uint8_t get_control_packet_size(struct bind_data *bd)
 {
-	return pktsizes[(bd->flags & 0x07)];
+	return openlrs_pktsizes[(bd->flags & 0x07)];
 }
 
-static uint32_t getInterval(struct bind_data *bd)
-{
-	uint32_t ret;
-	// Sending a x byte packet on bps y takes about (emperical)
-	// usec = (x + 15) * 8200000 / baudrate
-#define BYTES_AT_BAUD_TO_USEC(bytes, bps, div) ((uint32_t)((bytes) + (div?20:15)) * 8200000L / (uint32_t)(bps))
+// Sending a x byte packet on bps y takes about (emperical)
+// usec = (x + 15) * 8200000 / baudrate
+//
+// There's 5 bytes of preamble, 4 bytes of header, 1 byte of length,
+// 2 bytes of sync word, 2 bytes of CRC, yielding 14 bytes.
+// 15 is used here, for a small margin.
+//
+// Similarly, 8 bits/byte, 1000000 microseconds/second + 2.5% for
+// margin.  The values chosen here have interoperability
+// considerations, so leave them alone :D
+#define BYTES_AT_BAUD_TO_USEC(bytes, bps, div) ((uint32_t)((bytes) + (div ? 20 : 15)) * 8 * 1025000L / (uint32_t)(bps))
 
-	ret = (BYTES_AT_BAUD_TO_USEC(getPacketSize(bd), modem_params[bd->modem_params].bps, bd->flags&DIVERSITY_ENABLED) + 2000);
+static uint32_t get_control_packet_time(struct bind_data *bd)
+{
+	return (BYTES_AT_BAUD_TO_USEC(get_control_packet_size(bd),
+				modem_params[bd->modem_params].bps,
+				bd->flags & DIVERSITY_ENABLED) + 2000);
+}
+
+static uint32_t get_nominal_packet_interval(struct bind_data *bd,
+		uint32_t *rx_slop)
+{
+	uint32_t ret = get_control_packet_time(bd);
+
+	uint32_t pre_slop = ret - 2000;
 
 	if (bd->flags & TELEMETRY_MASK) {
 		ret += (BYTES_AT_BAUD_TO_USEC(TELEMETRY_PACKETSIZE, modem_params[bd->modem_params].bps, bd->flags&DIVERSITY_ENABLED) + 1000);
@@ -180,40 +293,158 @@ static uint32_t getInterval(struct bind_data *bd)
 	// round up to ms
 	ret = ((ret + 999) / 1000) * 1000;
 
-  // enable following to limit packet rate to 50Hz at most
-#ifdef LIMIT_RATE_TO_50HZ
-	if (ret < 20000) {
-		ret = 20000;
+	if (rx_slop) {
+		/* The "rx slop" is calculated as half the time between the
+		 * actual tx frame length, and all the other times-- padding,
+		 * rx telemetry length, etc.
+		 *
+		 * It is when the rx should hop, relative to the end of the
+		 * last known packet plus the interval, to maximize margins.
+		 */
+		*rx_slop = (ret - pre_slop) / 2;
 	}
-#endif
+
+	/* RRRRRRRTTTT--RRRRRRRTTTT--missed!......
+	 *                                     ^  we want to hop here
+	 */
 
 	return ret;
 }
 
-static void unpackChannels(uint8_t config, int16_t PPM[], uint8_t *p)
+static int pack_channels(uint8_t config, int16_t *ppm, uint8_t *buf)
 {
-	uint8_t i;
-	for (i=0; i<=(config/2); i++) { // 4ch packed in 5 bytes
-		PPM[0] = (((uint16_t)p[4] & 0x03) << 8) + p[0];
-		PPM[1] = (((uint16_t)p[4] & 0x0c) << 6) + p[1];
-		PPM[2] = (((uint16_t)p[4] & 0x30) << 4) + p[2];
-		PPM[3] = (((uint16_t)p[4] & 0xc0) << 2) + p[3];
-		p+=5;
-		PPM+=4;
+	config &= 7;
+
+	uint8_t *p = buf;
+
+	/* Pack 4 channels into 5 bytes */
+	for (int i = 0; i <= (config/2); i++) {
+		*(p++) = ppm[0];
+		*(p++) = ppm[1];
+		*(p++) = ppm[2];
+		*(p++) = ppm[3];
+		*(p++) =
+			((ppm[0] & 0x300) >> 8) |
+			((ppm[1] & 0x300) >> 6) |
+			((ppm[2] & 0x300) >> 4) |
+			((ppm[3] & 0x300) >> 2);
+
+		ppm += 4;
 	}
+
+	/* "Switch" channel */
+	if (config & 1)  {
+		uint8_t packed_sw = 0;
+
+		for (int i = 0; i < 4; i++) {
+			packed_sw <<= 2;
+
+			if (ppm[0] < (166 + 12)) {
+				/* First 1/6 of travel sw pos 0 */
+				packed_sw |= 0;
+			} else if (ppm[0] < (550 + 12)) {
+				/* A little more than the next third is
+				 * sw pos 1.  Why?  So a center value /
+				 * 3 pos switch has clear value.
+				 */
+				packed_sw |= 1;
+			} else if (ppm[0] < (833 + 12)) {
+				/* Up to 1/6 + 2/3 is sw pos 2 */
+				packed_sw |= 2;
+			} else {
+				/* Leaving the last sixth for sw pos 3 */
+				packed_sw |= 3;
+			}
+		}
+
+		*(p++) = packed_sw;
+	}
+
+	return p - buf;
+}
+
+//! Apply the OpenLRS rescaling to the channels
+static void txscale_channels(int16_t *chan, int16_t nominal_min, int16_t nominal_max)
+{
+	if (nominal_min == nominal_max) {
+		/* Prevent divide by zero */
+		nominal_max++;
+	}
+
+	for (uint32_t i = 0; i < OPENLRS_PPM_NUM_CHANNELS; i++) {
+		int16_t x = chan[i];
+
+		/*
+		 * We have 1024 counts.  The middle 1000 should correspond to
+		 * 1000..1999, the "normal range".  The extra 12 are scaled by
+		 * a factor of 16 (from original openlrsng) to make the
+		 * overall range from -19% to 119%
+		 *
+		 * In other words, the "normal resolution" is 0.1%; the
+		 * extended resolution is in 1.6% chunks.
+		 */
+
+		float scaled = x;
+		scaled -= nominal_min;
+		scaled /= (nominal_max - nominal_min);
+
+		const float scale_edge = (12*16) / 1000.0f; /* .192 */
+
+		if (scaled < -scale_edge) {
+			x = 0;
+		} else if (scaled < 0) {
+			/* [-scale_edge, 0) mapped to 0..12 */
+			x = ((scaled + scale_edge) / scale_edge) * 12;
+		} else if (scaled < 1) {
+			/* [0 .. 1) mapped to 12..1011 */
+			x = scaled * 1000 + 12;
+		} else if (scaled < (1 + scale_edge)) {
+			/* [1, 1 + scale_edge) mapped to 1011..1023 */
+			x = ((scaled - 1) / scale_edge) * 12 + 1011;
+		} else {
+			x = 1023;
+		}
+
+		chan[i] = x;
+	}
+}
+
+DONT_BUILD_IF(OPENLRS_PPM_NUM_CHANNELS < 20, NotEnoughChannelSpaceForAllConfigs);
+
+static void unpack_channels(uint8_t config, int16_t *ppm, uint8_t *p)
+{
+	/* Look at least 3 significant bit of config.
+	 * LSB picks whether 4 switch channels are around.
+	 * other 2 bits are a number between 1 and 4 for number of
+	 * 4 channel groups.
+	 *
+	 * Therefore there can be up to 20 channels.
+	 */
+
+	config &= 7;
+	/* Ordinary channels are 4ch packed strangely in 5 bytes */
+	for (int i = 0; i<=(config/2); i++) {
+		ppm[0] = ((p[4] << 8) & 0x300) | p[0];
+		ppm[1] = ((p[4] << 6) & 0x300) | p[1];
+		ppm[2] = ((p[4] << 4) & 0x300) | p[2];
+		ppm[3] = ((p[4] << 2) & 0x300) | p[3];
+		p += 5;
+		ppm += 4;
+	}
+
 	if (config & 1) { // 4ch packed in 1 byte;
-		PPM[0] = (((uint16_t)p[0] >> 6) & 3) * 333 + 12;
-		PPM[1] = (((uint16_t)p[0] >> 4) & 3) * 333 + 12;
-		PPM[2] = (((uint16_t)p[0] >> 2) & 3) * 333 + 12;
-		PPM[3] = (((uint16_t)p[0] >> 0) & 3) * 333 + 12;
+		ppm[0] = ((p[0] >> 6) & 3) * 333 + 12;
+		ppm[1] = ((p[0] >> 4) & 3) * 333 + 12;
+		ppm[2] = ((p[0] >> 2) & 3) * 333 + 12;
+		ppm[3] = ((p[0] >> 0) & 3) * 333 + 12;
 	}
 }
 
 //! Apply the OpenLRS rescaling to the channels
-static void rescaleChannels(int16_t PPM[])
+static void rxscale_channels(int16_t control[])
 {
 	for (uint32_t i = 0; i < OPENLRS_PPM_NUM_CHANNELS; i++) {
-		int16_t x = PPM[i];
+		int16_t x = control[i];
 		int16_t ret;
 
 		if (x < 12) {
@@ -226,73 +457,1409 @@ static void rescaleChannels(int16_t PPM[])
 			ret = 2192;
 		}
 
-		PPM[i] = ret;
+		control[i] = ret;
 	}
 }
 
-static uint8_t countSetBits(uint16_t x)
+static int pios_openlrs_form_telemetry(pios_openlrs_t openlrs_dev,
+		uint8_t *tx_buf, uint8_t rssi, bool only_serial,
+		int data_len_adjust)
 {
-	x  = x - ((x >> 1) & 0x5555);
-	x  = (x & 0x3333) + ((x >> 2) & 0x3333);
-	x  = x + (x >> 4);
-	x &= 0x0F0F;
-	return (x * 0x0101) >> 8;
-}
+	int len = 0;
 
-static uint32_t micros()
-{
-	return PIOS_DELAY_GetuS();
+	tx_buf[0] &= 0xc0; // Preserve top two sequence bits
+
+	int max_data_len = TELEMETRY_PACKETSIZE - 1;
+
+	if (openlrs_dev->bind_data.ext_flags & EXT_FLAG_FASTDATA) {
+		/* Fast data extension: Adjust the amount we're
+		 * willing to send from nominal packet lengths.
+		 */
+		max_data_len += data_len_adjust;
+
+		if (max_data_len < 1) {
+			/* Never shrink smaller than a 2b frame */
+			max_data_len = 1;
+		} else if (max_data_len >= MAX_PACKET_SIZE) {
+			max_data_len = MAX_PACKET_SIZE - 1;
+		}
+
+		if (data_len_adjust < 0) {
+			only_serial = true;
+		}
+	}
+
+	// Check for data on serial link
+	uint8_t bytes = 0;
+	// Append data from the com interface if applicable.
+	if (openlrs_dev->tx_out_cb) {
+		// Try to get some data to send
+		bool need_yield = false;
+		bytes = (openlrs_dev->tx_out_cb)(openlrs_dev->tx_out_context,
+				&tx_buf[1], max_data_len, NULL, &need_yield);
+	}
+
+	if (bytes > 0) {
+		if (bytes < (TELEMETRY_PACKETSIZE - 1)) {
+			tx_buf[0] |= (0x37 + bytes);
+		} else {
+			tx_buf[0] |= 0x3f;
+		}
+
+		if (openlrs_dev->bind_data.ext_flags & EXT_FLAG_FASTDATA) {
+			/* Fast data extension: send only the portion of the
+			 * data that we used.  Length field is capped at 8.
+			 */
+			len = bytes + 1;
+		} else {
+			for (int i = bytes+1; i < TELEMETRY_PACKETSIZE; i++) {
+				tx_buf[i] = 0;
+			}
+
+			len = TELEMETRY_PACKETSIZE;
+		}
+	} else if (only_serial) {
+		return 0;
+	} else {
+		// tx_buf[0] lowest 6 bits left at 0
+		tx_buf[1] = rssi;
+		if (FlightBatteryStateHandle()) {
+			FlightBatteryStateData bat;
+			FlightBatteryStateGet(&bat);
+			// FrSky protocol normally uses 3.3V at
+			// 255 but divider from display can be
+			// set internally
+			if (bat.DetectedCellCount) {
+				/* Use detected cell count to
+				 * maximize useful resolution
+				 */
+				tx_buf[2] = (uint8_t) (bat.Voltage / bat.DetectedCellCount / 5.0f * 255);
+			} else {
+				tx_buf[2] = (uint8_t) (bat.Voltage / 25.0f * 255);
+			}
+			tx_buf[3] = (uint8_t) (bat.Current / 60.0f * 255);
+		} else {
+			tx_buf[2] = 0;
+			tx_buf[3] = 0;
+		}
+
+		/*
+		 * 4-5: This used to be AFCC information, which
+		 * was never used.  Deprecated.
+		 */
+		tx_buf[4] = 0;
+		tx_buf[5] = 0;
+		tx_buf[6] = count_set_bits(openlrs_status.LinkQuality & 0x7fff);
+		tx_buf[7] = 0;
+		tx_buf[8] = 0;
+
+		len = TELEMETRY_PACKETSIZE;
+	}
+
+	return len;
 }
 
 static uint32_t millis()
 {
 	return PIOS_Thread_Systime();
 }
-static void delay(uint32_t time)
+
+/*****************************************************************************
+ * OpenLRS hardware access
+ *****************************************************************************/
+
+static uint8_t beaconGetRSSI(pios_openlrs_t openlrs_dev)
 {
-	// TODO: confirm this is in ms
-	PIOS_Thread_Sleep(time);
+	uint16_t rssiSUM = 0;
+
+	rfm22_set_frequency(openlrs_dev, openlrs_dev->beacon_frequency);
+
+	PIOS_Thread_Sleep(1);
+	rssiSUM += rfm22_get_rssi(openlrs_dev);
+	PIOS_Thread_Sleep(1);
+	rssiSUM += rfm22_get_rssi(openlrs_dev);
+	PIOS_Thread_Sleep(1);
+	rssiSUM += rfm22_get_rssi(openlrs_dev);
+	PIOS_Thread_Sleep(1);
+	rssiSUM += rfm22_get_rssi(openlrs_dev);
+
+	rfm22_set_frequency(openlrs_dev, openlrs_dev->bind_data.rf_frequency);
+
+	return rssiSUM / 4;
+}
+
+static bool binding_button_pushed(pios_openlrs_t openlrs_dev)
+{
+	static bool button_history[3];
+
+	if (!openlrs_dev->cfg.bind_button) {
+		return false;
+	}
+
+	bool truth_value = GPIO_ReadInputDataBit(
+			openlrs_dev->cfg.bind_button->gpio,
+			openlrs_dev->cfg.bind_button->init.GPIO_Pin) !=
+		Bit_RESET;
+
+	if (!openlrs_dev->cfg.bind_active_high) {
+		truth_value = !truth_value;
+	}
+
+	button_history[2] = button_history[1];
+	button_history[1] = button_history[0];
+	button_history[0] = truth_value;
+
+	/* Catch an edge, but also require 2 in a row. */
+	return button_history[0] && button_history[1] &&
+		(!button_history[2]);
 }
 
 /*****************************************************************************
-* OpenLRS hardware access
+ * High level OpenLRS functions
+ *****************************************************************************/
+
+static bool pios_openlrs_bind_transmit_step(pios_openlrs_t openlrs_dev)
+{
+	if (openlrs_dev->bind_data.version != BINDING_VERSION) {
+		/* decline to send bind with invalid configuration */
+		return false;
+	}
+
+	uint32_t start = millis();
+
+	/* Select bind channel, bind power, and bind packet header */
+	rfm22_init(openlrs_dev, true);
+	PIOS_Thread_Sleep(5);
+
+	rfm22_tx_packet(openlrs_dev,
+			&openlrs_dev->bind_data,
+			sizeof(openlrs_dev->bind_data));
+
+	rfm22_rx_reset(openlrs_dev, false);
+
+	DEBUG_PRINTF(2,"Waiting bind ack\r\n");
+
+	while ((millis() - start) < 200) {
+#if defined(PIOS_INCLUDE_WDG) && defined(PIOS_WDG_RFM22B)
+		// Update the watchdog timer
+		PIOS_WDG_UpdateFlag(PIOS_WDG_RFM22B);
+#endif /* PIOS_WDG_RFM22B */
+
+		bool have_interrupt = wait_interrupt(openlrs_dev, 15);
+
+		if (have_interrupt) {
+			DEBUG_PRINTF(2,"Got pkt\r\n");
+
+			uint8_t recv_byte;
+
+			if (rfm22_rx_packet(openlrs_dev, &recv_byte, 1) &&
+					(recv_byte == 'B')) {
+				DEBUG_PRINTF(2, "Received bind ack\r\n");
+
+				return true;
+			}
+
+			rfm22_rx_reset(openlrs_dev, false);
+		}
+	}
+
+	return false;
+}
+
+
+static void pios_openlrs_config_to_port_config(pios_openlrs_t openlrs_dev)
+{
+	uintptr_t *target = NULL;
+
+	OpenLRSData config;
+	OpenLRSGet(&config);
+
+	if (config.role == OPENLRS_ROLE_DISABLED) {
+		return;
+	}
+
+	switch (config.data_source) {
+		case OPENLRS_DATA_SOURCE_UAVOTELEMETRY:
+			if (config.role == OPENLRS_ROLE_TX) {
+#ifdef PIOS_COM_RADIOBRIDGE
+				target = &PIOS_COM_RADIOBRIDGE;
+#else
+				return;
+#endif
+			} else {
+#if defined(PIPXTREME) && defined(PIOS_COM_RADIOBRIDGE)
+				/* Only on pipxtreme, does "uavotelemetry" in
+				 * an RX still mean we use the radio
+				 * combridge.  Otherwise we just hook our
+				 * native telemetry up to the port.
+				 */
+				target = &PIOS_COM_RADIOBRIDGE;
+#else
+				target = &PIOS_COM_TELEM_SER;
+#endif
+			}
+			break;
+		case OPENLRS_DATA_SOURCE_COMBRIDGE:
+			target = &PIOS_COM_BRIDGE;
+			break;
+		case OPENLRS_DATA_SOURCE_DISABLED:
+		default:
+			return;
+			break;
+	}
+
+	uintptr_t com_id;
+
+	/* TX Buffer must be big enough to store maximal UAVO */
+	if (PIOS_COM_Init(&com_id, &pios_openlrs_com_driver,
+				(uintptr_t)openlrs_dev, 128, 288)) {
+		PIOS_Assert(0);
+	}
+
+	*target = com_id;
+}
+
+static bool pios_openlrs_config_to_bind_data(pios_openlrs_t openlrs_dev)
+{
+	OpenLRSData binding;
+	OpenLRSGet(&binding);
+
+	bool inited = false;
+
+	if (binding.version == BINDING_VERSION) {
+		openlrs_dev->bind_data.hdr = 'b';
+		openlrs_dev->bind_data.version = binding.version;
+		openlrs_dev->bind_data.reserved[0] = 0;
+		openlrs_dev->bind_data.reserved[1] = 0;
+		openlrs_dev->bind_data.reserved[2] = 0;
+		openlrs_dev->bind_data.rf_frequency = binding.rf_frequency;
+		openlrs_dev->bind_data.rf_magic = binding.rf_magic;
+		openlrs_dev->bind_data.rf_power = binding.rf_power;
+		openlrs_dev->bind_data.rf_channel_spacing = binding.rf_channel_spacing;
+		openlrs_dev->bind_data.modem_params = binding.modem_params;
+		openlrs_dev->bind_data.flags = binding.flags;
+		openlrs_dev->bind_data.ext_flags = binding.ext_flags;
+		for (uint32_t i = 0; i < OPENLRS_HOPCHANNEL_NUMELEM; i++)
+			openlrs_dev->bind_data.hopchannel[i] = binding.hopchannel[i];
+	} else if (binding.role == OPENLRS_ROLE_TX) {
+		inited = true;
+
+		/* Create valid bind data */
+		openlrs_dev->bind_data.hdr = 'b';
+		openlrs_dev->bind_data.version = BINDING_VERSION;
+		openlrs_dev->bind_data.reserved[0] = 0;
+		openlrs_dev->bind_data.reserved[1] = 0;
+		openlrs_dev->bind_data.reserved[2] = 0;
+		openlrs_dev->bind_data.rf_frequency =
+			def_carrier_freq(openlrs_dev->band);
+		openlrs_dev->bind_data.rf_magic = randomize_int(0);
+		openlrs_dev->bind_data.rf_power = 7;
+		openlrs_dev->bind_data.rf_channel_spacing = 1;
+			/* Unit is * 10KHz */
+		openlrs_dev->bind_data.modem_params = 3;
+		openlrs_dev->bind_data.flags = 10; /* Telemetry + 8 channels */
+
+		/* Use dR extensions and pass telem by default */
+		openlrs_dev->bind_data.ext_flags = EXT_FLAG_FASTDATA;
+
+		for (uint32_t i = 0; i < OPENLRS_HOPCHANNEL_NUMELEM; i++) {
+			/* Generate 7 channels by default. */
+			if (i < 7) {
+				/* At spacing of 10KHz, this is from 435.250 
+				 * to 437.480.
+				 *
+				 * Also ensure channels are unique by
+				 * getting 3 LSB from hop idx
+				 */
+				openlrs_dev->bind_data.hopchannel[i] =
+					(randomize_int(27) << 3) + 25 + i;
+			} else {
+				openlrs_dev->bind_data.hopchannel[i] = 0;
+			}
+		}
+	}
+
+	// Also copy beacon settings over to device config.
+	openlrs_dev->beacon_frequency = binding.beacon_frequency;
+	openlrs_dev->beacon_delay = binding.beacon_delay;
+	openlrs_dev->beacon_period = binding.beacon_period;
+
+	openlrs_dev->failsafeDelay = binding.failsafe_delay;
+
+	openlrs_dev->scale_min = binding.tx_scale_min;
+	openlrs_dev->scale_max = binding.tx_scale_max;
+
+	openlrs_dev->tx_source = binding.tx_source;
+	openlrs_dev->tx_startup_bind_duration = binding.tx_startup_bind_duration;
+	openlrs_dev->tx_bind_button_duration = binding.tx_bind_button_duration;
+
+	return inited;
+}
+
+static bool pios_openlrs_bind_data_to_config(pios_openlrs_t openlrs_dev)
+{
+	if (openlrs_dev->bind_data.hdr == 'b') {
+#if defined(PIOS_INCLUDE_DEBUG_CONSOLE)
+		if (2 <= DEBUG_LEVEL && pios_com_debug_id > 0) {
+			DEBUG_PRINTF(2, "Binding settings:\r\n");
+			PIOS_Thread_Sleep(10);
+			DEBUG_PRINTF(2, "  version: %d\r\n", openlrs_dev->bind_data.version);
+			PIOS_Thread_Sleep(10);
+			DEBUG_PRINTF(2, "  rf_frequency: %d\r\n", openlrs_dev->bind_data.rf_frequency);
+			PIOS_Thread_Sleep(10);
+			DEBUG_PRINTF(2, "  rf_power: %d\r\n", openlrs_dev->bind_data.rf_power);
+			PIOS_Thread_Sleep(10);
+			DEBUG_PRINTF(2, "  rf_channel_spacing: %d\r\n", openlrs_dev->bind_data.rf_channel_spacing);
+			PIOS_Thread_Sleep(10);
+			DEBUG_PRINTF(2, "  modem_params: %d\r\n", openlrs_dev->bind_data.modem_params);
+			PIOS_Thread_Sleep(10);
+			DEBUG_PRINTF(2, "  flags: %d\r\n", openlrs_dev->bind_data.flags);
+			PIOS_Thread_Sleep(10);
+
+			for (uint32_t i = 0; i < MAXHOPS; i++) {
+				DEBUG_PRINTF(2, "    hop channel: %d\r\n", openlrs_dev->bind_data.hopchannel[i]);
+				PIOS_Thread_Sleep(10);
+			}
+		}
+#endif /* PIOS_INCLUDE_DEBUG_CONSOLE */
+
+		if (openlrs_dev->bind_data.version == BINDING_VERSION) {
+			OpenLRSData binding;
+			OpenLRSGet(&binding);
+			binding.version = openlrs_dev->bind_data.version;
+			binding.rf_frequency = openlrs_dev->bind_data.rf_frequency;
+			binding.rf_magic = openlrs_dev->bind_data.rf_magic;
+			binding.rf_power = openlrs_dev->bind_data.rf_power;
+			binding.rf_channel_spacing = openlrs_dev->bind_data.rf_channel_spacing;
+			binding.modem_params = openlrs_dev->bind_data.modem_params;
+			binding.flags = openlrs_dev->bind_data.flags;
+			binding.ext_flags = openlrs_dev->bind_data.ext_flags;
+			for (uint32_t i = 0; i < OPENLRS_HOPCHANNEL_NUMELEM; i++)
+				binding.hopchannel[i] = openlrs_dev->bind_data.hopchannel[i];
+			binding.beacon_frequency = openlrs_dev->beacon_frequency;
+			binding.beacon_delay = openlrs_dev->beacon_delay;
+			binding.beacon_period = openlrs_dev->beacon_period;
+
+			if ((openlrs_dev->bind_data.ext_flags &
+					EXT_FLAG_FASTDATA) &&
+					(binding.data_source ==
+					 OPENLRS_DATA_SOURCE_DISABLED)) {
+				/* If we're bound to someone with dRLRS
+				 * extensions, assume we're passing telem.
+				 */
+				binding.data_source =
+					OPENLRS_DATA_SOURCE_UAVOTELEMETRY;
+			}
+
+			OpenLRSSet(&binding);
+			UAVObjSave(OpenLRSHandle(), 0);
+
+			DEBUG_PRINTF(2, "Saved bind data\r\n");
+#if defined(PIOS_LED_LINK)
+			PIOS_ANNUNC_Toggle(PIOS_LED_LINK);
+#endif /* PIOS_LED_LINK */
+
+			return true;
+		}
+	}
+
+	return false;
+}
+
+static bool pios_openlrs_bind_receive(pios_openlrs_t openlrs_dev,
+		uint32_t timeout)
+{
+	uint32_t start = millis();
+	uint8_t txb;
+	rfm22_init(openlrs_dev, true);
+	rfm22_rx_reset(openlrs_dev, true);
+	DEBUG_PRINTF(2,"Waiting bind\r\n");
+
+	uint32_t i = 0;
+
+	while ((!timeout) || ((millis() - start) < timeout)) {
+		system_annunc_custom_string("o"); /* --- */
+		PIOS_Thread_Sleep(1);
+#if defined(PIOS_INCLUDE_WDG) && defined(PIOS_WDG_RFM22B)
+		// Update the watchdog timer
+		PIOS_WDG_UpdateFlag(PIOS_WDG_RFM22B);
+#endif /* PIOS_WDG_RFM22B */
+
+		if (i++ % 100 == 0) {
+			DEBUG_PRINTF(2,"Waiting bind\r\n");
+		}
+		if (openlrs_dev->rf_mode == Received) {
+			DEBUG_PRINTF(2,"Got pkt\r\n");
+
+			bool ok = rfm22_rx_packet(openlrs_dev,
+					&openlrs_dev->bind_data,
+					sizeof(openlrs_dev->bind_data));
+
+			if (ok && pios_openlrs_bind_data_to_config(openlrs_dev)) {
+				DEBUG_PRINTF(2, "data good\r\n");
+
+				/* Acknowledge binding */
+				txb = 'B';
+				rfm22_tx_packet(openlrs_dev, &txb, 1);
+				rfm22_tx_packet(openlrs_dev, &txb, 1);
+				rfm22_tx_packet(openlrs_dev, &txb, 1);
+
+				/* Exit bind mode, program proper
+				 * carrier frequency, etc. */
+				rfm22_init(openlrs_dev, false);
+
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+#if defined(PIOS_INCLUDE_DEBUG_CONSOLE)
+static void printVersion(uint16_t v)
+{
+	char ver[8];
+	ver[0] = '0' + ((v >> 8) & 0x0f);
+	ver[1] = '.';
+	ver[2] = '0' + ((v >> 4) & 0x0f);
+	if (v & 0x0f) {
+		ver[3] = '.';
+		ver[4] = '0' + (v & 0x0f);
+		ver[5] = '\r';
+		ver[6] = '\n';
+		ver[7] = '\0';
+	} else {
+		ver[3] = '\r';
+		ver[4] = '\n';
+		ver[5] = '\0';
+	}
+	DEBUG_PRINTF(2, ver);
+}
+#endif
+
+static void pios_openlrs_setup(pios_openlrs_t openlrs_dev)
+{
+	DEBUG_PRINTF(2,"OpenLRSng RX setup starting.\r\n");
+	PIOS_Thread_Sleep(5);
+#if defined(PIOS_INCLUDE_DEBUG_CONSOLE)
+	printVersion(OPENLRSNG_VERSION);
+#endif
+
+	DEBUG_PRINTF(2,"Entering normal mode\r\n");
+
+	// Count hopchannels as we need it later
+	openlrs_dev->hopcount = 0;
+	while ((openlrs_dev->hopcount < MAXHOPS) &&
+			(openlrs_dev->bind_data.hopchannel[openlrs_dev->hopcount] != 0)) {
+		openlrs_dev->hopcount++;
+	}
+
+	// Configure for normal operation.
+	rfm22_init(openlrs_dev, false);
+
+	pios_openlrs_do_hop(openlrs_dev);
+
+	openlrs_dev->link_acquired = false;
+	openlrs_dev->lastPacketTimeUs = PIOS_DELAY_GetuS();
+
+	DEBUG_PRINTF(2,"OpenLRSng RX setup complete\r\n");
+}
+
+static void pios_openlrs_rx_update_rssi(pios_openlrs_t openlrs_dev,
+		uint8_t rssi, bool have_frame)
+{
+	openlrs_status.LinkQuality <<= 1;
+	openlrs_status.LinkQuality |= !!have_frame;
+
+	if (have_frame) {
+		openlrs_status.LastRSSI = rssi;
+	} else {
+		/*
+		 * If we weren't able to sample RSSI, don't just carry the
+		 * old value forward indefinitely.
+		 */
+		openlrs_status.LastRSSI >>= 1;
+	}
+}
+
+static bool pios_openlrs_rx_frame(pios_openlrs_t openlrs_dev, uint8_t rssi)
+{
+	uint8_t *tx_buf = openlrs_dev->tx_buf;
+	uint8_t rx_buf[MAX_PACKET_SIZE];
+
+	int ctrl_size = get_control_packet_size(&openlrs_dev->bind_data);
+
+	// Read the packet from RFM22b
+	int size = rfm22_rx_packet_variable(openlrs_dev, rx_buf,
+			MAX_PACKET_SIZE);
+
+	if (size <= 0) {
+		return false;
+	}
+
+	pios_openlrs_rx_update_rssi(openlrs_dev, rssi, true);
+
+#if defined(PIOS_LED_LINK)
+	PIOS_ANNUNC_Toggle(PIOS_LED_LINK);
+#endif /* PIOS_LED_LINK */
+
+	if ((rx_buf[0] & 0x3e) == 0x00) {
+		// This flag indicates receiving control data
+
+		if (size != ctrl_size) {
+			// These size mismatches should never happen because
+			// we are protected by a CRC, and shared magic hdr.
+			return false;
+		}
+
+		unpack_channels(openlrs_dev->bind_data.flags,
+				openlrs_dev->ppm, rx_buf + 1);
+		rxscale_channels(openlrs_dev->ppm);
+
+		// Call the control received callback if it's available.
+		if (openlrs_dev->openlrs_rcvr_id) {
+#if defined(PIOS_INCLUDE_OPENLRS_RCVR)
+			PIOS_OpenLRS_Rcvr_UpdateChannels(
+					openlrs_dev->openlrs_rcvr_id,
+					openlrs_dev->ppm);
+#endif
+		}
+	} else if ((rx_buf[0] & 0x3f) == 0x02) {
+		/* This is a "placeholder frame" -- no control data,
+		 * no telemetry.
+		 */
+
+		/* Still set acknowledge bit to match-- they think we have
+		 * any data, and won't be resending, so be ready to accept
+		 * anything new they send.
+		 */
+		if (rx_buf[0] & 0x80) {
+			openlrs_dev->tx_buf[0] |= 0x80;
+		} else {
+			openlrs_dev->tx_buf[0] &= ~0x80;
+		}
+	} else {
+		// Not control data. Push into serial RX buffer.
+		if (((rx_buf[0] & 0x38) == 0x38) &&
+				((rx_buf[0] ^ tx_buf[0]) & 0x80)) {
+			// We got new data... (not retransmission)
+			bool rx_need_yield;
+			uint8_t data_len = (rx_buf[0] & 7) + 1;
+
+			if ((data_len + 1) > size) {
+				return false;
+			}
+
+			if (data_len < (size - 1)) {
+				/* Extended / fast-data operation */
+				data_len = size - 1;
+			}
+
+			if (openlrs_dev->rx_in_cb) {
+				(openlrs_dev->rx_in_cb)(openlrs_dev->rx_in_context,
+						&rx_buf[1], data_len,
+						NULL, &rx_need_yield);
+			}
+		}
+
+		/* Set acknowledge bit to match */
+		if (rx_buf[0] & 0x80) {
+			openlrs_dev->tx_buf[0] |= 0x80;
+		} else {
+			openlrs_dev->tx_buf[0] &= ~0x80;
+		}
+	}
+
+	// When telemetry is enabled we ack packets and send info about FC back
+	if (openlrs_dev->bind_data.flags & TELEMETRY_MASK) {
+		if ((tx_buf[0] ^ rx_buf[0]) & 0x40) {
+			// Last message was lost... resend, unless it
+			// is just ordinary rx telemetry in which
+			// case we can update it.
+
+			if ((tx_buf[0] & 0x3F) == 0) {
+				// Don't swap telem sequence bit though.
+				openlrs_dev->telem_len =
+					pios_openlrs_form_telemetry(
+						openlrs_dev, tx_buf, rssi,
+						false, ctrl_size - size);
+			}
+		} else {
+			tx_buf[0] ^= 0x40; // Swap telem sequence
+			openlrs_dev->telem_len = pios_openlrs_form_telemetry(
+					openlrs_dev, tx_buf, rssi, false, 
+					ctrl_size - size);
+		}
+
+		if (openlrs_dev->telem_len == 0) {
+			tx_buf[0] |= 2;
+			openlrs_dev->telem_len = 1;
+		}
+
+		// This will block until sent
+		rfm22_tx_packet(openlrs_dev, tx_buf, openlrs_dev->telem_len);
+	}
+
+	// Once a packet has been processed, flip back into receiving mode
+	rfm22_rx_reset(openlrs_dev, false);
+
+	return true;
+}
+
+static void pios_openlrs_do_hop(pios_openlrs_t openlrs_dev)
+{
+	openlrs_dev->rf_channel++;
+
+	if (openlrs_dev->rf_channel >= openlrs_dev->hopcount) {
+		openlrs_dev->rf_channel = 0;
+	}
+
+	if (openlrs_dev->beacon_armed) {
+		// Listen for RSSI on beacon channel briefly for
+		// a sharp rising edge in RSSI to 'trigger' us
+		uint8_t rssi = beaconGetRSSI(openlrs_dev) << 2;
+
+		if ((openlrs_dev->beacon_rssi_avg + 80) < rssi) {
+			openlrs_dev->nextBeaconTimeMs =
+				millis() + 1000L;
+		}
+
+		openlrs_dev->beacon_rssi_avg =
+			(openlrs_dev->beacon_rssi_avg * 3 + rssi) >> 2;
+	}
+
+	rfm22_set_channel(openlrs_dev, openlrs_dev->rf_channel);
+}
+
+static void pios_openlrs_rx_after_receive(pios_openlrs_t openlrs_dev,
+		bool have_frame)
+{
+	uint32_t timeUs, timeMs;
+
+	/* We hop channels here, unless we're hopping slowly and
+	 * it's not time yet.
+	 */
+	bool willhop = true;
+
+#if defined(PIOS_INCLUDE_WDG) && defined(PIOS_WDG_RFM22B)
+	// Update the watchdog timer
+	PIOS_WDG_UpdateFlag(PIOS_WDG_RFM22B);
+#endif /* PIOS_WDG_RFM22B */
+
+	timeUs = PIOS_DELAY_GetuS();
+	timeMs = millis();
+
+	DEBUG_PRINTF(2,"Time: %d\r\n", timeUs);
+
+	uint32_t interval = get_nominal_packet_interval(
+			&openlrs_dev->bind_data, NULL);
+
+	// For missing packets to properly trigger a well timed
+	// channel hop, this method should be called at the
+	// appropriate time after the packet was expected to trigger
+	// this path.
+	if (have_frame) {
+		// Flag to indicate we ever got a frame
+		openlrs_dev->link_acquired = true;
+
+		openlrs_dev->beacon_armed = false;
+		openlrs_status.FailsafeActive = OPENLRSSTATUS_FAILSAFEACTIVE_INACTIVE;
+		openlrs_dev->numberOfLostPackets = 0;
+		openlrs_dev->nextBeaconTimeMs = 0;
+
+		/* Could consider splitting difference with interval */
+		openlrs_dev->lastPacketTimeUs = timeUs;
+		openlrs_dev->linkLossTimeMs = 0;
+	} else if (openlrs_dev->numberOfLostPackets < openlrs_dev->hopcount) {
+		DEBUG_PRINTF(2,"OLRS WARN: Lost packet: %d\r\n",
+				openlrs_dev->numberOfLostPackets);
+		/* We lost packet, execute normally timed hop */
+		openlrs_dev->numberOfLostPackets++;
+		openlrs_dev->lastPacketTimeUs += interval;
+	} else if ((openlrs_dev->numberOfLostPackets >= openlrs_dev->hopcount) &&
+			(PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs) >
+			(interval * (openlrs_dev->hopcount + 1)))) {
+		DEBUG_PRINTF(2,"OLRS WARN: Trying to sync\r\n");
+
+		// hop slowly to allow resync with TX
+		openlrs_dev->lastPacketTimeUs = timeUs;
+
+		if (!openlrs_dev->linkLossTimeMs) {
+			openlrs_dev->linkLossTimeMs = timeMs;
+		}
+	} else {
+		/* Don't have link, but it's not time for slow hop yet */
+		willhop = false;
+	}
+
+	if (openlrs_dev->link_acquired && openlrs_dev->numberOfLostPackets) {
+#if defined(PIOS_LED_LINK)
+		PIOS_ANNUNC_Off(PIOS_LED_LINK);
+#endif /* PIOS_LED_LINK */
+
+		if (openlrs_dev->failsafeDelay &&
+				(openlrs_status.FailsafeActive == OPENLRSSTATUS_FAILSAFEACTIVE_INACTIVE) &&
+				((timeMs - openlrs_dev->linkLossTimeMs) > ((uint32_t) openlrs_dev->failsafeDelay))) {
+			DEBUG_PRINTF(2,"Failsafe activated: %d %d\r\n", timeMs, openlrs_dev->linkLossTimeMs);
+			openlrs_status.FailsafeActive = OPENLRSSTATUS_FAILSAFEACTIVE_ACTIVE;
+
+			openlrs_dev->nextBeaconTimeMs = (timeMs + 1000UL * openlrs_dev->beacon_delay) | 1; //beacon activating...
+		}
+
+		if ((openlrs_dev->beacon_frequency) && (openlrs_dev->nextBeaconTimeMs) &&
+				((timeMs - openlrs_dev->nextBeaconTimeMs) < 0x80000000)) {
+
+			// Indicate that the beacon is now active so we can
+			// trigger extra ones by RF.
+			openlrs_dev->beacon_armed = true;
+
+			DEBUG_PRINTF(2,"Beacon time: %d\r\n", openlrs_dev->nextBeaconTimeMs);
+			// Only beacon when vehicle is disarmed
+			// (This should be reconsidered, because it means we
+			// can't beacon when always armed, etc.)
+			uint8_t armed;
+			FlightStatusArmedGet(&armed);
+			if (armed == FLIGHTSTATUS_ARMED_DISARMED) {
+				rfm22_beacon_send(openlrs_dev, false);
+				rfm22_init(openlrs_dev, false);
+				rfm22_rx_reset(openlrs_dev, false);
+				openlrs_dev->nextBeaconTimeMs = (timeMs + 1000UL * openlrs_dev->beacon_period) | 1; // avoid 0 in time
+			}
+		}
+	}
+
+	if (willhop) {
+		pios_openlrs_do_hop(openlrs_dev);
+		rfm22_rx_reset(openlrs_dev, false);
+	}
+
+	// Update UAVO
+	OpenLRSStatusSet(&openlrs_status);
+}
+
+uint8_t PIOS_OpenLRS_RSSI_Get(void)
+{
+	if (openlrs_status.FailsafeActive == OPENLRSSTATUS_FAILSAFEACTIVE_ACTIVE) {
+		return 0;
+	} else {
+		// Check object handle exists
+		if (OpenLRSHandle() == NULL)
+			return 0;
+
+		uint8_t rssi_type;
+		OpenLRSRSSI_TypeGet(&rssi_type);
+
+		uint16_t LQ = count_set_bits(openlrs_status.LinkQuality & 0x7fff);
+
+		switch (rssi_type) {
+		case OPENLRS_RSSI_TYPE_COMBINED:
+			if (LQ == 15) {
+				return (openlrs_status.LastRSSI >> 1)+128;
+			} else if (LQ == 0) {
+				return 0;
+			} else {
+				return LQ * 9 +
+					(openlrs_status.LastRSSI >> 5);
+			}
+		case OPENLRS_RSSI_TYPE_RSSI:
+			return openlrs_status.LastRSSI;
+		case OPENLRS_RSSI_TYPE_LINKQUALITY:
+			return LQ << 4;
+		default:
+			return 0;
+		}
+	}
+}
+
+/*****************************************************************************
+ * control Code
+ *****************************************************************************/
+
+/**
+ * Register a OpenLRS_Rcvr interface to inform of control packets
+ *
+ * @param[in] rfm22b_dev     The RFM22B device ID.
+ * @param[in] rfm22b_rcvr_id The receiver device to inform of control packets
+ */
+void PIOS_OpenLRS_RegisterRcvr(pios_openlrs_t openlrs_dev,
+		uintptr_t openlrs_rcvr_id)
+{
+	PIOS_Assert(pios_openlrs_validate(openlrs_dev));
+
+	openlrs_dev->openlrs_rcvr_id = openlrs_rcvr_id;
+}
+
+/*****************************************************************************
+* Task and device setup
 *****************************************************************************/
 
-#define NOP() __asm__ __volatile__("nop")
-
-#define RF22B_PWRSTATE_POWERDOWN    0x00
-#define RF22B_PWRSTATE_READY	    RFM22_opfc1_xton
-#define RF22B_PWRSTATE_RX	        (RFM22_opfc1_rxon | RFM22_opfc1_xton)
-#define RF22B_PWRSTATE_TX	        (RFM22_opfc1_txon | RFM22_opfc1_xton)
-
-#define RF22B_PACKET_SENT_INTERRUPT          RFM22_ie1_enpksent
-#define RF22B_RX_PACKET_RECEIVED_IRQ         RFM22_ie1_enpkvalid
-
-static void rfmSetChannel(struct pios_openlrs_dev *openlrs_dev, uint8_t ch)
+/**
+ * Initialise an RFM22B device
+ *
+ * @param[out] rfm22b_id  A pointer to store the device ID in.
+ * @param[in] spi_id  The SPI bus index.
+ * @param[in] slave_num  The SPI bus slave number.
+ * @param[in] cfg  The device configuration.
+ */
+int32_t PIOS_OpenLRS_Init(pios_openlrs_t *openlrs_id, pios_spi_t spi_id,
+		uint32_t slave_num, const struct pios_openlrs_cfg *cfg,
+		HwSharedRfBandOptions rf_band,
+		HwSharedMaxRfPowerOptions rf_power)
 {
-	DEBUG_PRINTF(3,"rfmSetChannel %d\r\n", ch);
+	PIOS_DEBUG_Assert(rfm22b_id);
+	PIOS_DEBUG_Assert(cfg);
+
+	// Allocate the device structure.
+	pios_openlrs_t openlrs_dev = pios_openlrs_alloc();
+	if (!openlrs_dev) {
+		return -1;
+	}
+
+	// Store the SPI handle
+	openlrs_dev->slave_num = slave_num;
+	openlrs_dev->spi_id = spi_id;
+
+	// and the rf limitations
+	openlrs_dev->band = rf_band;
+	openlrs_dev->max_power = rf_power;
+
+	// Before initializing everything, make sure device found
+	uint8_t device_type = rfm22_read(openlrs_dev, RFM22_DEVICE_TYPE) & RFM22_DT_MASK;
+	if (device_type != 0x08)
+		return -1;
+
+	OpenLRSInitialize();
+	OpenLRSStatusInitialize();
+
+	// Bind the configuration to the device instance
+	openlrs_dev->cfg = *cfg;
+
+	// Convert UAVO configuration to device runtime config
+	// XXX register for updates!  change at runtime.
+	pios_openlrs_config_to_port_config(openlrs_dev);
+
+	if (pios_openlrs_config_to_bind_data(openlrs_dev)) {
+		/* Persist / save config */
+		pios_openlrs_bind_data_to_config(openlrs_dev);
+	}
+
+	if (cfg->bind_button) {
+		GPIO_Init(cfg->bind_button->gpio,
+			(GPIO_InitTypeDef *) &(cfg->bind_button->init));
+	}
+
+	*openlrs_id = openlrs_dev;
+
+	return 0;
+}
+
+int32_t PIOS_OpenLRS_Start(pios_openlrs_t openlrs_dev)
+{
+	if (openlrs_dev->max_power == HWSHARED_MAXRFPOWER_0) {
+		/* Refuse to init if we're not allowed to transmit.
+		 *
+		 * TODO: This rejects even when we have bind data
+		 * that would result in us never transmitting...
+		 * But that seems like a corner case anyways.
+		 */
+		return -1;
+	}
+
+	// Initialize the external interrupt.
+	PIOS_EXTI_Init(openlrs_dev->cfg.exti_cfg);
+
+	// Start the receiver task.
+	OpenLRSroleOptions role;
+
+	OpenLRSroleGet(&role);
+
+	switch (role) {
+		case OPENLRS_ROLE_RX:
+			openlrs_dev->taskHandle =
+				PIOS_Thread_Create(pios_openlrs_rx_task,
+					"PIOS_OpenLRS_Task", STACK_SIZE_BYTES,
+					(void *)openlrs_dev, TASK_PRIORITY);
+			TaskMonitorAdd(TASKINFO_RUNNING_MODEM,
+					openlrs_dev->taskHandle);
+			break;
+		case OPENLRS_ROLE_TX:
+			openlrs_dev->taskHandle =
+				PIOS_Thread_Create(pios_openlrs_tx_task,
+					"PIOS_OpenLRS_Task", STACK_SIZE_BYTES,
+					(void *)openlrs_dev, TASK_PRIORITY);
+			TaskMonitorAdd(TASKINFO_RUNNING_MODEM,
+					openlrs_dev->taskHandle);
+			break;
+		case OPENLRS_ROLE_DISABLED:
+			/* handle putting radio hw into safe state. */
+			rfm22_disable(openlrs_dev);
+			break;
+	}
+
+	return 0;
+}
+
+static int pios_openlrs_form_control_frame(pios_openlrs_t openlrs_dev,
+		uint8_t *tx_buf)
+{
+	int16_t channels[OPENLRS_PPM_NUM_CHANNELS];
+
+	uintptr_t rcvr = PIOS_HAL_GetReceiver(openlrs_dev->tx_source);
+
+	for (int i = 0; i < OPENLRS_PPM_NUM_CHANNELS; i++) {
+		channels[i] = PIOS_RCVR_Read(rcvr, i+1);
+	}
+
+	for (int i = 0; i < 4; i++) {
+		/* At least the first 4 channels must be good.  If not,
+		 * decline to send a control frame.
+		 */
+		if (channels[i] < 0) {
+			return 0;
+		}
+	}
+
+	for (int i = 4; i < OPENLRS_PPM_NUM_CHANNELS; i++) {
+		/* Subsequent channels, put them in the middle if they're
+		 * invalid
+		 */
+		if (channels[i] < 0) {
+			channels[i] = (openlrs_dev->scale_min +
+					openlrs_dev->scale_max) / 2;
+		}
+	}
+
+	txscale_channels(channels, openlrs_dev->scale_min, openlrs_dev->scale_max);
+
+	int len = pack_channels(openlrs_dev->bind_data.flags,
+		channels, tx_buf+1);
+
+	/* Packed length + 1 byte */
+	return len + 1;
+}
+
+static bool pios_openlrs_tx_receive_telemetry(pios_openlrs_t openlrs_dev)
+{
+	uint8_t rx_buf[MAX_PACKET_SIZE];
+
+	// Read the packet from RFM22b
+	int len = rfm22_rx_packet_variable(openlrs_dev, rx_buf,
+			MAX_PACKET_SIZE);
+
+	if (len <= 0) {
+		return false;
+	}
+
+	if (((rx_buf[0] & 0x3f) == 0) && (len == TELEMETRY_PACKETSIZE)) {
+		/* Generic link telemetry.  Grab the data, shove it
+		 * into status.
+		 */
+
+		openlrs_status.LastRSSI = rx_buf[1];
+		openlrs_status.LinkQuality = (1 << (rx_buf[6])) - 1; /* fudge */
+
+		OpenLRSStatusSet(&openlrs_status);
+	} else if (((rx_buf[0] & 0x38) == 0x38) &&
+			((rx_buf[0] ^ openlrs_dev->tx_buf[0]) & 0x40)) {
+		bool rx_need_yield;
+		uint8_t data_len = (rx_buf[0] & 7) + 1;
+
+		if ((data_len + 1) > len) {
+			return false;
+		}
+
+		if (data_len < (len - 1)) {
+			/* Extended / fast-data operation */
+			data_len = len - 1;
+		}
+
+		if (openlrs_dev->rx_in_cb) {
+			(openlrs_dev->rx_in_cb)(openlrs_dev->rx_in_context,
+					&rx_buf[1], data_len,
+					NULL, &rx_need_yield);
+		}
+	}
+
+#if defined(PIOS_LED_LINK)
+	PIOS_ANNUNC_Toggle(PIOS_LED_LINK);
+#endif /* PIOS_LED_LINK */
+
+	/* Set acknowledge bit to match */
+	if (rx_buf[0] & 0x40) {
+		openlrs_dev->tx_buf[0] |= 0x40;
+	} else {
+		openlrs_dev->tx_buf[0] &= ~0x40;
+	}
+
+	openlrs_dev->tx_prev_rxtelem_hdr = rx_buf[0];
+
+	return true;
+}
+
+static void pios_openlrs_tx_wait_and_transmit(pios_openlrs_t openlrs_dev,
+		uint32_t interval, uint8_t *tx_buf, int len)
+{
+	// Now we want to delay until the next frame is due.
+	while (PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs)
+			< interval) {
+		PIOS_Thread_Sleep(1);
+	}
+
+	openlrs_dev->lastPacketTimeUs += interval;
+
+	rfm22_tx_packet(openlrs_dev, tx_buf, len);
+}
+
+static void pios_openlrs_tx_frame(pios_openlrs_t openlrs_dev)
+{
+	rfm22_rx_reset(openlrs_dev, false);
+
+	uint32_t rx_slop;
+	uint32_t interval =
+		get_nominal_packet_interval(&openlrs_dev->bind_data, &rx_slop);
+
+	pios_openlrs_do_hop(openlrs_dev);
+
+	bool telem_uplink = false;
+
+	openlrs_dev->tx_buf[0] &= 0xc0; // Preserve top two sequence bits
+
+	/* Form a control frame.  If we can't, we're allowed to telemeter
+	 * no matter what.  Otherwise, we hold it in case telemetry
+	 * decided to not do anything.
+	 */
+	uint8_t tx_buf[MAX_PACKET_SIZE];
+
+	tx_buf[0] = openlrs_dev->tx_buf[0];
+
+	int len = pios_openlrs_form_control_frame(openlrs_dev, tx_buf);
+
+	if ((!len) || openlrs_dev->tx_ok_to_telemeter) {
+		openlrs_dev->tx_ok_to_telemeter = false;
+
+		if (openlrs_dev->telem_len &&
+				((openlrs_dev->tx_buf[0] ^
+				  openlrs_dev->tx_prev_rxtelem_hdr) & 0x80)) {
+			/* We're resending the existing buffer. */
+			telem_uplink = true;
+		} else {
+			int ctrl_size =
+				get_control_packet_size(&openlrs_dev->bind_data);
+
+			/* Try to form a new telemetry lump */
+			openlrs_dev->telem_len =
+				pios_openlrs_form_telemetry(openlrs_dev,
+					openlrs_dev->tx_buf, 0, true,
+					ctrl_size - TELEMETRY_PACKETSIZE +
+					TELEMETRY_PACKETSIZE / 2);
+
+			/* If we have 9 byte control frames, allow us to send
+			 * up to 9 + 4 = 13 bytes of data, robbing downlink of
+			 * 4 bytes.
+			 *
+			 * 8 + (9-8+4) = 13
+			 *
+			 * Only FASTDATA obeys this.
+			 */
+
+			if (openlrs_dev->telem_len) {
+				/* And if we do, flip the send seq */
+				telem_uplink = true;
+				openlrs_dev->tx_buf[0] ^= 0x80;
+			}
+		}
+	}
+
+	if (telem_uplink) {
+		pios_openlrs_tx_wait_and_transmit(openlrs_dev, interval,
+				openlrs_dev->tx_buf, openlrs_dev->telem_len);
+	} else if (len > 0) {
+		/* From the control buf, so we don't touch the telemetry
+		 * buffer-- which may need a retry, after all.
+		 */
+		pios_openlrs_tx_wait_and_transmit(openlrs_dev, interval,
+				tx_buf, len);
+	} else {
+		/* We have nothing to transmit, but want to keep sync.
+		 * This is a dR protocol extension.
+		 */
+		tx_buf[0] |= 2;
+
+		pios_openlrs_tx_wait_and_transmit(openlrs_dev, interval,
+				tx_buf, 1);
+	}
+
+	if (!(openlrs_dev->bind_data.flags & TELEMETRY_MASK)) {
+		return;
+	}
+
+	rfm22_rx_reset(openlrs_dev, false);
+
+	/* We wait until the RX will be listening on the next channel. */
+	uint32_t expiry = openlrs_dev->lastPacketTimeUs + interval +
+		rx_slop / 2;
+
+	uint8_t rssi;
+	bool have_interrupt = wait_interrupt_until(openlrs_dev, expiry,
+			&rssi);
+
+	bool got_packet = false;
+
+	if (have_interrupt) {
+		if (pios_openlrs_tx_receive_telemetry(openlrs_dev)) {
+			if (!telem_uplink) {
+				/* It's OK to telemeter when we receive
+				 * a downlink telemetry message.. and we
+				 * didn't telemeter this time around.
+				 */
+				openlrs_dev->tx_ok_to_telemeter = true;
+			}
+
+			got_packet = true;
+		}
+	}
+
+	if (!got_packet) {
+		/* TODO: link-beep functionality goes here */
+		if (openlrs_dev->numberOfLostPackets < openlrs_dev->hopcount) {
+			openlrs_dev->numberOfLostPackets++;
+		} else {
+#if defined(PIOS_LED_LINK)
+			/* Ensure link light is off */
+			PIOS_ANNUNC_Off(PIOS_LED_LINK);
+#endif
+			if (!openlrs_dev->linkLossTimeMs) {
+				openlrs_dev->linkLossTimeMs =
+					PIOS_Thread_Systime();
+			}
+		}
+	} else {
+		openlrs_dev->numberOfLostPackets = 0;
+		openlrs_dev->linkLossTimeMs = 0;
+		openlrs_dev->link_acquired = true;
+	}
+}
+
+static void pios_openlrs_tx_task(void *parameters)
+{
+	pios_openlrs_t openlrs_dev = (pios_openlrs_t)parameters;
+
+	// Register the watchdog timer for the radio driver task
+#if defined(PIOS_INCLUDE_WDG) && defined(PIOS_WDG_RFM22B)
+	PIOS_WDG_RegisterFlag(PIOS_WDG_RFM22B);
+#endif /* PIOS_WDG_RFM22B */
+
+	PIOS_Assert(pios_openlrs_validate(openlrs_dev));
+
+	pios_openlrs_setup(openlrs_dev);
+
+	PIOS_Thread_Sleep(200);
+
+	pios_openlrs_setup(openlrs_dev);
+
+	int i = openlrs_dev->tx_startup_bind_duration * 5;
+
+	while (1) {
+		//rfm22_check_hang(openlrs_dev);
+
+		if (binding_button_pushed(openlrs_dev)) {
+			i = openlrs_dev->tx_bind_button_duration * 5;
+		}
+
+		if (i > 0) {
+			/* Time intervals are approximate; 100ms / step */
+			i--;
+
+			system_annunc_custom_string("cq"); /* -.-. --.- */
+
+			/* Binding maintains WDG */
+			if (pios_openlrs_bind_transmit_step(openlrs_dev)) {
+				/* Binding done once we bind one */
+				i = 0;
+			}
+
+			continue;
+		} else if (i == 0) {
+			rfm22_init(openlrs_dev, false);
+			i--;
+		}
+
+		/* Actual packet transmit maintains WDG */
+		pios_openlrs_tx_frame(openlrs_dev);
+	}
+}
+
+static void pios_openlrs_rx_step(pios_openlrs_t openlrs_dev)
+{
+	rfm22_check_hang(openlrs_dev);
+
+	uint8_t rssi = 0;
+
+	uint32_t interval, slop;
+
+	interval = get_nominal_packet_interval(&openlrs_dev->bind_data,
+			&slop);
+
+	/*
+	 * It's worth noting that for non-telemetry modes, we need
+	 * to stay very closely in sync because the TX is transmitting
+	 * most of the time.  This means that we need to carefully
+	 * split that "dead" non-TX time, arriving to channels slightly
+	 * early, and leaving slightly late if we have not received a
+	 * frame.
+	 *
+	 * For telemetry modes, since "we" have a timeslot the
+	 * tolerances can be much more lax-- we can afford to listen
+	 * into what we believe to be our telemetry timeslot and thus
+	 * cope better if the TX is slower than we expect.
+	 */
+
+	uint32_t expiry = openlrs_dev->lastPacketTimeUs + interval + slop;
+
+	bool have_frame = false;
+
+	if (wait_interrupt_until(openlrs_dev, expiry, &rssi)) {
+		// Process incoming data
+		have_frame = pios_openlrs_rx_frame(openlrs_dev, rssi);
+	} else {
+		// TODO: We could delay a little bit more if we looked
+		// at the hardware and see it's midway through
+		// receiving a valid frame.
+
+		// We timed out because packet was missed
+		DEBUG_PRINTF(3,
+			"ISR Timeout. Missed packet: %d %d\r\n",
+			expiry, interval);
+	}
+
+	if (!have_frame) {
+		pios_openlrs_rx_update_rssi(openlrs_dev, rssi,
+			false);
+	}
+
+	// Select next channel, update timers, etc.
+	pios_openlrs_rx_after_receive(openlrs_dev, have_frame);
+
+	DEBUG_PRINTF(3, "Processing time %d\r\n", PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs));
+}
+
+/**
+ * The task that controls the radio state machine.
+ *
+ * @param[in] paramters  The task parameters.
+ */
+static void pios_openlrs_rx_task(void *parameters)
+{
+	pios_openlrs_t openlrs_dev = (pios_openlrs_t)parameters;
+
+	// Register the watchdog timer for the radio driver task
+#if defined(PIOS_INCLUDE_WDG) && defined(PIOS_WDG_RFM22B)
+	PIOS_WDG_RegisterFlag(PIOS_WDG_RFM22B);
+#endif /* PIOS_WDG_RFM22B */
+
+	PIOS_Assert(pios_openlrs_validate(openlrs_dev));
+
+	pios_openlrs_setup(openlrs_dev);
+
+	DEBUG_PRINTF(2, "Setup complete\r\n");
+
+	while (1) {
+		// check binding truth value-- but only if we've not
+		// had link since powerup.
+		if ((!openlrs_dev->link_acquired) &&
+				binding_button_pushed(openlrs_dev)) {
+			openlrs_dev->bind_data.version = 0;
+		}
+
+		while (openlrs_dev->bind_data.version != BINDING_VERSION) {
+			pios_openlrs_bind_receive(openlrs_dev, 0);
+		}
+
+#if defined(PIOS_INCLUDE_WDG) && defined(PIOS_WDG_RFM22B)
+		// Update the watchdog timer
+		PIOS_WDG_UpdateFlag(PIOS_WDG_RFM22B);
+#endif /* PIOS_WDG_RFM22B */
+
+		pios_openlrs_rx_step(openlrs_dev);
+	}
+}
+
+bool PIOS_OpenLRS_EXT_Int(pios_openlrs_t openlrs_dev)
+{
+	PIOS_Assert(pios_openlrs_validate(openlrs_dev));
+
+	if (openlrs_dev->rf_mode == Transmit) {
+		openlrs_dev->rf_mode = Transmitted;
+	} else if (openlrs_dev->rf_mode == Receive) {
+		openlrs_dev->rf_mode = Received;
+	}
+
+	// Indicate to main task that an ISR occurred
+	bool woken = false;
+	PIOS_Semaphore_Give_FromISR(openlrs_dev->sema_isr, &woken);
+
+	return woken;
+}
+
+/**
+ * Allocate the device structure
+ */
+static pios_openlrs_t pios_openlrs_alloc(void)
+{
+	pios_openlrs_t openlrs_dev;
+
+	openlrs_dev = (pios_openlrs_t)PIOS_malloc(sizeof(*openlrs_dev));
+
+	if (!openlrs_dev) {
+		return NULL;
+	}
+
+	*openlrs_dev = (struct pios_openlrs_dev) {
+		.magic = PIOS_OPENLRS_DEV_MAGIC,
+	};
+
+	// Create the ISR signal
+	openlrs_dev->sema_isr = PIOS_Semaphore_Create();
+	if (!openlrs_dev->sema_isr) {
+		PIOS_free(openlrs_dev);
+		return NULL;
+	}
+
+	return openlrs_dev;
+}
+
+/**
+ * Validate that the device structure is valid.
+ *
+ * @param[in] openlrs_dev  The OpenLRS device structure pointer.
+ */
+static bool pios_openlrs_validate(pios_openlrs_t openlrs_dev)
+{
+	return openlrs_dev != NULL
+		&& openlrs_dev->magic == PIOS_OPENLRS_DEV_MAGIC;
+}
+
+static void rfm22_set_channel(pios_openlrs_t openlrs_dev, uint8_t ch)
+{
+	/* XXX enforce maximum frequency here */
+	DEBUG_PRINTF(3,"rfm22_set_channel %d\r\n", ch);
 	uint8_t magicLSB = (openlrs_dev->bind_data.rf_magic & 0xff) ^ ch;
-	rfm22_claimBus(openlrs_dev);
+	rfm22_claim_bus(openlrs_dev);
 	rfm22_write(openlrs_dev, RFM22_frequency_hopping_channel_select, openlrs_dev->bind_data.hopchannel[ch]);
 	rfm22_write(openlrs_dev, RFM22_transmit_header3 + 3, magicLSB);
 	rfm22_write(openlrs_dev, RFM22_check_header3 + 3, magicLSB);
-	rfm22_releaseBus(openlrs_dev);
+	rfm22_release_bus(openlrs_dev);
 }
 
-static uint8_t rfmGetRSSI(struct pios_openlrs_dev *openlrs_dev)
+static uint8_t rfm22_get_rssi(pios_openlrs_t openlrs_dev)
 {
 	return rfm22_read_claim(openlrs_dev, 0x26);
 }
 
-static uint16_t rfmGetAFCC(struct pios_openlrs_dev *openlrs_dev)
+static void rfm22_set_modem_regs(pios_openlrs_t openlrs_dev, const struct rfm22_modem_regs *r)
 {
-	return (((uint16_t)rfm22_read_claim(openlrs_dev, 0x2B) << 2) | ((uint16_t)rfm22_read_claim(openlrs_dev, 0x2C) >> 6));
-}
-
-static void setModemRegs(struct pios_openlrs_dev *openlrs_dev, const struct rfm22_modem_regs* r)
-{
-	DEBUG_PRINTF(3,"setModemRegs\r\n");
-	rfm22_claimBus(openlrs_dev);
+	DEBUG_PRINTF(3,"rfm22_set_modem_regs\r\n");
 	rfm22_write(openlrs_dev, RFM22_if_filter_bandwidth, r->r_1c);
 	rfm22_write(openlrs_dev, RFM22_afc_loop_gearshift_override, r->r_1d);
 	rfm22_write(openlrs_dev, RFM22_afc_timing_control, r->r_1e);
@@ -308,47 +1875,306 @@ static void setModemRegs(struct pios_openlrs_dev *openlrs_dev, const struct rfm2
 	rfm22_write(openlrs_dev, RFM22_modulation_mode_control1, r->r_70);
 	rfm22_write(openlrs_dev, RFM22_modulation_mode_control2, r->r_71);
 	rfm22_write(openlrs_dev, RFM22_frequency_deviation, r->r_72);
-	rfm22_releaseBus(openlrs_dev);
 }
 
-static void rfmSetCarrierFrequency(struct pios_openlrs_dev *openlrs_dev, uint32_t f)
+static void rfm22_beacon_tone(pios_openlrs_t openlrs_dev, int16_t hz, int16_t len) //duration is now in half seconds.
 {
-	/* Protect ourselves from out-of-band frequencies.  Ideally we'd latch
-	 * an error here and prevent tx, but this is good enough to protect
-	 * the hardware. */
-	if ((f < minFreq(openlrs_dev->band)) ||
-			(f > maxFreq(openlrs_dev->band))) {
-		f = defCarrierFreq(openlrs_dev->band);
+	DEBUG_PRINTF(2,"beacon_tone: %d %d\r\n", hz, len*2);
+	uint32_t d = 500000000 / hz;	// time low or high per cycle, ns
+
+	d = PIOS_INLINEDELAY_NsToCycles(d);
+
+#if defined(PIOS_LED_LINK)
+	PIOS_ANNUNC_On(PIOS_LED_LINK);
+#endif /* PIOS_LED_LINK */
+
+	rfm22_claim_bus(openlrs_dev);
+
+	GPIO_TypeDef *gpio = openlrs_dev->cfg.spi_cfg->mosi.gpio;
+	uint16_t pin_source = openlrs_dev->cfg.spi_cfg->mosi.init.GPIO_Pin;
+
+	/* XXX Use SPI for this. */
+	/* XXX this is not device independent */
+
+#if defined(STM32F10X_MD)
+	GPIO_InitTypeDef init = {
+		.GPIO_Speed = GPIO_Speed_50MHz,
+		.GPIO_Mode  = GPIO_Mode_Out_PP,
+		.GPIO_Pin   = pin_source,
+	};
+#else
+	GPIO_InitTypeDef init = {
+		.GPIO_Speed = GPIO_Speed_50MHz,
+		.GPIO_Mode  = GPIO_Mode_OUT,
+		.GPIO_OType = GPIO_OType_PP,
+		.GPIO_PuPd  = GPIO_PuPd_UP,
+		.GPIO_Pin   = pin_source,
+	};
+
+	// Set MOSI to digital out for bit banging
+	GPIO_PinAFConfig(gpio, pin_source, 0);
+#endif
+
+	GPIO_Init(gpio, &init);
+
+	uint32_t cycles = (len * hz) / 5;
+
+	uint32_t whence = PIOS_INLINEDELAY_GetCycleCnt();
+
+	for (int16_t i = 0; i < cycles / 4; i++) {
+		GPIO_SetBits(gpio, pin_source);
+		whence += d; PIOS_INLINEDELAY_TillCycleCnt(whence);
+		GPIO_ResetBits(gpio, pin_source);
+		whence += d; PIOS_INLINEDELAY_TillCycleCnt(whence);
+		GPIO_SetBits(gpio, pin_source);
+		whence += d; PIOS_INLINEDELAY_TillCycleCnt(whence);
+		GPIO_ResetBits(gpio, pin_source);
+		whence += d; PIOS_INLINEDELAY_TillCycleCnt(whence);
+		GPIO_SetBits(gpio, pin_source);
+		whence += d; PIOS_INLINEDELAY_TillCycleCnt(whence);
+		GPIO_ResetBits(gpio, pin_source);
+		whence += d; PIOS_INLINEDELAY_TillCycleCnt(whence);
+		GPIO_SetBits(gpio, pin_source);
+		whence += d; PIOS_INLINEDELAY_TillCycleCnt(whence);
+		GPIO_ResetBits(gpio, pin_source);
+		whence += d; PIOS_INLINEDELAY_TillCycleCnt(whence);
 	}
 
-	DEBUG_PRINTF(3,"rfmSetCarrierFrequency %d\r\n", f);
-	uint16_t fb, fc, hbsel;
-	if (f < 480000000) {
-		hbsel = 0;
-		fb = f / 10000000 - 24;
-		fc = (f - (fb + 24) * 10000000) * 4 / 625;
+	GPIO_Init(gpio, (GPIO_InitTypeDef *) &openlrs_dev->cfg.spi_cfg->mosi.init);
+
+#if !defined(STM32F10X_MD)
+	GPIO_PinAFConfig(gpio, pin_source, openlrs_dev->cfg.spi_cfg->remap);
+#endif
+
+	rfm22_release_bus(openlrs_dev);
+
+#if defined(PIOS_LED_LINK)
+	PIOS_ANNUNC_Off(PIOS_LED_LINK);
+#endif /* PIOS_LED_LINK */
+}
+
+static void rfm22_disable(pios_openlrs_t openlrs_dev)
+{
+	rfm22_claim_bus(openlrs_dev);
+
+	/* disable interrupts, turn off power */
+	rfm22_write(openlrs_dev, RFM22_interrupt_enable2, 0x00);
+	rfm22_write(openlrs_dev, RFM22_op_and_func_ctrl1, RF22B_PWRSTATE_POWERDOWN);
+
+	rfm22_get_it_status(openlrs_dev);
+
+	rfm22_release_bus(openlrs_dev);
+}
+
+static void rfm22_beacon_send(pios_openlrs_t openlrs_dev, bool static_tone)
+{
+	DEBUG_PRINTF(2,"rfm22_beacon_send\r\n");
+	rfm22_claim_bus(openlrs_dev);
+	rfm22_get_it_status(openlrs_dev);
+	rfm22_write(openlrs_dev, 0x06, 0x00);    // no wakeup up, lbd,
+	rfm22_write(openlrs_dev, 0x07, RF22B_PWRSTATE_READY);      // disable lbd, wakeup timer, use internal 32768,xton = 1; in ready mode
+	rfm22_write(openlrs_dev, 0x09, 0x7f);  // (default) c = 12.5p
+	rfm22_write(openlrs_dev, 0x0a, 0x05);
+	rfm22_write(openlrs_dev, 0x0b, 0x12);    // gpio0 TX State
+	rfm22_write(openlrs_dev, 0x0c, 0x15);    // gpio1 RX State
+	rfm22_write(openlrs_dev, 0x0d, 0xfd);    // gpio 2 micro-controller clk output
+	rfm22_write(openlrs_dev, 0x0e, 0x00);    // gpio    0, 1,2 NO OTHER FUNCTION.
+
+	rfm22_write(openlrs_dev, 0x70, 0x2C);    // disable manchest
+
+	rfm22_write(openlrs_dev, 0x30, 0x00);    //disable packet handling
+
+	rfm22_write(openlrs_dev, 0x79, 0);      // start channel
+
+	rfm22_write(openlrs_dev, 0x7a, 0x05);   // 50khz step size (10khz x value) // no hopping
+
+	rfm22_write(openlrs_dev, 0x71, 0x12);   // trclk=[00] no clock, dtmod=[01] direct using SPI, fd8=0 eninv=0 modtyp=[10] FSK
+	rfm22_write(openlrs_dev, 0x72, 0x02);   // fd (frequency deviation) 2*625Hz == 1.25kHz
+
+	rfm22_write(openlrs_dev, 0x73, 0x00);
+	rfm22_write(openlrs_dev, 0x74, 0x00);    // no offset
+	rfm22_release_bus(openlrs_dev);
+
+	rfm22_set_frequency(openlrs_dev, openlrs_dev->beacon_frequency);
+
+	rfm22_write_claim(openlrs_dev, 0x6d, 0x07);   // 7 set max power 100mW
+
+	/* XXX WATCHDOG */
+	PIOS_Thread_Sleep(10);
+	rfm22_write_claim(openlrs_dev, 0x07, RF22B_PWRSTATE_TX);        // to tx mode
+	PIOS_Thread_Sleep(500);	/* Half a second of silence overcomes squelch */
+
+	if (static_tone) {
+		rfm22_beacon_tone(openlrs_dev, 440, 20);
 	} else {
-		hbsel = 1;
-		fb = f / 20000000 - 24;
-		fc = (f - (fb + 24) * 20000000) * 2 / 625;
+		rfm22_beacon_tone(openlrs_dev, 784, 1);
+
+		rfm22_write(openlrs_dev, 0x6d, 0x05);   // 5 set mid power 25mW
+		PIOS_Thread_Sleep(80);
+		rfm22_beacon_tone(openlrs_dev, 699, 1);
+
+		rfm22_write(openlrs_dev, 0x6d, 0x04);   // 4 set mid power 13mW
+		PIOS_Thread_Sleep(80);
+		rfm22_beacon_tone(openlrs_dev, 659, 1);
+
+		rfm22_write(openlrs_dev, 0x6d, 0x02);   // 2 set min power 3mW
+		PIOS_Thread_Sleep(80);
+		rfm22_beacon_tone(openlrs_dev, 659,1);
+
+		rfm22_write(openlrs_dev, 0x6d, 0x00);   // 0 set min power 1.3mW
+		PIOS_Thread_Sleep(30);
+		rfm22_beacon_tone(openlrs_dev, 699, 3);
 	}
-	rfm22_claimBus(openlrs_dev);
-	rfm22_write(openlrs_dev, RFM22_frequency_band_select, RFM22_fbs_sbse + (hbsel ? RFM22_fbs_hbsel : 0) + (fb & RFM22_fb_mask));
-	rfm22_write(openlrs_dev, RFM22_nominal_carrier_frequency1, (fc >> 8));
-	rfm22_write(openlrs_dev, RFM22_nominal_carrier_frequency0, (fc & 0xff));
-	rfm22_releaseBus(openlrs_dev);
+
+	rfm22_write_claim(openlrs_dev, 0x07, RF22B_PWRSTATE_READY);
 }
 
-static void init_rfm(struct pios_openlrs_dev *openlrs_dev, uint8_t isbind)
+static void rfm22_tx_packet(pios_openlrs_t openlrs_dev, void *pkt,
+		uint8_t size)
 {
-	DEBUG_PRINTF(2,"init_rfm %d\r\n", isbind);
+	if (openlrs_dev->max_power == HWSHARED_MAXRFPOWER_0) {
+		/* Refuse to transmit in this case. */
+		return;
+	}
+
+	openlrs_dev->rf_mode = Transmit;
+
+	rfm22_claim_bus(openlrs_dev);
+
+	/* Clear the fifo */
+	rfm22_write(openlrs_dev, RFM22_op_and_func_ctrl2, 0x03);
+	rfm22_write(openlrs_dev, RFM22_op_and_func_ctrl2, 0x00);
+
+	rfm22_write(openlrs_dev, RFM22_interrupt_enable1, RFM22_ie1_enpksent);
+
+	rfm22_get_it_status(openlrs_dev);
+
+	rfm22_write(openlrs_dev, RFM22_transmit_packet_length, size);   // total tx size
+
+	rfm22_assert_cs(openlrs_dev);
+	PIOS_SPI_TransferByte(openlrs_dev->spi_id, RFM22_fifo_access | 0x80);
+	PIOS_SPI_TransferBlock(openlrs_dev->spi_id, pkt, NULL, size);
+	rfm22_deassert_cs(openlrs_dev);
+
+	/* Ensure sema taken */
+	PIOS_Semaphore_Take(openlrs_dev->sema_isr, 0);
+	/* Initiate TX */
+	rfm22_write(openlrs_dev, RFM22_op_and_func_ctrl1, RF22B_PWRSTATE_TX);
+
+	rfm22_release_bus(openlrs_dev);
+
+	bool ok = wait_interrupt(openlrs_dev, 60000);
+
+	rfm22_claim_bus(openlrs_dev);
+	rfm22_get_it_status(openlrs_dev);
+	rfm22_release_bus(openlrs_dev);
+
+#if defined(PIOS_INCLUDE_WDG) && defined(PIOS_WDG_RFM22B)
+	// Update the watchdog timer
+	PIOS_WDG_UpdateFlag(PIOS_WDG_RFM22B);
+#endif /* PIOS_WDG_RFM22B */
+
+	if (!ok) {
+		DEBUG_PRINTF(2,"OLRS ERR: rfm22_tx_packet timeout\r\n");
+		rfm22_init(openlrs_dev, false); // reset modem
+	}
+}
+
+static void rfm22_rx_packet_sizeknown(pios_openlrs_t openlrs_dev,
+		void *whence, uint32_t size)
+{
+	/* Assumes bus claimed */
+
+	rfm22_assert_cs(openlrs_dev);
+	PIOS_SPI_TransferByte(openlrs_dev->spi_id, RFM22_fifo_access);
+	PIOS_SPI_TransferBlock(openlrs_dev->spi_id, NULL,
+			whence, size);
+	rfm22_deassert_cs(openlrs_dev);
+}
+
+static bool rfm22_rx_packet(pios_openlrs_t openlrs_dev,
+		void *whence, uint32_t size)
+{
+	rfm22_claim_bus(openlrs_dev);
+	uint8_t len = rfm22_read(openlrs_dev, RFM22_received_packet_length);
+
+	bool ret = false;
+
+	if (len == size) {
+		rfm22_rx_packet_sizeknown(openlrs_dev, whence, size);
+
+		ret = true;
+	}
+
+	rfm22_release_bus(openlrs_dev);
+
+	return ret;
+}
+
+static int rfm22_rx_packet_variable(pios_openlrs_t openlrs_dev,
+		void *whence, uint32_t max_size)
+{
+	rfm22_claim_bus(openlrs_dev);
+	uint8_t size = rfm22_read(openlrs_dev, RFM22_received_packet_length);
+
+	int ret = -1;
+
+	if ((size <= max_size) && (size > 0)) {
+		rfm22_rx_packet_sizeknown(openlrs_dev, whence, size);
+
+		ret = size;
+	}
+
+	rfm22_release_bus(openlrs_dev);
+
+	return ret;
+}
+
+
+static void rfm22_rx_reset(pios_openlrs_t openlrs_dev, bool pause_long)
+{
+	openlrs_dev->rf_mode = Receive;
+
+	DEBUG_PRINTF(3,"rfm22_rx_reset\r\n");
+
+	if (pause_long) {
+		rfm22_claim_bus(openlrs_dev);
+		rfm22_write(openlrs_dev, RFM22_op_and_func_ctrl1, RF22B_PWRSTATE_READY);
+		rfm22_get_it_status(openlrs_dev);
+		rfm22_release_bus(openlrs_dev);
+		PIOS_Thread_Sleep(20);
+	}
+
+	rfm22_claim_bus(openlrs_dev);
+
+	/* Clear the fifo */
+	rfm22_write(openlrs_dev, RFM22_op_and_func_ctrl2, 0x03);
+	rfm22_write(openlrs_dev, RFM22_op_and_func_ctrl2, 0x00);
+
+	rfm22_get_it_status(openlrs_dev);
+
+	/* Ensure sema taken */
+	PIOS_Semaphore_Take(openlrs_dev->sema_isr, 0);
+
+	rfm22_write(openlrs_dev, RFM22_interrupt_enable1, RFM22_ie1_enpkvalid);
+	rfm22_write(openlrs_dev, RFM22_op_and_func_ctrl1, RF22B_PWRSTATE_RX);   // to rx mode
+
+	rfm22_release_bus(openlrs_dev);
+}
+
+DONT_BUILD_IF(HWSHARED_MAXRFPOWER_MAXOPTVAL != 8, InvRfPowerOptions);
+DONT_BUILD_IF(HWSHARED_MAXRFPOWER_0 != 0, InvRfPowerOptions2);
+DONT_BUILD_IF(HWSHARED_MAXRFPOWER_125 != 1, InvRfPowerOptions3);
+DONT_BUILD_IF(HWSHARED_MAXRFPOWER_100 != 8, InvRfPowerOptions4);
+
+static void rfm22_init(pios_openlrs_t openlrs_dev, uint8_t isbind)
+{
+	DEBUG_PRINTF(2,"rfm22_init %d\r\n", isbind);
 
 	if (!isbind) {
 		DEBUG_PRINTF(2, "Binding settings:\r\n");
 		PIOS_Thread_Sleep(10);
 		DEBUG_PRINTF(2, "  version: %d\r\n", openlrs_dev->bind_data.version);
-		PIOS_Thread_Sleep(10);
-		DEBUG_PRINTF(2, "  serial_baudrate: %d\r\n", openlrs_dev->bind_data.serial_baudrate);
 		PIOS_Thread_Sleep(10);
 		DEBUG_PRINTF(2, "  rf_frequency: %d\r\n", openlrs_dev->bind_data.rf_frequency);
 		PIOS_Thread_Sleep(10);
@@ -362,9 +2188,12 @@ static void init_rfm(struct pios_openlrs_dev *openlrs_dev, uint8_t isbind)
 		PIOS_Thread_Sleep(10);
 	}
 
-	rfm22_claimBus(openlrs_dev);
-	openlrs_dev->it_status1 = rfm22_read(openlrs_dev, RFM22_interrupt_status1);   // read status, clear interrupt
-	openlrs_dev->it_status2 = rfm22_read(openlrs_dev, RFM22_interrupt_status2);
+
+	rfm22_write_claim(openlrs_dev, RFM22_op_and_func_ctrl1, RFM22_opfc1_swres);
+
+	PIOS_Thread_Sleep(40);
+
+	rfm22_claim_bus(openlrs_dev);
 	rfm22_write(openlrs_dev, RFM22_interrupt_enable2, 0x00);    // disable interrupts
 	rfm22_write(openlrs_dev, RFM22_op_and_func_ctrl1, RF22B_PWRSTATE_READY); // disable lbd, wakeup timer, use internal 32768,xton = 1; in ready mode
 	rfm22_write(openlrs_dev, RFM22_xtal_osc_load_cap, 0x7f);   // c = 12.5p
@@ -381,20 +2210,18 @@ static void init_rfm(struct pios_openlrs_dev *openlrs_dev, uint8_t isbind)
 	}
 	rfm22_write(openlrs_dev, RFM22_gpio2_config, 0xfd);    // gpio 2 VDD
 	rfm22_write(openlrs_dev, RFM22_io_port_config, RFM22_io_port_default);    // gpio    0, 1,2 NO OTHER FUNCTION.
-	rfm22_releaseBus(openlrs_dev);
 
 	if (isbind) {
-		setModemRegs(openlrs_dev, &bind_params);
+		rfm22_set_modem_regs(openlrs_dev, &modem_params[OPENLRS_BIND_PARAMS]);
 	} else {
-		setModemRegs(openlrs_dev, &modem_params[openlrs_dev->bind_data.modem_params]);
+		rfm22_set_modem_regs(openlrs_dev, &modem_params[openlrs_dev->bind_data.modem_params]);
 	}
 
 	// Packet settings
-	rfm22_claimBus(openlrs_dev);
 	rfm22_write(openlrs_dev, RFM22_data_access_control, 0x8c);    // enable packet handler, msb first, enable crc,
 	rfm22_write(openlrs_dev, RFM22_header_control1, 0x0f);    // no broadcast, check header bytes 3,2,1,0
 	rfm22_write(openlrs_dev, RFM22_header_control2, 0x42);    // 4 byte header, 2 byte synch, variable pkt size
-	rfm22_write(openlrs_dev, RFM22_preamble_length, (openlrs_dev->bind_data.flags & DIVERSITY_ENABLED)?0x14:0x0a);    // 40 bit preamble, 80 with diversity
+	rfm22_write(openlrs_dev, RFM22_preamble_length, (openlrs_dev->bind_data.flags & DIVERSITY_ENABLED) ? 0x14 : 0x0a);    // 40 bit preamble, 80 with diversity
 	rfm22_write(openlrs_dev, RFM22_preamble_detection_ctrl1, 0x2a);    // preath = 5 (20bits), rssioff = 2
 	rfm22_write(openlrs_dev, RFM22_sync_word3, 0x2d);    // synchronize word 3
 	rfm22_write(openlrs_dev, RFM22_sync_word2, 0xd4);    // synchronize word 2
@@ -414,946 +2241,76 @@ static void init_rfm(struct pios_openlrs_dev *openlrs_dev, uint8_t isbind)
 	rfm22_write(openlrs_dev, RFM22_header_enable0, 0xff);    // all the bit to be checked
 
 	if (isbind) {
-		rfm22_write(openlrs_dev, RFM22_tx_power, BINDING_POWER);
+		/* These rely on:
+		 * A) OpenLRS not initing if maxpower = 0.
+		 * B) The DONT_BUILD_IFs above being true and the MaxRfPower
+		 * being in sync with module capabilities.
+		 */
+		rfm22_write(openlrs_dev, RFM22_tx_power,
+				MIN(openlrs_dev->max_power - 1, BINDING_POWER));
 	} else {
-		rfm22_write(openlrs_dev, RFM22_tx_power, openlrs_dev->bind_data.rf_power);
+		rfm22_write(openlrs_dev, RFM22_tx_power,
+				MIN(openlrs_dev->max_power - 1,
+					openlrs_dev->bind_data.rf_power));
 	}
 
-	rfm22_write(openlrs_dev, RFM22_frequency_hopping_channel_select, 0);
 	rfm22_write(openlrs_dev, RFM22_frequency_hopping_step_size, openlrs_dev->bind_data.rf_channel_spacing);   // channel spacing
 
 	rfm22_write(openlrs_dev, RFM22_frequency_offset1, 0x00);
 	rfm22_write(openlrs_dev, RFM22_frequency_offset2, 0x00);    // no offset
 
-	rfm22_releaseBus(openlrs_dev);
+	rfm22_release_bus(openlrs_dev);
 
-	rfmSetCarrierFrequency(openlrs_dev, isbind ? bindingFreq(openlrs_dev->band) : openlrs_dev->bind_data.rf_frequency);
+	rfm22_rx_reset(openlrs_dev, true);
+
+	rfm22_set_frequency(openlrs_dev,
+			isbind ? binding_freq(openlrs_dev->band) :
+				 openlrs_dev->bind_data.rf_frequency);
 }
 
-static void to_rx_mode(struct pios_openlrs_dev *openlrs_dev)
+static void rfm22_set_frequency(pios_openlrs_t openlrs_dev, uint32_t f)
 {
-	DEBUG_PRINTF(3,"to_rx_mode\r\n");
-	rfm22_claimBus(openlrs_dev);
+	/* Protect ourselves from out-of-band frequencies.  Ideally we'd latch
+	 * an error here and prevent tx, but this is good enough to protect
+	 * the hardware. */
+	if ((f < min_freq(openlrs_dev->band)) ||
+			(f > max_freq(openlrs_dev->band))) {
+		f = def_carrier_freq(openlrs_dev->band);
+	}
+
+	DEBUG_PRINTF(3,"rfm22_set_frequency %d\r\n", f);
+	uint16_t fb, fc, hbsel;
+	if (f < 480000000) {
+		hbsel = 0;
+		fb = f / 10000000 - 24;
+		fc = (f - (fb + 24) * 10000000) * 4 / 625;
+	} else {
+		hbsel = 1;
+		fb = f / 20000000 - 24;
+		fc = (f - (fb + 24) * 20000000) * 2 / 625;
+	}
+	rfm22_claim_bus(openlrs_dev);
+	rfm22_write(openlrs_dev, RFM22_frequency_band_select, RFM22_fbs_sbse + (hbsel ? RFM22_fbs_hbsel : 0) + (fb & RFM22_fb_mask));
+	rfm22_write(openlrs_dev, RFM22_nominal_carrier_frequency1, (fc >> 8));
+	rfm22_write(openlrs_dev, RFM22_nominal_carrier_frequency0, (fc & 0xff));
+	rfm22_write(openlrs_dev, RFM22_frequency_hopping_channel_select, 0);
+	rfm22_release_bus(openlrs_dev);
+}
+
+/* Must have claimed bus first */
+static void rfm22_get_it_status(pios_openlrs_t openlrs_dev)
+{
 	openlrs_dev->it_status1 = rfm22_read(openlrs_dev, RFM22_interrupt_status1);
 	openlrs_dev->it_status2 = rfm22_read(openlrs_dev, RFM22_interrupt_status2);
-	rfm22_write(openlrs_dev, RFM22_op_and_func_ctrl1, RF22B_PWRSTATE_READY);
-	rfm22_releaseBus(openlrs_dev);
-	delay(10);
-	rx_reset(openlrs_dev);
-	NOP();
 }
 
-static void clearFIFO(struct pios_openlrs_dev *openlrs_dev)
+static void rfm22_check_hang(pios_openlrs_t openlrs_dev)
 {
-	DEBUG_PRINTF(3,"clearFIFO\r\n");
-	rfm22_claimBus(openlrs_dev);
-	rfm22_write(openlrs_dev, RFM22_op_and_func_ctrl2, 0x03);
-	rfm22_write(openlrs_dev, RFM22_op_and_func_ctrl2, 0x00);
-	rfm22_releaseBus(openlrs_dev);
-}
-
-static void rx_reset(struct pios_openlrs_dev *openlrs_dev)
-{
-	DEBUG_PRINTF(3,"rx_reset\r\n");
-	rfm22_write_claim(openlrs_dev, RFM22_op_and_func_ctrl1, RF22B_PWRSTATE_READY);
-	rfm22_write_claim(openlrs_dev, RFM22_rx_fifo_control, 36);	 // threshold for rx almost full, interrupt when 1 byte received
-	clearFIFO(openlrs_dev);
-	rfm22_claimBus(openlrs_dev);
-	rfm22_write(openlrs_dev, RFM22_op_and_func_ctrl1, RF22B_PWRSTATE_RX);   // to rx mode
-	rfm22_write(openlrs_dev, RFM22_interrupt_enable1, RF22B_RX_PACKET_RECEIVED_IRQ);
-	openlrs_dev->it_status1 = rfm22_read(openlrs_dev, RFM22_interrupt_status1);   //read the Interrupt Status1 register
-	openlrs_dev->it_status2 = rfm22_read(openlrs_dev, RFM22_interrupt_status2);
-	rfm22_releaseBus(openlrs_dev);
-}
-
-// TODO: move into dev structure
-uint32_t tx_start = 0;
-
-static void tx_packet_async(struct pios_openlrs_dev *openlrs_dev, uint8_t* pkt, uint8_t size)
-{
-	rfm22_claimBus(openlrs_dev);
-	rfm22_write(openlrs_dev, RFM22_transmit_packet_length, size);   // total tx size
-
-	for (uint8_t i = 0; i < size; i++) {
-		rfm22_write(openlrs_dev, RFM22_fifo_access, pkt[i]);
-	}
-
-	rfm22_write(openlrs_dev, RFM22_interrupt_enable1, RF22B_PACKET_SENT_INTERRUPT);
-	openlrs_dev->it_status1 = rfm22_read(openlrs_dev, RFM22_interrupt_status1);	  //read the Interrupt Status1 register
-	openlrs_dev->it_status2 = rfm22_read(openlrs_dev, RFM22_interrupt_status2);
-	tx_start = micros();
-	rfm22_write(openlrs_dev, RFM22_op_and_func_ctrl1, RF22B_PWRSTATE_TX);	// to tx mode
-	rfm22_releaseBus(openlrs_dev);
-
-	openlrs_dev->rf_mode = Transmit;
-}
-
-static void tx_packet(struct pios_openlrs_dev *openlrs_dev, uint8_t* pkt, uint8_t size)
-{
-	tx_packet_async(openlrs_dev, pkt, size);
-	PIOS_Semaphore_Take(openlrs_dev->sema_isr, 25);
-
-#if defined(PIOS_INCLUDE_WDG) && defined(PIOS_WDG_RFM22B)
-		// Update the watchdog timer
-		PIOS_WDG_UpdateFlag(PIOS_WDG_RFM22B);
-#endif /* PIOS_WDG_RFM22B */
-
-	if (openlrs_dev->rf_mode == Transmit) {
-		DEBUG_PRINTF(2,"OLRS ERR: tx_packet timeout\r\n");
-		init_rfm(openlrs_dev, false); // reset modem
-	}
-}
-
-static void beacon_tone(struct pios_openlrs_dev *openlrs_dev, int16_t hz, int16_t len) //duration is now in half seconds.
-{
-	DEBUG_PRINTF(2,"beacon_tone: %d %d\r\n", hz, len*2);
-	int16_t d = 500000 / hz; // better resolution
-
-#if defined(PIOS_LED_LINK)
-	PIOS_ANNUNC_On(PIOS_LED_LINK);
-#endif /* PIOS_LED_LINK */
-
-	if (d < 1) {
-		d = 1;
-	}
-
-	rfm22_claimBus(openlrs_dev);
-
-	GPIO_TypeDef* gpio = openlrs_dev->cfg.spi_cfg->mosi.gpio;
-	uint16_t pin_source = openlrs_dev->cfg.spi_cfg->mosi.init.GPIO_Pin;
-	uint8_t remap = openlrs_dev->cfg.spi_cfg->remap;
-
-	GPIO_InitTypeDef init = {
-		.GPIO_Speed = GPIO_Speed_50MHz,
-		.GPIO_Mode  = GPIO_Mode_OUT,
-		.GPIO_OType = GPIO_OType_PP,
-		.GPIO_PuPd = GPIO_PuPd_UP
-	};
-	init.GPIO_Pin = pin_source;
-
-	// Set MOSI to digital out for bit banging
-	GPIO_PinAFConfig(gpio, pin_source, 0);
-	GPIO_Init(gpio, &init);
-
-	uint32_t raw_time = PIOS_DELAY_GetRaw();
-	int16_t cycles = (len * 500000 / d);
-	for (int16_t i = 0; i < cycles; i++) {
-		GPIO_SetBits(gpio, pin_source);
-		PIOS_DELAY_WaituS(d);
-		GPIO_ResetBits(gpio, pin_source);
-		PIOS_DELAY_WaituS(d);
-
-		// Make sure to give other tasks time to do things
-		if (PIOS_DELAY_DiffuS(raw_time) > 10000) {
-			PIOS_Thread_Sleep(1);
-			raw_time = PIOS_DELAY_GetRaw();
-		}
-	}
-
-	GPIO_Init(gpio, (GPIO_InitTypeDef*) &openlrs_dev->cfg.spi_cfg->mosi.init);
-	GPIO_PinAFConfig(gpio, pin_source, remap);
-
-	rfm22_releaseBus(openlrs_dev);
-
-#if defined(PIOS_LED_LINK)
-	PIOS_ANNUNC_Off(PIOS_LED_LINK);
-#endif /* PIOS_LED_LINK */
-
-#if defined(PIOS_INCLUDE_WDG) && defined(PIOS_WDG_RFM22B)
-		// Update the watchdog timer
-		PIOS_WDG_UpdateFlag(PIOS_WDG_RFM22B);
-#endif /* PIOS_WDG_RFM22B */
-
-}
-
-
-static uint8_t beaconGetRSSI(struct pios_openlrs_dev *openlrs_dev)
-{
-	uint16_t rssiSUM=0;
-
-	rfmSetCarrierFrequency(openlrs_dev, openlrs_dev->beacon_frequency);
-	rfm22_write_claim(openlrs_dev, RFM22_frequency_hopping_channel_select, 0); // ch 0 to avoid offset
-	delay(1);
-	rssiSUM+=rfmGetRSSI(openlrs_dev);
-	delay(1);
-	rssiSUM+=rfmGetRSSI(openlrs_dev);
-	delay(1);
-	rssiSUM+=rfmGetRSSI(openlrs_dev);
-	delay(1);
-	rssiSUM+=rfmGetRSSI(openlrs_dev);
-
-	return rssiSUM>>2;
-}
-
-static void beacon_send(struct pios_openlrs_dev *openlrs_dev, bool static_tone)
-{
-	DEBUG_PRINTF(2,"beacon_send\r\n");
-	rfm22_claimBus(openlrs_dev);
-	openlrs_dev->it_status1 = rfm22_read(openlrs_dev, 0x03);   // read status, clear interrupt
-	openlrs_dev->it_status2 = rfm22_read(openlrs_dev, 0x04);
-	rfm22_write(openlrs_dev, 0x06, 0x00);    // no wakeup up, lbd,
-	rfm22_write(openlrs_dev, 0x07, RF22B_PWRSTATE_READY);      // disable lbd, wakeup timer, use internal 32768,xton = 1; in ready mode
-	rfm22_write(openlrs_dev, 0x09, 0x7f);  // (default) c = 12.5p
-	rfm22_write(openlrs_dev, 0x0a, 0x05);
-	rfm22_write(openlrs_dev, 0x0b, 0x12);    // gpio0 TX State
-	rfm22_write(openlrs_dev, 0x0c, 0x15);    // gpio1 RX State
-	rfm22_write(openlrs_dev, 0x0d, 0xfd);    // gpio 2 micro-controller clk output
-	rfm22_write(openlrs_dev, 0x0e, 0x00);    // gpio    0, 1,2 NO OTHER FUNCTION.
-
-	rfm22_write(openlrs_dev, 0x70, 0x2C);    // disable manchest
-
-	rfm22_write(openlrs_dev, 0x30, 0x00);    //disable packet handling
-
-	rfm22_write(openlrs_dev, 0x79, 0);	// start channel
-
-	rfm22_write(openlrs_dev, 0x7a, 0x05);   // 50khz step size (10khz x value) // no hopping
-
-	rfm22_write(openlrs_dev, 0x71, 0x12);   // trclk=[00] no clock, dtmod=[01] direct using SPI, fd8=0 eninv=0 modtyp=[10] FSK
-	rfm22_write(openlrs_dev, 0x72, 0x02);   // fd (frequency deviation) 2*625Hz == 1.25kHz
-
-	rfm22_write(openlrs_dev, 0x73, 0x00);
-	rfm22_write(openlrs_dev, 0x74, 0x00);    // no offset
-	rfm22_releaseBus(openlrs_dev);
-
-	rfmSetCarrierFrequency(openlrs_dev, openlrs_dev->beacon_frequency);
-
-	rfm22_write_claim(openlrs_dev, 0x6d, 0x07);   // 7 set max power 100mW
-
-	delay(10);
-	rfm22_write_claim(openlrs_dev, 0x07, RF22B_PWRSTATE_TX);	// to tx mode
-	delay(10);
-
-	if (static_tone) {
-		uint8_t i=0;
-		while (i++<20) {
-			beacon_tone(openlrs_dev, 440, 1);
-		}
-	} else {
-		//close encounters tune
-		//  G, A, F, F(lower octave), C
-		//octave 3:  392  440  349  175   261
-
-		beacon_tone(openlrs_dev, 392, 1);
-
-		rfm22_write(openlrs_dev, 0x6d, 0x05);	// 5 set mid power 25mW
-		delay(10);
-		beacon_tone(openlrs_dev, 440,1);
-
-		rfm22_write(openlrs_dev, 0x6d, 0x04);	// 4 set mid power 13mW
-		delay(10);
-		beacon_tone(openlrs_dev, 349, 1);
-
-		rfm22_write(openlrs_dev, 0x6d, 0x02);	// 2 set min power 3mW
-		delay(10);
-		beacon_tone(openlrs_dev, 175,1);
-
-		rfm22_write(openlrs_dev, 0x6d, 0x00);	// 0 set min power 1.3mW
-		delay(10);
-		beacon_tone(openlrs_dev, 261, 2);
-	}
-	rfm22_write_claim(openlrs_dev, 0x07, RF22B_PWRSTATE_READY);
-}
-
-
-/*****************************************************************************
-* High level OpenLRS functions
-*****************************************************************************/
-
-// TODO: these should move into device structure, or deleted
-// if not useful to be reported via GCS
-
-static uint8_t pios_openlrs_bind_receive(struct pios_openlrs_dev *openlrs_dev, uint32_t timeout)
-{
-	uint32_t start = millis();
-	uint8_t  rxb;
-	init_rfm(openlrs_dev, true);
-	// TODO: move openlrs_dev->rf_mode into dev structure
-	openlrs_dev->rf_mode = Receive;
-	to_rx_mode(openlrs_dev);
-	DEBUG_PRINTF(2,"Waiting bind\r\n");
-
-	uint32_t i = 0;
-
-	while ((!timeout) || ((millis() - start) < timeout)) {
-		PIOS_Thread_Sleep(1);
-#if defined(PIOS_INCLUDE_WDG) && defined(PIOS_WDG_RFM22B)
-		// Update the watchdog timer
-		PIOS_WDG_UpdateFlag(PIOS_WDG_RFM22B);
-#endif /* PIOS_WDG_RFM22B */
-
-		if (i++ % 100 == 0) {
-			DEBUG_PRINTF(2,"Waiting bind\r\n");
-
-#if defined(PIOS_LED_LINK)
-			PIOS_ANNUNC_Toggle(PIOS_LED_LINK);
-#endif /* PIOS_LED_LINK */
-		}
-		if (openlrs_dev->rf_mode == Received) {
-
-			DEBUG_PRINTF(2,"Got pkt\r\n");
-
-			// TODO: parse data packet (write command for that)
-			rfm22_claimBus(openlrs_dev);
-			rfm22_assertCs(openlrs_dev);
-			PIOS_SPI_TransferByte(openlrs_dev->spi_id, 0x7f);
-			rxb = PIOS_SPI_TransferByte(openlrs_dev->spi_id, 0x00);
-			if (rxb == 'b') {
-				PIOS_SPI_TransferBlock(openlrs_dev->spi_id, OUT_FF,
-			      (uint8_t*) &openlrs_dev->bind_data, sizeof(struct bind_data));
-				rfm22_deassertCs(openlrs_dev);
-				rfm22_releaseBus(openlrs_dev);
-				
-#if defined(PIOS_INCLUDE_DEBUG_CONSOLE)
-				if(2 <= DEBUG_LEVEL && pios_com_debug_id > 0) {
-					DEBUG_PRINTF(2, "Binding settings:\r\n");
-					PIOS_Thread_Sleep(10);
-					DEBUG_PRINTF(2, "  version: %d\r\n", openlrs_dev->bind_data.version);
-					PIOS_Thread_Sleep(10);
-					DEBUG_PRINTF(2, "  serial_baudrate: %d\r\n", openlrs_dev->bind_data.serial_baudrate);
-					PIOS_Thread_Sleep(10);
-					DEBUG_PRINTF(2, "  rf_frequency: %d\r\n", openlrs_dev->bind_data.rf_frequency);
-					PIOS_Thread_Sleep(10);
-					DEBUG_PRINTF(2, "  rf_power: %d\r\n", openlrs_dev->bind_data.rf_power);
-					PIOS_Thread_Sleep(10);
-					DEBUG_PRINTF(2, "  rf_channel_spacing: %d\r\n", openlrs_dev->bind_data.rf_channel_spacing);
-					PIOS_Thread_Sleep(10);
-					DEBUG_PRINTF(2, "  modem_params: %d\r\n", openlrs_dev->bind_data.modem_params);
-					PIOS_Thread_Sleep(10);
-					DEBUG_PRINTF(2, "  flags: %d\r\n", openlrs_dev->bind_data.flags);
-					PIOS_Thread_Sleep(10);
-
-					for (uint32_t i = 0; i < MAXHOPS; i++) {
-						DEBUG_PRINTF(2, "    hop channel: %d\r\n", openlrs_dev->bind_data.hopchannel[i]);
-						PIOS_Thread_Sleep(10);
-					}
-				}
-#endif /* PIOS_INCLUDE_DEBUG_CONSOLE */
-
-				if (openlrs_dev->bind_data.version == BINDING_VERSION) {
-					DEBUG_PRINTF(2,"data good\r\n");
-					rxb = 'B';
-					tx_packet(openlrs_dev, &rxb, 1); // ACK that we got bound
-
-					OpenLRSData binding;
-					OpenLRSGet(&binding);
-					binding.version = openlrs_dev->bind_data.version;
-					binding.serial_baudrate = openlrs_dev->bind_data.serial_baudrate;
-					binding.rf_frequency = openlrs_dev->bind_data.rf_frequency;
-					binding.rf_magic = openlrs_dev->bind_data.rf_magic;
-					binding.rf_power = openlrs_dev->bind_data.rf_power;
-					binding.rf_channel_spacing = openlrs_dev->bind_data.rf_channel_spacing;
-					binding.modem_params = openlrs_dev->bind_data.modem_params;
-					binding.flags = openlrs_dev->bind_data.flags;
-					for (uint32_t i = 0; i < OPENLRS_HOPCHANNEL_NUMELEM; i++)
-						binding.hopchannel[i] = openlrs_dev->bind_data.hopchannel[i];
-					binding.beacon_frequency = openlrs_dev->beacon_frequency;
-					binding.beacon_delay = openlrs_dev->beacon_delay;
-					binding.beacon_period = openlrs_dev->beacon_period;
-					OpenLRSSet(&binding);
-					UAVObjSave(OpenLRSHandle(), 0);
-
-#if defined(PIOS_LED_LINK)
-					PIOS_ANNUNC_Toggle(PIOS_LED_LINK);
-#endif /* PIOS_LED_LINK */
-
-					return 1;
-				}
-			} else {
-				rfm22_deassertCs(openlrs_dev);
-				rfm22_releaseBus(openlrs_dev);
-			}
-			
-			openlrs_dev->rf_mode = Receive;
-			rx_reset(openlrs_dev);
-		}
-	}
-	return 0;
-}
-
-#if defined(PIOS_INCLUDE_DEBUG_CONSOLE)
-static void printVersion(uint16_t v)
-{
-	char ver[8];
-	ver[0] = '0' + ((v >> 8) & 0x0f);
-	ver[1] = '.';
-	ver[2] = '0' + ((v >> 4) & 0x0f);
-  	if (v & 0x0f) {
-    	ver[3] = '.';
-    	ver[4] = '0' + (v & 0x0f);
-    	ver[5] = '\r';
-    	ver[6] = '\n';
-    	ver[7] = '\0';
-    } else {
-    	ver[3] = '\r';
-    	ver[4] = '\n';
-    	ver[5] = '\0';
-    }
-    DEBUG_PRINTF(2, ver);
-}
-#endif
-
-static void pios_openlrs_setup(struct pios_openlrs_dev *openlrs_dev, bool bind)
-{
-	DEBUG_PRINTF(2,"OpenLRSng RX setup starting. Binding: %e\r\n", bind);
-	PIOS_Thread_Sleep(5);
-#if defined(PIOS_INCLUDE_DEBUG_CONSOLE)
-	printVersion(OPENLRSNG_VERSION);
-#endif
-
-	if ( bind ) {
-		if (pios_openlrs_bind_receive(openlrs_dev, 0)) {
-			// TODO: save binding settings bindWriteEeprom();
-			DEBUG_PRINTF(2,"Saved bind data to EEPROM (not really yet -- TODO)\r\n");
-		}
-	}
-
-	DEBUG_PRINTF(2,"Entering normal mode\r\n");
-
-	init_rfm(openlrs_dev, 0);   // Configure the RFM22B's registers for normal operation
-	openlrs_dev->rf_channel = 0;
-	rfmSetChannel(openlrs_dev, openlrs_dev->rf_channel);
-
-	// Count hopchannels as we need it later
-	openlrs_dev->hopcount = 0;
-	while ((openlrs_dev->hopcount < MAXHOPS) && (openlrs_dev->bind_data.hopchannel[openlrs_dev->hopcount] != 0)) {
-		openlrs_dev->hopcount++;
-	}
-
-	//################### RX SYNC AT STARTUP #################
-	openlrs_dev->rf_mode = Receive;
-	to_rx_mode(openlrs_dev);
-
-	openlrs_dev->link_acquired = 0;
-	openlrs_dev->lastPacketTimeUs = micros();
-
-	DEBUG_PRINTF(2,"OpenLRSng RX setup complete\r\n");
-}
-
-static void pios_openlrs_rx_loop(struct pios_openlrs_dev *openlrs_dev)
-{
-	uint32_t timeUs, timeMs;
-
-#if defined(PIOS_INCLUDE_WDG) && defined(PIOS_WDG_RFM22B)
-		// Update the watchdog timer
-	PIOS_WDG_UpdateFlag(PIOS_WDG_RFM22B);
-#endif /* PIOS_WDG_RFM22B */
-
-	if (rfm22_read_claim(openlrs_dev, 0x0C) == 0) {     // detect the locked module and reboot
+	/* Hack-- detect a locked module and reset */
+	if (rfm22_read_claim(openlrs_dev, 0x0C) == 0) {
 		DEBUG_PRINTF(2,"OLRS ERR: RX hang\r\n");
-		init_rfm(openlrs_dev, 0);
-		to_rx_mode(openlrs_dev);
+		rfm22_init(openlrs_dev, false);
 	}
-
-	timeUs = micros();
-	timeMs = millis();
-
-	DEBUG_PRINTF(2,"Time: %d\r\n", timeUs);
-
-	uint8_t *tx_buf = openlrs_dev->tx_buf;  // convenient variable
-
-	if (openlrs_dev->rf_mode == Received) {
-
-		DEBUG_PRINTF(2,"Packet Received. Dt=%d\r\n", timeUs-openlrs_dev->lastPacketTimeUs);
-
-		// Read the packet from RFM22b
-		rfm22_claimBus(openlrs_dev);
-		rfm22_assertCs(openlrs_dev);
-		PIOS_SPI_TransferByte(openlrs_dev->spi_id, 0x7F);
-		uint32_t packet_size = getPacketSize(&openlrs_dev->bind_data);
-		PIOS_SPI_TransferBlock(openlrs_dev->spi_id, OUT_FF,
-			      openlrs_dev->rx_buf, packet_size);
-		rfm22_deassertCs(openlrs_dev);
-		rfm22_releaseBus(openlrs_dev);
-
-		openlrs_dev->lastAFCCvalue = rfmGetAFCC(openlrs_dev);
-
-#if defined(PIOS_LED_LINK)
-		PIOS_ANNUNC_Toggle(PIOS_LED_LINK);
-#endif /* PIOS_LED_LINK */
-
-		openlrs_dev->lastPacketTimeUs = timeUs;
-		openlrs_dev->numberOfLostPackets = 0;
-		openlrs_status.LinkQuality <<= 1;
-		openlrs_status.LinkQuality |= 1;
-
-		if ((openlrs_dev->rx_buf[0] & 0x3e) == 0x00) {
-			// This flag indicates receiving PPM data
-
-			unpackChannels(openlrs_dev->bind_data.flags & 7, openlrs_dev->ppm, openlrs_dev->rx_buf + 1);
-			rescaleChannels(openlrs_dev->ppm);
-
-			// Call the PPM received callback if it's available.
-			if (openlrs_dev->openlrs_rcvr_id) {
-#if defined(PIOS_INCLUDE_OPENLRS_RCVR)
-				PIOS_OpenLRS_Rcvr_UpdateChannels(openlrs_dev->openlrs_rcvr_id, openlrs_dev->ppm);
-#endif
-			}
-		} 
-		else { 
-			// Not PPM data. Push into serial RX buffer.
-			if ((openlrs_dev->rx_buf[0] & 0x38) == 0x38) {
-				if ((openlrs_dev->rx_buf[0] ^ tx_buf[0]) & 0x80) {
-					// We got new data... (not retransmission)
-					tx_buf[0] ^= 0x80; // signal that we got it
-					bool rx_need_yield;
-					uint8_t data_len = openlrs_dev->rx_buf[0] & 7;
-					if (openlrs_dev->rx_in_cb && (data_len > 0)) {
-						(openlrs_dev->rx_in_cb) (openlrs_dev->rx_in_context, &openlrs_dev->rx_buf[1], data_len, NULL, &rx_need_yield);
-					}
-				}
-			}
-		}
-
-		// Flag to indicate ever got a link
-		openlrs_dev->link_acquired |= true;
-		openlrs_status.FailsafeActive = OPENLRSSTATUS_FAILSAFEACTIVE_INACTIVE;
-		openlrs_dev->beacon_armed = false; // when receiving packets make sure beacon cannot emit
-
-		// When telemetry is enabled we ack packets and send info about FC back
-		if (openlrs_dev->bind_data.flags & TELEMETRY_MASK) {
-			if ((tx_buf[0] ^ openlrs_dev->rx_buf[0]) & 0x40) {
-				// resend last message
-			} else {
-				tx_buf[0] &= 0xc0;
-				tx_buf[0] ^= 0x40; // swap sequence as we have new data
-
-				// Check for data on serial link
-				uint8_t bytes = 0;
-				// Append data from the com interface if applicable.
-				if (openlrs_dev->tx_out_cb) {
-					// Try to get some data to send
-					bool need_yield = false;
-					bytes = (openlrs_dev->tx_out_cb) (openlrs_dev->tx_out_context, &tx_buf[1], 8, NULL, &need_yield);
-				}
-
-				if (bytes > 0) {
-					tx_buf[0] |= (0x37 + bytes);
-				} else {
-					// tx_buf[0] lowest 6 bits left at 0
-					tx_buf[1] = openlrs_status.LastRSSI;
-					if (FlightBatteryStateHandle()) {
-						FlightBatteryStateData bat;
-						FlightBatteryStateGet(&bat);
-						// FrSky protocol normally uses 3.3V at 255 but
-						// divider from display can be set internally
-						tx_buf[2] = (uint8_t) (bat.Voltage / 25.0f * 255);
-						tx_buf[3] = (uint8_t) (bat.Current / 60.0f * 255);
-					} else {
-						tx_buf[2] = 0; // these bytes carry analog info. package
-						tx_buf[3] = 0; // battery here
-					}
-					tx_buf[4] = (openlrs_dev->lastAFCCvalue >> 8);
-					tx_buf[5] = openlrs_dev->lastAFCCvalue & 0xff;
-					tx_buf[6] = countSetBits(openlrs_status.LinkQuality & 0x7fff);
-				}
-			}
-
-			// This will block until sent
-			tx_packet(openlrs_dev, tx_buf, 9);
-		}
-
-		// Once a packet has been processed, flip back into receiving mode
-		openlrs_dev->rf_mode = Receive;
-		rx_reset(openlrs_dev);
-
-		openlrs_dev->willhop = 1;
-	}
-
-	if (openlrs_dev->link_acquired) {
-		// For missing packets to be properly trigger a well timed channel hop, this method should be called fairly close (but not sooner)
-		// than 1ms after the packet was expected to trigger this path
-		if ((openlrs_dev->numberOfLostPackets < openlrs_dev->hopcount) && (PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs) > (getInterval(&openlrs_dev->bind_data) + packet_timeout_us))) {
-			DEBUG_PRINTF(2,"OLRS WARN: Lost packet: %d\r\n", openlrs_dev->numberOfLostPackets);
-			// we lost packet, hop to next channel
-			openlrs_status.LinkQuality <<= 1;
-			openlrs_dev->willhop = 1;
-			if (openlrs_dev->numberOfLostPackets == 0) {
-				openlrs_dev->linkLossTimeMs = timeMs;
-				openlrs_dev->nextBeaconTimeMs = 0;
-			}
-			openlrs_dev->numberOfLostPackets++;
-			openlrs_dev->lastPacketTimeUs += getInterval(&openlrs_dev->bind_data);
-			openlrs_dev->willhop = 1;
-		} else if ((openlrs_dev->numberOfLostPackets >= openlrs_dev->hopcount) && (PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs) > (getInterval(&openlrs_dev->bind_data) * openlrs_dev->hopcount))) {
-			DEBUG_PRINTF(2,"ORLS WARN: Trying to resync\r\n");
-			// hop slowly to allow resync with TX
-			openlrs_status.LinkQuality = 0;
-			openlrs_dev->willhop = 1;
-			openlrs_dev->lastPacketTimeUs = timeUs;
-		}
-
-		if (openlrs_dev->numberOfLostPackets) {
-
-#if defined(PIOS_LED_LINK)
-			PIOS_ANNUNC_Off(PIOS_LED_LINK);
-#endif /* PIOS_LED_LINK */
-
-			if (openlrs_dev->failsafeDelay &&
-				(openlrs_status.FailsafeActive == OPENLRSSTATUS_FAILSAFEACTIVE_INACTIVE) && 
-				((timeMs - openlrs_dev->linkLossTimeMs) > ((uint32_t) openlrs_dev->failsafeDelay)))
-			{
-				DEBUG_PRINTF(2,"Failsafe activated: %d %d\r\n", timeMs, openlrs_dev->linkLossTimeMs);
-				openlrs_status.FailsafeActive = OPENLRSSTATUS_FAILSAFEACTIVE_ACTIVE;
-				//failsafeApply();
-				openlrs_dev->nextBeaconTimeMs = (timeMs + 1000UL * openlrs_dev->beacon_period) | 1; //beacon activating...
-			}
-
-			if ((openlrs_dev->beacon_frequency) && (openlrs_dev->nextBeaconTimeMs) &&
-					((timeMs - openlrs_dev->nextBeaconTimeMs) < 0x80000000)) {
-
-				// Indicate that the beacon is now active so we can trigger extra ones below
-				openlrs_dev->beacon_armed = true;
-
-				DEBUG_PRINTF(2,"Beacon time: %d\r\n", openlrs_dev->nextBeaconTimeMs);
-				// Only beacon when disarmed
-				uint8_t armed;
-				FlightStatusArmedGet(&armed);
-				if (armed == FLIGHTSTATUS_ARMED_DISARMED) {
-					beacon_send(openlrs_dev, false); // play cool tune
-					init_rfm(openlrs_dev, 0);   // go back to normal RX
-					rx_reset(openlrs_dev);
-					openlrs_dev->nextBeaconTimeMs = (timeMs +  1000UL * openlrs_dev->beacon_period) | 1; // avoid 0 in time
-				}
-			}
-		}
-
-	} else {
-		// Waiting for first packet, hop slowly
-		if (PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs) > (getInterval(&openlrs_dev->bind_data) * openlrs_dev->hopcount)) {
-			DEBUG_PRINTF(3,"Trying to get first packet\r\n");
-			openlrs_dev->lastPacketTimeUs = timeUs;
-			openlrs_dev->willhop = 1;
-		}
-	}
-
-	if (openlrs_dev->willhop == 1) {
-		openlrs_dev->rf_channel++;
-
-		if ((openlrs_dev->rf_channel == MAXHOPS) || (openlrs_dev->bind_data.hopchannel[openlrs_dev->rf_channel] == 0)) {
-			openlrs_dev->rf_channel = 0;
-		}
-
-		if ((openlrs_dev->beacon_frequency) && (openlrs_dev->nextBeaconTimeMs) && openlrs_dev->beacon_armed) {
-			// Listen for RSSI on beacon channel briefly for 'trigger'
-			uint8_t brssi = beaconGetRSSI(openlrs_dev);
-			if (brssi > ((openlrs_dev->beacon_rssi_avg>>2) + 20)) {
-				openlrs_dev->nextBeaconTimeMs = timeMs + 1000L;
-			}
-			openlrs_dev->beacon_rssi_avg = (openlrs_dev->beacon_rssi_avg * 3 + brssi * 4) >> 2;
-
-			rfmSetCarrierFrequency(openlrs_dev, openlrs_dev->bind_data.rf_frequency);
-		}
-
-		rfmSetChannel(openlrs_dev, openlrs_dev->rf_channel);
-		rx_reset(openlrs_dev);
-		openlrs_dev->willhop = 0;
-	}
-	
-	// Update UAVO
-	OpenLRSStatusSet(&openlrs_status);
-}
-
-uint8_t PIOS_OpenLRS_RSSI_Get(void)
-{
-	if(openlrs_status.FailsafeActive == OPENLRSSTATUS_FAILSAFEACTIVE_ACTIVE)
-		return 0;
-	else {
-		// Check object handle exists
-		if (OpenLRSHandle() == NULL)
-			return 0;
-
-		OpenLRSData openlrs_data;
-		OpenLRSGet(&openlrs_data);
-		
-		uint16_t LQ = openlrs_status.LinkQuality & 0x7fff;
-		// count number of 1s in LinkQuality
-		LQ  = LQ - ((LQ >> 1) & 0x5555);
-		LQ  = (LQ & 0x3333) + ((LQ >> 2) & 0x3333);
-		LQ  = LQ + (LQ >> 4);
-		LQ &= 0x0F0F;
-		LQ = (LQ * 0x0101) >> 8;
-		
-		switch(openlrs_data.RSSI_Type) {
-		case OPENLRS_RSSI_TYPE_COMBINED:
-			if ((uint8_t)LQ == 15) {
-				return (uint8_t)((openlrs_status.LastRSSI >> 1)+128);
-			} else {
-				return LQ * 9;
-			}
-		case OPENLRS_RSSI_TYPE_RSSI:
-			return openlrs_status.LastRSSI;
-		case OPENLRS_RSSI_TYPE_LINKQUALITY:
-			return (uint8_t)(LQ << 4);
-		default:
-			return 0;
-		}
-	}
-}
-
-/*****************************************************************************
-* PPM Code
-*****************************************************************************/
-
-/**
- * Register a OpenLRS_Rcvr interface to inform of PPM packets
- *
- * @param[in] rfm22b_dev     The RFM22B device ID.
- * @param[in] rfm22b_rcvr_id The receiver device to inform of PPM packets
- */
-void PIOS_OpenLRS_RegisterRcvr(uintptr_t openlrs_id, uintptr_t openlrs_rcvr_id)
-{
-	struct pios_openlrs_dev *openlrs_dev =
-	    (struct pios_openlrs_dev *)openlrs_id;
-
-	if (!pios_openlrs_validate(openlrs_dev)) {
-		return;
-	}
-
-	openlrs_dev->openlrs_rcvr_id = openlrs_rcvr_id;
-}
-
-/*****************************************************************************
-* Task and device setup
-*****************************************************************************/
-
-static void pios_openlrs_task(void *parameters);
-
-//! Global device handle, required for IRQ handler
-static struct pios_openlrs_dev * g_openlrs_dev;
-
-/**
- * Initialise an RFM22B device
- *
- * @param[out] rfm22b_id  A pointer to store the device ID in.
- * @param[in] spi_id  The SPI bus index.
- * @param[in] slave_num  The SPI bus slave number.
- * @param[in] cfg  The device configuration.
- */
-int32_t PIOS_OpenLRS_Init(uintptr_t * openlrs_id,
-		pios_spi_t spi_id, uint32_t slave_num,
-		const struct pios_openlrs_cfg *cfg,
-		HwSharedRfBandOptions rf_band)
-{
-	PIOS_DEBUG_Assert(rfm22b_id);
-	PIOS_DEBUG_Assert(cfg);
-
-	// Allocate the device structure.
-	struct pios_openlrs_dev *openlrs_dev = pios_openlrs_alloc();
-	if (!openlrs_dev) {
-		return -1;
-	}
-	*openlrs_id = (uint32_t) openlrs_dev;
-	g_openlrs_dev = openlrs_dev;
-
-	// Store the SPI handle
-	openlrs_dev->slave_num = slave_num;
-	openlrs_dev->spi_id = spi_id;
-
-	// and the frequency
-	openlrs_dev->band = rf_band;
-
-	// Before initializing everything, make sure device found
-	uint8_t device_type = rfm22_read(openlrs_dev, RFM22_DEVICE_TYPE) & RFM22_DT_MASK;
-	if (device_type != 0x08)
-		return -1;
-
-	// Initialize the com callbacks.
-	openlrs_dev->rx_in_cb = NULL;
-	openlrs_dev->tx_out_cb = NULL;
-
-	// Initialize the "PPM" callback.
-	openlrs_dev->openlrs_rcvr_id = 0;
-
-	OpenLRSInitialize();
-	OpenLRSStatusInitialize();
-	OpenLRSData binding;
-	OpenLRSGet(&binding);
-	if (binding.version == BINDING_VERSION) {
-		openlrs_dev->bind_data.version = binding.version;
-		openlrs_dev->bind_data.serial_baudrate = binding.serial_baudrate;
-		openlrs_dev->bind_data.rf_frequency = binding.rf_frequency;
-		openlrs_dev->bind_data.rf_magic = binding.rf_magic;
-		openlrs_dev->bind_data.rf_power = binding.rf_power;
-		openlrs_dev->bind_data.rf_channel_spacing = binding.rf_channel_spacing;
-		openlrs_dev->bind_data.modem_params = binding.modem_params;
-		openlrs_dev->bind_data.flags = binding.flags;
-		for (uint32_t i = 0; i < OPENLRS_HOPCHANNEL_NUMELEM; i++)
-			openlrs_dev->bind_data.hopchannel[i] = binding.hopchannel[i];
-	}
-
-	// Copy beacon settings over
-	openlrs_dev->beacon_frequency = binding.beacon_frequency;
-	openlrs_dev->beacon_delay = binding.beacon_delay;
-	openlrs_dev->beacon_period = binding.beacon_period;
-
-	openlrs_dev->failsafeDelay = binding.failsafe_delay;
-
-	// Bind the configuration to the device instance
-	openlrs_dev->cfg = *cfg;
-
-	// Initialize the external interrupt.
-	PIOS_EXTI_Init(cfg->exti_cfg);
-
-	// Register the watchdog timer for the radio driver task
-#if defined(PIOS_INCLUDE_WDG) && defined(PIOS_WDG_RFM22B)
-	PIOS_WDG_RegisterFlag(PIOS_WDG_RFM22B);
-#endif /* PIOS_WDG_RFM22B */
-
-	// Start the driver task.  This task controls the radio state machine and removed all of the IO from the IRQ handler.
-	openlrs_dev->taskHandle = PIOS_Thread_Create(pios_openlrs_task, "PIOS_OpenLRS_Task", STACK_SIZE_BYTES, (void *)openlrs_dev, TASK_PRIORITY);
-	TaskMonitorAdd(TASKINFO_RUNNING_MODEMRX, openlrs_dev->taskHandle);
-
-	return 0;
-}
-
-/**
- * The task that controls the radio state machine.
- *
- * @param[in] paramters  The task parameters.
- */
-static void pios_openlrs_task(void *parameters)
-{
-	struct pios_openlrs_dev *openlrs_dev = (struct pios_openlrs_dev *)parameters;
-
-	if (!pios_openlrs_validate(openlrs_dev)) {
-		return;
-	}
-
-	if (openlrs_dev->bind_data.version == BINDING_VERSION)
-		pios_openlrs_setup(openlrs_dev, false);
-	else
-		pios_openlrs_setup(openlrs_dev, true);
-
-	DEBUG_PRINTF(2, "Setup complete\r\n");
-
-	bool rssi_sampled = false;
-	while(1) {
-#if defined(PIOS_INCLUDE_WDG) && defined(PIOS_WDG_RFM22B)
-		// Update the watchdog timer
-		PIOS_WDG_UpdateFlag(PIOS_WDG_RFM22B);
-#endif /* PIOS_WDG_RFM22B */
-
-
-		/* This block of code determines the timing of when to call the loop method. It reaches a bit into
-		 * the internal state of that method to get the optimal timings. This is to keep the loop method as
-		 * similar as possible to the openLRSng implementation (for easier maintenance of compatibility)
-		 * while minimizing overhead spinning in a while loop.
-		 *
-		 * There are three reasons to go into loop:
-		 *  1. the ISR was triggered (packet was received)
-		 *  2. a little before the expected packet (to sample the RSSI while receiving packet)
-		 *  3. a little after expected packet (to channel hop when a packet was missing)
-		 */
-
-
-		uint32_t delay_ms = 0;
-
-		uint32_t time_since_packet_us = PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs);
-
-		if (!rssi_sampled) {
-			// If we had not sampled RSSI yet, schedule a bit early to try and catch while "packet is in the air"
-			uint32_t time_till_measure_rssi_us  = (getInterval(&openlrs_dev->bind_data) - packet_advance_time_us) - time_since_packet_us;
-			delay_ms = (time_till_measure_rssi_us + 999) / 1000;
-			DEBUG_PRINTF(3, "T1: %d\r\n", delay_ms);
-		} else {
-			// If we have sampled RSSI we want to schedule to hop when a packet has been missed
-			uint32_t time_till_timeout_us  = (getInterval(&openlrs_dev->bind_data) + packet_timeout_us) - time_since_packet_us;
-			delay_ms = (time_till_timeout_us + 999) / 1000;
-			DEBUG_PRINTF(3, "T2: %d %d\r\n", time_till_timeout_us,delay_ms, time_since_packet_us);
-		}
-
-		// Maximum delay based on packet time
-		const uint32_t max_delay = (getInterval(&openlrs_dev->bind_data) + packet_timeout_us) / 1000;
-		if (delay_ms > max_delay) delay_ms = max_delay;
-
-		if (PIOS_Semaphore_Take(openlrs_dev->sema_isr, delay_ms) == false) {
-			if (!rssi_sampled) {
-				// We timed out to sample RSSI
-				if (openlrs_dev->numberOfLostPackets < 2) {
-					
-					openlrs_dev->lastRSSITimeUs = openlrs_dev->lastPacketTimeUs;
-					openlrs_status.LastRSSI = rfmGetRSSI(openlrs_dev); // Read the RSSI value
-
-					DEBUG_PRINTF(3, "Sampled RSSI: %d %d\r\n", openlrs_status.LastRSSI, delay);
-				}
-			} else {
-				// We timed out because packet was missed
-				DEBUG_PRINTF(3, "ISR Timeout. Missed packet: %d %d %d\r\n", delay, getInterval(&openlrs_dev->bind_data), time_since_packet_us);
-				pios_openlrs_rx_loop(openlrs_dev);
-			}
-
-			rssi_sampled = true;
-		} else {
-			DEBUG_PRINTF(3, "ISR %d %d %d\r\n", delay, getInterval(&openlrs_dev->bind_data), time_since_packet_us);
-
-			// Process incoming data
-			pios_openlrs_rx_loop(openlrs_dev);
-
-			// When a packet has been received (processed below) indicate we need to sample a new RSSI
-			rssi_sampled = false;
-		}
-
-
-		DEBUG_PRINTF(3, "Processing time %d\r\n", PIOS_DELAY_GetuSSince(openlrs_dev->lastPacketTimeUs));
-	}
-}
-
-bool PIOS_OpenLRS_EXT_Int(void)
-{
-	struct pios_openlrs_dev *openlrs_dev = g_openlrs_dev;
-	if (!pios_openlrs_validate(openlrs_dev))
-		return false;
-
-	if (openlrs_dev->rf_mode == Transmit) {
-		openlrs_dev->rf_mode = Transmitted;
-	}
-	else if (openlrs_dev->rf_mode == Receive) {
-		openlrs_dev->rf_mode = Received;
-	}
-
-	// Indicate to main task that an ISR occurred
-	bool woken = false;
-	PIOS_Semaphore_Give_FromISR(openlrs_dev->sema_isr, &woken);
-
-	return woken;
-}
-
-
-/**
- * Allocate the device structure
- */
-static struct pios_openlrs_dev *pios_openlrs_alloc(void)
-{
-	struct pios_openlrs_dev *openlrs_dev;
-
-	openlrs_dev = (struct pios_openlrs_dev *)PIOS_malloc(sizeof(*openlrs_dev));
-	if (!openlrs_dev) {
-		return NULL;
-	}
-
-	openlrs_dev->spi_id = 0;
-
-	// Create the ISR signal
-	openlrs_dev->sema_isr = PIOS_Semaphore_Create();
-	if (!openlrs_dev->sema_isr) {
-		PIOS_free(openlrs_dev);
-		return NULL;
-	}
-
-	openlrs_dev->magic = PIOS_OPENLRS_DEV_MAGIC;
-	return openlrs_dev;
-}
-
-
-/**
- * Validate that the device structure is valid.
- *
- * @param[in] openlrs_dev  The OpenLRS device structure pointer.
- */
-static bool pios_openlrs_validate(struct pios_openlrs_dev *openlrs_dev)
-{
-	return openlrs_dev != NULL
-	    && openlrs_dev->magic == PIOS_OPENLRS_DEV_MAGIC;
 }
 
 /*****************************************************************************
@@ -1365,13 +2322,11 @@ static bool pios_openlrs_validate(struct pios_openlrs_dev *openlrs_dev)
  *
  * @param[in] rfm22b_dev  The RFM22B device.
  */
-static void rfm22_assertCs(struct pios_openlrs_dev *openlrs_dev)
+static void rfm22_assert_cs(pios_openlrs_t openlrs_dev)
 {
 	PIOS_DELAY_WaituS(1);
-	if (openlrs_dev->spi_id != 0) {
-		PIOS_SPI_RC_PinSet(openlrs_dev->spi_id,
-				   openlrs_dev->slave_num, 0);
-	}
+	PIOS_SPI_RC_PinSet(openlrs_dev->spi_id,
+			openlrs_dev->slave_num, 0);
 }
 
 /**
@@ -1379,12 +2334,10 @@ static void rfm22_assertCs(struct pios_openlrs_dev *openlrs_dev)
  *
  * @param[in] rfm22b_dev  The RFM22B device structure pointer.
  */
-static void rfm22_deassertCs(struct pios_openlrs_dev *openlrs_dev)
+static void rfm22_deassert_cs(pios_openlrs_t openlrs_dev)
 {
-	if (openlrs_dev->spi_id != 0) {
-		PIOS_SPI_RC_PinSet(openlrs_dev->spi_id,
-				   openlrs_dev->slave_num, 1);
-	}
+	PIOS_SPI_RC_PinSet(openlrs_dev->spi_id,
+			openlrs_dev->slave_num, 1);
 }
 
 /**
@@ -1392,11 +2345,9 @@ static void rfm22_deassertCs(struct pios_openlrs_dev *openlrs_dev)
  *
  * @param[in] rfm22b_dev  The RFM22B device structure pointer.
  */
-static void rfm22_claimBus(struct pios_openlrs_dev *openlrs_dev)
+static void rfm22_claim_bus(pios_openlrs_t openlrs_dev)
 {
-	if (openlrs_dev->spi_id != 0) {
-		PIOS_SPI_ClaimBus(openlrs_dev->spi_id);
-	}
+	PIOS_SPI_ClaimBus(openlrs_dev->spi_id);
 }
 
 /**
@@ -1404,66 +2355,25 @@ static void rfm22_claimBus(struct pios_openlrs_dev *openlrs_dev)
  *
  * @param[in] rfm22b_dev  The RFM22B device structure pointer.
  */
-static void rfm22_releaseBus(struct pios_openlrs_dev *openlrs_dev)
+static void rfm22_release_bus(pios_openlrs_t openlrs_dev)
 {
-	if (openlrs_dev->spi_id != 0) {
-		PIOS_SPI_ReleaseBus(openlrs_dev->spi_id);
-	}
+	PIOS_SPI_ReleaseBus(openlrs_dev->spi_id);
 }
 
 /**
- * Claim the semaphore and write a byte to a register
+ * Write a byte to a register without claiming the bus lock
  *
  * @param[in] rfm22b_dev  The RFM22B device.
  * @param[in] addr The address to write to
  * @param[in] data The datat to write to that address
  */
-static void rfm22_write_claim(struct pios_openlrs_dev *openlrs_dev,
-			      uint8_t addr, uint8_t data)
+static void rfm22_write(pios_openlrs_t openlrs_dev, uint8_t addr,
+		uint8_t data)
 {
-	rfm22_claimBus(openlrs_dev);
-	rfm22_assertCs(openlrs_dev);
+	rfm22_assert_cs(openlrs_dev);
 	uint8_t buf[2] = { addr | 0x80, data };
 	PIOS_SPI_TransferBlock(openlrs_dev->spi_id, buf, NULL, sizeof(buf));
-	rfm22_deassertCs(openlrs_dev);
-	rfm22_releaseBus(openlrs_dev);
-}
-
-/**
- * Claim the semaphore and write a byte to a register
- *
- * @param[in] rfm22b_dev  The RFM22B device.
- * @param[in] addr The address to write to
- * @param[in] data The datat to write to that address
- */
-static uint8_t rfm22_read_claim(struct pios_openlrs_dev *openlrs_dev,
-			      uint8_t addr)
-{
-	uint8_t out[2] = { addr & 0x7F, 0xFF };
-	uint8_t in[2];
-
-	rfm22_claimBus(openlrs_dev);
-	rfm22_assertCs(openlrs_dev);
-	PIOS_SPI_TransferBlock(openlrs_dev->spi_id, out, in, sizeof(out));
-	rfm22_deassertCs(openlrs_dev);
-	rfm22_releaseBus(openlrs_dev);
-	return in[1];
-}
-
-/**
- * Write a byte to a register without claiming the semaphore
- *
- * @param[in] rfm22b_dev  The RFM22B device.
- * @param[in] addr The address to write to
- * @param[in] data The datat to write to that address
- */
-static void rfm22_write(struct pios_openlrs_dev *openlrs_dev, uint8_t addr,
-			uint8_t data)
-{
-	rfm22_assertCs(openlrs_dev);
-	uint8_t buf[2] = { addr | 0x80, data };
-	PIOS_SPI_TransferBlock(openlrs_dev->spi_id, buf, NULL, sizeof(buf));
-	rfm22_deassertCs(openlrs_dev);
+	rfm22_deassert_cs(openlrs_dev);
 }
 
 /**
@@ -1473,15 +2383,48 @@ static void rfm22_write(struct pios_openlrs_dev *openlrs_dev, uint8_t addr,
  * @param[in] addr The address to read from
  * @return Returns the result of the register read
  */
-static uint8_t rfm22_read(struct pios_openlrs_dev *openlrs_dev, uint8_t addr)
+static uint8_t rfm22_read(pios_openlrs_t openlrs_dev, uint8_t addr)
 {
 	uint8_t out[2] = { addr & 0x7F, 0xFF };
 	uint8_t in[2];
 
-	rfm22_assertCs(openlrs_dev);
+	rfm22_assert_cs(openlrs_dev);
 	PIOS_SPI_TransferBlock(openlrs_dev->spi_id, out, in, sizeof(out));
-	rfm22_deassertCs(openlrs_dev);
+	rfm22_deassert_cs(openlrs_dev);
+
 	return in[1];
+}
+/**
+ * Claim the bus lock and write a byte to a register
+ *
+ * @param[in] rfm22b_dev  The RFM22B device.
+ * @param[in] addr The address to write to
+ * @param[in] data The datat to write to that address
+ */
+static void rfm22_write_claim(pios_openlrs_t openlrs_dev,
+		uint8_t addr, uint8_t data)
+{
+	rfm22_claim_bus(openlrs_dev);
+	rfm22_write(openlrs_dev, addr, data);
+	rfm22_release_bus(openlrs_dev);
+}
+
+/**
+ * Claim the bus lock and write a byte to a register
+ *
+ * @param[in] rfm22b_dev  The RFM22B device.
+ * @param[in] addr The address to write to
+ * @param[in] data The datat to write to that address
+ */
+static uint8_t rfm22_read_claim(pios_openlrs_t openlrs_dev, uint8_t addr)
+{
+	uint8_t ret;
+
+	rfm22_claim_bus(openlrs_dev);
+	ret = rfm22_read(openlrs_dev, addr);
+	rfm22_release_bus(openlrs_dev);
+
+	return ret;
 }
 
 #endif /* PIOS_INCLUDE_OPENLRS */

@@ -52,7 +52,7 @@
 #define PIOS_INCLUDE_UDP
 #define PIOS_INCLUDE_SERVO
 #define PIOS_INCLUDE_RCVR
-#define PIOS_INCLUDE_GCSRCVR
+#define PIOS_INCLUDE_UAVTALKRCVR
 #define PIOS_INCLUDE_IAP
 #define PIOS_INCLUDE_BL_HELPER
 #define PIOS_INCLUDE_FLASH
@@ -62,8 +62,6 @@
 #define PIOS_INCLUDE_RTC
 
 #define PIOS_RCVR_MAX_CHANNELS			12
-#define PIOS_RCVR_MAX_DEVS              3
-#define PIOS_GCSRCVR_MAX_DEVS           3
 
 /* COM Module */
 #define PIOS_TELEM_STACK_SIZE           PIOS_THREAD_STACK_SIZE_MIN
@@ -114,6 +112,7 @@
 #endif
 
 #define PIOS_INCLUDE_SIMSENSORS
+#define PIOS_INCLUDE_ADC
 
 #if !(defined(_WIN32) || defined(WIN32) || defined(__MINGW32__))
 #define PIOS_INCLUDE_SIMSENSORS_YASIM

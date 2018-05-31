@@ -133,11 +133,6 @@ namespace Internal {
         bool showOptionsDialog(const QString &category = QString(), const QString &page = QString(),
                                QWidget *parent = nullptr);
 
-        bool showWarningWithOptions(const QString &title, const QString &text,
-                                    const QString &details = QString(),
-                                    const QString &settingsCategory = QString(),
-                                    const QString &settingsId = QString(), QWidget *parent = nullptr);
-
     protected:
         virtual void changeEvent(QEvent *e);
         virtual void closeEvent(QCloseEvent *event);

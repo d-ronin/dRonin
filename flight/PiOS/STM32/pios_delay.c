@@ -160,6 +160,23 @@ uint32_t PIOS_DELAY_GetuSSince(uint32_t t)
 }
 
 /**
+ * @brief Calculates whether a given time has passed.
+ * @param[in] t the time in question
+ * @return true if the time is in the past.
+ */
+uint32_t PIOS_DELAY_GetuSExpired(uint32_t t)
+{
+	uint32_t interval = PIOS_DELAY_GetuSSince(t);
+
+	/* Use a windowed approach with the maximum timeval */
+	if (interval < (us_modulo / 2)) {
+		return true;
+	}
+
+	return false;
+}
+
+/**
  * @brief Get the raw delay timer, useful for timing
  * @return Unitless value (uint32 wrap around)
  */

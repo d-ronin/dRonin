@@ -15,7 +15,7 @@ try:
 except:
     import xml.etree.ElementTree as etree
 
-import time
+import time, array
 
 try:
     from struct import Struct, calcsize
@@ -432,16 +432,18 @@ def make_class(collection, xml_file, update_globals=True):
             # Add default values
             if info['defaultvalue'] is not None:
                 if info['type'] == 'enum':
-                    try:
-                        values = tuple(info['options'][v.strip()]
+                    values = tuple(info['options'][v.strip()]
                                        for v in info['defaultvalue'].split(','))
-                    except KeyError:
-                        print('Invalid default value: %s.%s has no option %s' % (name, info['name'], info['defaultvalue']))
-                        values = (0,)
                 else:  # float or int
                     values = tuple(float(v) for v in info['defaultvalue'].split(','))
                     if info['type'] != 'float':
                         values = tuple(int(v) for v in values)
+                    else:
+                        # This is a hack, to get single precision values.
+                        # Note this uglifies the floating point numbers in
+                        # canonicalization...
+                        values = array.array('f', values)
+                        values = tuple(v for v in values)
 
                 if len(values) == 1:
                     values = values[0]

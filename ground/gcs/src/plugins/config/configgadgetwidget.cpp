@@ -46,6 +46,7 @@
 #include "uavobjectutil/uavobjectutilmanager.h"
 
 #include <QDebug>
+#include <QMessageBox>
 #include <QStringList>
 #include <QWidget>
 #include <QTextEdit>

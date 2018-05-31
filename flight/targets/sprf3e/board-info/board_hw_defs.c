@@ -747,8 +747,6 @@ static const struct pios_tim_channel pios_tim_servoport_pins[] = {
 	},
 };
 
-
-#if defined(PIOS_INCLUDE_SERVO) && defined(PIOS_INCLUDE_TIM)
 /*
  * Servo outputs
  */
@@ -769,6 +767,7 @@ static const struct pios_servo_cfg pios_servo_cfg = {
 	.num_channels = NELEMENTS(pios_tim_servoport_pins),
 };
 
+#if defined(PIOS_INCLUDE_SERVO) && defined(PIOS_INCLUDE_TIM)
 struct pios_servo_cfg pios_servo_slow_cfg = {
 	.tim_oc_init = {
 		.TIM_OCMode = TIM_OCMode_PWM1,
@@ -883,16 +882,9 @@ static const struct pios_internal_adc_cfg internal_adc_cfg = {
 
 #endif /* PIOS_INCLUDE_ADC */
 
-
-#if defined(PIOS_INCLUDE_GCSRCVR)
-#include "pios_gcsrcvr_priv.h"
-#endif	/* PIOS_INCLUDE_GCSRCVR */
-
-
 #if defined(PIOS_INCLUDE_RCVR)
 #include "pios_rcvr_priv.h"
 #endif /* PIOS_INCLUDE_RCVR */
-
 
 #if defined(PIOS_INCLUDE_USB)
 #include "pios_usb_priv.h"

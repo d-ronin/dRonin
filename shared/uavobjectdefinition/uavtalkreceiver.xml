@@ -1,0 +1,15 @@
+<xml>
+  <object name="UAVTalkReceiver" settings="false" singleinstance="true">
+    <description>A receiver channel group carried over the telemetry link.</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="false" updatemode="onchange" period="0"/>
+    <telemetryflight acked="false" updatemode="onchange" period="0"/>
+    <field defaultvalue="0" elements="8" name="Channel" type="uint16" units="us">
+      <description>Channel data provided to flight controller (or radio) over UAVTalk, generally from GCS or radio link.</description>
+    </field>
+    <field defaultvalue="0" elements="1" name="RSSI" type="uint16" units="fraction">
+      <description>RSSI data provided when channel data comes from radio link.  Fraction of units /65535.</description>
+    </field>
+  </object>
+</xml>

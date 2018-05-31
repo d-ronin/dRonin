@@ -28,7 +28,10 @@
 /* OpenPilot Includes */
 #include "openpilot.h"
 
+#include "misc_math.h"
+
 #include "pios_config.h"
+#include "pios_hal.h"
 #include "uavobjectsinit.h"
 #include "systemmod.h"
 #include "pios_thread.h"
@@ -115,6 +118,8 @@ void check_bor()
 }
 #endif
 
+void system_task();
+
 /**
  * Initialisation task.
  *
@@ -139,6 +144,20 @@ void initTask(void)
 	AlarmsInitialize();
 #endif
 
+	uint8_t serial[PIOS_SYS_SERIAL_NUM_BINARY_LEN];
+	PIOS_SYS_SerialNumberGetBinary(serial);
+
+	for (int i = 0; i < PIOS_SYS_SERIAL_NUM_BINARY_LEN; i += 4) {
+		/* TODO: consider mixing in HRNG on F4 */
+		randomize_addseed(
+				(serial[i]) |
+				(serial[i+1] << 8) |
+				(serial[i+2] << 16) |
+				(serial[i+3] << 24));
+	}
+
+	PIOS_HAL_InitUAVTalkReceiver();
+
 	/* board driver init */
 	PIOS_Board_Init();
 
@@ -147,6 +166,9 @@ void initTask(void)
 
 	/* create all modules thread */
 	MODULE_TASKCREATE_ALL;
+
+	/* Explicitly invoke system task, in this thread stack. */
+	system_task();
 }
 
 /**

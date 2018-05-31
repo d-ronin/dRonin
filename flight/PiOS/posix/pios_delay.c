@@ -184,3 +184,13 @@ uint32_t PIOS_DELAY_GetuSSince(uint32_t t)
 {
 	return PIOS_DELAY_GetuS() - t;
 }
+
+/**
+ * @brief Calculates whether a given time has passed.
+ * @param[in] t the time in question
+ * @return true if the time is in the past.
+ */
+uint32_t PIOS_DELAY_GetuSExpired(uint32_t t)
+{
+	return PIOS_DELAY_GetuSSince(t) < 0x80000000;
+}

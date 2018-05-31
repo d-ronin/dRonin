@@ -33,8 +33,6 @@
  * of this source file; otherwise redistribution is prohibited.
  */
 
-
-
 /* Project Includes */
 #if !defined(_GNU_SOURCE)
 #define _GNU_SOURCE
@@ -56,6 +54,7 @@
 #include "pios_com_priv.h"
 #include "pios_serial_priv.h"
 #include "pios_tcp_priv.h"
+#include "pios_flash_posix_priv.h"
 #include "pios_flightgear.h"
 #include "pios_thread.h"
 
@@ -66,6 +65,7 @@
 #include "pios_rtc_priv.h"
 #endif
 
+#include "hwshared.h"
 #include "manualcontrolsettings.h"
 
 #include "sha1.h"
@@ -78,21 +78,23 @@ static bool debug_fpe=false;
 bool are_realtime = false;
 
 #ifdef PIOS_INCLUDE_SPI
-int num_spi = 0;
-pios_spi_t spi_devs[16];
+static int num_spi = 0;
+static pios_spi_t spi_devs[16];
 
 #include "pios_spi_posix_priv.h"
 #include "pios_ms5611_priv.h"
 #include "pios_bmm150_priv.h"
 #include "pios_bmx055_priv.h"
 #include "pios_flyingpio.h"
+
+static HwSharedPortTypesOptions rcvr_proto = HWSHARED_PORTTYPES_SBUS;
 #endif
 
 #ifdef PIOS_INCLUDE_I2C
-char mag_orientation = 255;
+static char mag_orientation = 255;
 
-int num_i2c = 0;
-pios_i2c_t i2c_devs[16];
+static int num_i2c = 0;
+static pios_i2c_t i2c_devs[16];
 
 pios_i2c_t external_i2c_adapter_id;
 
@@ -103,39 +105,47 @@ pios_i2c_t external_i2c_adapter_id;
 int orig_stdout;
 
 static void Usage(char *cmdName) {
-	printf( "usage: %s [-f] [-r] [-m orientation] [-s spibase] [-d drvname:bus:id]\n"
-		"\t\t[-l logfile] [-I i2cdev] [-i drvname:bus] [-g port]"
+	printf( "usage: %s [-f] [-r] [-m orientation] [-p proto] [-s spibase]\n"
+		"\t\t[-d drvname:bus:id] [-l logfile] [-I i2cdev] [-i drvname:bus]\n"
+		"\t\t[-g port] [-c confflash] [-x time] -!\n"
 		"\n"
-		"\t-f\tEnables floating point exception trapping mode\n"
-		"\t-r\tGoes realtime-class and pins all memory (requires root)\n"
-		"\t-l log\tWrites simulation data to a log\n"
-		"\t-g port\tStarts FlightGear driver on port\n"
+#if !(defined(_WIN32) || defined(WIN32) || defined(__MINGW32__))
+		"\t-f\t\t\tEnables floating point exception trapping mode\n"
+#endif
+#ifdef __linux__
+		"\t-r\t\t\tGoes realtime and pins all memory (requires root)\n"
+#endif
+		"\t-!\t\t\tUse a fake clock timebase gated by gcs/simsensors\n"
+		"\t-l log\t\t\tWrites simulation data to a log\n"
+		"\t-g port\t\t\tStarts FlightGear driver on port\n"
 #ifdef PIOS_INCLUDE_SIMSENSORS_YASIM
-		"\t-y\tUse an external simulator (drhil yasim)\n"
+		"\t-y\t\t\tUse an external simulator (drhil yasim)\n"
 #endif
-		"\t-x time\tExit after time seconds\n"
-#ifdef PIOS_INCLUDE_SERIAL
+#if !(defined(_WIN32) || defined(WIN32) || defined(__MINGW32__))
+		"\t-x time\t\t\tExit after time seconds\n"
+#endif
 		"\t-S drvname:serialpath\tStarts a serial driver on serialpath\n"
-		"\t\t\tAvailable drivers: gps msp lighttelemetry telemetry omnip\n"
-#endif
+		"\t\t\tAvailable drivers: gps msp lighttelemetry telemetry omnip\n\n"
 #ifdef PIOS_INCLUDE_SPI
-		"\t-s spibase\tConfigures a SPI interface on the base path\n"
+		"\t-p proto\t\tSpecify a flyingpio rcvr protocol\n"
+		"\t\t\tAvailable protocols: dsm hottsumd hottsumh sbus ppm\n"
+		"\t\t\t\t\tsrxl ibus\n\n"
+		"\t-s spibase\t\tConfigures a SPI interface on the base path\n"
 		"\t-d drvname:bus:id\tStarts driver drvname on bus/id\n"
-		"\t\t\tAvailable drivers: bmm150 bmx055 flyingpio ms5611\n"
+		"\t\t\tAvailable drivers: bmm150 bmx055 flyingpio ms5611\n\n"
 #endif
 #ifdef PIOS_INCLUDE_I2C
-		"\t-m orientation\tSets the orientation of an external mag\n"
-		"\t-I i2cdev\tConfigures an I2C interface on i2cdev\n"
-		"\t-i drvname:bus\tStarts a driver instance on bus\n"
-		"\t\t\tAvailable drivers: px4flow hmc5883 hmc5983 bmp280 ms5611\n"
+		"\t-m orientation\t\tSets the orientation of an external mag\n"
+		"\t-I i2cdev\t\tConfigures an I2C interface on i2cdev\n"
+		"\t-i drvname:bus\t\tStarts a driver instance on bus\n"
+		"\t\t\tAvailable drivers: px4flow hmc5883 hmc5983 bmp280 ms5611\n\n"
 #endif
+		"\t-c confflash\t\tspecify a filename to store config flash\n"
 		"",
 		cmdName);
 
 	exit(1);
 }
-
-#ifdef PIOS_INCLUDE_SERIAL
 
 #ifdef PIOS_INCLUDE_OMNIP
 #include <pios_omnip.h>
@@ -217,7 +227,7 @@ static int handle_serial_device(const char *optarg) {
 		PIOS_Modules_Enable(PIOS_MODULE_UAVOLIGHTTELEMETRYBRIDGE);
 		PIOS_COM_LIGHTTELEMETRY = com_id;
 	} else if (!strcmp(drv_name, "telemetry")) {
-		PIOS_COM_TELEM_RF = com_id;
+		PIOS_COM_TELEM_USB = com_id;
 #ifdef PIOS_INCLUDE_OMNIP
 	} else if (!strcmp(drv_name, "omnip")) {
 		omnip_dev_t dontcare;
@@ -236,7 +246,6 @@ static int handle_serial_device(const char *optarg) {
 fail:
 	return -1;
 }
-#endif
 
 #ifdef PIOS_INCLUDE_I2C
 static int handle_i2c_device(const char *optarg) {
@@ -302,6 +311,28 @@ fail:
 #endif
 
 #ifdef PIOS_INCLUDE_SPI
+static int handle_rcvr_protocol(const char *optarg) {
+	if (!strcmp(optarg, "dsm")) {
+		rcvr_proto = HWSHARED_PORTTYPES_DSM;
+	} else if (!strcmp(optarg, "hottsumd")) {
+		rcvr_proto = HWSHARED_PORTTYPES_HOTTSUMD;
+	} else if (!strcmp(optarg, "hottsumh")) {
+		rcvr_proto = HWSHARED_PORTTYPES_HOTTSUMH;
+	} else if (!strcmp(optarg, "sbus")) {
+		rcvr_proto = HWSHARED_PORTTYPES_SBUS;
+	} else if (!strcmp(optarg, "ppm")) {
+		rcvr_proto = HWSHARED_PORTTYPES_PPM;
+	} else if (!strcmp(optarg, "srxl")) {
+		rcvr_proto = HWSHARED_PORTTYPES_SRXL;
+	} else if (!strcmp(optarg, "ibus")) {
+		rcvr_proto = HWSHARED_PORTTYPES_IBUS;
+	} else {
+		return -1;
+	}
+
+	return 0;
+}
+
 static int handle_device(const char *optarg) {
 	char arg_copy[128];
 
@@ -370,7 +401,8 @@ static int handle_device(const char *optarg) {
 	} else if (!strcmp(drv_name, "flyingpio")) {
 		pios_flyingpio_dev_t dev;
 
-		int ret = PIOS_FLYINGPIO_SPI_Init(&dev, spi_devs[bus_num], dev_num);
+		int ret = PIOS_FLYINGPIO_SPI_Init(&dev, spi_devs[bus_num], dev_num,
+				rcvr_proto);
 
 		if (ret) goto fail;
 
@@ -462,20 +494,26 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 
 	int opt;
 
-	bool first_arg = true;
+	bool hw_argseen = true;
 
-	while ((opt = getopt(argc, argv, "yfrx:g:l:s:d:S:I:i:m:")) != -1) {
+	while ((opt = getopt(argc, argv, "!yfrx:g:l:s:d:S:I:i:m:c:p:")) != -1) {
 		switch (opt) {
 #ifdef PIOS_INCLUDE_SIMSENSORS_YASIM
 			case 'y':
 				use_yasim = true;
 				break;
 #endif
+			case '!':
+				PIOS_Thread_FakeClock_Tick();
+				break;
+			case 'c':
+				PIOS_Flash_Posix_SetFName(optarg);
+				break;
 			case 'f':
 				debug_fpe = true;
 				break;
 			case 'r':
-				if (!first_arg) {
+				if (!hw_argseen) {
 					printf("Realtime must be before hw\n");
 					exit(1);
 				}
@@ -500,24 +538,22 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 					printf("Couldn't init fileout com layer\n");
 					exit(1);
 				}
-				first_arg = false;
+				hw_argseen = false;
 				break;
 			}
-#ifdef PIOS_INCLUDE_SERIAL
 			case 'S':
 				if (handle_serial_device(optarg)) {
 					printf("Couldn't init device\n");
 					exit(1);
 				}
-				first_arg = false;
+				hw_argseen = false;
 				break;
-#endif
 #ifdef PIOS_INCLUDE_I2C
 			case 'm':
 			{
 				char *endptr;
 
-				if (!first_arg) {
+				if (!hw_argseen) {
 					printf("Mag orientation must be before hw\n");
 					exit(1);
 				}
@@ -548,7 +584,7 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 					printf("Couldn't init i2c device\n");
 					exit(1);
 				}
-				first_arg = false;
+				hw_argseen = false;
 				break;
 #endif
 #ifdef PIOS_INCLUDE_SPI
@@ -579,9 +615,22 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 
 				num_spi++;
 
-				first_arg = false;
+				hw_argseen = false;
 				break;
 			}
+			case 'p':
+				if (!hw_argseen) {
+					printf("Proto must be before hw\n");
+					exit(1);
+				}
+
+				if (handle_rcvr_protocol(optarg)) {
+					printf("Invalid receiver proto\n");
+					exit(1);
+				}
+
+				break;
+#endif
 			case 'g':
 			{
 				uint16_t port = atoi(optarg);
@@ -593,9 +642,10 @@ void PIOS_SYS_Args(int argc, char *argv[]) {
 					exit(1);
 				}
 
-				first_arg = false;
+				hw_argseen = false;
 				break;
 			}
+#if !(defined(_WIN32) || defined(WIN32) || defined(__MINGW32__))
 			case 'x':
 			{
 				int timeout = atoi(optarg);
@@ -654,6 +704,8 @@ void PIOS_SYS_Init(void)
 		exit(1);
 	}
 
+	setbuf(stderr, NULL);
+
 	char ser_text[PIOS_SYS_SERIAL_NUM_ASCII_LEN + 1];
 
 	int ret = PIOS_SYS_SerialNumberGet(ser_text);
@@ -661,6 +713,8 @@ void PIOS_SYS_Init(void)
 	if (ret == 0) {
 		printf("HW serial number-- hex: %s\n", ser_text);
 	}
+
+	/* TODO: initialize random number generator */
 
 #ifdef PIOS_INCLUDE_RTC
 	PIOS_RTC_Init();
@@ -890,7 +944,6 @@ static inline char nibble_to_hex(uint8_t c)
 
 DONT_BUILD_IF(PIOS_SYS_SERIAL_NUM_BINARY_LEN * 2 != PIOS_SYS_SERIAL_NUM_ASCII_LEN,
 		serLenMismatch);
-
 
 /**
 * Returns the serial number as a string

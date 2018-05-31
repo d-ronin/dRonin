@@ -260,17 +260,6 @@ void PIOS_Board_Init(void)
 		pios_servo_cfg.num_channels = 6;
 	}
 
-#if defined(PIOS_INCLUDE_GCSRCVR)
-	GCSReceiverInitialize();
-	uintptr_t pios_gcsrcvr_id;
-	PIOS_GCSRCVR_Init(&pios_gcsrcvr_id);
-	uintptr_t pios_gcsrcvr_rcvr_id;
-	if (PIOS_RCVR_Init(&pios_gcsrcvr_rcvr_id, &pios_gcsrcvr_rcvr_driver, pios_gcsrcvr_id)) {
-		PIOS_Assert(0);
-	}
-	pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_GCS] = pios_gcsrcvr_rcvr_id;
-#endif	/* PIOS_INCLUDE_GCSRCVR */
-
 #ifndef PIOS_DEBUG_ENABLE_DEBUG_PINS
 #ifdef PIOS_INCLUDE_SERVO
 	PIOS_Servo_Init(&pios_servo_cfg);
@@ -350,7 +339,7 @@ void PIOS_Board_Init(void)
 
 	//I2C is slow, sensor init as well, reset watchdog to prevent reset here
 	PIOS_WDG_Clear();
-
+/* HJI
 	uint8_t hw_ext_mag;
 	uint8_t hw_ext_mag_orientation;
 
@@ -364,11 +353,7 @@ void PIOS_Board_Init(void)
 	HwF3FcI2CExtBaroGet(&hw_ext_baro);
 
 	PIOS_HAL_ConfigureExternalBaro(hw_ext_baro,	&pios_i2c_id, &pios_i2c_cfg);
-
-#if defined(PIOS_INCLUDE_GPIO)
-	PIOS_GPIO_Init();
-#endif
-
+HJI */
 	/* Make sure we have at least one telemetry link configured or else fail initialization */
 	PIOS_Assert(pios_com_telem_serial_id || pios_com_telem_usb_id);
 

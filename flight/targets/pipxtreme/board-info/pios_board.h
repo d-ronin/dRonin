@@ -78,10 +78,10 @@ TIM4  |  RC In 1  |  Servo 3  |  Servo 2  |  Servo 1
 //------------------------
 #define PIOS_WATCHDOG_TIMEOUT    500
 #define PIOS_WDG_REGISTER        BKP_DR4
-#define PIOS_WDG_TELEMETRY       0x0001
-#define PIOS_WDG_RADIORX         0x0002
-#define PIOS_WDG_RADIOTX         0x0004
-#define PIOS_WDG_RFM22B          0x0008
+#define PIOS_WDG_TELEMETRY       0x0100
+#define PIOS_WDG_RADIORX         0x0200
+#define PIOS_WDG_RFM22B          0x0400
+#define PIOS_WDG_SYSTEM          0x0800
 
 //------------------------
 // PIOS_LED
@@ -166,9 +166,8 @@ extern uintptr_t pios_com_debug_id;
 extern uintptr_t pios_com_frsky_sport_id;
 #define PIOS_COM_TELEM_USB         (pios_com_telem_usb_id)
 #define PIOS_COM_VCP               (pios_com_vcp_id)
-#define PIOS_COM_TELEMETRY         (pios_com_telem_serial_id)
 #define PIOS_COM_BRIDGE            (pios_com_bridge_id)
-#define PIOS_COM_RFM22B            (pios_com_rf_id)
+#define PIOS_COM_RADIOBRIDGE       (pios_com_rf_id)
 #define PIOS_PPM_RECEIVER          (pios_ppm_rcvr_id)
 #define PIOS_COM_DEBUG             (pios_com_debug_id)
 #define PIOS_COM_FRSKY_SPORT       (pios_com_frsky_sport_id)
@@ -223,13 +222,12 @@ extern uintptr_t pios_com_frsky_sport_id;
 // See also pios_board.c
 //------------------------
 #define PIOS_RCVR_MAX_CHANNELS      12
-#define PIOS_GCSRCVR_TIMEOUT_MS     100
 
 //-------------------------
 // Receiver PPM input
 //-------------------------
 #define PIOS_PPM_NUM_INPUTS   8
-
+#define PIOS_SBUS_NUM_INPUTS         (16+2)
 //-------------------------
 // Servo outputs
 //-------------------------
@@ -248,20 +246,6 @@ extern uintptr_t pios_com_frsky_sport_id;
 #define PIOS_USB_DETECT_GPIO_PORT               GPIOC
 #define PIOS_USB_DETECT_GPIO_PIN                GPIO_Pin_15
 #define PIOS_USB_DETECT_EXTI_LINE               EXTI_Line15
-
-//-------------------------
-// RFM22
-//-------------------------
-
-#if defined(PIOS_INCLUDE_RFM22B)
-extern uintptr_t pios_rfm22b_id;
-#endif /* PIOS_INCLUDE_RFM22B */
-
-//-------------------------
-// Reed-Solomon ECC
-//-------------------------
-
-#define RS_ECC_NPARITY 4
 
 //-------------------------
 // Flash EEPROM Emulation

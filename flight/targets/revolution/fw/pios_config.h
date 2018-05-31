@@ -50,10 +50,7 @@
 #define PIOS_INCLUDE_WS2811
 
 /* Variables related to the RFM22B functionality */
-#define PIOS_INCLUDE_RFM22B
-#define PIOS_INCLUDE_RFM22B_COM
 #define PIOS_INCLUDE_OPENLRS
-#define PIOS_INCLUDE_RFM22B_RCVR
 #define PIOS_INCLUDE_OPENLRS_RCVR
 
 /* Or the OSD on clones */

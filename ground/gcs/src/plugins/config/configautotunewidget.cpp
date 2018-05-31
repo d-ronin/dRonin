@@ -38,6 +38,7 @@
 #include <uavobjectutil/devicedescriptorstruct.h>
 #include <uavobjectutil/uavobjectutilmanager.h>
 
+#include "altitudeholdsettings.h"
 #include "manualcontrolsettings.h"
 #include "mixersettings.h"
 #include "modulesettings.h"
@@ -49,6 +50,8 @@
 #include "extensionsystem/pluginmanager.h"
 #include "coreplugin/iboardtype.h"
 
+#include "physical_constants.h"
+
 #include <QtAlgorithms>
 #include <QChartView>
 #include <QClipboard>
@@ -57,7 +60,6 @@
 #include <QDesktopServices>
 #include <QFileDialog>
 #include <QList>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QStringList>
 #include <QTextEdit>
@@ -257,7 +259,7 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson(AutotuneFinalPage *autotuneSh
     computed["iterations"] = tuneState->iterations;
 
     QJsonObject gains;
-    QJsonObject roll_gain, pitch_gain, yaw_gain, outer_gain;
+    QJsonObject roll_gain, pitch_gain, yaw_gain, outer_gain, vert_gain;
     roll_gain["kp"] = tuneState->kp[0];
     roll_gain["ki"] = tuneState->ki[0];
     roll_gain["kd"] = tuneState->kd[0];
@@ -273,6 +275,9 @@ QJsonDocument ConfigAutotuneWidget::getResultsJson(AutotuneFinalPage *autotuneSh
     outer_gain["kp"] = tuneState->outerKp;
     outer_gain["ki"] = tuneState->outerKi;
     gains["outer"] = outer_gain;
+    vert_gain["kp"] = tuneState->vertSpeedKp;
+    vert_gain["ki"] = tuneState->vertSpeedKi;
+    vert_gain["poskp"] = tuneState->vertPosKp;
     computed["gains"] = gains;
     tuning["computed"] = computed;
     json["tuning"] = tuning;
@@ -441,6 +446,7 @@ void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened,
 
         saveObjectToSD(stabilizationSettings);
 
+
         SystemIdent *systemIdent = SystemIdent::GetInstance(getObjectManager());
         if (systemIdent) {
             SystemIdent::DataFields systemIdentData = systemIdent->getData();
@@ -454,6 +460,21 @@ void ConfigAutotuneWidget::openAutotuneDialog(bool autoOpened,
             systemIdent->updated();
 
             saveObjectToSD(systemIdent);
+        }
+
+        if (av.vertSpeedKp > 0) {
+            AltitudeHoldSettings *altSettings =
+                AltitudeHoldSettings::GetInstance(getObjectManager());
+
+            if (!altSettings) {
+                qWarning() << "Not committing alt hold data because obj not present";
+            } else {
+                altSettings->setPositionKp(av.vertPosKp);
+                altSettings->setVelocityKp(av.vertSpeedKp);
+                altSettings->setVelocityKi(av.vertSpeedKi);
+                altSettings->updated();
+                saveObjectToSD(altSettings);
+            }
         }
 
         if (pg->shareBox->isChecked()) {
@@ -544,6 +565,7 @@ AutotuneSlidersPage::AutotuneSlidersPage(QWidget *parent, AutotunedValues *autoV
     connect(rateNoise, &QAbstractSlider::valueChanged, this, &AutotuneSlidersPage::compute);
     connect(cbUseYaw, &QAbstractButton::toggled, this, &AutotuneSlidersPage::compute);
     connect(cbUseOuterKi, &QAbstractButton::toggled, this, &AutotuneSlidersPage::compute);
+    connect(cbTuneAlt, &QAbstractButton::toggled, this, &AutotuneSlidersPage::computeThrust);
 
     connect(btnResetSliders, &QAbstractButton::pressed, this, &AutotuneSlidersPage::resetSliders);
 }
@@ -560,6 +582,7 @@ void AutotuneSlidersPage::resetSliders()
     rateNoise->setValue(10);
 
     compute();
+    computeThrust();
 }
 
 bool AutotuneSlidersPage::isComplete() const
@@ -574,6 +597,68 @@ void AutotuneSlidersPage::setText(QLabel *lbl, double value, int precision)
     } else {
         lbl->setText(QString::number(value, 'f', precision));
     }
+}
+
+void AutotuneSlidersPage::computeThrust()
+{
+    const double baseKp = 0.5;
+    const double tauDerate = 0.025;
+    const double kiAdjust = 1.5;
+    const double outerSlowdown = 0.125;
+    const double okpCeiling = 0.9 * GRAVITY / 4.0;
+
+    double hoverThrust = 0;
+    double thrustTau = (tuneState->tau[0] + tuneState->tau[1]) / 2 +
+        tauDerate;
+    /*
+     * (Thrust tau is not guaranteed to be axis tau, but it's a pretty
+     * good approximation.  We derate it, mostly because we don't trust
+     * cfvert to be fast.)
+     */
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+
+    UAVObjectManager *objMngr = nullptr;
+    if (pm) {
+        objMngr = pm->getObject<UAVObjectManager>();
+    }
+
+    SystemIdent *systemIdent = nullptr;
+
+    if (objMngr) {
+        systemIdent = SystemIdent::GetInstance(objMngr);
+    }
+
+    if (systemIdent) {
+        hoverThrust = systemIdent->getHoverThrottle();
+    }
+
+    if ((hoverThrust < 0.05) ||
+            (hoverThrust > 0.6) ||
+            (thrustTau < 0.005) ||
+            (thrustTau > 0.200)) {
+        cbTuneAlt->setChecked(false);
+        cbTuneAlt->setEnabled(false);
+    }
+
+    if (cbTuneAlt->isChecked()) {
+        tuneState->vertSpeedKp = (baseKp * hoverThrust / GRAVITY) /
+                                    thrustTau;
+        tuneState->vertSpeedKi = tuneState->vertSpeedKp /
+                                    (kiAdjust * 2 * M_PI * thrustTau);
+        tuneState->vertPosKp = outerSlowdown / thrustTau;
+
+        if (tuneState->vertPosKp > okpCeiling) {
+            tuneState->vertPosKp = okpCeiling;
+        }
+    } else {
+        tuneState->vertSpeedKp = -1;
+        tuneState->vertSpeedKi = -1;
+        tuneState->vertPosKp = -1;
+    }
+
+    setText(lblAltVelKp, tuneState->vertSpeedKp, 3);
+    setText(lblAltVelKi, tuneState->vertSpeedKi, 3);
+    setText(lblAltPosKp, tuneState->vertSpeedKi, 3);
 }
 
 void AutotuneSlidersPage::compute()

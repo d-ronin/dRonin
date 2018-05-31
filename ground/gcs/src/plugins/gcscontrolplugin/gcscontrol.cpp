@@ -56,7 +56,7 @@ void GCSControl::extensionsInitialized()
     manControlSettingsUAVO = ManualControlSettings::GetInstance(objMngr);
     Q_ASSERT(manControlSettingsUAVO);
 
-    m_gcsReceiver = GCSReceiver::GetInstance(objMngr);
+    m_gcsReceiver = UAVTalkReceiver::GetInstance(objMngr);
     Q_ASSERT(m_gcsReceiver);
 }
 
@@ -125,7 +125,7 @@ bool GCSControl::beginGCSControl()
         inverseMapping[x] = i;
 
         // Assign this channel to GCS control
-        manControlSettingsUAVO->setChannelGroups(x, ManualControlSettings::CHANNELGROUPS_GCS);
+        manControlSettingsUAVO->setChannelGroups(x, ManualControlSettings::CHANNELGROUPS_UAVTALK);
 
         // Set the ranges to match what the widget produces
         manControlSettingsUAVO->setChannelNumber(x, i + 1);
@@ -147,8 +147,12 @@ bool GCSControl::beginGCSControl()
     manControlSettingsUAVO->updated();
     connect(manControlSettingsUAVO, &UAVObject::objectUpdated, this, &GCSControl::objectsUpdated);
     hasControl = true;
-    for (quint8 x = 0; x < GCSReceiver::CHANNEL_NUMELEM; ++x)
-        setChannel(x, 0);
+
+    for (quint8 x = 0; x < NUM_CHANNELS; ++x) {
+        setChannel(channels[x], 0);
+    }
+
+    setChannel(ManualControlSettings::CHANNELGROUPS_ARMING, -1);
     receiverActivity.start();
     return true;
 }
@@ -213,7 +217,7 @@ bool GCSControl::setChannel(quint8 channeltype, float value)
 
     uint8_t channel = inverseMapping[channeltype];
 
-    if (value > 1 || value < -1 || channel >= GCSReceiver::CHANNEL_NUMELEM || !hasControl)
+    if (value > 1 || value < -1 || channel >= UAVTalkReceiver::CHANNEL_NUMELEM || !hasControl)
         return false;
     quint16 pwmValue;
     if (value >= 0)

@@ -55,8 +55,6 @@ MATHLIB = $(FLIGHTLIB)/math
 MATHLIBINC = $(FLIGHTLIB)/math
 MGRSLIB = $(FLIGHTLIB)/mgrs
 MGRSLIBINC = $(FLIGHTLIB)/mgrs
-RSCODE = $(FLIGHTLIB)/rscode
-RSCODEINC = $(FLIGHTLIB)/rscode
 PIOSSTM32F4XX = $(PIOS)/STM32F4xx
 PIOSCOMMON = $(PIOS)/Common
 PIOSCOMMONLIB = $(PIOSCOMMON)/Libraries
@@ -99,9 +97,10 @@ include $(PIOS)/STM32F4xx/library_chibios.mk
 # SRC += $(PIOS)/STM32F4xx/pios_video.c
 
 ## PIOS Hardware (Common)
+SRC += pios_debug.c
 SRC += pios_delay.c
 SRC += pios_exti.c
-SRC += pios_gcsrcvr.c
+SRC += pios_uavtalkrcvr.c
 SRC += pios_crc.c
 SRC += pios_com.c
 SRC += pios_dsm.c
@@ -146,7 +145,6 @@ EXTRAINCDIRS += $(OPUAVOBJINC)
 EXTRAINCDIRS += $(OPUAVSYNTHDIR)
 EXTRAINCDIRS += $(FLIGHTLIBINC)
 EXTRAINCDIRS += $(MATHLIBINC)
-EXTRAINCDIRS += $(RSCODEINC)
 EXTRAINCDIRS += $(PIOSSTM32F4XX)
 EXTRAINCDIRS += $(PIOSCOMMON)
 EXTRAINCDIRS += $(STMSPDINCDIR)

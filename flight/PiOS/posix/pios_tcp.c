@@ -50,11 +50,12 @@
 #endif
 
 /* Provide a COM driver */
-static void PIOS_TCP_ChangeBaud(uintptr_t udp_id, uint32_t baud);
-static void PIOS_TCP_RegisterRxCallback(uintptr_t udp_id, pios_com_callback rx_in_cb, uintptr_t context);
-static void PIOS_TCP_RegisterTxCallback(uintptr_t udp_id, pios_com_callback tx_out_cb, uintptr_t context);
-static void PIOS_TCP_TxStart(uintptr_t udp_id, uint16_t tx_bytes_avail);
-static void PIOS_TCP_RxStart(uintptr_t udp_id, uint16_t rx_bytes_avail);
+static void PIOS_TCP_ChangeBaud(uintptr_t tcp_id, uint32_t baud);
+static void PIOS_TCP_RegisterRxCallback(uintptr_t tcp_id, pios_com_callback rx_in_cb, uintptr_t context);
+static void PIOS_TCP_RegisterTxCallback(uintptr_t tcp_id, pios_com_callback tx_out_cb, uintptr_t context);
+static void PIOS_TCP_TxStart(uintptr_t tcp_id, uint16_t tx_bytes_avail);
+static void PIOS_TCP_RxStart(uintptr_t tcp_id, uint16_t rx_bytes_avail);
+static bool PIOS_TCP_Available(uintptr_t tcp_id);
 
 typedef struct {
 	const struct pios_tcp_cfg * cfg;
@@ -79,6 +80,7 @@ const struct pios_com_driver pios_tcp_com_driver = {
 	.rx_start   = PIOS_TCP_RxStart,
 	.bind_tx_cb = PIOS_TCP_RegisterTxCallback,
 	.bind_rx_cb = PIOS_TCP_RegisterRxCallback,
+	.available  = PIOS_TCP_Available,
 };
 
 
@@ -324,6 +326,16 @@ static void PIOS_TCP_RegisterTxCallback(uintptr_t tcp_id, pios_com_callback tx_o
 	 */
 	tcp_dev->tx_out_context = context;
 	tcp_dev->tx_out_cb = tx_out_cb;
+}
+
+
+static bool PIOS_TCP_Available(uintptr_t tcp_id)
+{
+	pios_tcp_dev *tcp_dev = find_tcp_dev_by_id(tcp_id);
+
+	PIOS_Assert(tcp_dev);
+
+	return tcp_dev->socket_connection != INVALID_SOCKET;
 }
 
 #endif

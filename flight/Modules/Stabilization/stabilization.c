@@ -438,18 +438,14 @@ static void initialize_lqg_controllers(float dT)
 				/* Update Q matrix. */
 				lqr_t lqr = lqg_get_lqr(lqg[i]);
 				lqr_update(lqr, 
-						lqgSettings.LQR[i == YAW ? LQGSETTINGS_LQR_YAWQ1 : LQGSETTINGS_LQR_Q1],
-						lqgSettings.LQR[i == YAW ? LQGSETTINGS_LQR_YAWQ2 : LQGSETTINGS_LQR_Q2]
+						lqgSettings.LQRegulator[i == YAW ? LQGSETTINGS_LQREGULATOR_YAWQ1 : LQGSETTINGS_LQREGULATOR_Q1],
+						lqgSettings.LQRegulator[i == YAW ? LQGSETTINGS_LQREGULATOR_YAWQ2 : LQGSETTINGS_LQREGULATOR_Q2],
+						lqgSettings.LQRegulator[i == YAW ? LQGSETTINGS_LQREGULATOR_YAWR : LQGSETTINGS_LQREGULATOR_R]
 					);
 			} else {
 				/* Initial setup. */
 				float beta = sysIdent.Beta[i];
 				float tau = (sysIdent.Tau[0] + sysIdent.Tau[1]) * 0.5f;
-
-				if (i == YAW)
-				{
-					beta += lqgSettings.LQR[LQGSETTINGS_LQR_YAWBETAOFFSET];
-				}
 
 				if (tau > 0.001f && beta > 6) {
 					rtkf_t rtkf = rtkf_create(beta, tau, dT, 
@@ -460,8 +456,9 @@ static void initialize_lqg_controllers(float dT)
 							lqgSettings.RTKF[LQGSETTINGS_RTKF_BIASLIMIT]
 						);
 					lqr_t lqr = lqr_create(beta, tau, dT,
-							lqgSettings.LQR[i == YAW ? LQGSETTINGS_LQR_YAWQ1 : LQGSETTINGS_LQR_Q1],
-							lqgSettings.LQR[i == YAW ? LQGSETTINGS_LQR_YAWQ2 : LQGSETTINGS_LQR_Q2]
+							lqgSettings.LQRegulator[i == YAW ? LQGSETTINGS_LQREGULATOR_YAWQ1 : LQGSETTINGS_LQREGULATOR_Q1],
+							lqgSettings.LQRegulator[i == YAW ? LQGSETTINGS_LQREGULATOR_YAWQ2 : LQGSETTINGS_LQREGULATOR_Q2],
+							lqgSettings.LQRegulator[i == YAW ? LQGSETTINGS_LQREGULATOR_YAWR : LQGSETTINGS_LQREGULATOR_R]
 						);
 					lqg[i] = lqg_create(rtkf, lqr);
 				}
@@ -566,6 +563,10 @@ static float calculate_thrust(StabilizationDesiredThrustModeOptions mode,
 		case STABILIZATIONDESIRED_THRUSTMODE_VERTICALSPEED:
 			do_vertspeed_control = true;
 			vertspeed_desired = desired_thrust;
+			break;
+
+		case STABILIZATIONDESIRED_THRUSTMODE_FLIPOVERMODETHRUSTREVERSED:
+			desired_thrust = -desired_thrust;
 			break;
 
 		default:
@@ -828,7 +829,12 @@ static void stabilizationTask(void* parameters)
 					(dT_measured < dT_expected * 0.85f)) {
 				frequency_wrong = true;
 #ifdef FLIGHT_POSIX
-				printf("Stabilization: frequency wrong.  dT_measured=%f, expected=%f\n", dT_measured, dT_expected);
+				if (!PIOS_Thread_FakeClock_IsActive()) {
+					printf("Stabilization: frequency wrong.  dT_measured=%f, expected=%f\n",
+							dT_measured, dT_expected);
+				} else {
+					frequency_wrong = false;
+				}
 #endif
 			}
 		}
@@ -857,6 +863,10 @@ static void stabilizationTask(void* parameters)
 		actuatorDesired.Thrust = calculate_thrust(
 				stabDesired.ThrustMode, &flightStatus,
 				airframe_type, stabDesired.Thrust);
+
+		actuatorDesired.FlipOverThrustMode =
+			(stabDesired.ThrustMode == STABILIZATIONDESIRED_THRUSTMODE_FLIPOVERMODE) ||
+			(stabDesired.ThrustMode == STABILIZATIONDESIRED_THRUSTMODE_FLIPOVERMODETHRUSTREVERSED);
 
 		// Re-project axes if necessary prior to running stabilization algorithms.
 		uint8_t reprojection = stabDesired.ReprojectionMode;

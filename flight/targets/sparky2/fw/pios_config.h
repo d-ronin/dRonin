@@ -43,9 +43,8 @@
 #define PIOS_INCLUDE_FASTHEAP
 
 /* Variables related to the RFM22B functionality */
-#define PIOS_INCLUDE_RFM22B
-#define PIOS_INCLUDE_RFM22B_COM
 #define PIOS_INCLUDE_OPENLRS
+#define PIOS_INCLUDE_OPENLRS_RCVR
 
 /* Select the sensors to include */
 #define PIOS_INCLUDE_MPU
@@ -64,8 +63,6 @@
 
 /* Supported receiver interfaces */
 #define PIOS_INCLUDE_PWM
-#define PIOS_INCLUDE_RFM22B_RCVR
-#define PIOS_INCLUDE_OPENLRS_RCVR
 
 
 #define PIOS_INCLUDE_DEBUG_CONSOLE

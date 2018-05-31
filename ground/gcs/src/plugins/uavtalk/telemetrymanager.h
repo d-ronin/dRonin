@@ -61,7 +61,6 @@ signals:
 private slots:
     void onConnect();
     void onDisconnect();
-    void onGeneralSettingsChanged();
 
 private:
     UAVObjectManager *objMngr;

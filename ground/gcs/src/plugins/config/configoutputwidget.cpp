@@ -149,6 +149,7 @@ void ConfigOutputWidget::enableControls(bool enable)
     m_config->channelOutTest->setEnabled(enable);
     m_config->calibrateESC->setEnabled(enable);
     m_config->motorCurveFit->setEnabled(enable);
+    m_config->motorPowerGain->setEnabled(enable);
 }
 
 ConfigOutputWidget::~ConfigOutputWidget()
@@ -170,12 +171,9 @@ void ConfigOutputWidget::runChannelTests(bool state)
     if (state && ((systemAlarms.Alarm[SystemAlarms::ALARM_ACTUATOR] == SystemAlarms::ALARM_ERROR)
                   || (systemAlarms.Alarm[SystemAlarms::ALARM_ACTUATOR]
                       == SystemAlarms::ALARM_CRITICAL))) {
-        QMessageBox mbox;
-        mbox.setText(
-            QString(tr("The actuator module is in an error state.  This can also occur because "
-                       "there are no inputs.  Please fix these before testing outputs.")));
-        mbox.setStandardButtons(QMessageBox::Ok);
-        mbox.exec();
+        (void) QMessageBox::critical(this, tr("Actuator error"),
+            tr("The actuator module is in an error state. "
+                "Please fix these before testing outputs."));
 
         // Unfortunately must cache this since callback will reoccur
         accInitialData = ActuatorCommand::GetInstance(getObjectManager())->getMetadata();
@@ -186,12 +184,12 @@ void ConfigOutputWidget::runChannelTests(bool state)
 
     // Confirm this is definitely what they want
     if (state) {
-        QMessageBox mbox;
-        mbox.setText(QString(tr("This option will start your motors by the amount selected on the "
-                                "sliders regardless of transmitter.  It is recommended to remove "
-                                "any blades from motors.  Are you sure you want to do this?")));
-        mbox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-        int retval = mbox.exec();
+        int retval = QMessageBox::warning(this, tr("Actuator test"),
+                tr("This option will start your motors by the amount selected on the "
+                    "sliders regardless of transmitter.  It is recommended to remove "
+                    "any blades from motors.  Are you sure you want to do this?"),
+                QMessageBox::Yes | QMessageBox::No);
+
         if (retval != QMessageBox::Yes) {
             state = false;
             m_config->channelOutTest->setChecked(false);
@@ -329,7 +327,7 @@ void ConfigOutputWidget::startESCCalibration()
     if (!showOutputChannelSelectWindow(channelsToCalibrate))
         return;
 
-    QMessageBox mbox;
+    QMessageBox mbox(this);
     mbox.setText(QString(tr("Starting ESC calibration.<br/><b>Please remove all propellers and "
                             "disconnect battery from ESCs.</b>")));
     mbox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
@@ -483,6 +481,7 @@ void ConfigOutputWidget::refreshWidgetsValues(UAVObject *obj)
     }
 
     m_config->motorCurveFit->setValue(actuatorSettingsData.MotorInputOutputCurveFit);
+    m_config->motorPowerGain->setValue(actuatorSettingsData.MotorInputOutputGain * 100);
 
     // Get Channel ranges:
     QList<OutputChannelForm *> outputChannelForms = findChildren<OutputChannelForm *>();
@@ -603,6 +602,7 @@ void ConfigOutputWidget::updateObjectsFromWidgets()
             timerStringToFreq(m_config->cb_outputRate6->currentText());
 
         actuatorSettingsData.MotorInputOutputCurveFit = m_config->motorCurveFit->value();
+        actuatorSettingsData.MotorInputOutputGain = m_config->motorPowerGain->value() * 0.01;
 
         if (m_config->spinningArmed->isChecked() == true)
             actuatorSettingsData.MotorsSpinWhileArmed = ActuatorSettings::MOTORSSPINWHILEARMED_TRUE;

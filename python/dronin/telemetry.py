@@ -2,7 +2,7 @@
 Interface to telemetry streams -- log, network, or serial.
 
 Copyright (C) 2014-2015 Tau Labs, http://taulabs.org
-Copyright (C) 2015-2016 dRonin, http://dronin.org
+Copyright (C) 2015-2018 dRonin, http://dronin.org
 Licensed under the GNU LGPL version 2.1 or any later version (see COPYING.LESSER)
 """
 
@@ -18,9 +18,11 @@ import os
 
 from abc import ABCMeta, abstractmethod
 
-from six import with_metaclass
+import logging
 
-class TelemetryBase(with_metaclass(ABCMeta)):
+logger = logging.getLogger(__name__)
+
+class TelemetryBase(metaclass=ABCMeta):
     """
     Basic (abstract) implementation of telemetry used by all stream types.
     """
@@ -96,6 +98,8 @@ class TelemetryBase(with_metaclass(ABCMeta)):
 
         self.first_handshake_needed = self.do_handshaking
 
+        self.iter_idx = 0
+
         if do_handshaking:
             self.GCSTelemetryStats = uavo_defs.find_by_name('UAVO_GCSTelemetryStats')
             self.FlightTelemetryStats = uavo_defs.find_by_name('UAVO_FlightTelemetryStats')
@@ -119,13 +123,9 @@ class TelemetryBase(with_metaclass(ABCMeta)):
             if request is not None:
                 request.completed(None, obj._id)
 
-    def as_numpy_array(self, match_class, filter_cond=None, blocks=True):
-        """ Transforms all received instances of a given object to a numpy array.
-
-        match_class: the UAVO_* class you'd like to match.
-        """
-
-        import numpy as np
+    def as_filtered_list(self, match_class, filter_cond=None, blocks=True):
+        if isinstance(match_class, str):
+            match_class = self.uavo_defs.find_by_name(match_class)
 
         if blocks:
             to_iter = self
@@ -139,6 +139,23 @@ class TelemetryBase(with_metaclass(ABCMeta)):
         if filter_cond is not None:
             filtered_list = list(filter(filter_cond, filtered_list))
 
+        return filtered_list
+
+    def as_numpy_array(self, match_class, filter_cond=None, blocks=True):
+        """ Transforms all received instances of a given object to a numpy array.
+
+        match_class: the UAVO_* class you'd like to match.
+        """
+
+        import numpy as np
+
+        # Find the subset of this list that is of the requested class
+        filtered_list = self.as_filtered_list(match_class, filter_cond, blocks)
+
+        # Perform any additional requested filtering
+        if filter_cond is not None:
+            filtered_list = list(filter(filter_cond, filtered_list))
+
         # Check for an empty list
         if filtered_list == []:
             return np.array([])
@@ -147,15 +164,15 @@ class TelemetryBase(with_metaclass(ABCMeta)):
 
     def __iter__(self):
         """ Iterator service routine. """
-        iterIdx = 0
+        iter_idx = self.iter_idx
 
         self.cond.acquire()
 
         while True:
-            if iterIdx < len(self.uavo_list):
-                obj = self.uavo_list[iterIdx]
+            if iter_idx < len(self.uavo_list):
+                obj = self.uavo_list[iter_idx]
 
-                iterIdx += 1
+                iter_idx += 1
 
                 self.cond.release()
 
@@ -173,6 +190,8 @@ class TelemetryBase(with_metaclass(ABCMeta)):
                     # wait for another thread to fill it in
                     self.cond.wait()
             else:
+                self.iter_idx = iter_idx
+                self.cond.release()
                 break
 
     def __make_handshake(self, handshake):
@@ -209,14 +228,14 @@ class TelemetryBase(with_metaclass(ABCMeta)):
 
             if obj.Status == obj.ENUM_Status['Disconnected']:
                 # Request handshake
-                #print("Disconnected")
+                logger.debug("FlightTelem: Disconnected")
                 send_obj = self.__make_handshake('HandshakeReq')
             elif obj.Status == obj.ENUM_Status['HandshakeAck']:
                 # Say connected
-                #print("Handshake ackd")
+                logger.debug("FlightTelem: Handshake Acked")
                 send_obj = self.__make_handshake('Connected')
             elif obj.Status == obj.ENUM_Status['Connected']:
-                #print("Connected")
+                logger.debug("FlightTelem: Connected")
                 send_obj = self.__make_handshake('Connected')
 
             self.send_object(send_obj)
@@ -265,10 +284,10 @@ class TelemetryBase(with_metaclass(ABCMeta)):
             # Check for anything that needs retrying--- requests,
             # acked operations.  Do at most one thing per cycle.
 
-            for f in self.req_obj.values():
+            for f in list(self.req_obj.values()):
                 if f.expired():
                     self.req_obj.pop(f.key())
-                    f.completed(None, f._id)
+                    f.completed(None, f.obj._id)
                 elif f.time_to_resend():
                     key = f.key()
                     self._send(f.make_request())
@@ -311,7 +330,7 @@ class TelemetryBase(with_metaclass(ABCMeta)):
                 return response[0]
 
     def filedata_callback(self, file_id, offset, eof, last_chunk, data):
-        #print("Offs %d fd=[%s]" % (offset, data.hex()))
+        logger.debug("filedata: Offs %d fd=[%s]" % (offset, data.hex()))
         with self.ack_cond:
             if self.file_id != file_id:
                 return
@@ -346,6 +365,22 @@ class TelemetryBase(with_metaclass(ABCMeta)):
         )
 
         self.send_object(save_req, req_ack=True)
+
+        for i in range(30):
+            try:
+                lv = self.last_values[save_obj]
+                if lv.ObjectID == obj._id:
+                    if lv.Operation == save_obj.ENUM_Operation['Completed']:
+                        return
+
+                    if lv.Operation != save_obj.ENUM_Operation['Save']:
+                        raise Exception("Did not save successfully - bad status")
+            except KeyError:
+                pass
+
+            time.sleep(0.05)
+
+        raise Exception("Did not save successfully - timeout")
 
     def save_objects(self, objs, *arg, **kwargs):
         for obj in objs:
@@ -397,9 +432,11 @@ class TelemetryBase(with_metaclass(ABCMeta)):
     def __handle_frames(self, frames):
         objs = []
 
-        if frames == b'':
+        if frames is None:
             self.eof = True
             self._close()
+        elif frames == b'':
+            return
         else:
             obj = self.uavtalk_generator.send(frames)
 
@@ -506,13 +543,13 @@ class TelemetryBase(with_metaclass(ABCMeta)):
             data = self._receive(expire)
             self.__handle_frames(data)
 
+            if self.eof:
+                break
+
             if len(data):
                 break
 
             if (finish_time is not None) and (time.time() >= finish_time):
-                break
-
-            if self.eof:
                 break
 
     @abstractmethod
@@ -554,14 +591,23 @@ class BidirTelemetry(TelemetryBase):
     def _receive(self, finish_time):
         """ Fetch available data from file descriptor. """
 
+        if self.recv_buf is None:
+            return None
+
         # Always do some minimal IO if possible
         self._do_io(0)
 
-        while (len(self.recv_buf) < 1) and self._do_io(finish_time):
-            pass
+        if self.recv_buf is None:
+            return None
 
         if len(self.recv_buf) < 1:
+            self._do_io(finish_time)
+
+        if self.recv_buf is None:
             return None
+
+        if len(self.recv_buf) < 1:
+            return b''
 
         ret = self.recv_buf
         self.recv_buf = b''
@@ -574,8 +620,7 @@ class BidirTelemetry(TelemetryBase):
         with self.send_lock:
             self.send_buf += msg
 
-        if self.service_in_iter:
-            self._do_io(0)
+        self._do_io(0)
 
     @abstractmethod
     def _do_io(self, finish_time):
@@ -618,8 +663,14 @@ class FDTelemetry(BidirTelemetry):
 
         did_stuff = False
 
+        if self.recv_buf is None:
+            return False
+
         if len(self.recv_buf) < 1024:
             rd_set.append(self.fd)
+        elif len(self.send_buf) == 0:
+            # If we don't want I/O, return quick!
+            return True
 
         if len(self.send_buf) > 0:
             wr_set.append(self.write_fd)
@@ -631,38 +682,39 @@ class FDTelemetry(BidirTelemetry):
 
         r,w,e = select.select(rd_set, wr_set, [], tm)
 
-        if r:
-            # Shouldn't throw an exception-- they just told us
-            # it was ready for read.
-            # TODO: Figure out why read sometimes fails when using sockets
-            try:
-                chunk = os.read(self.fd, 1024)
-                if chunk == '':
-                    raise RuntimeError("stream closed")
+        with self.cond:
+            if r:
+                # Shouldn't throw an exception-- they just told us
+                # it was ready for read.
+                try:
+                    chunk = os.read(self.fd, 1024)
+                    if chunk == b'':
+                        if self.recv_buf == b'':
+                            self.recv_buf = None
+                    else:
+                        self.recv_buf = self.recv_buf + chunk
 
-                self.recv_buf = self.recv_buf + chunk
+                    did_stuff = True
+                except OSError as err:
+                    # For some reason, we sometimes get a
+                    # "Resource temporarily unavailable" error
+                    if err.errno != errno.EAGAIN:
+                        raise
 
-                did_stuff = True
-            except OSError as err:
-                # For some reason, we sometimes get a
-                # "Resource temporarily unavailable" error
-                if err.errno != errno.EAGAIN:
-                    raise
+            if w:
+                with self.send_lock:
+                    written = os.write(self.write_fd, self.send_buf)
 
-        if w:
-            with self.send_lock:
-                written = os.write(self.write_fd, self.send_buf)
+                    if written > 0:
+                        self.send_buf = self.send_buf[written:]
 
-                if written > 0:
-                    self.send_buf = self.send_buf[written:]
-
-                did_stuff = True
+                    did_stuff = True
 
         return did_stuff
 
 class SubprocessTelemetry(FDTelemetry):
     """ TCP telemetry interface. """
-    def __init__(self, cmdline, shell=True, *args, **kwargs):
+    def __init__(self, cmdline, shell=False, *args, **kwargs):
         """ Creates a telemetry instance talking over TCP.
 
          - host: hostname to connect to (default localhost)
@@ -673,6 +725,10 @@ class SubprocessTelemetry(FDTelemetry):
         """
 
         import subprocess
+
+        if isinstance(cmdline, str):
+            import shlex
+            cmdline = shlex.split(cmdline)
 
         sp = subprocess.Popen(cmdline, stdout=subprocess.PIPE,
                 stdin=subprocess.PIPE, shell=shell)
@@ -694,6 +750,10 @@ class SubprocessTelemetry(FDTelemetry):
 
     def _close(self):
         self.sp.kill()
+        self.sp.wait(timeout=3)
+
+        if self.sp.returncode != 0 and self.sp.returncode != -9:
+            logger.warning("Subproc ret code %d"%(self.sp.returncode))
 
 class NetworkTelemetry(FDTelemetry):
     """ TCP telemetry interface. """
@@ -751,7 +811,7 @@ class SerialTelemetry(BidirTelemetry):
             try:
                 chunk = self.ser.read(1024)
 
-                if chunk != '':
+                if chunk != b'':
                     did_stuff = True
                     self.recv_buf = self.recv_buf + chunk
             except serial.serialutil.SerialException:
@@ -759,7 +819,7 @@ class SerialTelemetry(BidirTelemetry):
                 pass
 
             with self.send_lock:
-                if self.send_buf != '':
+                if self.send_buf != b'':
                     try:
                         written = self.ser.write(self.send_buf)
 
@@ -852,17 +912,16 @@ class HIDTelemetry(BidirTelemetry):
 
         BidirTelemetry.__init__(self, *args, **kwargs)
 
-    # Call select and do one set of IO operations.
+    # Do USB I/O operations.
     def _do_io(self, finish_time):
         import errno
-        from six import int2byte, indexbytes, byte2int, iterbytes
 
         did_stuff = False
 
         to_block = 10   # Wait no more than 10ms first time around
 
         while not did_stuff:
-            chunk = ''
+            chunk = b''
 
             try:
                 raw = self.ep_in.read(64, timeout=to_block)
@@ -876,19 +935,19 @@ class HIDTelemetry(BidirTelemetry):
                 if e.errno != errno.ETIMEDOUT:
                     raise
 
-            if chunk != '':
+            if chunk != b'':
                 did_stuff = True
                 self.recv_buf = self.recv_buf + chunk
 
             with self.send_lock:
-                if self.send_buf != '':
+                if self.send_buf != b'':
                     to_write = len(self.send_buf)
 
                     if to_write > 60:
                         to_write = 60
 
                     try:
-                        buf = int2byte(1) + int2byte(to_write) + self.send_buf[0:to_write]
+                        buf = bytes((1, to_write)) + self.send_buf[0:to_write]
 
                         written = self.ep_out.write(buf) - 2
 
@@ -905,12 +964,12 @@ class HIDTelemetry(BidirTelemetry):
                     break
 
                 # if we have nothing left to send
-                if self.send_buf == '':
+                if self.send_buf == b'':
                     remaining = finish_time - now
 
                     to_block = int((remaining * 0.75) * 1000) + 25
             else:
-                if self.send_buf == '':
+                if self.send_buf == b'':
                     to_block = 2000
                 else:
                     to_block = 10
@@ -955,7 +1014,6 @@ class FileTelemetry(TelemetryBase):
                     break;
 
             if not found:
-                print("Source file does not have a recognized header signature")
                 raise IOError("no header signature")
 
             # Determine the git hash that this log file is based on
@@ -967,8 +1025,6 @@ class FileTelemetry(TelemetryBase):
             # For python3, convert from byte string.
             githash = githash.decode('latin-1')
 
-            print("Log file is based on git hash: %s" % githash)
-
             uavohash = self.f.readline()
             # divider only occurs on GCS-type streams.  This causes us to
             # miss first objects in telemetry-type streams
@@ -977,6 +1033,8 @@ class FileTelemetry(TelemetryBase):
             TelemetryBase.__init__(self, iter_blocks=True,
                 do_handshaking=False, githash=githash, use_walltime=False,
                 *args, **kwargs)
+
+            logger.info("Log file is based on githash %s" % githash)
         else:
             TelemetryBase.__init__(self, iter_blocks=True,
                 do_handshaking=False, use_walltime=False, *args, **kwargs)
@@ -987,6 +1045,9 @@ class FileTelemetry(TelemetryBase):
         """ Fetch available data from file """
 
         buf = self.f.read(524288)   # 512k
+
+        if buf == b'':
+            return None
 
         return buf
 
@@ -1045,8 +1106,12 @@ def _finish_telemetry_args(parser, args, service_in_iter, iter_blocks):
             service_in_iter=service_in_iter, iter_blocks=iter_blocks,
             githash=githash)
 
+def setup_logging(level):
+    FORMAT = '%(asctime)-15s %(name)-18s %(message)s'
+    logging.basicConfig(level=level, format=FORMAT)
+
 def get_telemetry_by_args(desc="Process telemetry", service_in_iter=True,
-        iter_blocks=True, arg_parser=None):
+        iter_blocks=True, arg_parser=None, arguments=None):
     """ Parses command line to decide how to get a telemetry object. """
     # Setup the command line arguments.
 
@@ -1093,11 +1158,23 @@ def get_telemetry_by_args(desc="Process telemetry", service_in_iter=True,
                         dest    = "hid",
                         help    = "use usb hid to communicate with FC")
 
+    parser.add_argument("-v", "--verbose",
+                        action  = "store_const",
+                        const   = logging.DEBUG,
+                        default = logging.INFO,
+                        dest    = "log_level",
+                        help    = "use usb hid to communicate with FC")
+
     parser.add_argument("source",
             help  = "file, host:port, vid:pid, command, or serial port")
 
     # Parse the command-line.
-    args = parser.parse_args()
+    if arguments is None:
+        args = parser.parse_args()
+    else:
+        args = parser.parse_args(arguments)
+
+    setup_logging(args.log_level)
 
     ret = _finish_telemetry_args(parser, args, service_in_iter, iter_blocks)
 

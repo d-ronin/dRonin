@@ -71,6 +71,37 @@ static uint8_t * align8_alloc(uint32_t size)
 }
 
 /**
+ * @brief   Creates a handle for the current thread.
+ *
+ * @param[in] namep        pointer to thread name
+ *
+ * @returns instance of @p struct pios_thread or NULL on failure
+ */
+struct pios_thread *PIOS_Thread_WrapCurrentThread(const char *namep)
+{
+	struct pios_thread *thread = PIOS_malloc_no_dma(sizeof(struct pios_thread));
+
+	if (thread) {
+		thread->threadp = chThdSelf();
+#if CH_USE_REGISTRY
+		thread->threadp->p_name = namep;
+#endif /* CH_USE_REGISTRY */
+	}
+
+	return thread;
+}
+
+/**
+ * @brief Changes the priority of this thread.
+ *
+ * @param[in] prio The new priority.
+ */
+void PIOS_Thread_ChangePriority(enum pios_thread_prio_e prio)
+{
+	chThdSetPriority(prio);
+}
+
+/**
  *
  * @brief   Creates a thread.
  *

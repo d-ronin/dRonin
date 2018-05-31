@@ -46,7 +46,7 @@ static inline void PIOS_INLINEDELAY_AssertClockSpeed()
 	PIOS_Assert(us_ticks = other_us_ticks);
 }
 
-static inline uint32_t PIOS_INLINEDELAY_NsToCycles(uint16_t ns)
+static inline uint32_t PIOS_INLINEDELAY_NsToCycles(uint32_t ns)
 {
 	/* assumptions: integral number of MHz. */
 

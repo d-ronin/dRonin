@@ -47,8 +47,8 @@
 
     Typically a plugin can handle version-changes like this:
     \code
-    MyGadgetConfiguration::MyGadgetConfiguration(QString classId, QSettings* qSettings, UAVConfigInfo *configInfo, QObject *parent) :
-        IUAVGadgetConfiguration(classId, parent)
+    MyGadgetConfiguration::MyGadgetConfiguration(QString classId, QSettings* qSettings,
+   UAVConfigInfo *configInfo, QObject *parent) : IUAVGadgetConfiguration(classId, parent)
     {
         if ( ! qSettings )
             return;
@@ -104,6 +104,8 @@
 */
 
 #include "uavconfiginfo.h"
+#include "icore.h"
+#include <QMainWindow>
 #include <QMessageBox>
 
 #define VERSION_DEFAULT "0.0.0"
@@ -173,7 +175,7 @@ void UAVConfigInfo::read(QSettings *qs)
 
 bool UAVConfigInfo::askToAbort(int compat, QString message)
 {
-    QMessageBox msgBox;
+    QMessageBox msgBox(dynamic_cast<QWidget *>(Core::ICore::instance()->mainWindow()));
     msgBox.setInformativeText(tr("Do you want to continue the import?"));
     msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
 
@@ -221,7 +223,7 @@ bool UAVConfigInfo::askToAbort(int compat, QString message)
 
 void UAVConfigInfo::notify(QString message)
 {
-    QMessageBox msgBox;
+    QMessageBox msgBox(dynamic_cast<QWidget *>(Core::ICore::instance()->mainWindow()));
     msgBox.setText(message);
     msgBox.exec();
 }

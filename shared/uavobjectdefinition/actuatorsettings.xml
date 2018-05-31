@@ -36,5 +36,8 @@
     <field defaultvalue="0.9" elements="1" name="MotorInputOutputCurveFit" type="float" units="">
       <description>Actuator mapping of input in [-1,1] to output on [-1,1], using power equation of type x^value. This is intended to correct for the non-linear relationship between input command and output power inherent in brushless ESC/motor combinations. A setting below 1.0 will improve high-throttle control stability.</description>
     </field>
+    <field defaultvalue="1.0" elements="1" limits="%BE:0.50:1.0" name="MotorInputOutputGain" type="float" units="">
+      <description>Actuator mapping of input to reduce the maximum values sent to motors.  Provides "virtual KV" functionality; e.g. you can use 0.67 to drive 4S motors from 6S.  This setting is applied after the motor curve fit.</description>
+    </field>
   </object>
 </xml>

@@ -88,10 +88,7 @@ public:
         return connection == rhs.connection && device == rhs.device;
     }
 
-    bool operator!=(const DevListItem &rhs)
-    {
-        return !(this == &rhs);
-    }
+    bool operator!=(const DevListItem &rhs) { return !(this == &rhs); }
 
     IConnection *connection;
     QPointer<IDevice> device;
@@ -167,10 +164,6 @@ protected:
 
     // currently connected QIODevice
     QIODevice *m_ioDev;
-
-    // dialog box when connection to device fails, shared so we don't generate multiple boxes on
-    // failed attempts
-    QMessageBox msgFailedToConnect;
 
 private:
     bool connectDevice();

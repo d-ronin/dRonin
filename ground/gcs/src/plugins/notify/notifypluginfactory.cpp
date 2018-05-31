@@ -38,15 +38,13 @@ NotifyPluginFactory::NotifyPluginFactory(QObject *parent)
 {
 }
 
-NotifyPluginFactory::~NotifyPluginFactory()
-{
-}
+NotifyPluginFactory::~NotifyPluginFactory() {}
 
 Core::IUAVGadget *NotifyPluginFactory::createGadget(QWidget *parent)
 {
     //  NotifyPluginWidget* gadgetWidget = new NotifyPluginWidget(parent);
-    return (Core::IUAVGadget *)0; // new NotifyPlugin(QString("NotifyPlugin"), gadgetWidget,
-                                  // parent);
+    return nullptr; // new NotifyPlugin(QString("NotifyPlugin"), gadgetWidget,
+                    // parent);
 }
 
 IUAVGadgetConfiguration *NotifyPluginFactory::createConfiguration(const QByteArray &state)

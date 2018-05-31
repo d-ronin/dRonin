@@ -118,7 +118,6 @@ extern uintptr_t pios_com_tbsvtxconfig_id;
 
 #define PIOS_COM_GPS                    (pios_com_gps_id)
 #define PIOS_COM_TELEM_USB              (pios_com_telem_usb_id)
-#define PIOS_COM_TELEM_RF               (pios_com_telem_serial_id)
 #define PIOS_COM_BRIDGE                 (pios_com_bridge_id)
 #define PIOS_COM_VCP                    (pios_com_vcp_id)
 #define PIOS_COM_MAVLINK                (pios_com_mavlink_id)
@@ -174,7 +173,6 @@ extern uintptr_t pios_com_debug_id;
 // See also pios_board.c
 //------------------------
 #define PIOS_RCVR_MAX_CHANNELS			12
-#define PIOS_GCSRCVR_TIMEOUT_MS			100
 
 //-------------------------
 // Receiver PPM input

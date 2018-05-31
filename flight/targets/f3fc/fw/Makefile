@@ -41,23 +41,27 @@ MODULES += FirmwareIAP
 MODULES += Telemetry
 
 OPTMODULES += GPS
-OPTMODULES += CameraStab
+#OPTMODULES += CameraStab
 OPTMODULES += Autotune
 OPTMODULES += TxPID
-OPTMODULES += AltitudeHold
+#OPTMODULES += GenericI2CSensor
 #OPTMODULES += PathPlanner
-OPTMODULES += VtolPathFollower
+#OPTMODULES += VtolPathFollower
+#OPTMODULES += FixedWingPathFollower
+OPTMODULES += VibrationAnalysis
 OPTMODULES += UAVOMavlinkBridge
 OPTMODULES += UAVOMSPBridge
 OPTMODULES += UAVOLighttelemetryBridge
 OPTMODULES += Battery
 OPTMODULES += ComUsbBridge
+#OPTMODULES += Airspeed/revolution
 OPTMODULES += UAVOHoTTBridge
 OPTMODULES += UAVOFrSKYSensorHubBridge
 OPTMODULES += UAVOFrSKYSPortBridge
 OPTMODULES += Geofence
 OPTMODULES += Logging
 OPTMODULES += Storm32Bgc
+OPTMODULES += UAVOCrossfireTelemetry
 OPTMODULES += Triflight
 
 # Paths
@@ -106,10 +110,10 @@ include $(PIOS)/STM32F30x/library_chibios.mk
 include $(PIOS)/pios_flight_library.mk
 
 SRC += pios_mpu.c
-SRC += pios_hmc5883.c
-SRC += pios_hmc5983_i2c.c
-SRC += pios_ms5611.c
-SRC += pios_bmp280.c
+#SRC += pios_hmc5883.c
+#SRC += pios_hmc5983_i2c.c
+#SRC += pios_ms5611.c
+#SRC += pios_bmp280.c
 SRC += pios_usbhook.c
 
 # List C++ source files here.
@@ -126,7 +130,6 @@ EXTRAINCDIRS += $(OPUAVOBJINC)
 EXTRAINCDIRS += $(OPUAVSYNTHDIR)
 EXTRAINCDIRS += $(FLIGHTLIBINC)
 EXTRAINCDIRS += $(MATHLIBINC)
-EXTRAINCDIRS += $(RSCODEINC)
 EXTRAINCDIRS += $(PIOSSTM32F30X)
 EXTRAINCDIRS += $(PIOSCOMMON)
 EXTRAINCDIRS += $(BOARD_INFO_DIR)

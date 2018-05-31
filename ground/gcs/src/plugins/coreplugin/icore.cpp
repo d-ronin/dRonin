@@ -76,19 +76,6 @@
 */
 
 /*!
-    \fn bool ICore::showWarningWithOptions(const QString &title, const QString &text,
-                                   const QString &details = QString(),
-                                   const QString &settingsCategory = QString(),
-                                   const QString &settingsId = QString(),
-                                   QWidget *parent = 0);
-
-    \brief Show a warning message with a button that opens a settings page.
-
-    Should be used to display configuration errors and point users to the setting.
-    Returns true if the settings dialog was accepted.
-*/
-
-/*!
     \fn ActionManager *ICore::actionManager() const
     \brief Returns the application's action manager.
 

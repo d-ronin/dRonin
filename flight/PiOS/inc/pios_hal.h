@@ -21,10 +21,9 @@ struct pios_i2c_adapter_cfg;
 #include <pios_usb_cdc_priv.h>
 #include <pios_usb_hid_priv.h>
 
-#if defined(PIOS_INCLUDE_RFM22B)
-#include <pios_rfm22b_priv.h>
+#if defined(PIOS_INCLUDE_OPENLRS)
 #include <pios_openlrs_priv.h>
-#endif /* PIOS_INCLUDE_RFM22B */
+#endif /* PIOS_INCLUDE_OPENLRS */
 
 struct pios_dsm_cfg;
 struct pios_sbus_cfg;
@@ -56,13 +55,15 @@ enum pios_hal_panic {
 	PIOS_HAL_PANIC_OSD       = 12,
 };
 
+#define PIOS_COM_TELEM_SER (pios_com_telem_serial_id)
+
 /* One slot per selectable receiver group.
  *  eg. PWM, PPM, GCS, SPEKTRUM1, SPEKTRUM2, SBUS
  * NOTE: No slot in this map for NONE.
  */
 extern uintptr_t pios_rcvr_group_map[];
 
-#if defined(PIOS_INCLUDE_SBUS) || defined(PIOS_INCLUDE_DSM) || defined(PIOS_INCLUDE_HOTT) || defined(PIOS_INCLUDE_GPS) || defined(PIOS_INCLUDE_RFM22B) || defined(PIOS_INCLUDE_USB_CDC) || defined(PIOS_INCLUDE_USB_HID) || defined(PIOS_INCLUDE_MAVLINK)
+#if defined(PIOS_INCLUDE_SBUS) || defined(PIOS_INCLUDE_DSM) || defined(PIOS_INCLUDE_HOTT) || defined(PIOS_INCLUDE_GPS) || defined(PIOS_INCLUDE_OPENLRS) || defined(PIOS_INCLUDE_USB_CDC) || defined(PIOS_INCLUDE_USB_HID) || defined(PIOS_INCLUDE_MAVLINK)
 
 #ifndef PIOS_INCLUDE_COM
 #error Options defined that require PIOS_INCLUDE_COM!
@@ -116,17 +117,15 @@ void PIOS_HAL_ConfigureHID(HwSharedUSB_HIDPortOptions port_type,
 		uintptr_t usb_id,
 		const struct pios_usb_hid_cfg *hid_cfg);
 
-#if defined(PIOS_INCLUDE_RFM22B)
-void PIOS_HAL_ConfigureRFM22B(HwSharedRadioPortOptions radio_type,
-		pios_spi_t spi_dev,
+#if defined(PIOS_INCLUDE_OPENLRS)
+#include <pios_openlrs.h>
+
+void PIOS_HAL_ConfigureRFM22B(pios_spi_t spi_dev,
 		uint8_t board_type, uint8_t board_rev,
-		HwSharedMaxRfPowerOptions max_power,
-		HwSharedMaxRfSpeedOptions max_speed,
 		HwSharedRfBandOptions rf_band,
+		HwSharedMaxRfPowerOptions rf_power,
 		const struct pios_openlrs_cfg *openlrs_cfg,
-		const struct pios_rfm22b_cfg *rfm22b_cfg,
-		uint8_t min_chan, uint8_t max_chan, uint32_t coord_id,
-		int status_inst);
+		pios_openlrs_t *handle);
 #endif /* PIOS_INCLUDE_RFM22B */
 
 void PIOS_HAL_ConfigureSerialSpeed(uintptr_t com_id,
@@ -134,6 +133,7 @@ void PIOS_HAL_ConfigureSerialSpeed(uintptr_t com_id,
 
 void PIOS_HAL_SetReceiver(int receiver_type, uintptr_t value);
 uintptr_t PIOS_HAL_GetReceiver(int receiver_type);
+void PIOS_HAL_InitUAVTalkReceiver();
 
 #ifdef PIOS_INCLUDE_DAC
 #include <pios_fskdac.h>

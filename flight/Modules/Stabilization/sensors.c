@@ -302,6 +302,13 @@ bool sensors_step()
 
 	// Check total time to get the sensors wasn't over the limit
 	uint32_t dT_us = PIOS_DELAY_DiffuS(timeval);
+
+#ifdef FLIGHT_POSIX
+	if (PIOS_Thread_FakeClock_IsActive()) {
+		dT_us = 0;
+	}
+#endif
+
 	if (dT_us > (MAX_SENSOR_PERIOD * 1000)) {
 		good_run = false;
 	}

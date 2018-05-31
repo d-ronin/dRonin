@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>536</width>
-    <height>441</height>
+    <height>507</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -32,7 +32,7 @@
       <property name="verticalSpacing">
        <number>2</number>
       </property>
-      <item row="14" column="1">
+      <item row="13" column="1">
        <widget class="QCheckBox" name="cbExpertMode">
         <property name="text">
          <string/>
@@ -105,7 +105,7 @@
         </property>
        </widget>
       </item>
-      <item row="14" column="0">
+      <item row="13" column="0">
        <widget class="QLabel" name="labelExpert">
         <property name="text">
          <string>Expert Mode</string>
@@ -129,13 +129,6 @@
         </property>
        </widget>
       </item>
-      <item row="13" column="1">
-       <widget class="QCheckBox" name="cbUseUDPMirror">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
       <item row="11" column="0">
        <widget class="QLabel" name="label_5">
         <property name="text">
@@ -143,13 +136,6 @@
         </property>
         <property name="wordWrap">
          <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="13" column="0">
-       <widget class="QLabel" name="labelUDP">
-        <property name="text">
-         <string>Use UDP Mirror</string>
         </property>
        </widget>
       </item>
@@ -185,20 +171,6 @@
          </spacer>
         </item>
        </layout>
-      </item>
-      <item row="15" column="1">
-       <widget class="QCheckBox" name="cbSessionMessaging">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="15" column="0">
-       <widget class="QLabel" name="label_10">
-        <property name="text">
-         <string>Session Managing</string>
-        </property>
-       </widget>
       </item>
      </layout>
     </widget>

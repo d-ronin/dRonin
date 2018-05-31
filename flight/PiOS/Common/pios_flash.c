@@ -23,8 +23,7 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
-/* Project Includes */
-#include "pios_config.h"
+#include "pios.h"
 
 #if defined(PIOS_INCLUDE_FLASH)
 
@@ -38,7 +37,6 @@ static bool pios_flash_partition_get_chip_extents(const struct pios_flash_partit
 static struct pios_flash_partition const *partitions;
 static uint8_t num_partitions;
 
-#define PIOS_Assert(x) do { } while (!(x))
 #define MIN(x,y) ((x) < (y) ? (x) : (y))
 
 /** Adjust partition tables to extend to the end of a variable-sized flash.
@@ -123,7 +121,7 @@ void PIOS_FLASH_register_partition_table(const struct pios_flash_partition parti
 		if (!pios_flash_partition_get_chip_extents(partition,
 								&chip_start_offset,
 								&chip_end_offset))
-			PIOS_Assert(0);
+			PIOS_Abort();
 
 		PIOS_Assert(partition->chip_offset == chip_start_offset);
 		PIOS_Assert(partition->size == (chip_end_offset - chip_start_offset + 1));

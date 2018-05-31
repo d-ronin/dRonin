@@ -56,7 +56,6 @@ uintptr_t pios_com_debug_id;
 #endif	/* PIOS_INCLUDE_DEBUG_CONSOLE */
 
 uintptr_t pios_com_aux_id;
-uintptr_t pios_com_telem_rf_id;
 uintptr_t pios_uavo_settings_fs_id;
 uintptr_t pios_internal_adc_id;
 uintptr_t pios_com_openlog_logging_id;
@@ -256,17 +255,6 @@ void PIOS_Board_Init(void)
 			hw_DSMxMode,			// dsm_mode
 			NULL);				// sbus_cfg
 
-#if defined(PIOS_INCLUDE_GCSRCVR)
-	GCSReceiverInitialize();
-	uintptr_t pios_gcsrcvr_id;
-	PIOS_GCSRCVR_Init(&pios_gcsrcvr_id);
-	uintptr_t pios_gcsrcvr_rcvr_id;
-	if (PIOS_RCVR_Init(&pios_gcsrcvr_rcvr_id, &pios_gcsrcvr_rcvr_driver, pios_gcsrcvr_id)) {
-		PIOS_Assert(0);
-	}
-	pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_GCS] = pios_gcsrcvr_rcvr_id;
-#endif	/* PIOS_INCLUDE_GCSRCVR */
-
 #ifdef PIOS_INCLUDE_WS2811
 	uint8_t num_leds;
 
@@ -411,7 +399,7 @@ void PIOS_Board_Init(void)
 #endif
 
 	/* Make sure we have at least one telemetry link configured or else fail initialization */
-	PIOS_Assert(pios_com_telem_rf_id || pios_com_telem_usb_id);
+	PIOS_Assert(pios_com_telem_serial_id || pios_com_telem_usb_id);
 }
 
 /**

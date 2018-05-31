@@ -72,7 +72,15 @@ SystemHealthGadgetWidget::SystemHealthGadgetWidget(QWidget *parent)
   */
 void SystemHealthGadgetWidget::onAutopilotConnect()
 {
-    nolink->setVisible(false);
+    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
+    UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
+    SystemAlarms *obj = SystemAlarms::GetInstance(objManager);
+
+    if (obj->getIsPresentOnHardware()) {
+        nolink->setVisible(false);
+    } else {
+        nolink->setVisible(true);
+    }
 }
 
 /**

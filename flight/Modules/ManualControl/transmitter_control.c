@@ -6,7 +6,7 @@
  * @{
  *
  * @file       transmitter_control.c
- * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2016
+ * @author     dRonin, http://dRonin.org/, Copyright (C) 2015-2018
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2017
  * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
  * @brief      Handles R/C link and flight mode.
@@ -104,12 +104,11 @@ static float get_thrust_source(ManualControlCommandData *manual_control_command,
 		bool always_fullrange);
 static void update_stabilization_desired(ManualControlCommandData * manual_control_command, ManualControlSettingsData * settings);
 static void set_flight_mode();
-static void process_transmitter_events(ManualControlCommandData * cmd, ManualControlSettingsData * settings, bool valid);
+static void process_transmitter_events(ManualControlCommandData * cmd, ManualControlSettingsData * settings, bool valid, bool settings_updated);
 static void set_manual_control_error(SystemAlarmsManualControlOptions errorCode);
 static float scaleChannel(int n, int16_t value);
 static bool validInputRange(int n, uint16_t value, uint16_t offset);
 static uint32_t timeDifferenceMs(uint32_t start_time, uint32_t end_time);
-static void applyDeadband(float *value, float deadband);
 static void resetRcvrActivity(struct rcvr_activity_fsm * fsm);
 static bool updateRcvrActivity(struct rcvr_activity_fsm * fsm);
 static void set_loiter_command(ManualControlCommandData *cmd);
@@ -172,7 +171,7 @@ static float get_thrust_source(ManualControlCommandData *manual_control_command,
 
 	if (thrust_is_bidir) {
 		/* Thrust is bidirectional; apply a deadband and call it good */
-		applyDeadband(&thrust, settings.ThrustDeadband);
+		apply_channel_deadband(&thrust, settings.ThrustDeadband);
 
 		return thrust;
 	}
@@ -192,7 +191,7 @@ static float get_thrust_source(ManualControlCommandData *manual_control_command,
 	/* We want a -1..1 value, but thrust is squished into a 0..1 range. */
 	thrust = thrust * 2.0f - 1.0f;
 
-	applyDeadband(&thrust, settings.ThrustDeadband);
+	apply_channel_deadband(&thrust, settings.ThrustDeadband);
 
 	return thrust;
 }
@@ -272,6 +271,7 @@ int32_t transmitter_control_update()
 	bool validChannel[MANUALCONTROLSETTINGS_CHANNELGROUPS_NUMELEM];
 
 	static float filter_rssi;
+	bool settings_updated_this_cycle = false;
 
 	if (settings_updated) {
 		perform_tc_settings_update();
@@ -281,6 +281,8 @@ int32_t transmitter_control_update()
 		 * Also do additonal validation .. e.g. a mostly-negative
 		 * throttle range doesn't make sense!
 		 */
+
+		settings_updated_this_cycle = true;
 	}
 
 	/* Update channel activity monitor */
@@ -321,11 +323,6 @@ int32_t transmitter_control_update()
 #if defined(PIOS_INCLUDE_OPENLRS_RCVR)
 			value = PIOS_OpenLRS_RSSI_Get();
 #endif /* PIOS_INCLUDE_OPENLRS_RCVR */
-			break;
-		case MANUALCONTROLSETTINGS_RSSITYPE_RFM22B:
-#if defined(PIOS_INCLUDE_RFM22B)
-			value = PIOS_RFM22B_RSSI_Get();
-#endif /* PIOS_INCLUDE_RFM22B */
 			break;
 		default:
 			(void) 0 ;
@@ -493,9 +490,9 @@ int32_t transmitter_control_update()
 
 		// Apply deadband for Roll/Pitch/Yaw stick inputs
 		if (settings.Deadband) {
-			applyDeadband(&cmd.Roll, settings.Deadband);
-			applyDeadband(&cmd.Pitch, settings.Deadband);
-			applyDeadband(&cmd.Yaw, settings.Deadband);
+			apply_channel_deadband(&cmd.Roll, settings.Deadband);
+			apply_channel_deadband(&cmd.Pitch, settings.Deadband);
+			apply_channel_deadband(&cmd.Yaw, settings.Deadband);
 		}
 
 		if(cmd.Channel[MANUALCONTROLSETTINGS_CHANNELGROUPS_COLLECTIVE] != (uint16_t) PIOS_RCVR_INVALID &&
@@ -525,7 +522,8 @@ int32_t transmitter_control_update()
 	// Process arming outside conditional so system will disarm when disconnected.  Notice this
 	// is processed in the _update method instead of _select method so the state system is always
 	// evalulated, even if not detected.
-	process_transmitter_events(&cmd, &settings, valid_input_detected);
+	process_transmitter_events(&cmd, &settings, valid_input_detected,
+			settings_updated_this_cycle);
 
 	// Update cmd object
 	ManualControlCommandSet(&cmd);
@@ -563,9 +561,7 @@ int32_t transmitter_control_select(bool reset_controller)
 	case FLIGHTSTATUS_FLIGHTMODE_AUTOTUNE:
 	case FLIGHTSTATUS_FLIGHTMODE_LQG:
 	case FLIGHTSTATUS_FLIGHTMODE_LQGLEVELING:
-		update_stabilization_desired(&cmd, &settings);
-		break;
-	case FLIGHTSTATUS_FLIGHTMODE_ALTITUDEHOLD:
+	case FLIGHTSTATUS_FLIGHTMODE_FLIPREVERSED:
 	case FLIGHTSTATUS_FLIGHTMODE_TAILTUNE:
 		update_stabilization_desired(&cmd, &settings);
 		break;
@@ -743,9 +739,18 @@ static bool check_receiver_timer(uint32_t threshold) {
  * @param[in] settings Settings indicating the necessary position
  * @param[in] scaled The scaled channels, used for checking arming
  * @param[in] valid If the input data is valid (i.e. transmitter is transmitting)
+ * @param[in] settings_updated True if settings changed this cycle
  */
-static void process_transmitter_events(ManualControlCommandData * cmd, ManualControlSettingsData * settings, bool valid)
+static void process_transmitter_events(ManualControlCommandData * cmd, ManualControlSettingsData * settings, bool valid, bool settings_updated)
 {
+	if (settings->Arming == MANUALCONTROLSETTINGS_ARMING_ALWAYSDISARMED) {
+		/*
+		 * Disconnected is used to force a "disarmed" position being
+		 * reached before arming.  e.g. on config change.
+		 */
+		control_status = STATUS_DISCONNECTED;
+	}
+
 	valid &= cmd->Connected == MANUALCONTROLCOMMAND_CONNECTED_TRUE;
 
 	if (!valid || (cmd->Connected != MANUALCONTROLCOMMAND_CONNECTED_TRUE)) {
@@ -801,6 +806,14 @@ static void process_transmitter_events(ManualControlCommandData * cmd, ManualCon
 		reset_receiver_timer();
 	}
 
+	if (settings_updated) {
+		/* Make sure that we don't arm as a result of a settings
+		 * change.
+		 */
+		control_status = STATUS_INVALID_FOR_DISARMED;
+		return;
+	}
+
 	if (disarm_commanded(cmd, settings, low_throt)) {
 		/* Separate timer from the above */
 
@@ -830,7 +843,8 @@ static void process_transmitter_events(ManualControlCommandData * cmd, ManualCon
 		/* If the arming switch is flipped on, but we don't otherwise
 		 * qualify for arming, let the upper layer know.
 		 */
-		if (settings->Arming == MANUALCONTROLSETTINGS_ARMING_SWITCHTHROTTLE) {
+		if (settings->Arming ==
+				MANUALCONTROLSETTINGS_ARMING_SWITCHTHROTTLE) {
 			if (cmd->ArmSwitch == MANUALCONTROLCOMMAND_ARMSWITCH_ARMED) {
 				control_status = STATUS_INVALID_FOR_DISARMED;
 				return;
@@ -1049,8 +1063,9 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
 	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL,
 	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL,
 	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL };
-	const uint8_t RATE_SETTINGS[3] = {  STABILIZATIONDESIRED_STABILIZATIONMODE_RATE,
+	const uint8_t RATE_SETTINGS[3] = {
 	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_RATE,
+		STABILIZATIONDESIRED_STABILIZATIONMODE_RATE,
 	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_AXISLOCK};
 	const uint8_t ATTITUDE_SETTINGS[3] = {
 	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE,
@@ -1068,29 +1083,34 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
 	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_AXISLOCK,
 	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_AXISLOCK,
 	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_AXISLOCK};
-	const uint8_t ACROPLUS_SETTINGS[3] = {  STABILIZATIONDESIRED_STABILIZATIONMODE_ACROPLUS,
+	const uint8_t ACROPLUS_SETTINGS[3] = {
                                           STABILIZATIONDESIRED_STABILIZATIONMODE_ACROPLUS,
+		STABILIZATIONDESIRED_STABILIZATIONMODE_ACROPLUS,
                                           STABILIZATIONDESIRED_STABILIZATIONMODE_RATE};
-
-	const uint8_t ACRODYNE_SETTINGS[3] = {  STABILIZATIONDESIRED_STABILIZATIONMODE_ACRODYNE,
+	const uint8_t ACRODYNE_SETTINGS[3] = {
                                           STABILIZATIONDESIRED_STABILIZATIONMODE_ACRODYNE,
+		STABILIZATIONDESIRED_STABILIZATIONMODE_ACRODYNE,
                                           STABILIZATIONDESIRED_STABILIZATIONMODE_ACRODYNE};
-
-	const uint8_t FAILSAFE_SETTINGS[3] = {  STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE,
+	const uint8_t FAILSAFE_SETTINGS[3] = {
                                           STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE,
+		STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE,
                                           STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE};
-
-	const uint8_t SYSTEMIDENT_SETTINGS[3] = {  STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT,
+	const uint8_t SYSTEMIDENT_SETTINGS[3] = {
                                           STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT,
+		STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT,
                                           STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENTRATE };
-
-	const uint8_t LQG_SETTINGS[3] = {  STABILIZATIONDESIRED_STABILIZATIONMODE_LQG,
+	const uint8_t LQG_SETTINGS[3] = {
                                        STABILIZATIONDESIRED_STABILIZATIONMODE_LQG,
+		STABILIZATIONDESIRED_STABILIZATIONMODE_LQG,
                                        STABILIZATIONDESIRED_STABILIZATIONMODE_LQG };
-
-	const uint8_t ATTITUDELQG_SETTINGS[3] = {  STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDELQG,
+	const uint8_t ATTITUDELQG_SETTINGS[3] = {
                                                STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDELQG,
+		STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDELQG,
                                                STABILIZATIONDESIRED_STABILIZATIONMODE_LQG };
+	const uint8_t FLIPOVER_SETTINGS[3] = {
+		STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL,
+		STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL,
+		STABILIZATIONDESIRED_STABILIZATIONMODE_DISABLED };
 
 	const uint8_t * stab_modes = ATTITUDE_SETTINGS;
 
@@ -1161,6 +1181,10 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
 			break;
 		case FLIGHTSTATUS_FLIGHTMODE_LQGLEVELING:
 			stab_modes = ATTITUDELQG_SETTINGS;
+			break;
+		case FLIGHTSTATUS_FLIGHTMODE_FLIPREVERSED:
+			stab_modes = FLIPOVER_SETTINGS;
+			thrust_mode = STABILIZATIONDESIRED_THRUSTMODE_FLIPOVERMODETHRUSTREVERSED;
 			break;
 		default:
 			{
@@ -1298,27 +1322,6 @@ bool validInputRange(int n, uint16_t value, uint16_t offset)
 	}
 
 	return (value >= (min - offset) && value <= (max + offset));
-}
-
-/**
- * @brief Apply deadband to Roll/Pitch/Yaw channels
- */
-static void applyDeadband(float *value, float deadband)
-{
-	if (deadband < 0.0001f) return; /* ignore tiny deadband value */
-	if (deadband >= 0.85f) return;	/* reject nonsensical db values */
-
-	if (fabsf(*value) < deadband) {
-		*value = 0.0f;
-	} else {
-		if (*value > 0.0f) {
-			*value -= deadband;
-		} else {
-			*value += deadband;
-		}
-
-		*value /= (1 - deadband);
-	}
 }
 
 /**

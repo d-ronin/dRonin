@@ -61,9 +61,7 @@ PfdQmlGadgetWidget::PfdQmlGadgetWidget(QWindow *parent)
     engine()->rootContext()->setContextProperty("qmlWidget", this);
 }
 
-PfdQmlGadgetWidget::~PfdQmlGadgetWidget()
-{
-}
+PfdQmlGadgetWidget::~PfdQmlGadgetWidget() {}
 
 /**
  * @brief PfdQmlGadgetWidget::exportUAVOInstance Makes the UAVO available inside the QML. This works
@@ -90,7 +88,7 @@ void PfdQmlGadgetWidget::resetUAVOExport(const QString &objectName, int instId)
 {
     UAVObject *object = m_objManager->getObject(objectName, instId);
     if (object)
-        engine()->rootContext()->setContextProperty(objectName, (QObject *)NULL);
+        engine()->rootContext()->setContextProperty(objectName, nullptr);
     else
         qWarning() << "Failed to load object" << objectName;
 }

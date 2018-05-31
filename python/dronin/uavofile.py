@@ -2,8 +2,12 @@
 
 # Copyright (C) 2018 dRonin, http://dronin.org
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 class UAVFileImport(dict):
-    def __init__(self, contents, uavo_defs=None, githash='HEAD', warnings_fatal=False):
+    def __init__(self, contents, uavo_defs=None, githash='HEAD', warnings_fatal=False, sparse_ok=True):
         try:
             import lxml.etree as etree
         except:
@@ -31,7 +35,7 @@ class UAVFileImport(dict):
             obj = uavo_defs.find_by_name(name)
 
             if (obj is None):
-                print("XML file contains UAVO %s which is missing in collection" % name)
+                logger.warning("XML file contains UAVO %s which is missing in collection" % name)
                 if (warnings_fatal):
                     raise KeyError("Missing UAVO")
 
@@ -40,7 +44,7 @@ class UAVFileImport(dict):
             field_problem_expected = False
 
             if (uavo_key != obj._id):
-                print("Object ID mismatch %s %x %x"%(name, obj._id, uavo_key))
+                logger.info("Object ID mismatch %s %x %x"%(name, obj._id, uavo_key))
 
                 if (warnings_fatal):
                     raise KeyError("Object IDs mismatch")
@@ -65,13 +69,11 @@ class UAVFileImport(dict):
                         break
 
                 if found_field is None:
-                    if not field_problem_expected:
+                    if not sparse_ok:
                         raise KeyError("Couldn't find field %s" % (of))
                     continue
 
                 raw_values = xf.get('values')
-
-                #print("Found field, val=%s"%(raw_values))
 
                 values = raw_values.split(',')
 
@@ -88,7 +90,7 @@ class UAVFileImport(dict):
                         else:
                             raise KeyError("Field type invalid for %s" %(of))
                 except Exception:
-                    print("Unable to convert field %s" % (of))
+                    logger.info("Unable to convert field %s" % (of))
 
                     if field_problem_expected:
                         continue

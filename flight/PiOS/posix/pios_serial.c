@@ -35,21 +35,26 @@
 /* Project Includes */
 #include "pios.h"
 
-#if defined(PIOS_INCLUDE_SERIAL)
-
 #include <pios_serial_priv.h>
 #include "pios_thread.h"
 #include <unistd.h>
 #include <sys/types.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <termios.h>
 #include <unistd.h>
+#ifdef PIOS_INCLUDE_SERIAL
+#include <termios.h>
 #include <linux/serial.h>
 #include <sys/ioctl.h>
+#endif
 
 /* Provide a COM driver */
+#ifdef PIOS_INCLUDE_SERIAL
+/* PIOS_INCLUDE_SERIAL now just refers to the stuff relating to outright
+ * serial ports, not just the stuff we do to wrap FDs.
+ */
 static void PIOS_SERIAL_ChangeBaud(uintptr_t serial_id, uint32_t baud);
+#endif
 static void PIOS_SERIAL_RegisterRxCallback(uintptr_t udp_id, pios_com_callback rx_in_cb, uintptr_t context);
 static void PIOS_SERIAL_RegisterTxCallback(uintptr_t udp_id, pios_com_callback tx_out_cb, uintptr_t context);
 static void PIOS_SERIAL_TxStart(uintptr_t udp_id, uint16_t tx_bytes_avail);
@@ -73,7 +78,9 @@ typedef struct {
 } pios_ser_dev;
 
 const struct pios_com_driver pios_serial_com_driver = {
+#if defined(PIOS_INCLUDE_SERIAL)
 	.set_baud   = PIOS_SERIAL_ChangeBaud,
+#endif
 	.tx_start   = PIOS_SERIAL_TxStart,
 	.rx_start   = PIOS_SERIAL_RxStart,
 	.bind_tx_cb = PIOS_SERIAL_RegisterTxCallback,
@@ -165,13 +172,16 @@ int32_t PIOS_SERIAL_InitFromFd(uintptr_t *serial_id, int readfd,
 
 	*serial_id = (uintptr_t) ser_dev;
 
+#if defined(PIOS_INCLUDE_SERIAL)
 	PIOS_SERIAL_ChangeBaud(*serial_id, 9600);
+#endif
 
 	return 0;
 }
 
 int32_t PIOS_SERIAL_Init(uintptr_t *serial_id, const char *path)
 {
+#if defined(PIOS_INCLUDE_SERIAL)
 	int fd = open(path, O_RDWR | O_NOCTTY);
 
 	if (fd < 0) {
@@ -190,9 +200,13 @@ int32_t PIOS_SERIAL_Init(uintptr_t *serial_id, const char *path)
 	printf("serial dev %p - (path %s)\n", (void *) (*serial_id), path);
 
 	return ret;
+#else
+	return -1;
+#endif
 }
 
 
+#if defined(PIOS_INCLUDE_SERIAL)
 void PIOS_SERIAL_ChangeBaud(uintptr_t serial_id, uint32_t baud)
 {
 	if (!baud) {
@@ -321,6 +335,7 @@ void PIOS_SERIAL_ChangeBaud(uintptr_t serial_id, uint32_t baud)
 		perror("tcsetattr");
 	}
 }
+#endif /* PIOS_INCLUDE_SERIAL */
 
 static void PIOS_SERIAL_RxStart(uintptr_t tp_id, uint16_t rx_bytes_avail)
 {
@@ -376,8 +391,6 @@ static void PIOS_SERIAL_RegisterTxCallback(uintptr_t serial_id, pios_com_callbac
 	ser_dev->tx_out_context = context;
 	ser_dev->tx_out_cb = tx_out_cb;
 }
-
-#endif
 
 /**
  * @}

@@ -83,6 +83,10 @@ struct AutotunedValues
     float outerKp;
     float outerKi;
 
+    float vertSpeedKp;
+    float vertSpeedKi;
+    float vertPosKp;
+
     QLineSeries *model[3];
     QLineSeries *actual[3];
 };
@@ -178,6 +182,7 @@ private:
     void setText(QLabel *lbl, double value, int precision);
 
 private slots:
+    void computeThrust();
     void compute();
     void resetSliders();
 };

@@ -43,8 +43,8 @@ enum pios_thread_prio_e
 {
 	PIOS_THREAD_PRIO_LOW = LOWPRIO,
 	PIOS_THREAD_PRIO_NORMAL = NORMALPRIO,
-	PIOS_THREAD_PRIO_HIGH = NORMALPRIO + 32,
-	PIOS_THREAD_PRIO_HIGHEST = HIGHPRIO,
+	PIOS_THREAD_PRIO_HIGH = NORMALPRIO + 8,
+	PIOS_THREAD_PRIO_HIGHEST = NORMALPRIO + 16,
 };
 
 #define PIOS_THREAD_STACK_SIZE_MIN THD_WA_SIZE(256 + PORT_INT_REQUIRED_STACK)
@@ -88,6 +88,14 @@ void PIOS_Thread_Scheduler_Resume(void);
  * @retval true if period has elapsed, false otherwise
  */
 bool PIOS_Thread_Period_Elapsed(const uint32_t prev_systime, const uint32_t increment_ms);
+struct pios_thread *PIOS_Thread_WrapCurrentThread(const char *namep);
+void PIOS_Thread_ChangePriority(enum pios_thread_prio_e prio);
+
+#ifdef FLIGHT_POSIX
+void PIOS_Thread_FakeClock_Tick(void);
+bool PIOS_Thread_FakeClock_IsActive(void);
+void PIOS_Thread_FakeClock_UpdateBarrier(uint32_t increment);
+#endif
 
 #endif /* PIOS_THREAD_H_ */
 

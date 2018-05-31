@@ -35,8 +35,9 @@
 #ifndef TELEMETRYMONITOR_H
 #define TELEMETRYMONITOR_H
 
+#include <queue>
+
 #include <QObject>
-#include <QQueue>
 #include <QTimer>
 #include <QTime>
 #include "uavobjects/uavobjectmanager.h"
@@ -44,7 +45,6 @@
 #include "flighttelemetrystats.h"
 #include "systemstats.h"
 #include "telemetry.h"
-#include "sessionmanaging.h"
 #include <coreplugin/generalsettings.h>
 #include <extensionsystem/pluginmanager.h>
 
@@ -59,10 +59,8 @@ public:
         quint32 instID;
     };
 
-    TelemetryMonitor(UAVObjectManager *objMngr, Telemetry *tel,
-                     QHash<quint16, QList<objStruc>> sessions);
+    TelemetryMonitor(UAVObjectManager *objMngr, Telemetry *tel);
     ~TelemetryMonitor();
-    QHash<quint16, QList<objStruc>> savedSessions() { return sessions; }
 
 signals:
     void connected();
@@ -70,55 +68,40 @@ signals:
     void telemetryUpdated(double txRate, double rxRate);
 
 public slots:
-    void transactionCompleted(UAVObject *obj, bool success);
+    void transactionCompleted(UAVObject *obj, bool success, bool nacked);
     void processStatsUpdates();
     void flightStatsUpdated(UAVObject *obj);
 private slots:
-    void sessionObjUnpackedCB(UAVObject *obj);
     void objectRetrieveTimeoutCB();
-    void sessionInitialRetrieveTimeoutCB();
-    void saveSession();
     void newInstanceSlot(UAVObject *);
 
 private:
-    QList<UAVDataObject *> delayedUpdate;
-    enum connectionStatusEnum {
-        CON_DISCONNECTED,
-        CON_INITIALIZING,
-        CON_SESSION_INITIALIZING,
-        CON_RETRIEVING_OBJECTS,
-        CON_CONNECTED_UNMANAGED,
-        CON_CONNECTED_MANAGED
-    };
     static const int STATS_UPDATE_PERIOD_MS = 1600;
     static const int STATS_CONNECT_PERIOD_MS = 350;
     static const int CONNECTION_TIMEOUT_MS = 8000;
     static const int MAX_REQUESTS_IN_FLIGHT = 3;
+    enum connectionStatusEnum {
+        CON_DISCONNECTED,
+        CON_INITIALIZING,
+        CON_RETRIEVING_OBJECTS,
+        CON_CONNECTED_MANAGED
+    };
+
+    typedef bool (*queueCompareFunc)(UAVObject *, UAVObject *);
+    static bool queueCompare(UAVObject *left, UAVObject *right);
     connectionStatusEnum connectionStatus;
     UAVObjectManager *objMngr;
     Telemetry *tel;
-    QQueue<UAVObject *> queue;
+    std::priority_queue<UAVObject *, std::vector<UAVObject *>, queueCompareFunc> queue;
     GCSTelemetryStats *gcsStatsObj;
     FlightTelemetryStats *flightStatsObj;
     QTimer *statsTimer;
     QTime *connectionTimer;
-    SessionManaging *sessionObj;
-    void startRetrievingObjects();
-    void retrieveNextObject();
-    quint16 sessionID;
-    quint8 numberOfObjects;
     QTimer *objectRetrieveTimeout;
-    QTimer *sessionInitialRetrieveTimeout;
-    int retries;
     int requestsInFlight;
 
-    void changeObjectInstances(quint32 objID, quint32 instID, bool delayed);
-    void startSessionRetrieving(UAVObject *session);
-    void sessionFallback();
-    bool isManaged;
-    QHash<quint16, QList<objStruc>> sessions;
-    int sessionObjRetries;
-    Core::Internal::GeneralSettings *settings;
+    void startRetrievingObjects();
+    void retrieveNextObject();
 };
 
 #endif // TELEMETRYMONITOR_H

@@ -128,7 +128,7 @@ int32_t PIOS_SPI_SetClockSpeed(pios_spi_t spi_dev, uint32_t spi_speed)
 int32_t PIOS_SPI_ClaimBus(pios_spi_t spi_dev)
 {
 	bool valid = PIOS_SPI_validate(spi_dev);
-	PIOS_Assert(valid)
+	PIOS_Assert(valid);
 
 	if (PIOS_Semaphore_Take(spi_dev->busy, 65535) != true)
 		return -1;
@@ -139,7 +139,7 @@ int32_t PIOS_SPI_ClaimBus(pios_spi_t spi_dev)
 int32_t PIOS_SPI_ReleaseBus(pios_spi_t spi_dev)
 {
 	bool valid = PIOS_SPI_validate(spi_dev);
-	PIOS_Assert(valid)
+	PIOS_Assert(valid);
 
 	PIOS_Semaphore_Give(spi_dev->busy);
 
@@ -149,8 +149,8 @@ int32_t PIOS_SPI_ReleaseBus(pios_spi_t spi_dev)
 int32_t PIOS_SPI_RC_PinSet(pios_spi_t spi_dev, uint32_t slave_id, bool pin_value)
 {
 	bool valid = PIOS_SPI_validate(spi_dev);
-	PIOS_Assert(valid)
-	PIOS_Assert(slave_id < spi_dev->slave_count)
+	PIOS_Assert(valid);
+	PIOS_Assert(slave_id < spi_dev->slave_count);
 
         struct spi_ioc_transfer xfer = {
 		.delay_usecs = 1,
@@ -193,8 +193,8 @@ int32_t PIOS_SPI_TransferBlock(pios_spi_t spi_dev, const uint8_t *send_buffer, u
 
 	int slave_id = spi_dev->selected;
 
-	PIOS_Assert(valid)
-	PIOS_Assert(slave_id < spi_dev->slave_count)
+	PIOS_Assert(valid);
+	PIOS_Assert(slave_id < spi_dev->slave_count);
 	PIOS_Assert(slave_id >= 0);
 
         struct spi_ioc_transfer xfer = {

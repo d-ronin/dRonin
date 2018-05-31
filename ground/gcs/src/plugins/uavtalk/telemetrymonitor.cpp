@@ -35,15 +35,6 @@
 #include "coreplugin/icore.h"
 #include "firmwareiapobj.h"
 
-// Number of retries for initial session object fetching
-// This is needed because sometimes the object is lost when asked right uppon connection
-#define SESSION_INIT_RETRIES 3
-// Delay between initial session object fetching retries (number of times defined above)
-#define SESSION_INITIAL_RETRIEVE_TIMEOUT 500
-// Timeout for the all session negotiation, the system will go to failsafe after it
-#define SESSION_RETRIEVE_TIMEOUT 20000
-// Number of retries for the session object fetching during negotiation
-#define SESSION_OBJ_RETRIEVE_RETRIES 3
 // Timeout for the object fetching phase, the system will stop fetching objects and emit connected
 // after this
 #define OBJECT_RETRIEVE_TIMEOUT 20000
@@ -56,27 +47,63 @@
 #define TELEMETRYMONITOR_QXTLOG_DEBUG(...)
 #endif // TELEMETRYMONITOR_DEBUG
 
+bool TelemetryMonitor::queueCompare(UAVObject *left, UAVObject *right)
+{
+    /* Should return true if right should be dequeued before left. */
+
+    /* It's advantageous to dequeue multi-instance objs first, so if
+     * there's many IDs we can be doing the round trips while other
+     * objects arrive (instead of getting stuck round-trip bound */
+
+    if (left->isSingleInstance() && (!right->isSingleInstance())) {
+        return true;
+    } else if ((!left->isSingleInstance() && right->isSingleInstance())) {
+        return false;
+    }
+
+    /* It's advantageous to dequeue metaobjects last, because we
+     * probably know about their existance by this stage. */
+    UAVDataObject *leftD = dynamic_cast<UAVDataObject *>(left);
+    UAVDataObject *rightD = dynamic_cast<UAVDataObject *>(right);
+
+    if (leftD && (!rightD)) {
+        /* Right is a metaobj */
+        return false;
+    } else if ((!leftD) && (rightD)) {
+        /* Right is NOT a metaobj */
+        return true;
+    }
+
+    /* At this point either both are meta or both are not meta */
+    if (leftD) {
+        /* It's advantageous to dequeue settings next, since they're
+         * not auto-telemetered and we won't find out about them by
+         * serendipity */
+        if ((!leftD->isSettings()) && (rightD->isSettings())) {
+            return true;
+        } else if ((leftD->isSettings()) && (!rightD->isSettings())) {
+            return false;
+        }
+    }
+
+    /* Fall back to name last, because it's pleasing to retrieve in order */
+    return left->getName() > right->getName();
+}
+
 /**
  * Constructor
  */
-TelemetryMonitor::TelemetryMonitor(UAVObjectManager *objMngr, Telemetry *tel,
-                                   QHash<quint16, QList<objStruc>> sessions)
+TelemetryMonitor::TelemetryMonitor(UAVObjectManager *objMngr, Telemetry *tel)
     : connectionStatus(CON_DISCONNECTED)
     , objMngr(objMngr)
     , tel(tel)
-    , numberOfObjects(0)
-    , retries(0)
+    , queue(decltype(queue)(queueCompare))
     , requestsInFlight(0)
-    , isManaged(true)
-    , sessions(sessions)
 {
-    sessionID = QDateTime::currentDateTime().toTime_t();
     this->connectionTimer = new QTime();
     // Get stats objects
     gcsStatsObj = GCSTelemetryStats::GetInstance(objMngr);
     flightStatsObj = FlightTelemetryStats::GetInstance(objMngr);
-
-    sessionObj = SessionManaging::GetInstance(objMngr);
 
     // Listen for flight stats updates
     connect(flightStatsObj, &UAVObject::objectUpdated, this, &TelemetryMonitor::flightStatsUpdated);
@@ -85,11 +112,7 @@ TelemetryMonitor::TelemetryMonitor(UAVObjectManager *objMngr, Telemetry *tel,
     statsTimer = new QTimer(this);
     objectRetrieveTimeout = new QTimer(this);
     objectRetrieveTimeout->setSingleShot(true);
-    sessionInitialRetrieveTimeout = new QTimer(this);
-    sessionInitialRetrieveTimeout->setSingleShot(true);
     connect(statsTimer, &QTimer::timeout, this, &TelemetryMonitor::processStatsUpdates);
-    connect(sessionInitialRetrieveTimeout, &QTimer::timeout, this,
-            &TelemetryMonitor::sessionInitialRetrieveTimeoutCB);
     connect(objectRetrieveTimeout, &QTimer::timeout, this,
             &TelemetryMonitor::objectRetrieveTimeoutCB);
     statsTimer->start(STATS_CONNECT_PERIOD_MS);
@@ -100,11 +123,7 @@ TelemetryMonitor::TelemetryMonitor(UAVObjectManager *objMngr, Telemetry *tel,
             &Core::ConnectionManager::telemetryDisconnected);
     connect(this, &TelemetryMonitor::telemetryUpdated, cm,
             &Core::ConnectionManager::telemetryUpdated);
-    connect(sessionObj, &UAVObject::objectUnpacked, this, &TelemetryMonitor::sessionObjUnpackedCB);
     connect(objMngr, &UAVObjectManager::newInstance, this, &TelemetryMonitor::newInstanceSlot);
-
-    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    settings = pm->getObject<Core::Internal::GeneralSettings>();
 }
 
 TelemetryMonitor::~TelemetryMonitor()
@@ -112,15 +131,15 @@ TelemetryMonitor::~TelemetryMonitor()
     // Before saying goodbye, set the GCS connection status to disconnected too:
     GCSTelemetryStats::DataFields gcsStats = gcsStatsObj->getData();
     gcsStats.Status = GCSTelemetryStats::STATUS_DISCONNECTED;
-    if (settings->useSessionManaging()) {
-        foreach (UAVObjectManager::ObjectMap map, objMngr->getObjects()) {
-            foreach (UAVObject *obj, map.values()) {
-                UAVDataObject *dobj = dynamic_cast<UAVDataObject *>(obj);
-                if (dobj)
-                    dobj->setIsPresentOnHardware(false);
-            }
+
+    foreach (UAVObjectManager::ObjectMap map, objMngr->getObjects()) {
+        foreach (UAVObject *obj, map.values()) {
+            UAVDataObject *dobj = dynamic_cast<UAVDataObject *>(obj);
+            if (dobj)
+                dobj->resetIsPresentOnHardware();
         }
     }
+
     // Set data
     gcsStatsObj->setData(gcsStats);
 }
@@ -133,106 +152,24 @@ void TelemetryMonitor::startRetrievingObjects()
     TELEMETRYMONITOR_QXTLOG_DEBUG(
         QString("%0 connectionStatus changed to CON_RETRIEVING_OBJECT").arg(Q_FUNC_INFO));
     connectionStatus = CON_RETRIEVING_OBJECTS;
-    // Get all objects, add metaobjects, settings and data objects with OnChange update mode to the
-    // queue
-    queue.clear();
-    retries = 0;
+
+    /* Clear the queue */
+    queue = decltype(queue)(queueCompare);
+
     objectRetrieveTimeout->start(OBJECT_RETRIEVE_TIMEOUT);
     foreach (UAVObjectManager::ObjectMap map, objMngr->getObjects().values()) {
         UAVObject *obj = map.first();
-        if (obj->getObjID() == SessionManaging::OBJID) {
-            continue;
-        }
-        UAVDataObject *dobj = dynamic_cast<UAVDataObject *>(obj);
-        UAVObject::Metadata mdata = obj->getMetadata();
-        if (dobj != NULL) {
-            if (!dobj->getIsPresentOnHardware()) {
-                TELEMETRYMONITOR_QXTLOG_DEBUG(QString("%0 %1 not present on hardware, skipping")
-                                                  .arg(Q_FUNC_INFO)
-                                                  .arg(obj->getName()));
-                continue;
-            }
-            queue.enqueue(dobj->getMetaObject());
-            if (dobj->isSettings() || (dobj->getObjID() == FirmwareIAPObj::OBJID)) {
-                TELEMETRYMONITOR_QXTLOG_DEBUG(
-                    QString("%0 queing settings object %1").arg(Q_FUNC_INFO).arg(dobj->getName()));
-                queue.enqueue(obj);
-            } else {
-                if (UAVObject::GetFlightTelemetryUpdateMode(mdata)
-                    == UAVObject::UPDATEMODE_ONCHANGE) {
-                    TELEMETRYMONITOR_QXTLOG_DEBUG(QString("%0 queing UPDATEMODE_ONCHANGE object %1")
-                                                      .arg(Q_FUNC_INFO)
-                                                      .arg(dobj->getName()));
-                    queue.enqueue(obj);
-                } else {
-                    TELEMETRYMONITOR_QXTLOG_DEBUG(
-                        QString("%0 skipping %1, not settings nor metadata or UPDATEMODE_ONCHANGE")
-                            .arg(Q_FUNC_INFO)
-                            .arg(dobj->getName()));
-                }
-            }
-        }
+
+        /* Enqueue everything; decide later whether to bother retrieving. */
+        queue.push(obj);
     }
+
     // Start retrieving
     TELEMETRYMONITOR_QXTLOG_DEBUG(
         QString(
-            tr("Starting to retrieve meta and settings objects from the autopilot (%1 objects)"))
-            .arg(queue.length()));
+            tr("Starting to retrieve objects from the autopilot (%1 objects)"))
+            .arg(queue.size()));
     retrieveNextObject();
-}
-
-void TelemetryMonitor::changeObjectInstances(quint32 objID, quint32 instID, bool delayed)
-{
-    TELEMETRYMONITOR_QXTLOG_DEBUG(
-        QString("%0 OBJID:%1 INSTID:%2").arg(Q_FUNC_INFO).arg(objID).arg(instID));
-    UAVObject *obj = objMngr->getObject(objID);
-    if (obj) {
-        UAVDataObject *dobj = NULL;
-        dobj = dynamic_cast<UAVDataObject *>(obj);
-        if (dobj == NULL) {
-            return;
-        }
-        if (dobj->isSingleInstance()) {
-            return;
-        }
-        quint32 currentInstances = objMngr->getNumInstances(objID);
-        if (currentInstances != instID) {
-            TELEMETRYMONITOR_QXTLOG_DEBUG(
-                QString("%0 Object %1 has %2 instances on hw and %3 on the GCS")
-                    .arg(Q_FUNC_INFO)
-                    .arg(dobj->getName())
-                    .arg(sessionObj->getObjectInstances())
-                    .arg(currentInstances));
-            if (currentInstances < sessionObj->getObjectInstances()) {
-                TELEMETRYMONITOR_QXTLOG_DEBUG(
-                    QString("%0 cloned and registered object %1 INSTID=%2")
-                        .arg(Q_FUNC_INFO)
-                        .arg(dobj->getName())
-                        .arg(instID - 1));
-                UAVDataObject *instobj = dobj->clone(instID - 1);
-                objMngr->registerObject(instobj);
-            } else {
-                TELEMETRYMONITOR_QXTLOG_DEBUG(QString("%0 unregistered object %1 INSTID=%2")
-                                                  .arg(Q_FUNC_INFO)
-                                                  .arg(dobj->getName())
-                                                  .arg(instID));
-                UAVObject *obji = objMngr->getObject(objID, instID);
-                UAVDataObject *dobji = dynamic_cast<UAVDataObject *>(obji);
-                if (dobji) {
-                    objMngr->unRegisterObject(dobji);
-                }
-            }
-        }
-        for (int x = 0; x < objMngr->getNumInstances(objID); ++x) {
-            UAVDataObject *dobj = dynamic_cast<UAVDataObject *>(objMngr->getObject(objID, x));
-            if (dobj) {
-                if (delayed)
-                    delayedUpdate.append(dobj);
-                else
-                    dobj->setIsPresentOnHardware(true);
-            }
-        }
-    }
 }
 
 /**
@@ -241,27 +178,14 @@ void TelemetryMonitor::changeObjectInstances(quint32 objID, quint32 instID, bool
 void TelemetryMonitor::retrieveNextObject()
 {
     // If queue is empty return
-    if (queue.isEmpty() && requestsInFlight == 0) {
+    if (queue.empty() && requestsInFlight == 0) {
         TELEMETRYMONITOR_QXTLOG_DEBUG(QString("%0 Object retrieval completed").arg(Q_FUNC_INFO));
-        if (isManaged) {
-            TELEMETRYMONITOR_QXTLOG_DEBUG(
-                QString("%0 connectionStatus set to CON_CONNECTED_MANAGED( %1 )")
-                    .arg(Q_FUNC_INFO)
-                    .arg(connectionStatus));
-            connectionStatus = CON_CONNECTED_MANAGED;
-        } else {
-            TELEMETRYMONITOR_QXTLOG_DEBUG(
-                QString("%0 connectionStatus set to CON_CONNECTED_UNMANAGED( %1 )")
-                    .arg(Q_FUNC_INFO)
-                    .arg(connectionStatus));
-            connectionStatus = CON_CONNECTED_UNMANAGED;
-        }
-        foreach (UAVDataObject *uavo, delayedUpdate) {
-            uavo->setIsPresentOnHardware(true);
-        }
-        delayedUpdate.clear();
+        TELEMETRYMONITOR_QXTLOG_DEBUG(
+            QString("%0 connectionStatus set to CON_CONNECTED_MANAGED( %1 )")
+                .arg(Q_FUNC_INFO)
+                .arg(connectionStatus));
+        connectionStatus = CON_CONNECTED_MANAGED;
         emit connected();
-        sessionInitialRetrieveTimeout->stop();
         objectRetrieveTimeout->stop();
         return;
     }
@@ -270,31 +194,63 @@ void TelemetryMonitor::retrieveNextObject()
     objectRetrieveTimeout->start(OBJECT_RETRIEVE_TIMEOUT);
 
     while (requestsInFlight < MAX_REQUESTS_IN_FLIGHT) {
-        if (queue.isEmpty()) {
+        if (queue.empty()) {
             return;
         }
 
         // Get next object from the queue
-        UAVObject *obj = queue.dequeue();
+        UAVObject *obj = queue.top();
+        queue.pop();
+
+        UAVDataObject *dobj = dynamic_cast<UAVDataObject *>(obj);
+
+        if (dobj) {
+            if (dobj->getReceived() && dobj->isSingleInstance()) {
+                /* We got it already.  That's easy! */
+                continue;
+            }
+
+            if (dobj->getPresenceKnown() && (!dobj->getIsPresentOnHardware())) {
+                TELEMETRYMONITOR_QXTLOG_DEBUG(QString("%0 %1 not present on hardware, skipping")
+                                                  .arg(Q_FUNC_INFO)
+                                                  .arg(obj->getName()));
+                continue;
+            }
+        } else {
+            /* For metaobjects, skip if data object not there */
+            UAVMetaObject *mobj = dynamic_cast<UAVMetaObject *>(obj);
+
+            if (mobj) {
+                UAVDataObject *pobj = dynamic_cast<UAVDataObject *>(
+                        mobj->getParentObject());
+                if (pobj->getPresenceKnown() && (!pobj->getIsPresentOnHardware())) {
+                    TELEMETRYMONITOR_QXTLOG_DEBUG(QString("%0 %1 not present on hardware, skipping associated meta obj")
+                                                      .arg(Q_FUNC_INFO)
+                                                      .arg(obj->getName()));
+                    continue;
+                }
+            }
+        }
+
         // Connect to object
-        TELEMETRYMONITOR_QXTLOG_DEBUG(QString("%0 requestiong %1 from board INSTID:%2")
+        TELEMETRYMONITOR_QXTLOG_DEBUG(QString("%0 requesting %1 from board INSTID:%2")
                                           .arg(Q_FUNC_INFO)
                                           .arg(obj->getName())
                                           .arg(obj->getInstID()));
 
         requestsInFlight++;
 
-        connect(obj, QOverload<UAVObject *, bool>::of(&UAVObject::transactionCompleted), this,
+        connect(obj, QOverload<UAVObject *, bool, bool>::of(&UAVObject::transactionCompleted), this,
                 &TelemetryMonitor::transactionCompleted);
         // Request update
-        obj->requestUpdateAllInstances();
+        obj->requestUpdate();
     }
 }
 
 /**
  * Called by the retrieved object when a transaction is completed.
  */
-void TelemetryMonitor::transactionCompleted(UAVObject *obj, bool success)
+void TelemetryMonitor::transactionCompleted(UAVObject *obj, bool success, bool nacked)
 {
     TELEMETRYMONITOR_QXTLOG_DEBUG(QString("%0 received %1 OBJID:%2 result:%3")
                                       .arg(Q_FUNC_INFO)
@@ -302,12 +258,59 @@ void TelemetryMonitor::transactionCompleted(UAVObject *obj, bool success)
                                       .arg(obj->getObjID())
                                       .arg(success));
     Q_UNUSED(success);
-    if (obj->getObjID() == FirmwareIAPObj::OBJID) {
-        if (!success && (retries < IAP_OBJECT_RETRIES)) {
-            ++retries;
-            obj->requestUpdate();
 
-            return;
+    UAVDataObject *dobj = dynamic_cast<UAVDataObject *>(obj);
+
+    if (nacked) {
+        UAVDataObject *dobj = dynamic_cast<UAVDataObject *>(obj);
+        if (dobj) {
+            if (dobj->isSingleInstance()) {
+                dobj->setIsPresentOnHardware(false);
+            } else {
+                int instId = dobj->getInstID();
+
+                if (instId <= 0) {
+                    dobj->setIsPresentOnHardware(false);
+                } else {
+                    /* Multi-instance, shrink instance count down.  Inst
+                     * ID must be 1, so getNumInstances should be 2 or
+                     * larger */
+                    int idx;
+
+                    idx = objMngr->getNumInstances(dobj->getObjID());
+
+                    while (idx > instId) {
+                        idx--;
+                        qInfo() << QString("Got nak instID %1 removing %2").arg(instId).arg(idx);
+                        UAVObject *objR = objMngr->getObject(dobj->getObjID(),
+                                idx);
+                        UAVDataObject *dobjR = dynamic_cast<UAVDataObject *>(objR);
+                        if (dobjR) {
+                            objMngr->unRegisterObject(dobjR);
+                        }
+                    }
+                }
+            }
+        }
+    } else if (success) {
+        if (dobj && (!dobj->isSingleInstance())) {
+            /* multi-instance... temporarily register and enqueue next
+             * instance
+             */
+            int new_idx = dobj->getInstID() + 1;
+
+            UAVObject *instObj = objMngr->getObject(dobj->getObjID(),
+                    new_idx);
+
+            UAVDataObject *instdObj;
+            if (instObj == NULL)  {
+                instdObj = dobj->clone(new_idx);
+                objMngr->registerObject(instdObj);
+            } else {
+                instdObj = dynamic_cast<UAVDataObject *>(instObj);
+            }
+
+            queue.push(instdObj);
         }
     }
 
@@ -325,9 +328,10 @@ void TelemetryMonitor::transactionCompleted(UAVObject *obj, bool success)
         qInfo() <<
             QString("%0 connection lost while retrieving objects, stopped object retrievel")
                 .arg(Q_FUNC_INFO);
-        queue.clear();
+        /* Clear the queue */
+        queue = decltype(queue)(queueCompare);
+
         objectRetrieveTimeout->stop();
-        sessionInitialRetrieveTimeout->stop();
         connectionStatus = CON_DISCONNECTED;
     }
 }
@@ -348,125 +352,14 @@ void TelemetryMonitor::flightStatsUpdated(UAVObject *obj)
     }
 }
 
-void TelemetryMonitor::sessionObjUnpackedCB(UAVObject *obj)
-{
-    sessionObjRetries = 0;
-    switch (connectionStatus) {
-    case CON_INITIALIZING:
-        if (sessions.contains(sessionObj->getSessionID())
-            && (sessions.value(sessionObj->getSessionID()).count()
-                == sessionObj->getNumberOfObjects())) {
-            sessionID = sessionObj->getSessionID();
-            numberOfObjects = sessionObj->getNumberOfObjects();
-            TELEMETRYMONITOR_QXTLOG_DEBUG(
-                QString("%0 status:%1 session already known startRetrievingObjects")
-                    .arg(Q_FUNC_INFO)
-                    .arg(connectionStatus));
-            foreach (objStruc objs, sessions.value(sessionObj->getSessionID())) {
-                UAVDataObject *dobj = dynamic_cast<UAVDataObject *>(objMngr->getObject(objs.objID));
-                if (dobj) {
-                    if (dobj->isSingleInstance()) {
-                        dobj->setIsPresentOnHardware(true);
-                    } else {
-                        changeObjectInstances(objs.objID, objs.instID, true);
-                    }
-                }
-            }
-            startRetrievingObjects();
-        } else {
-            TELEMETRYMONITOR_QXTLOG_DEBUG(
-                QString("%0 new session startSessionRetrieving HWsessionID=%1 GCSsessionID=%2 "
-                        "HWnumberofobjs=%3 GCSnumberofobjs=%4")
-                    .arg(Q_FUNC_INFO)
-                    .arg(sessionObj->getSessionID())
-                    .arg(sessionID)
-                    .arg(sessionObj->getNumberOfObjects())
-                    .arg(sessions.value(sessionObj->getSessionID()).count()));
-            startSessionRetrieving(NULL);
-        }
-        break;
-    case CON_CONNECTED_MANAGED:
-        qDebug() << QString("HW=%0 GCS=%1 GCS_ADJ=%2")
-                        .arg(sessionObj->getSessionID())
-                        .arg(sessionID)
-                        .arg(sessionID + 1);
-        if (sessionObj->getSessionID() == sessionID
-            && numberOfObjects == sessionObj->getNumberOfObjects())
-            return;
-        else if (sessionObj->getSessionID() == (sessionID + 1)) // number of instances changed
-        {
-            TELEMETRYMONITOR_QXTLOG_DEBUG(
-                QString("%0 received sessionID shift by one, this signal that a multi instance "
-                        "object changed number of instances")
-                    .arg(Q_FUNC_INFO));
-            changeObjectInstances(sessionObj->getObjectID(), sessionObj->getObjectInstances(),
-                                  false);
-            sessionID = sessionID + 1;
-            saveSession();
-        } else if (!sessions.contains(sessionObj->getSessionID())) {
-            TELEMETRYMONITOR_QXTLOG_DEBUG(
-                QString("%0 new session during CONNECTED? startSessionRetrieving")
-                    .arg(Q_FUNC_INFO));
-            startSessionRetrieving(NULL);
-        }
-        break;
-    case CON_SESSION_INITIALIZING:
-        startSessionRetrieving(obj);
-        break;
-    case CON_RETRIEVING_OBJECTS:
-        TELEMETRYMONITOR_QXTLOG_DEBUG(
-            QString(
-                "%0 received sessionManaging object during object retrievel, this shouldn't happen")
-                .arg(Q_FUNC_INFO));
-        break;
-    case CON_CONNECTED_UNMANAGED:
-    case CON_DISCONNECTED:
-        break;
-    }
-}
-
 void TelemetryMonitor::objectRetrieveTimeoutCB()
 {
     qInfo() <<
         QString("%0 reached timeout for object retrieval, clearing queue")
         .arg(Q_FUNC_INFO);
-    queue.clear();
-}
 
-void TelemetryMonitor::sessionInitialRetrieveTimeoutCB()
-{
-    if ((connectionStatus == CON_INITIALIZING) || (connectionStatus == CON_SESSION_INITIALIZING)) {
-        if (sessionObjRetries < SESSION_OBJ_RETRIEVE_RETRIES) {
-            TELEMETRYMONITOR_QXTLOG_DEBUG(
-                QString("%0 session retrieve timeout try=%1, going to retry")
-                    .arg(Q_FUNC_INFO)
-                    .arg(sessionObjRetries));
-            ++sessionObjRetries;
-            sessionObj->updated();
-            sessionInitialRetrieveTimeout->start(SESSION_INITIAL_RETRIEVE_TIMEOUT);
-        }
-    }
-}
-
-void TelemetryMonitor::saveSession()
-{
-    if (isManaged) {
-        QList<objStruc> list;
-        foreach (UAVObjectManager::ObjectMap map, objMngr->getObjects().values()) {
-            foreach (UAVObject *obj, map) {
-                UAVDataObject *dobj = dynamic_cast<UAVDataObject *>(obj);
-                if (dobj) {
-                    if (dobj->getIsPresentOnHardware() && dobj->getInstID() == 0) {
-                        objStruc objs;
-                        objs.objID = dobj->getObjID();
-                        objs.instID = objMngr->getNumInstances(obj->getObjID());
-                        list.append(objs);
-                    }
-                }
-            }
-        }
-        sessions.insert(sessionID, list);
-    }
+    /* Clear the queue */
+    queue = decltype(queue)(queueCompare);
 }
 
 void TelemetryMonitor::newInstanceSlot(UAVObject *obj)
@@ -474,84 +367,7 @@ void TelemetryMonitor::newInstanceSlot(UAVObject *obj)
     UAVDataObject *dobj = dynamic_cast<UAVDataObject *>(obj);
     if (!dobj)
         return;
-    if (!isManaged)
-        dobj->setIsPresentOnHardware(true);
-}
-
-void TelemetryMonitor::startSessionRetrieving(UAVObject *session)
-{
-    static int currentIndex = 0;
-    static int objectCount = 0;
-    static int sessionNegotiationRetries = 0;
-    if (session == NULL) {
-        TELEMETRYMONITOR_QXTLOG_DEBUG(QString("%0 NULL new session start").arg(Q_FUNC_INFO));
-        foreach (UAVObjectManager::ObjectMap map, objMngr->getObjects()) {
-            foreach (UAVObject *obj, map.values()) {
-                UAVDataObject *dobj = dynamic_cast<UAVDataObject *>(obj);
-                if (dobj)
-                    dobj->setIsPresentOnHardware(false);
-            }
-        }
-        currentIndex = 0;
-        objectCount = 0;
-        sessionObjRetries = 0;
-        connectionStatus = CON_SESSION_INITIALIZING;
-        sessionObj->setSessionID(0);
-        sessionObj->updated();
-    } else if (sessionObj->getSessionID() == 0) {
-        objectCount = sessionObj->getNumberOfObjects();
-        if (objectCount == 0)
-            return;
-        sessionID = QDateTime::currentDateTime().toTime_t();
-        sessionObj->setSessionID(sessionID);
-        sessionObj->setObjectOfInterestIndex(0);
-        TELEMETRYMONITOR_QXTLOG_DEBUG(
-            QString("%0 SESSION SETUP with numberofobjects:%1 and sessionID:%2")
-                .arg(Q_FUNC_INFO)
-                .arg(objectCount)
-                .arg(sessionID));
-        sessionObj->updated();
-    } else if (sessionObj->getSessionID() == sessionID) {
-        if (sessionObj->getObjectOfInterestIndex() != currentIndex) {
-            TELEMETRYMONITOR_QXTLOG_DEBUG(
-                QString("%0 RECEIVED WRONG INDEX RETRY current retries:%1")
-                    .arg(Q_FUNC_INFO)
-                    .arg(sessionNegotiationRetries));
-            if (sessionNegotiationRetries < SESSION_INIT_RETRIES) {
-                sessionObj->setObjectOfInterestIndex(currentIndex);
-                ++sessionNegotiationRetries;
-                sessionObj->updated();
-                return;
-            }
-        } else {
-            sessionNegotiationRetries = 0;
-        }
-        UAVObject *obj = objMngr->getObject(sessionObj->getObjectID());
-        if (obj) {
-            TELEMETRYMONITOR_QXTLOG_DEBUG(QString("%0 RECEIVED INDEX:%1 object:%2 instances:%3")
-                                              .arg(Q_FUNC_INFO)
-                                              .arg(sessionObj->getObjectOfInterestIndex())
-                                              .arg(obj->getName())
-                                              .arg(sessionObj->getObjectInstances()));
-            UAVDataObject *dobj = dynamic_cast<UAVDataObject *>(obj);
-            if (dobj) {
-                dobj->setIsPresentOnHardware(true);
-            }
-            if ((sessionObj->getObjectInstances() > 1) && !obj->isSingleInstance()) {
-                changeObjectInstances(dobj->getObjID(), sessionObj->getObjectInstances(), true);
-            }
-        }
-        ++currentIndex;
-        if (currentIndex < objectCount) {
-            TELEMETRYMONITOR_QXTLOG_DEBUG(
-                QString("%0 ASKING BOARD FOR INDEX:%1").arg(Q_FUNC_INFO).arg(currentIndex));
-            sessionObj->setObjectOfInterestIndex(currentIndex);
-            sessionObj->updated();
-        } else {
-            saveSession();
-            startRetrievingObjects();
-        }
-    }
+    dobj->setIsPresentOnHardware(true);
 }
 
 /**
@@ -615,25 +431,18 @@ void TelemetryMonitor::processStatsUpdates()
         statsTimer->setInterval(STATS_UPDATE_PERIOD_MS);
         qDebug() << "Connection with the autopilot established";
         connectionStatus = CON_INITIALIZING;
-        sessionInitialRetrieveTimeout->start(SESSION_INITIAL_RETRIEVE_TIMEOUT);
-        sessionObj->requestUpdate();
-        isManaged = true;
-    }
-    if (gcsStats.Status == GCSTelemetryStats::STATUS_DISCONNECTED && gcsStats.Status != oldStatus) {
+        startRetrievingObjects();
+    } else if (gcsStats.Status == GCSTelemetryStats::STATUS_DISCONNECTED && gcsStats.Status != oldStatus) {
         statsTimer->setInterval(STATS_CONNECT_PERIOD_MS);
         connectionStatus = CON_DISCONNECTED;
-        ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-        Core::Internal::GeneralSettings *settings =
-            pm->getObject<Core::Internal::GeneralSettings>();
-        if (settings->useSessionManaging()) {
-            foreach (UAVObjectManager::ObjectMap map, objMngr->getObjects()) {
-                foreach (UAVObject *obj, map.values()) {
-                    UAVDataObject *dobj = dynamic_cast<UAVDataObject *>(obj);
-                    if (dobj)
-                        dobj->setIsPresentOnHardware(false);
-                }
+        foreach (UAVObjectManager::ObjectMap map, objMngr->getObjects()) {
+            foreach (UAVObject *obj, map.values()) {
+                UAVDataObject *dobj = dynamic_cast<UAVDataObject *>(obj);
+                if (dobj)
+                    dobj->resetIsPresentOnHardware();
             }
         }
+
         emit disconnected();
     }
 }

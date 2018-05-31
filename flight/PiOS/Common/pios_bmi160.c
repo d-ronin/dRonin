@@ -42,9 +42,6 @@
 #include "pios_queue.h"
 
 /* Private constants */
-#define PIOS_BMI160_TASK_PRIORITY    PIOS_THREAD_PRIO_HIGHEST
-#define PIOS_BMI160_TASK_STACK_BYTES 512
-#define PIOS_BMI160_MAX_DOWNSAMPLE 2
 
 /* BMI160 Registers */
 #define BMI160_REG_CHIPID 0x00
@@ -85,15 +82,17 @@ struct bmi160_dev {
 	pios_spi_t spi_id;
 	uint32_t slave_num;
 	const struct pios_bmi160_cfg *cfg;
-	struct pios_queue *gyro_queue;
-	struct pios_queue *accel_queue;
-	struct pios_thread *TaskHandle;
+	struct pios_sensor_accel_data *accel_data;
+	struct pios_sensor_gyro_data *gyro_data;
+	uint8_t temp_interleave_cnt;
 	struct pios_semaphore *data_ready_sema;
 	float accel_scale;
 	float gyro_scale;
 	enum pios_bmi160_dev_magic magic;
+	volatile uint8_t sensor_ready;
 };
 
+#define SENSOR_ACCEL			(1 << 0)
 
 //! Global structure for this device device
 static struct bmi160_dev *dev;
@@ -103,11 +102,16 @@ static int32_t PIOS_BMI160_Config(const struct pios_bmi160_cfg *cfg);
 static int32_t PIOS_BMI160_do_foc(const struct pios_bmi160_cfg *cfg);
 static struct bmi160_dev *PIOS_BMI160_alloc(const struct pios_bmi160_cfg *cfg);
 static int32_t PIOS_BMI160_Validate(struct bmi160_dev *dev);
-static void PIOS_BMI160_Task(void *parameters);
 static uint8_t PIOS_BMI160_ReadReg(uint8_t reg);
 static int32_t PIOS_BMI160_WriteReg(uint8_t reg, uint8_t data);
 static int32_t PIOS_BMI160_ClaimBus();
 static int32_t PIOS_BMI160_ReleaseBus();
+
+static int PIOS_BMI160_parse_data(struct bmi160_dev *dev);
+static bool PIOS_BMI160_callback_gyro(void *ctx, void *output,
+		int ms_to_wait, int *next_call);
+static bool PIOS_BMI160_callback_accel(void *ctx, void *output,
+		int ms_to_wait, int *next_call);
 
 
 /**
@@ -194,15 +198,11 @@ int32_t PIOS_BMI160_Init(pios_spi_t spi_id, uint32_t slave_num, const struct pio
 		return -10;
 	}
 
-	dev->TaskHandle = PIOS_Thread_Create(
-			PIOS_BMI160_Task, "pios_bmi160", PIOS_BMI160_TASK_STACK_BYTES, NULL, PIOS_BMI160_TASK_PRIORITY);
-	PIOS_Assert(dev->TaskHandle != NULL);
-
 	PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_ACCEL, 1600);
 	PIOS_SENSORS_SetSampleRate(PIOS_SENSOR_GYRO, 1600);
 
-	PIOS_SENSORS_Register(PIOS_SENSOR_ACCEL, dev->accel_queue);
-	PIOS_SENSORS_Register(PIOS_SENSOR_GYRO, dev->gyro_queue);
+	PIOS_SENSORS_RegisterCallback(PIOS_SENSOR_ACCEL, PIOS_BMI160_callback_accel, dev);
+	PIOS_SENSORS_RegisterCallback(PIOS_SENSOR_GYRO, PIOS_BMI160_callback_gyro, dev);
 
 	return 0;
 }
@@ -368,23 +368,23 @@ static struct bmi160_dev *PIOS_BMI160_alloc(const struct pios_bmi160_cfg *cfg)
 
 	bmi160_dev->magic = PIOS_BMI160_DEV_MAGIC;
 
-	bmi160_dev->accel_queue = PIOS_Queue_Create(PIOS_BMI160_MAX_DOWNSAMPLE, sizeof(struct pios_sensor_accel_data));
-	if (bmi160_dev->accel_queue == NULL) {
+	bmi160_dev->accel_data = PIOS_malloc_no_dma(sizeof(*bmi160_dev->accel_data));
+	if (bmi160_dev->accel_data == NULL) {
 		PIOS_free(bmi160_dev);
 		return NULL;
 	}
 
-	bmi160_dev->gyro_queue = PIOS_Queue_Create(PIOS_BMI160_MAX_DOWNSAMPLE, sizeof(struct pios_sensor_gyro_data));
-	if (bmi160_dev->gyro_queue == NULL) {
-		PIOS_Queue_Delete(dev->accel_queue);
+	bmi160_dev->gyro_data = PIOS_malloc_no_dma(sizeof(*bmi160_dev->gyro_data));
+	if (bmi160_dev->gyro_data == NULL) {
+		PIOS_free(bmi160_dev->accel_data);
 		PIOS_free(bmi160_dev);
 		return NULL;
 	}
 
 	bmi160_dev->data_ready_sema = PIOS_Semaphore_Create();
 	if (bmi160_dev->data_ready_sema == NULL) {
-		PIOS_Queue_Delete(dev->accel_queue);
-		PIOS_Queue_Delete(dev->gyro_queue);
+		PIOS_free(bmi160_dev->gyro_data);
+		PIOS_free(bmi160_dev->accel_data);
 		PIOS_free(bmi160_dev);
 		return NULL;
 	}
@@ -494,166 +494,204 @@ bool PIOS_BMI160_IRQHandler(void)
 	return need_yield;
 }
 
-
-static void PIOS_BMI160_Task(void *parameters)
+/**
+ * @brief Reads out SPI and parses the data
+ * @returns 0 on success, -1 on temperature readout failure, -2 on sensor readout failure.
+ */
+static int PIOS_BMI160_parse_data(struct bmi160_dev *dev)
 {
-	float temperature = 0.f;
-	uint8_t temp_interleave_cnt = 0;
+	enum {
+		IDX_REG = 0,
+		IDX_GYRO_XOUT_L,
+		IDX_GYRO_XOUT_H,
+		IDX_GYRO_YOUT_L,
+		IDX_GYRO_YOUT_H,
+		IDX_GYRO_ZOUT_L,
+		IDX_GYRO_ZOUT_H,
+		IDX_ACCEL_XOUT_L,
+		IDX_ACCEL_XOUT_H,
+		IDX_ACCEL_YOUT_L,
+		IDX_ACCEL_YOUT_H,
+		IDX_ACCEL_ZOUT_L,
+		IDX_ACCEL_ZOUT_H,
+		BUFFER_SIZE,
+	};
 
-	while (1) {
-		//Wait for data ready interrupt
-		if (PIOS_Semaphore_Take(dev->data_ready_sema, PIOS_SEMAPHORE_TIMEOUT_MAX) != true)
-			continue;
+	uint8_t bmi160_rec_buf[BUFFER_SIZE];
+	uint8_t bmi160_tx_buf[BUFFER_SIZE] = {BMI160_REG_GYR_DATA_X_LSB | 0x80, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0};
 
-		enum {
-			IDX_REG = 0,
-			IDX_GYRO_XOUT_L,
-			IDX_GYRO_XOUT_H,
-			IDX_GYRO_YOUT_L,
-			IDX_GYRO_YOUT_H,
-			IDX_GYRO_ZOUT_L,
-			IDX_GYRO_ZOUT_H,
-			IDX_ACCEL_XOUT_L,
-			IDX_ACCEL_XOUT_H,
-			IDX_ACCEL_YOUT_L,
-			IDX_ACCEL_YOUT_H,
-			IDX_ACCEL_ZOUT_L,
-			IDX_ACCEL_ZOUT_H,
-			BUFFER_SIZE,
-		};
+	if (PIOS_BMI160_ClaimBus() != 0)
+		return -2;
 
-		uint8_t bmi160_rec_buf[BUFFER_SIZE];
-		uint8_t bmi160_tx_buf[BUFFER_SIZE] = {BMI160_REG_GYR_DATA_X_LSB | 0x80, 0, 0, 0, 0, 0,
-				0, 0, 0, 0, 0, 0, 0};
+	if (PIOS_SPI_TransferBlock(dev->spi_id, bmi160_tx_buf, bmi160_rec_buf, BUFFER_SIZE) < 0) {
+		PIOS_BMI160_ReleaseBus();
+		return -2;
+	}
 
+	PIOS_BMI160_ReleaseBus();
+
+	struct pios_sensor_accel_data *accel_data = dev->accel_data;
+	struct pios_sensor_gyro_data *gyro_data = dev->gyro_data;
+
+	float accel_x = (int16_t)(bmi160_rec_buf[IDX_ACCEL_XOUT_H] << 8 | bmi160_rec_buf[IDX_ACCEL_XOUT_L]);
+	float accel_y = (int16_t)(bmi160_rec_buf[IDX_ACCEL_YOUT_H] << 8 | bmi160_rec_buf[IDX_ACCEL_YOUT_L]);
+	float accel_z = (int16_t)(bmi160_rec_buf[IDX_ACCEL_ZOUT_H] << 8 | bmi160_rec_buf[IDX_ACCEL_ZOUT_L]);
+	float gyro_x = (int16_t)(bmi160_rec_buf[IDX_GYRO_XOUT_H] << 8 | bmi160_rec_buf[IDX_GYRO_XOUT_L]);
+	float gyro_y = (int16_t)(bmi160_rec_buf[IDX_GYRO_YOUT_H] << 8 | bmi160_rec_buf[IDX_GYRO_YOUT_L]);
+	float gyro_z = (int16_t)(bmi160_rec_buf[IDX_GYRO_ZOUT_H] << 8 | bmi160_rec_buf[IDX_GYRO_ZOUT_L]);
+
+	// Apply sensor scaling
+	accel_x *= dev->accel_scale;
+	accel_y *= dev->accel_scale;
+	accel_z *= dev->accel_scale;
+
+	gyro_x *= dev->gyro_scale;
+	gyro_y *= dev->gyro_scale;
+	gyro_z *= dev->gyro_scale;
+
+	/*
+	 * Convert from sensor frame (x: forward y: left z: up) to
+	 * TL convention (x: forward y: right z: down).
+	 * See flight/Doc/imu_orientation.md for more detail
+	 */
+	switch (dev->cfg->orientation) {
+	case PIOS_BMI160_TOP_0DEG:
+		accel_data->x = accel_x;
+		accel_data->y = -accel_y;
+		accel_data->z = -accel_z;
+		gyro_data->x  = gyro_x;
+		gyro_data->y  = -gyro_y;
+		gyro_data->z  = -gyro_z;
+		break;
+	case PIOS_BMI160_TOP_90DEG:
+		accel_data->x = accel_y;
+		accel_data->y = accel_x;
+		accel_data->z = -accel_z;
+		gyro_data->x  = gyro_y;
+		gyro_data->y  = gyro_x;
+		gyro_data->z  = -gyro_z;
+		break;
+	case PIOS_BMI160_TOP_180DEG:
+		accel_data->x = -accel_x;
+		accel_data->y = accel_y;
+		accel_data->z = -accel_z;
+		gyro_data->x  = -gyro_x;
+		gyro_data->y  = gyro_y;
+		gyro_data->z  = -gyro_z;
+		break;
+	case PIOS_BMI160_TOP_270DEG:
+		accel_data->x = -accel_y;
+		accel_data->y = -accel_x;
+		accel_data->z = -accel_z;
+		gyro_data->x  = -gyro_y;
+		gyro_data->y  = -gyro_x;
+		gyro_data->z  = -gyro_z;
+		break;
+	case PIOS_BMI160_BOTTOM_0DEG:
+		accel_data->x = accel_x;
+		accel_data->y = accel_y;
+		accel_data->z = accel_z;
+		gyro_data->x  = gyro_x;
+		gyro_data->y  = gyro_y;
+		gyro_data->z  = gyro_z;
+		break;
+	case PIOS_BMI160_BOTTOM_90DEG:
+		accel_data->x = -accel_y;
+		accel_data->y = accel_x;
+		accel_data->z = accel_z;
+		gyro_data->x  = -gyro_y;
+		gyro_data->y  = gyro_x;
+		gyro_data->z  = gyro_z;
+		break;
+	case PIOS_BMI160_BOTTOM_180DEG:
+		accel_data->x = -accel_x;
+		accel_data->y = -accel_y;
+		accel_data->z = accel_z;
+		gyro_data->x  = -gyro_x;
+		gyro_data->y  = -gyro_y;
+		gyro_data->z  = gyro_z;
+		break;
+	case PIOS_BMI160_BOTTOM_270DEG:
+		accel_data->x = accel_y;
+		accel_data->y = -accel_x;
+		accel_data->z = accel_z;
+		gyro_data->x  = gyro_y;
+		gyro_data->y  = -gyro_x;
+		gyro_data->z  = gyro_z;
+		break;
+	}
+
+	dev->sensor_ready |= SENSOR_ACCEL;
+
+	// Get the temperature
+	// NOTE: We do this down here so the chip-select has some time to go low. Strange things happen
+	// When this is done right after readin the accels / gyros
+	if (dev->temp_interleave_cnt % dev->cfg->temperature_interleaving == 0){
 		if (PIOS_BMI160_ClaimBus() != 0)
-			continue;
+			return -1;
 
-		if (PIOS_SPI_TransferBlock(dev->spi_id, bmi160_tx_buf, bmi160_rec_buf, BUFFER_SIZE) < 0) {
+		uint8_t bmi160_tx_buf[BUFFER_SIZE] = {BMI160_REG_TEMPERATURE_0 | 0x80, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0};
+		if (PIOS_SPI_TransferBlock(dev->spi_id, bmi160_tx_buf, bmi160_rec_buf, 3) < 0) {
 			PIOS_BMI160_ReleaseBus();
-			continue;
+			return -1;
 		}
 
 		PIOS_BMI160_ReleaseBus();
-
-		struct pios_sensor_accel_data accel_data;
-		struct pios_sensor_gyro_data gyro_data;
-
-		float accel_x = (int16_t)(bmi160_rec_buf[IDX_ACCEL_XOUT_H] << 8 | bmi160_rec_buf[IDX_ACCEL_XOUT_L]);
-		float accel_y = (int16_t)(bmi160_rec_buf[IDX_ACCEL_YOUT_H] << 8 | bmi160_rec_buf[IDX_ACCEL_YOUT_L]);
-		float accel_z = (int16_t)(bmi160_rec_buf[IDX_ACCEL_ZOUT_H] << 8 | bmi160_rec_buf[IDX_ACCEL_ZOUT_L]);
-		float gyro_x = (int16_t)(bmi160_rec_buf[IDX_GYRO_XOUT_H] << 8 | bmi160_rec_buf[IDX_GYRO_XOUT_L]);
-		float gyro_y = (int16_t)(bmi160_rec_buf[IDX_GYRO_YOUT_H] << 8 | bmi160_rec_buf[IDX_GYRO_YOUT_L]);
-		float gyro_z = (int16_t)(bmi160_rec_buf[IDX_GYRO_ZOUT_H] << 8 | bmi160_rec_buf[IDX_GYRO_ZOUT_L]);
-
-		/* 
-		 * Convert from sensor frame (x: forward y: left z: up) to
-		 * TL convention (x: forward y: right z: down).
-		 * See flight/Doc/imu_orientation.md for more detail
-		 */
-		switch (dev->cfg->orientation) {
-		case PIOS_BMI160_TOP_0DEG:
-			accel_data.x = accel_x;
-			accel_data.y = -accel_y;
-			accel_data.z = -accel_z;
-			gyro_data.x  = gyro_x;
-			gyro_data.y  = -gyro_y;
-			gyro_data.z  = -gyro_z;
-			break;
-		case PIOS_BMI160_TOP_90DEG:
-			accel_data.x = accel_y;
-			accel_data.y = accel_x;
-			accel_data.z = -accel_z;
-			gyro_data.x  = gyro_y;
-			gyro_data.y  = gyro_x;
-			gyro_data.z  = -gyro_z;
-			break;
-		case PIOS_BMI160_TOP_180DEG:
-			accel_data.x = -accel_x;
-			accel_data.y = accel_y;
-			accel_data.z = -accel_z;
-			gyro_data.x  = -gyro_x;
-			gyro_data.y  = gyro_y;
-			gyro_data.z  = -gyro_z;
-			break;
-		case PIOS_BMI160_TOP_270DEG:
-			accel_data.x = -accel_y;
-			accel_data.y = -accel_x;
-			accel_data.z = -accel_z;
-			gyro_data.x  = -gyro_y;
-			gyro_data.y  = -gyro_x;
-			gyro_data.z  = -gyro_z;
-			break;
-		case PIOS_BMI160_BOTTOM_0DEG:
-			accel_data.x = accel_x;
-			accel_data.y = accel_y;
-			accel_data.z = accel_z;
-			gyro_data.x  = gyro_x;
-			gyro_data.y  = gyro_y;
-			gyro_data.z  = gyro_z;
-			break;
-		case PIOS_BMI160_BOTTOM_90DEG:
-			accel_data.x = -accel_y;
-			accel_data.y = accel_x;
-			accel_data.z = accel_z;
-			gyro_data.x  = -gyro_y;
-			gyro_data.y  = gyro_x;
-			gyro_data.z  = gyro_z;
-			break;
-		case PIOS_BMI160_BOTTOM_180DEG:
-			accel_data.x = -accel_x;
-			accel_data.y = -accel_y;
-			accel_data.z = accel_z;
-			gyro_data.x  = -gyro_x;
-			gyro_data.y  = -gyro_y;
-			gyro_data.z  = gyro_z;
-			break;
-		case PIOS_BMI160_BOTTOM_270DEG:
-			accel_data.x = accel_y;
-			accel_data.y = -accel_x;
-			accel_data.z = accel_z;
-			gyro_data.x  = gyro_y;
-			gyro_data.y  = -gyro_x;
-			gyro_data.z  = gyro_z;
-			break;
-		}
-
-		// Apply sensor scaling
-		accel_data.x *= dev->accel_scale;
-		accel_data.y *= dev->accel_scale;
-		accel_data.z *= dev->accel_scale;
-
-		gyro_data.x *= dev->gyro_scale;
-		gyro_data.y *= dev->gyro_scale;
-		gyro_data.z *= dev->gyro_scale;
-
-		// Get the temperature
-		// NOTE: We do this down here so the chip-select has some time to go low. Strange things happen
-		// When this is done right after readin the accels / gyros
-		if (temp_interleave_cnt % dev->cfg->temperature_interleaving == 0){
-			if (PIOS_BMI160_ClaimBus() != 0)
-				continue;
-
-			uint8_t bmi160_tx_buf[BUFFER_SIZE] = {BMI160_REG_TEMPERATURE_0 | 0x80, 0, 0, 0, 0, 0,
-					0, 0, 0, 0, 0, 0, 0};
-			if (PIOS_SPI_TransferBlock(dev->spi_id, bmi160_tx_buf, bmi160_rec_buf, 3) < 0) {
-				PIOS_BMI160_ReleaseBus();
-				continue;
-			}
-
-			PIOS_BMI160_ReleaseBus();
-			temperature =  23.f + (int16_t)(bmi160_rec_buf[2] << 8 | bmi160_rec_buf[1]) / 512.f;
-		}
-
-		accel_data.temperature = temperature;
-		gyro_data.temperature = temperature;
-
-
-		PIOS_Queue_Send(dev->accel_queue, &accel_data, 0);
-		PIOS_Queue_Send(dev->gyro_queue, &gyro_data, 0);
-
-		temp_interleave_cnt += 1;
+		float tmp =  23.f + (int16_t)(bmi160_rec_buf[2] << 8 | bmi160_rec_buf[1]) / 512.f;
+		accel_data->temperature = tmp;
+		gyro_data->temperature = tmp;
 	}
+
+	dev->temp_interleave_cnt += 1;
+
+	return 0;
+}
+
+static bool PIOS_BMI160_callback_gyro(void *ctx, void *output,
+		int ms_to_wait, int *next_call)
+{
+	struct bmi160_dev *dev = (struct bmi160_dev *)ctx;
+
+	PIOS_Assert(dev);
+	PIOS_Assert(output);
+
+	*next_call = 0;		/* Baby you know you can call me anytime */
+
+	if (PIOS_Semaphore_Take(dev->data_ready_sema, ms_to_wait) != true) {
+		return false;
+	}
+
+	/* Only fail, if sensor data readout fails (-2). Temperature readouts are assumed
+	   to fail intermittently only, if at all, and failures don't taint main sensor data. */
+	if (PIOS_BMI160_parse_data(dev) < -1) {
+		return false;
+	}
+
+	memcpy(output, dev->gyro_data, sizeof(*dev->gyro_data));
+
+	return true;
+}
+
+static bool PIOS_BMI160_callback_accel(void *ctx, void *output,
+		int ms_to_wait, int *next_call)
+{
+	struct bmi160_dev *dev = (struct bmi160_dev *)ctx;
+
+	PIOS_Assert(dev);
+	PIOS_Assert(output);
+
+	*next_call = 0;
+
+	if (!(dev->sensor_ready & SENSOR_ACCEL)) {
+		return false;
+	}
+
+	memcpy(output, dev->accel_data, sizeof(*dev->accel_data));
+	dev->sensor_ready &= ~SENSOR_ACCEL;
+
+	return true;
 }
 
 #endif /* PIOS_INCLUDE_BMI160 */

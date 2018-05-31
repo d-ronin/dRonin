@@ -144,6 +144,11 @@ void PIOS_RCVR_Active() {
       PIOS_Semaphore_Give(rcvr_activity);
     }
   }
+#ifdef FLIGHT_POSIX
+  if (PIOS_Thread_FakeClock_IsActive()) {
+    PIOS_Thread_FakeClock_UpdateBarrier(100);
+  }
+#endif
 }
 
 void PIOS_RCVR_ActiveFromISR() {

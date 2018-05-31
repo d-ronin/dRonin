@@ -58,10 +58,10 @@ DebugGadgetWidget::~DebugGadgetWidget()
 void DebugGadgetWidget::saveLog()
 {
     QString fileName = QFileDialog::getSaveFileName(
-        nullptr, tr("Save log File As"),
-        QString("gcs-debug-log-%0.html")
+            this, tr("Save log File As"),
+            QString("gcs-debug-log-%0.html")
             .arg(QDateTime::currentDateTime().toString("yyyyMMdd-hhmmss")),
-        tr("HTML (*.html)"));
+            tr("HTML (*.html)"));
     if (fileName.isEmpty())
         return;
 
@@ -70,7 +70,7 @@ void DebugGadgetWidget::saveLog()
         && (file.write(m_config->plainTextEdit->toHtml().toLatin1()) != -1)) {
         file.close();
     } else {
-        QMessageBox::critical(nullptr, tr("Log Save"), tr("Unable to save log: ") + fileName,
+        QMessageBox::critical(this, tr("Log Save"), tr("Unable to save log: ") + fileName,
                               QMessageBox::Ok);
         return;
     }

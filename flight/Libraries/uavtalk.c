@@ -45,8 +45,7 @@ static int32_t objectTransaction(UAVTalkConnectionData *connection, UAVObjHandle
 static int32_t sendObject(UAVTalkConnectionData *connection, UAVObjHandle obj, uint16_t instId, uint8_t type);
 static int32_t sendSingleObject(UAVTalkConnectionData *connection, UAVObjHandle obj, uint16_t instId, uint8_t type);
 static int32_t receiveObject(UAVTalkConnectionData *connection);
-static int32_t sendBuf(UAVTalkConnection connectionHandle, uint8_t *buf, uint16_t len);
-static int32_t sendNack(UAVTalkConnectionData *connection, uint32_t objId);
+static int32_t sendNack(UAVTalkConnectionData *connection, uint32_t objId, uint16_t instId);
 
 /**
  * Initialize the UAVTalk library
@@ -391,6 +390,7 @@ UAVTalkRxState UAVTalkProcessInputStreamQuiet(UAVTalkConnection connectionHandle
 
 		// the CRC byte
 		if (rxbyte != iproc->cs) { // packet error - faulty CRC
+			connection->stats.rxCRC++;
 			iproc->state = UAVTALK_STATE_ERROR;
 			break;
 		}
@@ -407,7 +407,6 @@ UAVTalkRxState UAVTalkProcessInputStreamQuiet(UAVTalkConnection connectionHandle
 		break;
 
 	default:
-		connection->stats.rxErrors++;
 		iproc->state = UAVTALK_STATE_ERROR;
 	}
 
@@ -458,8 +457,6 @@ int32_t UAVTalkRelayPacket(UAVTalkConnection inConnectionHandle, UAVTalkConnecti
 
 	// The input packet must be completely parsed.
 	if (inIproc->state != UAVTALK_STATE_COMPLETE) {
-		inConnection->stats.rxErrors++;
-
 		return -1;
 	}
 
@@ -486,13 +483,11 @@ int32_t UAVTalkRelayPacket(UAVTalkConnection inConnectionHandle, UAVTalkConnecti
 	outConnection->txBuffer[7] = (uint8_t)((inIproc->objId >> 24) & 0xFF);
 	int32_t headerLength = 8;
 
-	if (inIproc->obj) {
-		if (!UAVObjIsSingleInstance(inIproc->obj)) {
-			// Setup instance ID
-			outConnection->txBuffer[8] = (uint8_t)(inIproc->instId & 0xFF);
-			outConnection->txBuffer[9] = (uint8_t)((inIproc->instId >> 8) & 0xFF);
-			headerLength = 10;
-		}
+	if (inIproc->instanceLength) {
+		// Setup instance ID
+		outConnection->txBuffer[8] = (uint8_t)(inIproc->instId & 0xFF);
+		outConnection->txBuffer[9] = (uint8_t)((inIproc->instId >> 8) & 0xFF);
+		headerLength = 10;
 	}
 
 	// Copy data (if any)
@@ -573,94 +568,6 @@ uint32_t UAVTalkGetPacketInstId(UAVTalkConnection connectionHandle)
 	CHECKCONHANDLE(connectionHandle, connection, return 0);
 
 	return connection->iproc.instId;
-}
-
-/**
- * Process an byte from the telemetry stream, sending the packet out the output stream when it's complete
- * This allows the interlieving of packets on an output UAVTalk stream, and is used by the OPLink device to
- * relay packets from an input com port to a different output com port without sending one packet in the middle
- * of another packet.  Because this uses both the receive buffer and transmit buffer, it should only be used
- * for relaying a packet, not for the standard sending and receiving of packets.
- * \param[in] connection UAVTalkConnection to be used
- * \param[in] rxbyte Received byte
- * \return UAVTalkRxState
- */
-UAVTalkRxState UAVTalkRelayInputStream(UAVTalkConnection connectionHandle, uint8_t rxbyte)
-{
-	UAVTalkRxState state = UAVTalkProcessInputStreamQuiet(connectionHandle, rxbyte);
-
-	if (state == UAVTALK_STATE_COMPLETE) {
-		UAVTalkConnectionData *connection;
-		CHECKCONHANDLE(connectionHandle,connection,return -1);
-		UAVTalkInputProcessor *iproc = &connection->iproc;
-
-		if (!connection->outCb) return -1;
-
-		// Setup type and object id fields
-		connection->txBuffer[0] = UAVTALK_SYNC_VAL;  // sync byte
-		connection->txBuffer[1] = iproc->type;
-		// data length inserted here below
-		connection->txBuffer[4] = (uint8_t)(iproc->objId & 0xFF);
-		connection->txBuffer[5] = (uint8_t)((iproc->objId >> 8) & 0xFF);
-		connection->txBuffer[6] = (uint8_t)((iproc->objId >> 16) & 0xFF);
-		connection->txBuffer[7] = (uint8_t)((iproc->objId >> 24) & 0xFF);
-
-		// Setup instance ID if one is required
-		int32_t dataOffset = 8;
-		if (iproc->instanceLength > 0) {
-			connection->txBuffer[8] = (uint8_t)(iproc->instId & 0xFF);
-			connection->txBuffer[9] = (uint8_t)((iproc->instId >> 8) & 0xFF);
-			dataOffset = 10;
-		}
-
-		// Copy data (if any)
-		memcpy(&connection->txBuffer[dataOffset], connection->rxBuffer, iproc->length);
-
-		// Store the packet length
-		connection->txBuffer[2] = (uint8_t)((dataOffset + iproc->length) & 0xFF);
-		connection->txBuffer[3] = (uint8_t)(((dataOffset + iproc->length) >> 8) & 0xFF);
-
-		// Copy the checksum
-		connection->txBuffer[dataOffset + iproc->length] = iproc->cs;
-
-		// Send the buffer.
-		if (sendBuf(connectionHandle, connection->txBuffer, iproc->rxPacketLength) < 0)
-			return UAVTALK_STATE_ERROR;
-	}
-
-	return state;
-}
-
-/**
- * Send a buffer containing a UAVTalk message through the telemetry link.
- * This function locks the connection prior to sending.
- * \param[in] connection UAVTalkConnection to be used
- * \param[in] buf The data buffer containing the UAVTalk message
- * \param[in] len The number of bytes to send from the data buffer
- * \return 0 Success
- * \return -1 Failure
- */
-static int32_t sendBuf(UAVTalkConnection connectionHandle, uint8_t *buf, uint16_t len)
-{
-	UAVTalkConnectionData *connection;
-	CHECKCONHANDLE(connectionHandle,connection, return -1);
-
-	// Lock
-	PIOS_Recursive_Mutex_Lock(connection->lock, PIOS_MUTEX_TIMEOUT_MAX);
-
-	// Output the buffer
-	int32_t rc = (*connection->outCb)(connection->cbCtx, buf, len);
-
-	// Update stats
-	connection->stats.txBytes += len;
-
-	// Release lock
-	PIOS_Recursive_Mutex_Unlock(connection->lock);
-
-	// Done
-	if (rc != len)
-		return -1;
-	return 0;
 }
 
 /**
@@ -832,7 +739,7 @@ static int32_t receiveObject(UAVTalkConnectionData *connection)
 			}
 		} else {
 			// We don't know this object, and we complain about it
-			sendNack(connection, objId);
+			sendNack(connection, objId, 0);
 			ret = -1;
 		}
 		break;
@@ -989,18 +896,21 @@ static int32_t sendSingleObject(UAVTalkConnectionData *connection, UAVObjHandle 
  * Send a NACK through the telemetry link.
  * \param[in] connection UAVTalkConnection to be used
  * \param[in] objId Object ID to send a NACK for
+ * \param[in] instId inst ID to send a NACK for-- 0 implies "all"
  * \return 0 Success
  * \return -1 Failure
  */
-int32_t UAVTalkSendNack(UAVTalkConnection connectionHandle, uint32_t objId)
+int32_t UAVTalkSendNack(UAVTalkConnection connectionHandle, uint32_t objId,
+		uint16_t instId)
 {
 	UAVTalkConnectionData *connection;
 	CHECKCONHANDLE(connectionHandle, connection, return -1);
 
-	return sendNack(connection, objId);
+	return sendNack(connection, objId, instId);
 }
 
-static int32_t sendNack(UAVTalkConnectionData *connection, uint32_t objId)
+static int32_t sendNack(UAVTalkConnectionData *connection, uint32_t objId,
+		uint16_t instId)
 {
 	int32_t dataOffset;
 
@@ -1016,6 +926,13 @@ static int32_t sendNack(UAVTalkConnectionData *connection, uint32_t objId)
 	connection->txBuffer[7] = (uint8_t)((objId >> 24) & 0xFF);
 
 	dataOffset = 8;
+
+	if (instId) {
+		dataOffset += 2;
+
+		connection->txBuffer[8] = (uint8_t)(instId & 0xFF);
+		connection->txBuffer[9] = (uint8_t)((instId >> 8) & 0xFF);
+	}
 
 	// Store the packet length
 	connection->txBuffer[2] = (uint8_t)((dataOffset) & 0xFF);
