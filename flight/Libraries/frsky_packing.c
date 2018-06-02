@@ -130,7 +130,7 @@ bool frsky_encode_vario(struct frsky_settings *frsky, uint32_t *value, bool test
  */
 bool frsky_encode_current(struct frsky_settings *frsky, uint32_t *value, bool test_presence_only, uint32_t arg)
 {
-	if (!frsky->use_current_sensor)
+	if (!frsky->use_current_sensor || FlightBatteryStateHandle() == NULL)
 		return false;
 	if (test_presence_only)
 		return true;
@@ -152,6 +152,9 @@ bool frsky_encode_current(struct frsky_settings *frsky, uint32_t *value, bool te
  */
 bool frsky_encode_cells(struct frsky_settings *frsky, uint32_t *value, bool test_presence_only, uint32_t arg)
 {
+	if (FlightBatteryStateHandle() == NULL)
+		return false;
+
 	uint8_t cellCount = 0;
 	FlightBatteryStateDetectedCellCountGet(&cellCount);
 	if(cellCount)
@@ -190,12 +193,12 @@ bool frsky_encode_t1(struct frsky_settings *frsky, uint32_t *value, bool test_pr
 {
 	if (GPSPositionHandle() == NULL)
 		return false;
-	
+
 	if (test_presence_only)
 		return true;
-	
+
 	uint8_t hl_set = HOMELOCATION_SET_FALSE;
-	
+
 	if (HomeLocationHandle())
 		HomeLocationSetGet(&hl_set);
 
@@ -247,12 +250,12 @@ bool frsky_encode_t2(struct frsky_settings *frsky, uint32_t *value, bool test_pr
 
 	if (hdop > 255)
 		hdop = 255;
-			
+
 	uint32_t vdop = (uint32_t)(frsky->gps_position.VDOP * 100.0f);
-			
+
 	if (vdop > 255)
 		vdop = 255;
-	
+
 	*value = 256 * vdop + hdop;
 
 	return true;
@@ -267,7 +270,7 @@ bool frsky_encode_t2(struct frsky_settings *frsky, uint32_t *value, bool test_pr
  */
 bool frsky_encode_fuel(struct frsky_settings *frsky, uint32_t *value, bool test_presence_only, uint32_t arg)
 {
-	if (!frsky->use_current_sensor)
+	if (!frsky->use_current_sensor || FlightBatteryStateHandle() == NULL)
 		return false;
 	if (test_presence_only)
 		return true;
