@@ -63,8 +63,10 @@ static void activateWaypoint(int idx);
 static void pathPlannerTask(void *parameters);
 static void process_pp_settings();
 
-static void waypointsUpdated(UAVObjEvent * ev, void *ctx, void *obj, int len);
-static void pathStatusUpdated(UAVObjEvent * ev, void *ctx, void *obj, int len);
+static void waypointsUpdated(const UAVObjEvent *ev,
+		void *ctx, void *obj, int len);
+static void pathStatusUpdated(const UAVObjEvent *ev,
+		void *ctx, void *obj, int len);
 static void createPathBox();
 static void createPathLogo();
 
@@ -217,7 +219,8 @@ static void pathPlannerTask(void *parameters)
  * On changed waypoints or active waypoint update position desired
  * if we are in charge
  */
-static void waypointsUpdated(UAVObjEvent * ev, void *ctx, void *obj, int len)
+static void waypointsUpdated(const UAVObjEvent *ev,
+		void *ctx, void *obj, int len)
 {
 	(void) ev; (void) ctx; (void) obj; (void) len;
 
@@ -237,7 +240,8 @@ static void waypointsUpdated(UAVObjEvent * ev, void *ctx, void *obj, int len)
 /**
  * When the PathStatus is updated indicate a new one is available to consume
  */
-static void pathStatusUpdated(UAVObjEvent * ev, void *ctx, void *obj, int len)
+static void pathStatusUpdated(const UAVObjEvent *ev,
+		void *ctx, void *obj, int len)
 {
 	(void) ev; (void) ctx; (void) obj; (void) len;
 

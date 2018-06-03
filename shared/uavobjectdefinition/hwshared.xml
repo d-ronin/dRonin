@@ -106,7 +106,8 @@
     <field defaultvalue="1.25" elements="1" name="MaxRfPower" type="enum" units="mW">
       <description>Maximum RF power in milliwatts</description>
       <options>
-        <!-- Ordering must match the ordering of options in the rfm22b module -->
+        <!-- Ordering must match the ordering of options in the rfm22b module,
+             but is offset by 1 to allow '0'. -->
         <option>0</option>
         <option>1.25</option>
         <option>1.6</option>

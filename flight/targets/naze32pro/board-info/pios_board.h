@@ -204,16 +204,6 @@ extern uintptr_t pios_com_debug_id;
 // ADC1 : PA4 ADC2_IN1
 // ADC2 : PA7 ADC2_IN4 (disabled by default and should have external resistor)
 //-------------------------
-#define PIOS_INTERNAL_ADC_MAX_INSTANCES          4
-#define PIOS_INTERNAL_ADC_COUNT                  4
-#define PIOS_INTERNAL_ADC_MAPPING                { ADC1, ADC2, ADC3, ADC4 }
-
-#if defined(PIOS_INCLUDE_ADC)
-extern uintptr_t pios_internal_adc_id;
-#define PIOS_INTERNAL_ADC                               (pios_internal_adc_id)
-#endif
-#define PIOS_ADC_SUB_DRIVER_MAX_INSTANCES       3
-
 #define VREF_PLUS				3.3
 
 //-------------------------

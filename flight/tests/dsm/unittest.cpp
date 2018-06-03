@@ -38,8 +38,25 @@
 #include <stdint.h>		/* uint*_t */
 
 extern "C" {
+#include "pios_dsm_priv.h"
+#include "../../PiOS/Common/pios_dsm.c"
 
-#include "dsm.h"
+int PIOS_DSM_Reset(struct pios_dsm_dev *dsm_dev)
+{
+	dsm_dev->resolution = DSM_UNKNOWN;
+
+	for (int i = 0; i < PIOS_DSM_NUM_INPUTS; i++) {
+		dsm_dev->state.channel_data[i] = 0;
+	}
+
+	return 0;
+}
+
+int PIOS_DSM_GetResolution(struct pios_dsm_dev *dsm_dev)
+{
+	uint8_t resolution = (dsm_dev->resolution == DSM_10BIT) ? 10 : 11;
+	return resolution;
+}
 
 }
 

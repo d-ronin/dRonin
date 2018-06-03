@@ -32,6 +32,8 @@
 
 #include <hwsimulation.h>
 
+bool __attribute__((weak)) are_realtime;
+
 struct pios_thread
 {
 	pthread_t thread;
@@ -49,8 +51,6 @@ struct pios_thread
 struct pios_thread *PIOS_Thread_WrapCurrentThread(const char *namep)
 {
 	struct pios_thread *thread = PIOS_malloc_no_dma(sizeof(struct pios_thread));
-
-	extern bool are_realtime;
 
 	if (!thread) {
 		abort();
@@ -78,7 +78,6 @@ struct pios_thread *PIOS_Thread_WrapCurrentThread(const char *namep)
 void PIOS_Thread_ChangePriority(enum pios_thread_prio_e prio)
 {
 	(void) prio;
-	extern bool are_realtime;
 #ifdef __linux__
 	if (are_realtime) {
 		int pri_val = 30 + prio * 5;
@@ -97,8 +96,6 @@ struct pios_thread *PIOS_Thread_Create(void (*fp)(void *), const char *namep, si
 		perror("pthread_attr_init");
 		abort();
 	}
-
-	extern bool are_realtime;
 
 	if (are_realtime) {
 		struct sched_param param = {
@@ -151,6 +148,16 @@ static volatile uint32_t fake_clock;
 static pthread_cond_t fake_clock_cond = PTHREAD_COND_INITIALIZER;
 static pthread_mutex_t fake_clock_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+static inline uint32_t PIOS_Thread_GetClock_Impl()
+{
+	struct timespec monotime;
+
+	clock_gettime(CLOCK_MONOTONIC, &monotime);
+
+	return monotime.tv_sec * 1000 + monotime.tv_nsec / 1000000;
+}
+
+#ifdef PIOS_INCLUDE_FAKETICK
 static volatile uint32_t fake_tick_barrier;
 
 void PIOS_Thread_FakeClock_UpdateBarrier(uint32_t increment)
@@ -161,15 +168,6 @@ void PIOS_Thread_FakeClock_UpdateBarrier(uint32_t increment)
 	pthread_cond_broadcast(&fake_clock_cond);
 
 	pthread_mutex_unlock(&fake_clock_mutex);
-}
-
-static inline uint32_t PIOS_Thread_GetClock_Impl()
-{
-	struct timespec monotime;
-
-	clock_gettime(CLOCK_MONOTONIC, &monotime);
-
-	return monotime.tv_sec * 1000 + monotime.tv_nsec / 1000000;
 }
 
 void PIOS_Thread_FakeClock_Tick(void)
@@ -204,6 +202,7 @@ void PIOS_Thread_FakeClock_Tick(void)
 
 	pthread_mutex_unlock(&fake_clock_mutex);
 }
+#endif
 
 bool PIOS_Thread_FakeClock_IsActive(void)
 {

@@ -93,7 +93,8 @@ static bool save_needed = false;
 static uint16_t decim_wiggle_points;
 
 // Private functions
-static void autotune_step(UAVObjEvent* ev, void *ctx, void *obj, int len);
+static void autotune_step(const UAVObjEvent *ev,
+		void *ctx, void *obj, int len);
 
 /**
  * Initialise the module, called on startup
@@ -143,7 +144,8 @@ int32_t AutotuneStart(void)
 
 MODULE_INITCALL(AutotuneInitialize, AutotuneStart)
 
-static void at_new_actuators(UAVObjEvent * ev, void *ctx, void *obj, int len) {
+static void at_new_actuators(const UAVObjEvent *ev,
+		void *ctx, void *obj, int len) {
 	(void) ev; (void) ctx;
 
 	static bool first_cycle = false;
@@ -257,7 +259,8 @@ static int autotune_save_averaging() {
 /**
  * Module periodic task.
  */
-static void autotune_step(UAVObjEvent* ev, void *ctx, void *obj, int len)
+static void autotune_step(const UAVObjEvent *ev,
+		void *ctx, void *obj, int len)
 {
 	(void) ev; (void) ctx; (void) obj; (void) len;
 

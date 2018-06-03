@@ -82,7 +82,7 @@ static inline int32_t $(NAME)ConnectCallbackCtx(UAVObjEventCallback cb, volatile
 
 static inline int32_t $(NAME)ConnectCopy(volatile $(NAME)Data *dataOut) {
 	/* Get the thing once for free first-- no changes */
-	$(NAME)Get((void *) dataOut);
+	$(NAME)Get(($(NAME)Data *) dataOut);
 
 	return UAVObjConnectCallback($(NAME)Handle(), UAVObjCbCopyData, (void *)dataOut, EV_MASK_ALL_UPDATES);
 }

@@ -872,6 +872,16 @@ static const struct pios_ppm_cfg pios_ppm_cfg = {
 #include "pios_adc_priv.h"
 #include "pios_internal_adc_priv.h"
 
+uintptr_t pios_internal_adc_id;
+
+void DMA1_Channel1_IRQHandler(void) __attribute__((alias("PIOS_ADC_DMA_irq_handler")));
+
+void PIOS_ADC_DMA_irq_handler(void)
+{
+	/* Call into the generic code to handle the IRQ for this specific device */
+	PIOS_INTERNAL_ADC_DMA_Handler(pios_internal_adc_id);
+}
+
 /**
  * ADC0 : Vrefint        Internal ADC voltage reference
  * ADC1 : PA4 ADC2_IN1   Battery Voltage (On board 11K / 1K divider)
@@ -898,16 +908,13 @@ static struct pios_internal_adc_cfg internal_adc_cfg = {
 	},
 	.half_flag = DMA1_IT_HT1,
 	.full_flag = DMA1_IT_TC1,
-
 	.oversampling = 4,
-
 	.adc_pins = {
 			{NULL,  0,          ADC_Channel_Vrefint, true},
 			{GPIOA, GPIO_Pin_4, ADC_Channel_1,      false},
 			{GPIOA, GPIO_Pin_5, ADC_Channel_2,      false},
 			{GPIOA, GPIO_Pin_1, ADC_Channel_2,       true},
 	},
-
 	.adc_pin_count = 4,
 	.adc_dev_master = ADC1,
 	.adc_dev_slave  = ADC2,

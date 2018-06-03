@@ -32,13 +32,11 @@
 
 static void PIOS_INTERNAL_ADC_PinConfig(pios_internal_adc_t adc);
 static void PIOS_INTERNAL_ADC_Converter_Config(pios_internal_adc_t adc);
-static bool PIOS_INTERNAL_ADC_Available(uintptr_t internal_adc_id, uint32_t pin);
 static int32_t PIOS_INTERNAL_ADC_PinGet(uintptr_t internal_adc_id, uint32_t pin);
 static uint8_t PIOS_INTERNAL_ADC_NumberOfChannels(uintptr_t internal_adc_id);
 static float PIOS_INTERNAL_ADC_LSB_Voltage(uintptr_t internal_adc_id);
 
 const struct pios_adc_driver pios_internal_adc_driver = {
-		.available = PIOS_INTERNAL_ADC_Available,
 		.get_pin = PIOS_INTERNAL_ADC_PinGet,
 		.number_of_channels = PIOS_INTERNAL_ADC_NumberOfChannels,
 		.lsb_voltage = PIOS_INTERNAL_ADC_LSB_Voltage,
@@ -194,22 +192,6 @@ void PIOS_INTERNAL_ADC_DoStep(pios_internal_adc_t adc_dev)
 			adc_dev->conversion_started = 0;
 		}
 	}	
-}
-
-/**
- * Checks if a pin is available on a certain ADC device
- * @param[in] pin number
- * @param[in] internal_adc_id handler to the device to check
- * @return True if the pin is available.
- */
-static bool PIOS_INTERNAL_ADC_Available(uintptr_t internal_adc_id, uint32_t pin)
-{
-	pios_internal_adc_t adc_dev = (pios_internal_adc_t) internal_adc_id;
-	/* Check if pin exists */
-	if (pin >= adc_dev->cfg->adc_pin_count) {
-		return false;
-	}
-	return true;
 }
 
 /**

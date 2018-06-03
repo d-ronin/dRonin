@@ -36,8 +36,14 @@ struct pios_thread
 	Thread *threadp;
 };
 
+DONT_BUILD_IF(CH_FREQUENCY != 1000, ChFreqMs);
+#define CVT_MS2ST(msec) (msec)
+#define CVT_ST2MS(n) (n)
+
+#if 0
 #define CVT_MS2ST(msec) ((systime_t)(((((uint32_t)(msec)) * ((uint64_t)CH_FREQUENCY) - 1UL) / 1000UL) + 1UL))
 #define CVT_ST2MS(n) (((((n) - 1ULL) * 1000ULL) / ((uint64_t)CH_FREQUENCY)) + 1UL)
+#endif
 
 /**
  * Compute size that is at rounded up to the nearest

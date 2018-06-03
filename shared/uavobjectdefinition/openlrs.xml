@@ -25,7 +25,7 @@
     <field defaultvalue="2000" elements="1" name="tx_scale_max" type="uint16" units="">
       <description>Maximum value for tx scaling (corresponds to 100% stick travel in positive direction)</description>
     </field>
-    <field defaultvalue="3" elements="1" name="tx_startup_bind_duration" type="uint8" units="seconds">
+    <field defaultvalue="0" elements="1" name="tx_startup_bind_duration" type="uint8" units="seconds">
       <description>How long the transmitter should wait for binding at startup.</description>
     </field>
     <field defaultvalue="90" elements="1" name="tx_bind_button_duration" type="uint8" units="seconds">
@@ -45,17 +45,24 @@
     <field defaultvalue="0" elements="1" name="rf_magic" type="uint32" units="">
       <description>Radio Magic.  This constant ensures that we only exchange frames wth radios we are bound with.</description>
     </field>
-    <field defaultvalue="0" elements="1" name="rf_power" type="uint8" units="">
+    <field defaultvalue="0" elements="1" name="rf_power" parent="HwShared.MaxRfPower" type="enum" units="mW">
       <description>Radio Power</description>
     </field>
-    <field defaultvalue="0" elements="1" name="rf_channel_spacing" type="uint8" units="">
-      <description>Channel spacing in kilohertz.</description>
+    <field defaultvalue="0" elements="1" name="rf_channel_spacing" type="uint8" units="*10KHz">
+      <description>Channel spacing</description>
     </field>
     <field defaultvalue="0" elements="24" name="hopchannel" type="uint8" units="">
       <description>Array of hop channels.  First zero terminates list.</description>
     </field>
-    <field defaultvalue="0" elements="1" name="modem_params" type="uint8" units="">
-      <description>Modem parameters: this sets the link speed</description>
+    <field defaultvalue="9600" elements="1" name="modem_params" type="enum" units="bps">
+      <description>Modem parameters: this sets the raw underlying link speed</description>
+      <options>
+        <option>4800</option>
+        <option>9600</option>
+        <option>19200</option>
+        <option>57600</option>
+        <option>125000</option>
+      </options>
     </field>
     <field defaultvalue="0" elements="1" name="flags" type="uint8" units="">
       <description>Flags sets the channel mappings and whether telemetry is present.</description>
@@ -64,16 +71,13 @@
       <description>Extended flags</description>
     </field>
     <field defaultvalue="462712500" elements="1" name="beacon_frequency" type="uint32" units="">
-      <description>Beacon Frequency</description>
+      <description>When link is lost, a series of tones is played periodically on this frequency.  The default value is FRS channel 7.</description>
     </field>
-    <field defaultvalue="30" elements="1" name="beacon_delay" type="uint8" units="s">
-      <description>Beacon Delay</description>
+    <field defaultvalue="10" elements="1" name="beacon_delay" type="uint8" units="s">
+      <description>After link is lost, wait this long before sending beacon on beacon_frequency</description>
     </field>
     <field defaultvalue="15" elements="1" name="beacon_period" type="uint8" units="s">
-      <description>Beacon Period</description>
-    </field>
-    <field defaultvalue="1000" elements="1" name="failsafe_delay" type="uint32" units="ms">
-      <description>Fail-safe Delay</description>
+      <description>Beacons are repeated at this interval, or may be triggered manually by transmitting on this frequency.</description>
     </field>
     <field defaultvalue="Combined" elements="1" name="RSSI_Type" type="enum" units="function">
       <description>RSSI Type</description>

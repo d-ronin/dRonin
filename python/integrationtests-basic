@@ -90,6 +90,17 @@ class AAConfTests(SimulationTestCase):
         t_stream.save_objects(objs.values(), send_first=True)
 
 class SimpleSimTests(SimulationTestCase):
+    def test_retrieve_object(self):
+        t_stream = self.t_stream
+
+        sepp_obj = t_stream.uavo_defs.find_by_name("HwSeppuku")
+
+        hw_sepp = t_stream.request_object(sepp_obj)
+
+        self.assertIsNotNone(hw_sepp)
+        self.assertEqual(hw_sepp.USB_HIDPort,
+                sepp_obj.ENUM_USB_HIDPort['USBTelemetry'])
+
     def test_fifty_ticks_of_disarm(self):
         t_stream = self.t_stream
 

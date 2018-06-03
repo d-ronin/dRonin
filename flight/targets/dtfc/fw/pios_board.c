@@ -269,17 +269,10 @@ void PIOS_Board_Init(void)
 #endif
 
 #if defined(PIOS_INCLUDE_ADC)
-    uintptr_t internal_adc_id;
-	if (PIOS_INTERNAL_ADC_Init(&internal_adc_id, &internal_adc_cfg) < 0)
-		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_ADC);
-	if (PIOS_ADC_Init(&pios_internal_adc_id, &pios_internal_adc_driver, internal_adc_id) < 0)
-		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_ADC);
-
-	// Enable battery monitor module.
-	ModuleSettingsData modulesettings;
-	ModuleSettingsGet(&modulesettings);
-	modulesettings.AdminState[MODULESETTINGS_ADMINSTATE_BATTERY] = MODULESETTINGS_ADMINSTATE_ENABLED;
-	ModuleSettingsSet(&modulesettings);
+	uintptr_t unused_adc;
+	if (PIOS_INTERNAL_ADC_Init(&pios_internal_adc_id, &internal_adc_cfg) < 0)
+		PIOS_Assert(0);
+	PIOS_ADC_Init(&unused_adc, &pios_internal_adc_driver, pios_internal_adc_id);
 
 	// Set voltage/current calibration values, if the current settings are UAVO defaults.
 	FlightBatterySettingsInitialize();

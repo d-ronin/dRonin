@@ -30,41 +30,14 @@
 
 #if defined(PIOS_INCLUDE_ADC)
 
-static void PIOS_INTERNAL_ADC_PinConfig(uintptr_t internal_adc_id);
-static void PIOS_INTERNAL_DMAConfig(uintptr_t internal_adc_id);
-int32_t PIOS_INTERNAL_ADC_Init(uintptr_t *internal_adc_id, const struct pios_internal_adc_cfg *cfg);
-static void PIOS_INTERNAL_ADC_Converter_Config(uintptr_t internal_adc_id);
-static bool PIOS_INTERNAL_ADC_Available(uintptr_t internal_adc_id, uint32_t pin);
-static int32_t PIOS_INTERNAL_ADC_PinGet(uintptr_t internal_adc_id, uint32_t pin);
-static uint8_t PIOS_INTERNAL_ADC_NumberOfChannels(uintptr_t internal_adc_id);
-static float PIOS_INTERNAL_ADC_LSB_Voltage(uintptr_t internal_adc_id);
-
-const struct pios_adc_driver pios_internal_adc_driver = {
-		.available = PIOS_INTERNAL_ADC_Available,
-		.get_pin = PIOS_INTERNAL_ADC_PinGet,
-		.number_of_channels = PIOS_INTERNAL_ADC_NumberOfChannels,
-		.lsb_voltage = PIOS_INTERNAL_ADC_LSB_Voltage,
-};
-
-static void PIOS_INTERNAL_ADC_DMA_Handler1(void);
-static void PIOS_INTERNAL_ADC_DMA_Handler2(void);
-static void PIOS_INTERNAL_ADC_DMA_Handler3(void);
-static void PIOS_INTERNAL_ADC_DMA_Handler4(void);
-
 // Private types
 enum pios_internal_adc_dev_magic {
 	PIOS_INTERNAL_ADC_DEV_MAGIC = 0x58375124,
 };
 
-struct adc_accumulator {
-	volatile uint32_t accumulator;
-	volatile uint32_t count;
-};
-
-struct pios_internal_adc_dev * driver_instances[PIOS_INTERNAL_ADC_MAX_INSTANCES];
-static uint8_t current_instances = 0;
-
 struct pios_internal_adc_dev {
+	enum pios_internal_adc_dev_magic magic;
+
 	const struct pios_internal_adc_cfg * cfg;
 	uint8_t number_used_master_channels;
 	uint8_t number_used_slave_channels;
@@ -76,9 +49,28 @@ struct pios_internal_adc_dev {
 	uint16_t *raw_data_buffer;
 	uint32_t accumulator_increment;
 	uint32_t accumulator_scan_size;
-	enum pios_internal_adc_dev_magic magic;
 };
-static void PIOS_ADC_DMA_Handler(struct pios_internal_adc_dev *);
+
+int32_t PIOS_INTERNAL_ADC_Init(uintptr_t *internal_adc_id,
+		const struct pios_internal_adc_cfg *cfg);
+static void PIOS_INTERNAL_ADC_PinConfig(struct pios_internal_adc_dev *adc_dev);
+static void PIOS_INTERNAL_DMAConfig(struct pios_internal_adc_dev *adc_dev);
+static void PIOS_INTERNAL_ADC_Converter_Config(
+		struct pios_internal_adc_dev *adc_dev);
+static int32_t PIOS_INTERNAL_ADC_PinGet(uintptr_t internal_adc_id, uint32_t pin);
+static uint8_t PIOS_INTERNAL_ADC_NumberOfChannels(uintptr_t internal_adc_id);
+static float PIOS_INTERNAL_ADC_LSB_Voltage(uintptr_t internal_adc_id);
+
+const struct pios_adc_driver pios_internal_adc_driver = {
+		.get_pin = PIOS_INTERNAL_ADC_PinGet,
+		.number_of_channels = PIOS_INTERNAL_ADC_NumberOfChannels,
+		.lsb_voltage = PIOS_INTERNAL_ADC_LSB_Voltage,
+};
+
+struct adc_accumulator {
+	volatile uint32_t accumulator;
+	volatile uint32_t count;
+};
 
 /**
  * @brief Validates an internal ADC device
@@ -108,9 +100,8 @@ static struct pios_internal_adc_dev * PIOS_INTERNAL_ADC_Allocate()
  * @brief Configures the pins used on the ADC device
  * \param[in] handle to the ADC device
  */
-static void PIOS_INTERNAL_ADC_PinConfig(uintptr_t internal_adc_id)
+static void PIOS_INTERNAL_ADC_PinConfig(struct pios_internal_adc_dev *adc_dev)
 {
-	struct pios_internal_adc_dev * adc_dev = (struct pios_internal_adc_dev *) internal_adc_id;
 	if (!PIOS_INTERNAL_ADC_validate(adc_dev)) {
 		return;
 	}
@@ -131,31 +122,13 @@ static void PIOS_INTERNAL_ADC_PinConfig(uintptr_t internal_adc_id)
  * @brief Configures the DMA used on the ADC device
  * \param[in] handle to the ADC device
  */
-static void PIOS_INTERNAL_DMAConfig(uintptr_t internal_adc_id)
+static void PIOS_INTERNAL_DMAConfig(struct pios_internal_adc_dev *adc_dev)
 {
-	struct pios_internal_adc_dev * adc_dev = (struct pios_internal_adc_dev *) internal_adc_id;
 	if (!PIOS_INTERNAL_ADC_validate(adc_dev)) {
 		return;
 	}
 	/* Disable interrupts */
 	DMA_ITConfig(adc_dev->cfg->dma.rx.channel, adc_dev->cfg->dma.irq.flags, DISABLE);
-
-	switch (current_instances) {
-	case 1:
-		PIOS_DMA_Install_Interrupt_handler(adc_dev->cfg->dma.rx.channel, &PIOS_INTERNAL_ADC_DMA_Handler1);
-		break;
-	case 2:
-		PIOS_DMA_Install_Interrupt_handler(adc_dev->cfg->dma.rx.channel, &PIOS_INTERNAL_ADC_DMA_Handler2);
-		break;
-	case 3:
-		PIOS_DMA_Install_Interrupt_handler(adc_dev->cfg->dma.rx.channel, &PIOS_INTERNAL_ADC_DMA_Handler3);
-		break;
-	case 4:
-		PIOS_DMA_Install_Interrupt_handler(adc_dev->cfg->dma.rx.channel, &PIOS_INTERNAL_ADC_DMA_Handler4);
-		break;
-	default:
-		break;
-	}
 
 	/* Configure DMA channel */
 	DMA_DeInit(adc_dev->cfg->dma.rx.channel);
@@ -197,14 +170,14 @@ static void PIOS_INTERNAL_DMAConfig(uintptr_t internal_adc_id)
 	NVIC_InitTypeDef NVICInit = adc_dev->cfg->dma.irq.init;
 	NVIC_Init(&NVICInit);
 }
+
 /**
  * @brief Configures the ADC device
  * \param[in] handle to the ADC device
  */
-static void PIOS_INTERNAL_ADC_Converter_Config(uintptr_t internal_adc_id)
+static void PIOS_INTERNAL_ADC_Converter_Config(
+		struct pios_internal_adc_dev *adc_dev)
 {
-	struct pios_internal_adc_dev * adc_dev = (struct pios_internal_adc_dev *) internal_adc_id;
-
 	ADC_DeInit(adc_dev->cfg->adc_dev_master);
 	if (adc_dev->cfg->adc_dev_slave)
 		ADC_DeInit(adc_dev->cfg->adc_dev_slave);
@@ -396,31 +369,11 @@ int32_t PIOS_INTERNAL_ADC_Init(uintptr_t * internal_adc_id, const struct pios_in
 	if (adc_dev->channel_map == NULL )
 		return -1;
 
-	driver_instances[current_instances] = adc_dev;
-	++current_instances;
+	PIOS_INTERNAL_ADC_PinConfig(adc_dev);
+	PIOS_INTERNAL_DMAConfig(adc_dev);
+	PIOS_INTERNAL_ADC_Converter_Config(adc_dev);
 
-	PIOS_INTERNAL_ADC_PinConfig((uintptr_t) adc_dev);
-
-	PIOS_INTERNAL_DMAConfig((uintptr_t) adc_dev);
-
-	PIOS_INTERNAL_ADC_Converter_Config((uintptr_t) adc_dev);
 	return 0;
-}
-
-/**
- * Checks if a pin is available on a certain ADC device
- * @param[in] pin number
- * @param[in] internal_adc_id handler to the device to check
- * @return True if the pin is available.
- */
-static bool PIOS_INTERNAL_ADC_Available(uintptr_t internal_adc_id, uint32_t pin)
-{
-	struct pios_internal_adc_dev * adc_dev = (struct pios_internal_adc_dev *) internal_adc_id;
-	/* Check if pin exists */
-	if (pin >= adc_dev->cfg->adc_pin_count) {
-		return false;
-	}
-	return true;
 }
 
 /**
@@ -486,37 +439,18 @@ static void accumulate(struct pios_internal_adc_dev *adc_dev, uint16_t *buffer)
 }
 
 /**
- * @brief DMA Interrupt handlers
- */
-static void PIOS_INTERNAL_ADC_DMA_Handler1(void)
-{
-	PIOS_ADC_DMA_Handler(driver_instances[0]);
-}
-
-static void PIOS_INTERNAL_ADC_DMA_Handler2(void)
-{
-	PIOS_ADC_DMA_Handler(driver_instances[1]);
-}
-
-static void PIOS_INTERNAL_ADC_DMA_Handler3(void)
-{
-	PIOS_ADC_DMA_Handler(driver_instances[2]);
-}
-
-static void PIOS_INTERNAL_ADC_DMA_Handler4(void)
-{
-	PIOS_ADC_DMA_Handler(driver_instances[3]);
-}
-
-/**
  * @brief Interrupt on buffer flip.
  *
  * The hardware is done with the 'other' buffer, so we can pass it to the accumulator.
  */
-static void PIOS_ADC_DMA_Handler(struct pios_internal_adc_dev *adc_dev)
+void PIOS_INTERNAL_ADC_DMA_Handler(uintptr_t internal_adc_id)
 {
-	if (!PIOS_INTERNAL_ADC_validate(adc_dev))
+	struct pios_internal_adc_dev * adc_dev = (struct pios_internal_adc_dev *) internal_adc_id;
+
+	if (!PIOS_INTERNAL_ADC_validate(adc_dev)) {
 		PIOS_Assert(0);
+	}
+
 	/* terminal count, buffer has flipped */
 	if (DMA_GetFlagStatus(adc_dev->cfg->full_flag)) { // whole double buffer filled
 		DMA_ClearFlag(adc_dev->cfg->full_flag);

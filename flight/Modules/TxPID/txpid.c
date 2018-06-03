@@ -88,7 +88,8 @@ struct txpid_struct {
 static struct txpid_struct *txpid_data;
 
 // Private functions
-static void updatePIDs(UAVObjEvent* ev, void *ctx, void *obj, int len);
+static void updatePIDs(const UAVObjEvent *ev,
+		void *ctx, void *obj, int len);
 static bool update(float *var, float val);
 static float scale(float val, float inMin, float inMax, float outMin, float outMax);
 
@@ -172,7 +173,8 @@ MODULE_INITCALL(TxPIDInitialize, TxPIDStart);
 /**
  * Update PIDs callback function
  */
-static void updatePIDs(UAVObjEvent* ev, void *ctx, void *obj, int len)
+static void updatePIDs(const UAVObjEvent *ev,
+		void *ctx, void *obj, int len)
 {
 	(void) ev; (void) ctx; (void) obj; (void) len;
 

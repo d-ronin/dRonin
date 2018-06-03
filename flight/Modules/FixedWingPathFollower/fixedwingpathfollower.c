@@ -92,10 +92,12 @@ static FixedWingAirspeedsData fixedWingAirspeeds;
 
 // Private functions
 static void pathfollowerTask(void *parameters);
-static void SettingsUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len);
+static void SettingsUpdatedCb(const UAVObjEvent *ev,
+		void *ctx, void *obj, int len);
 static void updatePathVelocity();
 static uint8_t updateFixedDesiredAttitude();
-static void airspeedActualUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len);
+static void airspeedActualUpdatedCb(const UAVObjEvent *ev,
+		void *ctx, void *obj, int len);
 
 /**
  * Initialise the module, called on startup
@@ -691,7 +693,8 @@ static uint8_t updateFixedDesiredAttitude()
 	return result;
 }
 
-static void SettingsUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len)
+static void SettingsUpdatedCb(const UAVObjEvent *ev,
+		void *ctx, void *obj, int len)
 {
 	(void) ctx; (void) obj; (void) len;
 
@@ -701,7 +704,8 @@ static void SettingsUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj, int len)
 		FixedWingAirspeedsGet(&fixedWingAirspeeds);
 }
 
-static void airspeedActualUpdatedCb(UAVObjEvent * ev, void *ctx, void *obj,
+static void airspeedActualUpdatedCb(const UAVObjEvent *ev,
+		void *ctx, void *obj,
 	int len)
 {
 	(void) ctx;
