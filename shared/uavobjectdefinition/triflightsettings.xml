@@ -10,6 +10,8 @@
 
 		<field defaultvalue="1.0" elements="1" name="DynamicYawMaxThrottle" type="float" units=""/>
 
+		<field defaultvalue="0.5" elements="1" name="DynamicYawHoverPercent" type="float" units=""/>
+		
 		<field defaultvalue="1.0" elements="1" name="YawBoost" type="float" units=""/>
 
 		<field defaultvalue="0.18" elements="1" name="MotorAcceleration" type="float" units=""/>

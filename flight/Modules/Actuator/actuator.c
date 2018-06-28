@@ -802,7 +802,7 @@ static void post_process_scale_and_commit(float *motor_vect,
 		                     command.Channel[triflightStatus.RearMotorChannel],
 		                     dT);
 
-		dynamicYaw(&triflightSettings, &triflightStatus);
+		dynamicYaw(&actuatorSettings, &triflightSettings, &triflightStatus);
 
 		triTailTuneStep(&actuatorSettings,
 		                &flightStatus,
@@ -989,15 +989,6 @@ static void actuator_task(void* parameters)
 			MixerSettingsThrottleCurve2Get(curve2);
 			MixerSettingsCurve2SourceGet(&curve2_src);
 			
-/* HJI
-		if (flight_status_updated) {
-			FlightStatusGet(&flightStatus);
-			flight_status_updated = false;
-		}
-
-		if (mixer_settings_updated) {
-			mixer_settings_updated = false;
-HJI */			
 #ifdef TRIFLIGHT
 			triflight_settings_updated = true;
 #endif

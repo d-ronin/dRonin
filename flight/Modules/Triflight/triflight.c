@@ -429,17 +429,32 @@ float triGetMotorCorrection(ActuatorSettingsData  *actuatorSettings,
  *
  *
  */
-#define MIDPOINT (0.5f)
-
-void dynamicYaw(TriflightSettingsData *triflightSettings,
+void dynamicYaw(ActuatorSettingsData  *actuatorSettings,
+                TriflightSettingsData *triflightSettings,
                 TriflightStatusData   *triflightStatus)
 {
+	static float range      = 0.0f;
+	static float lowRange   = 0.0f;
+	static float highRange  = 0.0f;
+	
 	float gain;
+	
+	if (actuatorSettings->ChannelMax[triflightStatus->RearMotorChannel] != 0 && 
+	    actuatorSettings->ChannelNeutral[triflightStatus->RearMotorChannel] != 0 &&
+	    range == 0 && lowRange == 0 && highRange == 0)
+	{
+		range      = (actuatorSettings->ChannelMax[triflightStatus->RearMotorChannel] - 
+		              actuatorSettings->ChannelNeutral[triflightStatus->RearMotorChannel]);
+		lowRange   = (actuatorSettings->ChannelMax[triflightStatus->RearMotorChannel] - 
+		              actuatorSettings->ChannelNeutral[triflightStatus->RearMotorChannel]) * triflightSettings->DynamicYawHoverPercent;
+		highRange  = (actuatorSettings->ChannelMax[triflightStatus->RearMotorChannel] - 
+		              actuatorSettings->ChannelNeutral[triflightStatus->RearMotorChannel]) - lowRange;
+	}
 
 	// Select the yaw gain based on tail motor speed
-	if (triflightStatus->VirtualTailMotor < MIDPOINT)
+	if (triflightStatus->VirtualTailMotor < triflightSettings->DynamicYawHoverPercent)
 	{
-		// Below midpoint, gain is increasing the output.
+		// Below hoverPoint, gain is increasing the output.
 		// e.g. 1.50 increases the yaw output at min throttle by 150 % (1.5x)
 		// e.g. 2.50 increases the yaw output at min throttle by 250 % (2.5x)
 
@@ -447,16 +462,24 @@ void dynamicYaw(TriflightSettingsData *triflightSettings,
 	}
 	else
 	{
-		// Above midpoint, gain is decreasing the output.
+		// Above hoverPoint, gain is decreasing the output.
 		// e.g. 0.75 reduces the yaw output at max throttle by 25 % (0.75x)
 		// e.g. 0.20 reduces the yaw output at max throttle by 80 % (0.2x)
 
 		gain = 1.0f - triflightSettings->DynamicYawMaxThrottle;
 	}
 
-	float distance_from_mid = (triflightStatus->VirtualTailMotor - MIDPOINT);
+	float distance_from_mid = (triflightStatus->VirtualTailMotor - triflightSettings->DynamicYawHoverPercent) * range;
 
-	triflightStatus->DynamicYawGain = (1.0f - distance_from_mid * gain / MIDPOINT);
+	if (lowRange == 0 || highRange == 0)
+		triflightStatus->DynamicYawGain = 1.0f;
+	else
+	{
+		if (triflightStatus->VirtualTailMotor < triflightSettings->DynamicYawHoverPercent)
+			triflightStatus->DynamicYawGain = 1.0f - distance_from_mid * gain / lowRange;
+		else
+			triflightStatus->DynamicYawGain = 1.0f - distance_from_mid * gain / highRange;
+	}
 }
 
 /**
