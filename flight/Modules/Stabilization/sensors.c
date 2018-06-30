@@ -214,6 +214,7 @@ bool sensors_step()
 {
 	static uint32_t good_runs = 0;
 	static uint32_t last_baro_update_time;
+	static uint32_t last_mag_update_time;
 
 	bool ret = false;	/* Are gyros OK this time? */
 
@@ -235,15 +236,17 @@ bool sensors_step()
 	SystemAlarmsAlarmOptions fallback_severity = SYSTEMALARMS_ALARM_OK;
 
 	if (PIOS_SENSORS_GetData(PIOS_SENSOR_MAG, &mags, 0) != false) {
+		// we can use the timeval because it contains the current time stamp (PIOS_DELAY_GetRaw())
+		last_mag_update_time = timeval;
 		update_mags(&mags);
 #ifdef PIOS_TOLERATE_MISSING_SENSORS
 	} else if (PIOS_SENSORS_GetMissing(PIOS_SENSOR_MAG)) {
 		fallback_severity = missing_sensor_severity;
 #endif
 	} else if (PIOS_SENSORS_IsRegistered(PIOS_SENSOR_MAG)) {
-		uint32_t dT_baro_datas = PIOS_DELAY_DiffuS(last_baro_update_time);
+		uint32_t dT_mag_datas = PIOS_DELAY_DiffuS(last_mag_update_time);
 		// if the last valid sensor datas older than 300 ms report an error
-		if (dT_baro_datas > MAX_TIME_BETWEEN_VALID_MAG_DATAS_US) {
+		if (dT_mag_datas > MAX_TIME_BETWEEN_VALID_MAG_DATAS_US) {
 			good_run = false;
 			fallback_severity = SYSTEMALARMS_ALARM_ERROR;
 		}
