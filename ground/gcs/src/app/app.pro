@@ -27,7 +27,8 @@ win32 {
     INSTALLS += target
     win32-msvc* {
         # set stack size to 8mb, default is 1mb (vs. 8mb for main thread on osx and linux)
-        QMAKE_LFLAGS   += /STACK:8388608
+        QMAKE_LFLAGS   += /STACK:8388608 /LTCG
+        QMAKE_CXXFLAGS += -GL
     }
 } else:macx {
     LIBS += -framework CoreFoundation
