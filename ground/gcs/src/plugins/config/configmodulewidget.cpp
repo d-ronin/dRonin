@@ -259,10 +259,19 @@ void ConfigModuleWidget::toggleBatteryMonitoringGb()
     else
         ui->gb_measureVoltage->setChecked(false);
 
+    bool voltage_settings = ui->cbVoltagePin->currentText().compare("ACTUATOR") != 0;
+
+    ui->sb_voltageRatio->setEnabled(voltage_settings);
+    ui->sb_voltageFactor->setEnabled(voltage_settings);
+
     if (ui->cbCurrentPin->currentText().compare("NONE") != 0)
         ui->gb_measureCurrent->setChecked(true);
     else
         ui->gb_measureCurrent->setChecked(false);
+
+    bool current_settings = ui->cbCurrentPin->currentText().compare("ACTUATOR") != 0;
+
+    ui->sb_currentOffSet->setEnabled(current_settings);
 }
 
 /**

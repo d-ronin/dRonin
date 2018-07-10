@@ -18,6 +18,7 @@
         <option>ADC7</option>
         <option>ADC8</option>
         <option>NONE</option>
+        <option>ACTUATOR</option>
       </options>
     </field>
     <field defaultvalue="ADC1" elements="1" name="VoltagePin" type="enum" units="">
@@ -33,6 +34,7 @@
         <option>ADC7</option>
         <option>ADC8</option>
         <option>NONE</option>
+        <option>ACTUATOR</option>
       </options>
     </field>
     <field defaultvalue="3" elements="1" name="NbCells" type="uint8" units="">
