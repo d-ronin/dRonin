@@ -53,9 +53,9 @@
 #include "pios_queue.h"
 #include "misc_math.h"
 
-#if defined(PIOS_INCLUDE_ESCTELEMETRY)
+#if defined(PIOS_INCLUDE_DSHOTTELEMETRY)
 #include "pios_delay.h"
-#include "pios_esctelemetry.h"
+#include "pios_dshottelemetry.h"
 #include "actuatortelemetry.h"
 #endif
 
@@ -98,9 +98,9 @@ static volatile bool settings_updated = true;
 
 static MixerSettingsMixer1TypeOptions types_mixer[MAX_MIX_ACTUATORS];
 
-#if defined(PIOS_INCLUDE_ESCTELEMETRY)
+#if defined(PIOS_INCLUDE_DSHOTTELEMETRY)
 
-#define ESC_TELEM_CYCLE_uS		100000	/* Poll ESCs every 200ms. */
+#define ESC_TELEM_CYCLE_uS		100000	/* Poll ESCs every 100ms. */
 #define ESC_TELEM_TIMEOUT_uS	5000	/* Transmission is supposed to take 900us. Timeout at 5ms. */
 
 struct telemetry_state {
@@ -289,7 +289,7 @@ int32_t ActuatorInitialize()
 	}
 #endif
 
-#if defined(PIOS_INCLUDE_ESCTELEMETRY)
+#if defined(PIOS_INCLUDE_DSHOTTELEMETRY)
 	if (ActuatorTelemetryInitialize() == -1) {
 		return -1;
 	}
@@ -697,15 +697,13 @@ static void post_process_scale_and_commit(float *motor_vect,
 		ActuatorCommandGet(&command);
 	}
 
-#if defined(PIOS_INCLUDE_ESCTELEMETRY)
-	if (PIOS_ESCTelemetry_IsAvailable()) {
+#if defined(PIOS_INCLUDE_DSHOTTELEMETRY)
+	if (PIOS_DShotTelemetry_IsAvailable()) {
 
 		/* Process telemetry request stuff before servo settings. */
-
 		if (!tlm) {
 			tlm = PIOS_malloc_no_dma(sizeof(*tlm));
-			if (!tlm)
-				PIOS_Assert(0);
+			PIOS_Assert(tlm);
 
 			tlm->servo = 0xFF;
 			tlm->active = 0xFF;
@@ -729,8 +727,8 @@ static void post_process_scale_and_commit(float *motor_vect,
 
 			tlm->req_start = PIOS_DELAY_GetuS();
 
-			/* We don't care about ongoing requests, because we shouldn't even be here, if one is. */
-			if (PIOS_Servo_RequestTelemetry(tlm->active) < -1)
+			/* If the servo isn't busy or OK, it doesn't do telemetry in any supported way. Go to next. */
+			if (PIOS_Servo_RequestTelemetry(tlm->active) < TELEM_BUSY)
 				tlm->active = 0xFF;
 
 			/* If this is the last servo being polled, push the UAVO, once the request finishes. */
@@ -738,15 +736,15 @@ static void post_process_scale_and_commit(float *motor_vect,
 				tlm->push = 1;
 
 		} else if (tlm->active < 0xFF) {
-			if (PIOS_ESCTelemetry_DataAvailable()) {
+			if (PIOS_DShotTelemetry_DataAvailable()) {
 				/* Parse and stick info UAVO. */
-				struct pios_esctelemetry_info t;
-				PIOS_ESCTelemetry_Get(&t);
+				struct pios_dshottelemetry_info t;
+				PIOS_DShotTelemetry_Get(&t);
 
-				tlm->voltage += (uint16_t)(t.voltage * 1000);
+				tlm->voltage += (uint16_t)(t.voltage * 1000.0f);
 				tlm->consumed += t.mAh;
 				tlm->telemetry.Temperature[tlm->active] = t.temperature;
-				tlm->telemetry.Current[tlm->active] = (uint16_t)(t.current*100);
+				tlm->telemetry.Current[tlm->active] = (uint16_t)(t.current*100.0f);
 				tlm->telemetry.eRPM[tlm->active] = (uint16_t)t.rpm;
 				tlm->ok++;
 
@@ -899,7 +897,7 @@ static void actuator_task(void* parameters)
 	uint32_t last_systime = PIOS_Thread_Systime();
 	float desired_vect[MIXERSETTINGS_MIXER1VECTOR_NUMELEM] = { 0 };
 	float dT = 0.0f;
-	
+
 	float maxpoweradd_bucket = 0.0f;
 
 	bool prev_armed = false;

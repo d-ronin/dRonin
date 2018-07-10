@@ -235,7 +235,7 @@ static int BankSetup_DShot(struct timer_bank *bank)
 
 static int BankSetup_OneShot(struct timer_bank *bank, int32_t max_tim_clock)
 {
-	/* 
+	/*
 	 * Ensure a dead time of 2% + 10 us, e.g. 15us for 250us
 	 * long pulses, 50 us for 2000us long pulses
 	 */
@@ -725,7 +725,7 @@ static int DSHOT_Update()
 			message |= 16;
 		}
 
-		message |= 
+		message |=
 			((message >> 4 ) & 0xf) ^
 			((message >> 8 ) & 0xf) ^
 			((message >> 12) & 0xf);
@@ -987,16 +987,16 @@ int PIOS_Servo_RequestTelemetry(uint8_t servo)
 {
 	if (servo >= servo_cfg->num_channels || output_channels[servo].mode < SYNC_DSHOT_300) {
 		/* Currently only DShot supported. */
-		return -2;
+		return TELEM_NOT_SUPPORTED;
 	}
 
 	if (telemetry_request) {
 		/* There's already a request going. */
-		return -1;
+		return TELEM_BUSY;
 	}
 
 	telemetry_request = 1 << servo;
-	return 0;
+	return TELEM_OK;
 }
 
 /*

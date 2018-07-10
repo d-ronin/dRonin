@@ -569,7 +569,7 @@ static void PIOS_HAL_ConfigureTbsCrossfire(const struct pios_usart_cfg *usart_cr
 }
 #endif // PIOS_INCLUDE_CROSSFIRE
 
-#ifdef PIOS_INCLUDE_ESCTELEMETRY
+#ifdef PIOS_INCLUDE_DSHOTTELEMETRY
 /**
  * @brief Configures a TBS Crossfire receiver
  *
@@ -577,7 +577,7 @@ static void PIOS_HAL_ConfigureTbsCrossfire(const struct pios_usart_cfg *usart_cr
  * @param[in] usart_port_params USART port parameters
  * @param[in] usart_com_driver The COM driver for this USART
  */
-static void PIOS_HAL_ConfigureESCTelemetry(const struct pios_usart_cfg *usart_crsf_cfg,
+static void PIOS_HAL_ConfigureDShotTelemetry(const struct pios_usart_cfg *usart_crsf_cfg,
 		struct pios_usart_params *usart_port_params,
 		const struct pios_com_driver *usart_com_driver)
 {
@@ -586,10 +586,10 @@ static void PIOS_HAL_ConfigureESCTelemetry(const struct pios_usart_cfg *usart_cr
 		PIOS_Assert(0);
 
 	uintptr_t telem_id;
-	if (PIOS_ESCTelemetry_Init(&telem_id, usart_com_driver, usart_telem_id))
+	if (PIOS_DShotTelemetry_Init(&telem_id, usart_com_driver, usart_telem_id))
 		PIOS_Assert(0);
 }
-#endif // PIOS_INCLUDE_ESCTELEMETRY
+#endif // PIOS_INCLUDE_DSHOTTELEMETRY
 
 /** @brief Configure a [flexi/main/rcvr/etc] port.
  *
@@ -979,7 +979,7 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 		break;
 
 	case HWSHARED_PORTTYPES_DSHOTESCTELEMETRY:
-#if defined(PIOS_INCLUDE_ESCTELEMETRY)
+#if defined(PIOS_INCLUDE_DSHOTTELEMETRY)
 		if (usart_port_cfg) {
 			usart_port_params.init.USART_BaudRate            = 115200;
 			usart_port_params.init.USART_WordLength          = USART_WordLength_8b;
@@ -988,7 +988,7 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 			usart_port_params.init.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
 			usart_port_params.init.USART_Mode                = USART_Mode_Rx;
 
-			PIOS_HAL_ConfigureESCTelemetry(usart_port_cfg, &usart_port_params, com_driver);
+			PIOS_HAL_ConfigureDShotTelemetry(usart_port_cfg, &usart_port_params, com_driver);
 		}
 #endif
 		break;
@@ -1202,10 +1202,10 @@ void PIOS_HAL_ConfigureSerialSpeed(uintptr_t com_id,
 			PIOS_Thread_Sleep(BT_COMMAND_DELAY);
 
 			PIOS_COM_ChangeBaud(com_id, 9600);
-			PIOS_COM_SendString(com_id,"AT+BAUD8"); 
+			PIOS_COM_SendString(com_id,"AT+BAUD8");
 			PIOS_Thread_Sleep(BT_COMMAND_DELAY);
 
-			PIOS_COM_ChangeBaud(com_id, 115200); 
+			PIOS_COM_ChangeBaud(com_id, 115200);
 			PIOS_COM_SendString(com_id,"AT+NAMEdRonin");
 			PIOS_Thread_Sleep(BT_COMMAND_DELAY);
 			PIOS_COM_SendString(com_id,"AT+PIN0000");
@@ -1365,15 +1365,15 @@ int PIOS_HAL_ConfigureExternalMag(HwSharedMagOptions mag,
 		 * Note: drivers rotate around vehicle Z-axis, this rotates around ??
 		 * This is dubious because both the sensor and vehicle Z-axis point down
 		 * in bottom orientation, whereas this is rotating around an upwards vector. */
-		enum pios_hmc5883_orientation hmc5883_orientation = 
-			(orientation == HWSHARED_MAGORIENTATION_TOP0DEGCW)      ? PIOS_HMC5883_TOP_0DEG      : 
-			(orientation == HWSHARED_MAGORIENTATION_TOP90DEGCW)     ? PIOS_HMC5883_TOP_90DEG     : 
-			(orientation == HWSHARED_MAGORIENTATION_TOP180DEGCW)    ? PIOS_HMC5883_TOP_180DEG    : 
-			(orientation == HWSHARED_MAGORIENTATION_TOP270DEGCW)    ? PIOS_HMC5883_TOP_270DEG    : 
-			(orientation == HWSHARED_MAGORIENTATION_BOTTOM0DEGCW)   ? PIOS_HMC5883_BOTTOM_0DEG   : 
-			(orientation == HWSHARED_MAGORIENTATION_BOTTOM90DEGCW)  ? PIOS_HMC5883_BOTTOM_270DEG : 
-			(orientation == HWSHARED_MAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5883_BOTTOM_180DEG : 
-			(orientation == HWSHARED_MAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5883_BOTTOM_90DEG  : 
+		enum pios_hmc5883_orientation hmc5883_orientation =
+			(orientation == HWSHARED_MAGORIENTATION_TOP0DEGCW)      ? PIOS_HMC5883_TOP_0DEG      :
+			(orientation == HWSHARED_MAGORIENTATION_TOP90DEGCW)     ? PIOS_HMC5883_TOP_90DEG     :
+			(orientation == HWSHARED_MAGORIENTATION_TOP180DEGCW)    ? PIOS_HMC5883_TOP_180DEG    :
+			(orientation == HWSHARED_MAGORIENTATION_TOP270DEGCW)    ? PIOS_HMC5883_TOP_270DEG    :
+			(orientation == HWSHARED_MAGORIENTATION_BOTTOM0DEGCW)   ? PIOS_HMC5883_BOTTOM_0DEG   :
+			(orientation == HWSHARED_MAGORIENTATION_BOTTOM90DEGCW)  ? PIOS_HMC5883_BOTTOM_270DEG :
+			(orientation == HWSHARED_MAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5883_BOTTOM_180DEG :
+			(orientation == HWSHARED_MAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5883_BOTTOM_90DEG  :
 			external_hmc5883_cfg.Default_Orientation;
 
 		PIOS_HMC5883_SetOrientation(hmc5883_orientation);
@@ -1392,15 +1392,15 @@ int PIOS_HAL_ConfigureExternalMag(HwSharedMagOptions mag,
 		 * Note: drivers rotate around vehicle Z-axis, this rotates around ??
 		 * This is dubious because both the sensor and vehicle Z-axis point down
 		 * in bottom orientation, whereas this is rotating around an upwards vector. */
-		enum pios_hmc5983_orientation hmc5983_orientation = 
-			(orientation == HWSHARED_MAGORIENTATION_TOP0DEGCW)      ? PIOS_HMC5983_TOP_0DEG      : 
-			(orientation == HWSHARED_MAGORIENTATION_TOP90DEGCW)     ? PIOS_HMC5983_TOP_90DEG     : 
-			(orientation == HWSHARED_MAGORIENTATION_TOP180DEGCW)    ? PIOS_HMC5983_TOP_180DEG    : 
-			(orientation == HWSHARED_MAGORIENTATION_TOP270DEGCW)    ? PIOS_HMC5983_TOP_270DEG    : 
-			(orientation == HWSHARED_MAGORIENTATION_BOTTOM0DEGCW)   ? PIOS_HMC5983_BOTTOM_0DEG   : 
-			(orientation == HWSHARED_MAGORIENTATION_BOTTOM90DEGCW)  ? PIOS_HMC5983_BOTTOM_270DEG : 
-			(orientation == HWSHARED_MAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5983_BOTTOM_180DEG : 
-			(orientation == HWSHARED_MAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5983_BOTTOM_90DEG  : 
+		enum pios_hmc5983_orientation hmc5983_orientation =
+			(orientation == HWSHARED_MAGORIENTATION_TOP0DEGCW)      ? PIOS_HMC5983_TOP_0DEG      :
+			(orientation == HWSHARED_MAGORIENTATION_TOP90DEGCW)     ? PIOS_HMC5983_TOP_90DEG     :
+			(orientation == HWSHARED_MAGORIENTATION_TOP180DEGCW)    ? PIOS_HMC5983_TOP_180DEG    :
+			(orientation == HWSHARED_MAGORIENTATION_TOP270DEGCW)    ? PIOS_HMC5983_TOP_270DEG    :
+			(orientation == HWSHARED_MAGORIENTATION_BOTTOM0DEGCW)   ? PIOS_HMC5983_BOTTOM_0DEG   :
+			(orientation == HWSHARED_MAGORIENTATION_BOTTOM90DEGCW)  ? PIOS_HMC5983_BOTTOM_270DEG :
+			(orientation == HWSHARED_MAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5983_BOTTOM_180DEG :
+			(orientation == HWSHARED_MAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5983_BOTTOM_90DEG  :
 			external_hmc5983_cfg.Orientation;
 
 		PIOS_HMC5983_SetOrientation(hmc5983_orientation);

@@ -29,12 +29,12 @@
 
 #include "pios.h"
 
-#ifndef PIOS_ESCTELEMETRY_H
-#define PIOS_ESCTELEMETRY_H
+#ifndef PIOS_DSHOTTELEMETRY_H
+#define PIOS_DSHOTTELEMETRY_H
 
-#define ESC_TELEMETRY_LENGTH			10
+#define DSHOT_TELEMETRY_LENGTH			10
 
-struct pios_esctelemetry_info {
+struct pios_dshottelemetry_info {
 	float voltage;
 	float current;
 	uint16_t mAh;
@@ -42,14 +42,14 @@ struct pios_esctelemetry_info {
 	uint8_t temperature;
 };
 
-int PIOS_ESCTelemetry_Init(uintptr_t *esctelem_id, const struct pios_com_driver *driver,
+int PIOS_DShotTelemetry_Init(uintptr_t *esctelem_id, const struct pios_com_driver *driver,
 		uintptr_t usart_id);
 
-bool PIOS_ESCTelemetry_IsAvailable();
+bool PIOS_DShotTelemetry_IsAvailable();
 
-bool PIOS_ESCTelemetry_DataAvailable();
+bool PIOS_DShotTelemetry_DataAvailable();
 
-void PIOS_ESCTelemetry_Get(struct pios_esctelemetry_info *t);
+void PIOS_DShotTelemetry_Get(struct pios_dshottelemetry_info *t);
 
 #endif // PIOS_ESCTELEMETRY_H
 

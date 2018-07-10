@@ -67,7 +67,7 @@
 /* Com systems to include */
 #define PIOS_INCLUDE_MAVLINK
 #define PIOS_INCLUDE_LIGHTTELEMETRY
-#define PIOS_INCLUDE_ESCTELEMETRY
+#define PIOS_INCLUDE_DSHOTTELEMETRY
 
 /* Supported receiver interfaces */
 #define PIOS_INCLUDE_PWM
