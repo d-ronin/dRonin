@@ -1470,7 +1470,7 @@ static void stabilizationTask(void* parameters)
 #if defined(STABILIZATION_LQG)
 		/* If there's a LQG controller running, dump the RTKF state for logging. */
 		if (lqg_in_use && (lqg[0] || lqg[1] || lqg[2])) {
-			RTKFEstimateData est = { 0 };
+			RTKFEstimateData est = { {0} };
 			if (lqg[0]) {
 				lqg_get_rtkf_state(lqg[0],
 					&est.Rate[RTKFESTIMATE_RATE_ROLL], &est.Torque[RTKFESTIMATE_TORQUE_ROLL], &est.Bias[RTKFESTIMATE_BIAS_ROLL]);

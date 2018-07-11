@@ -570,9 +570,10 @@ typedef enum {
 } servoSetupCalibState_e;
 
 typedef enum {
-	SS_C_MIN = 0,
-	SS_C_MID,
-	SS_C_MAX,
+	SS_C_S_IDLE = 0,
+	SS_C_S_MIN,
+	SS_C_S_MID,
+	SS_C_S_MAX,
 } servoSetupCalibSubState_e;
 
 typedef struct tailTune_s {
@@ -812,14 +813,14 @@ static void tailTuneModeServoSetup(ActuatorSettingsData  *actuatorSettings,
 				if (pSS->cal.state == SS_C_IDLE)
 				{
 					pSS->cal.state    = SS_C_CALIB_MIN_MID_MAX;
-					pSS->cal.subState = SS_C_MIN;
+					pSS->cal.subState = SS_C_S_MIN;
 					pSS->servoVal     = actuatorSettings->ChannelMin[triflightStatus->ServoChannel];
 				    sample_delta      = 0;
 				}
 				else if (pSS->cal.state == SS_C_CALIB_SPEED)
 				{
 					pSS->state        = SS_IDLE;
-					pSS->cal.subState = SS_C_IDLE;
+					pSS->cal.subState = SS_C_S_IDLE;
 				}
 				else
 				{
@@ -827,15 +828,15 @@ static void tailTuneModeServoSetup(ActuatorSettingsData  *actuatorSettings,
 					{
 						switch (pSS->cal.subState)
 						{
-							case SS_C_MIN:
+							case SS_C_S_MIN:
 								triflightSettings->AdcServoFdbkMin = pSS->cal.avg.result;
 
-								pSS->cal.subState = SS_C_MID;
+								pSS->cal.subState = SS_C_S_MID;
 								pSS->servoVal     = actuatorSettings->ChannelNeutral[triflightStatus->ServoChannel];
 								sample_delta      = 0;
 								break;
 
-							case SS_C_MID:
+							case SS_C_S_MID:
 								triflightSettings->AdcServoFdbkMid = pSS->cal.avg.result;
 
 								if (fabs(triflightSettings->AdcServoFdbkMin - triflightSettings->AdcServoFdbkMid) < 100)
@@ -844,26 +845,29 @@ static void tailTuneModeServoSetup(ActuatorSettingsData  *actuatorSettings,
 									// Most likely the feedback signal is not connected.
 
 									pSS->state        = SS_IDLE;
-									pSS->cal.subState = SS_C_IDLE;
+									pSS->cal.subState = SS_C_S_IDLE;
 
 									triflight_blink_string = "0";  // ----- done fail
 								}
 								else
 								{
-									pSS->cal.subState = SS_C_MAX;
+									pSS->cal.subState = SS_C_S_MAX;
 									pSS->servoVal     = actuatorSettings->ChannelMax[triflightStatus->ServoChannel];
 									sample_delta      = 0;
 								}
 								break;
 
-							case SS_C_MAX:
+							case SS_C_S_MAX:
 								triflightSettings->AdcServoFdbkMax = pSS->cal.avg.result;
 
 								pSS->cal.state    = SS_C_CALIB_SPEED;
-								pSS->cal.subState = SS_C_MIN;
+								pSS->cal.subState = SS_C_S_MIN;
 
 								pSS->servoVal               = actuatorSettings->ChannelMin[triflightStatus->ServoChannel];
 								pSS->cal.waitingServoToStop = false;
+								break;
+
+							case SS_C_S_IDLE:
 								break;
 						}
 					}
@@ -902,7 +906,7 @@ static void tailTuneModeServoSetup(ActuatorSettingsData  *actuatorSettings,
 				case SS_C_CALIB_SPEED:
 					switch (pSS->cal.subState)
 					{
-						case SS_C_MIN:
+						case SS_C_S_MIN:
 							// Wait for the servo to reach min position
 							adc_min_lt_adc_max = triflightSettings->AdcServoFdbkMin < triflightSettings->AdcServoFdbkMax;
 
@@ -939,14 +943,14 @@ static void tailTuneModeServoSetup(ActuatorSettingsData  *actuatorSettings,
 								else if  (PIOS_DELAY_GetuSSince(pSS->cal.timestamp_us) >= 200000)
 								{
 									pSS->cal.timestamp_us = PIOS_DELAY_GetuS();
-									pSS->cal.subState = SS_C_MAX;
+									pSS->cal.subState = SS_C_S_MAX;
 									pSS->cal.waitingServoToStop = false;
 									pSS->servoVal = actuatorSettings->ChannelMax[triflightStatus->ServoChannel];
 								}
 							}
 							break;
 
-						case SS_C_MAX:
+						case SS_C_S_MAX:
 							// Wait for the servo to reach max position
 							adc_min_lt_adc_max = triflightSettings->AdcServoFdbkMin < triflightSettings->AdcServoFdbkMax;
 
@@ -963,14 +967,15 @@ static void tailTuneModeServoSetup(ActuatorSettingsData  *actuatorSettings,
 								else if (PIOS_DELAY_GetuSSince(pSS->cal.timestamp_us) >= 200000)
 								{
 									pSS->cal.timestamp_us = PIOS_DELAY_GetuS();
-									pSS->cal.subState = SS_C_MIN;
+									pSS->cal.subState = SS_C_S_MIN;
 									pSS->cal.waitingServoToStop = false;
 									pSS->servoVal = actuatorSettings->ChannelMin[triflightStatus->ServoChannel];
 								}
 							}
 							break;
 
-						case SS_C_MID:
+						case SS_C_S_IDLE:
+						case SS_C_S_MID:
 							// Should not come here
 							break;
 					}
