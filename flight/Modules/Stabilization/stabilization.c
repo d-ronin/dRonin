@@ -533,6 +533,8 @@ static float calculate_thrust(StabilizationDesiredThrustModeOptions mode,
 	static float alt_desired;
 	float vertspeed_desired = 0;
 
+	float force_disable_hangtime = false;
+
 	switch (mode) {
 		case STABILIZATIONDESIRED_THRUSTMODE_ALTITUDEWITHSTICKSCALING:
 			do_vertspeed_control = true;
@@ -568,6 +570,10 @@ static float calculate_thrust(StabilizationDesiredThrustModeOptions mode,
 
 		case STABILIZATIONDESIRED_THRUSTMODE_FLIPOVERMODETHRUSTREVERSED:
 			desired_thrust = -desired_thrust;
+			/* Fall through to set flag. */
+
+		case STABILIZATIONDESIRED_THRUSTMODE_FLIPOVERMODE:
+			force_disable_hangtime = true;
 			break;
 
 		default:
@@ -666,8 +672,8 @@ static float calculate_thrust(StabilizationDesiredThrustModeOptions mode,
 			last_thrust_pos = desired_thrust >= 0;
 		}
 	} else if (last_nonzero_thrust_time) {
-		if ((this_systime - last_nonzero_thrust_time) <
-				1000.0f * settings.LowPowerStabilizationMaxTime) {
+		if (((this_systime - last_nonzero_thrust_time) < 1000.0f * settings.LowPowerStabilizationMaxTime) &&
+			!force_disable_hangtime) {
 			/* Choose a barely-nonzero value to trigger
 			 * low-power stabilization in actuator.
 			 */
