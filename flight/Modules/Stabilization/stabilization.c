@@ -522,6 +522,8 @@ static float calculate_thrust(StabilizationDesiredThrustModeOptions mode,
 		return 0.0f;
 	}
 
+	float force_disable_hangtime = false;
+
 #ifdef TARGET_MAY_HAVE_BARO
 	bool do_alt_control = false;
 	bool do_vertspeed_control = false;
@@ -532,8 +534,6 @@ static float calculate_thrust(StabilizationDesiredThrustModeOptions mode,
 
 	static float alt_desired;
 	float vertspeed_desired = 0;
-
-	float force_disable_hangtime = false;
 
 	switch (mode) {
 		case STABILIZATIONDESIRED_THRUSTMODE_ALTITUDEWITHSTICKSCALING:
@@ -664,6 +664,19 @@ static float calculate_thrust(StabilizationDesiredThrustModeOptions mode,
 	}
 
 	prev_vertspeed_control = do_vertspeed_control;
+#else
+	switch (mode) {
+		case STABILIZATIONDESIRED_THRUSTMODE_FLIPOVERMODETHRUSTREVERSED:
+			desired_thrust = -desired_thrust;
+			/* Fall through to set flag. */
+
+		case STABILIZATIONDESIRED_THRUSTMODE_FLIPOVERMODE:
+			force_disable_hangtime = true;
+			break;
+
+		default:
+			break;
+	}
 #endif
 
 	if (fabsf(desired_thrust) > THROTTLE_EPSILON) {
