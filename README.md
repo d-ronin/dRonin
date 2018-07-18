@@ -10,7 +10,7 @@ See [dronin.org](http://dronin.org) for more details.
 
 ### Full Support
 
-- [AeroQuad32](http://aeroquad.com/showwiki.php?title=AeroQuad32-Flight-Control-Board-v2)
+- AeroQuad32
 - [BrainFPV](http://brainfpv.com/)
 - [BrainFPV RE1](http://brainfpv.com/) (no nav sensors on board)
 - [DTFAir DTFc](http://www.dtfuhf.com/) (no nav sensors on board)  Also Colibri Race / TBS PowerCube.
