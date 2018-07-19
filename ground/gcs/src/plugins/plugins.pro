@@ -328,3 +328,9 @@ plugin_boards_rcexplorer.subdir = boards_rcexplorer
 plugin_boards_rcexplorer.depends = plugin_coreplugin
 plugin_boards_rcexplorer.depends = plugin_uavobjects
 SUBDIRS += plugin_boards_rcexplorer
+
+# Matek
+plugin_boards_matek.subdir = boards_matek
+plugin_boards_matek.depends = plugin_coreplugin
+plugin_boards_matek.depends = plugin_uavobjects
+SUBDIRS += plugin_boards_matek
