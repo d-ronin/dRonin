@@ -522,6 +522,8 @@ static float calculate_thrust(StabilizationDesiredThrustModeOptions mode,
 		return 0.0f;
 	}
 
+	float force_disable_hangtime = false;
+
 #ifdef TARGET_MAY_HAVE_BARO
 	bool do_alt_control = false;
 	bool do_vertspeed_control = false;
@@ -568,6 +570,10 @@ static float calculate_thrust(StabilizationDesiredThrustModeOptions mode,
 
 		case STABILIZATIONDESIRED_THRUSTMODE_FLIPOVERMODETHRUSTREVERSED:
 			desired_thrust = -desired_thrust;
+			/* Fall through to set flag. */
+
+		case STABILIZATIONDESIRED_THRUSTMODE_FLIPOVERMODE:
+			force_disable_hangtime = true;
 			break;
 
 		default:
@@ -658,6 +664,19 @@ static float calculate_thrust(StabilizationDesiredThrustModeOptions mode,
 	}
 
 	prev_vertspeed_control = do_vertspeed_control;
+#else
+	switch (mode) {
+		case STABILIZATIONDESIRED_THRUSTMODE_FLIPOVERMODETHRUSTREVERSED:
+			desired_thrust = -desired_thrust;
+			/* Fall through to set flag. */
+
+		case STABILIZATIONDESIRED_THRUSTMODE_FLIPOVERMODE:
+			force_disable_hangtime = true;
+			break;
+
+		default:
+			break;
+	}
 #endif
 
 	if (fabsf(desired_thrust) > THROTTLE_EPSILON) {
@@ -666,8 +685,8 @@ static float calculate_thrust(StabilizationDesiredThrustModeOptions mode,
 			last_thrust_pos = desired_thrust >= 0;
 		}
 	} else if (last_nonzero_thrust_time) {
-		if ((this_systime - last_nonzero_thrust_time) <
-				1000.0f * settings.LowPowerStabilizationMaxTime) {
+		if (((this_systime - last_nonzero_thrust_time) < 1000.0f * settings.LowPowerStabilizationMaxTime) &&
+			!force_disable_hangtime) {
 			/* Choose a barely-nonzero value to trigger
 			 * low-power stabilization in actuator.
 			 */
