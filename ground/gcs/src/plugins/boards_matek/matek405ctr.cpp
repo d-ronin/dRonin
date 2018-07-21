@@ -50,7 +50,7 @@ MATEK405CTR::MATEK405CTR(void)
     boardType = 0x95;
 
     // Define the bank of channels that are connected to a given timer
-    channelBanks.resize(5);
+    channelBanks.resize(2);
     channelBanks[0] = QVector<int>() << 1;
     channelBanks[1] = QVector<int>() << 2<< 3 << 4;
 }

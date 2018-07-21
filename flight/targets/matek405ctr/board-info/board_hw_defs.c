@@ -46,8 +46,7 @@ static const struct pios_annunc pios_annuncs[] = {
 				.GPIO_PuPd  = GPIO_PuPd_NOPULL,
 			},
 		},
-		.remap = 0,
-		.active_high = true,
+		.active_high = false,
 	},
 	[PIOS_LED_ALARM] = {
 		.pin = {
@@ -60,8 +59,7 @@ static const struct pios_annunc pios_annuncs[] = {
 				.GPIO_PuPd  = GPIO_PuPd_NOPULL,
 			},
 		},
-		.remap = 0,
-		.active_high = true,
+		.active_high = false,
 	},
 	[PIOS_ANNUNCIATOR_BUZZER] = {
 		.pin = {
@@ -74,7 +72,7 @@ static const struct pios_annunc pios_annuncs[] = {
 				.GPIO_PuPd = GPIO_PuPd_NOPULL
 			},
 		},
-		.active_high = false,
+		.active_high = true,
 	},
 };
 
