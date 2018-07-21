@@ -206,6 +206,10 @@ static void overrideSettings(QCommandLineParser &parser, QSettings *settings)
     settings->sync();
 }
 
+#if defined(_MSC_VER)
+#pragma optimize ("", off)
+#endif
+
 int main(int argc, char **argv)
 {
 #ifdef Q_OS_MAC
