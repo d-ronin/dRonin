@@ -55,6 +55,7 @@
 #include "sensorsettings.h"
 #include "vbarsettings.h"
 #include "vtolpathfollowersettings.h"
+#include "triflightsettings.h"
 
 #include "flightstatus.h"
 #include "modulesettings.h"
@@ -79,6 +80,7 @@ struct txpid_struct {
 	SensorSettingsData sensor;
 	VbarSettingsData vbar;
 	VtolPathFollowerSettingsData vtolPathFollowerSettingsData;
+	TriflightSettingsData triflightSettingsData;
 #if (TELEMETRY_UPDATE_PERIOD_MS != 0)
 	UAVObjMetadata metadata;
 #endif
@@ -198,12 +200,18 @@ static void updatePIDs(const UAVObjEvent *ev,
 		VtolPathFollowerSettingsGet(&txpid_data->vtolPathFollowerSettingsData);
 	}
 
+	if (TriflightSettingsHandle()) {
+		TriflightSettingsGet(&txpid_data->triflightSettingsData);
+	}
+
 	bool vtolPathFollowerSettingsNeedsUpdate = false;
 
 	bool stabilizationSettingsNeedsUpdate = false;
 	bool sensorSettingsNeedsUpdate = false;
 	bool vbarSettingsNeedsUpdate = false;
-
+	
+	bool triflightSettingsNeedsUpdate = false;
+	
 	// Loop through every enabled instance
 	for (uint8_t i = 0; i < TXPIDSETTINGS_PIDS_NUMELEM; i++) {
 		if (txpid_data->inst.PIDs[i] != TXPIDSETTINGS_PIDS_DISABLED) {
@@ -404,6 +412,18 @@ static void updatePIDs(const UAVObjEvent *ev,
 			case TXPIDSETTINGS_PIDS_HORIZONTALVELKD:
 				vtolPathFollowerSettingsNeedsUpdate |= update(&txpid_data->vtolPathFollowerSettingsData.HorizontalVelPID[VTOLPATHFOLLOWERSETTINGS_HORIZONTALVELPID_KD], value);
 				break;
+			case TXPIDSETTINGS_PIDS_DYNAMICYAWHIGH:
+				triflightSettingsNeedsUpdate |= update(&txpid_data->triflightSettingsData.DynamicYawMaxThrottle, value);
+				break;
+			case TXPIDSETTINGS_PIDS_DYNAMICYAWLOW:
+				triflightSettingsNeedsUpdate |= update(&txpid_data->triflightSettingsData.DynamicYawMinThrottle, value);
+				break;
+			case TXPIDSETTINGS_PIDS_YAWBOOST:
+				triflightSettingsNeedsUpdate |= update(&txpid_data->triflightSettingsData.YawBoost, value);
+				break;
+			case TXPIDSETTINGS_PIDS_MOTORACCELERATION:
+				triflightSettingsNeedsUpdate |= update(&txpid_data->triflightSettingsData.MotorAcceleration, value);
+				break;
 			default:
 				// Previously this would assert.  But now the
 				// object may be missing and it's not worth a
@@ -432,6 +452,13 @@ static void updatePIDs(const UAVObjEvent *ev,
 			VtolPathFollowerSettingsSet(&txpid_data->vtolPathFollowerSettingsData);
 		}
 	}
+	
+	if (triflightSettingsNeedsUpdate) {
+		// Check to make sure the settings UAVObject has been instantiated
+		if (TriflightSettingsHandle()) {
+			TriflightSettingsSet(&txpid_data->triflightSettingsData);
+		}
+	}	
 }
 
 /**

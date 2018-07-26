@@ -98,6 +98,10 @@
         <option>Horizontal Vel.Ki</option>
         <option>Horizontal Vel.Kd</option>
         <option>CameraTilt</option>
+		<option>Dynamic Yaw High</option>
+		<option>Dynamic Yaw Low</option>
+		<option>Yaw Boost</option>
+		<option>Motor Acceleration</option>
       </options>
     </field>
     <field defaultvalue="0.0" name="MinPID" type="float" units="">
