@@ -41,27 +41,17 @@ MODULES += FirmwareIAP
 MODULES += Telemetry
 
 OPTMODULES += GPS
-#OPTMODULES += CameraStab
 OPTMODULES += Autotune
 OPTMODULES += TxPID
-#OPTMODULES += GenericI2CSensor
-#OPTMODULES += PathPlanner
-#OPTMODULES += VtolPathFollower
-#OPTMODULES += FixedWingPathFollower
-OPTMODULES += VibrationAnalysis
-OPTMODULES += UAVOMavlinkBridge
 OPTMODULES += UAVOMSPBridge
-OPTMODULES += UAVOLighttelemetryBridge
 OPTMODULES += Battery
 OPTMODULES += ComUsbBridge
-#OPTMODULES += Airspeed/revolution
 OPTMODULES += UAVOHoTTBridge
 OPTMODULES += UAVOFrSKYSensorHubBridge
 OPTMODULES += UAVOFrSKYSPortBridge
-OPTMODULES += Geofence
 OPTMODULES += Logging
-OPTMODULES += Storm32Bgc
 OPTMODULES += UAVOCrossfireTelemetry
+OPTMODULES += OpenAeroVtol
 OPTMODULES += Triflight
 
 # Paths
@@ -91,10 +81,12 @@ include $(APPLIBDIR)/ChibiOS/library.mk
 
 ## OPENPILOT CORE:
 SRC += ${OPMODULEDIR}/System/systemmod.c
+SRC += ${OPMODULEDIR}/System/rgbleds.c
 SRC += chibi_main.c
 SRC += pios_board.c
 SRC += pios_usb_board_data.c
 SRC += $(OPUAVOBJ)/uavobjectmanager.c
+SRC += printf-stdarg.c
 
 ifeq ($(DEBUG),YES)
 SRC += $(DEBUG_CM3_DIR)/dcc_stdio.c
@@ -110,10 +102,6 @@ include $(PIOS)/STM32F30x/library_chibios.mk
 include $(PIOS)/pios_flight_library.mk
 
 SRC += pios_mpu.c
-#SRC += pios_hmc5883.c
-#SRC += pios_hmc5983_i2c.c
-#SRC += pios_ms5611.c
-#SRC += pios_bmp280.c
 SRC += pios_usbhook.c
 
 # List C++ source files here.
@@ -132,7 +120,6 @@ EXTRAINCDIRS += $(FLIGHTLIBINC)
 EXTRAINCDIRS += $(MATHLIBINC)
 EXTRAINCDIRS += $(PIOSSTM32F30X)
 EXTRAINCDIRS += $(PIOSCOMMON)
-EXTRAINCDIRS += $(BOARD_INFO_DIR)
 EXTRAINCDIRS += $(STMSPDINCDIR)
 EXTRAINCDIRS += $(CMSISDIR)
 EXTRAINCDIRS += $(BOOTINC)

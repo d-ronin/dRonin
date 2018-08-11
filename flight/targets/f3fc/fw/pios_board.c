@@ -87,7 +87,7 @@ void PIOS_Board_Init(void)
 #if defined(PIOS_INCLUDE_FLASH)
 	/* Inititialize all flash drivers */
 	if (PIOS_Flash_Internal_Init(&pios_internal_flash_id, &flash_internal_cfg) != 0)
-		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_FLASH);;
+		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_FLASH);
 
 
 	/* Register the partition table */
@@ -280,6 +280,7 @@ void PIOS_Board_Init(void)
 
 #if defined(PIOS_INCLUDE_MPU)
 	pios_mpu_dev_t mpu_dev = NULL;
+	
 	if (PIOS_MPU_SPI_Init(&mpu_dev, pios_spi_internal_id, 0, &pios_mpu_cfg) != 0)
 		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 
@@ -334,21 +335,7 @@ void PIOS_Board_Init(void)
 
 	//I2C is slow, sensor init as well, reset watchdog to prevent reset here
 	PIOS_WDG_Clear();
-/* HJI
-	uint8_t hw_ext_mag;
-	uint8_t hw_ext_mag_orientation;
 
-	HwF3FcI2CExtMagGet(&hw_ext_mag);
-	HwF3FcExtMagOrientationGet(&hw_ext_mag_orientation);
-
-	PIOS_HAL_ConfigureExternalMag(hw_ext_mag, hw_ext_mag_orientation, &pios_i2c_id, &pios_i2c_cfg);
-
-	uint8_t hw_ext_baro;
-
-	HwF3FcI2CExtBaroGet(&hw_ext_baro);
-
-	PIOS_HAL_ConfigureExternalBaro(hw_ext_baro,	&pios_i2c_id, &pios_i2c_cfg);
-HJI */
 	/* Make sure we have at least one telemetry link configured or else fail initialization */
 	PIOS_Assert(pios_com_telem_serial_id || pios_com_telem_usb_id);
 

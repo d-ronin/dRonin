@@ -19,18 +19,13 @@
 				<option>DSM</option>
 				<option>FrSKY Sensor Hub</option>
 				<option>FrSKY SPort Telemetry</option>
-				<option>GPS</option>
 				<option>HoTT Telemetry</option>
 				<option>IBus</option>
-				<option>LighttelemetryTx</option>
-				<option>MavLinkTX</option>
-				<option>MavLinkTX_GPS_RX</option>
 				<option>MSP</option>
 				<option>OpenLog</option>
 				<option>S.Bus</option>
 				<option>S.Bus Non Inverted</option>
 				<option>SRXL</option>
-				<option>Storm32Bgc</option>
 				<option>TBS Crossfire</option>
 				<option>Telemetry</option>
 			</options>
@@ -43,18 +38,13 @@
 				<option>DSM</option>
 				<option>FrSKY Sensor Hub</option>
 				<option>FrSKY SPort Telemetry</option>
-				<option>GPS</option>
 				<option>HoTT Telemetry</option>
 				<option>IBus</option>
-				<option>LighttelemetryTx</option>
-				<option>MavLinkTX</option>
-				<option>MavLinkTX_GPS_RX</option>
 				<option>MSP</option>
 				<option>OpenLog</option>
 				<option>S.Bus</option>
 				<option>S.Bus Non Inverted</option>
 				<option>SRXL</option>
-				<option>Storm32Bgc</option>
 				<option>TBS Crossfire</option>
 				<option>Telemetry</option>
 			</options>
@@ -67,18 +57,14 @@
 				<option>DSM</option>
 				<option>FrSKY Sensor Hub</option>
 				<option>FrSKY SPort Telemetry</option>
-				<option>GPS</option>
 				<option>HoTT Telemetry</option>
 				<option>IBus</option>
-				<option>LighttelemetryTx</option>
-				<option>MavLinkTX</option>
-				<option>MavLinkTX_GPS_RX</option>
 				<option>MSP</option>
 				<option>OpenLog</option>
 				<option>S.Bus</option>
 				<option>S.Bus Non Inverted</option>
 				<option>SRXL</option>
-				<option>Storm32Bgc</option>
+				<option>TBS Crossfire</option>
 				<option>Telemetry</option>
 			</options>
 		</field>
@@ -119,20 +105,6 @@
 				<option>10</option>
 				<option>5</option>
 			</options>
-		</field>
-		<field defaultvalue="None" elements="1" name="I2CExtBaro" parent="HwShared.ExtBaro" type="enum" units="function">
-			<description/>
-		</field>
-		<field defaultvalue="None" elements="1" name="I2CExtMag" parent="HwShared.Mag" type="enum" units="function">
-			<description/>
-			<options>
-				<option>None</option>
-				<option>External HMC5883</option>
-				<option>External HMC5983</option>
-			</options>
-		</field>
-		<field defaultvalue="Top0degCW" elements="1" name="ExtMagOrientation" parent="HwShared.MagOrientation" type="enum" units="function">
-			<description/>
 		</field>
 	</object>
 </xml>
