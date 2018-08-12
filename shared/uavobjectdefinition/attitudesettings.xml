@@ -53,5 +53,8 @@
         <option>PREMERLANI_GPS</option>
       </options>
     </field>
+    <field defaultvalue="100" elements="1" name="DesiredUpdateRate" type="uint16" units="Hz">
+      <description>The update rate the attitude filter is supposed to run at. Values below 100Hz will run the estimator at gyro rates.</description>
+    </field>
   </object>
 </xml>

@@ -9,7 +9,7 @@
  * Based on the value of @ref StateEstimation this module will select between
  * the complementary filter and the INSGPS to fuse data from @ref Gyros, @ref
  * Accels, @ref Magnetometer, @ref GPSPosition, @ref GPSVelocity, and @ref
- * BaroAltitude to estimation @ref PositionActual, @ref VelocityActual and 
+ * BaroAltitude to estimation @ref PositionActual, @ref VelocityActual and
  * @ref AttitudeActual.
  *
  * @file       attitude.c
@@ -170,7 +170,8 @@ static int32_t setNavigationRaw();
 static int32_t setNavigationNone();
 
 //! Update the complementary filter attitude estimate
-static int32_t updateAttitudeComplementary(float dT, bool first_run, bool secondary, bool raw_gps, bool vel_compass);
+static int32_t updateAttitudeComplementary(float dT, bool first_run, bool secondary, bool raw_gps, bool vel_compass,
+	GyrosData *gyrosData, AccelsData *accelsData);
 //! Set the @ref AttitudeActual to the complementary filter estimate
 static int32_t setAttitudeComplementary();
 
@@ -180,12 +181,12 @@ static void cfvert_predict_pos(struct cfvert *cf, float z_accel, float dt);
 static void cfvert_update_baro(struct cfvert *cf, float baro, float dt);
 
 //! Update the INSGPS attitude estimate
-static int32_t updateAttitudeINSGPS(bool first_run, bool outdoor_mode);
+static int32_t updateAttitudeINSGPS(bool first_run, bool outdoor_mode, GyrosData *gyrosData, AccelsData *accelsData);
 //! Set the attitude to the current INSGPS estimate
 static int32_t setAttitudeINSGPS();
 //! Set the navigation to the current INSGPS estimate
 static int32_t setNavigationINSGPS();
-static void updateNedAccel();
+static void updateNedAccel(AccelsData *accelsData);
 
 //! A low pass filter on the accels which helps with vibration resistance
 static void apply_accel_filter(const float * raw, float * filtered);
@@ -235,13 +236,13 @@ int32_t AttitudeInitialize(void)
 		|| PositionActualInitialize() == -1 \
 		|| StateEstimationInitialize() == -1 \
 		|| VelocityActualInitialize() == -1) {
-	
+
 		return -1;
 	};
 
 	// Initialize this here while we aren't setting the homelocation in GPS
 	if (HomeLocationInitialize() == -1) {
-		return -1;		
+		return -1;
 	}
 
 	INSSettingsConnectCallbackCtx(UAVObjCbSetFlag, &settings_flag);
@@ -314,7 +315,16 @@ static void AttitudeTask(void *parameters)
 {
 	bool first_run = true;
 	uint32_t last_algorithm;
-	bool     last_complementary;
+	bool last_complementary;
+	uint8_t decimator = 1;
+	uint8_t dec_cnt = 0;
+
+	UAVObjEvent ev;
+	GyrosData gyrosData;
+	AccelsData accelsData;
+	GyrosData decimatedGyros = {0};
+	AccelsData decimatedAccels = {0};
+
 	set_state_estimation_error(SYSTEMALARMS_STATEESTIMATION_UNDEFINED);
 
 	// Wait for all the sensors be to read
@@ -323,12 +333,6 @@ static void AttitudeTask(void *parameters)
 	// Invalidate previous algorithm to trigger a first run
 	last_algorithm = 0xfffffff;
 	last_complementary = false;
-
-	uint16_t samp_rate = PIOS_SENSORS_GetSampleRate(PIOS_SENSOR_GYRO);
-
-	if (samp_rate) {
-		dT_expected = 1.0f / samp_rate;
-	}
 
 	// Main task loop
 	while (1) {
@@ -345,7 +349,22 @@ static void AttitudeTask(void *parameters)
 			INSSetBaroVar(insSettings.BaroVar);
 
 			AttitudeSettingsGet(&attitudeSettings);
-				
+
+			// Calculate decimator and dT_expected.
+			uint16_t samp_rate = PIOS_SENSORS_GetSampleRate(PIOS_SENSOR_GYRO);
+			if (!samp_rate)
+				samp_rate = 1000;
+
+			if (attitudeSettings.DesiredUpdateRate < 100) {
+				decimator = 1;
+			} else {
+				// Select decimator for faster closest rate.
+				decimator = (uint8_t)floorf((float)samp_rate / (float)attitudeSettings.DesiredUpdateRate);
+				// Force reset down below.
+				dec_cnt = decimator;
+			}
+			dT_expected = 1.0f / samp_rate * (float)decimator;
+
 			// Calculate accel filter alpha, in the same way as for gyro data in stabilization module.
 			if(attitudeSettings.AccelTau < 0.0001f) {
 				complementary_filter_state.accel_alpha = 0;   // not trusting this to resolve to 0
@@ -363,7 +382,7 @@ static void AttitudeTask(void *parameters)
 
 			SensorSettingsData sensorSettings;
 			SensorSettingsGet(&sensorSettings);
-			
+
 			/* When the calibration is updated, update the GyroBias object */
 			GyrosBiasData gyrosBias;
 			gyrosBias.x = 0;
@@ -378,7 +397,7 @@ static void AttitudeTask(void *parameters)
 			uint8_t armed;
 			FlightStatusArmedGet(&armed);
 
-			// Do not update the home location while armed as this can blow up the 
+			// Do not update the home location while armed as this can blow up the
 			// filter.  This will need to be overhauled to handle long distance
 			// flights
 			if (armed == FLIGHTSTATUS_ARMED_DISARMED) {
@@ -396,6 +415,59 @@ static void AttitudeTask(void *parameters)
 
 				home_location_updated = true;
 			}
+		}
+
+		// Check main sensors
+		bool gyroTimeout  = PIOS_Queue_Receive(gyroQueue, &ev, FAILSAFE_TIMEOUT_MS) != true;
+		bool accelTimeout = PIOS_Queue_Receive(accelQueue, &ev, 1) != true;
+
+		// When one of these is updated so should the other.
+		if (gyroTimeout || accelTimeout) {
+			// Do not set attitude timeout warnings in simulation mode
+			if (!AttitudeActualReadOnly()) {
+				if (gyroTimeout)
+					set_state_estimation_error(SYSTEMALARMS_STATEESTIMATION_GYROQUEUENOTUPDATING);
+				else if (accelTimeout)
+					set_state_estimation_error(SYSTEMALARMS_STATEESTIMATION_ACCELEROMETERQUEUENOTUPDATING);
+
+				continue;
+			}
+		}
+
+		if (decimator > 1) {
+			GyrosGet(&gyrosData);
+			AccelsGet(&accelsData);
+
+			if (dec_cnt >= decimator) {
+				memset(&decimatedGyros, 0, sizeof(decimatedGyros));
+				memset(&decimatedAccels, 0, sizeof(decimatedAccels));
+				dec_cnt = 0;
+			}
+
+			decimatedGyros.x += gyrosData.x;
+			decimatedGyros.y += gyrosData.y;
+			decimatedGyros.z += gyrosData.z;
+
+			decimatedAccels.x += accelsData.x;
+			decimatedAccels.y += accelsData.y;
+			decimatedAccels.z += accelsData.z;
+
+			if (++dec_cnt < decimator) {
+				// Sample count not reached.
+				continue;
+			} else {
+				decimatedGyros.x /= (float)decimator;
+				decimatedGyros.y /= (float)decimator;
+				decimatedGyros.z /= (float)decimator;
+
+				decimatedAccels.x /= (float)decimator;
+				decimatedAccels.y /= (float)decimator;
+				decimatedAccels.z /= (float)decimator;
+			}
+		} else {
+			// If we don't decimate, just fill in.
+			GyrosGet(&decimatedGyros);
+			AccelsGet(&decimatedAccels);
 		}
 
 		// When changing the attitude filter reinitialize
@@ -426,20 +498,22 @@ static void AttitudeTask(void *parameters)
 
 		// Update one or both filters
 		if (ins) {
-			ret_val = updateAttitudeINSGPS(first_run, outdoor);
+			ret_val = updateAttitudeINSGPS(first_run, outdoor, &decimatedGyros, &decimatedAccels);
 			if (complementary)
 				updateAttitudeComplementary(dT_expected,
 						first_run || complementary != last_complementary,
 						true,     // the secondary filter
 						false,    // no raw gps is used
-						stateEstimation.AttitudeFilter == STATEESTIMATION_ATTITUDEFILTER_COMPLEMENTARYVELCOMPASS);
-						
+						stateEstimation.AttitudeFilter == STATEESTIMATION_ATTITUDEFILTER_COMPLEMENTARYVELCOMPASS,
+						&decimatedGyros, &decimatedAccels);
+
 		} else {
 			ret_val = updateAttitudeComplementary(dT_expected,
 					first_run,
 					false,
 					stateEstimation.NavigationFilter == STATEESTIMATION_NAVIGATIONFILTER_RAW,
-					stateEstimation.AttitudeFilter == STATEESTIMATION_ATTITUDEFILTER_COMPLEMENTARYVELCOMPASS);
+					stateEstimation.AttitudeFilter == STATEESTIMATION_ATTITUDEFILTER_COMPLEMENTARYVELCOMPASS,
+					&decimatedGyros, &decimatedAccels);
 		}
 
 		last_complementary = complementary;
@@ -473,7 +547,7 @@ static void AttitudeTask(void *parameters)
 			break;
 		}
 
-		updateNedAccel();
+		updateNedAccel(&decimatedAccels);
 
 		if(ret_val == 0)
 			first_run = false;
@@ -490,33 +564,10 @@ static float cf_q[4];
  * @param[in] first_run indicates the filter was just selected
  * @param[in] secondary indicates the EKF is running as well
  */
-static int32_t updateAttitudeComplementary(float dT, bool first_run, bool secondary, bool raw_gps, bool vel_compass)
+static int32_t updateAttitudeComplementary(float dT, bool first_run, bool secondary, bool raw_gps, bool vel_compass,
+	GyrosData *gyrosData, AccelsData *accelsData)
 {
 	UAVObjEvent ev;
-	GyrosData gyrosData;
-	AccelsData accelsData;
-
-	// If this is the primary estimation filter, wait until the accel and
-	// gyro objects are updated. If it timeouts then go to failsafe.
-	if (!secondary) {
-		bool gyroTimeout  = PIOS_Queue_Receive(gyroQueue, &ev, FAILSAFE_TIMEOUT_MS) != true;
-		bool accelTimeout = PIOS_Queue_Receive(accelQueue, &ev, 1) != true;
-
-		// When one of these is updated so should the other.
-		if (gyroTimeout || accelTimeout) {
-			// Do not set attitude timeout warnings in simulation mode
-			if (!AttitudeActualReadOnly()) {
-				if (gyroTimeout)
-					set_state_estimation_error(SYSTEMALARMS_STATEESTIMATION_GYROQUEUENOTUPDATING);
-				else if (accelTimeout)
-					set_state_estimation_error(SYSTEMALARMS_STATEESTIMATION_ACCELEROMETERQUEUENOTUPDATING);
-
-				return -1;
-			}
-		}
-	}
-
-	AccelsGet(&accelsData);
 
 	// When this algorithm is first run force it to a known condition
 	if(first_run) {
@@ -548,9 +599,9 @@ static int32_t updateAttitudeComplementary(float dT, bool first_run, bool second
 		 */
 		float RPY_D[3];
 
-		float theta = atan2f(accelsData.x, -accelsData.z);
+		float theta = atan2f(accelsData->x, -accelsData->z);
 		RPY_D[1] = theta * RAD2DEG;
-		RPY_D[0] = atan2f(-accelsData.y, -accelsData.z / cosf(theta)) * RAD2DEG;
+		RPY_D[0] = atan2f(-accelsData->y, -accelsData->z / cosf(theta)) * RAD2DEG;
 
 		// See above note about why we rotate the magnetic field before continuing.
 		float RPY_R[3] = {RPY_D[0] * DEG2RAD, RPY_D[1] * DEG2RAD, 0};
@@ -589,12 +640,12 @@ static int32_t updateAttitudeComplementary(float dT, bool first_run, bool second
 	uint32_t ms_since_reset = PIOS_DELAY_DiffuS(complementary_filter_state.reset_timeval) / 1000;
 	if (complementary_filter_state.initialization == CF_POWERON) {
 		// Wait one second before starting to initialize
-		complementary_filter_state.initialization = 
+		complementary_filter_state.initialization =
 		    (ms_since_reset  > 1000) ?
-			CF_INITIALIZING : 
+			CF_INITIALIZING :
 			CF_POWERON;
 	} else if(complementary_filter_state.initialization == CF_INITIALIZING &&
-		(ms_since_reset < 7000) && 
+		(ms_since_reset < 7000) &&
 		(ms_since_reset > 1000)) {
 
 		// For first 7 seconds use accels to get gyro bias
@@ -602,7 +653,7 @@ static int32_t updateAttitudeComplementary(float dT, bool first_run, bool second
 		accKi = 15;
 		mgKp = 1;
 
-	} else if ((attitudeSettings.ZeroDuringArming == ATTITUDESETTINGS_ZERODURINGARMING_TRUE) && 
+	} else if ((attitudeSettings.ZeroDuringArming == ATTITUDESETTINGS_ZERODURINGARMING_TRUE) &&
 	           (flightStatus.Armed == FLIGHTSTATUS_ARMED_ARMING)) {
 		// Use a rapidly decrease accelKp to force the attitude to snap back
 		// to level and then converge more smoothly
@@ -657,8 +708,7 @@ static int32_t updateAttitudeComplementary(float dT, bool first_run, bool second
 		cfvert_reset(&cfvert, baro, attitudeSettings.VertPositionTau);
 	}
 
-	GyrosGet(&gyrosData);
-	accumulate_gyro(&gyrosData);
+	accumulate_gyro(gyrosData);
 
 	float grot[3];
 	float accel_err[3];
@@ -666,7 +716,7 @@ static int32_t updateAttitudeComplementary(float dT, bool first_run, bool second
 	float *accels_filtered = complementary_filter_state.accels_filtered;
 
 	// Apply smoothing to accel values, to reduce vibration noise before main calculations.
-	apply_accel_filter(&accelsData.x,accels_filtered);
+	apply_accel_filter(&accelsData->x,accels_filtered);
 
 	// Rotate gravity to body frame and cross with accels
 	grot[0] = -(2 * (cf_q[1] * cf_q[3] - cf_q[0] * cf_q[2]));
@@ -711,7 +761,7 @@ static int32_t updateAttitudeComplementary(float dT, bool first_run, bool second
 			float brot[3];
 			float Rbe[3][3];
 
-			// Get rotation to bring earth magnetic field into body frame		
+			// Get rotation to bring earth magnetic field into body frame
 			Quaternion2R(cf_q, Rbe);
 
 			if (homeLocation.Set == HOMELOCATION_SET_TRUE) {
@@ -775,17 +825,17 @@ static int32_t updateAttitudeComplementary(float dT, bool first_run, bool second
 	GyrosBiasSet(&gyrosBias);
 
 	// Correct rates based on error, integral component dealt with in updateSensors
-	gyrosData.x += accel_err[0] * accKp;
-	gyrosData.y += accel_err[1] * accKp;
-	gyrosData.z += accel_err[2] * accKp + mag_err[2] * mgKp;
+	gyrosData->x += accel_err[0] * accKp;
+	gyrosData->y += accel_err[1] * accKp;
+	gyrosData->z += accel_err[2] * accKp + mag_err[2] * mgKp;
 
 	// Work out time derivative from INSAlgo writeup
 	// Also accounts for the fact that gyros are in deg/s
 	float qdot[4];
-	qdot[0] = (-cf_q[1] * gyrosData.x - cf_q[2] * gyrosData.y - cf_q[3] * gyrosData.z) * dT * DEG2RAD / 2;
-	qdot[1] = (cf_q[0] * gyrosData.x - cf_q[3] * gyrosData.y + cf_q[2] * gyrosData.z) * dT * DEG2RAD / 2;
-	qdot[2] = (cf_q[3] * gyrosData.x + cf_q[0] * gyrosData.y - cf_q[1] * gyrosData.z) * dT * DEG2RAD / 2;
-	qdot[3] = (-cf_q[2] * gyrosData.x + cf_q[1] * gyrosData.y + cf_q[0] * gyrosData.z) * dT * DEG2RAD / 2;
+	qdot[0] = (-cf_q[1] * gyrosData->x - cf_q[2] * gyrosData->y - cf_q[3] * gyrosData->z) * dT * DEG2RAD / 2;
+	qdot[1] = (cf_q[0] * gyrosData->x - cf_q[3] * gyrosData->y + cf_q[2] * gyrosData->z) * dT * DEG2RAD / 2;
+	qdot[2] = (cf_q[3] * gyrosData->x + cf_q[0] * gyrosData->y - cf_q[1] * gyrosData->z) * dT * DEG2RAD / 2;
+	qdot[3] = (-cf_q[2] * gyrosData->x + cf_q[1] * gyrosData->y + cf_q[0] * gyrosData->z) * dT * DEG2RAD / 2;
 
 	// Take a time step
 	cf_q[0] = cf_q[0] + qdot[0];
@@ -821,7 +871,7 @@ static int32_t updateAttitudeComplementary(float dT, bool first_run, bool second
 		static bool got_baro_pt = false;
 
 		// Calculate the NED acceleration and get the z-component
-		float z_accel = calc_ned_accel(cf_q, &accelsData.x);
+		float z_accel = calc_ned_accel(cf_q, &accelsData->x);
 
 		// When this is the only filter compute th vertical state from baro data
 		// Reset the filter for barometric data
@@ -1002,7 +1052,7 @@ static int32_t setAttitudeComplementary()
  */
 static void accumulate_gyro_compute()
 {
-	if (complementary_filter_state.accumulating_gyro && 
+	if (complementary_filter_state.accumulating_gyro &&
 		complementary_filter_state.accumulated_gyro_samples > 100) {
 
 		// Accumulate integral of error.  Scale here so that units are (deg/s) but Ki has units of s
@@ -1063,11 +1113,9 @@ static void accumulate_gyro(GyrosData *gyrosData)
  * @params[in] outdoor_mode If true use the GPS for position, if false weakly pull to (0,0)
  * @return 0 for success, -1 for failure
  */
-static int32_t updateAttitudeINSGPS(bool first_run, bool outdoor_mode)
+static int32_t updateAttitudeINSGPS(bool first_run, bool outdoor_mode, GyrosData *gyrosData, AccelsData *accelsData)
 {
 	UAVObjEvent ev;
-	GyrosData gyrosData;
-	AccelsData accelsData;
 	MagnetometerData magData;
 	GPSVelocityData gpsVelData;
 	GyrosBiasData gyrosBias;
@@ -1096,7 +1144,7 @@ static int32_t updateAttitudeINSGPS(bool first_run, bool outdoor_mode)
 	float dT;
 
 	// When the home location is adjusted the filter should be
-	// reinitialized to correctly offset the baro and make sure it 
+	// reinitialized to correctly offset the baro and make sure it
 	// does not blow up.  This flag should only be set when not armed.
 	if (first_run || home_location_updated) {
 		ins_state = INS_INIT;
@@ -1118,16 +1166,6 @@ static int32_t updateAttitudeINSGPS(bool first_run, bool outdoor_mode)
 	gps_updated = gps_updated || (PIOS_Queue_Receive(gpsQueue, &ev, 0) && outdoor_mode);
 	gps_vel_updated = gps_vel_updated || (PIOS_Queue_Receive(gpsVelQueue, &ev, 0) && outdoor_mode);
 
-	// Wait until the gyro and accel object is updated, if a timeout then go to failsafe
-	if (PIOS_Queue_Receive(gyroQueue, &ev, FAILSAFE_TIMEOUT_MS) != true ||
-		PIOS_Queue_Receive(accelQueue, &ev, 1) != true)
-	{
-		return -1;
-	}
-
-	// Get most recent data
-	GyrosGet(&gyrosData);
-	AccelsGet(&accelsData);
 	GyrosBiasGet(&gyrosBias);
 
 	// Need to get these values before initializing
@@ -1198,8 +1236,8 @@ static int32_t updateAttitudeINSGPS(bool first_run, bool outdoor_mode)
 		BaroAltitudeGet(&baroData);
 
 		float RPY[3], q[4];
-		RPY[0] = atan2f(-accelsData.y, -accelsData.z) * RAD2DEG;
-		RPY[1] = atan2f(accelsData.x, -accelsData.z) * RAD2DEG;
+		RPY[0] = atan2f(-accelsData->y, -accelsData->z) * RAD2DEG;
+		RPY[1] = atan2f(accelsData->x, -accelsData->z) * RAD2DEG;
 		RPY[2] = atan2f(-magData.y, magData.x) * RAD2DEG;
 		RPY2Quaternion(RPY,q);
 
@@ -1238,13 +1276,13 @@ static int32_t updateAttitudeINSGPS(bool first_run, bool outdoor_mode)
 			baro_offset = -baroData.Altitude;
 
 			INSSetState(NED, zeros, q, zeros, zeros);
-		} 
+		}
 
 		// Once all sensors have been updated and initialized then enter warmup
 		// state to make sure filter converges
 		ins_state = INS_WARMUP;
 
-		ins_last_time = PIOS_DELAY_GetRaw();	
+		ins_last_time = PIOS_DELAY_GetRaw();
 		ins_init_time = ins_last_time;
 
 		return 0;
@@ -1259,7 +1297,7 @@ static int32_t updateAttitudeINSGPS(bool first_run, bool outdoor_mode)
 	uint8_t armed;
 	FlightStatusArmedGet(&armed);
 	INSSetArmed (armed == FLIGHTSTATUS_ARMED_ARMED);
-	
+
 
 	// Have a minimum requirement for gps usage a little more liberal than during initialization
 	gps_updated &= (gpsData.Satellites >= 6) && (gpsData.PDOP <= 4.0f) && (homeLocation.Set == HOMELOCATION_SET_TRUE);
@@ -1286,17 +1324,17 @@ static int32_t updateAttitudeINSGPS(bool first_run, bool outdoor_mode)
 	// this effectively means the INS is observing the "raw" data.
 	float gyros[3];
 	if (attitudeSettings.BiasCorrectGyro == ATTITUDESETTINGS_BIASCORRECTGYRO_TRUE) {
-		gyros[0] = (gyrosData.x + gyrosBias.x) * DEG2RAD;
-		gyros[1] = (gyrosData.y + gyrosBias.y) * DEG2RAD;
-		gyros[2] = (gyrosData.z + gyrosBias.z) * DEG2RAD;
+		gyros[0] = (gyrosData->x + gyrosBias.x) * DEG2RAD;
+		gyros[1] = (gyrosData->y + gyrosBias.y) * DEG2RAD;
+		gyros[2] = (gyrosData->z + gyrosBias.z) * DEG2RAD;
 	} else {
-		gyros[0] = gyrosData.x * DEG2RAD;
-		gyros[1] = gyrosData.y * DEG2RAD;
-		gyros[2] = gyrosData.z * DEG2RAD;
+		gyros[0] = gyrosData->x * DEG2RAD;
+		gyros[1] = gyrosData->y * DEG2RAD;
+		gyros[2] = gyrosData->z * DEG2RAD;
 	}
 
 	// Advance the state estimate
-	INSStatePrediction(gyros, &accelsData.x, dT);
+	INSStatePrediction(gyros, &accelsData->x, dT);
 
 	// Advance the covariance estimate
 	INSCovariancePrediction(dT);
@@ -1305,7 +1343,7 @@ static int32_t updateAttitudeINSGPS(bool first_run, bool outdoor_mode)
 		sensors |= MAG_SENSORS;
 		mag_updated = false;
 	}
-	
+
 	if(baro_updated) {
 		sensors |= BARO_SENSOR;
 		baro_updated = false;
@@ -1347,11 +1385,11 @@ static int32_t updateAttitudeINSGPS(bool first_run, bool outdoor_mode)
 		// The values here are fudged.  Basically, when GPS is
 		// "good" we'll have a lower variance than the nominal
 		// setting.  But from there it will increase really quickly.
-		// sqrt(.5) / 3.5 =~ 0.181f 
-		float pos_var = insSettings.GpsVar[INSSETTINGS_GPSVAR_POS] * 
+		// sqrt(.5) / 3.5 =~ 0.181f
+		float pos_var = insSettings.GpsVar[INSSETTINGS_GPSVAR_POS] *
 			(0.6f + powf(gpsData.Accuracy * 0.180f, 2));
 
-		// A good value of speed accuracy in flight is 0.35-0.5. 
+		// A good value of speed accuracy in flight is 0.35-0.5.
 		// sqrt(.5) / .5 =~ 1.414
 		float speed_var = insSettings.GpsVar[INSSETTINGS_GPSVAR_VEL] *
 			(0.5f + powf(gpsVelData.Accuracy * 1.414f, 2));
@@ -1392,7 +1430,7 @@ static int32_t updateAttitudeINSGPS(bool first_run, bool outdoor_mode)
 	if (insSettings.ComputeGyroBias == INSSETTINGS_COMPUTEGYROBIAS_FALSE)
 		INSSetGyroBias(zeros);
 
-	float accel_bias_corrected[3] = {accelsData.x - state.State[13], accelsData.y - state.State[14], accelsData.z - state.State[15]};
+	float accel_bias_corrected[3] = {accelsData->x - state.State[13], accelsData->y - state.State[14], accelsData->z - state.State[15]};
 	calc_ned_accel(&state.State[6], accel_bias_corrected);
 
 	return 0;
@@ -1408,7 +1446,7 @@ static int32_t setAttitudeINSGPS()
 	Quaternion2RPY(&attitude.q1,&attitude.Roll);
 	AttitudeActualSet(&attitude);
 
-	if (insSettings.ComputeGyroBias == INSSETTINGS_COMPUTEGYROBIAS_TRUE && 
+	if (insSettings.ComputeGyroBias == INSSETTINGS_COMPUTEGYROBIAS_TRUE &&
 	    !gyroBiasSettingsUpdated) {
 		// Copy the gyro bias into the UAVO except when it was updated
 		// from the settings during the calculation, then consume it
@@ -1476,7 +1514,7 @@ static int32_t getNED(GPSPositionData * gpsPosition, float * NED)
 /**
  * Keep a running filtered version of the acceleration in the NED frame
  */
-static void updateNedAccel()
+static void updateNedAccel(AccelsData *accelsData)
 {
 	float accel[3];
 	float q[4];
@@ -1485,12 +1523,10 @@ static void updateNedAccel()
 	const float TAU = 0.95f;
 
 	// Collect downsampled attitude data
-	AccelsData accels;
-	AccelsGet(&accels);		
-	accel[0] = accels.x;
-	accel[1] = accels.y;
-	accel[2] = accels.z;
-	
+	accel[0] = accelsData->x;
+	accel[1] = accelsData->y;
+	accel[2] = accelsData->z;
+
 	//rotate avg accels into earth frame and store it
 	AttitudeActualData attitudeActual;
 	AttitudeActualGet(&attitudeActual);
@@ -1505,9 +1541,9 @@ static void updateNedAccel()
 			accel_ned[i] += Rbe[j][i] * accel[j];
 	}
 	accel_ned[2] += GRAVITY;
-	
+
 	NedAccelData accelData;
-	
+
 	/* XXX this is redundant with another set when in INS modes... */
 	NedAccelGet(&accelData);
 	accelData.North = accelData.North * TAU + accel_ned[0] * (1 - TAU);
@@ -1535,9 +1571,9 @@ static void check_home_location()
 	GPSPositionGet(&gps);
 	GPSTimeData gpsTime;
 	GPSTimeGet(&gpsTime);
-	
+
 	// Check for valid data for the calculation
-	if (gps.PDOP < 3.5f && 
+	if (gps.PDOP < 3.5f &&
 	     gps.Satellites >= 7 &&
 	     (gps.Status == GPSPOSITION_STATUS_FIX3D ||
 	     gps.Status == GPSPOSITION_STATUS_DIFF3D) &&
