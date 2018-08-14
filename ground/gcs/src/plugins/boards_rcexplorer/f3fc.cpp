@@ -48,9 +48,9 @@ F3Fc::F3Fc(void)
 
     // Define the bank of channels that are connected to a given timer
     channelBanks.resize(4);
-    channelBanks[0] = QVector<int> () << 1 << 2 << 5;  // TIM3
-    channelBanks[1] = QVector<int> () << 3;            // TIM1
-    channelBanks[2] = QVector<int> () << 4;            // TIM17
+    channelBanks[0] = QVector<int> () << 1;            // TIM1
+    channelBanks[1] = QVector<int> () << 2;            // TIM17
+    channelBanks[2] = QVector<int> () << 3 << 4 << 5;  // TIM3
 	channelBanks[3] = QVector<int> () << 6;            // TIM2
 }
 

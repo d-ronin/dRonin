@@ -533,38 +533,6 @@ static const struct pios_tim_clock_cfg tim_17_cfg = {
 
 static const struct pios_tim_channel pios_tim_output_pins[] = {
 	{ // Ch1
-		.timer = TIM3,
-		.timer_chan = TIM_Channel_2,
-		.remap = GPIO_AF_2,
-		.pin = {
-			.gpio = GPIOA,
-			.init = {
-				.GPIO_Pin   = GPIO_Pin_4,
-				.GPIO_Speed = GPIO_Speed_2MHz,
-				.GPIO_Mode  = GPIO_Mode_AF,
-				.GPIO_OType = GPIO_OType_PP,
-				.GPIO_PuPd  = GPIO_PuPd_UP
-			},
-			.pin_source = GPIO_PinSource4,
-		},
-	},
-	{ // Ch2
-		.timer = TIM3,
-		.timer_chan = TIM_Channel_3,
-		.remap = GPIO_AF_2,
-		.pin = {
-			.gpio = GPIOB,
-			.init = {
-				.GPIO_Pin   = GPIO_Pin_0,
-				.GPIO_Speed = GPIO_Speed_2MHz,
-				.GPIO_Mode  = GPIO_Mode_AF,
-				.GPIO_OType = GPIO_OType_PP,
-				.GPIO_PuPd  = GPIO_PuPd_UP
-			},
-			.pin_source = GPIO_PinSource0,
-		},
-	},
-	{ // Ch3
 		.timer = TIM1,
 		.timer_chan = TIM_Channel_1,
 		.remap = GPIO_AF_6,
@@ -580,7 +548,7 @@ static const struct pios_tim_channel pios_tim_output_pins[] = {
 			.pin_source = GPIO_PinSource8,
 		},
 	},
-	{ // Ch4
+	{ // Ch2
 		.timer = TIM17,
 		.timer_chan = TIM_Channel_1,
 		.remap = GPIO_AF_1,
@@ -594,6 +562,38 @@ static const struct pios_tim_channel pios_tim_output_pins[] = {
 				.GPIO_PuPd  = GPIO_PuPd_UP
 			},
 			.pin_source = GPIO_PinSource7,
+		},
+	},
+	{ // Ch3
+		.timer = TIM3,
+		.timer_chan = TIM_Channel_3,
+		.remap = GPIO_AF_2,
+		.pin = {
+			.gpio = GPIOA,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_4,
+				.GPIO_Speed = GPIO_Speed_2MHz,
+				.GPIO_Mode  = GPIO_Mode_AF,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd  = GPIO_PuPd_UP
+			},
+			.pin_source = GPIO_PinSource4,
+		},
+	},
+	{ // Ch4
+		.timer = TIM3,
+		.timer_chan = TIM_Channel_2,
+		.remap = GPIO_AF_2,
+		.pin = {
+			.gpio = GPIOB,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_0,
+				.GPIO_Speed = GPIO_Speed_2MHz,
+				.GPIO_Mode  = GPIO_Mode_AF,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd  = GPIO_PuPd_UP
+			},
+			.pin_source = GPIO_PinSource0,
 		},
 	},
 	{ // Ch5
