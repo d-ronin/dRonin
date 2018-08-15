@@ -523,10 +523,10 @@ static const struct pios_tim_clock_cfg tim_17_cfg = {
  */
 /*
  * 	OUTPUTS
-	1:  TIM3_CH2  (PA4)
-	2:  TIM3_CH3  (PB0)
-	3:  TIM1_CH1  (PA8)
-	4:  TIM17_CH1 (PA7)
+	1:  TIM1_CH1  (PA8)
+	2:  TIM17_CH1 (PA7)
+	3:  TIM3_CH3  (PB0)
+	4:  TIM3_CH2  (PA4)
 	5:  TIM3_CH4  (PB1)
 	6:  TIM2_CH2  (PA1)
  */
