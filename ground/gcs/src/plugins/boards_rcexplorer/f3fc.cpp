@@ -134,5 +134,5 @@ int F3Fc::queryMaxGyroRate()
 
 QStringList F3Fc::getAdcNames()
 {
-    return QStringList() << "Current" << "Battery" << "RSSI";
+    return QStringList() << "Current" << "Battery" << "RSSI" << "Fdbk2";
 }

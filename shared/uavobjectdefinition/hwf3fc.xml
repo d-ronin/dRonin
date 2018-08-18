@@ -106,5 +106,12 @@
 				<option>5</option>
 			</options>
 		</field>
+		<field defaultvalue="Uart2_RX" elements="1" name="FC_Pad_R2" type="enum" units="none">
+			<description>R2 Pad Function</description>
+			<options>
+				<option>Fdbk2</option>
+				<option>Uart2_RX</option>
+			</options>
+		</field>
 	</object>
 </xml>

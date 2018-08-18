@@ -189,6 +189,14 @@ void PIOS_Board_Init(void)
     /* Configure the IO ports */
 	HwF3FcDSMxModeOptions hw_DSMxMode;
 	HwF3FcDSMxModeGet(&hw_DSMxMode);
+	
+	HwF3FcFC_Pad_R2Options hw_fcPadR2;
+	HwF3FcFC_Pad_R2Get(&hw_fcPadR2);
+	
+	if (hw_fcPadR2 == HWF3FC_FC_PAD_R2_FDBK2) {
+		pios_uart2_dsm_bind_cfg.bind.gpio = NULL;
+		pios_uart2_cfg.rx.gpio            = NULL;
+	}
 
 	/* UART1 Port */
 	uint8_t hw_uart1;
@@ -269,8 +277,15 @@ void PIOS_Board_Init(void)
 
 #if defined(PIOS_INCLUDE_ADC)
 	uintptr_t unused_adc;
-	if(PIOS_INTERNAL_ADC_Init(&pios_internal_adc_id, &internal_adc_cfg) < 0)
-		PIOS_Assert(0);
+
+	if (hw_fcPadR2 != HWF3FC_FC_PAD_R2_FDBK2) {
+		if(PIOS_INTERNAL_ADC_Init(&pios_internal_adc_id, &internal_adc_3_cfg) < 0)
+			PIOS_Assert(0);
+	} else {
+		if(PIOS_INTERNAL_ADC_Init(&pios_internal_adc_id, &internal_adc_4_cfg) < 0)
+			PIOS_Assert(0);		
+	}
+
 	PIOS_ADC_Init(&unused_adc, &pios_internal_adc_driver, pios_internal_adc_id);
 #endif /* PIOS_INCLUDE_ADC */
 

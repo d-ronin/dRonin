@@ -266,7 +266,7 @@ static const struct pios_dsm_cfg pios_uart1_dsm_bind_cfg = {
 	},
 };
 
-static const struct pios_dsm_cfg pios_uart2_dsm_bind_cfg = {
+static struct pios_dsm_cfg pios_uart2_dsm_bind_cfg = {
 	.bind = {
 		.gpio = GPIOA,
 		.init = {
@@ -329,7 +329,7 @@ static const struct pios_usart_cfg pios_uart1_cfg = {
 	},
 };
 
-static const struct pios_usart_cfg pios_uart2_cfg = {
+static struct pios_usart_cfg pios_uart2_cfg = {
 	.regs = USART2,
 	.remap = GPIO_AF_7,
 	.irq = {
@@ -707,6 +707,8 @@ uintptr_t pios_internal_adc_id;
 
 void DMA2_Channel1_IRQHandler(void) __attribute__((alias("PIOS_ADC_DMA_irq_handler")));
 
+void DMA1_Channel1_IRQHandler(void) __attribute__((alias("PIOS_ADC_DMA_irq_handler")));
+
 void PIOS_ADC_DMA_irq_handler(void)
 {
 	/* Call into the generic code to handle the IRQ for this specific device */
@@ -717,8 +719,9 @@ void PIOS_ADC_DMA_irq_handler(void)
  * ADC0 : PB2 ADC2_IN12  Current
  * ADC1 : PA5 ADC2_IN2   Battery Voltage
  * ADC2 : PA6 ADC2_IN3   RSSI/Servo Feedback
+ * ADC3 : PA3 ADC1_IN4   Second Servo Feedback
  */
-static struct pios_internal_adc_cfg internal_adc_cfg = {
+static struct pios_internal_adc_cfg internal_adc_3_cfg = {
 	.dma = {
 		.irq = {
 			.flags   = (DMA2_FLAG_TC1 | DMA2_FLAG_TE1 | DMA2_FLAG_HT1 | DMA2_FLAG_GL1),
@@ -747,6 +750,40 @@ static struct pios_internal_adc_cfg internal_adc_cfg = {
 	.adc_pin_count = 3,
 	.adc_dev_master = ADC2,
 	.adc_dev_slave  = NULL,
+};
+
+static struct pios_internal_adc_cfg internal_adc_4_cfg = {
+	.dma = {
+		.irq = {
+			.flags   = (DMA1_FLAG_TC1 | DMA1_FLAG_TE1 | DMA1_FLAG_HT1 | DMA1_FLAG_GL1),
+			.init    = {
+				.NVIC_IRQChannel                   = DMA1_Channel1_IRQn,
+				.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGH,
+				.NVIC_IRQChannelSubPriority        = 0,
+				.NVIC_IRQChannelCmd                = ENABLE,
+			},
+		},
+		.rx = {
+			.channel = DMA1_Channel1,
+			.init    = {
+				.DMA_Priority = DMA_Priority_High,
+			},
+		}
+	},
+	.half_flag = DMA1_IT_HT1,
+	.full_flag = DMA1_IT_TC1,
+	.oversampling = 4,
+	.adc_pins = {
+			{GPIOB, GPIO_Pin_2, ADC_Channel_12,         false},
+			{GPIOA, GPIO_Pin_5, ADC_Channel_2,          false},
+			{GPIOA, GPIO_Pin_6, ADC_Channel_3,          false},
+			{GPIOA, GPIO_Pin_3, ADC_Channel_4,          true },
+			{NULL,  0,          ADC_Channel_Vrefint,    true },
+			{NULL,  0,          ADC_Channel_TempSensor, true },
+	},
+	.adc_pin_count = 6,
+	.adc_dev_master = ADC1,
+	.adc_dev_slave  = ADC2,
 };
 
 #endif /* PIOS_INCLUDE_ADC */
