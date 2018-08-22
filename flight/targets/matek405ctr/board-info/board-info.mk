@@ -9,7 +9,7 @@ MODEL               := HD
 MODEL_SUFFIX        :=
 
 USB_VEND            := "Matek"
-USB_PROD            := "MATEK405CTR"
+USB_PROD            := "Matek405Ctr"
 
 # Note: These must match the values in link_$(BOARD)_memory.ld
 BL_BANK_BASE        := 0x08000000  # Start of bootloader flash

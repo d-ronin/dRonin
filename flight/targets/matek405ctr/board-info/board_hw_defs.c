@@ -839,6 +839,32 @@ static const struct pios_tim_clock_cfg tim_8_cfg = {
 	},
 };
 
+static const struct pios_tim_clock_cfg tim_2_cfg = {
+	.timer = TIM2,
+	.time_base_init = &tim_2_3_4_time_base,
+	.irq = {
+		.init = {
+			.NVIC_IRQChannel                   = TIM2_IRQn,
+			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
+			.NVIC_IRQChannelSubPriority        = 0,
+			.NVIC_IRQChannelCmd                = ENABLE,
+		},
+	},
+};
+
+static const struct pios_tim_clock_cfg tim_1_cfg = {
+	.timer = TIM1,
+	.time_base_init = &tim_1_8_time_base,
+	.irq = {
+		.init = {
+			.NVIC_IRQChannel                   = TIM1_CC_IRQn,
+			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
+			.NVIC_IRQChannelSubPriority        = 0,
+			.NVIC_IRQChannelCmd                = ENABLE,
+		},
+	},
+};
+
 /**
  * Pios servo configuration structures
  */
@@ -849,6 +875,8 @@ static const struct pios_tim_clock_cfg tim_8_cfg = {
 	2:  TIM8_CH2 (PC7)        DMA2 Stream 1 Channel 7
 	3:  TIM8_CH3 (PC8)
 	4:  TIM8_CH4 (PC9)
+	5:  TIM2_CH1 (PA15)       DMA1 Stream 1 Channel 3
+	6:  TIM1_CH1 (PA8)        DAM2 Stream 5 Channel 6
  */
 
  static const struct pios_tim_channel pios_tim_outputs_pins[] = {
@@ -916,6 +944,38 @@ static const struct pios_tim_clock_cfg tim_8_cfg = {
 			.pin_source = GPIO_PinSource9,
 		},
 	},
+	{
+		.timer = TIM2,
+		.timer_chan = TIM_Channel_1,
+		.remap = GPIO_AF_TIM2,
+		.pin = {
+			.gpio = GPIOA,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_15,
+				.GPIO_Speed = GPIO_Speed_2MHz,
+				.GPIO_Mode  = GPIO_Mode_AF,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd  = GPIO_PuPd_NOPULL
+			},
+			.pin_source = GPIO_PinSource15,
+		},
+	},
+	{
+		.timer = TIM1,
+		.timer_chan = TIM_Channel_1,
+		.remap = GPIO_AF_TIM1,
+		.pin = {
+			.gpio = GPIOA,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_8,
+				.GPIO_Speed = GPIO_Speed_2MHz,
+				.GPIO_Mode  = GPIO_Mode_AF,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd  = GPIO_PuPd_NOPULL
+			},
+			.pin_source = GPIO_PinSource8,
+		},
+	},
 };
 
 #if defined(PIOS_INCLUDE_DMASHOT)
@@ -928,8 +988,10 @@ static const struct pios_tim_clock_cfg tim_8_cfg = {
 	2:  TIM8_CH2 (PC7)        DMA2 Stream 1 Channel 7
 	3:  TIM8_CH3 (PC8)
 	4:  TIM8_CH4 (PC9)
+	5:  TIM2_CH1 (PA15)       DMA1 Stream 1 Channel 3
+	6:  TIM1_CH1 (PA8)        DAM2 Stream 5 Channel 6
  */
- 
+  
  static const struct pios_dmashot_timer_cfg dmashot_tim_cfg[] = {
 	{
 		.timer   = TIM3,
@@ -943,9 +1005,21 @@ static const struct pios_tim_clock_cfg tim_8_cfg = {
 		.channel = DMA_Channel_7,
 		.tcif    = DMA_FLAG_TCIF1
 	},
+	{
+		.timer   = TIM2,
+		.stream  = DMA1_Stream1,
+		.channel = DMA_Channel_3,
+		.tcif    = DMA_FLAG_TCIF1
+	},
+	{
+		.timer   = TIM1,
+		.stream  = DMA2_Stream5,
+		.channel = DMA_Channel_6,
+		.tcif    = DMA_FLAG_TCIF5
+	},
 };
 
-static const struct pios_dmashot_cfg dmashot_config = {
+static struct pios_dmashot_cfg dmashot_config = {
 	.timer_cfg =  &dmashot_tim_cfg[0],
 	.num_timers = NELEMENTS(dmashot_tim_cfg)
 };
@@ -958,7 +1032,7 @@ static const struct pios_dmashot_cfg dmashot_config = {
  */
 #include <pios_servo_priv.h>
 
-const struct pios_servo_cfg pios_servo_cfg = {
+static struct pios_servo_cfg pios_servo_cfg = {
 	.tim_oc_init = {
 		.TIM_OCMode       = TIM_OCMode_PWM1,
 		.TIM_OutputState  = TIM_OutputState_Enable,
@@ -1143,7 +1217,7 @@ void PIOS_ADC_DMA_irq_handler(void)
 #endif /* PIOS_INCLUDE_ADC */
 
 /**
- * Configuration for driving a WS2811 LED out RX8
+ * Configuration for driving a WS2811 LED out S6 (PA8)
  */
 
 #if defined(PIOS_INCLUDE_WS2811)
@@ -1173,7 +1247,7 @@ static const struct pios_ws2811_cfg pios_ws2811_cfg = {
 	.fall_time_l = 5,                       /* 333ns */
 	.fall_time_h = 11,                      /* 833ns */
 	.led_gpio = GPIOA,
-	.gpio_pin = GPIO_Pin_15,                /* PA15 */
+	.gpio_pin = GPIO_Pin_8,                 /* PA8 */
 	.bit_set_dma_stream = DMA2_Stream4,
 	.bit_set_dma_channel = DMA_Channel_6,   /* 2/S4/C6: TIM1 CH4|TRIG|COM */
 	.bit_clear_dma_stream = DMA2_Stream6,

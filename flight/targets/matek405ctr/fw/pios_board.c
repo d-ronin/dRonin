@@ -114,9 +114,11 @@ void PIOS_Board_Init(void) {
     // Timers used for inputs (5)
     PIOS_TIM_InitClock(&tim_5_cfg);
 
-    // Timers used for outputs (3, 8)
+    // Timers used for outputs (3, 8, 2, 1)
     PIOS_TIM_InitClock(&tim_3_cfg);
     PIOS_TIM_InitClock(&tim_8_cfg);
+	PIOS_TIM_InitClock(&tim_2_cfg);
+	PIOS_TIM_InitClock(&tim_1_cfg);
     
 #ifdef PIOS_INCLUDE_SPI
     uint8_t hw_osdport;
@@ -330,6 +332,14 @@ void PIOS_Board_Init(void) {
             hw_DSMxMode,                         // dsm_mode
             NULL);                               // sbus_cfg
 
+	HwMatek405CtrFC_Pad_S6Options hw_fcPadS6;
+	HwMatek405CtrFC_Pad_S6Get(&hw_fcPadS6);
+	
+	if (hw_fcPadS6 != HWMATEK405CTR_FC_PAD_S6_PWM_6) {
+		dmashot_config.num_timers = 3;
+		pios_servo_cfg.num_channels = 5;
+	}
+					
 #if defined(PIOS_INCLUDE_SERVO) & defined(PIOS_INCLUDE_DMASHOT)
     PIOS_DMAShot_Init(&dmashot_config);
 #endif
@@ -343,18 +353,20 @@ void PIOS_Board_Init(void) {
 #endif
 
 #ifdef PIOS_INCLUDE_WS2811
-    RGBLEDSettingsInitialize();
+	if (hw_fcPadS6 == HWMATEK405CTR_FC_PAD_S6_LEDSTRING) {
+		RGBLEDSettingsInitialize();
 
-    uint8_t temp;
+		uint8_t temp;
 
-    RGBLEDSettingsNumLedsGet(&temp);
+		RGBLEDSettingsNumLedsGet(&temp);
 
-    if (temp > 0) {
-        PIOS_WS2811_init(&pios_ws2811, &pios_ws2811_cfg, temp);
+		if (temp > 0) {
+			PIOS_WS2811_init(&pios_ws2811, &pios_ws2811_cfg, temp);
 
-        // Drive default value (off) to strand once at startup
-        PIOS_WS2811_trigger_update(pios_ws2811);
-    }
+			// Drive default value (off) to strand once at startup
+			PIOS_WS2811_trigger_update(pios_ws2811);
+		}
+	}
 #endif
 
 #ifdef PIOS_INCLUDE_DAC
