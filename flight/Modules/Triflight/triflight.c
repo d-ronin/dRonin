@@ -545,7 +545,7 @@ void virtualTailMotorStep(ActuatorSettingsData  *actuatorSettings,
 
 typedef enum {
 	TT_IDLE = 0,
-	TT_WAIT,
+//	TT_WAIT,
 	TT_ACTIVE,
 	TT_WAIT_FOR_DISARM,
 	TT_DONE,
@@ -583,16 +583,16 @@ typedef struct tailTune_s {
 	{
 		tailTuneState_e state;
 
-		uint32_t startBeepDelay_us;
 		uint32_t timestamp_us;
 
 		uint32_t lastAdjTime_us;
+		
 		struct servoAvgAngle_t
 		{
-			float sum;
-			float num_of;
+			float    sum;
+			uint16_t num_of;
 		} servoAvgAngle;
-		}tt;
+	} tt;
 
 	struct servoSetup_t
 {
@@ -613,12 +613,12 @@ typedef struct tailTune_s {
 
 			struct average_t
 			{
-				float result;
-				float sum;
-				float num_of;
+				float    result;
+				float    sum;
+				uint16_t num_of;
 			} avg;
 		}cal;
-	}ss;
+	} ss;
 } tailTune_t;
 
 static tailTune_t tailTune = {.mode = TT_MODE_NONE};
@@ -653,44 +653,16 @@ static void tailTuneModeThrustTorque(TriflightSettingsData *triflightSettings,
 			// Calibration has been requested, only start when throttle is up
 			if (is_throttle_high && armed)
 			{
-				triflight_blink_string    = "M";                 // -- throttle high
-				pTT->startBeepDelay_us    = 1000000;             // 1 second
 				pTT->timestamp_us         = PIOS_DELAY_GetuS();
 				pTT->lastAdjTime_us       = PIOS_DELAY_GetuS();
-				pTT->state                = TT_WAIT;
-				pTT->servoAvgAngle.sum    = 0;
+				pTT->state                = TT_ACTIVE; //TT_WAIT;
+				pTT->servoAvgAngle.sum    = 0.0f;
 				pTT->servoAvgAngle.num_of = 0;
 			}
 
 			break;
 
-		case TT_WAIT:
-			if (is_throttle_high && armed)
-			{
-				// Wait for 5 seconds before activating the tuning.
-				// This is so that pilot has time to take off if the tail tune mode was activated on ground.
-				if (PIOS_DELAY_GetuSSince(pTT->timestamp_us) >= 5000000)  // 5 seconds
-				{
-					// Longer beep when starting
-					triflight_blink_string = "T";  // - start
-					pTT->state             = TT_ACTIVE;
-					pTT->timestamp_us      = PIOS_DELAY_GetuS();
-				}
-				else if (PIOS_DELAY_GetuSSince(pTT->timestamp_us) >= pTT->startBeepDelay_us)
-				{
-					// Beep every second until start
-					triflight_blink_string  = "I";      // .. beep every second until start
-					pTT->startBeepDelay_us += 1000000;  // 1 second
-				}
-			}
-			else
-			{
-				pTT->state = TT_IDLE;
-			}
-
-			break;
-
-		case TT_ACTIVE:
+			case TT_ACTIVE:
 			if (is_throttle_high &&
 			   (fabsf(cmd.Roll)          <= 0.05f) &&
 			   (fabsf(cmd.Pitch)         <= 0.05f) &&
@@ -700,22 +672,22 @@ static void tailTuneModeThrustTorque(TriflightSettingsData *triflightSettings,
 				if (PIOS_DELAY_GetuSSince(pTT->timestamp_us) >= 250000)  // 0.25 seconds
 				{
 					// RC commands have been within deadbands for 250 ms
-					if (PIOS_DELAY_GetuSSince(pTT->lastAdjTime_us) >= 20000)  // 0.04 seconds
+					if (PIOS_DELAY_GetuSSince(pTT->lastAdjTime_us) >= 20000)  // 0.02 seconds
 					{
 						pTT->lastAdjTime_us = PIOS_DELAY_GetuS();
 
 						pTT->servoAvgAngle.sum += triflightStatus->ServoAngle;
 						pTT->servoAvgAngle.num_of++;
 
-						if (((uint16_t)pTT->servoAvgAngle.num_of & 0x64) == 0x64) // once every 100 samples
+						if (pTT->servoAvgAngle.num_of % 100 == 0) // single short beep once every 100 samples
 						{
-							triflight_blink_string = "E";  // . 100 samples saved, should repeat 5 times
+							triflight_blink_string = "T";  // "-" 100 samples saved, should repeat 5 times
 						}
 
-						if (pTT->servoAvgAngle.num_of >= 500)  // 500 samples * 0.04 seconds = 20 seconds
+						if (pTT->servoAvgAngle.num_of >= 500)  // 500 samples * 0.02 seconds = 10 seconds
 							{
-								pTT->state             = TT_WAIT_FOR_DISARM;
-								pTT->timestamp_us      = PIOS_DELAY_GetuS();
+								pTT->state        = TT_WAIT_FOR_DISARM;
+								pTT->timestamp_us = PIOS_DELAY_GetuS();
 							}
 					}
 				}
@@ -729,7 +701,7 @@ static void tailTuneModeThrustTorque(TriflightSettingsData *triflightSettings,
 
 		case TT_WAIT_FOR_DISARM:
 			if (!armed)	{
-				float average_servo_angle = pTT->servoAvgAngle.sum / pTT->servoAvgAngle.num_of;
+				float average_servo_angle = pTT->servoAvgAngle.sum / (float)pTT->servoAvgAngle.num_of;
 
 				if((average_servo_angle > 90.5f) && (average_servo_angle < 120.0f)) {
 					average_servo_angle -= 90.0f;
@@ -748,29 +720,28 @@ static void tailTuneModeThrustTorque(TriflightSettingsData *triflightSettings,
 				pTT->timestamp_us = PIOS_DELAY_GetuS();
 			}
 			else {
-				if (PIOS_DELAY_GetuSSince(pTT->timestamp_us) >= 2000000)  // 2 seconds
+				if (PIOS_DELAY_GetuSSince(pTT->timestamp_us) >= 1000000)  // 1 second
 				{
-					triflight_blink_string = "O";                         // --- wait for disarmed
-					pTT->timestamp_us      = PIOS_DELAY_GetuS();
+					pTT->timestamp_us = PIOS_DELAY_GetuS();
 				}
 			}
 
 			break;
 
 		case TT_DONE:
-			if (PIOS_DELAY_GetuSSince(pTT->timestamp_us) >= 2000000)  // 2 seconds
+			if (PIOS_DELAY_GetuSSince(pTT->timestamp_us) >= 1000000)  // 1 second
 			{
-				triflight_blink_string = "5";                         // ..... done success
-				pTT->timestamp_us      = PIOS_DELAY_GetuS();
+				triflight_blink_string = "W";                         // ".--" done success
+				pTT->timestamp_us = PIOS_DELAY_GetuS();
 			}
 
 			break;
 
 		case TT_FAIL:
-			if (PIOS_DELAY_GetuSSince(pTT->timestamp_us) >= 2000000)  // 2 seconds
+			if (PIOS_DELAY_GetuSSince(pTT->timestamp_us) >= 1000000)  // 1 second
 			{
-				triflight_blink_string = "0";                         // ----- done fail
-				pTT->timestamp_us      = PIOS_DELAY_GetuS();
+				triflight_blink_string = "G";                         // "--." done fail
+				pTT->timestamp_us = PIOS_DELAY_GetuS();
 			}
 
 			break;
@@ -798,7 +769,6 @@ static void tailTuneModeServoSetup(ActuatorSettingsData  *actuatorSettings,
 	if ((cmd.Roll < 0.05f) && (cmd.Roll > -0.05f) && (cmd.Pitch > 0.5f) && (pSS->state == SS_IDLE)) {
 		pSS->state = SS_CALIB;
 		pSS->cal.state = SS_C_IDLE;
-		triflight_blink_string = "T";  // - start
 	}
 
 	switch (pSS->state)
@@ -847,7 +817,7 @@ static void tailTuneModeServoSetup(ActuatorSettingsData  *actuatorSettings,
 									pSS->state        = SS_IDLE;
 									pSS->cal.subState = SS_C_S_IDLE;
 
-									triflight_blink_string = "0";  // ----- done fail
+									triflight_blink_string = "G";  // "--." done fail
 								}
 								else
 								{
@@ -875,7 +845,7 @@ static void tailTuneModeServoSetup(ActuatorSettingsData  *actuatorSettings,
 
 				pSS->cal.timestamp_us = PIOS_DELAY_GetuS();
 				pSS->cal.avg.sum      = 0.0f;
-				pSS->cal.avg.num_of   = 0.0f;
+				pSS->cal.avg.num_of   = 0;
 				pSS->cal.done         = false;
 			}
 
@@ -896,7 +866,7 @@ static void tailTuneModeServoSetup(ActuatorSettingsData  *actuatorSettings,
 
 						if (sample_delta >= 1e6)  // 1 second
 						{
-							pSS->cal.avg.result = pSS->cal.avg.sum / pSS->cal.avg.num_of;
+							pSS->cal.avg.result = pSS->cal.avg.sum / (float)pSS->cal.avg.num_of;
 							pSS->cal.done = true;
 						}
 					}
@@ -933,7 +903,7 @@ static void tailTuneModeServoSetup(ActuatorSettingsData  *actuatorSettings,
 										TriflightSettingsSet(triflightSettings);
 										UAVObjSave(TriflightSettingsHandle(), 0);
 
-										triflight_blink_string = "5";  // ..... done success
+										triflight_blink_string = "W";  // ".--" done success
 									}
 
 									pSS->cal.timestamp_us = PIOS_DELAY_GetuS();
