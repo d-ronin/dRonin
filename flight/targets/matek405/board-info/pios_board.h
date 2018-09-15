@@ -2,13 +2,13 @@
  ******************************************************************************
  * @addtogroup Targets Target Boards
  * @{
- * @addtogroup MATEK405CTR Matek MATEK405CTR
+ * @addtogroup MATEK405 Matek MATEK405
  * @{
  *
- * @file       matek405ctr/board-info/pios_board.h
+ * @file       matek405/board-info/pios_board.h
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
  * @author     dRonin, http://dronin.org Copyright (C) 2015
- * @brief      Board specific defines for MATEK405CTR
+ * @brief      Board specific defines for MATEK405
  * @see        The GNU Public License (GPL) Version 3
  *
  *****************************************************************************/

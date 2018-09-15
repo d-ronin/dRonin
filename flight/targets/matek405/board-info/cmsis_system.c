@@ -2,10 +2,10 @@
   ******************************************************************************
   * @addtogroup Targets Target Boards
   * @{
-  * @addtogroup MATEK405CTR Matek MATEK405CTR
+  * @addtogroup MATEK405 Matek MATEK405
   * @{
   *
-  * @file    matek405ctr/board-info/cmsis_system.c
+  * @file    matek405/board-info/cmsis_system.c
   * @author  MCD Application Team
   * @version V1.0.1
   * @date    25-December-2014

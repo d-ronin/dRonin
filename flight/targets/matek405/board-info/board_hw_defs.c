@@ -2,14 +2,13 @@
  ******************************************************************************
  * @addtogroup Targets Target Boards
  * @{
- * @addtogroup MATEK405CTR Matek MATEK405CTR
- * @{
+ * @addtogroup MATEK405CTR Matek MATEK405 * @{
  *
- * @file       matek405ctr/board-info/board_hw_defs.c
+ * @file       matek405/board-info/board_hw_defs.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
  * @author     dRonin, http://dronin.org Copyright (C) 2015
  * @brief      Defines board specific static initializers for hardware for the
- *             MATEK405CTR board.
+ *             MATEK405 board.
  * @see        The GNU Public License (GPL) Version 3
  *
  *****************************************************************************/
@@ -876,7 +875,7 @@ static const struct pios_tim_clock_cfg tim_1_cfg = {
 	3:  TIM8_CH3 (PC8)
 	4:  TIM8_CH4 (PC9)
 	5:  TIM2_CH1 (PA15)       DMA1 Stream 1 Channel 3
-	6:  TIM1_CH1 (PA8)        DAM2 Stream 5 Channel 6
+	6:  TIM1_CH1 (PA8)        DMA2 Stream 5 Channel 6
  */
 
  static const struct pios_tim_channel pios_tim_outputs_pins[] = {
@@ -989,7 +988,7 @@ static const struct pios_tim_clock_cfg tim_1_cfg = {
 	3:  TIM8_CH3 (PC8)
 	4:  TIM8_CH4 (PC9)
 	5:  TIM2_CH1 (PA15)       DMA1 Stream 1 Channel 3
-	6:  TIM1_CH1 (PA8)        DAM2 Stream 5 Channel 6
+	6:  TIM1_CH1 (PA8)        DMA2 Stream 5 Channel 6
  */
   
  static const struct pios_dmashot_timer_cfg dmashot_tim_cfg[] = {
@@ -1331,7 +1330,7 @@ static const struct pios_exti_cfg pios_exti_mpu_cfg __exti_config = {
 static struct pios_mpu_cfg pios_mpu_cfg = {
 	.exti_cfg            = &pios_exti_mpu_cfg,
 	.default_samplerate  = 1000,
-	.orientation         = PIOS_MPU_TOP_180DEG
+	.orientation         = PIOS_MPU_TOP_90DEG
 };
 #endif /* PIOS_INCLUDE_MPU */
 

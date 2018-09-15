@@ -26,7 +26,7 @@
 */
 
 #include "matekplugin.h"
-#include "matek405ctr.h"
+#include "matek405.h"
 #include <QtPlugin>
 
 MatekPlugin::MatekPlugin()
@@ -52,8 +52,8 @@ void MatekPlugin::extensionsInitialized()
      * Create the board objects here.
      *
      */
-    MATEK405CTR *matek405ctr = new MATEK405CTR();
-    addAutoReleasedObject(matek405ctr);
+    MATEK405 *matek405 = new MATEK405();
+    addAutoReleasedObject(matek405);
 }
 
 void MatekPlugin::shutdown()

@@ -1,6 +1,6 @@
 /**
  ******************************************************************************
- * @file       matek405ctr.cpp
+ * @file       matek405.cpp
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
  * @author     dRonin, http://dronin.org Copyright (C) 2015
  *
@@ -26,20 +26,20 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
-#include "matek405ctr.h"
+#include "matek405.h"
 
 #include "uavobjects/uavobjectmanager.h"
 #include "uavobjectutil/uavobjectutilmanager.h"
 #include <extensionsystem/pluginmanager.h>
 #include "board_usb_ids.h"
 
-#include "hwmatek405ctr.h"
+#include "hwmatek405.h"
 
 /**
- * @brief MATEK405CTR::MATEK405CTR
- *  This is the MATEK405CTR board definition
+ * @brief MATEK405::MATEK405
+ *  This is the MATEK405 board definition
  */
-MATEK405CTR::MATEK405CTR(void)
+MATEK405::MATEK405(void)
 {
     // Common USB IDs
     addBootloaderUSBInfo(
@@ -57,22 +57,22 @@ MATEK405CTR::MATEK405CTR(void)
 	channelBanks[3] = QVector<int>() << 6;
 }
 
-MATEK405CTR::~MATEK405CTR()
+MATEK405::~MATEK405()
 {
 }
 
-QString MATEK405CTR::shortName()
+QString MATEK405::shortName()
 {
-    return QString("MATEK405CTR");
+    return QString("MATEK405");
 }
 
-QString MATEK405CTR::boardDescription()
+QString MATEK405::boardDescription()
 {
-    return QString("The MATEK405CTR board");
+    return QString("The MATEK405 board");
 }
 
 //! Return which capabilities this board has
-bool MATEK405CTR::queryCapabilities(BoardCapabilities capability)
+bool MATEK405::queryCapabilities(BoardCapabilities capability)
 {
     switch (capability) {
     case BOARD_CAPABILITIES_GYROS:
@@ -88,13 +88,13 @@ bool MATEK405CTR::queryCapabilities(BoardCapabilities capability)
     return false;
 }
 
-QPixmap MATEK405CTR::getBoardPicture()
+QPixmap MATEK405::getBoardPicture()
 {
-    return QPixmap(":/matek/images/matek405ctr.png");
+    return QPixmap(":/matek/images/matek405.png");
 }
 
 //! Determine if this board supports configuring the receiver
-bool MATEK405CTR::isInputConfigurationSupported(Core::IBoardType::InputType type)
+bool MATEK405::isInputConfigurationSupported(Core::IBoardType::InputType type)
 {
     switch (type) {
     case INPUT_TYPE_PWM:
@@ -107,9 +107,9 @@ bool MATEK405CTR::isInputConfigurationSupported(Core::IBoardType::InputType type
     return true;
 }
 
-QString MATEK405CTR::getHwUAVO()
+QString MATEK405::getHwUAVO()
 {
-    return "HwMatek405Ctr";
+    return "HwMatek405";
 }
 
 /**
@@ -117,91 +117,91 @@ QString MATEK405CTR::getHwUAVO()
  * @param type the type of receiver to use
  * @return true if successfully configured or false otherwise
  */
-bool MATEK405CTR::setInputType(Core::IBoardType::InputType type)
+bool MATEK405::setInputType(Core::IBoardType::InputType type)
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
-    HwMatek405Ctr *hwMatek405Ctr = HwMatek405Ctr::GetInstance(uavoManager);
-    Q_ASSERT(hwMatek405Ctr);
-    if (!hwMatek405Ctr)
+    HwMatek405 *hwMatek405 = HwMatek405::GetInstance(uavoManager);
+    Q_ASSERT(hwMatek405);
+    if (!hwMatek405)
         return false;
 
-    HwMatek405Ctr::DataFields settings = hwMatek405Ctr->getData();
+    HwMatek405::DataFields settings = hwMatek405->getData();
 
     switch (type) {
     case INPUT_TYPE_PPM:
-        settings.PPM_Receiver = HwMatek405Ctr::PPM_RECEIVER_ENABLED;
+        settings.PPM_Receiver = HwMatek405::PPM_RECEIVER_ENABLED;
         break;
     case INPUT_TYPE_HOTTSUMD:
-        settings.Uart2 = HwMatek405Ctr::UART2_HOTTSUMD;
+        settings.Uart2 = HwMatek405::UART2_HOTTSUMD;
         break;
     case INPUT_TYPE_HOTTSUMH:
-        settings.Uart2 = HwMatek405Ctr::UART2_HOTTSUMH;
+        settings.Uart2 = HwMatek405::UART2_HOTTSUMH;
         break;
     case INPUT_TYPE_SBUS:
-        settings.Uart2 = HwMatek405Ctr::UART2_SBUS;
+        settings.Uart2 = HwMatek405::UART2_SBUS;
         break;
     case INPUT_TYPE_SBUSNONINVERTED:
-        settings.Uart2 = HwMatek405Ctr::UART2_SBUSNONINVERTED;
+        settings.Uart2 = HwMatek405::UART2_SBUSNONINVERTED;
         break;
     case INPUT_TYPE_IBUS:
-        settings.Uart2 = HwMatek405Ctr::UART2_IBUS;
+        settings.Uart2 = HwMatek405::UART2_IBUS;
         break;
     case INPUT_TYPE_DSM:
-        settings.Uart2 = HwMatek405Ctr::UART2_DSM;
+        settings.Uart2 = HwMatek405::UART2_DSM;
         break;
     case INPUT_TYPE_SRXL:
-        settings.Uart2 = HwMatek405Ctr::UART2_SRXL;
+        settings.Uart2 = HwMatek405::UART2_SRXL;
         break;
     case INPUT_TYPE_TBSCROSSFIRE:
-        settings.Uart2 = HwMatek405Ctr::UART2_TBSCROSSFIRE;
+        settings.Uart2 = HwMatek405::UART2_TBSCROSSFIRE;
         break;
     default:
         return false;
     }
 
     // Apply these changes
-    hwMatek405Ctr->setData(settings);
+    hwMatek405->setData(settings);
 
     return true;
 }
 
 /**
- * @brief MATEK405CTR::getInputType fetch the currently selected input type
+ * @brief MATEK405::getInputType fetch the currently selected input type
  * @return the selected input type
  */
-Core::IBoardType::InputType MATEK405CTR::getInputType()
+Core::IBoardType::InputType MATEK405::getInputType()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
-    HwMatek405Ctr *hwMatek405Ctr = HwMatek405Ctr::GetInstance(uavoManager);
-    Q_ASSERT(hwMatek405Ctr);
-    if (!hwMatek405Ctr)
+    HwMatek405 *hwMatek405 = HwMatek405::GetInstance(uavoManager);
+    Q_ASSERT(hwMatek405);
+    if (!hwMatek405)
         return INPUT_TYPE_UNKNOWN;
 
-    HwMatek405Ctr::DataFields settings = hwMatek405Ctr->getData();
+    HwMatek405::DataFields settings = hwMatek405->getData();
 
     switch (settings.PPM_Receiver) {
-    case HwMatek405Ctr::PPM_RECEIVER_ENABLED:
+    case HwMatek405::PPM_RECEIVER_ENABLED:
         return INPUT_TYPE_PPM;
     default:
         break;
     }
 
     switch (settings.Uart2) {
-    case HwMatek405Ctr::UART2_HOTTSUMD:
+    case HwMatek405::UART2_HOTTSUMD:
         return INPUT_TYPE_HOTTSUMD;
-    case HwMatek405Ctr::UART2_HOTTSUMH:
+    case HwMatek405::UART2_HOTTSUMH:
         return INPUT_TYPE_HOTTSUMH;
-    case HwMatek405Ctr::UART2_SBUS:
+    case HwMatek405::UART2_SBUS:
         return INPUT_TYPE_SBUS;
-    case HwMatek405Ctr::UART2_SBUSNONINVERTED:
+    case HwMatek405::UART2_SBUSNONINVERTED:
         return INPUT_TYPE_SBUSNONINVERTED;
-    case HwMatek405Ctr::UART2_IBUS:
+    case HwMatek405::UART2_IBUS:
         return INPUT_TYPE_IBUS;
-    case HwMatek405Ctr::UART2_SRXL:
+    case HwMatek405::UART2_SRXL:
         return INPUT_TYPE_SRXL;
-    case HwMatek405Ctr::UART2_TBSCROSSFIRE:
+    case HwMatek405::UART2_TBSCROSSFIRE:
         return INPUT_TYPE_TBSCROSSFIRE;
     default:
         break;
@@ -210,25 +210,25 @@ Core::IBoardType::InputType MATEK405CTR::getInputType()
     return INPUT_TYPE_UNKNOWN;
 }
 
-int MATEK405CTR::queryMaxGyroRate()
+int MATEK405::queryMaxGyroRate()
 {
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
-    HwMatek405Ctr *hwMatek405Ctr = HwMatek405Ctr::GetInstance(uavoManager);
-    Q_ASSERT(hwMatek405Ctr);
-    if (!hwMatek405Ctr)
+    HwMatek405 *hwMatek405 = HwMatek405::GetInstance(uavoManager);
+    Q_ASSERT(hwMatek405);
+    if (!hwMatek405)
         return 0;
 
-    HwMatek405Ctr::DataFields settings = hwMatek405Ctr->getData();
+    HwMatek405::DataFields settings = hwMatek405->getData();
 
     switch (settings.GyroRange) {
-    case HwMatek405Ctr::GYRORANGE_250:
+    case HwMatek405::GYRORANGE_250:
         return 250;
-    case HwMatek405Ctr::GYRORANGE_500:
+    case HwMatek405::GYRORANGE_500:
         return 500;
-    case HwMatek405Ctr::GYRORANGE_1000:
+    case HwMatek405::GYRORANGE_1000:
         return 1000;
-    case HwMatek405Ctr::GYRORANGE_2000:
+    case HwMatek405::GYRORANGE_2000:
         return 2000;
     default:
         break;
@@ -237,12 +237,12 @@ int MATEK405CTR::queryMaxGyroRate()
     return 500;
 }
 
-QStringList MATEK405CTR::getAdcNames()
+QStringList MATEK405::getAdcNames()
 {
     return QStringList() << "Current" << "Voltage" << "RSSI";
 }
 
-bool MATEK405CTR::hasAnnunciator(AnnunciatorType annunc)
+bool MATEK405::hasAnnunciator(AnnunciatorType annunc)
 {
     switch (annunc) {
     case ANNUNCIATOR_HEARTBEAT:

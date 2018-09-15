@@ -1,6 +1,6 @@
 /**
  ******************************************************************************
- * @file       matek405ctr.h
+ * @file       matek405.h
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
  * @author     dRonin, http://dronin.org Copyright (C) 2015
  *
@@ -26,16 +26,16 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef MATEK405CTR_H
-#define MATEK405CTR_H
+#ifndef MATEK405_H
+#define MATEK405_H
 
 #include <coreplugin/iboardtype.h>
 
-class MATEK405CTR : public Core::IBoardType
+class MATEK405 : public Core::IBoardType
 {
 public:
-    MATEK405CTR();
-    virtual ~MATEK405CTR();
+    MATEK405();
+    virtual ~MATEK405();
 
     virtual QString shortName();
     virtual QString boardDescription();
@@ -65,4 +65,4 @@ public:
     virtual bool hasAnnunciator(AnnunciatorType annunc);
 };
 
-#endif // MATEK405CTR_H
+#endif // MATEK405_H

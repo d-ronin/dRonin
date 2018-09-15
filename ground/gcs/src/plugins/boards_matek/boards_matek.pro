@@ -9,11 +9,11 @@ OTHER_FILES += Matek.pluginspec
 
 HEADERS += \
     matekplugin.h \
-    matek405ctr.h
+    matek405.h
 
 SOURCES += \
     matekplugin.cpp \
-    matek405ctr.cpp
+    matek405.cpp
 
 RESOURCES += \
     matek.qrc

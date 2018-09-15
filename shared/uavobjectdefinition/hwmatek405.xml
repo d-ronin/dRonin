@@ -1,5 +1,5 @@
 <xml>
-  <object name="HwMatek405Ctr" settings="true" singleinstance="true">
+  <object name="HwMatek405" settings="true" singleinstance="true">
     <description>Selection of optional hardware configurations.</description>
     <access gcs="readwrite" flight="readwrite"/>
     <logging updatemode="manual" period="0"/>
@@ -188,13 +188,35 @@
         <option>16G</option>
       </options>
     </field>
-    <field defaultvalue="188" elements="1" name="MPU6000DLPF" type="enum" units="">
+    <field defaultvalue="188" elements="1" name="MPU6000_LPF_CTR" type="enum" units="">
       <description/>
       <options>
         <option>188</option>
         <option>98</option>
         <option>42</option>
         <option>20</option>
+        <option>10</option>
+        <option>5</option>
+      </options>
+    </field>
+    <field defaultvalue="176" elements="1" name="ICM20602_GyroLPF_STD" type="enum" units="Hz">
+      <description>Gyro filter cutoff frequency</description>
+      <options>
+        <option>176</option>
+        <option>92</option>
+        <option>41</option>
+        <option>20</option>
+        <option>10</option>
+        <option>5</option>
+      </options>
+    </field>
+    <field defaultvalue="99" elements="1" name="ICM20602_AccelLPF_STD" type="enum" units="Hz">
+      <description>Accelerometer filter cutoff frequency</description>
+      <options>
+        <option>218</option>
+        <option>99</option>
+        <option>45</option>
+        <option>21</option>
         <option>10</option>
         <option>5</option>
       </options>

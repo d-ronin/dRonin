@@ -2,10 +2,10 @@
   ******************************************************************************
   * @addtogroup Targets Target Boards
   * @{
-  * @addtogroup MATEK405CTR Matek MATEK405CTR
+  * @addtogroup MATEK405 Matek MATEK405
   * @{
   *
-  * @file    matek405ctr/board-info/usb_conf.h
+  * @file    matek405/board-info/usb_conf.h
   * @author  MCD Application Team
   * @version V2.1.0
   * @date    19-March-2012

@@ -4,12 +4,12 @@ BOOTLOADER_VERSION  := 0x88
 HW_TYPE             := 0x00
 
 CHIP                := STM32F405RGT6
-BOARD               := STM32F405_CTR
+BOARD               := STM32F405
 MODEL               := HD
 MODEL_SUFFIX        :=
 
 USB_VEND            := "Matek"
-USB_PROD            := "Matek405Ctr"
+USB_PROD            := "Matek405"
 
 # Note: These must match the values in link_$(BOARD)_memory.ld
 BL_BANK_BASE        := 0x08000000  # Start of bootloader flash

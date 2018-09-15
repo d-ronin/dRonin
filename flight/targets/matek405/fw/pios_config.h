@@ -2,10 +2,10 @@
  ******************************************************************************
  * @addtogroup Targets Target Boards
  * @{
- * @addtogroup MATEK405CTR Matek MATEK405CTR
+ * @addtogroup MATEK405 Matek MATEK405
  * @{
  *
- * @file       matek405ctr/fw/pios_config.h
+ * @file       matek405/fw/pios_config.h
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
  * @brief      Board specific options that modify PiOS capabilities
  * @see        The GNU Public License (GPL) Version 3
