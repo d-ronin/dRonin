@@ -41,24 +41,18 @@ MODULES += FirmwareIAP
 MODULES += Telemetry
 
 OPTMODULES += GPS
-OPTMODULES += CameraStab
 OPTMODULES += Autotune
 OPTMODULES += TxPID
-OPTMODULES += PathPlanner
-OPTMODULES += VtolPathFollower
-OPTMODULES += FixedWingPathFollower
 OPTMODULES += UAVOMavlinkBridge
 OPTMODULES += UAVOMSPBridge
 OPTMODULES += UAVOLighttelemetryBridge
 OPTMODULES += Battery
 OPTMODULES += ComUsbBridge
-#OPTMODULES += Airspeed
 OPTMODULES += UAVOHoTTBridge
 OPTMODULES += UAVOFrSKYSensorHubBridge
 OPTMODULES += UAVOFrSKYSPortBridge
-OPTMODULES += Geofence
 OPTMODULES += Logging
-#OPTMODULES += Storm32Bgc
+OPTMODULES += Storm32Bgc
 OPTMODULES += UAVOCrossfireTelemetry
 
 # Paths
@@ -110,11 +104,6 @@ include $(PIOS)/pios_flight_library.mk
 
 SRC += pios_mpu.c
 SRC += pios_ms5611.c
-SRC += pios_etasv3.c
-SRC += pios_mpxv5004.c
-SRC += pios_mpxv7002.c
-SRC += pios_hmc5883.c
-SRC += pios_hmc5983_i2c.c
 SRC += pios_usbhook.c
 
 # List C++ source files here.
