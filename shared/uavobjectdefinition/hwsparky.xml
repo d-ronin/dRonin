@@ -11,13 +11,10 @@
         <option>Disabled</option>
         <option>DSM</option>
         <option>SRXL</option>
-        <option>HoTT SUMD</option>
-        <option>HoTT SUMH</option>
         <option>PPM</option>
         <option>S.Bus</option>
         <option>S.Bus Non Inverted</option>
         <option>IBus</option>
-        <option>TBS Crossfire</option>
       </options>
     </field>
     <field defaultvalue="Disabled" elements="1" name="FlexiPort" parent="HwShared.PortTypes" type="enum" units="function">
@@ -31,7 +28,6 @@
         <option>FrSKY SPort Telemetry</option>
         <option>FrSKY SPort Non Inverted</option>
         <option>GPS</option>
-        <option>HoTT Telemetry</option>
         <option>I2C</option>
         <option>LighttelemetryTx</option>
         <option>SRXL</option>
@@ -41,10 +37,8 @@
         <option>OpenLog</option>
         <option>S.Bus</option>
         <option>S.Bus Non Inverted</option>
-        <option>Storm32Bgc</option>
         <option>Telemetry</option>
         <option>IBus</option>
-        <option>TBS Crossfire</option>
       </options>
     </field>
     <field defaultvalue="Disabled" elements="1" name="MainPort" parent="HwShared.PortTypes" type="enum" units="function">
@@ -58,18 +52,16 @@
         <option>FrSKY SPort Telemetry</option>
         <option>FrSKY SPort Non Inverted</option>
         <option>GPS</option>
-        <option>HoTT Telemetry</option>
         <option>LighttelemetryTx</option>
         <option>SRXL</option>
         <option>MavLinkTX</option>
         <option>MavLinkTX_GPS_RX</option>
         <option>MSP</option>
         <option>OpenLog</option>
+		<option>S.Bus</option>
         <option>S.Bus Non Inverted</option>
-        <option>Storm32Bgc</option>
         <option>Telemetry</option>
         <option>IBus</option>
-        <option>TBS Crossfire</option>
       </options>
     </field>
     <field defaultvalue="PWM10" elements="1" name="OutPort" type="enum" units="function">

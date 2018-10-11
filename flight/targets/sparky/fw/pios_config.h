@@ -43,6 +43,8 @@
 #define PIOS_INCLUDE_MPU
 #define PIOS_INCLUDE_MPU_MAG
 #define PIOS_INCLUDE_MS5611
+#define PIOS_INCLUDE_HMC5883
+#define PIOS_INCLUDE_HMC5983_I2C
 
 /* Com systems to include */
 #define PIOS_INCLUDE_MAVLINK
@@ -53,6 +55,11 @@
 
 /* Flags that alter behaviors */
 #define AUTOTUNE_AVERAGING_DECIMATION 2
+
+#undef PIOS_INCLUDE_CROSSFIRE
+#undef PIOS_INCLUDE_HSUM
+#undef PIOS_INCLUDE_HOTT
+#undef PIOS_INCLUDE_STORM32BGC
 
 /* Alarm Thresholds */
 
