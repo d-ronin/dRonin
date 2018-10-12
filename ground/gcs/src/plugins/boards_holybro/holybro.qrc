@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/holybro">
+	    <file>images/kakutef4v2.png</file>
+	</qresource>
+</RCC>

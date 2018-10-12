@@ -334,3 +334,9 @@ plugin_boards_matek.subdir = boards_matek
 plugin_boards_matek.depends = plugin_coreplugin
 plugin_boards_matek.depends = plugin_uavobjects
 SUBDIRS += plugin_boards_matek
+
+# Holybro
+plugin_boards_holybro.subdir = boards_holybro
+plugin_boards_holybro.depends = plugin_coreplugin
+plugin_boards_holybro.depends = plugin_uavobjects
+SUBDIRS += plugin_boards_holybro
