@@ -864,6 +864,19 @@ static const struct pios_tim_clock_cfg tim_1_cfg = {
 	},
 };
 
+static const struct pios_tim_clock_cfg tim_4_cfg = {
+	.timer = TIM4,
+	.time_base_init = &tim_2_3_4_time_base,
+	.irq = {
+		.init = {
+			.NVIC_IRQChannel                   = TIM4_IRQn,
+			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
+			.NVIC_IRQChannelSubPriority        = 0,
+			.NVIC_IRQChannelCmd                = ENABLE,
+		},
+	},
+};
+
 /**
  * Pios servo configuration structures
  */
@@ -876,9 +889,10 @@ static const struct pios_tim_clock_cfg tim_1_cfg = {
 	4:  TIM8_CH4 (PC9)
 	5:  TIM2_CH1 (PA15)       DMA1 Stream 1 Channel 3
 	6:  TIM1_CH1 (PA8)        DMA2 Stream 5 Channel 6
+	7:  TIM4_CH3 (PB8)        DMA1 Stream 6 Channel 2
  */
 
- static const struct pios_tim_channel pios_tim_outputs_pins[] = {
+static const struct pios_tim_channel pios_tim_outputs_pins_without_led_string[] = {
 	{
 		.timer = TIM3,
 		.timer_chan = TIM_Channel_1,
@@ -975,6 +989,121 @@ static const struct pios_tim_clock_cfg tim_1_cfg = {
 			.pin_source = GPIO_PinSource8,
 		},
 	},
+	{
+		.timer = TIM4,
+		.timer_chan = TIM_Channel_3,
+		.remap = GPIO_AF_TIM4,
+		.pin = {
+			.gpio = GPIOB,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_8,
+				.GPIO_Speed = GPIO_Speed_2MHz,
+				.GPIO_Mode  = GPIO_Mode_AF,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd  = GPIO_PuPd_NOPULL
+			},
+			.pin_source = GPIO_PinSource8,
+		},
+	},
+};
+
+static const struct pios_tim_channel pios_tim_outputs_pins_with_led_string[] = {
+	{
+		.timer = TIM3,
+		.timer_chan = TIM_Channel_1,
+		.remap = GPIO_AF_TIM3,
+		.pin = {
+			.gpio = GPIOC,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_6,
+				.GPIO_Speed = GPIO_Speed_2MHz,
+				.GPIO_Mode  = GPIO_Mode_AF,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd  = GPIO_PuPd_NOPULL
+			},
+			.pin_source = GPIO_PinSource6,
+		},
+	},
+	{
+		.timer = TIM8,
+		.timer_chan = TIM_Channel_2,
+		.remap = GPIO_AF_TIM8,
+		.pin = {
+			.gpio = GPIOC,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_7,
+				.GPIO_Speed = GPIO_Speed_2MHz,
+				.GPIO_Mode  = GPIO_Mode_AF,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd  = GPIO_PuPd_NOPULL
+			},
+			.pin_source = GPIO_PinSource7,
+		},
+	},
+	{
+		.timer = TIM8,
+		.timer_chan = TIM_Channel_3,
+		.remap = GPIO_AF_TIM8,
+		.pin = {
+			.gpio = GPIOC,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_8,
+				.GPIO_Speed = GPIO_Speed_2MHz,
+				.GPIO_Mode  = GPIO_Mode_AF,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd  = GPIO_PuPd_NOPULL
+			},
+			.pin_source = GPIO_PinSource8,
+		},
+	},
+	{
+		.timer = TIM8,
+		.timer_chan = TIM_Channel_4,
+		.remap = GPIO_AF_TIM8,
+		.pin = {
+			.gpio = GPIOC,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_9,
+				.GPIO_Speed = GPIO_Speed_2MHz,
+				.GPIO_Mode  = GPIO_Mode_AF,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd  = GPIO_PuPd_NOPULL
+			},
+			.pin_source = GPIO_PinSource9,
+		},
+	},
+	{
+		.timer = TIM2,
+		.timer_chan = TIM_Channel_1,
+		.remap = GPIO_AF_TIM2,
+		.pin = {
+			.gpio = GPIOA,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_15,
+				.GPIO_Speed = GPIO_Speed_2MHz,
+				.GPIO_Mode  = GPIO_Mode_AF,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd  = GPIO_PuPd_NOPULL
+			},
+			.pin_source = GPIO_PinSource15,
+		},
+	},
+	{
+		.timer = TIM4,
+		.timer_chan = TIM_Channel_3,
+		.remap = GPIO_AF_TIM4,
+		.pin = {
+			.gpio = GPIOB,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_8,
+				.GPIO_Speed = GPIO_Speed_2MHz,
+				.GPIO_Mode  = GPIO_Mode_AF,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd  = GPIO_PuPd_NOPULL
+			},
+			.pin_source = GPIO_PinSource8,
+		},
+	},
 };
 
 #if defined(PIOS_INCLUDE_DMASHOT)
@@ -989,9 +1118,10 @@ static const struct pios_tim_clock_cfg tim_1_cfg = {
 	4:  TIM8_CH4 (PC9)
 	5:  TIM2_CH1 (PA15)       DMA1 Stream 1 Channel 3
 	6:  TIM1_CH1 (PA8)        DMA2 Stream 5 Channel 6
+	7:  TIM4_CH3 (PB8)        DMA1 Stream 6 Channel 2
  */
   
- static const struct pios_dmashot_timer_cfg dmashot_tim_cfg[] = {
+ static const struct pios_dmashot_timer_cfg dmashot_tim_cfg_without_led_string[] = {
 	{
 		.timer   = TIM3,
 		.stream  = DMA1_Stream2,
@@ -1016,11 +1146,49 @@ static const struct pios_tim_clock_cfg tim_1_cfg = {
 		.channel = DMA_Channel_6,
 		.tcif    = DMA_FLAG_TCIF5
 	},
+	{
+		.timer   = TIM4,
+		.stream  = DMA1_Stream6,
+		.channel = DMA_Channel_2,
+		.tcif    = DMA_FLAG_TCIF6
+	},
 };
 
-static struct pios_dmashot_cfg dmashot_config = {
-	.timer_cfg =  &dmashot_tim_cfg[0],
-	.num_timers = NELEMENTS(dmashot_tim_cfg)
+ static const struct pios_dmashot_timer_cfg dmashot_tim_cfg_with_led_string[] = {
+	{
+		.timer   = TIM3,
+		.stream  = DMA1_Stream2,
+		.channel = DMA_Channel_5,
+		.tcif    = DMA_FLAG_TCIF2
+	},
+	{
+		.timer   = TIM8,
+		.stream  = DMA2_Stream1,
+		.channel = DMA_Channel_7,
+		.tcif    = DMA_FLAG_TCIF1
+	},
+	{
+		.timer   = TIM2,
+		.stream  = DMA1_Stream1,
+		.channel = DMA_Channel_3,
+		.tcif    = DMA_FLAG_TCIF1
+	},
+	{
+		.timer   = TIM4,
+		.stream  = DMA1_Stream6,
+		.channel = DMA_Channel_2,
+		.tcif    = DMA_FLAG_TCIF6
+	},
+};
+
+static const struct pios_dmashot_cfg dmashot_config_without_led_string = {
+	.timer_cfg =  &dmashot_tim_cfg_without_led_string[0],
+	.num_timers = NELEMENTS(dmashot_tim_cfg_without_led_string)
+};
+
+static const struct pios_dmashot_cfg dmashot_config_with_led_string = {
+	.timer_cfg =  &dmashot_tim_cfg_with_led_string[0],
+	.num_timers = NELEMENTS(dmashot_tim_cfg_with_led_string)
 };
 
 #endif // defined(PIOS_INCLUDE_DMASHOT)
@@ -1031,7 +1199,7 @@ static struct pios_dmashot_cfg dmashot_config = {
  */
 #include <pios_servo_priv.h>
 
-static struct pios_servo_cfg pios_servo_cfg = {
+static const struct pios_servo_cfg pios_servo_cfg_without_led_string = {
 	.tim_oc_init = {
 		.TIM_OCMode       = TIM_OCMode_PWM1,
 		.TIM_OutputState  = TIM_OutputState_Enable,
@@ -1042,8 +1210,23 @@ static struct pios_servo_cfg pios_servo_cfg = {
 		.TIM_OCIdleState  = TIM_OCIdleState_Reset,
 		.TIM_OCNIdleState = TIM_OCNIdleState_Reset,
 	},
-	.channels = pios_tim_outputs_pins,
-	.num_channels = NELEMENTS(pios_tim_outputs_pins),
+	.channels = pios_tim_outputs_pins_without_led_string,
+	.num_channels = NELEMENTS(pios_tim_outputs_pins_without_led_string),
+};
+
+static const struct pios_servo_cfg pios_servo_cfg_with_led_string = {
+	.tim_oc_init = {
+		.TIM_OCMode       = TIM_OCMode_PWM1,
+		.TIM_OutputState  = TIM_OutputState_Enable,
+		.TIM_OutputNState = TIM_OutputNState_Disable,
+		.TIM_Pulse        = PIOS_SERVOS_INITIAL_POSITION,
+		.TIM_OCPolarity   = TIM_OCPolarity_High,
+		.TIM_OCNPolarity  = TIM_OCPolarity_High,
+		.TIM_OCIdleState  = TIM_OCIdleState_Reset,
+		.TIM_OCNIdleState = TIM_OCNIdleState_Reset,
+	},
+	.channels = pios_tim_outputs_pins_with_led_string,
+	.num_channels = NELEMENTS(pios_tim_outputs_pins_with_led_string),
 };
 
 #endif	/* PIOS_INCLUDE_SERVO && PIOS_INCLUDE_TIM */
@@ -1111,14 +1294,7 @@ static const struct pios_usb_cfg pios_usb_main_cfg = {
 		},
 	},
 	.vsense = {
-		.gpio = GPIOB,
-		.init = {
-			.GPIO_Pin   = GPIO_Pin_12,
-			.GPIO_Speed = GPIO_Speed_2MHz,
-			.GPIO_Mode  = GPIO_Mode_IN,
-			.GPIO_OType = GPIO_OType_OD,
-			.GPIO_PuPd  = GPIO_PuPd_NOPULL,
-		},
+		.gpio = NULL,
 	},
 };
 

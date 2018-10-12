@@ -109,16 +109,23 @@ void PIOS_Board_Init(void) {
         PIOS_WDG_Init();
     }
 
+	HwMatek405FC_Pad_S6Options hw_fcPadS6;
+	HwMatek405FC_Pad_S6Get(&hw_fcPadS6);
+	
     /* Set up pulse timers */
 
     // Timers used for inputs (5)
     PIOS_TIM_InitClock(&tim_5_cfg);
 
-    // Timers used for outputs (3, 8, 2, 1)
+    // Timers used for outputs (3, 8, 2, 1, 4)
     PIOS_TIM_InitClock(&tim_3_cfg);
     PIOS_TIM_InitClock(&tim_8_cfg);
 	PIOS_TIM_InitClock(&tim_2_cfg);
-	PIOS_TIM_InitClock(&tim_1_cfg);
+	
+	if (hw_fcPadS6 == HWMATEK405_FC_PAD_S6_PWM_6)
+		PIOS_TIM_InitClock(&tim_1_cfg);
+	
+	PIOS_TIM_InitClock(&tim_4_cfg);
     
 #ifdef PIOS_INCLUDE_SPI
     uint8_t hw_osdport;
@@ -332,21 +339,19 @@ void PIOS_Board_Init(void) {
             hw_DSMxMode,                         // dsm_mode
             NULL);                               // sbus_cfg
 
-	HwMatek405FC_Pad_S6Options hw_fcPadS6;
-	HwMatek405FC_Pad_S6Get(&hw_fcPadS6);
-	
-	if (hw_fcPadS6 != HWMATEK405_FC_PAD_S6_PWM_6) {
-		dmashot_config.num_timers = 3;
-		pios_servo_cfg.num_channels = 5;
-	}
-					
 #if defined(PIOS_INCLUDE_SERVO) & defined(PIOS_INCLUDE_DMASHOT)
-    PIOS_DMAShot_Init(&dmashot_config);
+    if (hw_fcPadS6 == HWMATEK405_FC_PAD_S6_PWM_6) 
+		PIOS_DMAShot_Init(&dmashot_config_without_led_string);
+	else
+		PIOS_DMAShot_Init(&dmashot_config_with_led_string);
 #endif
 
 #if defined(PIOS_INCLUDE_TIM) && defined(PIOS_INCLUDE_SERVO)
 #ifndef PIOS_DEBUG_ENABLE_DEBUG_PINS
-    PIOS_Servo_Init(&pios_servo_cfg);
+    if (hw_fcPadS6 == HWMATEK405_FC_PAD_S6_PWM_6) 
+		PIOS_Servo_Init(&pios_servo_cfg_without_led_string);
+	else
+		PIOS_Servo_Init(&pios_servo_cfg_with_led_string);
 #else
     PIOS_DEBUG_Init(&pios_tim_servo_all_channels, NELEMENTS(pios_tim_servo_all_channels));
 #endif
