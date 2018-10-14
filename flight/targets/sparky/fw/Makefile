@@ -45,7 +45,7 @@ OPTMODULES += Autotune
 OPTMODULES += TxPID
 OPTMODULES += PathPlanner
 OPTMODULES += VtolPathFollower
-OPTMODULES += FixedWingPathFollor
+OPTMODULES += FixedWingPathFollower
 OPTMODULES += UAVOMavlinkBridge
 OPTMODULES += UAVOMSPBridge
 OPTMODULES += UAVOLighttelemetryBridge
@@ -53,6 +53,7 @@ OPTMODULES += Battery
 OPTMODULES += ComUsbBridge
 OPTMODULES += UAVOFrSKYSensorHubBridge
 OPTMODULES += UAVOFrSKYSPortBridge
+OPTMODULES += Geofence
 OPTMODULES += Logging
 
 # Paths
