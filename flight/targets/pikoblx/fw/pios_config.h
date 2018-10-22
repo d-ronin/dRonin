@@ -52,6 +52,11 @@
 //#define PIOS_TELEM_PRIORITY_QUEUE       /* Enable a priority queue in telemetry */
 #define AUTOTUNE_AVERAGING_DECIMATION 2
 
+#undef PIOS_INCLUDE_CROSSFIRE
+#undef PIOS_INCLUDE_HSUM
+#undef PIOS_INCLUDE_HOTT
+#undef PIOS_INCLUDE_STORM32BGC
+
 /* Alarm Thresholds */
 
 /* Task stack sizes */
