@@ -16,14 +16,22 @@
         <option>FrSKY SPort Telemetry</option>
         <option>FrSKY SPort Non Inverted</option>
         <option>GPS</option>
+        <option>HoTT Telemetry</option>
         <option>I2C</option>
+        <option>LighttelemetryTx</option>
         <option>SRXL</option>
+        <option>MavLinkTX</option>
+        <option>MavLinkTX_GPS_RX</option>
         <option>MSP</option>
         <option>S.Bus</option>
         <option>S.Bus Non Inverted</option>
+        <option>Storm32Bgc</option>
         <option>Telemetry</option>
         <option>OpenLog</option>
+        <option>HoTT SUMD</option>
+        <option>HoTT SUMH</option>
         <option>IBus</option>
+        <option>TBS Crossfire</option>
       </options>
     </field>
     <field defaultvalue="Disabled" elements="1" name="Uart2" parent="HwShared.PortTypes" type="enum" units="function">
@@ -37,13 +45,21 @@
         <option>FrSKY SPort Telemetry</option>
         <option>FrSKY SPort Non Inverted</option>
         <option>GPS</option>
+        <option>HoTT Telemetry</option>
+        <option>LighttelemetryTx</option>
         <option>SRXL</option>
+        <option>MavLinkTX</option>
+        <option>MavLinkTX_GPS_RX</option>
         <option>MSP</option>
         <option>S.Bus</option>
         <option>S.Bus Non Inverted</option>
+        <option>Storm32Bgc</option>
         <option>Telemetry</option>
         <option>OpenLog</option>
+        <option>HoTT SUMD</option>
+        <option>HoTT SUMH</option>
         <option>IBus</option>
+        <option>TBS Crossfire</option>
       </options>
     </field>
     <field defaultvalue="Disabled" elements="1" name="RxPort" parent="HwShared.PortTypes" type="enum" units="function">
@@ -55,7 +71,10 @@
         <option>SRXL</option>
         <option>S.Bus</option>
         <option>S.Bus Non Inverted</option>
+        <option>HoTT SUMD</option>
+        <option>HoTT SUMH</option>
         <option>IBus</option>
+        <option>TBS Crossfire</option>
       </options>
     </field>
     <field defaultvalue="USBTelemetry" elements="1" name="USB_HIDPort" parent="HwShared.USB_HIDPort" type="enum" units="function">
