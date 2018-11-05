@@ -204,47 +204,47 @@ void PIOS_Board_Init(void)
 
 	HwSharedPortTypesOptions hw_uart1;
 	HwPikoBLXUart1Get(&hw_uart1);
-	PIOS_HAL_ConfigurePort(hw_uart1, // port_type
-						&pios_uart1_usart_cfg, // usart_port_cfg
+	PIOS_HAL_ConfigurePort(hw_uart1,            // port_type
+						&pios_uart1_usart_cfg,  // usart_port_cfg
 						&pios_usart_com_driver, // com_driver
-						&pios_i2c_u1_id, // i2c_id
-						&pios_i2c_u1_cfg, // i2c_cfg
-						NULL, // ppm_cfg
-						NULL, // pwm_cfg
-						PIOS_LED_ALARM, // led_id
-						&pios_uart1_dsm_cfg, // dsm_cfg
-						hw_DSMxMode, // dsm_mode
-						NULL); // sbus_cfg
+						NULL,                   //&pios_i2c_u1_id, // i2c_id
+						NULL,                   //&pios_i2c_u1_cfg, // i2c_cfg
+						NULL,                   // ppm_cfg
+						NULL,                   // pwm_cfg
+						PIOS_LED_ALARM,         // led_id
+						&pios_uart1_dsm_cfg,    // dsm_cfg
+						hw_DSMxMode,            // dsm_mode
+						NULL);                  // sbus_cfg
 	
 	/* Configure Uart2 */
 	HwSharedPortTypesOptions hw_uart2;
 	HwPikoBLXUart2Get(&hw_uart2);
-	PIOS_HAL_ConfigurePort(hw_uart2, // port_type
-						&pios_uart2_usart_cfg, // usart_port_cfg
+	PIOS_HAL_ConfigurePort(hw_uart2,            // port_type
+						&pios_uart2_usart_cfg,  // usart_port_cfg
 						&pios_usart_com_driver, // com_driver
-						NULL, // i2c_id
-						NULL, // i2c_cfg
-						NULL, // ppm_cfg
-						NULL, // pwm_cfg
-						PIOS_LED_ALARM, // led_id
-						&pios_uart2_dsm_cfg, // dsm_cfg
-						hw_DSMxMode, // dsm_mode
-						NULL); // sbus_cfg
+						NULL,                   // i2c_id
+						NULL,                   // i2c_cfg
+						NULL,                   // ppm_cfg
+						NULL,                   // pwm_cfg
+						PIOS_LED_ALARM,         // led_id
+						&pios_uart2_dsm_cfg,    // dsm_cfg
+						hw_DSMxMode,            // dsm_mode
+						NULL);                  // sbus_cfg
 
 	/* Configure Uart3 */
 	HwSharedPortTypesOptions hw_rxp;
 	HwPikoBLXRxPortGet(&hw_rxp);
-	PIOS_HAL_ConfigurePort(hw_rxp, // port_type
-						&pios_uart3_usart_cfg, // usart_port_cfg
+	PIOS_HAL_ConfigurePort(hw_rxp,              // port_type
+						&pios_uart3_usart_cfg,  // usart_port_cfg
 						&pios_usart_com_driver, // com_driver
-						NULL, // i2c_id
-						NULL, // i2c_cfg
-						&pios_ppm_cfg, // ppm_cfg
-						NULL, // pwm_cfg
-						PIOS_LED_ALARM, // led_id
-						&pios_uart3_dsm_cfg, // dsm_cfg
-						hw_DSMxMode, // dsm_mode
-						NULL); // sbus_cfg
+						NULL,                   // i2c_id
+						NULL,                   // i2c_cfg
+						&pios_ppm_cfg,          // ppm_cfg
+						NULL,                   // pwm_cfg
+						PIOS_LED_ALARM,         // led_id
+						&pios_uart3_dsm_cfg,    // dsm_cfg
+						hw_DSMxMode,            // dsm_mode
+						NULL);                  // sbus_cfg
 
 #ifndef PIOS_DEBUG_ENABLE_DEBUG_PINS
 #ifdef PIOS_INCLUDE_SERVO
