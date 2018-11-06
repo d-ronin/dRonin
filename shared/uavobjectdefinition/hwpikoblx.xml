@@ -17,7 +17,6 @@
         <option>FrSKY SPort Non Inverted</option>
         <option>GPS</option>
         <option>HoTT Telemetry</option>
-        <option>I2C</option>
         <option>LighttelemetryTx</option>
         <option>SRXL</option>
         <option>MavLinkTX</option>

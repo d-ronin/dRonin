@@ -26,12 +26,7 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>
  */
 
-
- 
- 
- 
- 
- #ifndef PIOS_CONFIG_H
+#ifndef PIOS_CONFIG_H
 #define PIOS_CONFIG_H
 
 #include <pios_flight_config.h>

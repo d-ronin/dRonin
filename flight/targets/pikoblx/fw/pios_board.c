@@ -205,46 +205,46 @@ void PIOS_Board_Init(void)
 	HwSharedPortTypesOptions hw_uart1;
 	HwPikoBLXUart1Get(&hw_uart1);
 	PIOS_HAL_ConfigurePort(hw_uart1,            // port_type
-						&pios_uart1_usart_cfg,  // usart_port_cfg
-						&pios_usart_com_driver, // com_driver
-						NULL,                   //&pios_i2c_u1_id, // i2c_id
-						NULL,                   //&pios_i2c_u1_cfg, // i2c_cfg
-						NULL,                   // ppm_cfg
-						NULL,                   // pwm_cfg
-						PIOS_LED_ALARM,         // led_id
-						&pios_uart1_dsm_cfg,    // dsm_cfg
-						hw_DSMxMode,            // dsm_mode
-						NULL);                  // sbus_cfg
+	                    &pios_uart1_usart_cfg,  // usart_port_cfg
+	                    &pios_usart_com_driver, // com_driver
+	                    NULL,                   // i2c_id
+	                    NULL,                   // i2c_cfg
+	                    NULL,                   // ppm_cfg
+	                    NULL,                   // pwm_cfg
+	                    PIOS_LED_ALARM,         // led_id
+	                    &pios_uart1_dsm_cfg,    // dsm_cfg
+	                    hw_DSMxMode,            // dsm_mode
+	                    NULL);                  // sbus_cfg
 	
 	/* Configure Uart2 */
 	HwSharedPortTypesOptions hw_uart2;
 	HwPikoBLXUart2Get(&hw_uart2);
 	PIOS_HAL_ConfigurePort(hw_uart2,            // port_type
-						&pios_uart2_usart_cfg,  // usart_port_cfg
-						&pios_usart_com_driver, // com_driver
-						NULL,                   // i2c_id
-						NULL,                   // i2c_cfg
-						NULL,                   // ppm_cfg
-						NULL,                   // pwm_cfg
-						PIOS_LED_ALARM,         // led_id
-						&pios_uart2_dsm_cfg,    // dsm_cfg
-						hw_DSMxMode,            // dsm_mode
-						NULL);                  // sbus_cfg
+	                    &pios_uart2_usart_cfg,  // usart_port_cfg
+	                    &pios_usart_com_driver, // com_driver
+	                    NULL,                   // i2c_id
+	                    NULL,                   // i2c_cfg
+	                    NULL,                   // ppm_cfg
+	                    NULL,                   // pwm_cfg
+	                    PIOS_LED_ALARM,         // led_id
+	                    &pios_uart2_dsm_cfg,    // dsm_cfg
+	                    hw_DSMxMode,            // dsm_mode
+	                    NULL);                  // sbus_cfg
 
 	/* Configure Uart3 */
 	HwSharedPortTypesOptions hw_rxp;
 	HwPikoBLXRxPortGet(&hw_rxp);
 	PIOS_HAL_ConfigurePort(hw_rxp,              // port_type
-						&pios_uart3_usart_cfg,  // usart_port_cfg
-						&pios_usart_com_driver, // com_driver
-						NULL,                   // i2c_id
-						NULL,                   // i2c_cfg
-						&pios_ppm_cfg,          // ppm_cfg
-						NULL,                   // pwm_cfg
-						PIOS_LED_ALARM,         // led_id
-						&pios_uart3_dsm_cfg,    // dsm_cfg
-						hw_DSMxMode,            // dsm_mode
-						NULL);                  // sbus_cfg
+	                    &pios_uart3_usart_cfg,  // usart_port_cfg
+	                    &pios_usart_com_driver, // com_driver
+	                    NULL,                   // i2c_id
+	                    NULL,                   // i2c_cfg
+	                    &pios_ppm_cfg,          // ppm_cfg
+	                    NULL,                   // pwm_cfg
+	                    PIOS_LED_ALARM,         // led_id
+	                    &pios_uart3_dsm_cfg,    // dsm_cfg
+	                    hw_DSMxMode,            // dsm_mode
+	                    NULL);                  // sbus_cfg
 
 #ifndef PIOS_DEBUG_ENABLE_DEBUG_PINS
 #ifdef PIOS_INCLUDE_SERVO
@@ -255,11 +255,12 @@ void PIOS_Board_Init(void)
 #endif
 
 #if defined(PIOS_INCLUDE_ADC)
-	uintptr_t internal_adc_id;
-	if (PIOS_INTERNAL_ADC_Init(&internal_adc_id, &internal_adc_cfg) < 0)
+	uintptr_t unused_adc;
+	if (PIOS_INTERNAL_ADC_Init(&pios_internal_adc_id, &internal_adc_cfg) < 0)
 		PIOS_Assert(0);
-	PIOS_ADC_Init(&pios_internal_adc_id, &pios_internal_adc_driver, internal_adc_id);
+	PIOS_ADC_Init(&unused_adc, &pios_internal_adc_driver, pios_internal_adc_id);
 #endif /* PIOS_INCLUDE_ADC */
+
 	PIOS_WDG_Clear();
 	PIOS_DELAY_WaitmS(200);
 	PIOS_WDG_Clear();

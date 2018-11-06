@@ -756,6 +756,16 @@ static const struct pios_ppm_cfg pios_ppm_cfg = {
  * Vsense: PA5 ADC2_CH2
  */
  
+uintptr_t pios_internal_adc_id;
+
+void DMA2_Channel1_IRQHandler(void) __attribute__((alias("PIOS_ADC_DMA_irq_handler")));
+
+void PIOS_ADC_DMA_irq_handler(void)
+{
+	/* Call into the generic code to handle the IRQ for this specific device */
+	PIOS_INTERNAL_ADC_DMA_Handler(pios_internal_adc_id);
+}
+
 static const struct pios_internal_adc_cfg internal_adc_cfg = {
 	.dma = {
 		.irq = {
