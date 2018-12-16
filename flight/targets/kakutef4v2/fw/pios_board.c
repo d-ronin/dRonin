@@ -258,9 +258,9 @@ void PIOS_Board_Init(void) {
             NULL,                                // ppm_cfg
             NULL,                                // pwm_cfg
             PIOS_LED_ALARM,                      // led_id
-            NULL,                                // dsm_cfg
-            0,                                   // dsm_mode
-            NULL);                               // sbus_cfg
+            &pios_usart3_dsm_aux_cfg,            // dsm_cfg
+            hw_DSMxMode,                         // dsm_mode
+            &pios_usart3_sbus_aux_cfg);          // sbus_cfg
 
     /* UART4 Port */
     uint8_t hw_uart4;
@@ -290,8 +290,8 @@ void PIOS_Board_Init(void) {
             NULL,                                // ppm_cfg
             NULL,                                // pwm_cfg
             PIOS_LED_ALARM,                      // led_id
-            &pios_usart5_dsm_aux_cfg,            // dsm_cfg
-            hw_DSMxMode,                         // dsm_mode
+            NULL,                                // dsm_cfg
+            0,                                   // dsm_mode
             NULL);                               // sbus_cfg
 
     /* UART6 Port */
@@ -306,8 +306,8 @@ void PIOS_Board_Init(void) {
             NULL,                                // ppm_cfg
             NULL,                                // pwm_cfg
             PIOS_LED_ALARM,                      // led_id
-            &pios_usart6_dsm_aux_cfg,            // dsm_cfg
-            hw_DSMxMode,                         // dsm_mode
+            NULL,                                // dsm_cfg
+            0,                                   // dsm_mode
             NULL);                               // sbus_cfg
 					
 #if defined(PIOS_INCLUDE_SERVO) & defined(PIOS_INCLUDE_DMASHOT)
