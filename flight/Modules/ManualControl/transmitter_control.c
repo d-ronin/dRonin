@@ -563,7 +563,7 @@ int32_t transmitter_control_select(bool reset_controller)
 	case FLIGHTSTATUS_FLIGHTMODE_LQG:
 	case FLIGHTSTATUS_FLIGHTMODE_LQGLEVELING:
 	case FLIGHTSTATUS_FLIGHTMODE_FLIPREVERSED:
-	case FLIGHTSTATUS_FLIGHTMODE_TAILTUNE:
+	case FLIGHTSTATUS_FLIGHTMODE_SERVOCAL:
 		update_stabilization_desired(&cmd, &settings);
 		break;
 	case FLIGHTSTATUS_FLIGHTMODE_POSITIONHOLD:
@@ -1167,7 +1167,7 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
 			reprojection = settings->Stabilization3Reprojection;
 			thrust_mode = settings->Stabilization3Thrust;
 			break;
-		case FLIGHTSTATUS_FLIGHTMODE_TAILTUNE:
+		case FLIGHTSTATUS_FLIGHTMODE_SERVOCAL:
 			stab_modes = RATE_SETTINGS;
 			break;
 #ifdef TARGET_MAY_HAVE_BARO

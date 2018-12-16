@@ -192,7 +192,7 @@ static void FLIGHTMODE_update(charosd_state_t state, uint8_t x, uint8_t y)
 		mode = "ST3";
 		break;
 	case FLIGHTSTATUS_FLIGHTMODE_AUTOTUNE:
-	case FLIGHTSTATUS_FLIGHTMODE_TAILTUNE:
+	case FLIGHTSTATUS_FLIGHTMODE_SERVOCAL:
 		mode = "TUNE";
 		break;
 	case FLIGHTSTATUS_FLIGHTMODE_ALTITUDEHOLD:

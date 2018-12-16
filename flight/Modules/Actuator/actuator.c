@@ -52,6 +52,12 @@
 #include "pios_thread.h"
 #include "pios_queue.h"
 #include "misc_math.h"
+#include "physical_constants.h"
+
+#include "../Biflight/biflight.h"
+
+#include "biflightsettings.h"
+#include "biflightstatus.h"
 
 #include "../Triflight/triflight.h"
 
@@ -118,6 +124,10 @@ static volatile bool oav_settings_updated        = true;
 static volatile bool triflight_settings_updated  = true;
 #endif
 
+#ifdef BIFLIGHT
+static volatile bool biflight_settings_updated  = true;
+#endif
+
 static MixerSettingsMixer1TypeOptions types_mixer[MAX_MIX_ACTUATORS];
 
 /* In the mixer, a row consists of values for one output actuator.
@@ -149,6 +159,11 @@ static OAVStatusData         OAVStatus;
 #ifdef TRIFLIGHT
 static TriflightSettingsData triflightSettings;
 static TriflightStatusData   triflightStatus;
+#endif
+
+#ifdef BIFLIGHT
+static BiflightSettingsData biflightSettings;
+static BiflightStatusData   biflightStatus;
 #endif
 
 static bool armed            = false;
@@ -334,6 +349,14 @@ int32_t ActuatorInitialize()
 	TriflightSettingsConnectCallbackCtx(UAVObjCbSetFlag, &triflight_settings_updated);
 #endif
 
+#ifdef BIFLIGHT
+	// Register for notifications of changes to BiFlightSettings
+	if (BiflightSettingsInitialize() == -1) {
+		return -1;
+	}
+	BiflightSettingsConnectCallbackCtx(UAVObjCbSetFlag, &biflight_settings_updated);
+#endif
+
 	// Listen for ActuatorDesired updates (Primary input to this module)
 	if (ActuatorDesiredInitialize()  == -1) {
 		return -1;
@@ -355,6 +378,12 @@ int32_t ActuatorInitialize()
 
 #ifdef TRIFLIGHT
 	if (TriflightStatusInitialize() == -1) {
+		return -1;
+	}
+#endif
+
+#ifdef BIFLIGHT
+	if (BiflightStatusInitialize() == -1) {
 		return -1;
 	}
 #endif
@@ -459,12 +488,9 @@ static void compute_one_mixer(int mixnum,
 			 * same control authority irrespective of
 			 * motor scale setting.
 			 */
-			motor_mixer[mixnum + MIXERSETTINGS_MIXER1VECTOR_ROLL] *=
-				scale_adjustment;
-			motor_mixer[mixnum + MIXERSETTINGS_MIXER1VECTOR_PITCH] *=
-				scale_adjustment;
-			motor_mixer[mixnum + MIXERSETTINGS_MIXER1VECTOR_YAW] *=
-				scale_adjustment;
+			motor_mixer[mixnum + MIXERSETTINGS_MIXER1VECTOR_ROLL]  *= scale_adjustment;
+			motor_mixer[mixnum + MIXERSETTINGS_MIXER1VECTOR_PITCH] *= scale_adjustment;
+			motor_mixer[mixnum + MIXERSETTINGS_MIXER1VECTOR_YAW]   *= scale_adjustment;
 		}
 	}
 }
@@ -481,8 +507,6 @@ static void compute_mixer()
 	if ((output_gain < 1.0f) && (output_gain >= 0.01f)) {
 		scale_adjustment = powf(1 / output_gain, 1 / curve_fit);
 	}
-
-// HJI	MixerSettingsData mixerSettings;
 
 	MixerSettingsGet(&mixerSettings);
 
@@ -816,6 +840,24 @@ static void post_process_scale_and_commit(float *motor_vect,
 	}
 #endif
 
+#ifdef BIFLIGHT
+	if (biflightStatus.Initialized == BIFLIGHTSTATUS_INITIALIZED_TRUE)
+	{
+		biServoStep(&biflightSettings, &biflightStatus, dT);
+
+		biServoCalibrateStep(&actuatorSettings,
+                             &flightStatus,
+                             &biflightSettings,
+                             &biflightStatus,
+                             &command.Channel[biflightStatus.ServoChannel[LEFT]],
+							 &command.Channel[biflightStatus.ServoChannel[RIGHT]],
+                             armed,
+                             dT);
+
+		BiflightStatusSet(&biflightStatus);
+	}
+#endif
+
 	// Store update time
 	command.UpdateTime = 1000.0f*dT;
 
@@ -992,6 +1034,10 @@ static void actuator_task(void* parameters)
 #ifdef TRIFLIGHT
 			triflight_settings_updated = true;
 #endif
+
+#ifdef BIFLIGHT
+			biflight_settings_updated = true;
+#endif
 			settings_updated = false;
 		}
 
@@ -1117,6 +1163,172 @@ static void actuator_task(void* parameters)
 			TriflightStatusSet(&triflightStatus);
 		}
 #endif
+
+#ifdef BIFLIGHT
+
+#define is_motor(b)             (mixerSettings.Mixer ## b ## Type ==  MIXERSETTINGS_MIXER ## b ## TYPE_MOTOR)
+#define roll_mix_is_positive(b) (mixerSettings.Mixer ## b ## Vector[MIXERSETTINGS_MIXER ## b ## VECTOR_ROLL] > 0)
+#define roll_mix_is_negative(b) (mixerSettings.Mixer ## b ## Vector[MIXERSETTINGS_MIXER ## b ## VECTOR_ROLL] < 0)
+
+#define is_servo(b)             (mixerSettings.Mixer ## b ## Type ==  MIXERSETTINGS_MIXER ## b ## TYPE_SERVO)
+#define yaw_mix_is_positive(b)  (mixerSettings.Mixer ## b ## Vector[MIXERSETTINGS_MIXER ## b ## VECTOR_YAW] > 0)
+#define yaw_mix_is_negative(b)  (mixerSettings.Mixer ## b ## Vector[MIXERSETTINGS_MIXER ## b ## VECTOR_YAW] < 0)
+
+		if (biflight_settings_updated) {
+			biflight_settings_updated = false;
+
+			MixerSettingsGet(&mixerSettings);
+			
+			BiflightSettingsGet(&biflightSettings);
+
+			if ((biflightSettings.EnableBiFlight == BIFLIGHTSETTINGS_ENABLEBIFLIGHT_ENABLE) &&
+			    (airframe_type == SYSTEMSETTINGS_AIRFRAMETYPE_CUSTOM))
+			{
+
+				// Find which output is left motor
+#if MAX_MIX_ACTUATORS > 0
+				if      (is_motor(1)  && roll_mix_is_positive(1))  biflightStatus.MotorChannel[LEFT] = 0;
+#endif
+#if MAX_MIX_ACTUATORS > 1
+				else if (is_motor(2)  && roll_mix_is_positive(2))  biflightStatus.MotorChannel[LEFT] = 1;
+#endif
+#if MAX_MIX_ACTUATORS > 2
+				else if (is_motor(3)  && roll_mix_is_positive(3))  biflightStatus.MotorChannel[LEFT] = 2;
+#endif
+#if MAX_MIX_ACTUATORS > 3
+				else if (is_motor(4)  && roll_mix_is_positive(4))  biflightStatus.MotorChannel[LEFT] = 3;
+#endif
+#if MAX_MIX_ACTUATORS > 4
+				else if (is_motor(5)  && roll_mix_is_positive(5))  biflightStatus.MotorChannel[LEFT] = 4;
+#endif
+#if MAX_MIX_ACTUATORS > 5
+				else if (is_motor(6)  && roll_mix_is_positive(6))  biflightStatus.MotorChannel[LEFT] = 5;
+#endif
+#if MAX_MIX_ACTUATORS > 6
+				else if (is_motor(7)  && roll_mix_is_positive(7))  biflightStatus.MotorChannel[LEFT] = 6;
+#endif
+#if MAX_MIX_ACTUATORS > 7
+				else if (is_motor(8)  && roll_mix_is_positive(8))  biflightStatus.MotorChannel[LEFT] = 7;
+#endif
+#if MAX_MIX_ACTUATORS > 8
+				else if (is_motor(9)  && roll_mix_is_positive(9))  biflightStatus.MotorChannel[LEFT] = 8;
+#endif
+#if MAX_MIX_ACTUATORS > 9
+				else if (is_motor(10) && roll_mix_is_positive(10)) biflightStatus.MotorChannel[LEFT] = 9;
+#endif
+
+				// Find which output is right motor
+#if MAX_MIX_ACTUATORS > 0
+				if      (is_motor(1)  && roll_mix_is_negative(1))  biflightStatus.MotorChannel[RIGHT] = 0;
+#endif
+#if MAX_MIX_ACTUATORS > 1
+				else if (is_motor(2)  && roll_mix_is_negative(2))  biflightStatus.MotorChannel[RIGHT] = 1;
+#endif
+#if MAX_MIX_ACTUATORS > 2
+				else if (is_motor(3)  && roll_mix_is_negative(3))  biflightStatus.MotorChannel[RIGHT] = 2;
+#endif
+#if MAX_MIX_ACTUATORS > 3
+				else if (is_motor(4)  && roll_mix_is_negative(4))  biflightStatus.MotorChannel[RIGHT] = 3;
+#endif
+#if MAX_MIX_ACTUATORS > 4
+				else if (is_motor(5)  && roll_mix_is_negative(5))  biflightStatus.MotorChannel[RIGHT] = 4;
+#endif
+#if MAX_MIX_ACTUATORS > 5
+				else if (is_motor(6)  && roll_mix_is_negative(6))  biflightStatus.MotorChannel[RIGHT] = 5;
+#endif
+#if MAX_MIX_ACTUATORS > 6
+				else if (is_motor(7)  && roll_mix_is_negative(7))  biflightStatus.MotorChannel[RIGHT] = 6;
+#endif
+#if MAX_MIX_ACTUATORS > 7
+				else if (is_motor(8)  && roll_mix_is_negative(8))  biflightStatus.MotorChannel[RIGHT] = 7;
+#endif
+#if MAX_MIX_ACTUATORS > 8
+				else if (is_motor(9)  && roll_mix_is_negative(9))  biflightStatus.MotorChannel[RIGHT] = 8;
+#endif
+#if MAX_MIX_ACTUATORS > 9
+				else if (is_motor(10) && roll_mix_is_negative(10)) biflightStatus.MotorChannel[RIGHT] = 9;
+#endif
+
+				// Find which output is left servo
+#if MAX_MIX_ACTUATORS > 0
+				if      (is_servo(1)  && yaw_mix_is_negative(1))  biflightStatus.ServoChannel[LEFT] = 0;
+#endif
+#if MAX_MIX_ACTUATORS > 1
+				else if (is_servo(2)  && yaw_mix_is_negative(2))  biflightStatus.ServoChannel[LEFT] = 1;
+#endif
+#if MAX_MIX_ACTUATORS > 2
+				else if (is_servo(3)  && yaw_mix_is_negative(3))  biflightStatus.ServoChannel[LEFT] = 2;
+#endif
+#if MAX_MIX_ACTUATORS > 3
+				else if (is_servo(4)  && yaw_mix_is_negative(4))  biflightStatus.ServoChannel[LEFT] = 3;
+#endif
+#if MAX_MIX_ACTUATORS > 4
+				else if (is_servo(5)  && yaw_mix_is_negative(5))  biflightStatus.ServoChannel[LEFT] = 4;
+#endif
+#if MAX_MIX_ACTUATORS > 5
+				else if (is_servo(6)  && yaw_mix_is_negative(6))  biflightStatus.ServoChannel[LEFT] = 5;
+#endif
+#if MAX_MIX_ACTUATORS > 6
+				else if (is_servo(7)  && yaw_mix_is_negative(7))  biflightStatus.ServoChannel[LEFT] = 6;
+#endif
+#if MAX_MIX_ACTUATORS > 7
+				else if (is_servo(8)  && yaw_mix_is_negative(8))  biflightStatus.ServoChannel[LEFT] = 7;
+#endif
+#if MAX_MIX_ACTUATORS > 8
+				else if (is_servo(9)  && yaw_mix_is_negative(9))  biflightStatus.ServoChannel[LEFT] = 8;
+#endif
+#if MAX_MIX_ACTUATORS > 9
+				else if (is_servo(10) && yaw_mix_is_negative(10)) biflightStatus.ServoChannel[LEFT] = 9;
+#endif
+
+				// Find which output is right servo
+#if MAX_MIX_ACTUATORS > 0
+				if      (is_servo(1)  && yaw_mix_is_positive(1))  biflightStatus.ServoChannel[RIGHT] = 0;
+#endif
+#if MAX_MIX_ACTUATORS > 1
+				else if (is_servo(2)  && yaw_mix_is_positive(2))  biflightStatus.ServoChannel[RIGHT] = 1;
+#endif
+#if MAX_MIX_ACTUATORS > 2
+				else if (is_servo(3)  && yaw_mix_is_positive(3))  biflightStatus.ServoChannel[RIGHT] = 2;
+#endif
+#if MAX_MIX_ACTUATORS > 3
+				else if (is_servo(4)  && yaw_mix_is_positive(4))  biflightStatus.ServoChannel[RIGHT] = 3;
+#endif
+#if MAX_MIX_ACTUATORS > 4
+				else if (is_servo(5)  && yaw_mix_is_positive(5))  biflightStatus.ServoChannel[RIGHT] = 4;
+#endif
+#if MAX_MIX_ACTUATORS > 5
+				else if (is_servo(6)  && yaw_mix_is_positive(6))  biflightStatus.ServoChannel[RIGHT] = 5;
+#endif
+#if MAX_MIX_ACTUATORS > 6
+				else if (is_servo(7)  && yaw_mix_is_positive(7))  biflightStatus.ServoChannel[RIGHT] = 6;
+#endif
+#if MAX_MIX_ACTUATORS > 7
+				else if (is_servo(8)  && yaw_mix_is_positive(8))  biflightStatus.ServoChannel[RIGHT] = 7;
+#endif
+#if MAX_MIX_ACTUATORS > 8
+				else if (is_servo(9)  && yaw_mix_is_positive(9))  biflightStatus.ServoChannel[RIGHT] = 8;
+#endif
+#if MAX_MIX_ACTUATORS > 9
+				else if (is_servo(10) && yaw_mix_is_positive(10)) biflightStatus.ServoChannel[RIGHT] = 9;
+#endif
+
+				// Call BiFlight Initialization
+				biflightInit();
+
+				// Set BiFlight Initialized
+				biflightStatus.Initialized = BIFLIGHTSTATUS_INITIALIZED_TRUE;
+			}
+			else
+			{
+				// Set BiFlight Uninitialized
+				biflightStatus.Initialized = BIFLIGHTSTATUS_INITIALIZED_FALSE;
+			}
+
+			BiflightStatusSet(&biflightStatus);
+		}
+#endif
+
 		PIOS_WDG_UpdateFlag(PIOS_WDG_ACTUATOR);
 
 		UAVObjEvent ev;

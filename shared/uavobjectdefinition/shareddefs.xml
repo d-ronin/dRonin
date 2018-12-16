@@ -29,7 +29,7 @@
         <option>LQGLeveling</option>
         <option>FlipReversed</option>
         <option>Failsafe</option>
-		<option>TailTune</option>
+		<option>ServoCal</option>
       </options>
     </field>
     <field defaultvalue="Manual" elements="1" name="StabilizationMode" type="enum" units="">

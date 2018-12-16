@@ -165,8 +165,8 @@ static inline void updateSystemAlarms();
 static inline void updateWDGstats();
 #endif
 
-#ifdef TRIFLIGHT
-char *triflight_blink_string = NULL;
+#if defined(TRIFLIGHT) || defined(BIFLIGHT)
+char *xflight_blink_string = NULL;
 #endif
 
 /**
@@ -497,13 +497,13 @@ static void systemPeriodicCb(const UAVObjEvent *ev,
 		FlightStatusData flightStatus;
 		FlightStatusGet(&flightStatus);
 
-#ifdef TRIFLIGHT
-		if (flightStatus.FlightMode == FLIGHTSTATUS_FLIGHTMODE_TAILTUNE) {
+#if defined(TRIFLIGHT) || defined(BIFLIGHT)
+		if (flightStatus.FlightMode == FLIGHTSTATUS_FLIGHTMODE_SERVOCAL) {
 			if ((blink_prio == 0) && (blink_state == 0)) {
-				if (triflight_blink_string != NULL) {
-					blink_string           = triflight_blink_string;
+				if (xflight_blink_string != NULL) {
+					blink_string           = xflight_blink_string;
 					blink_prio             = SHAREDDEFS_ALARMLEVELS_HAIRONFIRE;
-					triflight_blink_string = NULL;
+					xflight_blink_string = NULL;
 				}
 			}
 		}

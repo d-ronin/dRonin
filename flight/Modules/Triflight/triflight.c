@@ -55,7 +55,7 @@ static float tail_servo_max_yaw_force = 0.0f;
 static float throttle_range = 0.0f;
 static float yaw_force_curve[TRI_YAW_FORCE_CURVE_SIZE];
 
-extern char *triflight_blink_string;
+extern char *xflight_blink_string;
 
 /**
  *
@@ -681,7 +681,7 @@ static void tailTuneModeThrustTorque(TriflightSettingsData *triflightSettings,
 
 						if (pTT->servoAvgAngle.num_of % 100 == 0) // single short beep once every 100 samples
 						{
-							triflight_blink_string = "T";  // "-" 100 samples saved, should repeat 5 times
+							xflight_blink_string = "T";  // "-" 100 samples saved, should repeat 5 times
 						}
 
 						if (pTT->servoAvgAngle.num_of >= 500)  // 500 samples * 0.02 seconds = 10 seconds
@@ -731,7 +731,7 @@ static void tailTuneModeThrustTorque(TriflightSettingsData *triflightSettings,
 		case TT_DONE:
 			if (PIOS_DELAY_GetuSSince(pTT->timestamp_us) >= 1000000)  // 1 second
 			{
-				triflight_blink_string = "W";                         // ".--" done success
+				xflight_blink_string = "W";                         // ".--" done success
 				pTT->timestamp_us = PIOS_DELAY_GetuS();
 			}
 
@@ -740,7 +740,7 @@ static void tailTuneModeThrustTorque(TriflightSettingsData *triflightSettings,
 		case TT_FAIL:
 			if (PIOS_DELAY_GetuSSince(pTT->timestamp_us) >= 1000000)  // 1 second
 			{
-				triflight_blink_string = "G";                         // "--." done fail
+				xflight_blink_string = "G";                         // "--." done fail
 				pTT->timestamp_us = PIOS_DELAY_GetuS();
 			}
 
@@ -817,7 +817,7 @@ static void tailTuneModeServoSetup(ActuatorSettingsData  *actuatorSettings,
 									pSS->state        = SS_IDLE;
 									pSS->cal.subState = SS_C_S_IDLE;
 
-									triflight_blink_string = "G";  // "--." done fail
+									xflight_blink_string = "G";  // "--." done fail
 								}
 								else
 								{
@@ -903,7 +903,7 @@ static void tailTuneModeServoSetup(ActuatorSettingsData  *actuatorSettings,
 										TriflightSettingsSet(triflightSettings);
 										UAVObjSave(TriflightSettingsHandle(), 0);
 
-										triflight_blink_string = "W";  // ".--" done success
+										xflight_blink_string = "W";  // ".--" done success
 									}
 
 									pSS->cal.timestamp_us = PIOS_DELAY_GetuS();
@@ -971,7 +971,7 @@ void triTailTuneStep(ActuatorSettingsData  *actuatorSettings,
 	ManualControlCommandData cmd;
 	ManualControlCommandGet(&cmd);
 
-	if (flightStatus->FlightMode == FLIGHTSTATUS_FLIGHTMODE_TAILTUNE)
+	if (flightStatus->FlightMode == FLIGHTSTATUS_FLIGHTMODE_SERVOCAL)
 	{
 		if (tailTune.mode == TT_MODE_NONE)
 		{
@@ -990,7 +990,7 @@ void triTailTuneStep(ActuatorSettingsData  *actuatorSettings,
 	else
 	{
 		tailTune.mode = TT_MODE_NONE;
-		triflight_blink_string = NULL;
+		xflight_blink_string = NULL;
 		return;
 	}
 

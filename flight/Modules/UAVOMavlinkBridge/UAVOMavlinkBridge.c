@@ -434,7 +434,7 @@ static void uavoMavlinkBridgeTask(void *parameters) {
 					custom_mode = CUSTOM_MODE_STAB;
 					break;
 				case FLIGHTSTATUS_FLIGHTMODE_AUTOTUNE:
-				case FLIGHTSTATUS_FLIGHTMODE_TAILTUNE:
+				case FLIGHTSTATUS_FLIGHTMODE_SERVOCAL:
 					custom_mode = CUSTOM_MODE_DRIFT;
 					break;
 				case FLIGHTSTATUS_FLIGHTMODE_ALTITUDEHOLD:

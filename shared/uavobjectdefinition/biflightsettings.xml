@@ -1,0 +1,41 @@
+<xml>
+	<object name="BiflightSettings" singleinstance="true" settings="true">
+		<description>Biflight Settings</description>
+		<access gcs="readwrite" flight="readwrite"/>
+		<logging updatemode="periodic" period="1000"/>
+		<telemetrygcs acked="false" updatemode="onchange" period="0"/>
+		<telemetryflight acked="false" updatemode="onchange" period="0"/>
+
+		<field defaultvalue="40.0" elements="1" name="ServoMaxAngle" type="float" units="degrees"/>
+
+		<field defaultvalue="300.0" elements="2" name="ServoSpeed" type="float" units="dps"/>
+		
+		<field defaultvalue="NONE" elements="2" name="ServoFdbkPin" type="enum" units="">
+			<description/>
+			<options>
+				<option>ADC0</option>
+				<option>ADC1</option>
+				<option>ADC2</option>
+				<option>ADC3</option>
+				<option>ADC4</option>
+				<option>ADC5</option>
+				<option>ADC6</option>
+				<option>ADC7</option>
+				<option>ADC8</option>
+				<option>NONE</option>
+			</options>
+		</field>
+
+		<field defaultvalue="2040" elements="2" name="AdcServoFdbkMin" type="float" units=""/>
+		<field defaultvalue="2048" elements="2" name="AdcServoFdbkMid" type="float" units=""/>
+		<field defaultvalue="2056" elements="2" name="AdcServoFdbkMax" type="float" units=""/>
+		
+		<field defaultvalue="Disable" elements="1" name="EnableBiFlight" type="enum" units="">
+			<description/>
+			<options>
+				<option>Disable</option>
+				<option>Enable</option>
+			</options>
+		</field>
+	</object>
+</xml>
