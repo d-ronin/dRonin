@@ -673,7 +673,7 @@ void draw_flight_mode(int x, int y, int xs, int ys, int va, int ha, int flags, i
 		write_string("ST3", x, y, xs, ys, va, ha, flags, font);
 		break;
 	case SHAREDDEFS_FLIGHTMODE_AUTOTUNE:
-	case FLIGHTSTATUS_FLIGHTMODE_TAILTUNE:
+	case FLIGHTSTATUS_FLIGHTMODE_SERVOCAL:
 		write_string("TUNE", x, y, xs, ys, va, ha, flags, font);
 		break;
 	case SHAREDDEFS_FLIGHTMODE_ALTITUDEHOLD:
