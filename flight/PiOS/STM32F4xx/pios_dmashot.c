@@ -140,7 +140,7 @@ static struct servo_timer *PIOS_DMAShot_GetServoTimer(const struct pios_tim_chan
 	return NULL;
 }
 
-void PIOS_DMAShot_WriteValue(const struct pios_tim_channel *servo_channel, uint16_t throttle)
+void PIOS_DMAShot_WriteValue(const struct pios_tim_channel *servo_channel, uint16_t throttle, bool telem_bit)
 {
 	// Fail hard if trying to write values without configured DMAShot. We shouldn't be getting to
 	// this point in that case.
@@ -153,8 +153,6 @@ void PIOS_DMAShot_WriteValue(const struct pios_tim_channel *servo_channel, uint1
 
 	int shift = (servo_channel->timer_chan - s_timer->low_channel) >> 2;
 	int channels = PIOS_DMAShot_GetNumChannels(s_timer);
-
-	bool telem_bit = false;
 
 	/* Set telem bit on commands */
 	if ((throttle > 0) && (throttle < 48)) {

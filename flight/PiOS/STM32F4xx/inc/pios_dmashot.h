@@ -137,7 +137,7 @@ void PIOS_DMAShot_Validate();
  * @param[in] throttle The desired throttle value (0-2047).
  * @retval TRUE on success, FALSE if the channel's not set up for DMA.
  */
-void PIOS_DMAShot_WriteValue(const struct pios_tim_channel *servo_channel, uint16_t throttle);
+void PIOS_DMAShot_WriteValue(const struct pios_tim_channel *servo_channel, uint16_t throttle, bool telem_bit);
 
 /**
  * @brief Triggers the configured DMA channels to fire and send throttle values to the timer DMAR and optional CCRx registers.
