@@ -38,11 +38,9 @@
 
 #include "pios_mpu_priv.h"
 
-#ifndef PIOS_MPU_SPI_HIGH_SPEED
-#define PIOS_MPU_SPI_HIGH_SPEED              20000000	// should result in 10.5MHz clock on F4 targets like Sparky2
-#endif // PIOS_MPU_SPI_HIGH_SPEED
-#define PIOS_MPU_SPI_LOW_SPEED               300000
+#define PIOS_MPU_SPI_HIGH_SPEED  20000000
 
+#define PIOS_MPU_SPI_LOW_SPEED     500000
 
 /**
  * WHOAMI ids of each device, must be same length as pios_mpu_type
