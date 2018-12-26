@@ -39,8 +39,17 @@
 #include "pios_mpu_priv.h"
 
 #define PIOS_MPU_SPI_HIGH_SPEED  20000000
+#define PIOS_MPU_SPI_LOW_SPEED     600000
 
-#define PIOS_MPU_SPI_LOW_SPEED     500000
+// Examples
+
+// STM32F405
+//   Low   |   High
+//  328125 | 10500000
+
+// STM32F303
+//   Low   |   High
+//  562500 | 18000000
 
 /**
  * WHOAMI ids of each device, must be same length as pios_mpu_type
