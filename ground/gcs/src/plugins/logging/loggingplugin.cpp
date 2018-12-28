@@ -138,7 +138,7 @@ bool LoggingThread::openFile(QString file, LoggingPlugin *parent)
     ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
     UAVObjectManager *objManager = pm->getObject<UAVObjectManager>();
 
-    uavTalk = new UAVTalk(&logFile, objManager);
+    uavTalk = new UAVTalk(&logFile, objManager, false);
     connect(parent, SIGNAL(stopLoggingSignal()), this, SLOT(stopLogging()));
 
     return true;

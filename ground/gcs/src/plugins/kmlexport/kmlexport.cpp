@@ -55,7 +55,7 @@ KmlExport::KmlExport(QString inputLogFileName, QString outputKmlFileName)
     UAVObjectsInitialize(kmlUAVObjectManager);
 
     // Connect new UAVO manager to a UAVTalk instance
-    kmlTalk = new UAVTalk(&logFile, kmlUAVObjectManager);
+    kmlTalk = new UAVTalk(&logFile, kmlUAVObjectManager, false);
 
     // Get the UAVObjects
     airspeedActual = AirspeedActual::GetInstance(kmlUAVObjectManager);
