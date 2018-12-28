@@ -91,7 +91,7 @@ const struct pios_annunc_cfg *PIOS_BOARD_HW_DEFS_GetLedCfg(uint32_t board_revisi
 	return &pios_annunc_cfg;
 }
 
-#endif	/* PIOS_INCLUDE_LED */
+#endif	/* PIOS_INCLUDE_ANNUC */
 
 #if defined(PIOS_INCLUDE_SPI)
 #include <pios_spi_priv.h>
@@ -161,6 +161,88 @@ static const struct pios_spi_cfg pios_spi_internal_cfg = {
 	},
 };
 #endif	/* PIOS_INCLUDE_SPI */
+
+#if defined(PIOS_INCLUDE_I2C)
+
+#include <pios_i2c_priv.h>
+
+/*
+ * I2C Adapters
+ */
+void PIOS_I2C_internal_ev_irq_handler(void);
+void PIOS_I2C_internal_er_irq_handler(void);
+void I2C2_EV_EXTI24_IRQHandler() __attribute__ ((alias ("PIOS_I2C_internal_ev_irq_handler")));
+void I2C2_ER_IRQHandler() __attribute__ ((alias ("PIOS_I2C_internal_er_irq_handler")));
+
+static const struct pios_i2c_adapter_cfg pios_i2c_internal_cfg = {
+  .regs = I2C2,
+  .remap = GPIO_AF_4,
+  .init = {
+    .I2C_Mode                = I2C_Mode_I2C,
+    .I2C_OwnAddress1         = 0,
+    .I2C_Ack                 = I2C_Ack_Enable,
+    .I2C_AcknowledgedAddress = I2C_AcknowledgedAddress_7bit,
+    .I2C_DigitalFilter       = 0x00,
+    .I2C_AnalogFilter        = I2C_AnalogFilter_Enable,
+    .I2C_Timing              = 0x00310309,			//400kHz I2C @ 8MHz input -> PRESC=0x0, SCLDEL=0x3, SDADEL=0x1, SCLH=0x03, SCLL=0x09
+  },
+  .transfer_timeout_ms = 50,
+  .scl = {
+    .gpio = GPIOA,
+    .init = {
+			.GPIO_Pin = GPIO_Pin_9,
+            .GPIO_Mode  = GPIO_Mode_AF,
+            .GPIO_Speed = GPIO_Speed_50MHz,
+            .GPIO_OType = GPIO_OType_PP,
+            .GPIO_PuPd  = GPIO_PuPd_NOPULL,
+    },
+	.pin_source = GPIO_PinSource9,
+  },
+  .sda = {
+    .gpio = GPIOA,
+    .init = {
+			.GPIO_Pin = GPIO_Pin_10,
+            .GPIO_Mode  = GPIO_Mode_AF,
+            .GPIO_Speed = GPIO_Speed_50MHz,
+            .GPIO_OType = GPIO_OType_PP,
+            .GPIO_PuPd  = GPIO_PuPd_NOPULL,
+    },
+	.pin_source = GPIO_PinSource10,
+  },
+  .event = {
+    .flags   = 0,		/* FIXME: check this */
+    .init = {
+			.NVIC_IRQChannel = I2C2_EV_IRQn,
+			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGHEST,
+			.NVIC_IRQChannelSubPriority = 0,
+			.NVIC_IRQChannelCmd = ENABLE,
+    },
+  },
+  .error = {
+    .flags   = 0,		/* FIXME: check this */
+    .init = {
+			.NVIC_IRQChannel = I2C2_ER_IRQn,
+			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGHEST,
+			.NVIC_IRQChannelSubPriority = 0,
+			.NVIC_IRQChannelCmd = ENABLE,
+    },
+  },
+};
+
+pios_i2c_t pios_i2c_internal_id;
+void PIOS_I2C_internal_ev_irq_handler(void)
+{
+  /* Call into the generic code to handle the IRQ for this specific device */
+  PIOS_I2C_EV_IRQ_Handler(pios_i2c_internal_id);
+}
+
+void PIOS_I2C_internal_er_irq_handler(void)
+{
+  /* Call into the generic code to handle the IRQ for this specific device */
+  PIOS_I2C_ER_IRQ_Handler(pios_i2c_internal_id);
+}
+
+#endif /* PIOS_INCLUDE_I2C */
 
 #if defined(PIOS_INCLUDE_FLASH)
 #include "pios_flashfs_logfs_priv.h"
@@ -892,6 +974,43 @@ static const struct pios_mpu_cfg pios_mpu_cfg = {
 	.orientation        = PIOS_MPU_TOP_90DEG
 };
 #endif /* PIOS_INCLUDE_MPU */
+
+/**
+ * Configuration for the MS5611 chip
+ */
+#if defined(PIOS_INCLUDE_MS5611)
+#include "pios_ms5611_priv.h"
+static const struct pios_ms5611_cfg pios_ms5611_cfg = {
+	.oversampling = MS5611_OSR_1024,
+	.temperature_interleaving = 1,
+};
+#endif /* PIOS_INCLUDE_MS5611 */
+
+#ifdef PIOS_INCLUDE_HMC5883
+#include "pios_hmc5883_priv.h"
+static const struct pios_hmc5883_cfg pios_hmc5883_external_cfg = {
+	.exti_cfg = NULL,
+	.M_ODR = PIOS_HMC5883_ODR_75,
+	.Meas_Conf = PIOS_HMC5883_MEASCONF_NORMAL,
+	.Gain = PIOS_HMC5883_GAIN_1_9,
+	.Mode = PIOS_HMC5883_MODE_CONTINUOUS,
+	.Default_Orientation = PIOS_HMC5883_TOP_0DEG,
+};
+#endif
+
+#ifdef PIOS_INCLUDE_HMC5983_I2C
+#include "pios_hmc5983.h"
+
+static const struct pios_hmc5983_cfg pios_hmc5983_external_cfg = {
+	.exti_cfg            = NULL,
+	.M_ODR               = PIOS_HMC5983_ODR_75,
+	.Meas_Conf           = PIOS_HMC5983_MEASCONF_NORMAL,
+	.Gain                = PIOS_HMC5983_GAIN_1_9,
+	.Mode                = PIOS_HMC5983_MODE_CONTINUOUS,
+	.Averaging           = PIOS_HMC5983_AVERAGING_1,
+	.Orientation         = PIOS_HMC5983_TOP_0DEG,
+};
+#endif
 
 /**
  * @}

@@ -19,6 +19,7 @@
 				<option>DSM</option>
 				<option>FrSKY Sensor Hub</option>
 				<option>FrSKY SPort Telemetry</option>
+				<option>GPS</option>
 				<option>HoTT Telemetry</option>
 				<option>IBus</option>
 				<option>MSP</option>
@@ -38,6 +39,7 @@
 				<option>DSM</option>
 				<option>FrSKY Sensor Hub</option>
 				<option>FrSKY SPort Telemetry</option>
+				<option>GPS</option>
 				<option>HoTT Telemetry</option>
 				<option>IBus</option>
 				<option>MSP</option>
@@ -57,6 +59,7 @@
 				<option>DSM</option>
 				<option>FrSKY Sensor Hub</option>
 				<option>FrSKY SPort Telemetry</option>
+				<option>GPS</option>
 				<option>HoTT Telemetry</option>
 				<option>IBus</option>
 				<option>MSP</option>
@@ -105,6 +108,24 @@
 				<option>10</option>
 				<option>5</option>
 			</options>
+		</field>
+		<field defaultvalue="None" elements="1" name="MS5611" type="enum" units="none">
+			<description>Enable/Disable MS5611</description>
+			<options>
+				<option>None</option>
+				<option>Enabled</option>
+			</options>
+		</field>
+		<field defaultvalue="None" elements="1" name="ExtMag" parent="HwShared.Mag" type="enum" units="none">
+			<description>Enable/Disable External Mag</description>
+			<options>
+				<option>None</option>
+				<option>External HMC5883</option>
+				<option>External HMC5983</option>
+			</options>
+		</field>
+		<field defaultvalue="Top0degCW" elements="1" name="ExtMagOrientation" parent="HwShared.MagOrientation" type="enum" units="none">
+			<description>Orientation of the external magnetometer</description>
 		</field>
 		<field defaultvalue="Uart2_RX" elements="1" name="FC_Pad_R2" type="enum" units="none">
 			<description>R2 Pad Function</description>
