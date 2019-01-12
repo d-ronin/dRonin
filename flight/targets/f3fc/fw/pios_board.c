@@ -187,6 +187,18 @@ void PIOS_Board_Init(void)
 #endif	/* PIOS_INCLUDE_USB */
 
     /* Configure the IO ports */
+
+#if defined(PIOS_INCLUDE_I2C)
+	if (PIOS_I2C_Init(&pios_i2c_internal_id, &pios_i2c_internal_cfg))
+		PIOS_DEBUG_Assert(0);
+
+	if (PIOS_I2C_CheckClear(pios_i2c_internal_id) != 0)
+		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_I2C_INT);
+	else
+		if (AlarmsGet(SYSTEMALARMS_ALARM_I2C) == SYSTEMALARMS_ALARM_UNINITIALISED)
+			AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_OK);
+#endif  // PIOS_INCLUDE_I2C
+
 	HwF3FcDSMxModeOptions hw_DSMxMode;
 	HwF3FcDSMxModeGet(&hw_DSMxMode);
 	
@@ -350,6 +362,30 @@ void PIOS_Board_Init(void)
 
 	//I2C is slow, sensor init as well, reset watchdog to prevent reset here
 	PIOS_WDG_Clear();
+
+#if defined(PIOS_INCLUDE_MS5611)
+	HwF3FcMS5611Options hw_ms5611;
+	HwF3FcMS5611Get(&hw_ms5611);
+	
+	if (hw_ms5611 == HWF3FC_MS5611_ENABLED) {
+		if ((PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_internal_id) != 0)
+			|| (PIOS_MS5611_Test() != 0))
+		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_BARO);
+	}
+#endif
+
+	PIOS_WDG_Clear();
+	
+#if defined(PIOS_INCLUDE_HMC5883) || defined(PIOS_INCLUDE_HMC5983_I2C)
+    HwF3FcExtMagOptions hw_ext_mag;
+    HwF3FcExtMagOrientationOptions hw_orientation;
+
+    HwF3FcExtMagGet(&hw_ext_mag);
+    HwF3FcExtMagOrientationGet(&hw_orientation);
+
+    PIOS_HAL_ConfigureExternalMag(hw_ext_mag, hw_orientation,
+            &pios_i2c_internal_id, &pios_i2c_internal_cfg);
+#endif
 
 	/* Make sure we have at least one telemetry link configured or else fail initialization */
 	PIOS_Assert(pios_com_telem_serial_id || pios_com_telem_usb_id);
