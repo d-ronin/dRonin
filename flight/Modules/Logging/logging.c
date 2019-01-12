@@ -47,6 +47,7 @@
 #include "accels.h"
 #include "actuatorcommand.h"
 #include "actuatordesired.h"
+#include "actuatortelemetry.h"
 #include "airspeedactual.h"
 #include "attitudeactual.h"
 #include "baroaltitude.h"
@@ -647,6 +648,9 @@ static void register_default_profile()
 	}
 	if (VelocityActualHandle()) {
 		UAVObjConnectCallbackThrottled(VelocityActualHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED, 10 * min_period);
+	}
+	if (ActuatorTelemetryHandle()) {
+		UAVObjConnectCallbackThrottled(ActuatorTelemetryHandle(), obj_updated_callback, NULL, EV_UPDATED | EV_UNPACKED, 10 * min_period);		
 	}
 
 	// Log very slow
