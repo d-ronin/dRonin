@@ -60,11 +60,11 @@
 /* Com systems to include */
 #define PIOS_INCLUDE_MAVLINK
 #define PIOS_INCLUDE_LIGHTTELEMETRY
+#define PIOS_INCLUDE_DSHOTTELEMETRY
 
 #define PIOS_INCLUDE_DMASHOT
 
 /* Supported receiver interfaces */
-
 
 #define PIOS_INCLUDE_LOG_TO_FLASH
 #define PIOS_LOGFLASH_SECT_SIZE 0x10000 /* 64kb */

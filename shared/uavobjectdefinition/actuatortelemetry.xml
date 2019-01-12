@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<xml>
+	<object name="ActuatorTelemetry" singleinstance="true" settings="false">
+		<description>Basic actuator telemetry received via servo channels.</description>
+		<field name="Temperature" units="deg C" type="uint8" elements="10">
+			<description>Temperature readout for each telemetry capable ESC.</description>
+		</field>
+		<field name="Voltage" units="mV" type="uint16" elements="1">
+			<description>Average voltage over all telemetry capable ESCs.</description>
+		</field>
+		<field name="Current" units="x0.01 A" type="uint16" elements="10">
+			<description>Current usage for each telemetry capable ESC.</description>
+		</field>
+		<field name="Consumed" units="mAh" type="uint16" elements="1">
+			<description>Total energy consumed from all telemetry capable ESCs.</description>
+		</field>
+		<field name="eRPM" units="x100 eRPM" type="uint16" elements="10">
+			<description>Electrical RPM, in units of 100, for each telemetry capable ESC. Values are equivalent to a two pole motor, please convert accordingly (e.g. divide by 7 for your typical miniquad brushless motor.)</description>
+		</field>
+		<access gcs="readwrite" flight="readwrite" />
+		<telemetrygcs acked="false" updatemode="manual" period="0" />
+		<telemetryflight acked="false" updatemode="throttled" period="1000" />
+		<logging updatemode="manual" period="0" />
+	</object>
+</xml>
