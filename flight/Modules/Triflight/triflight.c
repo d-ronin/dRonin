@@ -880,8 +880,8 @@ static void tailTuneModeServoSetup(ActuatorSettingsData  *actuatorSettings,
 							// Wait for the servo to reach min position
 							adc_min_lt_adc_max = triflightSettings->AdcServoFdbkMin < triflightSettings->AdcServoFdbkMax;
 
-							if (((triflightStatus->ADCServoFdbk < (triflightSettings->AdcServoFdbkMin + 10.0f)) &&  adc_min_lt_adc_max) ||
-							    ((triflightStatus->ADCServoFdbk > (triflightSettings->AdcServoFdbkMin - 10.0f)) && !adc_min_lt_adc_max))
+							if (((triflightStatus->ADCServoFdbk < (triflightSettings->AdcServoFdbkMin + 100.0f)) &&  adc_min_lt_adc_max) ||
+							    ((triflightStatus->ADCServoFdbk > (triflightSettings->AdcServoFdbkMin - 100.0f)) && !adc_min_lt_adc_max))
 							{
 								if (!pSS->cal.waitingServoToStop)
 								{
@@ -924,8 +924,8 @@ static void tailTuneModeServoSetup(ActuatorSettingsData  *actuatorSettings,
 							// Wait for the servo to reach max position
 							adc_min_lt_adc_max = triflightSettings->AdcServoFdbkMin < triflightSettings->AdcServoFdbkMax;
 
-							if (((triflightStatus->ADCServoFdbk > (triflightSettings->AdcServoFdbkMax - 10.0f)) &&  adc_min_lt_adc_max) ||
-							    ((triflightStatus->ADCServoFdbk < (triflightSettings->AdcServoFdbkMax + 10.0f)) && !adc_min_lt_adc_max))
+							if (((triflightStatus->ADCServoFdbk > (triflightSettings->AdcServoFdbkMax - 100.0f)) &&  adc_min_lt_adc_max) ||
+							    ((triflightStatus->ADCServoFdbk < (triflightSettings->AdcServoFdbkMax + 100.0f)) && !adc_min_lt_adc_max))
 							{
 								if (!pSS->cal.waitingServoToStop)
 								{

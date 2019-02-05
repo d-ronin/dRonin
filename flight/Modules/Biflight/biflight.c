@@ -345,8 +345,8 @@ static void servoCalibrationSetup(ActuatorSettingsData *actuatorSettings,
 							// Wait for the servo to reach min position
 							adc_min_lt_adc_max = biflightSettings->AdcServoFdbkMin[side] < biflightSettings->AdcServoFdbkMax[side];
 
-							if (((biflightStatus->ADCServoFdbk[side] < (biflightSettings->AdcServoFdbkMin[side] + 10.0f)) &&  adc_min_lt_adc_max) ||
-							    ((biflightStatus->ADCServoFdbk[side] > (biflightSettings->AdcServoFdbkMin[side] - 10.0f)) && !adc_min_lt_adc_max))
+							if (((biflightStatus->ADCServoFdbk[side] < (biflightSettings->AdcServoFdbkMin[side] + 100.0f)) &&  adc_min_lt_adc_max) ||
+							    ((biflightStatus->ADCServoFdbk[side] > (biflightSettings->AdcServoFdbkMin[side] - 100.0f)) && !adc_min_lt_adc_max))
 							{
 								if (!pSS->cal.waitingServoToStop)
 								{
@@ -389,8 +389,8 @@ static void servoCalibrationSetup(ActuatorSettingsData *actuatorSettings,
 							// Wait for the servo to reach max position
 							adc_min_lt_adc_max = biflightSettings->AdcServoFdbkMin[side] < biflightSettings->AdcServoFdbkMax[side];
 
-							if (((biflightStatus->ADCServoFdbk[side] > (biflightSettings->AdcServoFdbkMax[side] - 10.0f)) &&  adc_min_lt_adc_max) ||
-							    ((biflightStatus->ADCServoFdbk[side] < (biflightSettings->AdcServoFdbkMax[side] + 10.0f)) && !adc_min_lt_adc_max))
+							if (((biflightStatus->ADCServoFdbk[side] > (biflightSettings->AdcServoFdbkMax[side] - 100.0f)) &&  adc_min_lt_adc_max) ||
+							    ((biflightStatus->ADCServoFdbk[side] < (biflightSettings->AdcServoFdbkMax[side] + 100.0f)) && !adc_min_lt_adc_max))
 							{
 								if (!pSS->cal.waitingServoToStop)
 								{
