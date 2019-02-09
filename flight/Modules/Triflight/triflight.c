@@ -50,7 +50,7 @@
 #define TRI_YAW_FORCE_CURVE_SIZE  100
 
 static float motor_acceleration = 0.0f;
-static float tail_motor_pitch_zero_angle;
+static bool  spinCCW;
 static float tail_servo_max_yaw_force = 0.0f;
 static float throttle_range = 0.0f;
 static float yaw_force_curve[TRI_YAW_FORCE_CURVE_SIZE];
@@ -63,7 +63,10 @@ extern char *xflight_blink_string;
  */
 float getPitchCorrectionAtTailAngle(float angle, float thrust_factor)
 {
-    return 1.0f / (sinf(angle) - cosf(angle) / thrust_factor);
+	if (spinCCW)
+		return 1.0f / (sinf(angle) - cosf(angle) / thrust_factor);
+	else
+		return 1.0f / (sinf(angle) + cosf(angle) / thrust_factor);
 }
 
 /**
@@ -74,6 +77,8 @@ void triflightInit(ActuatorSettingsData  *actuatorSettings,
                    TriflightSettingsData *triflightSettings,
                    TriflightStatusData   *triflightStatus)
 {
+	spinCCW = triflightSettings->TailSpinDirection == TRIFLIGHTSETTINGS_TAILSPINDIRECTION_CCW;
+	
 	float min_angle = TRI_TAIL_SERVO_ANGLE_MID - triflightSettings->ServoMaxAngle;
 	float max_angle = TRI_TAIL_SERVO_ANGLE_MID + triflightSettings->ServoMaxAngle;
 
@@ -86,8 +91,12 @@ void triflightInit(ActuatorSettingsData  *actuatorSettings,
 	{
 		float angle_rad = DEG2RAD * angle;
 
-		yaw_force_curve[i] = (-triflightSettings->MotorThrustFactor * cosf(angle_rad) - sinf(angle_rad)) *
-                              getPitchCorrectionAtTailAngle(angle_rad, triflightSettings->MotorThrustFactor);
+		if (spinCCW)
+			yaw_force_curve[i] = (-triflightSettings->MotorThrustFactor * cosf(angle_rad) - sinf(angle_rad)) *
+			                      getPitchCorrectionAtTailAngle(angle_rad, triflightSettings->MotorThrustFactor);
+		else
+			yaw_force_curve[i] = (-triflightSettings->MotorThrustFactor * cosf(angle_rad) + sinf(angle_rad)) *
+			                      getPitchCorrectionAtTailAngle(angle_rad, triflightSettings->MotorThrustFactor);
 
 		// Only calculate the top forces in the configured angle range
 		if ((angle >= min_angle) && (angle <= max_angle))
@@ -100,10 +109,6 @@ void triflightInit(ActuatorSettingsData  *actuatorSettings,
 	}
 
 	tail_servo_max_yaw_force = fminf(fabsf(max_neg_force), fabsf(max_pos_force));
-
-	tail_motor_pitch_zero_angle = 2.0f * (atanf(((sqrtf(triflightSettings->MotorThrustFactor *
-	                                                    triflightSettings->MotorThrustFactor + 1) + 1) /
-	                                                    triflightSettings->MotorThrustFactor))) * RAD2DEG;
 
 	throttle_range = actuatorSettings->ChannelMax[triflightStatus->RearMotorChannel] -
 	                 actuatorSettings->ChannelNeutral[triflightStatus->RearMotorChannel];
@@ -703,11 +708,12 @@ static void tailTuneModeThrustTorque(TriflightSettingsData *triflightSettings,
 			if (!armed)	{
 				float average_servo_angle = pTT->servoAvgAngle.sum / (float)pTT->servoAvgAngle.num_of;
 
-				if((average_servo_angle > 90.5f) && (average_servo_angle < 120.0f)) {
+				if(((average_servo_angle > 90.5f) && (average_servo_angle < 120.0f) && (spinCCW)) ||
+				   ((average_servo_angle < 89.5f) && (average_servo_angle > 60.0f) && (!spinCCW))){
 					average_servo_angle -= 90.0f;
 					average_servo_angle *= DEG2RAD;
 
-					triflightSettings->MotorThrustFactor = cosf(average_servo_angle) / sinf(average_servo_angle);
+					triflightSettings->MotorThrustFactor = fabsf(cosf(average_servo_angle) / sinf(average_servo_angle));
 
 					TriflightSettingsSet(triflightSettings);
 					UAVObjSave(TriflightSettingsHandle(), 0);

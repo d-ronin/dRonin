@@ -44,6 +44,14 @@
 
 		<field defaultvalue="2056" elements="1" name="AdcServoFdbkMax" type="float" units=""/>
 
+		<field defaultvalue="CCW" elements="1" name="TailSpinDirection" type="enum" units="">
+			<description/>
+			<options>
+				<option>CCW</option>
+				<option>CW</option>
+			</options>
+		</field>
+
 		<field defaultvalue="Enable" elements="1" name="EnableVirtualServo" type="enum" units="">
 			<description/>
 			<options>
