@@ -65,6 +65,7 @@ OPTMODULES += CharacterOSD
 OPTMODULES += UAVOCrossfireTelemetry
 OPTMODULES += OpenAeroVtol
 OPTMODULES += Triflight
+OPTMODULES += Biflight
 
 # Paths
 OPUAVOBJINC = $(OPUAVOBJ)/inc
