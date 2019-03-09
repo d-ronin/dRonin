@@ -38,13 +38,9 @@
 #define PIOS_INCLUDE_DMA_CB_SUBSCRIBING_FUNCTION
 
 #define PIOS_INCLUDE_SPI
-#define PIOS_INCLUDE_I2C
 
 /* Select the sensors to include */
 #define PIOS_INCLUDE_MPU
-#define PIOS_INCLUDE_HMC5883
-#define PIOS_INCLUDE_HMC5983_I2C
-#define PIOS_TOLERATE_MISSING_SENSORS
 
 /* Com systems to include */
 #define PIOS_INCLUDE_MAVLINK
@@ -52,9 +48,7 @@
 
 /* Supported receiver interfaces */
 
-
 /* Flags that alter behaviors */
-//#define PIOS_TELEM_PRIORITY_QUEUE       /* Enable a priority queue in telemetry */
 #define AUTOTUNE_AVERAGING_DECIMATION 2
 
 /* Alarm Thresholds */
@@ -74,8 +68,6 @@
  * A change in the cpu load calculation or the idle task handler will invalidate this as well.
  */
 #define IDLE_COUNTS_PER_SEC_AT_NO_LOAD (2175780)
-
-#define CAMERASTAB_POI_MODE
 
 #define PIOS_INCLUDE_FASTHEAP
 
