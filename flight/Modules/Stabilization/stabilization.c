@@ -328,9 +328,11 @@ bool stabilization_failsafe_checks(StabilizationDesiredData *stab_desired,
 	return failsafed;
 }
 
-static void calculate_attitude_errors(uint8_t *axis_mode, float *raw_input,
-		AttitudeActualData *attitudeActual,
-	       	float *local_attitude_error, float *horizon_rate_fraction)
+static void calculate_attitude_errors(uint8_t *axis_mode, 
+                                      float *raw_input,
+		                              AttitudeActualData *attitudeActual,
+	       	                          float *local_attitude_error, 
+									  float *horizon_rate_fraction)
 {
 	float trimmed_setpoint[YAW+1];
 	float *cur_attitude = &attitudeActual->Roll;
@@ -351,11 +353,9 @@ static void calculate_attitude_errors(uint8_t *axis_mode, float *raw_input,
 	*horizon_rate_fraction = 0.0f;
 
 	if (axis_mode[ROLL] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) {
-		trimmed_setpoint[ROLL] = bound_min_max(
-				raw_input[ROLL] * settings.MaxLevelAngle[ROLL]
-						+ subTrim.Roll,
-				-settings.MaxLevelAngle[ROLL] + subTrim.Roll,
-				settings.MaxLevelAngle[ROLL] + subTrim.Roll);
+		trimmed_setpoint[ROLL] = bound_min_max(	raw_input[ROLL] * settings.MaxLevelAngle[ROLL] + subTrim.Roll,
+				                               -settings.MaxLevelAngle[ROLL] + subTrim.Roll,
+				                                settings.MaxLevelAngle[ROLL] + subTrim.Roll);
 		*horizon_rate_fraction = fabsf(raw_input[ROLL]);
 	}
 	if (axis_mode[PITCH] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) {
@@ -391,6 +391,7 @@ static void calculate_attitude_errors(uint8_t *axis_mode, float *raw_input,
 			case STABILIZATIONDESIRED_STABILIZATIONMODE_WEAKLEVELING:
 			case STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE:
 			case STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDELQG:
+			case STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZONLQG:
 			case STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT:
 				break;
 			default:
@@ -1216,6 +1217,36 @@ static void stabilizationTask(void* parameters)
 					actuatorDesiredAxis[i] = pid_apply_setpoint_antiwindup(&pids[PID_GROUP_RATE + i], get_deadband(i),  rateDesiredAxis[i],  gyro_filtered[i], -1.0f, 1.0f, 1.0f);
 
 					break;
+
+				case STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZONLQG:
+#if defined(STABILIZATION_LQG)
+					if (lqg[i] && (lqg_solver_status(lqg[i]) == LQG_SOLVER_DONE)) {
+						if (reinit) {
+							lqg_set_x0(lqg[i], gyro_filtered[i]);
+						}
+						lqg_in_use = true;
+
+						// Compute the outer loop for the attitude control
+						float rateDesiredAttitude = pid_apply(&pids[PID_GROUP_ATT + i], local_attitude_error[i]);
+						// Compute the desire rate for a rate control
+						float rateDesiredRate = bound_sym(raw_input[i], 1.0f) * settings.ManualRate[i];
+
+						// Blend from one rate to another. The maximum of all stick positions is used for the
+						// amount so that when one axis goes completely to rate the other one does too. This
+						// prevents doing flips while one axis tries to stay in attitude mode.
+						// XXX the bounding here is not right!
+						rateDesiredAxis[i] = rateDesiredAttitude * (1.0f - horizon_rate_fraction) + rateDesiredRate * horizon_rate_fraction;
+						rateDesiredAxis[i] = bound_sym(rateDesiredAxis[i], settings.ManualRate[i]);
+
+						/* Compute the inner loop */
+						actuatorDesiredAxis[i] = lqg_controller(lqg[i], gyro_filtered[i], rateDesiredAxis[i]);
+						/* The LQG controller bounds data already, but whatever. */
+						actuatorDesiredAxis[i] = bound_sym(actuatorDesiredAxis[i], 1.0f);
+						break;
+					}
+#endif
+					/* Fall through to horizon, if LQR gains haven't been solved yet, or if
+					   LQG wasn't initialized. */
 
 				case STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON:
 					if(reinit) {

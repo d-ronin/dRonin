@@ -1043,6 +1043,7 @@ static inline float scale_stabilization(StabilizationSettingsData *stabSettings,
 		case SHAREDDEFS_STABILIZATIONMODE_ATTITUDELQG:
 			return cmd * stabSettings->MaxLevelAngle[axis];
 		case SHAREDDEFS_STABILIZATIONMODE_HORIZON:
+		case SHAREDDEFS_STABILIZATIONMODE_HORIZONLQG:
 			cmd = expo3(cmd, stabSettings->HorizonExpo[axis]);
 			return cmd;
 	}
@@ -1066,7 +1067,7 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
 	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL };
 	const uint8_t RATE_SETTINGS[3] = {
 	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_RATE,
-		STABILIZATIONDESIRED_STABILIZATIONMODE_RATE,
+	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_RATE,
 	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_AXISLOCK};
 	const uint8_t ATTITUDE_SETTINGS[3] = {
 	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDE,
@@ -1085,33 +1086,37 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
 	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_AXISLOCK,
 	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_AXISLOCK};
 	const uint8_t ACROPLUS_SETTINGS[3] = {
-                                          STABILIZATIONDESIRED_STABILIZATIONMODE_ACROPLUS,
-		STABILIZATIONDESIRED_STABILIZATIONMODE_ACROPLUS,
-                                          STABILIZATIONDESIRED_STABILIZATIONMODE_RATE};
+	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_ACROPLUS,
+	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_ACROPLUS,
+	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_RATE};
 	const uint8_t ACRODYNE_SETTINGS[3] = {
-                                          STABILIZATIONDESIRED_STABILIZATIONMODE_ACRODYNE,
-		STABILIZATIONDESIRED_STABILIZATIONMODE_ACRODYNE,
-                                          STABILIZATIONDESIRED_STABILIZATIONMODE_ACRODYNE};
+	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_ACRODYNE,
+	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_ACRODYNE,
+	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_ACRODYNE};
 	const uint8_t FAILSAFE_SETTINGS[3] = {
-                                          STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE,
-		STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE,
-                                          STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE};
+	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE,
+	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE,
+	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_FAILSAFE};
 	const uint8_t SYSTEMIDENT_SETTINGS[3] = {
-                                          STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT,
-		STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT,
-                                          STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENTRATE };
+	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT,
+	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENT,
+	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_SYSTEMIDENTRATE };
 	const uint8_t LQG_SETTINGS[3] = {
-                                       STABILIZATIONDESIRED_STABILIZATIONMODE_LQG,
-		STABILIZATIONDESIRED_STABILIZATIONMODE_LQG,
-                                       STABILIZATIONDESIRED_STABILIZATIONMODE_LQG };
+	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_LQG,
+	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_LQG,
+	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_LQG };
 	const uint8_t ATTITUDELQG_SETTINGS[3] = {
-                                               STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDELQG,
-		STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDELQG,
-                                               STABILIZATIONDESIRED_STABILIZATIONMODE_LQG };
+	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDELQG,
+	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_ATTITUDELQG,
+                                        STABILIZATIONDESIRED_STABILIZATIONMODE_LQG };
+	const uint8_t HORIZONLQG_SETTINGS[3] = {
+	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZONLQG,
+	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZONLQG,
+                                        STABILIZATIONDESIRED_STABILIZATIONMODE_LQG };
 	const uint8_t FLIPOVER_SETTINGS[3] = {
-		STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL,
-		STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL,
-		STABILIZATIONDESIRED_STABILIZATIONMODE_DISABLED };
+	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL,
+	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_MANUAL,
+	                                    STABILIZATIONDESIRED_STABILIZATIONMODE_DISABLED };
 
 	const uint8_t * stab_modes = ATTITUDE_SETTINGS;
 
@@ -1182,6 +1187,9 @@ static void update_stabilization_desired(ManualControlCommandData * manual_contr
 			break;
 		case FLIGHTSTATUS_FLIGHTMODE_LQGLEVELING:
 			stab_modes = ATTITUDELQG_SETTINGS;
+			break;
+		case FLIGHTSTATUS_FLIGHTMODE_LQGHORIZON:
+			stab_modes = HORIZONLQG_SETTINGS;
 			break;
 		case FLIGHTSTATUS_FLIGHTMODE_FLIPREVERSED:
 			stab_modes = FLIPOVER_SETTINGS;

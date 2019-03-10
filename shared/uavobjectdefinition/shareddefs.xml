@@ -27,6 +27,7 @@
         <option>Acrodyne</option>
         <option>LQG</option>
         <option>LQGLeveling</option>
+		<option>LQGHorizon</option>
         <option>FlipReversed</option>
         <option>Failsafe</option>
 		<option>ServoCal</option>
@@ -52,6 +53,7 @@
         <option>Failsafe</option>
         <option>LQG</option>
         <option>AttitudeLQG</option>
+		<option>HorizonLQG</option>
       </options>
     </field>
     <field defaultvalue="None" elements="1" name="ReprojectionMode" type="enum" units="">

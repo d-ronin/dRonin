@@ -141,6 +141,7 @@ int32_t configuration_check()
 				break;
 			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_LQG:
 			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_LQGLEVELING:
+			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_LQGHORIZON:
 				if (!lqg_sysident_check()) {
 					error_code = SYSTEMALARMS_CONFIGERROR_LQG;
 				}
@@ -257,7 +258,8 @@ static int32_t check_stabilization_settings(int index, bool multirotor)
 
 		/* Throw an error if LQG modes are configured without system identification data. */
 		if (modes[i] == MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_LQG ||
-			modes[i] == MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_ATTITUDELQG) {
+			modes[i] == MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_ATTITUDELQG ||
+			modes[i] == MANUALCONTROLSETTINGS_STABILIZATION1SETTINGS_HORIZONLQG ) {
 			if (!lqg_sysident_check())
 				return SYSTEMALARMS_CONFIGERROR_LQG;
 		}
@@ -315,6 +317,7 @@ static int32_t check_safe_to_arm()
 				break;
 			case FLIGHTSTATUS_FLIGHTMODE_LQG:
 			case FLIGHTSTATUS_FLIGHTMODE_LQGLEVELING:
+			case FLIGHTSTATUS_FLIGHTMODE_LQGHORIZON:
 				if (!lqg_sysident_check()) {
 					return SYSTEMALARMS_CONFIGERROR_LQG;
 				}

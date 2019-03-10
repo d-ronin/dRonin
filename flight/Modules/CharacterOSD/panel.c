@@ -223,6 +223,9 @@ static void FLIGHTMODE_update(charosd_state_t state, uint8_t x, uint8_t y)
 	case FLIGHTSTATUS_FLIGHTMODE_LQGLEVELING:
 		mode = "LQGL";
 		break;
+	case FLIGHTSTATUS_FLIGHTMODE_LQGHORIZON:
+		mode = "LQGH";
+		break;
 	case FLIGHTSTATUS_FLIGHTMODE_FLIPREVERSED:
 		mode = "FLIP";
 		break;
