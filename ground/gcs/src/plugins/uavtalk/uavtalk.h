@@ -60,7 +60,7 @@ public:
         quint32 rxErrors;
     };
 
-    UAVTalk(QIODevice *iodev, UAVObjectManager *objMngr);
+    UAVTalk(QIODevice *iodev, UAVObjectManager *objMngr, bool canBlock = true);
     ~UAVTalk();
     bool sendObject(UAVObject *obj, bool acked, bool allInstances);
     bool sendObjectRequest(UAVObject *obj, bool allInstances);
@@ -134,6 +134,7 @@ protected:
     // Variables
     QPointer<QIODevice> io;
     UAVObjectManager *objMngr;
+    bool canBlock;
 
     // This is a tradeoff between the frequency of the need to
     // compact/copy left and buffer size.

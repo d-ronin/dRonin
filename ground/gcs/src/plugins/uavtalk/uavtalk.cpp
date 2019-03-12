@@ -69,11 +69,12 @@ const quint8 UAVTalk::crc_table[256] = {
 /**
  * Constructor
  */
-UAVTalk::UAVTalk(QIODevice *iodev, UAVObjectManager *objMngr)
+UAVTalk::UAVTalk(QIODevice *iodev, UAVObjectManager *objMngr, bool canBlock)
 {
     io = iodev;
 
     this->objMngr = objMngr;
+    this->canBlock = canBlock;
 
     startOffset = 0;
     filledBytes = 0;
@@ -576,7 +577,10 @@ bool UAVTalk::transmitFrame(quint32 length, bool incrTxObj)
 
     txBuffer[length] = updateCRC(0, txBuffer, length);
 
-    if (!io.isNull() && io->isWritable() && io->bytesToWrite() < TX_BACKLOG_SIZE) {
+    // QFileDevice, used for saving logs, has quite a large buffer, we're not worried about it blocking
+    bool blocked = canBlock && io->bytesToWrite() >= TX_BACKLOG_SIZE;
+
+    if (!io.isNull() && io->isWritable() && !blocked) {
         io->write(reinterpret_cast<const char *>(txBuffer), length + CHECKSUM_LENGTH);
     } else {
         UAVTALK_QXTLOG_DEBUG("UAVTalk: TX refused");
