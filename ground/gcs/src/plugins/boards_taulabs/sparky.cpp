@@ -147,20 +147,11 @@ bool Sparky::setInputType(Core::IBoardType::InputType type)
     case INPUT_TYPE_DSM:
         settings.RcvrPort = HwSparky::RCVRPORT_DSM;
         break;
-    case INPUT_TYPE_HOTTSUMD:
-        settings.RcvrPort = HwSparky::RCVRPORT_HOTTSUMD;
-        break;
-    case INPUT_TYPE_HOTTSUMH:
-        settings.RcvrPort = HwSparky::RCVRPORT_HOTTSUMH;
-        break;
     case INPUT_TYPE_IBUS:
         settings.RcvrPort = HwSparky::RCVRPORT_IBUS;
         break;
     case INPUT_TYPE_SRXL:
         settings.RcvrPort = HwSparky::RCVRPORT_SRXL;
-        break;
-    case INPUT_TYPE_TBSCROSSFIRE:
-        settings.RcvrPort = HwSparky::RCVRPORT_TBSCROSSFIRE;
         break;
     default:
         return false;
@@ -196,16 +187,10 @@ Core::IBoardType::InputType Sparky::getInputType()
         return INPUT_TYPE_SBUSNONINVERTED;
     case HwSparky::RCVRPORT_DSM:
         return INPUT_TYPE_DSM;
-    case HwSparky::RCVRPORT_HOTTSUMD:
-        return INPUT_TYPE_HOTTSUMD;
-    case HwSparky::RCVRPORT_HOTTSUMH:
-        return INPUT_TYPE_HOTTSUMH;
     case HwSparky::RCVRPORT_IBUS:
         return INPUT_TYPE_IBUS;
     case HwSparky::RCVRPORT_SRXL:
         return INPUT_TYPE_SRXL;
-    case HwSparky::RCVRPORT_TBSCROSSFIRE:
-        return INPUT_TYPE_TBSCROSSFIRE;
     default:
         break;
     }
@@ -221,8 +206,6 @@ Core::IBoardType::InputType Sparky::getInputType()
         return INPUT_TYPE_IBUS;
     case HwSparky::FLEXIPORT_SRXL:
         return INPUT_TYPE_SRXL;
-    case HwSparky::FLEXIPORT_TBSCROSSFIRE:
-        return INPUT_TYPE_TBSCROSSFIRE;
     default:
         break;
     }
@@ -230,14 +213,14 @@ Core::IBoardType::InputType Sparky::getInputType()
     switch (settings.MainPort) {
     case HwSparky::MAINPORT_DSM:
         return INPUT_TYPE_DSM;
+    case HwSparky::MAINPORT_SBUS:
+        return INPUT_TYPE_SBUS;
     case HwSparky::MAINPORT_SBUSNONINVERTED:
         return INPUT_TYPE_SBUSNONINVERTED;
     case HwSparky::MAINPORT_IBUS:
         return INPUT_TYPE_IBUS;
     case HwSparky::MAINPORT_SRXL:
         return INPUT_TYPE_SRXL;
-    case HwSparky::MAINPORT_TBSCROSSFIRE:
-        return INPUT_TYPE_TBSCROSSFIRE;
     default:
         break;
     }
