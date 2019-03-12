@@ -303,7 +303,7 @@ gcs_ts: tools_required_qt
 	$(V1) mkdir -p $(BUILD_DIR)/ground/gcs/share/translations
 	$(V1) ( cd $(BUILD_DIR)/ground/gcs/share/translations && \
 	  $(QMAKE) $(ROOT_DIR)/ground/gcs/share/translations/translations.pro -spec $(QT_SPEC) -r CONFIG+="$(GCS_BUILD_CONF) $(GCS_SILENT)" $(GCS_QMAKE_OPTS) && \
-	  $(MAKE) --no-print-directory -w ts ; \
+	  $(MAKE) --no-print-directory -w ts-all ; \
 	)
 
 # requires KDE's clazy
