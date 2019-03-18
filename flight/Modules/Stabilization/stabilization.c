@@ -352,26 +352,24 @@ static void calculate_attitude_errors(uint8_t *axis_mode,
 	// trim offset. Also track the stick with the most deflection to choose rate blending.
 	*horizon_rate_fraction = 0.0f;
 
-	if (axis_mode[ROLL] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) {
-		trimmed_setpoint[ROLL] = bound_min_max(	raw_input[ROLL] * settings.MaxLevelAngle[ROLL] + subTrim.Roll,
-				                               -settings.MaxLevelAngle[ROLL] + subTrim.Roll,
-				                                settings.MaxLevelAngle[ROLL] + subTrim.Roll);
+	if ((axis_mode[ROLL] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) || 
+	    (axis_mode[ROLL] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZONLQG)) {
+		trimmed_setpoint[ROLL] = bound_min_max( raw_input[ROLL] * settings.MaxLevelAngle[ROLL] + subTrim.Roll,
+		                                       -settings.MaxLevelAngle[ROLL] + subTrim.Roll,
+		                                        settings.MaxLevelAngle[ROLL] + subTrim.Roll);
 		*horizon_rate_fraction = fabsf(raw_input[ROLL]);
 	}
-	if (axis_mode[PITCH] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) {
-		trimmed_setpoint[PITCH] = bound_min_max(
-				raw_input[PITCH] * settings.MaxLevelAngle[PITCH]
-			       			+ subTrim.Pitch,
-				-settings.MaxLevelAngle[PITCH] + subTrim.Roll,
-				settings.MaxLevelAngle[PITCH] + subTrim.Roll);
-		*horizon_rate_fraction =
-			MAX(*horizon_rate_fraction, fabsf(raw_input[PITCH]));
+	if ((axis_mode[PITCH] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) ||
+	    (axis_mode[PITCH] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZONLQG)) {
+		trimmed_setpoint[PITCH] = bound_min_max( raw_input[PITCH] * settings.MaxLevelAngle[PITCH] + subTrim.Pitch,
+		                                        -settings.MaxLevelAngle[PITCH] + subTrim.Roll,
+		                                         settings.MaxLevelAngle[PITCH] + subTrim.Roll);
+		*horizon_rate_fraction = MAX(*horizon_rate_fraction, fabsf(raw_input[PITCH]));
 	}
-	if (axis_mode[YAW] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) {
-		trimmed_setpoint[YAW] =
-				raw_input[YAW] * settings.MaxLevelAngle[YAW];
-		*horizon_rate_fraction =
-			MAX(*horizon_rate_fraction, fabsf(raw_input[YAW]));
+	if ((axis_mode[YAW] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZON) ||
+	    (axis_mode[YAW] == STABILIZATIONDESIRED_STABILIZATIONMODE_HORIZONLQG)) {
+		trimmed_setpoint[YAW] = raw_input[YAW] * settings.MaxLevelAngle[YAW];
+		*horizon_rate_fraction = MAX(*horizon_rate_fraction, fabsf(raw_input[YAW]));
 	}
 
 	// For weak leveling mode the attitude setpoint is the trim value (drifts back towards "0")
