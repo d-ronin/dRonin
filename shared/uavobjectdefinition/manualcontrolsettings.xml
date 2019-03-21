@@ -46,6 +46,7 @@
         <option>OpenLRS</option>
         <option>FrSkyPWM</option>
         <option>TBS Crossfire</option>
+        <option>IBus</option>
       </options>
     </field>
     <field defaultvalue="0" elements="1" name="RssiChannelNumber" type="uint8" units="channel">
