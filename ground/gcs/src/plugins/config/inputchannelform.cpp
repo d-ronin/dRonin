@@ -210,8 +210,8 @@ void inputChannelForm::groupUpdated()
         case ManualControlSettings::RSSITYPE_TBSCROSSFIRE:
             count = 12;
             break;
-        case ManualControlSettings::RSSITYPE_IBUS
-            count = 10
+          case ManualControlSettings::RSSITYPE_IBUS:
+            count = 10;
             break;
         case ManualControlSettings::RSSITYPE_NONE:
             count = 0;
