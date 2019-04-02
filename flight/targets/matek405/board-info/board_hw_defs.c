@@ -525,6 +525,19 @@ static const struct pios_dsm_cfg pios_usart3_dsm_aux_cfg = {
 	},
 };
 
+static const struct pios_dsm_cfg pios_usart4_dsm_aux_cfg = {
+	.bind = {
+		.gpio = GPIOA,
+		.init = {
+			.GPIO_Pin   = GPIO_Pin_1,
+			.GPIO_Speed = GPIO_Speed_2MHz,
+			.GPIO_Mode  = GPIO_Mode_OUT,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd  = GPIO_PuPd_NOPULL
+		},
+	},
+};
+			
 static const struct pios_dsm_cfg pios_usart5_dsm_aux_cfg = {
 	.bind = {
 		.gpio = GPIOD,
@@ -657,7 +670,15 @@ static const struct pios_usart_cfg pios_usart4_cfg = {
 		},
 	},
 	.rx = {
-		.gpio = NULL,
+		.gpio = GPIOA,
+		.init = {
+			.GPIO_Pin   = GPIO_Pin_1,
+			.GPIO_Speed = GPIO_Speed_2MHz,
+			.GPIO_Mode  = GPIO_Mode_AF,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd  = GPIO_PuPd_UP
+		},
+		.pin_source = GPIO_PinSource1,
 	},
 	.tx = {
 		.gpio = GPIOA,
@@ -1358,9 +1379,8 @@ struct pios_internal_adc_cfg pios_adc_cfg = {
 		{ GPIOC, GPIO_Pin_4, ADC_Channel_14 },  /* Current                                       */  \
 		{ GPIOC, GPIO_Pin_5, ADC_Channel_15 },  /* Voltage                                       */  \
 		{ GPIOB, GPIO_Pin_1, ADC_Channel_9  },  /* RSSI                                          */  \
-		{ GPIOA, GPIO_Pin_1, ADC_Channel_1  },  /* 2nd  Servo Feedback,  Matek405 Silkscreen RX4 */  \
 	},
-	.adc_pin_count = 4,
+	.adc_pin_count = 3,
 };
 
 void PIOS_ADC_DMA_irq_handler(void)

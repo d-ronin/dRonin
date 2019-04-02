@@ -254,8 +254,8 @@ void PIOS_Board_Init(void) {
             NULL,                                // ppm_cfg
             NULL,                                // pwm_cfg
             PIOS_LED_ALARM,                      // led_id
-            NULL,                                // dsm_cfg
-            0,                                   // dsm_mode
+            &pios_usart1_dsm_aux_cfg,            // dsm_cfg
+            hw_DSMxMode,                         // dsm_mode
             NULL);                               // sbus_cfg
 
     uint8_t hw_ppm;
@@ -286,8 +286,8 @@ void PIOS_Board_Init(void) {
                 NULL,                                // ppm_cfg
                 NULL,                                // pwm_cfg
                 PIOS_LED_ALARM,                      // led_id
-                NULL,                                // dsm_cfg
-                0,                                   // dsm_mode
+                &pios_usart2_dsm_aux_cfg,            // dsm_cfg
+                hw_DSMxMode,                         // dsm_mode
                 NULL);                               // sbus_cfg
     }
 
@@ -303,8 +303,8 @@ void PIOS_Board_Init(void) {
             NULL,                                // ppm_cfg
             NULL,                                // pwm_cfg
             PIOS_LED_ALARM,                      // led_id
-            NULL,                                // dsm_cfg
-            0,                                   // dsm_mode
+            &pios_usart3_dsm_aux_cfg,            // dsm_cfg
+            hw_DSMxMode,                         // dsm_mode
             NULL);                               // sbus_cfg
 
     /* UART4 Port */
@@ -319,8 +319,8 @@ void PIOS_Board_Init(void) {
             NULL,                                // ppm_cfg
             NULL,                                // pwm_cfg
             PIOS_LED_ALARM,                      // led_id
-            NULL,                                // dsm_cfg
-            0,                                   // dsm_mode
+            &pios_usart1_dsm_aux_cfg,            // dsm_cfg
+            hw_DSMxMode,                         // dsm_mode
             NULL);                               // sbus_cfg
 
     /* UART5 Port */
