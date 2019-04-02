@@ -1,0 +1,226 @@
+<xml>
+  <object name="HwMatek405" settings="true" singleinstance="true">
+    <description>Selection of optional hardware configurations.</description>
+    <access gcs="readwrite" flight="readwrite"/>
+    <logging updatemode="manual" period="0"/>
+    <telemetrygcs acked="true" updatemode="onchange" period="0"/>
+    <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="Disabled" elements="1" name="PPM_Receiver" type="enum" units="function">
+      <description/>
+      <options>
+        <option>Disabled</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="Uart1" parent="HwShared.PortTypes" type="enum" units="function">
+      <description/>
+      <options>
+        <option>Disabled</option>
+        <option>ComBridge</option>
+        <option>DebugConsole</option>
+        <option>DSM</option>
+        <option>FrSKY Sensor Hub</option>
+        <option>FrSKY SPort Telemetry</option>
+        <option>FrSKY SPort Non Inverted</option>
+        <option>GPS</option>
+        <option>SRXL</option>
+        <option>HoTT SUMD</option>
+        <option>HoTT SUMH</option>
+        <option>HoTT Telemetry</option>
+        <option>LighttelemetryTx</option>
+        <option>MavLinkTX</option>
+        <option>MavLinkTX_GPS_RX</option>
+        <option>MSP</option>
+        <option>OpenLog</option>
+        <option>S.Bus</option>
+        <option>S.Bus Non Inverted</option>
+        <option>Storm32Bgc</option>
+        <option>Telemetry</option>
+        <option>IBus</option>
+        <option>TBS Crossfire</option>
+      </options>
+    </field>
+    <field defaultvalue="S.Bus" elements="1" name="Uart2" parent="HwShared.PortTypes" type="enum" units="function">
+      <description/>
+      <options>
+        <option>Disabled</option>
+        <option>ComBridge</option>
+        <option>DebugConsole</option>
+        <option>DSM</option>
+        <option>FrSKY Sensor Hub</option>
+        <option>FrSKY SPort Telemetry</option>
+        <option>FrSKY SPort Non Inverted</option>
+        <option>GPS</option>
+        <option>SRXL</option>
+        <option>HoTT SUMD</option>
+        <option>HoTT SUMH</option>
+        <option>HoTT Telemetry</option>
+        <option>LighttelemetryTx</option>
+        <option>MavLinkTX</option>
+        <option>MavLinkTX_GPS_RX</option>
+        <option>MSP</option>
+        <option>OpenLog</option>
+        <option>S.Bus</option>
+        <option>S.Bus Non Inverted</option>
+        <option>Storm32Bgc</option>
+        <option>Telemetry</option>
+        <option>IBus</option>
+        <option>TBS Crossfire</option>
+      </options>
+   </field>
+    <field defaultvalue="Disabled" elements="1" name="Uart3" parent="HwShared.PortTypes" type="enum" units="function">
+      <description/>
+      <options>
+        <option>Disabled</option>
+        <option>ComBridge</option>
+        <option>DebugConsole</option>
+        <option>DSM</option>
+        <option>FrSKY Sensor Hub</option>
+        <option>FrSKY SPort Telemetry</option>
+        <option>FrSKY SPort Non Inverted</option>
+        <option>GPS</option>
+        <option>SRXL</option>
+        <option>HoTT SUMD</option>
+        <option>HoTT SUMH</option>
+        <option>HoTT Telemetry</option>
+        <option>LighttelemetryTx</option>
+        <option>MavLinkTX</option>
+        <option>MavLinkTX_GPS_RX</option>
+        <option>MSP</option>
+        <option>OpenLog</option>
+        <option>S.Bus</option>
+        <option>S.Bus Non Inverted</option>
+        <option>Storm32Bgc</option>
+        <option>Telemetry</option>
+        <option>IBus</option>
+        <option>TBS Crossfire</option>
+      </options>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="Uart4" parent="HwShared.PortTypes" type="enum" units="function">
+      <description/>
+      <options>
+        <option>Disabled</option>
+        <option>FrSKY Sensor Hub</option>
+        <option>FrSKY SPort Telemetry</option>
+        <option>FrSKY SPort Non Inverted</option>
+        <option>OpenLog</option>
+      </options>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="Uart5" parent="HwShared.PortTypes" type="enum" units="function">
+      <description/>
+      <options>
+        <option>Disabled</option>
+        <option>ComBridge</option>
+        <option>DebugConsole</option>
+        <option>DSM</option>
+		<option>FrSKY Sensor Hub</option>
+        <option>FrSKY SPort Telemetry</option>
+        <option>FrSKY SPort Non Inverted</option>
+        <option>GPS</option>
+        <option>SRXL</option>
+        <option>HoTT SUMD</option>
+        <option>HoTT SUMH</option>
+        <option>HoTT Telemetry</option>
+        <option>LighttelemetryTx</option>
+        <option>MavLinkTX</option>
+        <option>MavLinkTX_GPS_RX</option>
+        <option>MSP</option>
+        <option>OpenLog</option>
+        <option>S.Bus Non Inverted</option>
+        <option>Storm32Bgc</option>
+        <option>Telemetry</option>
+        <option>IBus</option>
+        <option>TBS Crossfire</option>
+      </options>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="OSDPort" type="enum" units="function">
+      <description/>
+      <options>
+        <option>Disabled</option>
+        <option>MAX7456 OSD</option>
+      </options>
+    </field>
+    <field defaultvalue="USBTelemetry" elements="1" name="USB_HIDPort" type="enum" units="function">
+      <description/>
+      <options>
+        <option>USBTelemetry</option>
+        <option>Disabled</option>
+      </options>
+    </field>
+    <field defaultvalue="Disabled" elements="1" name="USB_VCPPort" parent="HwShared.USB_VCPPort" type="enum" units="function">
+      <description/>
+    </field>
+    <field defaultvalue="Autodetect" elements="1" name="DSMxMode" parent="HwShared.DSMxMode" type="enum" units="mode">
+      <description/>
+    </field>
+    <field defaultvalue="1000" elements="1" name="GyroRange" type="enum" units="deg/s">
+      <description/>
+      <options>
+        <option>250</option>
+        <option>500</option>
+        <option>1000</option>
+        <option>2000</option>
+      </options>
+    </field>
+    <field defaultvalue="8G" elements="1" name="AccelRange" type="enum" units="*gravity m/s^2">
+      <description/>
+      <options>
+        <option>2G</option>
+        <option>4G</option>
+        <option>8G</option>
+        <option>16G</option>
+      </options>
+    </field>
+    <field defaultvalue="188" elements="1" name="MPU6000_LPF_CTR" type="enum" units="">
+      <description/>
+      <options>
+        <option>188</option>
+        <option>98</option>
+        <option>42</option>
+        <option>20</option>
+        <option>10</option>
+        <option>5</option>
+      </options>
+    </field>
+    <field defaultvalue="176" elements="1" name="ICM20602_GyroLPF_STD" type="enum" units="Hz">
+      <description>Gyro filter cutoff frequency</description>
+      <options>
+        <option>176</option>
+        <option>92</option>
+        <option>41</option>
+        <option>20</option>
+        <option>10</option>
+        <option>5</option>
+      </options>
+    </field>
+    <field defaultvalue="99" elements="1" name="ICM20602_AccelLPF_STD" type="enum" units="Hz">
+      <description>Accelerometer filter cutoff frequency</description>
+      <options>
+        <option>218</option>
+        <option>99</option>
+        <option>45</option>
+        <option>21</option>
+        <option>10</option>
+        <option>5</option>
+      </options>
+    </field>
+    <field defaultvalue="None" elements="1" name="Magnetometer" type="enum" units="">
+      <description/>
+       <options>
+        <option>None</option>
+        <option>External HMC5883</option>
+        <option>External HMC5983</option>
+      </options>
+   </field>
+    <field defaultvalue="Top0degCW" elements="1" name="ExtMagOrientation" parent="HwShared.MagOrientation" type="enum" units="">
+      <description/>
+    </field>
+		<field defaultvalue="PWM_6" elements="1" name="FC_Pad_S6" type="enum" units="none">
+			<description>R2 Pad Function</description>
+			<options>
+				<option>LedString</option>
+				<option>PWM_6</option>
+			</options>
+		</field>
+  </object>
+</xml>
