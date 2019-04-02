@@ -319,7 +319,7 @@ void PIOS_Board_Init(void) {
             NULL,                                // ppm_cfg
             NULL,                                // pwm_cfg
             PIOS_LED_ALARM,                      // led_id
-            &pios_usart1_dsm_aux_cfg,            // dsm_cfg
+            &pios_usart4_dsm_aux_cfg,            // dsm_cfg
             hw_DSMxMode,                         // dsm_mode
             NULL);                               // sbus_cfg
 
