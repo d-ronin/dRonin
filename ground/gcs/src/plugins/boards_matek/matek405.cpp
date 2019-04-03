@@ -213,29 +213,7 @@ Core::IBoardType::InputType MATEK405::getInputType()
 
 int MATEK405::queryMaxGyroRate()
 {
-    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
-    HwMatek405 *hwMatek405 = HwMatek405::GetInstance(uavoManager);
-    Q_ASSERT(hwMatek405);
-    if (!hwMatek405)
-        return 0;
-
-    HwMatek405::DataFields settings = hwMatek405->getData();
-
-    switch (settings.GyroRange) {
-    case HwMatek405::GYRORANGE_250:
-        return 250;
-    case HwMatek405::GYRORANGE_500:
-        return 500;
-    case HwMatek405::GYRORANGE_1000:
-        return 1000;
-    case HwMatek405::GYRORANGE_2000:
-        return 2000;
-    default:
-        break;
-    }
-
-    return 500;
+    return 1000;
 }
 
 QStringList MATEK405::getAdcNames()

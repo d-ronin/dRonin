@@ -168,57 +168,6 @@
     <field defaultvalue="Autodetect" elements="1" name="DSMxMode" parent="HwShared.DSMxMode" type="enum" units="mode">
       <description/>
     </field>
-    <field defaultvalue="1000" elements="1" name="GyroRange" type="enum" units="deg/s">
-      <description/>
-      <options>
-        <option>250</option>
-        <option>500</option>
-        <option>1000</option>
-        <option>2000</option>
-      </options>
-    </field>
-    <field defaultvalue="8G" elements="1" name="AccelRange" type="enum" units="*gravity m/s^2">
-      <description/>
-      <options>
-        <option>2G</option>
-        <option>4G</option>
-        <option>8G</option>
-        <option>16G</option>
-      </options>
-    </field>
-    <field defaultvalue="188" elements="1" name="MPU6000_LPF_CTR" type="enum" units="">
-      <description/>
-      <options>
-        <option>188</option>
-        <option>98</option>
-        <option>42</option>
-        <option>20</option>
-        <option>10</option>
-        <option>5</option>
-      </options>
-    </field>
-    <field defaultvalue="176" elements="1" name="ICM20602_GyroLPF_STD" type="enum" units="Hz">
-      <description>Gyro filter cutoff frequency</description>
-      <options>
-        <option>176</option>
-        <option>92</option>
-        <option>41</option>
-        <option>20</option>
-        <option>10</option>
-        <option>5</option>
-      </options>
-    </field>
-    <field defaultvalue="99" elements="1" name="ICM20602_AccelLPF_STD" type="enum" units="Hz">
-      <description>Accelerometer filter cutoff frequency</description>
-      <options>
-        <option>218</option>
-        <option>99</option>
-        <option>45</option>
-        <option>21</option>
-        <option>10</option>
-        <option>5</option>
-      </options>
-    </field>
     <field defaultvalue="None" elements="1" name="Magnetometer" type="enum" units="">
       <description/>
        <options>

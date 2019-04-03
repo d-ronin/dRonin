@@ -392,81 +392,23 @@ void PIOS_Board_Init(void) {
     if (PIOS_MPU_SPI_Init(&mpu_dev, pios_spi_gyro_id, 0, &pios_mpu_cfg) != 0)
         PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 
-    HwMatek405GyroRangeOptions hw_gyro_range;
-    HwMatek405GyroRangeGet(&hw_gyro_range);
+    PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_1000_DEG);
     
-    switch(hw_gyro_range) {
-        case HWMATEK405_GYRORANGE_250:
-            PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_250_DEG);
-            break;
-        case HWMATEK405_GYRORANGE_500:
-            PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_500_DEG);
-            break;
-        case HWMATEK405_GYRORANGE_1000:
-            PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_1000_DEG);
-            break;
-        case HWMATEK405_GYRORANGE_2000:
-            PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_2000_DEG);
-            break;
-    }
-
-    HwMatek405AccelRangeOptions hw_accel_range;
-    HwMatek405AccelRangeGet(&hw_accel_range);
-
-    switch(hw_accel_range) {
-        case HWMATEK405_ACCELRANGE_2G:
-            PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_2G);
-            break;
-    case HWMATEK405_ACCELRANGE_4G:
-            PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_4G);
-            break;
-        case HWMATEK405_ACCELRANGE_8G:
-            PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_8G);
-            break;
-        case HWMATEK405_ACCELRANGE_16G:
-            PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_16G);
-            break;
-    }
-
-    // the filter has to be set before rate else divisor calculation will fail
-    HwMatek405MPU6000_LPF_CTROptions hw_mpu_dlpf;
-    HwMatek405MPU6000_LPF_CTRGet(&hw_mpu_dlpf);
-
-    uint16_t bandwidth = \
-        (hw_mpu_dlpf == HWMATEK405_MPU6000_LPF_CTR_188) ? 188 : \
-        (hw_mpu_dlpf == HWMATEK405_MPU6000_LPF_CTR_98)  ? 98  : \
-        (hw_mpu_dlpf == HWMATEK405_MPU6000_LPF_CTR_42)  ? 42  : \
-        (hw_mpu_dlpf == HWMATEK405_MPU6000_LPF_CTR_20)  ? 20  : \
-        (hw_mpu_dlpf == HWMATEK405_MPU6000_LPF_CTR_10)  ? 10  : \
-        (hw_mpu_dlpf == HWMATEK405_MPU6000_LPF_CTR_5)   ? 5   : \
-        188;
-    PIOS_MPU_SetGyroBandwidth(bandwidth);
-
-	HwMatek405ICM20602_GyroLPF_STDOptions hw_mpu_gyro_dlpf;
-	HwMatek405ICM20602_GyroLPF_STDGet(&hw_mpu_gyro_dlpf);
+	PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_8G);
+    
+    // From pios_mpu.h:
+	//   PIOS_MPU60X0_GYRO_LOWPASS_188_HZ = 0x01,    (both gyro and accel)
+	//   PIOS_ICM206XX_GYRO_LOWPASS_176_HZ  = 0x01,  (gyro only)
+	//   So calling PIOS_MPU_SetGyroBandwidth with an argument of 0x01
+	//   will set the desired bandwidth for either imu.
 	
-	uint16_t gyro_bandwidth =
-		(hw_mpu_gyro_dlpf == HWMATEK405_ICM20602_GYROLPF_STD_176) ? 176 :
-		(hw_mpu_gyro_dlpf == HWMATEK405_ICM20602_GYROLPF_STD_92)  ?  92 :
-		(hw_mpu_gyro_dlpf == HWMATEK405_ICM20602_GYROLPF_STD_41)  ?  41 :
-		(hw_mpu_gyro_dlpf == HWMATEK405_ICM20602_GYROLPF_STD_20)  ?  20 :
-		(hw_mpu_gyro_dlpf == HWMATEK405_ICM20602_GYROLPF_STD_10)  ?  10 :
-		(hw_mpu_gyro_dlpf == HWMATEK405_ICM20602_GYROLPF_STD_5)   ?   5 :
-		176;
-	PIOS_MPU_SetGyroBandwidth(gyro_bandwidth);
+	PIOS_MPU_SetGyroBandwidth(0x01);
 
-	HwMatek405ICM20602_AccelLPF_STDOptions hw_mpu_accel_dlpf;
-	HwMatek405ICM20602_AccelLPF_STDGet(&hw_mpu_accel_dlpf);
+	// PIOS_MPU_SetAccelBandwidth returns immediately if 
+	// mpu_dev->mpu_type is set to PIOS_MPU60X0, so safe
+	// to call for either imu.
 	
-	uint16_t acc_bandwidth =
-		(hw_mpu_accel_dlpf = HWMATEK405_ICM20602_ACCELLPF_STD_218) ? 218 :
-		(hw_mpu_accel_dlpf = HWMATEK405_ICM20602_ACCELLPF_STD_99)  ?  99 :
-		(hw_mpu_accel_dlpf = HWMATEK405_ICM20602_ACCELLPF_STD_45)  ?  45 :
-		(hw_mpu_accel_dlpf = HWMATEK405_ICM20602_ACCELLPF_STD_21)  ?  21 :
-		(hw_mpu_accel_dlpf = HWMATEK405_ICM20602_ACCELLPF_STD_10)  ?  10 :
-		(hw_mpu_accel_dlpf = HWMATEK405_ICM20602_ACCELLPF_STD_5)   ?   5 :
-		218;
-	PIOS_MPU_SetAccelBandwidth(acc_bandwidth);
+	PIOS_MPU_SetAccelBandwidth(PIOS_ICM206XX_ACCEL_LOWPASS_218_HZ);
 #endif
 
 #if defined(PIOS_INCLUDE_I2C)
