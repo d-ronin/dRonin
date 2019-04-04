@@ -235,14 +235,11 @@ void PIOS_Board_Init(void) {
 	/* Configure IO ports */
 
 #if defined(PIOS_INCLUDE_I2C)
-	if ((!is_modified_clone) && PIOS_I2C_Init(&pios_i2c_mag_pressure_adapter_id, &pios_i2c_mag_pressure_adapter_cfg)) {
-		PIOS_HAL_CriticalError(PIOS_LED_HEARTBEAT, PIOS_HAL_PANIC_I2C_INT);
-	}
-
-	if ((!is_modified_clone) &&
-			(PIOS_I2C_CheckClear(pios_i2c_mag_pressure_adapter_id) != 0)) {
-		PIOS_HAL_CriticalError(PIOS_LED_HEARTBEAT, PIOS_HAL_PANIC_I2C_INT);
-	} else if (!is_modified_clone) {
+	if (PIOS_I2C_Init(&pios_i2c_mag_pressure_adapter_id, &pios_i2c_mag_pressure_adapter_cfg)) {
+		if (!is_modified_clone) {
+			PIOS_HAL_CriticalError(PIOS_LED_HEARTBEAT, PIOS_HAL_PANIC_I2C_INT);
+		}
+	} else {
 		if (AlarmsGet(SYSTEMALARMS_ALARM_I2C) == SYSTEMALARMS_ALARM_UNINITIALISED) {
 			AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_OK);
 		}
@@ -589,6 +586,16 @@ void PIOS_Board_Init(void) {
 
 	//I2C is slow, sensor init as well, reset watchdog to prevent reset here
 	PIOS_WDG_Clear();
+
+#if defined(PIOS_INCLUDE_BMP280) && !defined(PIOS_EXCLUDE_BMP280_I2C)
+	/* BMP280 I2C onboard support on clones */
+	if (is_modified_clone &&
+			(pios_i2c_mag_pressure_adapter_id) &&
+			(!PIOS_SENSORS_IsRegistered(PIOS_SENSOR_BARO))) {
+		PIOS_BMP280_Init(&pios_bmp280_cfg,
+				pios_i2c_mag_pressure_adapter_id);
+	}
+#endif /* defined(PIOS_INCLUDE_BMP280) && !defined(PIOS_EXCLUDE_BMP280_I2C) */
 
 #endif    /* PIOS_INCLUDE_I2C */
 
