@@ -766,18 +766,31 @@ static int32_t updateAttitudeComplementary(float dT, bool first_run, bool second
 		mag_err[2] = 0;
 	}
 
+	////////////////////////////////////////
+	
+	// G.K. Egan (C) computes confidence in accelerometers when
+	// aircraft is being accelerated over and above that due to gravity
+
+	#define ACCEL_ONE_G (9.8065f)
+	
+	float accel_confidence_decay = 1.0f / sqrtf(attitudeSettings.AccCutoff);
+	
+	float accel_confidence = bound_min_max(1.0f - (accel_confidence_decay * sqrtf(fabs(accel_mag / ACCEL_ONE_G - 1.0f))), 0.0f, 1.0f);
+	
+	////////////////////////////////////////
+	
 	// Accumulate integral of error.  Scale here so that units are (deg/s) but Ki has units of s
 	GyrosBiasData gyrosBias;
 	GyrosBiasGet(&gyrosBias);
-	gyrosBias.x -= accel_err[0] * accKi * dT;
-	gyrosBias.y -= accel_err[1] * accKi * dT;
+	gyrosBias.x -= accel_err[0] * accKi * dT * accel_confidence;
+	gyrosBias.y -= accel_err[1] * accKi * dT * accel_confidence;
 	gyrosBias.z -= mag_err[2] * mgKi * dT;
 	GyrosBiasSet(&gyrosBias);
 
 	// Correct rates based on error, integral component dealt with in updateSensors
-	gyrosData.x += accel_err[0] * accKp;
-	gyrosData.y += accel_err[1] * accKp;
-	gyrosData.z += accel_err[2] * accKp + mag_err[2] * mgKp;
+	gyrosData.x += accel_err[0] * accKp * accel_confidence;
+	gyrosData.y += accel_err[1] * accKp * accel_confidence;
+	gyrosData.z += accel_err[2] * accKp * accel_confidence + mag_err[2] * mgKp;
 
 	// Work out time derivative from INSAlgo writeup
 	// Also accounts for the fact that gyros are in deg/s

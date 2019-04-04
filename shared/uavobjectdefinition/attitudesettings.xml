@@ -25,6 +25,9 @@
     <field defaultvalue="0.4" elements="1" name="AccKi" type="float" units="channel">
       <description>Accelerometer integral gain for the attitude filter.</description>
     </field>
+    <field defaultvalue="0.1" elements="1" name="AccCutoff" type="float" units="">
+      <description>Accelerometer cutoff value.</description>
+    </field>
     <field defaultvalue="0.1" elements="1" name="AccelTau" type="float" units="">
       <description/>
     </field>
