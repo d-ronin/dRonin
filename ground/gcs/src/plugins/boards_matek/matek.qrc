@@ -1,5 +1,0 @@
-<RCC>
-    <qresource prefix="/matek">
-	    <file>images/matek405.png</file>
-	</qresource>
-</RCC>
