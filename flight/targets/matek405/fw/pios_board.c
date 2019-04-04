@@ -392,7 +392,7 @@ void PIOS_Board_Init(void) {
     if (PIOS_MPU_SPI_Init(&mpu_dev, pios_spi_gyro_id, 0, &pios_mpu_cfg) != 0)
         PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 
-    PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_1000_DEG);
+    PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_2000_DEG);
     
 	PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_8G);
     
@@ -426,8 +426,14 @@ void PIOS_Board_Init(void) {
 #if defined(PIOS_INCLUDE_BMP280)
 #include "pios_bmp280.h"
 #include "pios_bmp280_priv.h"
-    if ((PIOS_BMP280_Init(&pios_bmp280_cfg, pios_i2c_internal_id) != 0) || (PIOS_BMP280_Test() != 0))
+
+	HwMatek405BMP280Options hw_bmp280;
+	HwMatek405BMP280Get(&hw_bmp280);
+	
+    if (hw_bmp280 == HWMATEK405_BMP280_ENABLED) {
+		if ((PIOS_BMP280_Init(&pios_bmp280_cfg, pios_i2c_internal_id) != 0) || (PIOS_BMP280_Test() != 0))
         PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_BARO);
+	}
 #endif
 
     //I2C is slow, sensor init as well, reset watchdog to prevent reset here

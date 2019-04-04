@@ -168,6 +168,15 @@
     <field defaultvalue="Autodetect" elements="1" name="DSMxMode" parent="HwShared.DSMxMode" type="enum" units="mode">
       <description/>
     </field>
+    
+    <field defaultvalue="None" elements="1" name="BMP280" type="enum" units="none">
+      <description>Enable/Disable BMP280</description>
+      <options>
+        <option>None</option>
+        <option>Enabled</option>
+      </options>
+    </field>
+
     <field defaultvalue="None" elements="1" name="Magnetometer" type="enum" units="">
       <description/>
        <options>
