@@ -235,7 +235,7 @@ static void msp_send_error(struct msp_bridge *m, uint8_t cmd)
 
 	buf[0] = '$';
 	buf[1] = 'M';
-	buf[2] = '|';
+	buf[2] = '!'; /* original multiwii spec says '|', everyone uses '!' */
 	buf[3] = 0;
 	buf[4] = cmd;
 	buf[5] = cmd;	// Checksum == cmd
