@@ -168,16 +168,7 @@
     <field defaultvalue="Autodetect" elements="1" name="DSMxMode" parent="HwShared.DSMxMode" type="enum" units="mode">
       <description/>
     </field>
-    
-    <field defaultvalue="None" elements="1" name="BMP280" type="enum" units="none">
-      <description>Enable/Disable BMP280</description>
-      <options>
-        <option>None</option>
-        <option>Enabled</option>
-      </options>
-    </field>
-
-    <field defaultvalue="None" elements="1" name="Magnetometer" type="enum" units="">
+    <field defaultvalue="None" elements="1" name="Magnetometer" parent="HwShared.Mag" type="enum" units="">
       <description/>
        <options>
         <option>None</option>
@@ -188,12 +179,12 @@
     <field defaultvalue="Top0degCW" elements="1" name="ExtMagOrientation" parent="HwShared.MagOrientation" type="enum" units="">
       <description/>
     </field>
-		<field defaultvalue="PWM_6" elements="1" name="FC_Pad_S6" type="enum" units="none">
-			<description>R2 Pad Function</description>
-			<options>
-				<option>LedString</option>
-				<option>PWM_6</option>
-			</options>
-		</field>
+    <field defaultvalue="PWM_6" elements="1" name="FC_Pad_S6" type="enum" units="none">
+      <description>R2 Pad Function</description>
+      <options>
+        <option>LedString</option>
+        <option>PWM_6</option>
+      </options>
+     </field>
   </object>
 </xml>

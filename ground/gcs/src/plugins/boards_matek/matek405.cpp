@@ -213,7 +213,7 @@ Core::IBoardType::InputType MATEK405::getInputType()
 
 int MATEK405::queryMaxGyroRate()
 {
-    return 1000;
+    return 2000;
 }
 
 QStringList MATEK405::getAdcNames()
