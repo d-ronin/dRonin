@@ -84,13 +84,10 @@ MODULES += Telemetry
 OPTMODULES += Airspeed
 OPTMODULES += Autotune
 OPTMODULES += Battery
-OPTMODULES += CameraStab
-OPTMODULES += FixedWingPathFollower
 OPTMODULES += FlightStats
 OPTMODULES += Geofence
 OPTMODULES += PathPlanner
 OPTMODULES += TxPID
-OPTMODULES += VtolPathFollower
 
 OPTMODULES += GPS
 OPTMODULES += UAVOLighttelemetryBridge

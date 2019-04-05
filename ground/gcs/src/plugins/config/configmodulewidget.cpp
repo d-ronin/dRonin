@@ -62,7 +62,6 @@ ConfigModuleWidget::ConfigModuleWidget(QWidget *parent)
     // Don't allow these to be changed here, only in the respective tabs.
     ui->cbAutotune->setDisabled(true);
     ui->cbTxPid->setDisabled(true);
-    ui->cbCameraStab->setDisabled(true);
 
     // This will be un-hidden as required by boards, but keep the unformatted string for later
     ui->lblOnBoardLeds->setVisible(false);
@@ -195,7 +194,6 @@ void ConfigModuleWidget::recheckTabs()
     // the fields. TODO: use new ConfigTaskWidget::setWidgetEnabled function
     ui->cbAutotune->setDisabled(true);
     ui->cbTxPid->setDisabled(true);
-    ui->cbCameraStab->setDisabled(true);
 }
 
 //! Enable appropriate tab when objects are updated

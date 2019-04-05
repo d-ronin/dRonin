@@ -43,14 +43,9 @@ MODULES += FirmwareIAP
 MODULES += Telemetry
 
 OPTMODULES += GPS
-OPTMODULES += PathPlanner
-OPTMODULES += VtolPathFollower
-OPTMODULES += FixedWingPathFollower
 OPTMODULES += FlightStats
-OPTMODULES += CameraStab
 OPTMODULES += Autotune
 OPTMODULES += TxPID
-OPTMODULES += VibrationAnalysis
 OPTMODULES += UAVOMavlinkBridge
 OPTMODULES += Battery
 OPTMODULES += ComUsbBridge
@@ -63,7 +58,6 @@ OPTMODULES += Geofence
 OPTMODULES += Logging
 OPTMODULES += VTXConfig
 OPTMODULES += OnScreenDisplay
-OPTMODULES += Storm32Bgc
 OPTMODULES += UAVOCrossfireTelemetry
 OPTMODULES += UAVOMSPBridge
 

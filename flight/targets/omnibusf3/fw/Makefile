@@ -42,12 +42,8 @@ MODULES += FirmwareIAP
 MODULES += Telemetry
 
 OPTMODULES += GPS
-#OPTMODULES += CameraStab
 OPTMODULES += Autotune
 OPTMODULES += TxPID
-#OPTMODULES += PathPlanner
-#OPTMODULES += VtolPathFollower
-#OPTMODULES += FixedWingPathFollower
 #OPTMODULES += UAVOMavlinkBridge
 OPTMODULES += UAVOMSPBridge
 #OPTMODULES += UAVOLighttelemetryBridge

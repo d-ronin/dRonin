@@ -36,7 +36,6 @@ HEADERS += calibration.h \
     assertions.h \
     defaulthwsettingswidget.h \
     inputchannelform.h \
-    configcamerastabilizationwidget.h \
     configtxpidwidget.h \
     outputchannelform.h \
     cfg_vehicletypes/configccpmwidget.h \
@@ -71,7 +70,6 @@ SOURCES += calibration.cpp \
     configstabilizationwidget.cpp \
     defaulthwsettingswidget.cpp \
     inputchannelform.cpp \
-    configcamerastabilizationwidget.cpp \
     configattitudewidget.cpp \
     configtxpidwidget.cpp \
     cfg_vehicletypes/configccpmwidget.cpp \
@@ -98,7 +96,6 @@ FORMS += airframe.ui \
     output.ui \
     defaulthwsettings.ui \
     inputchannelform.ui \
-    camerastabilization.ui \
     outputchannelform.ui \
     attitude.ui \
     txpid.ui \

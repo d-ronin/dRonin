@@ -240,7 +240,6 @@
       <options>
         <option>Disabled</option>
         <option>Middle</option>
-        <option>CameraPitch</option>
       </options>
     </field>
     <field defaultvalue="Enabled" elements="1" name="ClimbRate" type="enum" units="">

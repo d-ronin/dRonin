@@ -40,7 +40,6 @@
         <option>MavLinkTX_GPS_RX</option>
         <option>S.Bus</option>
         <option>S.Bus Non Inverted</option>
-        <option>Storm32Bgc</option>
         <option>Telemetry</option>
         <option>OpenLog</option>
         <option>IBus</option>
@@ -68,7 +67,6 @@
         <option>MavLinkTX</option>
         <option>MavLinkTX_GPS_RX</option>
         <option>S.Bus Non Inverted</option>
-        <option>Storm32Bgc</option>
         <option>Telemetry</option>
         <option>OpenLog</option>
         <option>IBus</option>
@@ -95,7 +93,6 @@
         <option>MavLinkTX</option>
         <option>MavLinkTX_GPS_RX</option>
         <option>S.Bus Non Inverted</option>
-        <option>Storm32Bgc</option>
         <option>Telemetry</option>
         <option>OpenLog</option>
         <option>IBus</option>

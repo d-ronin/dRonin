@@ -104,10 +104,6 @@ uintptr_t pios_com_frsky_sport_id;
 uintptr_t pios_com_lighttelemetry_id;
 #endif
 
-#if defined(PIOS_INCLUDE_STORM32BGC)
-uintptr_t pios_com_storm32bgc_id;
-#endif
-
 #if defined(PIOS_INCLUDE_TBSVTXCONFIG)
 uintptr_t pios_com_tbsvtxconfig_id;
 #endif
@@ -201,14 +197,6 @@ uintptr_t pios_com_debug_id;
 
 #ifndef PIOS_COM_OPENLOG_TX_BUF_LEN
 #define PIOS_COM_OPENLOG_TX_BUF_LEN 768
-#endif
-
-#ifndef PIOS_COM_STORM32BGC_RX_BUF_LEN
-#define PIOS_COM_STORM32BGC_RX_BUF_LEN 32
-#endif
-
-#ifndef PIOS_COM_STORM32BGC_TX_BUF_LEN
-#define PIOS_COM_STORM32BGC_TX_BUF_LEN 32
 #endif
 
 #ifndef PIOS_COM_TBSVTXCONFIG_TX_BUF_LEN
@@ -893,16 +881,6 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 			PIOS_HAL_SetReceiver(MANUALCONTROLSETTINGS_CHANNELGROUPS_SBUS, sbus_rcvr_id);
 		}
 #endif  /* PIOS_INCLUDE_SBUS */
-		break;
-
-	case HWSHARED_PORTTYPES_STORM32BGC:
-#if defined(PIOS_INCLUDE_STORM32BGC)
-		usart_port_params.init.USART_BaudRate = 115200;
-
-		PIOS_HAL_ConfigureCom(usart_port_cfg, &usart_port_params, PIOS_COM_STORM32BGC_RX_BUF_LEN, PIOS_COM_STORM32BGC_TX_BUF_LEN, com_driver, &port_driver_id);
-		target = &pios_com_storm32bgc_id;
-		PIOS_Modules_Enable(PIOS_MODULE_STORM32BGC);
-#endif  /* PIOS_INCLUDE_STORM32BGC */
 		break;
 
 	case HWSHARED_PORTTYPES_TELEMETRY:

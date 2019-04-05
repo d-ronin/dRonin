@@ -35,7 +35,6 @@
         <elementname>Logging</elementname>
         <elementname>UAVOFrSkySPortBridge</elementname>
         <elementname>FlightStats</elementname>
-        <elementname>Storm32Bgc</elementname>
         <elementname>IMU</elementname>
         <elementname>VTXConfig</elementname>
         <elementname>MSPUAVOBridge</elementname>
@@ -73,7 +72,6 @@
         <elementname>Logging</elementname>
         <elementname>UAVOFrSkySPortBridge</elementname>
         <elementname>FlightStats</elementname>
-        <elementname>Storm32Bgc</elementname>
         <elementname>IMU</elementname>
         <elementname>VTXConfig</elementname>
         <elementname>MSPUAVOBridge</elementname>
@@ -115,7 +113,6 @@
         <elementname>Logging</elementname>
         <elementname>UAVOFrSkySPortBridge</elementname>
         <elementname>FlightStats</elementname>
-        <elementname>Storm32Bgc</elementname>
         <elementname>IMU</elementname>
         <elementname>VTXConfig</elementname>
         <elementname>MSPUAVOBridge</elementname>

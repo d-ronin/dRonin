@@ -47,7 +47,6 @@
 #include "accels.h"
 #include "actuatordesired.h"
 #include "attitudeactual.h"
-#include "cameradesired.h"
 #include "flightstatus.h"
 #include "gyros.h"
 #include "ratedesired.h"
@@ -892,21 +891,7 @@ static void stabilizationTask(void* parameters)
 		uint8_t reprojection = stabDesired.ReprojectionMode;
 		static uint8_t previous_reprojection = 255;
 
-		if (reprojection == STABILIZATIONDESIRED_REPROJECTIONMODE_CAMERAANGLE) {
-			float camera_tilt_angle = settings.CameraTilt;
-			if (camera_tilt_angle) {
-				float roll = stabDesired.Roll;
-				float yaw = stabDesired.Yaw;
-				// The roll input should be the cosine of the camera angle multiplied by the roll,
-				// added to the sine of camera angle multiplied by yaw.
-				stabDesired.Roll = (cosf(DEG2RAD * camera_tilt_angle) * roll +
-						(sinf(DEG2RAD * camera_tilt_angle) * yaw));
-				// Yaw is similar but uses the negative sine of the camera angle, multiplied by roll,
-				// added to the cosine of the camera angle, times the yaw
-				stabDesired.Yaw = (-1 * sinf(DEG2RAD * camera_tilt_angle) * roll) +
-						(cosf(DEG2RAD * camera_tilt_angle) * yaw);
-			}
-		} else if (reprojection == STABILIZATIONDESIRED_REPROJECTIONMODE_HEADFREE) {
+		if (reprojection == STABILIZATIONDESIRED_REPROJECTIONMODE_HEADFREE) {
 			static float reference_yaw;
 
 			if (previous_reprojection != reprojection) {
@@ -1429,42 +1414,7 @@ static void stabilizationTask(void* parameters)
 							break;
 					}
 
-					break;
-
-				case STABILIZATIONDESIRED_STABILIZATIONMODE_POI:
-					// The sanity check enforces this is only selectable for Yaw
-					// for a gimbal you can select pitch too.
-					if(reinit) {
-						pids[PID_GROUP_ATT + i].iAccumulator = 0;
-						pids[PID_GROUP_RATE + i].iAccumulator = 0;
-					}
-
 					float angle_error = 0;
-					float angle;
-					if (CameraDesiredHandle()) {
-						switch(i) {
-						case PITCH:
-							CameraDesiredDeclinationGet(&angle);
-							angle_error = circular_modulus_deg(angle - attitudeActual.Pitch);
-							break;
-						case ROLL:
-						{
-							uint8_t roll_fraction = 0;
-
-							// For ROLL POI mode we track the FC roll angle (scaled) to
-							// allow keeping some motion
-							CameraDesiredRollGet(&angle);
-							angle *= roll_fraction / 100.0f;
-							angle_error = circular_modulus_deg(angle - attitudeActual.Roll);
-						}
-							break;
-						case YAW:
-							CameraDesiredBearingGet(&angle);
-							angle_error = circular_modulus_deg(angle - attitudeActual.Yaw);
-							break;
-						}
-					} else
-						error = true;
 
 					// Compute the outer loop
 					rateDesiredAxis[i] = pid_apply(&pids[PID_GROUP_ATT + i], angle_error);

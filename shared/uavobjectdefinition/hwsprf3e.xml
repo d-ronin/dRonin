@@ -24,7 +24,6 @@
         <option>I2C</option>
         <option>MSP</option>
         <option>OpenLog</option>
-        <option>Storm32Bgc</option>
         <option>Telemetry</option>
         <option>TBS Crossfire</option>
       </options>
@@ -49,7 +48,6 @@
         <option>I2C</option>
         <option>MSP</option>
         <option>OpenLog</option>
-        <option>Storm32Bgc</option>
         <option>Telemetry</option>
         <option>TBS Crossfire</option>
       </options>
@@ -71,7 +69,6 @@
         <option>OpenLog</option>
         <option>S.Bus</option>
         <option>S.Bus Non Inverted</option>
-        <option>Storm32Bgc</option>
         <option>Telemetry</option>
         <option>IBus</option>
         <option>TBS Crossfire</option>

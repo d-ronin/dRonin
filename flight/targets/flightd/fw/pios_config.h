@@ -74,9 +74,6 @@
 
 #define IDLE_COUNTS_PER_SEC_AT_NO_LOAD 9959
 
-// Enable POI tracking mode for camera stabilization
-#define CAMERASTAB_POI_MODE
-
 #if 0
 /* Disabled by default-- for sim, provide a log file on command line
  * Still have the capability to enable here if you're working on / developing

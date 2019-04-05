@@ -1438,7 +1438,7 @@ new home location unless it is in indoor mode.</string>
         </size>
        </property>
        <property name="toolTip">
-        <string>Load default CameraStabilization settings except output channels into GCS.
+        <string>Load default Stabilization settings except output channels into GCS.
 
 Loaded settings are not applied automatically. You have to click the
 Save button afterwards.</string>
@@ -1469,7 +1469,7 @@ Save button afterwards.</string>
         </size>
        </property>
        <property name="toolTip">
-        <string>Reloads saved CameraStabilization settings  except output channels
+        <string>Reloads saved Stabilization settings  except output channels
 from board into GCS. Useful if you have accidentally changed some
 settings.
 

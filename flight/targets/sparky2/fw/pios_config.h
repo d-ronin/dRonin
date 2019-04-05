@@ -69,8 +69,6 @@
 
 /* Flags that alter behaviors */
 
-#define CAMERASTAB_POI_MODE
-
 /* Alarm Thresholds */
 
 /*

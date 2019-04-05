@@ -531,11 +531,6 @@ int32_t vtol_follower_control_attitude(float dT, const float *att_adj)
 			stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_RATE;
 		}
 	}
-		break;
-	case VTOLPATHFOLLOWERSETTINGS_YAWMODE_POI:
-		stabDesired.StabilizationMode[STABILIZATIONDESIRED_STABILIZATIONMODE_YAW] = STABILIZATIONDESIRED_STABILIZATIONMODE_POI;
-		break;
-	}
 	
 	StabilizationDesiredSet(&stabDesired);
 

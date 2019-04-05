@@ -29,7 +29,6 @@
         <option>FrSKY SPort Non Inverted</option>
         <option>LighttelemetryTx</option>
         <option>OpenLog</option>
-        <option>Storm32Bgc</option>
         <option>VTX Config TBS SmartAudio</option>
         <option>TBS Crossfire</option>
         <!-- Beyond here are the non-serial, special cases -->

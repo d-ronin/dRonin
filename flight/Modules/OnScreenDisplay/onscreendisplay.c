@@ -523,10 +523,6 @@ void simple_artificial_horizon(float roll, float pitch, int16_t x, int16_t y,
 		uint8_t n_pitch_steps, bool show_horizon,
 		OnScreenDisplayPageSettingsCenterMarkOptions center_mark)
 {
-	float camera_tilt;
-
-	StabilizationSettingsCameraTiltGet(&camera_tilt);
-
 	width /= 2;
 	height /= 2;
 
@@ -534,7 +530,7 @@ void simple_artificial_horizon(float roll, float pitch, int16_t x, int16_t y,
 		float sin_roll = sinf(roll * (float)(M_PI / 180));
 		float cos_roll = cosf(roll * (float)(M_PI / 180));
 
-		pitch += cos_roll * camera_tilt;
+		pitch += 0;
 
 		int pitch_step_offset = pitch / PITCH_STEP;
 
@@ -607,27 +603,14 @@ void simple_artificial_horizon(float roll, float pitch, int16_t x, int16_t y,
 	}
 
 	// Center mark
-	if ((center_mark == ONSCREENDISPLAYPAGESETTINGS_CENTERMARK_MIDDLE) ||
-			(center_mark == ONSCREENDISPLAYPAGESETTINGS_CENTERMARK_CAMERAPITCH)) {
-		if (center_mark == ONSCREENDISPLAYPAGESETTINGS_CENTERMARK_CAMERAPITCH) {
-			/* Force the plane onto the screen... meh.
-			 * Should not be necessary */
-			if (camera_tilt > max_pitch) {
-				camera_tilt = max_pitch;
-			}
-
-			camera_tilt /= max_pitch;
-			camera_tilt *= height;
-		} else {
-			camera_tilt = 0;
-		}
-
-		write_line_outlined(GRAPHICS_X_MIDDLE - CENTER_WING - CENTER_BODY, GRAPHICS_Y_MIDDLE + camera_tilt,
-				GRAPHICS_X_MIDDLE - CENTER_BODY, GRAPHICS_Y_MIDDLE + camera_tilt, 2, 0, 0, 1);
-		write_line_outlined(GRAPHICS_X_MIDDLE + 1 + CENTER_BODY, GRAPHICS_Y_MIDDLE + camera_tilt,
-				GRAPHICS_X_MIDDLE + 1 + CENTER_BODY + CENTER_WING, GRAPHICS_Y_MIDDLE + camera_tilt, 0, 2, 0, 1);
-		write_line_outlined(GRAPHICS_X_MIDDLE, GRAPHICS_Y_MIDDLE - CENTER_RUDDER - CENTER_BODY + camera_tilt, GRAPHICS_X_MIDDLE,
-				GRAPHICS_Y_MIDDLE - CENTER_BODY + camera_tilt, 2, 0, 0, 1);
+	if (center_mark == ONSCREENDISPLAYPAGESETTINGS_CENTERMARK_MIDDLE)
+    {
+		write_line_outlined(GRAPHICS_X_MIDDLE - CENTER_WING - CENTER_BODY, GRAPHICS_Y_MIDDLE,
+				GRAPHICS_X_MIDDLE - CENTER_BODY, GRAPHICS_Y_MIDDLE, 2, 0, 0, 1);
+		write_line_outlined(GRAPHICS_X_MIDDLE + 1 + CENTER_BODY, GRAPHICS_Y_MIDDLE,
+				GRAPHICS_X_MIDDLE + 1 + CENTER_BODY + CENTER_WING, GRAPHICS_Y_MIDDLE, 0, 2, 0, 1);
+		write_line_outlined(GRAPHICS_X_MIDDLE, GRAPHICS_Y_MIDDLE - CENTER_RUDDER - CENTER_BODY, GRAPHICS_X_MIDDLE,
+				GRAPHICS_Y_MIDDLE - CENTER_BODY, 2, 0, 0, 1);
 	}
 
 }
@@ -712,9 +695,6 @@ void draw_flight_mode(int x, int y, int xs, int ys, int va, int ha, int flags, i
 			break;
 		case TABLETINFO_TABLETMODEDESIRED_LAND:
 			write_string("TAB Land", x, y, xs, ys, va, ha, flags, font);
-			break;
-		case TABLETINFO_TABLETMODEDESIRED_CAMERAPOI:
-			write_string("TAB POI", x, y, xs, ys, va, ha, flags, font);
 			break;
 		}
 		break;

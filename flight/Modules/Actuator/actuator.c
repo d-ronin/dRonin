@@ -47,7 +47,6 @@
 #include "actuatorcommand.h"
 #include "flightstatus.h"
 #include "mixersettings.h"
-#include "cameradesired.h"
 #include "manualcontrolcommand.h"
 #include "pios_thread.h"
 #include "pios_queue.h"
@@ -513,30 +512,6 @@ static void post_process_scale_and_commit(float *motor_vect,
 				}
 
 				num_motors++;
-				break;
-			case MIXERSETTINGS_MIXER1TYPE_CAMERAPITCH:
-				if (CameraDesiredHandle()) {
-					CameraDesiredPitchGet(
-							&motor_vect[ct]);
-				} else {
-					motor_vect[ct] = -1;
-				}
-				break;
-			case MIXERSETTINGS_MIXER1TYPE_CAMERAROLL:
-				if (CameraDesiredHandle()) {
-					CameraDesiredRollGet(
-							&motor_vect[ct]);
-				} else {
-					motor_vect[ct] = -1;
-				}
-				break;
-			case MIXERSETTINGS_MIXER1TYPE_CAMERAYAW:
-				if (CameraDesiredHandle()) {
-					CameraDesiredRollGet(
-							&motor_vect[ct]);
-				} else {
-					motor_vect[ct] = -1;
-				}
 				break;
 			default:
 				set_failsafe();
@@ -1090,7 +1065,7 @@ static float channel_failsafe_value(int idx)
 	case MIXERSETTINGS_MIXER1TYPE_DISABLED:
 		return -1;
 	default:
-		/* Other channel types-- camera.  Center them. */
+		/* Centre other chanel types. */
 		return 0;
 	}
 }

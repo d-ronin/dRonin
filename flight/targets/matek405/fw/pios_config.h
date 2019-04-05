@@ -66,8 +66,6 @@
 
 #define SYSTEMMOD_RGBLED_SUPPORT
 
-#define CAMERASTAB_POI_MODE
-
 /* Alarm Thresholds */
 
 /*

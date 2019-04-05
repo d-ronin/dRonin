@@ -58,7 +58,6 @@
 
 #undef PIOS_INCLUDE_HSUM
 #undef PIOS_INCLUDE_HOTT
-#undef PIOS_INCLUDE_STORM32BGC
 
 /* Alarm Thresholds */
 

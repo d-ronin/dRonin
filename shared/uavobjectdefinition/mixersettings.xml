@@ -34,9 +34,6 @@
         <option>Disabled</option>
         <option>Motor</option>
         <option>Servo</option>
-        <option>CameraRoll</option>
-        <option>CameraPitch</option>
-        <option>CameraYaw</option>
       </options>
     </field>
     <field defaultvalue="0" name="Mixer1Vector" type="int16" units="">

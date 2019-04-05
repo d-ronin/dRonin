@@ -40,7 +40,6 @@
 #include "configradiowidget.h"
 #include "configmodulewidget.h"
 #include "configautotunewidget.h"
-#include "configcamerastabilizationwidget.h"
 #include "configtxpidwidget.h"
 #include "configattitudewidget.h"
 #include "defaulthwsettingswidget.h"
@@ -169,16 +168,6 @@ void ConfigGadgetWidget::deferredLoader()
 
     case 9:
         icon = new QIcon();
-        icon->addFile(":/configgadget/images/camstab_normal.png", QSize(), QIcon::Normal,
-                      QIcon::Off);
-        icon->addFile(":/configgadget/images/camstab_selected.png", QSize(), QIcon::Selected,
-                      QIcon::Off);
-        qwd = new ConfigCameraStabilizationWidget(this);
-        ftw->insertTab(ConfigGadgetWidget::camerastabilization, qwd, *icon, QString("Camera Stab"));
-        break;
-
-    case 10:
-        icon = new QIcon();
         icon->addFile(":/configgadget/images/txpid_normal.png", QSize(), QIcon::Normal, QIcon::Off);
         icon->addFile(":/configgadget/images/txpid_selected.png", QSize(), QIcon::Selected,
                       QIcon::Off);
@@ -186,7 +175,7 @@ void ConfigGadgetWidget::deferredLoader()
         ftw->insertTab(ConfigGadgetWidget::txpid, qwd, *icon, QString("TxPID"));
         break;
 
-    case 11:
+    case 10:
         icon = new QIcon();
         icon->addFile(":/configgadget/images/osd_normal.png", QSize(), QIcon::Normal, QIcon::Off);
         icon->addFile(":/configgadget/images/osd_selected.png", QSize(), QIcon::Selected,
@@ -197,7 +186,7 @@ void ConfigGadgetWidget::deferredLoader()
         ftw->setHidden(ConfigGadgetWidget::osd, true);
         break;
 
-    case 12:
+    case 11:
         icon = new QIcon();
         icon->addFile(":/configgadget/images/radio_normal.png", QSize(), QIcon::Normal, QIcon::Off);
         icon->addFile(":/configgadget/images/radio_selected.png", QSize(), QIcon::Selected,
@@ -208,7 +197,7 @@ void ConfigGadgetWidget::deferredLoader()
         ftw->setHidden(ConfigGadgetWidget::radio, true);
         break;
 
-    case 13:
+    case 12:
     default:
         // *********************
         // Listen to autopilot connection events

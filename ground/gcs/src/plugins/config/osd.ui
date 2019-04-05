@@ -969,7 +969,7 @@ Setup the flight mode channel on the RC Input tab if you have not done so alread
         </size>
        </property>
        <property name="toolTip">
-        <string>Reloads saved CameraStabilization settings  except output channels
+        <string>Reloads saved Stabilization settings  except output channels
 from board into GCS. Useful if you have accidentally changed some
 settings.
 

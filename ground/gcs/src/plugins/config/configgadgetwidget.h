@@ -56,7 +56,6 @@ public:
         sensors,
         stabilization,
         modules,
-        camerastabilization,
         txpid,
         autotune,
         osd,

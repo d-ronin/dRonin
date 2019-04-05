@@ -713,13 +713,6 @@ void ConfigVehicleTypeWidget::updateObjectsFromWidgets()
                 vconfig->setMixerType(mixerSettings, channel, MixerSettings::MIXER1TYPE_MOTOR);
             else if (q->currentText() == "Servo")
                 vconfig->setMixerType(mixerSettings, channel, MixerSettings::MIXER1TYPE_SERVO);
-            else if (q->currentText() == "CameraRoll")
-                vconfig->setMixerType(mixerSettings, channel, MixerSettings::MIXER1TYPE_CAMERAROLL);
-            else if (q->currentText() == "CameraPitch")
-                vconfig->setMixerType(mixerSettings, channel,
-                                      MixerSettings::MIXER1TYPE_CAMERAPITCH);
-            else if (q->currentText() == "CameraYaw")
-                vconfig->setMixerType(mixerSettings, channel, MixerSettings::MIXER1TYPE_CAMERAYAW);
 
             vconfig->setMixerVectorValue(
                 mixerSettings, channel, MixerSettings::MIXER1VECTOR_THROTTLECURVE1,

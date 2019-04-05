@@ -30,7 +30,6 @@
         <option>PathPlanner</option>
         <option>FollowMe</option>
         <option>Land</option>
-        <option>CameraPOI</option>
       </options>
     </field>
     <field defaultvalue="False" elements="1" name="POI" type="enum" units="">

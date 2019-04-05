@@ -149,25 +149,6 @@
                </widget>
               </item>
               <item>
-               <widget class="QCheckBox" name="cbCameraStab">
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;See &amp;quot;Camera Stab&amp;quot; tab to enable/disable this module.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-                <property name="text">
-                 <string>Camera Stabilisation</string>
-                </property>
-                <property name="objrelation" stdset="0">
-                 <stringlist>
-                  <string>objname:ModuleSettings</string>
-                  <string>fieldname:AdminState</string>
-                  <string>element:CameraStab</string>
-                  <string>checkedoption:Enabled</string>
-                  <string>uncheckedoption:Disabled</string>
-                 </stringlist>
-                </property>
-               </widget>
-              </item>
-              <item>
                <widget class="QCheckBox" name="cbFixedWingPathFollower">
                 <property name="text">
                  <string>Fixed Wing Path Follower</string>
@@ -4906,7 +4887,7 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>Reloads saved CameraStabilization settings  except output channels
+        <string>Reloads saved Stabilization settings  except output channels
 from board into GCS. Useful if you have accidentally changed some
 settings.
 

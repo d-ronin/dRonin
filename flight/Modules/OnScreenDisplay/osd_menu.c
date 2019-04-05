@@ -218,7 +218,6 @@ enum menu_fsm_state {
 	FSM_STATE_STICKLIMITS_PITCHEXH, /*!< Pitch expo horizon */
 	FSM_STATE_STICKLIMITS_YAWEXH,   /*!< Yaw expo horizon */
 	FSM_STATE_STICKLIMITS_MOTORPOWER, /*!< Motor power gain scale */
-	FSM_STATE_STICKLIMITS_CAMERATILT, /*!< Reprojection Camera Tilt */
 	FSM_STATE_STICKLIMITS_SAVEEXIT, /*!< Save & Exit */
 	FSM_STATE_STICKLIMITS_EXIT,     /*!< Exit */
 /*------------------------------------------------------------------------------------------*/
@@ -827,20 +826,13 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 		.menu_fn = sticklimits_menu,
 		.next_state = {
 			[FSM_EVENT_UP] = FSM_STATE_STICKLIMITS_YAWEXH,
-			[FSM_EVENT_DOWN] = FSM_STATE_STICKLIMITS_CAMERATILT,
-		},
-	},
-	[FSM_STATE_STICKLIMITS_CAMERATILT] = {
-		.menu_fn = sticklimits_menu,
-		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_STICKLIMITS_MOTORPOWER,
 			[FSM_EVENT_DOWN] = FSM_STATE_STICKLIMITS_SAVEEXIT,
 		},
 	},
 	[FSM_STATE_STICKLIMITS_SAVEEXIT] = {
 		.menu_fn = sticklimits_menu,
 		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_STICKLIMITS_CAMERATILT,
+			[FSM_EVENT_UP] = FSM_STATE_STICKLIMITS_MOTORPOWER,
 			[FSM_EVENT_DOWN] = FSM_STATE_STICKLIMITS_EXIT,
 			[FSM_EVENT_RIGHT] = FSM_STATE_MAIN_STICKLIMITS,
 		},
@@ -1997,34 +1989,6 @@ void sticklimits_menu(void)
 			motor_gain /= 100;
 			ActuatorSettingsMotorInputOutputGainSet(&motor_gain);
 		}
-	}
-
-	// Reprojection Camera Tilt
-	{
-		float tilt;
-		StabilizationSettingsCameraTiltGet(&tilt);
-		data_changed = false;
-
-		sprintf(tmp_str, "Reproject Camera Tilt: %d", (int)tilt);
-		write_string(tmp_str, MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);
-		draw_hscale(225, GRAPHICS_RIGHT - 5, y_pos + 2, -85, 85, tilt);
-		if (my_state == current_state) {
-			draw_selected_icon(MENU_LINE_X - 4, y_pos + 4);
-			if (current_event == FSM_EVENT_RIGHT) {
-				tilt = MIN(tilt + 1, 85);
-				data_changed = true;
-			}
-			if (current_event == FSM_EVENT_LEFT) {
-				tilt = MAX(tilt - 1, -85);
-				data_changed = true;
-			}
-		}
-
-		my_state++;
-		y_pos += MENU_LINE_SPACING;
-
-		if (data_changed)
-			StabilizationSettingsCameraTiltSet(&tilt);
 	}
 
 	write_string("Save and Exit", MENU_LINE_X, y_pos, 0, 0, TEXT_VA_TOP, TEXT_HA_LEFT, 0, MENU_FONT);

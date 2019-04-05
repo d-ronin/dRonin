@@ -86,8 +86,6 @@
 #define AUTOTUNE_AVERAGING_DECIMATION 2
 #define SYSTEMMOD_RGBLED_SUPPORT
 
-#define CAMERASTAB_POI_MODE
-
 /* Alarm Thresholds */
 
 /*
