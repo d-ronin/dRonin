@@ -303,7 +303,7 @@ gcs_ts: tools_required_qt
 	$(V1) mkdir -p $(BUILD_DIR)/ground/gcs/share/translations
 	$(V1) ( cd $(BUILD_DIR)/ground/gcs/share/translations && \
 	  $(QMAKE) $(ROOT_DIR)/ground/gcs/share/translations/translations.pro -spec $(QT_SPEC) -r CONFIG+="$(GCS_BUILD_CONF) $(GCS_SILENT)" $(GCS_QMAKE_OPTS) && \
-	  $(MAKE) --no-print-directory -w ts ; \
+	  $(MAKE) --no-print-directory -w ts-all ; \
 	)
 
 # requires KDE's clazy
@@ -453,6 +453,7 @@ androidgcs_sign:
 # Supply the git hashes of all recent releases here.  Note if UAVOs do not
 # change in a hotfix the release does not need to be listed here.
 UAVO_GIT_VERSIONS := HEAD \
+	Release-20180729 \
 	Release-20180212 \
 	Release-20170717 \
 	Release-20170213 \

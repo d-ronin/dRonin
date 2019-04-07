@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-	package="org.dronin.androidgcs" android:versionCode="20180212"
+	package="org.dronin.androidgcs" android:versionCode="20180729"
 	android:versionName="Wired">
 	<uses-sdk android:minSdkVersion="14" android:targetSdkVersion="19"/>
 

@@ -235,7 +235,7 @@ static void msp_send_error(struct msp_bridge *m, uint8_t cmd)
 
 	buf[0] = '$';
 	buf[1] = 'M';
-	buf[2] = '|';
+	buf[2] = '!'; /* original multiwii spec says '|', everyone uses '!' */
 	buf[3] = 0;
 	buf[4] = cmd;
 	buf[5] = cmd;	// Checksum == cmd
@@ -384,8 +384,7 @@ static void msp_send_fc_variant(struct msp_bridge *m)
 
 	memset(&data, 0, sizeof(data));
 
-	/* strncpy(data.var.name, "BTFL", 4);*/
-	strncpy(data.var.name, "DRON", 4);
+	memcpy(data.var.name, "DRON", 4);
 
 	msp_send(m, MSP_FC_VARIANT, data.buf, sizeof(data));
 }
@@ -402,7 +401,7 @@ static void msp_send_board_info(struct msp_bridge *m)
 
 	memset(&data, 0, sizeof(data));
 
-	strncpy(data.board.name, DRONIN_TARGET, 4);
+	memcpy(data.board.name, DRONIN_TARGET, MIN(4, strlen(DRONIN_TARGET)));
 
 	msp_send(m, MSP_BOARD_INFO, data.buf, sizeof(data));
 }

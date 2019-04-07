@@ -130,11 +130,6 @@ linux {
     QMAKE_LFLAGS += -Wl,--allow-shlib-undefined -Wl,--no-undefined
 }
 
-linux-g++* {
-    # Enable -Werror on Linux, should do this for all platforms once warnings are all eliminated
-    QMAKE_CXXFLAGS_WARN_ON += -Werror
-}
-
 win32 {
     # http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52991
     !win32-msvc*:QMAKE_CXXFLAGS += -mno-ms-bitfields

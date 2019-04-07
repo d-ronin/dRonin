@@ -19,19 +19,10 @@ wd = $$replace(GCS_SOURCE_TREE, /, $$QMAKE_DIR_SEP)
 
 TRANSLATIONS = $$prependAll(LANGUAGES, $$PWD/dronin_,.ts)
 
-MIME_TR_H = $$OUT_PWD/mime_tr.h
-
 win32: \
     PREFIX = "file:///"
 else: \
     PREFIX = "file://"
-
-for(dir, $$list($$files($$GCS_SOURCE_TREE/src/plugins/*))):MIMETYPES_FILES += $$files($$dir/*.mimetypes.xml)
-MIMETYPES_FILES = \"$$join(MIMETYPES_FILES, "|$$PREFIX", "$$PREFIX")\"
-
-extract.commands += \
-    $$XMLPATTERNS -output $$MIME_TR_H -param files=$$MIMETYPES_FILES $$PWD/extract-mimetypes.xq $$escape_expand(\\n\\t) \
-QMAKE_EXTRA_TARGETS += extract
 
 plugin_sources = $$files($$GCS_SOURCE_TREE/src/plugins/*)
 plugin_sources ~= s,^$$re_escape($$GCS_SOURCE_TREE/),,g$$i_flag
@@ -40,17 +31,14 @@ sources = src/app src/libs $$plugin_sources share/welcome
 
 for(path, INCLUDEPATH): include_options *= -I$$shell_quote($$path)
 
-files = $$files($$PWD/*_??.ts)
+files = $$files($$PWD/*_??.ts) $$PWD/dronin_untranslated.ts
 for(file, files) {
     lang = $$replace(file, .*_([^/]*)\\.ts, \\1)
     v = ts-$${lang}.commands
-    $$v = cd $$wd && $$LUPDATE $$include_options $$sources $$MIME_TR_H -ts $$file
-    v = ts-$${lang}.depends
-    $$v = extract
+    $$v = cd $$wd && $$LUPDATE $$include_options $$sources -ts $$file
     QMAKE_EXTRA_TARGETS += ts-$$lang
 }
-ts-all.commands = cd $$wd && $$LUPDATE $$include_options $$sources $$MIME_TR_H -ts $$files
-ts-all.depends = extract
+ts-all.commands = cd $$wd && $$LUPDATE $$include_options $$sources -ts $$files
 QMAKE_EXTRA_TARGETS += ts-all
 
 ts.commands = \
