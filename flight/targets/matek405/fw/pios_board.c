@@ -395,19 +395,15 @@ void PIOS_Board_Init(void) {
 	
 	PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_8G);
 	
-	// From pios_mpu.h:
-	//   PIOS_MPU60X0_GYRO_LOWPASS_188_HZ = 0x01,    (both gyro and accel)
-	//   PIOS_ICM206XX_GYRO_LOWPASS_176_HZ  = 0x01,  (gyro only)
-	//   So calling PIOS_MPU_SetGyroBandwidth with an argument of 0x01
-	//   will set the desired bandwidth for either imu.
-	
-	PIOS_MPU_SetGyroBandwidth(0x01);
+	// Per pios_mpu.c, a bandwidth value of 188 will:
+	//   Set the MPU60X0 low pass filter to 188 Hz
+	//   Set the ICM206XX gyro low pass filter to 176 Hz
+	PIOS_MPU_SetGyroBandwidth(188);
 
-	// PIOS_MPU_SetAccelBandwidth returns immediately if 
-	// mpu_dev->mpu_type is set to PIOS_MPU60X0, so safe
-	// to call for either imu.
-	
-	PIOS_MPU_SetAccelBandwidth(PIOS_ICM206XX_ACCEL_LOWPASS_218_HZ);
+	// Per pios_mpu.c, a bandwidth value of 99 will:
+	//   Do nothing for the MPU60X0
+	//   Set the ICM206XX accel low pass filter to 99 Hz
+	PIOS_MPU_SetAccelBandwidth(99);
 #endif
 
 #if defined(PIOS_INCLUDE_I2C)
