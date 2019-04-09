@@ -160,6 +160,9 @@ static struct cfvert cfvert; //!< State information for vertical filter
 
 static float dT_expected = 0.001f;	// assume 1KHz if we don't know.
 
+#define ACCEL_ONE_G (9.8065f)
+static float accel_confidence_decay = 2; /* 1 / sqrt(0.25) */
+
 // Private functions
 static void AttitudeTask(void *parameters);
 
@@ -354,6 +357,8 @@ static void AttitudeTask(void *parameters)
 				complementary_filter_state.accel_alpha = expf(-dT_expected  / attitudeSettings.AccelTau);
 				complementary_filter_state.accel_filter_enabled = true;
 			}
+
+			accel_confidence_decay = 1.0f / sqrtf(bound_min_max(attitudeSettings.AccCutoff, 0.1f, 1.0f));
 
 			StateEstimationGet(&stateEstimation);
 		}
@@ -766,18 +771,10 @@ static int32_t updateAttitudeComplementary(float dT, bool first_run, bool second
 		mag_err[2] = 0;
 	}
 
-	////////////////////////////////////////
-	
-	// G.K. Egan (C) computes confidence in accelerometers when
-	// aircraft is being accelerated over and above that due to gravity
+	/* Computes confidence in accelerometers when aircraft is being accelerated over
+	   and above that due to gravity. (c) G.K. Egan */
 
-	#define ACCEL_ONE_G (9.8065f)
-	
-	float accel_confidence_decay = 1.0f / sqrtf(attitudeSettings.AccCutoff);
-	
 	float accel_confidence = bound_min_max(1.0f - (accel_confidence_decay * sqrtf(fabs(accel_mag / ACCEL_ONE_G - 1.0f))), 0.0f, 1.0f);
-	
-	////////////////////////////////////////
 	
 	// Accumulate integral of error.  Scale here so that units are (deg/s) but Ki has units of s
 	GyrosBiasData gyrosBias;
