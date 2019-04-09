@@ -162,6 +162,7 @@ static float dT_expected = 0.001f;	// assume 1KHz if we don't know.
 
 #define ACCEL_ONE_G (9.8065f)
 static float accel_confidence_decay = 2; /* 1 / sqrt(0.25) */
+float accel_confidence;
 
 // Private functions
 static void AttitudeTask(void *parameters);
@@ -774,7 +775,7 @@ static int32_t updateAttitudeComplementary(float dT, bool first_run, bool second
 	/* Computes confidence in accelerometers when aircraft is being accelerated over
 	   and above that due to gravity. (c) G.K. Egan */
 
-	float accel_confidence = bound_min_max(1.0f - (accel_confidence_decay * sqrtf(fabs(accel_mag / ACCEL_ONE_G - 1.0f))), 0.0f, 1.0f);
+	accel_confidence = bound_min_max(1.0f - (accel_confidence_decay * sqrtf(fabs(accel_mag / ACCEL_ONE_G - 1.0f))), 0.0f, 1.0f);
 	
 	// Accumulate integral of error.  Scale here so that units are (deg/s) but Ki has units of s
 	GyrosBiasData gyrosBias;
@@ -1001,6 +1002,7 @@ static int32_t setAttitudeComplementary()
 	AttitudeActualData attitude;
 	quat_copy(cf_q, &attitude.q1);
 	Quaternion2RPY(&attitude.q1,&attitude.Roll);
+	attitude.AccelConfidence = accel_confidence;
 	AttitudeActualSet(&attitude);
 
 	return 0;
