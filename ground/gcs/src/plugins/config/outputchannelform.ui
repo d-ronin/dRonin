@@ -76,6 +76,9 @@
      <property name="toolTip">
       <string>Maximum PWM value in microseconds, beware of not overdriving your servo.</string>
      </property>
+     <property name="keyboardTracking">
+      <bool>false</bool>
+     </property>
      <property name="suffix">
       <string> us</string>
      </property>
