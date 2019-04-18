@@ -1068,17 +1068,6 @@ static struct pios_mpu_cfg pios_mpu_cfg = {
 #endif /* PIOS_INCLUDE_MPU */
 
 /**
- * Configuration for the BMP280
- */
-#ifdef PIOS_INCLUDE_BMP280
-#include "pios_bmp280_priv.h"
-
-static const struct pios_bmp280_cfg pios_bmp280_cfg = {
-	.oversampling = BMP280_HIGH_RESOLUTION,
-};
-#endif /* PIOS_INCLUDE_BMP280 */
-
-/**
  * @}
  * @}
  */

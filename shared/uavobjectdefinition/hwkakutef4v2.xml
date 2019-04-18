@@ -146,5 +146,16 @@
         <option>5</option>
       </options>
     </field>
+    <field defaultvalue="None" elements="1" name="ExtMag" parent="HwShared.Mag" type="enum" units="none">
+      <description>Enable/Disable External Mag</description>
+      <options>
+        <option>None</option>
+        <option>External HMC5883</option>
+        <option>External HMC5983</option>
+      </options>
+    </field>
+    <field defaultvalue="Top0degCW" elements="1" name="ExtMagOrientation" parent="HwShared.MagOrientation" type="enum" units="none">
+      <description>Orientation of the external magnetometer</description>
+     </field>
   </object>
 </xml>
