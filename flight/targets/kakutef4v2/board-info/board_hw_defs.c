@@ -161,7 +161,7 @@ pios_spi_t pios_spi_gyro_id;
  *      - Used for MAX7456, SPI EEPROM
  */
 
-static const struct pios_spi_cfg pios_spi_osd_cfg = {
+static const struct pios_spi_cfg pios_spi_osd_flash_cfg = {
 	.regs = SPI3,
 	.remap = GPIO_AF_SPI3,
 	.init = {
@@ -217,23 +217,23 @@ static const struct pios_spi_cfg pios_spi_osd_cfg = {
 				.GPIO_Speed = GPIO_Speed_100MHz,
 				.GPIO_Mode  = GPIO_Mode_OUT,
 				.GPIO_OType = GPIO_OType_PP,
-				.GPIO_PuPd  = GPIO_PuPd_NOPULL
+				.GPIO_PuPd  = GPIO_PuPd_UP
 			},
 		},
 		{
-			.gpio = GPIOB,  // SPI EEPROM (Currently not used, but want SPI EEPROM chip disabled)
+			.gpio = GPIOB,  // SPI EEPROM
 			.init = {
 				.GPIO_Pin   = GPIO_Pin_3,
 				.GPIO_Speed = GPIO_Speed_100MHz,
 				.GPIO_Mode  = GPIO_Mode_OUT,
 				.GPIO_OType = GPIO_OType_PP,
-				.GPIO_PuPd  = GPIO_PuPd_NOPULL
+				.GPIO_PuPd  = GPIO_PuPd_UP
 			},
 		},
 	},
 };
 
-pios_spi_t pios_spi_osd_id;
+pios_spi_t pios_spi_osd_flash_id;
 
 #endif	/* PIOS_INCLUDE_SPI */
 
@@ -304,8 +304,8 @@ static const struct pios_i2c_adapter_cfg pios_i2c_internal_cfg = {
 pios_i2c_t pios_i2c_internal_id;
 void PIOS_I2C_internal_ev_irq_handler(void)
 {
-  /* Call into the generic code to handle the IRQ for this specific device */
-  PIOS_I2C_EV_IRQ_Handler(pios_i2c_internal_id);
+	/* Call into the generic code to handle the IRQ for this specific device */
+	PIOS_I2C_EV_IRQ_Handler(pios_i2c_internal_id);
 }
 
 void PIOS_I2C_internal_er_irq_handler(void)
@@ -325,13 +325,27 @@ static const struct flashfs_logfs_cfg flashfs_settings_cfg = {
 	.slot_size     = 0x00000100, /* 256 bytes */
 };
 
+#if defined(PIOS_INCLUDE_FLASH_JEDEC)
+#include "pios_flash_jedec_priv.h"
+
+static const struct pios_flash_jedec_cfg flash_w25q128_cfg = {
+	.expect_manufacturer = JEDEC_MANUFACTURER_WINBOND,
+	.expect_memorytype   = 0x40,
+	.expect_capacity     = 0x18,
+	.sector_erase        = 0x20,
+};
+#endif	/* PIOS_INCLUDE_FLASH_JEDEC */
+
+#if defined(PIOS_INCLUDE_FLASH_INTERNAL)
 #include "pios_flash_internal_priv.h"
 
 static const struct pios_flash_internal_cfg flash_internal_cfg = {
 };
+#endif	/* PIOS_INCLUDE_FLASH_INTERNAL */
 
 #include "pios_flash_priv.h"
 
+#if defined(PIOS_INCLUDE_FLASH_INTERNAL)
 static const struct pios_flash_sector_range stm32f4_sectors[] = {
 	{
 		.base_sector = 0,
@@ -359,8 +373,29 @@ static const struct pios_flash_chip pios_flash_chip_internal = {
 	.sector_blocks = stm32f4_sectors,
 	.num_blocks    = NELEMENTS(stm32f4_sectors),
 };
+#endif	/* PIOS_INCLUDE_FLASH_INTERNAL */
+
+#if defined(PIOS_INCLUDE_FLASH_JEDEC)
+static const struct pios_flash_sector_range w25q128_sectors[] = {
+	{
+		.base_sector = 0,
+		.last_sector = 4095,
+		.sector_size = FLASH_SECTOR_4KB,
+	}
+};
+
+uintptr_t pios_external_flash_id;
+static const struct pios_flash_chip pios_flash_chip_external = {
+	.driver        = &pios_jedec_flash_driver,
+	.chip_id       = &pios_external_flash_id,
+	.page_size     = 256,
+	.sector_blocks = w25q128_sectors,
+	.num_blocks    = NELEMENTS(w25q128_sectors),
+};
+#endif /* PIOS_INCLUDE_FLASH_JEDEC */
 
 static const struct pios_flash_partition pios_flash_partition_table[] = {
+#if defined(PIOS_INCLUDE_FLASH_INTERNAL)
 	{
 		.label        = FLASH_PARTITION_LABEL_BL,
 		.chip_desc    = &pios_flash_chip_internal,
@@ -401,9 +436,20 @@ static const struct pios_flash_partition pios_flash_partition_table[] = {
 		.size         = (10 - 10 + 1) * FLASH_SECTOR_128KB,                                           // 128KB
 	},
 
-	/* Sector 11 is unallocated, but in old bootloaders was allocated to
-	 * waypoints/autotune.
-	 */
+	/* Sector 11 of the internal flash are currently unallocated */
+
+#endif /* PIOS_INCLUDE_FLASH_INTERNAL */
+
+#if defined(PIOS_INCLUDE_FLASH_JEDEC)
+	{
+		.label        = FLASH_PARTITION_LABEL_LOG,
+		.chip_desc    = &pios_flash_chip_external,
+		.first_sector = 0,
+		.last_sector  = 4095,  // 255,
+		.chip_offset  = 0,
+		.size         = (4095 - 0 + 1) * FLASH_SECTOR_4KB,  // (255 - 0 + 1) * FLASH_SECTOR_64KB,
+	},
+#endif	/* PIOS_INCLUDE_FLASH_JEDEC */
 };
 
 const struct pios_flash_partition * PIOS_BOARD_HW_DEFS_GetPartitionTable (uint32_t board_revision, uint32_t * num_partitions)
