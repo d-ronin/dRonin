@@ -1491,43 +1491,6 @@ static struct pios_mpu_cfg pios_mpu_cfg = {
 #endif /* PIOS_INCLUDE_MPU */
 
 /**
- * Configuration for the BMP280
- */
-#ifdef PIOS_INCLUDE_BMP280
-#include "pios_bmp280_priv.h"
-
-static const struct pios_bmp280_cfg pios_bmp280_cfg = {
-	.oversampling = BMP280_HIGH_RESOLUTION,
-};
-#endif /* PIOS_INCLUDE_BMP280 */
-
-#ifdef PIOS_INCLUDE_HMC5883
-#include "pios_hmc5883_priv.h"
-static const struct pios_hmc5883_cfg pios_hmc5883_external_cfg = {
-	.exti_cfg = NULL,
-	.M_ODR = PIOS_HMC5883_ODR_75,
-	.Meas_Conf = PIOS_HMC5883_MEASCONF_NORMAL,
-	.Gain = PIOS_HMC5883_GAIN_1_9,
-	.Mode = PIOS_HMC5883_MODE_CONTINUOUS,
-	.Default_Orientation = PIOS_HMC5883_TOP_0DEG,
-};
-#endif
-
-#ifdef PIOS_INCLUDE_HMC5983_I2C
-#include "pios_hmc5983.h"
-
-static const struct pios_hmc5983_cfg pios_hmc5983_external_cfg = {
-	.exti_cfg            = NULL,
-	.M_ODR               = PIOS_HMC5983_ODR_75,
-	.Meas_Conf           = PIOS_HMC5983_MEASCONF_NORMAL,
-	.Gain                = PIOS_HMC5983_GAIN_1_9,
-	.Mode                = PIOS_HMC5983_MODE_CONTINUOUS,
-	.Averaging           = PIOS_HMC5983_AVERAGING_1,
-	.Orientation         = PIOS_HMC5983_TOP_0DEG,
-};
-
-#endif
-/**
  * @}
  * @}
  */

@@ -469,29 +469,21 @@ void PIOS_Board_Init(void) {
 	PIOS_MPU_SetAccelBandwidth(acc_bandwidth);
 #endif
 
-#if defined(PIOS_INCLUDE_I2C)
     PIOS_WDG_Clear();
 
-    uint8_t hw_ext_mag;
-    uint8_t hw_orientation;
+	PIOS_HAL_ConfigureExternalBaro(HWSHARED_EXTBARO_BMP280,
+			&pios_i2c_internal_id, &pios_i2c_internal_cfg);
+
+    PIOS_WDG_Clear();
+
+    HwMatek405MagnetometerOptions hw_ext_mag;
+    HwMatek405ExtMagOrientationOptions hw_orientation;
 
     HwMatek405MagnetometerGet(&hw_ext_mag);
     HwMatek405ExtMagOrientationGet(&hw_orientation);
 
     PIOS_HAL_ConfigureExternalMag(hw_ext_mag, hw_orientation,
             &pios_i2c_internal_id, &pios_i2c_internal_cfg);
-
-#if defined(PIOS_INCLUDE_BMP280)
-#include "pios_bmp280.h"
-#include "pios_bmp280_priv.h"
-    if ((PIOS_BMP280_Init(&pios_bmp280_cfg, pios_i2c_internal_id) != 0) || (PIOS_BMP280_Test() != 0))
-        PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_BARO);
-#endif
-
-    //I2C is slow, sensor init as well, reset watchdog to prevent reset here
-    PIOS_WDG_Clear();
-
-#endif    /* PIOS_INCLUDE_I2C */
 
 #if defined(PIOS_INCLUDE_ADC)
     /* Configure the adc port(s) */
