@@ -38,12 +38,15 @@
 #define BIFLIGHT
 
 /* Enable/Disable PiOS Modules */
-#define PIOS_INCLUDE_FLASH_JEDEC
 #define PIOS_INCLUDE_I2C
 #define PIOS_INCLUDE_SPI
 #define PIOS_INCLUDE_FASTHEAP
 #define PIOS_INCLUDE_MAX7456
 #define PIOS_INCLUDE_WS2811
+
+#define PIOS_INCLUDE_FLASH_JEDEC
+#define PIOS_INCLUDE_LOG_TO_FLASH
+#define PIOS_LOGFLASH_SECT_SIZE 0x1000   /* 4kb */
 
 /* Select the sensors to include */
 #define PIOS_INCLUDE_MPU

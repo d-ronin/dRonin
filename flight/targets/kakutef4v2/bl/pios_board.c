@@ -60,12 +60,24 @@ void PIOS_Board_Init() {
 	PIOS_ANNUNC_On(PIOS_LED_HEARTBEAT);
 	PIOS_ANNUNC_On(PIOS_LED_ALARM);
 
+#if defined(PIOS_INCLUDE_SPI)
+	/* Set up the SPI interface to the flash */
+	if (PIOS_SPI_Init(&pios_spi_osd_flash_id, &pios_spi_osd_flash_cfg)) {
+		PIOS_Assert(0);
+	}
+#endif	/* PIOS_INCLUDE_SPI */
+
 #if defined(PIOS_INCLUDE_FLASH)
 	/* Initialize all flash drivers */
 	PIOS_Flash_Internal_Init(&pios_internal_flash_id, &flash_internal_cfg);
 
+#if defined(PIOS_INCLUDE_FLASH_JEDEC)
+	PIOS_Flash_Jedec_Init(&pios_external_flash_id, pios_spi_osd_flash_id, 1, &flash_w25q128_cfg);
+#endif	/* PIOS_INCLUDE_FLASH_JEDEC */
+
 	/* Register the partition table */
 	PIOS_FLASH_register_partition_table(pios_flash_partition_table, NELEMENTS(pios_flash_partition_table));
+
 #endif	/* PIOS_INCLUDE_FLASH */
 
 #if defined(PIOS_INCLUDE_USB)
