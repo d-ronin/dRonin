@@ -708,8 +708,8 @@ static void tailTuneModeThrustTorque(TriflightSettingsData *triflightSettings,
 			if (!armed)	{
 				float average_servo_angle = pTT->servoAvgAngle.sum / (float)pTT->servoAvgAngle.num_of;
 
-				if(((average_servo_angle > 90.5f) && (average_servo_angle < 120.0f) && (spinCCW)) ||
-				   ((average_servo_angle < 89.5f) && (average_servo_angle > 60.0f) && (!spinCCW))){
+				if(((average_servo_angle > 90.2f) && (average_servo_angle < 120.0f) && (spinCCW)) ||
+				   ((average_servo_angle < 89.8f) && (average_servo_angle > 60.0f) && (!spinCCW))){
 					average_servo_angle -= 90.0f;
 					average_servo_angle *= DEG2RAD;
 
@@ -737,7 +737,7 @@ static void tailTuneModeThrustTorque(TriflightSettingsData *triflightSettings,
 		case TT_DONE:
 			if (PIOS_DELAY_GetuSSince(pTT->timestamp_us) >= 1000000)  // 1 second
 			{
-				xflight_blink_string = "W";                         // ".--" done success
+				xflight_blink_string = "M";                         // "--" done success
 				pTT->timestamp_us = PIOS_DELAY_GetuS();
 			}
 
@@ -746,7 +746,7 @@ static void tailTuneModeThrustTorque(TriflightSettingsData *triflightSettings,
 		case TT_FAIL:
 			if (PIOS_DELAY_GetuSSince(pTT->timestamp_us) >= 1000000)  // 1 second
 			{
-				xflight_blink_string = "G";                         // "--." done fail
+				xflight_blink_string = "O";                         // "---" done fail
 				pTT->timestamp_us = PIOS_DELAY_GetuS();
 			}
 
@@ -823,7 +823,7 @@ static void tailTuneModeServoSetup(ActuatorSettingsData  *actuatorSettings,
 									pSS->state        = SS_IDLE;
 									pSS->cal.subState = SS_C_S_IDLE;
 
-									xflight_blink_string = "G";  // "--." done fail
+									xflight_blink_string = "O";  // "---" done fail
 								}
 								else
 								{
@@ -909,7 +909,7 @@ static void tailTuneModeServoSetup(ActuatorSettingsData  *actuatorSettings,
 										TriflightSettingsSet(triflightSettings);
 										UAVObjSave(TriflightSettingsHandle(), 0);
 
-										xflight_blink_string = "W";  // ".--" done success
+										xflight_blink_string = "M";  // "--" done success
 									}
 
 									pSS->cal.timestamp_us = PIOS_DELAY_GetuS();
