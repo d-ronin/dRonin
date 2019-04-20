@@ -109,30 +109,10 @@ QString F3Fc::getHwUAVO()
 
 int F3Fc::queryMaxGyroRate()
 {
-    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
-    HwF3Fc *hwf3fc = HwF3Fc::GetInstance(uavoManager);
-    Q_ASSERT(hwf3fc);
-    if (!hwf3fc)
-        return 0;
-
-    HwF3Fc::DataFields settings = hwf3fc->getData();
-
-    switch(settings.GyroRange) {
-    case HwF3Fc::GYRORANGE_250:
-        return 250;
-    case HwF3Fc::GYRORANGE_500:
-        return 500;
-    case HwF3Fc::GYRORANGE_1000:
-        return 1000;
-    case HwF3Fc::GYRORANGE_2000:
-        return 2000;
-    default:
-        return 500;
-    }
+    return 2000;
 }
 
 QStringList F3Fc::getAdcNames()
 {
-    return QStringList() << "Current" << "Battery" << "RSSI" << "Fdbk2";
+    return QStringList() << "Current" << "Battery" << "RSSI/Fdbk1" << "Fdbk2";
 }

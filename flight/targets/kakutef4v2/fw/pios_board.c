@@ -332,66 +332,13 @@ void PIOS_Board_Init(void) {
 	if (PIOS_MPU_SPI_Init(&mpu_dev, pios_spi_gyro_id, 0, &pios_mpu_cfg) != 0)
 		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 
-	HwKakutef4v2GyroRangeOptions hw_gyro_range;
-	HwKakutef4v2GyroRangeGet(&hw_gyro_range);
+	PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_2000_DEG);
 	
-	switch(hw_gyro_range) {
-		case HWKAKUTEF4V2_GYRORANGE_250:
-			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_250_DEG);
-			break;
-		case HWKAKUTEF4V2_GYRORANGE_500:
-			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_500_DEG);
-			break;
-		case HWKAKUTEF4V2_GYRORANGE_1000:
-			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_1000_DEG);
-			break;
-		case HWKAKUTEF4V2_GYRORANGE_2000:
-			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_2000_DEG);
-			break;
-	}
+	PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_8G);
+	
+	PIOS_MPU_SetGyroBandwidth(176);
 
-	HwKakutef4v2AccelRangeOptions hw_accel_range;
-	HwKakutef4v2AccelRangeGet(&hw_accel_range);
-
-	switch(hw_accel_range) {
-		case HWKAKUTEF4V2_ACCELRANGE_2G:
-			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_2G);
-			break;
-		case HWKAKUTEF4V2_ACCELRANGE_4G:
-			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_4G);
-			break;
-		case HWKAKUTEF4V2_ACCELRANGE_8G:
-			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_8G);
-			break;
-		case HWKAKUTEF4V2_ACCELRANGE_16G:
-			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_16G);
-			break;
-		}
-
-	// the filter has to be set before rate else divisor calculation will fail
-	HwKakutef4v2ICM20689_GyroLPFOptions hw_mpu_gyro_dlpf;
-	HwKakutef4v2ICM20689_GyroLPFGet(&hw_mpu_gyro_dlpf);
-	uint16_t gyro_bandwidth =
-		(hw_mpu_gyro_dlpf == HWKAKUTEF4V2_ICM20689_GYROLPF_176) ? 176 :
-		(hw_mpu_gyro_dlpf == HWKAKUTEF4V2_ICM20689_GYROLPF_92)  ?  92 :
-		(hw_mpu_gyro_dlpf == HWKAKUTEF4V2_ICM20689_GYROLPF_41)  ?  41 :
-		(hw_mpu_gyro_dlpf == HWKAKUTEF4V2_ICM20689_GYROLPF_20)  ?  20 :
-		(hw_mpu_gyro_dlpf == HWKAKUTEF4V2_ICM20689_GYROLPF_10)  ?  10 :
-		(hw_mpu_gyro_dlpf == HWKAKUTEF4V2_ICM20689_GYROLPF_5)   ?   5 :
-		176;
-	PIOS_MPU_SetGyroBandwidth(gyro_bandwidth);
-
-	HwKakutef4v2ICM20689_AccelLPFOptions hw_mpu_accel_dlpf;
-	HwKakutef4v2ICM20689_AccelLPFGet(&hw_mpu_accel_dlpf);
-	uint16_t acc_bandwidth =
-		(hw_mpu_accel_dlpf = HWKAKUTEF4V2_ICM20689_ACCELLPF_218) ? 218 :
-		(hw_mpu_accel_dlpf = HWKAKUTEF4V2_ICM20689_ACCELLPF_99)  ?  99 :
-		(hw_mpu_accel_dlpf = HWKAKUTEF4V2_ICM20689_ACCELLPF_45)  ?  45 :
-		(hw_mpu_accel_dlpf = HWKAKUTEF4V2_ICM20689_ACCELLPF_21)  ?  21 :
-		(hw_mpu_accel_dlpf = HWKAKUTEF4V2_ICM20689_ACCELLPF_10)  ?  10 :
-		(hw_mpu_accel_dlpf = HWKAKUTEF4V2_ICM20689_ACCELLPF_5)   ?   5 :
-		218;
-	PIOS_MPU_SetAccelBandwidth(acc_bandwidth);
+	PIOS_MPU_SetAccelBandwidth(99);
 #endif
 
 	PIOS_WDG_Clear();

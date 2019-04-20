@@ -101,7 +101,7 @@ void PIOS_Board_Init(void)
 		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_FILESYS);
 #endif	/* PIOS_INCLUDE_FLASH */
 
-    PIOS_RESET_Clear(); // Clear the RCC reset flags after use.
+	PIOS_RESET_Clear(); // Clear the RCC reset flags after use.
 
 	/* Initialize the hardware UAVOs */
 	HwF3FcInitialize();
@@ -112,10 +112,10 @@ void PIOS_Board_Init(void)
 	PIOS_RTC_Init(&pios_rtc_main_cfg);
 #endif
 
-    /* Set up pulse timers */
+	/* Set up pulse timers */
 
 	PIOS_TIM_InitClock(&tim_1_cfg);
-    PIOS_TIM_InitClock(&tim_2_cfg);
+	PIOS_TIM_InitClock(&tim_2_cfg);
 	PIOS_TIM_InitClock(&tim_3_cfg);
 	PIOS_TIM_InitClock(&tim_16_cfg);
 	PIOS_TIM_InitClock(&tim_17_cfg);
@@ -188,17 +188,6 @@ void PIOS_Board_Init(void)
 
     /* Configure the IO ports */
 
-#if defined(PIOS_INCLUDE_I2C)
-	if (PIOS_I2C_Init(&pios_i2c_internal_id, &pios_i2c_internal_cfg))
-		PIOS_DEBUG_Assert(0);
-
-	if (PIOS_I2C_CheckClear(pios_i2c_internal_id) != 0)
-		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_I2C_INT);
-	else
-		if (AlarmsGet(SYSTEMALARMS_ALARM_I2C) == SYSTEMALARMS_ALARM_UNINITIALISED)
-			AlarmsSet(SYSTEMALARMS_ALARM_I2C, SYSTEMALARMS_ALARM_OK);
-#endif  // PIOS_INCLUDE_I2C
-
 	HwF3FcDSMxModeOptions hw_DSMxMode;
 	HwF3FcDSMxModeGet(&hw_DSMxMode);
 	
@@ -213,47 +202,47 @@ void PIOS_Board_Init(void)
 	/* UART1 Port */
 	uint8_t hw_uart1;
 	HwF3FcUart1Get(&hw_uart1);
-    PIOS_HAL_ConfigurePort(hw_uart1,             // port type protocol
-            &pios_uart1_cfg,                     // usart_port_cfg
-            &pios_usart_com_driver,              // com_driver
-            NULL,                                // i2c_id
-            NULL,                                // i2c_cfg
-            NULL,                                // ppm_cfg
-            NULL,                                // pwm_cfg
-            PIOS_LED_ALARM,                      // led_id
-            &pios_uart1_dsm_bind_cfg,            // dsm_cfg
-            hw_DSMxMode,                         // dsm_mode
-            NULL);                               // sbus_cfg
+	PIOS_HAL_ConfigurePort(hw_uart1,             // port type protocol
+	        &pios_uart1_cfg,                     // usart_port_cfg
+	        &pios_usart_com_driver,              // com_driver
+	        NULL,                                // i2c_id
+	        NULL,                                // i2c_cfg
+	        NULL,                                // ppm_cfg
+	        NULL,                                // pwm_cfg
+	        PIOS_LED_ALARM,                      // led_id
+	        &pios_uart1_dsm_bind_cfg,            // dsm_cfg
+	        hw_DSMxMode,                         // dsm_mode
+	        NULL);                               // sbus_cfg
 
 	/* UART2 Port */
 	uint8_t hw_uart2;
 	HwF3FcUart2Get(&hw_uart2);
 	PIOS_HAL_ConfigurePort(hw_uart2,             // port type protocol
-            &pios_uart2_cfg,                     // usart_port_cfg
-            &pios_usart_com_driver,              // com_driver
-            NULL,                                // i2c_id
-            NULL,                                // i2c_cfg
-            NULL,                                // ppm_cfg
-            NULL,                                // pwm_cfg
-            PIOS_LED_ALARM,                      // led_id
-            &pios_uart2_dsm_bind_cfg,            // dsm_cfg
-            hw_DSMxMode,                         // dsm_mode
-            NULL);                               // sbus_cfg
+	        &pios_uart2_cfg,                     // usart_port_cfg
+	        &pios_usart_com_driver,              // com_driver
+	        NULL,                                // i2c_id
+	        NULL,                                // i2c_cfg
+	        NULL,                                // ppm_cfg
+	        NULL,                                // pwm_cfg
+	        PIOS_LED_ALARM,                      // led_id
+	        &pios_uart2_dsm_bind_cfg,            // dsm_cfg
+	        hw_DSMxMode,                         // dsm_mode
+	        NULL);                               // sbus_cfg
 
 	/* UART3 Port */
 	uint8_t hw_uart3;
 	HwF3FcUart3Get(&hw_uart3);
 	PIOS_HAL_ConfigurePort(hw_uart3,             // port type protocol
-            &pios_uart3_cfg,                     // usart_port_cfg
-            &pios_usart_com_driver,              // com_driver
-            NULL,                                // i2c_id
-            NULL,                                // i2c_cfg
-            NULL,                                // ppm_cfg
-            NULL,                                // pwm_cfg
-            PIOS_LED_ALARM,                      // led_id
-            &pios_uart3_dsm_bind_cfg,            // dsm_cfg
-            hw_DSMxMode,                         // dsm_mode
-            NULL);                               // sbus_cfg
+	        &pios_uart3_cfg,                     // usart_port_cfg
+	        &pios_usart_com_driver,              // com_driver
+	        NULL,                                // i2c_id
+	        NULL,                                // i2c_cfg
+	        NULL,                                // ppm_cfg
+	        NULL,                                // pwm_cfg
+	        PIOS_LED_ALARM,                      // led_id
+	        &pios_uart3_dsm_bind_cfg,            // dsm_cfg
+	        hw_DSMxMode,                         // dsm_mode
+	        NULL);                               // sbus_cfg
 
 	/* Configure the ppm rcvr port */
 	uint8_t hw_ppm;
@@ -261,16 +250,16 @@ void PIOS_Board_Init(void)
 
 	if (hw_ppm == HWF3FC_PPM_RECEIVER_ENABLED) {
 		PIOS_HAL_ConfigurePort(HWSHARED_PORTTYPES_PPM,  // port type protocol
-                NULL,                                   // usart_port_cfg
-                NULL,                                   // com_driver
-                NULL,                                   // i2c_id
-                NULL,                                   // i2c_cfg
-                &pios_ppm_cfg,                          // ppm_cfg
-                NULL,                                   // pwm_cfg
-                PIOS_LED_ALARM,                         // led_id
-                NULL,                                   // dsm_cfg
-                0,                                      // dsm_mode
-                NULL);                                  // sbus_cfg
+		        NULL,                                   // usart_port_cfg
+		        NULL,                                   // com_driver
+		        NULL,                                   // i2c_id
+		        NULL,                                   // i2c_cfg
+		        &pios_ppm_cfg,                          // ppm_cfg
+		        NULL,                                   // pwm_cfg
+		        PIOS_LED_ALARM,                         // led_id
+		        NULL,                                   // dsm_cfg
+		        0,                                      // dsm_mode
+		        NULL);                                  // sbus_cfg
 
 		pios_servo_cfg.num_channels = 5;
 	}
@@ -307,85 +296,34 @@ void PIOS_Board_Init(void)
 
 #if defined(PIOS_INCLUDE_MPU)
 	pios_mpu_dev_t mpu_dev = NULL;
-	
 	if (PIOS_MPU_SPI_Init(&mpu_dev, pios_spi_internal_id, 0, &pios_mpu_cfg) != 0)
 		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_IMU);
 
-	HwF3FcGyroRangeOptions hw_gyro_range;
-	HwF3FcGyroRangeGet(&hw_gyro_range);
-	switch(hw_gyro_range) {
-		case HWF3FC_GYRORANGE_250:
-			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_250_DEG);
-			break;
-		case HWF3FC_GYRORANGE_500:
-			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_500_DEG);
-			break;
-		case HWF3FC_GYRORANGE_1000:
-			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_1000_DEG);
-			break;
-		case HWF3FC_GYRORANGE_2000:
-			PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_2000_DEG);
-			break;
-	}
-
-	HwF3FcAccelRangeOptions hw_accel_range;
-	HwF3FcAccelRangeGet(&hw_accel_range);
-	switch(hw_accel_range) {
-		case HWF3FC_ACCELRANGE_2G:
-			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_2G);
-			break;
-		case HWF3FC_ACCELRANGE_4G:
-			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_4G);
-			break;
-		case HWF3FC_ACCELRANGE_8G:
-			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_8G);
-			break;
-		case HWF3FC_ACCELRANGE_16G:
-			PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_16G);
-			break;
-	}
-
-	// the filter has to be set before rate else divisor calculation will fail
-	HwF3FcMPU6000DLPFOptions hw_mpu_dlpf;
-	HwF3FcMPU6000DLPFGet(&hw_mpu_dlpf);
-	uint16_t bandwidth = \
-		(hw_mpu_dlpf == HWF3FC_MPU6000DLPF_188) ? 188 : \
-		(hw_mpu_dlpf == HWF3FC_MPU6000DLPF_98)  ? 98  : \
-		(hw_mpu_dlpf == HWF3FC_MPU6000DLPF_42)  ? 42  : \
-		(hw_mpu_dlpf == HWF3FC_MPU6000DLPF_20)  ? 20  : \
-		(hw_mpu_dlpf == HWF3FC_MPU6000DLPF_10)  ? 10  : \
-		(hw_mpu_dlpf == HWF3FC_MPU6000DLPF_5)   ? 5   : \
-		184;
-	PIOS_MPU_SetGyroBandwidth(bandwidth);
-
+	PIOS_MPU_SetGyroRange(PIOS_MPU_SCALE_2000_DEG);
+	
+	PIOS_MPU_SetAccelRange(PIOS_MPU_SCALE_8G);
+	
+	PIOS_MPU_SetGyroBandwidth(188);
 #endif /* PIOS_INCLUDE_MPU */
 
-	//I2C is slow, sensor init as well, reset watchdog to prevent reset here
 	PIOS_WDG_Clear();
 
-#if defined(PIOS_INCLUDE_MS5611)
-	HwF3FcMS5611Options hw_ms5611;
-	HwF3FcMS5611Get(&hw_ms5611);
-	
-	if (hw_ms5611 == HWF3FC_MS5611_ENABLED) {
-		if ((PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_internal_id) != 0)
-			|| (PIOS_MS5611_Test() != 0))
-		PIOS_HAL_CriticalError(PIOS_LED_ALARM, PIOS_HAL_PANIC_BARO);
-	}
-#endif
+	PIOS_HAL_ConfigureExternalBaro(HWSHARED_EXTBARO_MS5611,
+	                               &pios_i2c_internal_id,
+	                               &pios_i2c_internal_cfg);
 
 	PIOS_WDG_Clear();
-	
-#if defined(PIOS_INCLUDE_HMC5883) || defined(PIOS_INCLUDE_HMC5983_I2C)
-    HwF3FcExtMagOptions hw_ext_mag;
-    HwF3FcExtMagOrientationOptions hw_orientation;
 
-    HwF3FcExtMagGet(&hw_ext_mag);
-    HwF3FcExtMagOrientationGet(&hw_orientation);
+	HwF3FcExtMagOptions hw_ext_mag;
+	HwF3FcExtMagOrientationOptions hw_orientation;
 
-    PIOS_HAL_ConfigureExternalMag(hw_ext_mag, hw_orientation,
-            &pios_i2c_internal_id, &pios_i2c_internal_cfg);
-#endif
+	HwF3FcExtMagGet(&hw_ext_mag);
+	HwF3FcExtMagOrientationGet(&hw_orientation);
+
+	PIOS_HAL_ConfigureExternalMag(hw_ext_mag, 
+	                              hw_orientation,
+	                              &pios_i2c_internal_id,
+	                              &pios_i2c_internal_cfg);
 
 	/* Make sure we have at least one telemetry link configured or else fail initialization */
 	PIOS_Assert(pios_com_telem_serial_id || pios_com_telem_usb_id);

@@ -201,34 +201,12 @@ Core::IBoardType::InputType KAKUTEF4V2::getInputType()
 
 int KAKUTEF4V2::queryMaxGyroRate()
 {
-    ExtensionSystem::PluginManager *pm = ExtensionSystem::PluginManager::instance();
-    UAVObjectManager *uavoManager = pm->getObject<UAVObjectManager>();
-    HwKakutef4v2 *hwKakutef4v2 = HwKakutef4v2::GetInstance(uavoManager);
-    Q_ASSERT(hwKakutef4v2);
-    if (!hwKakutef4v2)
-        return 0;
-
-    HwKakutef4v2::DataFields settings = hwKakutef4v2->getData();
-
-    switch (settings.GyroRange) {
-    case HwKakutef4v2::GYRORANGE_250:
-        return 250;
-    case HwKakutef4v2::GYRORANGE_500:
-        return 500;
-    case HwKakutef4v2::GYRORANGE_1000:
-        return 1000;
-    case HwKakutef4v2::GYRORANGE_2000:
-        return 2000;
-    default:
-        break;
-    }
-
-    return 500;
+    return 2000;
 }
 
 QStringList KAKUTEF4V2::getAdcNames()
 {
-    return QStringList() << "Current" << "Voltage" << "RSSI/Fdbk < 2nd Fdbk";
+    return QStringList() << "Current" << "Voltage" << "RSSI/Fdbk1" << "Fdbk2";
 }
 
 bool KAKUTEF4V2::hasAnnunciator(AnnunciatorType annunc)
