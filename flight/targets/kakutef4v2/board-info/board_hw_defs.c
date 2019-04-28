@@ -591,7 +591,15 @@ static const struct pios_usart_cfg pios_usart4_cfg = {
 		},
 	},
 	.rx = {
-		.gpio = NULL,
+		.gpio = GPIOA,
+		.init = {
+			.GPIO_Pin   = GPIO_Pin_1,
+			.GPIO_Speed = GPIO_Speed_2MHz,
+			.GPIO_Mode  = GPIO_Mode_AF,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd  = GPIO_PuPd_UP
+		},
+		.pin_source = GPIO_PinSource1,
 	},
 	.tx = {
 		.gpio = GPIOA,
@@ -711,7 +719,7 @@ void PIOS_RTC_IRQ_Handler (void)
 // Timers used for outputs (3,2,8)
 
 // Set up timers that only have outputs on APB1
-static const TIM_TimeBaseInitTypeDef tim_2_3_4_time_base = {
+static const TIM_TimeBaseInitTypeDef tim_2_3_4_5_time_base = {
 	.TIM_Prescaler         = (PIOS_PERIPHERAL_APB1_COUNTER_CLOCK / 1000000) - 1,
 	.TIM_ClockDivision     = TIM_CKD_DIV1,
 	.TIM_CounterMode       = TIM_CounterMode_Up,
@@ -730,7 +738,7 @@ static const TIM_TimeBaseInitTypeDef tim_1_8_time_base = {
 
 static const struct pios_tim_clock_cfg tim_3_cfg = {
 	.timer = TIM3,
-	.time_base_init = &tim_2_3_4_time_base,
+	.time_base_init = &tim_2_3_4_5_time_base,
 	.irq = {
 		.init = {
 			.NVIC_IRQChannel                   = TIM3_IRQn,
@@ -743,7 +751,7 @@ static const struct pios_tim_clock_cfg tim_3_cfg = {
 
 static const struct pios_tim_clock_cfg tim_2_cfg = {
 	.timer = TIM2,
-	.time_base_init = &tim_2_3_4_time_base,
+	.time_base_init = &tim_2_3_4_5_time_base,
 	.irq = {
 		.init = {
 			.NVIC_IRQChannel                   = TIM2_IRQn,
@@ -767,6 +775,19 @@ static const struct pios_tim_clock_cfg tim_8_cfg = {
 	},
 };
 
+static const struct pios_tim_clock_cfg tim_5_cfg = {
+	.timer = TIM3,
+	.time_base_init = &tim_2_3_4_5_time_base,
+	.irq = {
+		.init = {
+			.NVIC_IRQChannel                   = TIM3_IRQn,
+			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
+			.NVIC_IRQChannelSubPriority        = 0,
+			.NVIC_IRQChannelCmd                = ENABLE,
+		},
+	},
+};
+
 /**
  * Pios servo configuration structures
  */
@@ -777,6 +798,7 @@ static const struct pios_tim_clock_cfg tim_8_cfg = {
 	2:  TIM3_CH4 (PB1)                                 ( KakuteF4V2 Silkscreen M2  )
 	3:  TIM2_CH3 (PA3)        DMA1 Stream 1 Channel 3  ( KakuteF4V2 Silkscreen M3  )
 	4:  TIM8_CH3 (PC8)        DMA2 Stream 1 Channel 7  ( KakuteF4V2 Silkscreen LED )
+	5:  TIM5_CH2 (PA1)        DMA1 Stream 4 Channel 6  ( KakuteF4V2 Silkscreen R4  )
  */
  
  static const struct pios_tim_channel pios_tim_outputs_pins[] = {
@@ -844,6 +866,22 @@ static const struct pios_tim_clock_cfg tim_8_cfg = {
 			.pin_source = GPIO_PinSource8,
 		},
 	},
+	{
+		.timer = TIM5,
+		.timer_chan = TIM_Channel_2,
+		.remap = GPIO_AF_TIM5,
+		.pin = {
+			.gpio = GPIOA,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_1,
+				.GPIO_Speed = GPIO_Speed_2MHz,
+				.GPIO_Mode  = GPIO_Mode_AF,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd  = GPIO_PuPd_NOPULL
+			},
+			.pin_source = GPIO_PinSource1,
+		},
+	},
 };
 
 #if defined(PIOS_INCLUDE_DMASHOT)
@@ -856,9 +894,10 @@ static const struct pios_tim_clock_cfg tim_8_cfg = {
 	2:  TIM3_CH4 (PB1)        
 	3:  TIM2_CH3 (PA3)        DMA1 Stream 1 Channel 3
 	4:  TIM8_CH3 (PC8)        DMA2 Stream 1 Channel 7  ( KakuteF3V2 Silkscreen LED )
+	5:  TIM5_CH2 (PA1)        DMA1 Stream 4 Channel 6  ( KakuteF4V2 Silkscreen R4  )
  */
  
- static const struct pios_dmashot_timer_cfg dmashot_tim_cfg[] = {
+static const struct pios_dmashot_timer_cfg dmashot_tim_cfg[] = {
 	{
 		.timer   = TIM3,
 		.stream  = DMA1_Stream2,
@@ -877,9 +916,15 @@ static const struct pios_tim_clock_cfg tim_8_cfg = {
 		.channel = DMA_Channel_7,
 		.tcif    = DMA_FLAG_TCIF1
 	},
+	{
+		.timer   = TIM5,
+		.stream  = DMA1_Stream4,
+		.channel = DMA_Channel_6,
+		.tcif    = DMA_FLAG_TCIF4
+	},
 };
 
-static struct pios_dmashot_cfg dmashot_config = {
+struct pios_dmashot_cfg dmashot_config = {
 	.timer_cfg =  &dmashot_tim_cfg[0],
 	.num_timers = NELEMENTS(dmashot_tim_cfg)
 };
@@ -892,7 +937,7 @@ static struct pios_dmashot_cfg dmashot_config = {
  */
 #include <pios_servo_priv.h>
 
-static struct pios_servo_cfg pios_servo_cfg = {
+struct pios_servo_cfg pios_servo_cfg = {
 	.tim_oc_init = {
 		.TIM_OCMode       = TIM_OCMode_PWM1,
 		.TIM_OutputState  = TIM_OutputState_Enable,

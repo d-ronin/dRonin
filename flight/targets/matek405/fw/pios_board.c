@@ -109,8 +109,13 @@ void PIOS_Board_Init(void) {
 		PIOS_WDG_Init();
 	}
 
-	HwMatek405FC_Pad_S6Options hw_fcPadS6;
-	HwMatek405FC_Pad_S6Get(&hw_fcPadS6);
+	// S6Out Pad Function
+	HwMatek405S6OutPadOptions hw_S6Out;
+	HwMatek405S6OutPadGet(&hw_S6Out);
+	
+	// Uart4 RX Pad Function
+	HwMatek405Uart4RxPadOptions hw_uart4rx;
+	HwMatek405Uart4RxPadGet(&hw_uart4rx);
 	
 	/* Set up pulse timers */
 
@@ -122,7 +127,7 @@ void PIOS_Board_Init(void) {
 	PIOS_TIM_InitClock(&tim_8_cfg);
 	PIOS_TIM_InitClock(&tim_2_cfg);
 	
-	if (hw_fcPadS6 == HWMATEK405_FC_PAD_S6_PWM_6)
+	if (hw_S6Out == HWMATEK405_S6OUTPAD_S6OUT)
 		PIOS_TIM_InitClock(&tim_1_cfg);
 	
 	PIOS_TIM_InitClock(&tim_4_cfg);
@@ -308,8 +313,8 @@ void PIOS_Board_Init(void) {
 	        NULL,                                // ppm_cfg
 	        NULL,                                // pwm_cfg
 	        PIOS_LED_ALARM,                      // led_id
-	        NULL,                                // dsm_cfg
-	        0,                                   // dsm_mode
+	        &pios_usart4_dsm_aux_cfg,            // dsm_cfg
+	        hw_DSMxMode,                         // dsm_mode
 	        NULL);                               // sbus_cfg
 
 	/* UART5 Port */
@@ -329,7 +334,7 @@ void PIOS_Board_Init(void) {
 	        NULL);                               // sbus_cfg
 
 #if defined(PIOS_INCLUDE_SERVO) & defined(PIOS_INCLUDE_DMASHOT)
-	if (hw_fcPadS6 == HWMATEK405_FC_PAD_S6_PWM_6) 
+	if (hw_S6Out == HWMATEK405_S6OUTPAD_S6OUT) 
 		PIOS_DMAShot_Init(&dmashot_config_without_led_string);
 	else
 		PIOS_DMAShot_Init(&dmashot_config_with_led_string);
@@ -337,7 +342,7 @@ void PIOS_Board_Init(void) {
 
 #if defined(PIOS_INCLUDE_TIM) && defined(PIOS_INCLUDE_SERVO)
 #ifndef PIOS_DEBUG_ENABLE_DEBUG_PINS
-	if (hw_fcPadS6 == HWMATEK405_FC_PAD_S6_PWM_6) 
+	if (hw_S6Out == HWMATEK405_S6OUTPAD_S6OUT) 
 		PIOS_Servo_Init(&pios_servo_cfg_without_led_string);
 	else
 		PIOS_Servo_Init(&pios_servo_cfg_with_led_string);
@@ -347,7 +352,7 @@ void PIOS_Board_Init(void) {
 #endif
 
 #ifdef PIOS_INCLUDE_WS2811
-	if (hw_fcPadS6 == HWMATEK405_FC_PAD_S6_LEDSTRING) {
+	if (hw_S6Out == HWMATEK405_S6OUTPAD_LEDSTRING) {
 		RGBLEDSettingsInitialize();
 
 		uint8_t temp;
@@ -418,6 +423,13 @@ void PIOS_Board_Init(void) {
 
 #if defined(PIOS_INCLUDE_ADC)
 	/* Configure the adc port(s) */
+
+	if (hw_uart4rx == HWMATEK405_UART4RXPAD_FDBK2) {
+		pios_adc_cfg.adc_pin_count = 4;
+	}
+	else {
+		pios_adc_cfg.adc_pin_count = 3;
+	}
 
 	uintptr_t internal_adc_id;
 

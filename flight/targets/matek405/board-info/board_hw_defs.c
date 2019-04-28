@@ -525,6 +525,19 @@ static const struct pios_dsm_cfg pios_usart3_dsm_aux_cfg = {
 	},
 };
 
+static const struct pios_dsm_cfg pios_usart4_dsm_aux_cfg = {
+	.bind = {
+		.gpio = GPIOA,
+		.init = {
+			.GPIO_Pin   = GPIO_Pin_1,
+			.GPIO_Speed = GPIO_Speed_2MHz,
+			.GPIO_Mode  = GPIO_Mode_OUT,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd  = GPIO_PuPd_NOPULL
+		},
+	},
+};
+
 static const struct pios_dsm_cfg pios_usart5_dsm_aux_cfg = {
 	.bind = {
 		.gpio = GPIOD,
@@ -657,7 +670,15 @@ static const struct pios_usart_cfg pios_usart4_cfg = {
 		},
 	},
 	.rx = {
-		.gpio = NULL,
+		.gpio = GPIOA,
+		.init = {
+			.GPIO_Pin   = GPIO_Pin_1,
+			.GPIO_Speed = GPIO_Speed_2MHz,
+			.GPIO_Mode  = GPIO_Mode_AF,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd  = GPIO_PuPd_UP
+		},
+		.pin_source = GPIO_PinSource1,
 	},
 	.tx = {
 		.gpio = GPIOA,

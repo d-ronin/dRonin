@@ -98,10 +98,28 @@
       <description/>
       <options>
         <option>Disabled</option>
+        <option>ComBridge</option>
+        <option>DebugConsole</option>
+        <option>DSM</option>
+		<option>DShot ESC Telemetry</option>
         <option>FrSKY Sensor Hub</option>
         <option>FrSKY SPort Telemetry</option>
         <option>FrSKY SPort Non Inverted</option>
+        <option>GPS</option>
+        <option>HoTT SUMD</option>
+        <option>HoTT SUMH</option>
+        <option>HoTT Telemetry</option>
+        <option>IBus</option>
+        <option>LighttelemetryTx</option>
+        <option>MavLinkTX</option>
+        <option>MavLinkTX_GPS_RX</option>
+        <option>MSP</option>
         <option>OpenLog</option>
+        <option>S.Bus Non Inverted</option>
+        <option>SRXL</option>
+        <option>Storm32Bgc</option>
+        <option>Telemetry</option>
+        <option>TBS Crossfire</option>
       </options>
     </field>
     <field defaultvalue="Disabled" elements="1" name="Uart5" parent="HwShared.PortTypes" type="enum" units="function">
@@ -163,12 +181,19 @@
     <field defaultvalue="Top0degCW" elements="1" name="ExtMagOrientation" parent="HwShared.MagOrientation" type="enum" units="">
       <description/>
     </field>
-    <field defaultvalue="PWM_6" elements="1" name="FC_Pad_S6" type="enum" units="none">
+    <field defaultvalue="S6Out" elements="1" name="S6OutPad" type="enum" units="none">
       <description>R2 Pad Function</description>
       <options>
         <option>LedString</option>
-        <option>PWM_6</option>
+        <option>S6Out</option>
       </options>
+    </field>
+    <field defaultvalue="Uart4Rx" elements="1" name="Uart4RxPad" type="enum" units="none">
+      <description>Uart Rx Pad Function</description>
+      <options>
+        <option>Uart4Rx</option>
+        <option>Fdbk2</option>
+	  </options>
     </field>
   </object>
 </xml>

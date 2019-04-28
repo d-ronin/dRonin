@@ -116,10 +116,11 @@ void PIOS_Board_Init(void) {
 
 	/* Set up pulse timers */
 
-	// Timers used for outputs (3, 2, 8)
+	// Timers used for outputs (3, 2, 8, 5)
 	PIOS_TIM_InitClock(&tim_3_cfg);
 	PIOS_TIM_InitClock(&tim_2_cfg);
 	PIOS_TIM_InitClock(&tim_8_cfg);
+	PIOS_TIM_InitClock(&tim_5_cfg);
 	
 #ifdef PIOS_INCLUDE_SPI
 #ifdef PIOS_INCLUDE_MAX7456
@@ -293,6 +294,19 @@ void PIOS_Board_Init(void) {
 	        0,                                   // dsm_mode
 	        NULL);                               // sbus_cfg
 
+	// Uart4 RX Pad Function
+	HwKakutef4v2Uart4RxPadOptions hw_uart4rx;
+	HwKakutef4v2Uart4RxPadGet(&hw_uart4rx);
+	
+	if (hw_uart4rx == HWKAKUTEF4V2_UART4RXPAD_S5OUT) {
+		dmashot_config.num_timers   = 5;
+		pios_servo_cfg.num_channels = 5;
+	}
+	else {
+		dmashot_config.num_timers   = 4;
+		pios_servo_cfg.num_channels = 4;
+	}
+
 #if defined(PIOS_INCLUDE_SERVO) & defined(PIOS_INCLUDE_DMASHOT)
 	PIOS_DMAShot_Init(&dmashot_config);
 #endif
@@ -363,6 +377,13 @@ void PIOS_Board_Init(void) {
 #if defined(PIOS_INCLUDE_ADC)
 	/* Configure the adc port(s) */
 			
+	if (hw_uart4rx == HWKAKUTEF4V2_UART4RXPAD_FDBK2) {
+		pios_adc_cfg.adc_pin_count = 4;
+	}
+	else {
+		pios_adc_cfg.adc_pin_count = 3;
+	}
+
 	uintptr_t internal_adc_id;
 
 	if (PIOS_INTERNAL_ADC_Init(&internal_adc_id, &pios_adc_cfg) < 0) {

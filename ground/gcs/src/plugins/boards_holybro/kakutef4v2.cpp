@@ -50,10 +50,11 @@ KAKUTEF4V2::KAKUTEF4V2(void)
     boardType = 0x97;
 
     // Define the bank of channels that are connected to a given timer
-    channelBanks.resize(3);
+    channelBanks.resize(4);
     channelBanks[0] = QVector<int>() << 1 << 2;
     channelBanks[1] = QVector<int>() << 3;
 	channelBanks[2] = QVector<int>() << 4;
+	channelBanks[3] = QVector<int>() << 5;
 }
 
 KAKUTEF4V2::~KAKUTEF4V2()
