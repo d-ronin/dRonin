@@ -41,6 +41,7 @@
 #define PIOS_INCLUDE_I2C
 #define PIOS_INCLUDE_SPI
 #define PIOS_INCLUDE_FASTHEAP
+#define PIOS_INCLUDE_TBSVTXCONFIG
 #define PIOS_INCLUDE_MAX7456
 #define PIOS_INCLUDE_WS2811
 
@@ -61,10 +62,6 @@
 #define PIOS_INCLUDE_DSHOTTELEMETRY
 
 #define PIOS_INCLUDE_DMASHOT
-
-/* Supported receiver interfaces */
-
-/* Flags that alter behaviours */
 
 #define SYSTEMMOD_RGBLED_SUPPORT
 
