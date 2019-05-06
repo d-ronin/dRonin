@@ -136,7 +136,7 @@
       <options>
         <option>Uart4Rx</option>
         <option>Fdbk2</option>
-		<option>S5Out</option>
+        <option>S5Out</option>
       </options>
     </field>
   </object>

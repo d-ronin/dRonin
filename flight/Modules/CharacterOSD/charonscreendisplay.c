@@ -309,8 +309,6 @@ static void CharOnScreenDisplayTask(void *parameters)
 {
 	(void) parameters;
 
-	uint8_t tmp;
-
 	charosd_state_t state;
 
 	state = PIOS_malloc(sizeof(*state));
@@ -364,11 +362,15 @@ static void CharOnScreenDisplayTask(void *parameters)
 
 		state->custom_text = (char*)page.CustomText;
 
+#if defined(CHAROSD_USE_MENU)
+		uint8_t tmp;
+
 		FlightStatusArmedGet(&tmp);
 		
 		if (tmp == FLIGHTSTATUS_ARMED_DISARMED)
 			render_charosd_menu(state);
 		else
+#endif
 			screen_draw(state, &page);
 
 		if (PIOS_MAX7456_stall_detect(state->dev)) {

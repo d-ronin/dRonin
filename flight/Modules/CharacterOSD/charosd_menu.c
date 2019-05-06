@@ -2,11 +2,11 @@
  ******************************************************************************
  * @addtogroup Modules Modules
  * @{
- * @addtogroup OnScreenDisplay Pixel OSD
+ * @addtogroup CharOnScreenDisplay OSD
  * @{
  *
  * @brief OSD Menu
- * @file       osd_menu.c
+ * @file       charosd_menu.c
  * @author     dRonin, http://dRonin.org/, Copyright (C) 2016
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2015
  * @brief      OSD Menu
@@ -36,10 +36,11 @@
 #include "charosd.h"
 #include "panel.h"
 
-#if (1) //def CHAROSD_USE_MENU
+#if defined(CHAROSD_USE_MENU)
 
 #include "flightstats.h"
 #include "flightstatus.h"
+#include "homelocation.h"
 #include "manualcontrolcommand.h"
 #include "manualcontrolsettings.h"
 #include "vtxinfo.h"
@@ -134,10 +135,14 @@ enum menu_fsm_state {
 	FSM_STATE_FAULT,                /*!< Invalid state transition occurred */
 /*------------------------------------------------------------------------------------------*/
 	FSM_STATE_MAIN_STATS,           /*!< Flight Stats */
+	FSM_STATE_MAIN_HOMELOC,         /*!< Home Location */
 	FSM_STATE_MAIN_TRIFLIGHT,       /*!< TriFlight */
 	FSM_STATE_MAIN_VTX,             /*!< Video Transmitter */
 /*------------------------------------------------------------------------------------------*/
 	FSM_STATE_STATS_EXIT,           /*!< Exit */
+/*------------------------------------------------------------------------------------------*/
+	FSM_STATE_HOMELOC_SET,          /*!< Set home location */
+	FSM_STATE_HOMELOC_EXIT,         /*!< Exit */
 /*------------------------------------------------------------------------------------------*/
 	FSM_STATE_TRIFLIGHT_EXIT,       /*!< Exit */
 /*------------------------------------------------------------------------------------------*/
@@ -166,6 +171,7 @@ static bool held_long;
 
 static void main_menu(charosd_state_t state);
 static void stats_menu(charosd_state_t state);
+static void homeloc_menu(charosd_state_t state);
 static void triflight_menu(charosd_state_t state);
 static void vtx_menu(charosd_state_t state);
 
@@ -178,14 +184,22 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 		.menu_fn = main_menu,
 		.next_state = {
 			[FSM_EVENT_UP] = FSM_STATE_MAIN_VTX,
-			[FSM_EVENT_DOWN] = FSM_STATE_MAIN_TRIFLIGHT,
+			[FSM_EVENT_DOWN] = FSM_STATE_MAIN_HOMELOC,
 			[FSM_EVENT_RIGHT] = FSM_STATE_STATS_EXIT,
+		},
+	},
+	[FSM_STATE_MAIN_HOMELOC] = {
+		.menu_fn = main_menu,
+		.next_state = {
+			[FSM_EVENT_UP] = FSM_STATE_MAIN_STATS,
+			[FSM_EVENT_DOWN] = FSM_STATE_MAIN_TRIFLIGHT,
+			[FSM_EVENT_RIGHT] = FSM_STATE_HOMELOC_SET,
 		},
 	},
 	[FSM_STATE_MAIN_TRIFLIGHT] = {
 		.menu_fn = main_menu,
 		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_MAIN_STATS,
+			[FSM_EVENT_UP] = FSM_STATE_MAIN_HOMELOC,
 			[FSM_EVENT_DOWN] = FSM_STATE_MAIN_VTX,
 			[FSM_EVENT_RIGHT] = FSM_STATE_TRIFLIGHT_EXIT,
 		},
@@ -205,6 +219,22 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 			[FSM_EVENT_UP] = FSM_STATE_STATS_EXIT,
 			[FSM_EVENT_DOWN] = FSM_STATE_STATS_EXIT,
 			[FSM_EVENT_RIGHT] = FSM_STATE_MAIN_STATS,
+		},
+	},
+/*------------------------------------------------------------------------------------------*/
+	[FSM_STATE_HOMELOC_SET] = {
+		.menu_fn = homeloc_menu,
+		.next_state = {
+			[FSM_EVENT_UP] = FSM_STATE_HOMELOC_EXIT,
+			[FSM_EVENT_DOWN] = FSM_STATE_HOMELOC_EXIT,
+		},
+	},
+	[FSM_STATE_HOMELOC_EXIT] = {
+		.menu_fn = homeloc_menu,
+		.next_state = {
+			[FSM_EVENT_UP] = FSM_STATE_HOMELOC_SET,
+			[FSM_EVENT_DOWN] = FSM_STATE_HOMELOC_SET,
+			[FSM_EVENT_RIGHT] = FSM_STATE_MAIN_HOMELOC,
 		},
 	},
 /*------------------------------------------------------------------------------------------*/
@@ -362,6 +392,11 @@ void main_menu(charosd_state_t state)
 				terminate_buffer();
 				PIOS_MAX7456_puts(state->dev, 2, y_pos, buffer, 0);
 				break;
+			case FSM_STATE_MAIN_HOMELOC:
+				strcpy(buffer, "Home Location");
+				terminate_buffer();
+				PIOS_MAX7456_puts(state->dev, 2, y_pos, buffer, 0);
+				break;
 			case FSM_STATE_MAIN_TRIFLIGHT:
 				strcpy(buffer, "TriFlight");
 				terminate_buffer();
@@ -472,6 +507,70 @@ void stats_menu(charosd_state_t state)
 	strcpy(buffer, ">Exit");
 	terminate_buffer();
 	PIOS_MAX7456_puts(state->dev, 1, y_pos, buffer, 0);
+}
+
+void homeloc_menu(charosd_state_t state)
+{
+	int y_pos = 2;
+	
+	HomeLocationData data;
+	uint8_t home_set;
+
+	strcpy(buffer, "Home Location");
+	terminate_buffer();
+	PIOS_MAX7456_puts(state->dev, MAX7456_FMT_H_CENTER, 1, buffer, 0);
+
+	
+	if (HomeLocationHandle()){
+		HomeLocationSetGet(&home_set);
+
+		if (home_set == HOMELOCATION_SET_TRUE) {
+			HomeLocationGet(&data);
+			sprintf(buffer, "Home: %0.5f %0.5f Alt: %0.1fm", (double)data.Latitude / 10000000.0, (double)data.Longitude / 10000000.0, (double)data.Altitude);
+			terminate_buffer();
+			PIOS_MAX7456_puts(state->dev, 1, y_pos, buffer, 0);
+			y_pos++;
+		}
+		else {
+			strcpy(buffer, "Home: Not Set");
+			terminate_buffer();
+			PIOS_MAX7456_puts(state->dev, 2, y_pos, buffer, 0);
+		}
+		y_pos++;
+		y_pos++;
+		
+		strcpy(buffer, "Set to current location");
+		terminate_buffer();
+		PIOS_MAX7456_puts(state->dev, 2, y_pos, buffer, 0);
+		
+		if (current_state == FSM_STATE_HOMELOC_SET) {
+			strcpy(buffer, ">");
+			terminate_buffer();
+			PIOS_MAX7456_puts(state->dev, 1, y_pos, buffer, 0);
+
+			if (current_event == FSM_EVENT_RIGHT) {
+				home_set = HOMELOCATION_SET_FALSE;
+				HomeLocationSetSet(&home_set);
+			}
+
+		}
+	}
+	else {
+		strcpy(buffer, "Home Location not available");
+		terminate_buffer();
+		PIOS_MAX7456_puts(state->dev, 2, y_pos, buffer, 0);
+	}
+	y_pos++;
+	
+	strcpy(buffer, "Exit");
+	terminate_buffer();
+	PIOS_MAX7456_puts(state->dev, 2, y_pos, buffer, 0);
+
+	if (current_state == FSM_STATE_HOMELOC_EXIT) {
+		strcpy(buffer, ">");
+		terminate_buffer();
+		PIOS_MAX7456_puts(state->dev, 1, y_pos, buffer, 0);
+	}
 }
 
 void triflight_menu(charosd_state_t state)

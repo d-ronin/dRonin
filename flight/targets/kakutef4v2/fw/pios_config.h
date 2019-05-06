@@ -67,6 +67,8 @@
 
 #define CAMERASTAB_POI_MODE
 
+#define CHAROSD_USE_MENU
+
 /* Alarm Thresholds */
 
 /*
