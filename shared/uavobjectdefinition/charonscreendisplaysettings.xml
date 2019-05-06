@@ -5,6 +5,13 @@
     <logging updatemode="manual" period="0"/>
     <telemetrygcs acked="true" updatemode="onchange" period="0"/>
     <telemetryflight acked="true" updatemode="onchange" period="0"/>
+    <field defaultvalue="Metric" elements="1" name="Units" type="enum" units="">
+      <description/>
+      <options>
+        <option>Metric</option>
+        <option>Imperial</option>
+      </options>
+    </field>
     <field defaultvalue="Autodetect-Prefer PAL" elements="1" name="VideoStandard" type="enum" units="enum">
       <description>The video standard to use for the OSD</description>
       <options>

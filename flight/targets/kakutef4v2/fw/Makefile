@@ -60,6 +60,7 @@ OPTMODULES += UAVOLighttelemetryBridge
 OPTMODULES += UAVOFrSKYSPortBridge
 OPTMODULES += Geofence
 OPTMODULES += Logging
+OPTMODULES += FlightStats
 OPTMODULES += Storm32Bgc
 OPTMODULES += CharacterOSD
 OPTMODULES += UAVOCrossfireTelemetry
