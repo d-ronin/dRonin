@@ -98,6 +98,7 @@ const char IMPERIAL_SPEED_UNIT[]      = "MPH";
 // Private variables
 uint16_t frame_counter = 0;
 static bool module_enabled;
+static bool set_top_menu;
 float convert_distance;
 float convert_distance_divider;
 float convert_speed;
@@ -363,15 +364,49 @@ static void CharOnScreenDisplayTask(void *parameters)
 		state->custom_text = (char*)page.CustomText;
 
 #if defined(CHAROSD_USE_MENU)
-		uint8_t tmp;
+		static  bool display_osd_menu = 0;
+		uint8_t armed_state;
+		float   throttle_cmd, yaw_cmd;
 
-		FlightStatusArmedGet(&tmp);
+		FlightStatusArmedGet(&armed_state);
 		
-		if (tmp == FLIGHTSTATUS_ARMED_DISARMED)
-			render_charosd_menu(state);
+		ManualControlCommandThrottleGet(&throttle_cmd);
+		ManualControlCommandYawGet(&yaw_cmd);
+		
+		if ((armed_state == FLIGHTSTATUS_ARMED_DISARMED) &&
+		    (yaw_cmd      < -0.25f) &&
+		    (throttle_cmd <  0.0f) &&
+			(display_osd_menu == false))
+		{
+			display_osd_menu = true;
+			set_top_menu = true;
+		}
+		
+		if ((armed_state == FLIGHTSTATUS_ARMED_DISARMED) &&
+		    (yaw_cmd      >  0.25f) &&
+		    (throttle_cmd <  0.0f) &&
+			(display_osd_menu == true))
+		{
+			display_osd_menu = false;
+		}
+
+		if ((armed_state == FLIGHTSTATUS_ARMED_DISARMED) && (display_osd_menu))
+		{
+			render_charosd_menu(state, set_top_menu);
+			
+			if (set_top_menu == true)
+				set_top_menu = false;
+		}
 		else
 #endif
+		{
 			screen_draw(state, &page);
+			
+#if defined(CHAROSD_USE_MENU)
+			if (display_osd_menu)
+				display_osd_menu = false;
+#endif
+		}
 
 		if (PIOS_MAX7456_stall_detect(state->dev)) {
 			PIOS_MAX7456_puts(state->dev, MAX7456_FMT_H_CENTER, 6, "... STALLED ...", 0);

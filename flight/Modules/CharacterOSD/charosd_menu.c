@@ -43,6 +43,7 @@
 #include "homelocation.h"
 #include "manualcontrolcommand.h"
 #include "manualcontrolsettings.h"
+#include "stabilizationsettings.h"
 #include "vtxinfo.h"
 #include "vtxsettings.h"
 
@@ -138,6 +139,7 @@ enum menu_fsm_state {
 	FSM_STATE_MAIN_HOMELOC,         /*!< Home Location */
 	FSM_STATE_MAIN_TRIFLIGHT,       /*!< TriFlight */
 	FSM_STATE_MAIN_VTX,             /*!< Video Transmitter */
+	FSM_STATE_MAIN_PIDRATE_YAW,     /*!< Yaw PID Values */
 /*------------------------------------------------------------------------------------------*/
 	FSM_STATE_STATS_EXIT,           /*!< Exit */
 /*------------------------------------------------------------------------------------------*/
@@ -149,10 +151,17 @@ enum menu_fsm_state {
 	FSM_STATE_VTX_BAND,             /*!< Set Band */
 	FSM_STATE_VTX_CH,               /*!< Set Channel */
 	FSM_STATE_VTX_POWER,            /*!< Set Power */
-	FSM_STATE_VTX_APPLY,            /*!< Apply Settig */
+	FSM_STATE_VTX_APPLY,            /*!< Apply Setting */
 	FSM_STATE_VTX_SAVEEXIT,         /*!< Save & Exit */
 	FSM_STATE_VTX_EXIT,             /*!< Exit */
 /*------------------------------------------------------------------------------------------*/
+	FSM_STATE_PIDRATE_YAWP,       /*!< Yaw P Gain */
+	FSM_STATE_PIDRATE_YAWI,       /*!< Yaw I Gain */
+	FSM_STATE_PIDRATE_YAWD,       /*!< Yaw D Gain */
+	FSM_STATE_PIDRATE_YAWILIMIT,  /*!< Yaw I Limit */
+	FSM_STATE_PIDRATE_SAVEEXIT,   /*!< Save & Exit */
+	FSM_STATE_PIDRATE_EXIT,       /*!< Exit */
+/*-------------------------------------------------------------------------------------------*/	
 	FSM_STATE_NUM_STATES
 };
 
@@ -174,6 +183,7 @@ static void stats_menu(charosd_state_t state);
 static void homeloc_menu(charosd_state_t state);
 static void triflight_menu(charosd_state_t state);
 static void vtx_menu(charosd_state_t state);
+static void pidrate_menu(charosd_state_t state);
 
 static char buffer[50];
 
@@ -183,7 +193,7 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 	[FSM_STATE_MAIN_STATS] = {
 		.menu_fn = main_menu,
 		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_MAIN_VTX,
+			[FSM_EVENT_UP] = FSM_STATE_MAIN_PIDRATE_YAW,
 			[FSM_EVENT_DOWN] = FSM_STATE_MAIN_HOMELOC,
 			[FSM_EVENT_RIGHT] = FSM_STATE_STATS_EXIT,
 		},
@@ -207,9 +217,17 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 	[FSM_STATE_MAIN_VTX] = {
 		.menu_fn = main_menu,
 		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_MAIN_STATS,
-			[FSM_EVENT_DOWN] = FSM_STATE_MAIN_STATS,
+			[FSM_EVENT_UP] = FSM_STATE_MAIN_TRIFLIGHT,
+			[FSM_EVENT_DOWN] = FSM_STATE_MAIN_PIDRATE_YAW,
 			[FSM_EVENT_RIGHT] = FSM_STATE_VTX_BAND,
+		},
+	},
+	[FSM_STATE_MAIN_PIDRATE_YAW] = {
+		.menu_fn = main_menu,
+		.next_state = {
+			[FSM_EVENT_UP] = FSM_STATE_MAIN_VTX,
+			[FSM_EVENT_DOWN] = FSM_STATE_MAIN_STATS,
+			[FSM_EVENT_RIGHT] = FSM_STATE_PIDRATE_YAWP,
 		},
 	},
 /*------------------------------------------------------------------------------------------*/
@@ -292,9 +310,54 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 		},
 	},
 /*------------------------------------------------------------------------------------------*/
+	[FSM_STATE_PIDRATE_YAWP] = {
+		.menu_fn = pidrate_menu,
+		.next_state = {
+			[FSM_EVENT_UP] = FSM_STATE_PIDRATE_EXIT,
+			[FSM_EVENT_DOWN] = FSM_STATE_PIDRATE_YAWI,
+		},
+	},
+	[FSM_STATE_PIDRATE_YAWI] = {
+		.menu_fn = pidrate_menu,
+		.next_state = {
+			[FSM_EVENT_UP] = FSM_STATE_PIDRATE_YAWP,
+			[FSM_EVENT_DOWN] = FSM_STATE_PIDRATE_YAWD,
+		},
+	},
+	[FSM_STATE_PIDRATE_YAWD] = {
+		.menu_fn = pidrate_menu,
+		.next_state = {
+			[FSM_EVENT_UP] = FSM_STATE_PIDRATE_YAWI,
+			[FSM_EVENT_DOWN] = FSM_STATE_PIDRATE_YAWILIMIT,
+		},
+	},
+	[FSM_STATE_PIDRATE_YAWILIMIT] = {
+		.menu_fn = pidrate_menu,
+		.next_state = {
+			[FSM_EVENT_UP] = FSM_STATE_PIDRATE_YAWD,
+			[FSM_EVENT_DOWN] = FSM_STATE_PIDRATE_SAVEEXIT,
+		},
+	},
+	[FSM_STATE_PIDRATE_SAVEEXIT] = {
+		.menu_fn = pidrate_menu,
+		.next_state = {
+			[FSM_EVENT_UP] = FSM_STATE_PIDRATE_YAWILIMIT,
+			[FSM_EVENT_DOWN] = FSM_STATE_PIDRATE_EXIT,
+			[FSM_EVENT_RIGHT] = FSM_STATE_MAIN_PIDRATE_YAW,
+		},
+	},
+	[FSM_STATE_PIDRATE_EXIT] = {
+		.menu_fn = pidrate_menu,
+		.next_state = {
+			[FSM_EVENT_UP] = FSM_STATE_PIDRATE_SAVEEXIT,
+			[FSM_EVENT_DOWN] = FSM_STATE_PIDRATE_YAWP,
+			[FSM_EVENT_RIGHT] = FSM_STATE_MAIN_PIDRATE_YAW,
+		},
+	},
+/*------------------------------------------------------------------------------------------*/
 };
 
-#define INPUT_THRESHOLD (0.2f)
+#define INPUT_THRESHOLD (0.25f)
 
 enum menu_fsm_event get_controller_event()
 {
@@ -317,11 +380,17 @@ enum menu_fsm_event get_controller_event()
 
 #define HELD_LONG_THRESHOLD 20
 
-void render_charosd_menu(charosd_state_t state)
+void render_charosd_menu(charosd_state_t state, bool set_top_menu)
 {
 //	uint8_t tmp;
 	static enum menu_fsm_event last_fsm_event;
 	static uint32_t event_repeats = 0;
+
+	if (set_top_menu)
+	{
+		current_state = FSM_STATE_TOP;
+		current_event = FSM_EVENT_AUTO;
+	}
 
 	PIOS_MAX7456_clear(state->dev);
 	
@@ -379,7 +448,7 @@ void main_menu(charosd_state_t state)
 	terminate_buffer();
 	PIOS_MAX7456_puts(state->dev, MAX7456_FMT_H_CENTER, 1, buffer, 0);
 
-	for (enum menu_fsm_state s=FSM_STATE_TOP; s <= FSM_STATE_MAIN_VTX; s++) {
+	for (enum menu_fsm_state s=FSM_STATE_TOP; s <= FSM_STATE_MAIN_PIDRATE_YAW; s++) {
 		if (s == current_state) {
 			strcpy(buffer, ">");
 			terminate_buffer();
@@ -404,6 +473,11 @@ void main_menu(charosd_state_t state)
 				break;
 			case FSM_STATE_MAIN_VTX:
 				strcpy(buffer, "Video Transmitter");
+				terminate_buffer();
+				PIOS_MAX7456_puts(state->dev, 2, y_pos, buffer, 0);
+				break;
+			case FSM_STATE_MAIN_PIDRATE_YAW:
+				strcpy(buffer, "Yaw PID (Rate)");
 				terminate_buffer();
 				PIOS_MAX7456_puts(state->dev, 2, y_pos, buffer, 0);
 				break;
@@ -881,6 +955,79 @@ void vtx_menu(charosd_state_t state)
 		
 		if (current_event == FSM_EVENT_RIGHT)
 			settings_read = false;
+	}
+}
+
+const char * pid_strings[] = {"P:      ",
+							  "I:      ",
+							  "D:      ",
+							  "I-Limit:"};
+
+void pidrate_menu(charosd_state_t state)
+{
+	uint8_t y_pos = 2;
+	
+	const float increments[] = {1e-4f, 1e-4f, 1e-4f, 1e-2f};
+	
+	float pid_arr[STABILIZATIONSETTINGS_YAWRATEPID_NUMELEM];
+	enum menu_fsm_state my_state = FSM_STATE_PIDRATE_YAWP;
+	bool data_changed = false;
+
+	strcpy(buffer, "Yaw PID (Rate)");
+	terminate_buffer();
+	PIOS_MAX7456_puts(state->dev, MAX7456_FMT_H_CENTER, 1, buffer, 0);
+
+	data_changed = false;
+	StabilizationSettingsYawRatePIDGet(pid_arr);
+
+	for (int j = 0; j < 4; j++) {
+		sprintf(buffer, "Yaw %s %0.4f", pid_strings[j], (double)pid_arr[j]);
+		terminate_buffer();
+		PIOS_MAX7456_puts(state->dev, 2, y_pos, buffer, 0);
+
+		if (my_state == current_state) {
+			strcpy(buffer, ">");
+			terminate_buffer();
+			PIOS_MAX7456_puts(state->dev, 1, y_pos, buffer, 0);
+			
+			if (current_event == FSM_EVENT_RIGHT) {
+				pid_arr[j] = pid_arr[j] + increments[j];
+				data_changed = true;
+			}
+			if (current_event == FSM_EVENT_LEFT) {
+				pid_arr[j] = MAX(0.0f, pid_arr[j] - increments[j]);
+				data_changed = true;
+			}
+			if (data_changed) {
+				StabilizationSettingsYawRatePIDSet(pid_arr);
+			}
+		}
+		y_pos++;;
+		my_state++;
+	}
+
+	strcpy(buffer, "Save and Exit");
+	terminate_buffer();
+	PIOS_MAX7456_puts(state->dev, 2, y_pos, buffer, 0);
+
+	if (current_state == FSM_STATE_PIDRATE_SAVEEXIT) {
+		strcpy(buffer, ">");
+		terminate_buffer();
+		PIOS_MAX7456_puts(state->dev, 1, y_pos, buffer, 0);
+
+		if (current_event == FSM_EVENT_RIGHT)
+			UAVObjSave(StabilizationSettingsHandle(), 0);
+	}
+	
+	y_pos++;
+	strcpy(buffer, "Exit");
+	terminate_buffer();
+	PIOS_MAX7456_puts(state->dev, 2, y_pos, buffer, 0);
+
+	if (current_state == FSM_STATE_PIDRATE_EXIT) {
+		strcpy(buffer, ">");
+		terminate_buffer();
+		PIOS_MAX7456_puts(state->dev, 1, y_pos, buffer, 0);
 	}
 }
 

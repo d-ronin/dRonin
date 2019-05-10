@@ -30,7 +30,7 @@
 #ifndef CHAROSDMENU_H
 #define CHAROSDMENU_H
 
-void render_charosd_menu(charosd_state_t state);
+void render_charosd_menu(charosd_state_t state, bool set_top_menu);
 
 #endif /* OSDMENU_H */
 
