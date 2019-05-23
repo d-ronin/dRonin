@@ -151,7 +151,6 @@ enum menu_fsm_state {
 	FSM_STATE_VTX_BAND,             /*!< Set Band */
 	FSM_STATE_VTX_CH,               /*!< Set Channel */
 	FSM_STATE_VTX_POWER,            /*!< Set Power */
-	FSM_STATE_VTX_APPLY,            /*!< Apply Setting */
 	FSM_STATE_VTX_SAVEEXIT,         /*!< Save & Exit */
 	FSM_STATE_VTX_EXIT,             /*!< Exit */
 /*------------------------------------------------------------------------------------------*/
@@ -283,20 +282,13 @@ const static struct menu_fsm_transition menu_fsm[FSM_STATE_NUM_STATES] = {
 		.menu_fn = vtx_menu,
 		.next_state = {
 			[FSM_EVENT_UP] = FSM_STATE_VTX_CH,
-			[FSM_EVENT_DOWN] = FSM_STATE_VTX_APPLY,
-		},
-	},
-	[FSM_STATE_VTX_APPLY] = {
-		.menu_fn = vtx_menu,
-		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_VTX_POWER,
 			[FSM_EVENT_DOWN] = FSM_STATE_VTX_SAVEEXIT,
 		},
 	},
 	[FSM_STATE_VTX_SAVEEXIT] = {
 		.menu_fn = vtx_menu,
 		.next_state = {
-			[FSM_EVENT_UP] = FSM_STATE_VTX_APPLY,
+			[FSM_EVENT_UP] = FSM_STATE_VTX_POWER,
 			[FSM_EVENT_DOWN] = FSM_STATE_VTX_EXIT,
 			[FSM_EVENT_RIGHT] = FSM_STATE_MAIN_VTX,
 		},
@@ -442,11 +434,13 @@ void render_charosd_menu(charosd_state_t state, bool set_top_menu)
 
 void main_menu(charosd_state_t state)
 {
-	int y_pos = 2;
+	uint8_t y_pos = 2;
 
 	strcpy(buffer, "Main Menu");
 	terminate_buffer();
-	PIOS_MAX7456_puts(state->dev, MAX7456_FMT_H_CENTER, 1, buffer, 0);
+	PIOS_MAX7456_puts(state->dev, MAX7456_FMT_H_CENTER, y_pos, buffer, 0);
+	y_pos++;
+	y_pos++;
 
 	for (enum menu_fsm_state s=FSM_STATE_TOP; s <= FSM_STATE_MAIN_PIDRATE_YAW; s++) {
 		if (s == current_state) {
@@ -492,16 +486,16 @@ void stats_menu(charosd_state_t state)
 {
 	float tmp;
 	char buffer[100] = { 0 };
-	uint8_t y_pos = 2;
+	uint8_t y_pos = 1;
 
 	strcpy(buffer, "Flight Statistics");
 	terminate_buffer();
-	PIOS_MAX7456_puts(state->dev, MAX7456_FMT_H_CENTER, 1, buffer, 0);
+	PIOS_MAX7456_puts(state->dev, MAX7456_FMT_H_CENTER, y_pos, buffer, 0);
+	y_pos++;
+	y_pos++;
 
 	if (FlightStatsHandle() == NULL)
 	{
-		y_pos++;
-		
 		strcpy(buffer, "Flight Statistics Module");
 		terminate_buffer();
 		PIOS_MAX7456_puts(state->dev, MAX7456_FMT_H_CENTER, y_pos, buffer, 0);
@@ -520,55 +514,55 @@ void stats_menu(charosd_state_t state)
 		if (state->available & HAS_NAV) {
 			tmp = convert_distance * stats.DistanceTravelled;
 			if (tmp < convert_distance_divider)
-				sprintf(buffer, "Distance traveled:        %d %s", (int)tmp, dist_unit_short);
+				sprintf(buffer, "Distance traveled:  %d %s", (int)tmp, dist_unit_short);
 			else
-				sprintf(buffer, "Distance traveled:        %0.2f %s", (double)(tmp / convert_distance_divider), dist_unit_long);
+				sprintf(buffer, "Distance traveled:  %0.2f %s", (double)(tmp / convert_distance_divider), dist_unit_long);
 
 			terminate_buffer();
-			PIOS_MAX7456_puts(state->dev, 1, y_pos, buffer, 0);
+			PIOS_MAX7456_puts(state->dev, 2, y_pos, buffer, 0);
 		
 			y_pos++;
 
 			tmp = convert_distance * stats.MaxDistanceToHome;
 			if (tmp < convert_distance_divider)
-				sprintf(buffer, "Maximum distance to home: %d %s", (int)tmp, dist_unit_short);
+				sprintf(buffer, "Max Dist to Home:   %d %s", (int)tmp, dist_unit_short);
 			else
-				sprintf(buffer, "Maximum distance to home: %0.2f %s", (double)(tmp / convert_distance_divider), dist_unit_long);
+				sprintf(buffer, "Max Dist to Home:   %0.2f %s", (double)(tmp / convert_distance_divider), dist_unit_long);
 
 			terminate_buffer();
-			PIOS_MAX7456_puts(state->dev, 1, y_pos, buffer, 0);
+			PIOS_MAX7456_puts(state->dev, 2, y_pos, buffer, 0);
 		
 			y_pos++;
 
 			tmp = convert_distance * stats.MaxAltitude;
-			sprintf(buffer, "Maximum altitude:         %0.2f %s", (double)tmp, dist_unit_short);
+			sprintf(buffer, "Max Altitude:       %0.2f %s", (double)tmp, dist_unit_short);
 
 			terminate_buffer();
-			PIOS_MAX7456_puts(state->dev, 1, y_pos, buffer, 0);
+			PIOS_MAX7456_puts(state->dev, 2, y_pos, buffer, 0);
 		
 			y_pos++;
 
 			tmp = convert_speed * stats.MaxGroundSpeed;
-			sprintf(buffer, "Maximum ground speed:     %0.2f %s", (double)tmp, speed_unit);
+			sprintf(buffer, "Max Groundspeed:    %0.2f %s", (double)tmp, speed_unit);
 
 			terminate_buffer();
-			PIOS_MAX7456_puts(state->dev, 1, y_pos, buffer, 0);
+			PIOS_MAX7456_puts(state->dev, 2, y_pos, buffer, 0);
 		
 			y_pos++;
 		}
 
 		if (state->available & HAS_BATT) {
-			sprintf(buffer, "Energy used:     %d mAh", stats.ConsumedEnergy);
+			sprintf(buffer, "Energy used:        %d mAh", stats.ConsumedEnergy);
 
 			terminate_buffer();
-			PIOS_MAX7456_puts(state->dev, 1, y_pos, buffer, 0);
+			PIOS_MAX7456_puts(state->dev, 2, y_pos, buffer, 0);
 		
 			y_pos++;
 
-			sprintf(buffer, "Init batt volts: %0.1f V", (double)stats.InitialBatteryVoltage / 1000.);
+			sprintf(buffer, "Initial Batt Volts: %0.1f V", (double)stats.InitialBatteryVoltage / 1000.0);
 
 			terminate_buffer();
-			PIOS_MAX7456_puts(state->dev, 1, y_pos, buffer, 0);
+			PIOS_MAX7456_puts(state->dev, 2, y_pos, buffer, 0);
 		
 			y_pos++;
 		}
@@ -649,16 +643,16 @@ void homeloc_menu(charosd_state_t state)
 
 void triflight_menu(charosd_state_t state)
 {
-	uint8_t y_pos = 2;
+	uint8_t y_pos = 1;
 
 	strcpy(buffer, "TriFlight");
 	terminate_buffer();
-	PIOS_MAX7456_puts(state->dev, MAX7456_FMT_H_CENTER, 1, buffer, 0);
+	PIOS_MAX7456_puts(state->dev, MAX7456_FMT_H_CENTER, y_pos, buffer, 0);
+	y_pos++;
+	y_pos++;
 
 #if !defined(TRIFLIGHT)
 
-	y_pos++;
-		
 	strcpy(buffer, "Not a TriFlight Target");
 	terminate_buffer();
 	PIOS_MAX7456_puts(state->dev, MAX7456_FMT_H_CENTER, y_pos, buffer, 0);
@@ -668,8 +662,6 @@ void triflight_menu(charosd_state_t state)
 
 	if ((TriflightSettingsHandle() == NULL) || (TriflightStatusHandle() == NULL))
 	{
-		y_pos++;
-		
 		strcpy(buffer, "TriFlight Module(s)");
 		terminate_buffer();
 		PIOS_MAX7456_puts(state->dev, MAX7456_FMT_H_CENTER, y_pos, buffer, 0);
@@ -706,17 +698,17 @@ void triflight_menu(charosd_state_t state)
 		{
 			sprintf(buffer, "Motor Thrust Factor: %3.1f", (double)tf_settings.MotorThrustFactor);
 			terminate_buffer();
-			PIOS_MAX7456_puts(state->dev, 1, y_pos, buffer, 0);
+			PIOS_MAX7456_puts(state->dev, 2, y_pos, buffer, 0);
 			y_pos++;
 		
 			sprintf(buffer, "Servo Angle: %3d Degrees", (int)tf_status.ServoAngle);
 			terminate_buffer();
-			PIOS_MAX7456_puts(state->dev, 1, y_pos, buffer, 0);
+			PIOS_MAX7456_puts(state->dev, 21, y_pos, buffer, 0);
 			y_pos++;
 			
 			sprintf(buffer, "Servo Speed: %d DPS", (int)tf_settings.ServoSpeed);
 			terminate_buffer();
-			PIOS_MAX7456_puts(state->dev, 1, y_pos, buffer, 0);
+			PIOS_MAX7456_puts(state->dev, 2, y_pos, buffer, 0);
 			y_pos++;
 		}
 	}
@@ -734,7 +726,7 @@ void triflight_menu(charosd_state_t state)
 
 void vtx_menu(charosd_state_t state)
 {
-	uint8_t y_pos = 2;
+	uint8_t y_pos = 1;
 	
 	const char *vtx_strings[] = {
 		[VTXINFO_MODEL_NONE]             = "No VTX",
@@ -756,12 +748,12 @@ void vtx_menu(charosd_state_t state)
 
 	strcpy(buffer, "Video Transmitter");
 	terminate_buffer();
-	PIOS_MAX7456_puts(state->dev, MAX7456_FMT_H_CENTER, 1, buffer, 0);
+	PIOS_MAX7456_puts(state->dev, MAX7456_FMT_H_CENTER, y_pos, buffer, 0);
+	y_pos++;
+	y_pos++;
 
 	if ((VTXSettingsHandle() == NULL) || (VTXInfoHandle() == NULL))
 	{
-		y_pos++;
-		
 		strcpy(buffer, "VTX Module Not Running!");
 		terminate_buffer();
 		PIOS_MAX7456_puts(state->dev, MAX7456_FMT_H_CENTER, 3, buffer, 0);
@@ -910,20 +902,6 @@ void vtx_menu(charosd_state_t state)
 			}
 		}
 		y_pos++;
-
-		strcpy(buffer, "Apply");
-		terminate_buffer();
-		PIOS_MAX7456_puts(state->dev, 2, y_pos, buffer, 0);
-
-		if (current_state == FSM_STATE_VTX_APPLY) {
-			strcpy(buffer, ">");
-			terminate_buffer();
-			PIOS_MAX7456_puts(state->dev, 1, y_pos, buffer, 0);
-
-			if (current_event == FSM_EVENT_RIGHT) {
-				VTXSettingsSet(&settings);
-			}
-		}
 		y_pos++;
 
 		strcpy(buffer, "Save and Exit");
@@ -965,7 +943,7 @@ const char * pid_strings[] = {"P:      ",
 
 void pidrate_menu(charosd_state_t state)
 {
-	uint8_t y_pos = 2;
+	uint8_t y_pos = 1;
 	
 	const float increments[] = {1e-4f, 1e-4f, 1e-4f, 1e-2f};
 	
@@ -975,7 +953,9 @@ void pidrate_menu(charosd_state_t state)
 
 	strcpy(buffer, "Yaw PID (Rate)");
 	terminate_buffer();
-	PIOS_MAX7456_puts(state->dev, MAX7456_FMT_H_CENTER, 1, buffer, 0);
+	PIOS_MAX7456_puts(state->dev, MAX7456_FMT_H_CENTER, y_pos, buffer, 0);
+	y_pos++;
+	y_pos++;
 
 	data_changed = false;
 	StabilizationSettingsYawRatePIDGet(pid_arr);
@@ -1002,7 +982,7 @@ void pidrate_menu(charosd_state_t state)
 				StabilizationSettingsYawRatePIDSet(pid_arr);
 			}
 		}
-		y_pos++;;
+		y_pos++;
 		my_state++;
 	}
 
