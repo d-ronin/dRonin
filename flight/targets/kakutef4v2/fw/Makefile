@@ -117,6 +117,7 @@ SRC += pios_mpu.c
 SRC += pios_bmp280.c
 SRC += pios_hmc5883.c
 SRC += pios_hmc5983_i2c.c
+SRC += pios_qmc5883.c
 SRC += pios_fskdac.c
 SRC += pios_annuncdac.c
 SRC += pios_max7456.c

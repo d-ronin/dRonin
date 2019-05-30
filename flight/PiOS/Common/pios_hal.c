@@ -246,6 +246,18 @@ static const struct pios_hmc5983_cfg external_hmc5983_cfg = {
 };
 #endif
 
+#ifdef PIOS_INCLUDE_QMC5883
+#include "pios_qmc5883_priv.h"
+
+static const struct pios_qmc5883_cfg external_qmc5883_cfg = {
+	.exti_cfg            = NULL,
+	.ODR                 = PIOS_QMC5883_ODR_100HZ,
+	.Rng                 = PIOS_QMC5883_RNG_8G,
+	.Mode                = PIOS_QMC5883_MODE_CONTINUOUS,
+	.Default_Orientation = PIOS_QMC5883_TOP_0DEG,
+};
+#endif
+
 #ifdef PIOS_INCLUDE_BMP280
 #include "pios_bmp280_priv.h"
 
@@ -1428,6 +1440,33 @@ int PIOS_HAL_ConfigureExternalMag(HwSharedMagOptions mag,
 		PIOS_HMC5983_SetOrientation(hmc5983_orientation);
 		break;
 #endif /* PIOS_INCLUDE_HMC5983_I2C */
+
+#ifdef PIOS_INCLUDE_QMC5883
+	case HWSHARED_MAG_EXTERNALQMC5883:
+		if (PIOS_QMC5883_Init(*i2c_id, &external_qmc5883_cfg))
+			goto mag_fail;
+
+		if (PIOS_QMC5883_Test())
+			goto mag_fail;
+
+		/* XXX: Lame.  Move driver to HwShared constants.
+		 * Note: drivers rotate around vehicle Z-axis, this rotates around ??
+		 * This is dubious because both the sensor and vehicle Z-axis point down
+		 * in bottom orientation, whereas this is rotating around an upwards vector. */
+		enum pios_qmc5883_orientation qmc5883_orientation =
+			(orientation == HWSHARED_MAGORIENTATION_TOP0DEGCW)      ? PIOS_QMC5883_TOP_0DEG      :
+			(orientation == HWSHARED_MAGORIENTATION_TOP90DEGCW)     ? PIOS_QMC5883_TOP_90DEG     :
+			(orientation == HWSHARED_MAGORIENTATION_TOP180DEGCW)    ? PIOS_QMC5883_TOP_180DEG    :
+			(orientation == HWSHARED_MAGORIENTATION_TOP270DEGCW)    ? PIOS_QMC5883_TOP_270DEG    :
+			(orientation == HWSHARED_MAGORIENTATION_BOTTOM0DEGCW)   ? PIOS_QMC5883_BOTTOM_0DEG   :
+			(orientation == HWSHARED_MAGORIENTATION_BOTTOM90DEGCW)  ? PIOS_QMC5883_BOTTOM_270DEG :
+			(orientation == HWSHARED_MAGORIENTATION_BOTTOM180DEGCW) ? PIOS_QMC5883_BOTTOM_180DEG :
+			(orientation == HWSHARED_MAGORIENTATION_BOTTOM270DEGCW) ? PIOS_QMC5883_BOTTOM_90DEG  :
+			external_hmc5883_cfg.Default_Orientation;
+
+		PIOS_QMC5883_SetOrientation(qmc5883_orientation);
+		break;
+#endif /* PIOS_INCLUDE_QMC5883 */
 
 	default:
 		PIOS_Assert(0);	/* Should be unreachable */
