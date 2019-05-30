@@ -86,6 +86,7 @@
 				<option>None</option>
 				<option>External HMC5883</option>
 				<option>External HMC5983</option>
+				<option>External QMC5883</option>
 			</options>
 		</field>
 		<field defaultvalue="Top0degCW" elements="1" name="ExtMagOrientation" parent="HwShared.MagOrientation" type="enum" units="none">

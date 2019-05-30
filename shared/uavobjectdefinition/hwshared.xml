@@ -72,6 +72,7 @@
         <option>Internal</option>
         <option>External HMC5883</option>
         <option>External HMC5983</option>
+        <option>External QMC5883</option>
       </options>
     </field>
     <field defaultvalue="Top0degCW" elements="1" name="MagOrientation" type="enum" units="function">

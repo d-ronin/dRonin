@@ -52,6 +52,7 @@
 #define PIOS_INCLUDE_MS5611
 #define PIOS_INCLUDE_HMC5883
 #define PIOS_INCLUDE_HMC5983_I2C
+#define PIOS_INCLUDE_QMC5883
 #define PIOS_TOLERATE_MISSING_SENSORS
 
 /* Flags that alter behaviors */
