@@ -98,7 +98,6 @@ const char IMPERIAL_SPEED_UNIT[]      = "MPH";
 // Private variables
 uint16_t frame_counter = 0;
 static bool module_enabled;
-static bool set_top_menu;
 float convert_distance;
 float convert_distance_divider;
 float convert_speed;
@@ -365,6 +364,8 @@ static void CharOnScreenDisplayTask(void *parameters)
 
 #if defined(CHAROSD_USE_MENU)
 		static  bool display_osd_menu = 0;
+		static bool set_top_menu;
+
 		uint8_t armed_state;
 		float   throttle_cmd, yaw_cmd;
 

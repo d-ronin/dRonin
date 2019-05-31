@@ -843,6 +843,16 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 	case HWSHARED_PORTTYPES_VTXCONFIGTBSSMARTAUDIO:
 #if defined(PIOS_INCLUDE_TBSVTXCONFIG)
 		if (usart_port_cfg) {
+			GPIO_InitTypeDef SmartAudioUartConfig;
+			
+			SmartAudioUartConfig.GPIO_Pin   = usart_port_cfg->tx.init.GPIO_Pin;
+			SmartAudioUartConfig.GPIO_Mode  = GPIO_Speed_2MHz;
+			SmartAudioUartConfig.GPIO_Speed = GPIO_Mode_AF;
+			SmartAudioUartConfig.GPIO_OType = GPIO_OType_OD;
+			SmartAudioUartConfig.GPIO_PuPd  = GPIO_PuPd_UP;
+			
+			GPIO_Init(usart_port_cfg->tx.gpio, &SmartAudioUartConfig);
+			
 			usart_port_params.init.USART_BaudRate = 5000;
 			usart_port_params.init.USART_StopBits = USART_StopBits_2;
 			usart_port_params.init.USART_Parity   = USART_Parity_No;
