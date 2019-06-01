@@ -11,6 +11,7 @@
         <option>None</option>
         <option>TBS Unify Pro 5G8</option>
         <option>TBS Unify Pro 5G8 HV</option>
+        <option>TBS Unify Evo 5G8 HV</option>
       </options>
     </field>
     <field defaultvalue="0" elements="1" name="Frequency" type="uint16" units="MHz">

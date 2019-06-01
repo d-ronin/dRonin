@@ -70,13 +70,43 @@
 #include "waypointactive.h"
 
 #include "charosd.h"
+#include "charosd_menu.h"
+#include "panel.h"
 
 #define STACK_SIZE_BYTES 3072
 #define TASK_PRIORITY PIOS_THREAD_PRIO_LOW
 
 #define SPLASH_TIME_MS (5*1000)
 
-bool module_enabled;
+// ****************
+// Private constants
+
+// Unit conversion constants
+#define MS_TO_KMH 3.6f
+#define MS_TO_MPH 2.23694f
+#define M_TO_FEET 3.28084f
+
+const char METRIC_DIST_UNIT_LONG[]  = "km";
+const char METRIC_DIST_UNIT_SHORT[] = "m";
+const char METRIC_SPEED_UNIT[]      = "km/h";
+
+const char IMPERIAL_DIST_UNIT_LONG[]  = "M";
+const char IMPERIAL_DIST_UNIT_SHORT[] = "ft";
+const char IMPERIAL_SPEED_UNIT[]      = "MPH";
+
+// ****************
+// Private variables
+uint16_t frame_counter = 0;
+static bool module_enabled;
+float convert_distance;
+float convert_distance_divider;
+float convert_speed;
+
+const char * dist_unit_long  = METRIC_DIST_UNIT_LONG;
+const char * dist_unit_short = METRIC_DIST_UNIT_SHORT;
+const char * speed_unit      = METRIC_SPEED_UNIT;
+
+CharOnScreenDisplaySettingsUnitsOptions charOSD_units = 99;
 
 static void panel_draw(charosd_state_t state, uint8_t panel, uint8_t x, uint8_t y)
 {
@@ -302,6 +332,26 @@ static void CharOnScreenDisplayTask(void *parameters)
 
 		CharOnScreenDisplaySettingsGet(&page);
 
+		if (page.Units != charOSD_units) {
+			if (page.Units == CHARONSCREENDISPLAYSETTINGS_UNITS_IMPERIAL) {
+				convert_distance = M_TO_FEET;
+				convert_distance_divider = 5280.0f; // feet in a mile
+				convert_speed = MS_TO_MPH;
+				dist_unit_long = IMPERIAL_DIST_UNIT_LONG;
+				dist_unit_short = IMPERIAL_DIST_UNIT_SHORT;
+				speed_unit = IMPERIAL_SPEED_UNIT;
+			} else {
+				convert_distance = 1.0f;
+				convert_distance_divider = 1000.0f;
+				convert_speed = MS_TO_KMH;
+				dist_unit_long = METRIC_DIST_UNIT_LONG;
+				dist_unit_short = METRIC_DIST_UNIT_SHORT;
+				speed_unit = METRIC_SPEED_UNIT;
+			}
+			
+			charOSD_units = page.Units;
+		}
+		
 		if (state->prev_font != page.Font) {
 			program_characters(state, page.Font);
 		}
@@ -312,7 +362,52 @@ static void CharOnScreenDisplayTask(void *parameters)
 
 		state->custom_text = (char*)page.CustomText;
 
-		screen_draw(state, &page);
+#if defined(CHAROSD_USE_MENU)
+		static  bool display_osd_menu = 0;
+		static bool set_top_menu;
+
+		uint8_t armed_state;
+		float   throttle_cmd, yaw_cmd;
+
+		FlightStatusArmedGet(&armed_state);
+		
+		ManualControlCommandThrottleGet(&throttle_cmd);
+		ManualControlCommandYawGet(&yaw_cmd);
+		
+		if ((armed_state == FLIGHTSTATUS_ARMED_DISARMED) &&
+		    (yaw_cmd      < -0.25f) &&
+		    (throttle_cmd <  0.0f) &&
+			(display_osd_menu == false))
+		{
+			display_osd_menu = true;
+			set_top_menu = true;
+		}
+		
+		if ((armed_state == FLIGHTSTATUS_ARMED_DISARMED) &&
+		    (yaw_cmd      >  0.25f) &&
+		    (throttle_cmd <  0.0f) &&
+			(display_osd_menu == true))
+		{
+			display_osd_menu = false;
+		}
+
+		if ((armed_state == FLIGHTSTATUS_ARMED_DISARMED) && (display_osd_menu))
+		{
+			render_charosd_menu(state, set_top_menu);
+			
+			if (set_top_menu == true)
+				set_top_menu = false;
+		}
+		else
+#endif
+		{
+			screen_draw(state, &page);
+			
+#if defined(CHAROSD_USE_MENU)
+			if (display_osd_menu)
+				display_osd_menu = false;
+#endif
+		}
 
 		if (PIOS_MAX7456_stall_detect(state->dev)) {
 			PIOS_MAX7456_puts(state->dev, MAX7456_FMT_H_CENTER, 6, "... STALLED ...", 0);
@@ -320,6 +415,8 @@ static void CharOnScreenDisplayTask(void *parameters)
 		}
 
 		PIOS_MAX7456_wait_vsync(state->dev);
+		
+		frame_counter++;
 	}
 }
 

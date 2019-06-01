@@ -58,6 +58,7 @@
 #include <misc_math.h>
 
 #include "charosd.h"
+#include "panel.h"  // HJI
 
 #include "physical_constants.h"
 
@@ -114,6 +115,7 @@ static void draw_rect(charosd_state_t state, uint8_t l, uint8_t t, uint8_t w, ui
 		PIOS_MAX7456_puts(state->dev, l, t + i, buffer, attr);
 	}
 }
+/* HJI
 #define ERR_STR "---"
 
 #define terminate_buffer() do { buffer [sizeof(buffer) - 1] = 0; } while (0)
@@ -128,8 +130,7 @@ static void draw_rect(charosd_state_t state, uint8_t l, uint8_t t, uint8_t w, ui
 
 #define STD_PANEL(__name, bs, fmt, ...) \
 	STD_UPDATE(__name, bs, fmt, __VA_ARGS__);
-
-
+HJI */
 /* Alt */
 STD_PANEL(ALTITUDE, 8, "\x85%d\x8d", (int16_t)round(-state->telemetry.position_actual.Down));
 
@@ -148,8 +149,7 @@ static void CLIMB_update(charosd_state_t state, uint8_t x, uint8_t y)
 	else if (c <= -20) s = _PAN_CLIMB_SYMB + 2;
 	else if (c <= -10) s = _PAN_CLIMB_SYMB + 1;
 	else s = _PAN_CLIMB_SYMB;
-	snprintf(buffer, sizeof (buffer), "%c%.1f\x8c", s,
-		 -(double)state->telemetry.velocity_actual.Down);
+	snprintf(buffer, sizeof (buffer), "%c%.1f\x8c", s, -(double)state->telemetry.velocity_actual.Down);
 	terminate_buffer();
 	PIOS_MAX7456_puts(state->dev, x, y, buffer, 0);
 }

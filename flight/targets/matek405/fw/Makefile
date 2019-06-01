@@ -63,6 +63,7 @@ OPTMODULES += Logging
 OPTMODULES += Storm32Bgc
 OPTMODULES += CharacterOSD
 OPTMODULES += UAVOCrossfireTelemetry
+OPTMODULES += VTXConfig
 OPTMODULES += OpenAeroVtol
 OPTMODULES += Triflight
 OPTMODULES += Biflight

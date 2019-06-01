@@ -51,7 +51,8 @@ const uint16_t TBS_CH[NUM_TBS_CH] = {
 enum TBS_VTX_PROTOCOL {
 	UNKNOWN,
 	TBS_SMARTAUDIO_1,
-	TBS_SMARTAUDIO_2
+	TBS_SMARTAUDIO_2,
+	TBS_SMARTAUDIO_2p1
 };
 
 
@@ -63,6 +64,14 @@ typedef struct {
 	uint8_t operation_mode;
 	uint8_t freq0;
 	uint8_t freq1;
+	uint8_t pwr_dbm;   // SmartAudio 2.1
+	uint8_t pwr_lvls;  // SmartAudio 2.1
+	uint8_t dbm_lvl1;  // SmartAudio 2.1
+	uint8_t dbm_lvl2;  // SmartAudio 2.1
+	uint8_t dbm_lvl3;  // SmartAudio 2.1
+	uint8_t dbm_lvl4;  // SmartAudio 2.1
+	uint8_t unknown1;  // SmartAudio 2.1
+	uint8_t unknown2;  // SmartAudio 2.1
 	uint8_t crc;
 } __attribute__((packed)) GET_INFO;
 
@@ -116,14 +125,18 @@ int32_t tbsvtx_rx_msg(uintptr_t usart_id, uint8_t n_bytes, uint8_t *buff, uint16
 	uint8_t c = 0;
 	uint8_t c_prev;
 	uint8_t bytes_rx = 2;
+	uint8_t crc;
 	bool rx_ok = false;
 
-	// Due to the non-standard signal levels (0.9V when idle) the first two bytes are often garbled,
-	// so we match directly for the length field.
 	while (PIOS_Thread_Systime() - start < timeout) {
 		c_prev = c;
 		if (PIOS_COM_ReceiveBuffer(usart_id, &c, 1, 4) > 0) {
-			if (c == n_bytes - 2) {
+			// Some magic here to distinguish between SA1.0/SA2.0 and SA2.1
+			// Info msg payload length SA1.0/SA2.0 is 6 bytes (cmd + length + payload = 8 bytes)
+			// Info msg payload length SA2.1 is 14 bytes (cmd + length + payload = 16 bytes)
+			// n_bytes - 2 is good for all rx msgs except SA1.0/SA2.0 info msg, where
+			// n_bytes - 10 is used due the smaller info msg payload
+			if ((c == n_bytes - 2) || (c == n_bytes - 10)) {
 				rx_ok = true;
 				break;
 			}
@@ -138,17 +151,30 @@ int32_t tbsvtx_rx_msg(uintptr_t usart_id, uint8_t n_bytes, uint8_t *buff, uint16
 	while(bytes_rx < n_bytes) {
 		if (PIOS_COM_ReceiveBuffer(usart_id, &c, 1, 4) > 0) {
 			buff[bytes_rx++] = c;
+			
+			// Continuing the SA1.0/SA2.0 and SA2.1 magic
+			// Perform checksum test after 8 bytes received and exit if valid
+			// A valid checksum at this point in the rx msg stream indicates
+			// a SA1.0/SA2.0 info msg and we've got all the data
+			if ((n_bytes == sizeof(GET_INFO)) && (bytes_rx == 8)) {
+				crc = PIOS_CRC_updateCRC_TBS(0, buff, 7);
+				
+				if (crc == buff[7]) {
+					return 0;
+				}
+			}
 		}
+		
 		if (PIOS_Thread_Systime() - start > timeout) {
-			return - 1;
+			return -1;
 		}
 	}
 
 	// check CRC
-	uint8_t crc = PIOS_CRC_updateCRC_TBS(0, buff, n_bytes - 1);
+	crc = PIOS_CRC_updateCRC_TBS(0, buff, n_bytes - 1);
 
 	if (crc != buff[n_bytes - 1]) {
-		return - 2;
+		return -2;
 	}
 
 	return 0;
@@ -159,11 +185,9 @@ int32_t tbsvtx_get_state(uintptr_t usart_id, VTXInfoData *info)
 {
 	// Send dummy 00 byte before, so line goes high
 	uint8_t msg[7] = {0x00, 0xAA, 0x55, 0x03, 0x00, 0x00, 0x00};
-	//msg[5] = PIOS_CRC_updateCRC_TBS(0, &msg[1], 4);
+	
 	tbsvtx_tx_msg(usart_id, msg, 7);
-	//uint8_t msg[5] = {0x00, 0xAA, 0x55, 0x03, 0x00};
-	//PIOS_COM_SendBuffer(usart_id, msg, 5);
-
+	
 	GET_INFO info_msg;
 	if (tbsvtx_rx_msg(usart_id, sizeof(info_msg), (uint8_t*)&info_msg, 200) < 0) {
 		return -1;
@@ -182,6 +206,10 @@ int32_t tbsvtx_get_state(uintptr_t usart_id, VTXInfoData *info)
 		case 0x01:
 			info->Model = VTXINFO_MODEL_TBSUNIFYPRO5G8HV;
 			vtx_protocol = TBS_SMARTAUDIO_2;
+			break;
+		case 0x02:
+			info->Model = VTXINFO_MODEL_TBSUNIFYEVO5G8HV;
+			vtx_protocol = TBS_SMARTAUDIO_2p1;
 			break;
 		default:
 			info->Model = VTXINFO_MODEL_NONE;
@@ -227,6 +255,30 @@ int32_t tbsvtx_get_state(uintptr_t usart_id, VTXInfoData *info)
 						info->Power = 500;
 						break;
 					case 0x03:
+						info->Power = 800;
+						break;
+					default:
+						info->Power = 25;
+				}
+			}
+			break;
+		case TBS_SMARTAUDIO_2p1:
+			if (info_msg.operation_mode & 0x02) {
+				// Pit mode active, report 0mW
+				info->Power = 0;
+			}
+			else {
+				switch(info_msg.pwr_dbm) {
+					case 0x0E:
+						info->Power = 25;
+						break;
+					case 0x17:
+						info->Power = 200;
+						break;
+					case 0x1B:
+						info->Power = 500;
+						break;
+					case 0x1D:
 						info->Power = 800;
 						break;
 					default:
@@ -295,7 +347,7 @@ static int32_t tbsvtx_set_mode(uintptr_t usart_id, uint8_t mode)
 int32_t tbsvtx_set_power(uintptr_t usart_id, uint16_t power)
 {
 	// Make sure the VTX is unlocked
-	if ((vtx_protocol == TBS_SMARTAUDIO_2) && (power > 25)){
+	if (((vtx_protocol == TBS_SMARTAUDIO_2) || (vtx_protocol == TBS_SMARTAUDIO_2)) && (power > 25)){
 		tbsvtx_set_mode(usart_id, 0x10);
 		PIOS_Thread_Sleep(200);
 	}
@@ -321,6 +373,24 @@ int32_t tbsvtx_set_power(uintptr_t usart_id, uint16_t power)
 			}
 			break;
 		case TBS_SMARTAUDIO_2:
+			switch (power) {
+				case 25:
+					power_byte = 0x00;
+					break;
+				case 200:
+					power_byte = 0x01;
+					break;
+				case 500:
+					power_byte = 0x02;
+					break;
+				case 800:
+					power_byte = 0x03;
+					break;
+				default:
+					return -2;
+			}
+			break;
+		case TBS_SMARTAUDIO_2p1:
 			switch (power) {
 				case 25:
 					power_byte = 0x00;
