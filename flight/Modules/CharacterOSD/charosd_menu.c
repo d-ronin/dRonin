@@ -732,6 +732,7 @@ void vtx_menu(charosd_state_t state)
 		[VTXINFO_MODEL_NONE]             = "No VTX",
 		[VTXINFO_MODEL_TBSUNIFYPRO5G8]   = "TBS UPro 5G8",
 		[VTXINFO_MODEL_TBSUNIFYPRO5G8HV] = "TBS UPro 5G8 HV",
+		[VTXINFO_MODEL_TBSUNIFYEVO5G8HV] = "TBS UEvo 5G8 HV",
 	};
 
 	const char *band_strings[] = {
