@@ -86,13 +86,31 @@
 #define MS_TO_MPH 2.23694f
 #define M_TO_FEET 3.28084f
 
-const char METRIC_DIST_UNIT_LONG[]  = "km";
-const char METRIC_DIST_UNIT_SHORT[] = "m";
-const char METRIC_SPEED_UNIT[]      = "km/h";
+const char METRIC_DIST_UNIT_LONG[]    = "km";
+const char METRIC_DIST_UNIT_SHORT[]   = "m";
+const char METRIC_SPEED_UNIT[]        = "km/h";
 
-const char IMPERIAL_DIST_UNIT_LONG[]  = "M";
-const char IMPERIAL_DIST_UNIT_SHORT[] = "ft";
-const char IMPERIAL_SPEED_UNIT[]      = "MPH";
+const char IMPERIAL_DIST_UNIT_LONG[]  = ""; // "M";
+const char IMPERIAL_DIST_UNIT_SHORT[] = ""; // "ft";
+const char IMPERIAL_SPEED_UNIT[]      = ""; // "MPH";
+
+const char METRIC_ALTITUDE_FORMAT[]   = "\x85%d\x8d";         // "ALT" value "M"
+const char IMPERIAL_ALTITUDE_FORMAT[] = "\x85%d";             // "ALT" value
+
+const char METRIC_CLIMB_FORMAT[]   = "%c%.1f\x8c";            // "ICON" value "M/S"
+const char IMPERIAL_CLIMB_FORMAT[] = "%c%.1f";                // "ICON" value
+
+const char METRIC_GSPD_FORMAT[]   = "\x80%d\x81";             // "GS" value "KMH"
+const char IMPERIAL_GSPD_FORMAT[] = "\x80%d";                 // "GS" value
+
+const char METRIC_HOMEDISTANCE_LONG_FORMAT[]   = "%.2f\x8b";  // value "KM"
+const char IMPERIAL_HOMEDISTANCE_LONG_FORMAT[] = "%.2f";      // value
+
+const char METRIC_HOMEDISTANCE_SHORT_FORMAT[]   = "%d\x8d";   // value "M"
+const char IMPERIAL_HOMEDISTANCE_SHORT_FORMAT[] = "%d";       // value
+
+const char METRIC_AIRSPEED_FORMAT[]   = "\x88%d\x81";         // "AIR" value "KMH"
+const char IMPERIAL_AIRSPEED_FORMAT[] = "\x88%d";             // "AIR" value
 
 // ****************
 // Private variables
@@ -102,9 +120,17 @@ static bool module_enabled;
 float convert_distance         = 1.0f;
 float convert_distance_divider = 1000.0f;
 float convert_speed            = MS_TO_KMH;
+
 const char * dist_unit_long    = METRIC_DIST_UNIT_LONG;
 const char * dist_unit_short   = METRIC_DIST_UNIT_SHORT;
 const char * speed_unit        = METRIC_SPEED_UNIT;
+
+const char * altitude_format           = METRIC_ALTITUDE_FORMAT;
+const char * climb_format              = METRIC_CLIMB_FORMAT;
+const char * gspd_format               = METRIC_GSPD_FORMAT;
+const char * homedistance_long_format  = METRIC_HOMEDISTANCE_LONG_FORMAT;
+const char * homedistance_short_format = METRIC_HOMEDISTANCE_SHORT_FORMAT;
+const char * airspeed_format           = METRIC_AIRSPEED_FORMAT;
 
 CharOnScreenDisplaySettingsUnitsOptions charOSD_units = CHARONSCREENDISPLAYSETTINGS_UNITS_METRIC;
 
@@ -336,16 +362,33 @@ static void CharOnScreenDisplayTask(void *parameters)
 				convert_distance         = M_TO_FEET;
 				convert_distance_divider = 5280.0f; // feet in a mile
 				convert_speed            = MS_TO_MPH;
+				
 				dist_unit_long           = IMPERIAL_DIST_UNIT_LONG;
 				dist_unit_short          = IMPERIAL_DIST_UNIT_SHORT;
 				speed_unit               = IMPERIAL_SPEED_UNIT;
+				
+				altitude_format           = IMPERIAL_ALTITUDE_FORMAT;
+				climb_format              = IMPERIAL_CLIMB_FORMAT;
+				gspd_format               = IMPERIAL_GSPD_FORMAT;
+				homedistance_long_format  = IMPERIAL_HOMEDISTANCE_LONG_FORMAT;
+				homedistance_short_format = IMPERIAL_HOMEDISTANCE_SHORT_FORMAT;
+				airspeed_format           = IMPERIAL_AIRSPEED_FORMAT;
+
 			} else {
 				convert_distance         = 1.0f;
 				convert_distance_divider = 1000.0f;
 				convert_speed            = MS_TO_KMH;
+				
 				dist_unit_long           = METRIC_DIST_UNIT_LONG;
 				dist_unit_short          = METRIC_DIST_UNIT_SHORT;
 				speed_unit               = METRIC_SPEED_UNIT;
+				
+				altitude_format           = METRIC_ALTITUDE_FORMAT;
+				climb_format              = METRIC_CLIMB_FORMAT;
+				gspd_format               = METRIC_GSPD_FORMAT;
+				homedistance_long_format  = METRIC_HOMEDISTANCE_LONG_FORMAT;
+				homedistance_short_format = METRIC_HOMEDISTANCE_SHORT_FORMAT;
+				airspeed_format           = METRIC_AIRSPEED_FORMAT;
 			}
 			
 			charOSD_units = page.Units;

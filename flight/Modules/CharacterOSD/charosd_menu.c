@@ -408,28 +408,6 @@ void render_charosd_menu(charosd_state_t state, bool set_top_menu)
 	// debounces the exit from sub-menu to main menu transition)
 	if ((!event_repeats || current_event != FSM_EVENT_RIGHT) && menu_fsm[current_state].next_state[current_event])
 		current_state = menu_fsm[current_state].next_state[current_event];
-
-//	ManualControlSettingsArmingGet(&tmp);
-
-//	switch(tmp){
-//		case MANUALCONTROLSETTINGS_ARMING_ROLLLEFTTHROTTLE:
-//		case MANUALCONTROLSETTINGS_ARMING_ROLLRIGHTTHROTTLE:
-//			strcpy(buffer, "Do not use roll for arming!!");
-//			terminate_buffer();
-//			PIOS_MAX7456_puts(state->dev, MAX7456_FMT_H_CENTER, 12, buffer, 0);
-//			break;
-//		default:
-//			strcpy(buffer, "Use pitch and roll to select");
-//			terminate_buffer();
-//			PIOS_MAX7456_puts(state->dev, MAX7456_FMT_H_CENTER, 12, buffer, 0);
-//	}
-
-//	FlightStatusArmedGet(&tmp);
-//	if (tmp != FLIGHTSTATUS_ARMED_DISARMED) {
-//			strcpy(buffer, "WARNING: ARMED!!");
-//			terminate_buffer();
-//			PIOS_MAX7456_puts(state->dev, MAX7456_FMT_H_CENTER, 13, buffer, 0);
-//	}
 }
 
 void main_menu(charosd_state_t state)

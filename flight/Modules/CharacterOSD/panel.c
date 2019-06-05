@@ -58,7 +58,7 @@
 #include <misc_math.h>
 
 #include "charosd.h"
-#include "panel.h"  // HJI
+#include "panel.h"
 
 #include "physical_constants.h"
 
@@ -115,24 +115,17 @@ static void draw_rect(charosd_state_t state, uint8_t l, uint8_t t, uint8_t w, ui
 		PIOS_MAX7456_puts(state->dev, l, t + i, buffer, attr);
 	}
 }
-/* HJI
-#define ERR_STR "---"
 
-#define terminate_buffer() do { buffer [sizeof(buffer) - 1] = 0; } while (0)
-
-#define STD_UPDATE(__name, n, fmt, ...) static void __name ## _update(charosd_state_t state, uint8_t x, uint8_t y) \
-{ \
-	char buffer[n]; \
-	snprintf(buffer, sizeof (buffer), fmt, __VA_ARGS__); \
-	terminate_buffer(); \
-	PIOS_MAX7456_puts(state->dev, x, y, buffer, 0); \
-}
-
-#define STD_PANEL(__name, bs, fmt, ...) \
-	STD_UPDATE(__name, bs, fmt, __VA_ARGS__);
-HJI */
 /* Alt */
-STD_PANEL(ALTITUDE, 8, "\x85%d\x8d", (int16_t)round(-state->telemetry.position_actual.Down));
+static void ALTITUDE_update(charosd_state_t state, uint8_t x, uint8_t y)
+{
+	int16_t alt = (int16_t)(round((float)-state->telemetry.position_actual.Down * convert_distance));
+	char buffer[8];
+	
+	snprintf(buffer, sizeof (buffer), altitude_format, alt);
+	terminate_buffer();
+	PIOS_MAX7456_puts(state->dev, x, y, buffer, 0);
+}
 
 /* Climb */
 #define _PAN_CLIMB_SYMB 0x03
@@ -149,7 +142,7 @@ static void CLIMB_update(charosd_state_t state, uint8_t x, uint8_t y)
 	else if (c <= -20) s = _PAN_CLIMB_SYMB + 2;
 	else if (c <= -10) s = _PAN_CLIMB_SYMB + 1;
 	else s = _PAN_CLIMB_SYMB;
-	snprintf(buffer, sizeof (buffer), "%c%.1f\x8c", s, -(double)state->telemetry.velocity_actual.Down);
+	snprintf(buffer, sizeof (buffer), climb_format, s, (double)-state->telemetry.velocity_actual.Down * (double)convert_distance);
 	terminate_buffer();
 	PIOS_MAX7456_puts(state->dev, x, y, buffer, 0);
 }
@@ -349,10 +342,15 @@ void HORIZON_update(charosd_state_t state, uint8_t x, uint8_t y)
 STD_PANEL(THROTTLE, 7, "\x87%d%%", (int)MAX(-99, state->telemetry.manual.thrust*100));
 
 /* GroundSpeed */
-STD_PANEL(GROUNDSPEED, 7, "\x80%d\x81",
-		(int)roundf(pythag(state->telemetry.velocity_actual.North,
-				state->telemetry.velocity_actual.East) * 3.6f));
-// * 3.6 == m/s to km/hr
+static void GROUNDSPEED_update(charosd_state_t state, uint8_t x, uint8_t y)
+{
+	int16_t gspd = (int16_t)roundf(pythag(state->telemetry.velocity_actual.North, state->telemetry.velocity_actual.East) * convert_speed);
+	char buffer[7];
+	
+	snprintf(buffer, sizeof (buffer), gspd_format, gspd);
+	terminate_buffer();
+	PIOS_MAX7456_puts(state->dev, x, y, buffer, 0);
+}
 
 STD_PANEL(BATTERYVOLT, 8, "%.2f\x8e", (double)state->telemetry.battery.Voltage);
 
@@ -373,14 +371,12 @@ static void RSSIFLAG_update (charosd_state_t state, uint8_t x, uint8_t y)
 static void HOMEDISTANCE_update(charosd_state_t state, uint8_t x, uint8_t y)
 {
 	char buffer[8];
-	float dist = pythag(state->telemetry.position_actual.North,
-			    state->telemetry.position_actual.East);
-	if (dist > 1000) {
-		snprintf(buffer, sizeof(buffer), "%.2f%c",
-			 (double)dist/1000, CHAROSD_CHAR_KM);
+	float dist = pythag(state->telemetry.position_actual.North, state->telemetry.position_actual.East) * convert_distance;
+	
+	if (dist > convert_distance_divider) {
+		snprintf(buffer, sizeof(buffer), homedistance_long_format, (double)dist / (double)convert_distance_divider);
 	} else {
-		snprintf(buffer, sizeof(buffer), "%d%c",
-			 (int)round(dist), CHAROSD_CHAR_M);
+		snprintf(buffer, sizeof(buffer), homedistance_short_format, (int16_t)round(dist));
 	}
 
 	terminate_buffer();
@@ -462,8 +458,10 @@ static void AIRSPEED_update(charosd_state_t state, uint8_t x, uint8_t y)
 {
 	char buffer[7];
 	float airspeed;
+	
 	AirspeedActualTrueAirspeedGet(&airspeed);
-	snprintf(buffer, sizeof(buffer), "\x88%d\x81", (int)(airspeed * 3.6f));
+	
+	snprintf(buffer, sizeof(buffer), airspeed_format, (int16_t)(airspeed * convert_speed));
 	terminate_buffer();
 	PIOS_MAX7456_puts(state->dev, x, y + 1, buffer, 0);
 }

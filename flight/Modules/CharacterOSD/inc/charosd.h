@@ -100,6 +100,13 @@ extern const char * dist_unit_long;
 extern const char * dist_unit_short;
 extern const char * speed_unit;
 
+extern const char * altitude_format;
+extern const char * climb_format;
+extern const char * gspd_format;
+extern const char * homedistance_long_format;
+extern const char * homedistance_short_format;
+extern const char * airspeed_format;
+
 // panels collection
 extern const panel_t panels [];
 extern const uint8_t panels_count;
