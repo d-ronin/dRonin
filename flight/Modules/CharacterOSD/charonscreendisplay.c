@@ -98,15 +98,15 @@ const char IMPERIAL_SPEED_UNIT[]      = "MPH";
 // Private variables
 uint16_t frame_counter = 0;
 static bool module_enabled;
-float convert_distance;
-float convert_distance_divider;
-float convert_speed;
 
-const char * dist_unit_long  = METRIC_DIST_UNIT_LONG;
-const char * dist_unit_short = METRIC_DIST_UNIT_SHORT;
-const char * speed_unit      = METRIC_SPEED_UNIT;
+float convert_distance         = 1.0f;
+float convert_distance_divider = 1000.0f;
+float convert_speed            = MS_TO_KMH;
+const char * dist_unit_long    = METRIC_DIST_UNIT_LONG;
+const char * dist_unit_short   = METRIC_DIST_UNIT_SHORT;
+const char * speed_unit        = METRIC_SPEED_UNIT;
 
-CharOnScreenDisplaySettingsUnitsOptions charOSD_units = 99;
+CharOnScreenDisplaySettingsUnitsOptions charOSD_units = CHARONSCREENDISPLAYSETTINGS_UNITS_METRIC;
 
 static void panel_draw(charosd_state_t state, uint8_t panel, uint8_t x, uint8_t y)
 {
@@ -122,8 +122,7 @@ static void screen_draw(charosd_state_t state, CharOnScreenDisplaySettingsData *
 {
 	PIOS_MAX7456_clear (state->dev);
 
-	for (uint8_t i = 0; i < CHARONSCREENDISPLAYSETTINGS_PANELTYPE_NUMELEM;
-		       i++) {
+	for (uint8_t i = 0; i < CHARONSCREENDISPLAYSETTINGS_PANELTYPE_NUMELEM; i++) {
 		panel_draw(state, page->PanelType[i], page->X[i], page->Y[i]);
 	}
 }
@@ -334,19 +333,19 @@ static void CharOnScreenDisplayTask(void *parameters)
 
 		if (page.Units != charOSD_units) {
 			if (page.Units == CHARONSCREENDISPLAYSETTINGS_UNITS_IMPERIAL) {
-				convert_distance = M_TO_FEET;
+				convert_distance         = M_TO_FEET;
 				convert_distance_divider = 5280.0f; // feet in a mile
-				convert_speed = MS_TO_MPH;
-				dist_unit_long = IMPERIAL_DIST_UNIT_LONG;
-				dist_unit_short = IMPERIAL_DIST_UNIT_SHORT;
-				speed_unit = IMPERIAL_SPEED_UNIT;
+				convert_speed            = MS_TO_MPH;
+				dist_unit_long           = IMPERIAL_DIST_UNIT_LONG;
+				dist_unit_short          = IMPERIAL_DIST_UNIT_SHORT;
+				speed_unit               = IMPERIAL_SPEED_UNIT;
 			} else {
-				convert_distance = 1.0f;
+				convert_distance         = 1.0f;
 				convert_distance_divider = 1000.0f;
-				convert_speed = MS_TO_KMH;
-				dist_unit_long = METRIC_DIST_UNIT_LONG;
-				dist_unit_short = METRIC_DIST_UNIT_SHORT;
-				speed_unit = METRIC_SPEED_UNIT;
+				convert_speed            = MS_TO_KMH;
+				dist_unit_long           = METRIC_DIST_UNIT_LONG;
+				dist_unit_short          = METRIC_DIST_UNIT_SHORT;
+				speed_unit               = METRIC_SPEED_UNIT;
 			}
 			
 			charOSD_units = page.Units;

@@ -434,7 +434,7 @@ void render_charosd_menu(charosd_state_t state, bool set_top_menu)
 
 void main_menu(charosd_state_t state)
 {
-	uint8_t y_pos = 2;
+	uint8_t y_pos = 1;
 
 	strcpy(buffer, "Main Menu");
 	terminate_buffer();
@@ -511,12 +511,18 @@ void stats_menu(charosd_state_t state)
 		FlightStatsData stats;
 		FlightStatsGet(&stats);
 	
-		if (state->available & HAS_NAV) {
+		if (state->available & HAS_NAV)
+		{
+			strcpy(buffer, "Dist:");
+			terminate_buffer();
+			PIOS_MAX7456_puts(state->dev, 2, y_pos, buffer, 0);
+			y_pos++;
+
 			tmp = convert_distance * stats.DistanceTravelled;
 			if (tmp < convert_distance_divider)
-				sprintf(buffer, "Distance traveled:  %d %s", (int)tmp, dist_unit_short);
+				sprintf(buffer, " Traveled:       %d %s", (int)tmp, dist_unit_short);
 			else
-				sprintf(buffer, "Distance traveled:  %0.2f %s", (double)(tmp / convert_distance_divider), dist_unit_long);
+				sprintf(buffer, " Traveled:       %0.2f %s", (double)(tmp / convert_distance_divider), dist_unit_long);
 
 			terminate_buffer();
 			PIOS_MAX7456_puts(state->dev, 2, y_pos, buffer, 0);
@@ -525,9 +531,9 @@ void stats_menu(charosd_state_t state)
 
 			tmp = convert_distance * stats.MaxDistanceToHome;
 			if (tmp < convert_distance_divider)
-				sprintf(buffer, "Max Dist to Home:   %d %s", (int)tmp, dist_unit_short);
+				sprintf(buffer, " Max to Home:    %d %s", (int)tmp, dist_unit_short);
 			else
-				sprintf(buffer, "Max Dist to Home:   %0.2f %s", (double)(tmp / convert_distance_divider), dist_unit_long);
+				sprintf(buffer, " Max to Home:    %0.2f %s", (double)(tmp / convert_distance_divider), dist_unit_long);
 
 			terminate_buffer();
 			PIOS_MAX7456_puts(state->dev, 2, y_pos, buffer, 0);
@@ -535,7 +541,7 @@ void stats_menu(charosd_state_t state)
 			y_pos++;
 
 			tmp = convert_distance * stats.MaxAltitude;
-			sprintf(buffer, "Max Altitude:       %0.2f %s", (double)tmp, dist_unit_short);
+			sprintf(buffer, "Max Alt:         %0.2f %s", (double)tmp, dist_unit_short);
 
 			terminate_buffer();
 			PIOS_MAX7456_puts(state->dev, 2, y_pos, buffer, 0);
@@ -543,7 +549,7 @@ void stats_menu(charosd_state_t state)
 			y_pos++;
 
 			tmp = convert_speed * stats.MaxGroundSpeed;
-			sprintf(buffer, "Max Groundspeed:    %0.2f %s", (double)tmp, speed_unit);
+			sprintf(buffer, "Max Gspd:        %0.2f %s", (double)tmp, speed_unit);
 
 			terminate_buffer();
 			PIOS_MAX7456_puts(state->dev, 2, y_pos, buffer, 0);
@@ -552,14 +558,14 @@ void stats_menu(charosd_state_t state)
 		}
 
 		if (state->available & HAS_BATT) {
-			sprintf(buffer, "Energy used:        %d mAh", stats.ConsumedEnergy);
+			sprintf(buffer, "Energy used:     %d mAh", stats.ConsumedEnergy);
 
 			terminate_buffer();
 			PIOS_MAX7456_puts(state->dev, 2, y_pos, buffer, 0);
 		
 			y_pos++;
 
-			sprintf(buffer, "Initial Batt Volts: %0.1f V", (double)stats.InitialBatteryVoltage / 1000.0);
+			sprintf(buffer, "Init Batt Volts: %0.1f V", (double)stats.InitialBatteryVoltage / 1000.0);
 
 			terminate_buffer();
 			PIOS_MAX7456_puts(state->dev, 2, y_pos, buffer, 0);
@@ -579,14 +585,15 @@ void stats_menu(charosd_state_t state)
 
 void homeloc_menu(charosd_state_t state)
 {
-	int y_pos = 2;
+	int y_pos = 1;
 	
 	HomeLocationData data;
 	uint8_t home_set;
 
 	strcpy(buffer, "Home Location");
 	terminate_buffer();
-	PIOS_MAX7456_puts(state->dev, MAX7456_FMT_H_CENTER, 1, buffer, 0);
+	PIOS_MAX7456_puts(state->dev, MAX7456_FMT_H_CENTER, y_pos, buffer, 0);
+	y_pos++;
 
 	
 	if (HomeLocationHandle()){
@@ -594,7 +601,13 @@ void homeloc_menu(charosd_state_t state)
 
 		if (home_set == HOMELOCATION_SET_TRUE) {
 			HomeLocationGet(&data);
-			sprintf(buffer, "Home: %0.5f %0.5f Alt: %0.1fm", (double)data.Latitude / 10000000.0, (double)data.Longitude / 10000000.0, (double)data.Altitude);
+			
+			sprintf(buffer, "Pos: %0.5f %0.5f", (double)data.Latitude / 10000000.0, (double)data.Longitude / 10000000.0);
+			terminate_buffer();
+			PIOS_MAX7456_puts(state->dev, 1, y_pos, buffer, 0);
+			y_pos++;
+			
+			sprintf(buffer, "Alt: %0.1fm", (double)data.Altitude);
 			terminate_buffer();
 			PIOS_MAX7456_puts(state->dev, 1, y_pos, buffer, 0);
 			y_pos++;
@@ -603,8 +616,8 @@ void homeloc_menu(charosd_state_t state)
 			strcpy(buffer, "Home: Not Set");
 			terminate_buffer();
 			PIOS_MAX7456_puts(state->dev, 2, y_pos, buffer, 0);
+			y_pos++;
 		}
-		y_pos++;
 		y_pos++;
 		
 		strcpy(buffer, "Set to current location");
@@ -703,7 +716,7 @@ void triflight_menu(charosd_state_t state)
 		
 			sprintf(buffer, "Servo Angle: %3d Degrees", (int)tf_status.ServoAngle);
 			terminate_buffer();
-			PIOS_MAX7456_puts(state->dev, 21, y_pos, buffer, 0);
+			PIOS_MAX7456_puts(state->dev, 2, y_pos, buffer, 0);
 			y_pos++;
 			
 			sprintf(buffer, "Servo Speed: %d DPS", (int)tf_settings.ServoSpeed);
@@ -946,7 +959,7 @@ void pidrate_menu(charosd_state_t state)
 {
 	uint8_t y_pos = 1;
 	
-	const float increments[] = {1e-4f, 1e-4f, 1e-4f, 1e-2f};
+	const float increments[] = {1e-5f, 1e-5f, 1e-5f, 1e-2f};
 	
 	float pid_arr[STABILIZATIONSETTINGS_YAWRATEPID_NUMELEM];
 	enum menu_fsm_state my_state = FSM_STATE_PIDRATE_YAWP;
@@ -962,7 +975,7 @@ void pidrate_menu(charosd_state_t state)
 	StabilizationSettingsYawRatePIDGet(pid_arr);
 
 	for (int j = 0; j < 4; j++) {
-		sprintf(buffer, "Yaw %s %0.4f", pid_strings[j], (double)pid_arr[j]);
+		sprintf(buffer, "Yaw %s %0.5f", pid_strings[j], (double)pid_arr[j]);
 		terminate_buffer();
 		PIOS_MAX7456_puts(state->dev, 2, y_pos, buffer, 0);
 
