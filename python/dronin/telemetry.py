@@ -1147,7 +1147,7 @@ def get_telemetry_by_args(desc="Process telemetry", service_in_iter=True,
                         dest    = "log_level",
                         help    = "use usb hid to communicate with FC")
 
-    parser.add_argument("source",
+    parser.add_argument("source", default=None, nargs='?',
             help  = "file, host:port, vid:pid, command, or serial port")
 
     # Parse the command-line.
@@ -1156,8 +1156,16 @@ def get_telemetry_by_args(desc="Process telemetry", service_in_iter=True,
     else:
         args = parser.parse_args(arguments)
 
-    setup_logging(args.log_level)
+    if args.source is None:
+       if args.hid:
+           # firmware vid:pid for all dR boards
+           args.source = '20a0:4250'
+       else:
+           print('source must be provided', file=sys.stderr)
+           parser.print_usage()
+           sys.exit(1)
 
+    setup_logging(args.log_level)
     ret = _finish_telemetry_args(parser, args, service_in_iter, iter_blocks)
 
     if arg_parser is None:
