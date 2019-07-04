@@ -316,3 +316,9 @@ plugin_boards_dtf.depends += plugin_uavobjects
 plugin_boards_dtf.depends += plugin_uavobjectutil
 plugin_boards_dtf.depends += plugin_uavobjectwidgetutils
 SUBDIRS += plugin_boards_dtf
+
+# Matek
+plugin_boards_matek.subdir = boards_matek
+plugin_boards_matek.depends = plugin_coreplugin
+plugin_boards_matek.depends = plugin_uavobjects
+SUBDIRS += plugin_boards_matek
