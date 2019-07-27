@@ -392,8 +392,13 @@ static void HOMEDIRECTION_update(charosd_state_t state, uint8_t x, uint8_t y)
 					 state->telemetry.position_actual.North) * RAD2DEG) + 180;
 
 		home_dir -= state->telemetry.attitude_actual.Yaw;
+		home_dir += 11.25;
+		
+		if (home_dir > 360) home_dir -= 360;
+		
+		if (home_dir == 360) home_dir -= 360;
 
-		uint8_t chr = _ARROWS + (0xf & (((uint8_t) (home_dir / 360.0f * 16.0f)) * 2));
+		uint8_t chr = _ARROWS + (((uint8_t) (home_dir / 360.0f * 16.0f)) * 2);
 		PIOS_MAX7456_put(state->dev, x, y, chr, 0);
 		PIOS_MAX7456_put(state->dev, x + 1, y, chr + 1, 0);
 	}
