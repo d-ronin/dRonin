@@ -565,6 +565,7 @@ typedef enum {
 
 typedef enum {
 	SS_IDLE = 0,
+	SS_SETUP,
 	SS_CALIB,
 } servoSetupState_e;
 
@@ -672,7 +673,7 @@ static void tailTuneModeThrustTorque(TriflightSettingsData *triflightSettings,
 			   (fabsf(cmd.Roll)          <= 0.05f) &&
 			   (fabsf(cmd.Pitch)         <= 0.05f) &&
 			   (fabsf(cmd.Yaw)           <= 0.05f) &&
-			   (fabsf(filtered_yaw_rate) <= 20.0f))
+			   (fabsf(filtered_yaw_rate) <= 30.0f))
 			{
 				if (PIOS_DELAY_GetuSSince(pTT->timestamp_us) >= 250000)  // 0.25 seconds
 				{
@@ -708,8 +709,8 @@ static void tailTuneModeThrustTorque(TriflightSettingsData *triflightSettings,
 			if (!armed)	{
 				float average_servo_angle = pTT->servoAvgAngle.sum / (float)pTT->servoAvgAngle.num_of;
 
-				if(((average_servo_angle > 90.2f) && (average_servo_angle < 120.0f) && (spinCCW)) ||
-				   ((average_servo_angle < 89.8f) && (average_servo_angle > 60.0f) && (!spinCCW))){
+				if(((average_servo_angle > 90.1f) && (average_servo_angle < 120.0f) && (spinCCW)) ||
+				   ((average_servo_angle < 89.9f) && (average_servo_angle > 60.0f) && (!spinCCW))){
 					average_servo_angle -= 90.0f;
 					average_servo_angle *= DEG2RAD;
 
@@ -771,8 +772,27 @@ static void tailTuneModeServoSetup(ActuatorSettingsData  *actuatorSettings,
 
 	ManualControlCommandData cmd;
 	ManualControlCommandGet(&cmd);
-
-	if ((cmd.Roll < 0.05f) && (cmd.Roll > -0.05f) && (cmd.Pitch > 0.5f) && (pSS->state == SS_IDLE)) {
+	
+	if ((cmd.Pitch < 0.05f) && (cmd.Pitch > -0.05f) && (cmd.Roll < -0.5f))
+	{
+		pSS->servoVal = actuatorSettings->ChannelMin[triflightStatus->ServoChannel];
+		pSS->pLimitToAdjust = &actuatorSettings->ChannelMin[triflightStatus->ServoChannel];
+		pSS->state = SS_SETUP;
+	}
+	else if ((cmd.Roll < 0.05f) && (cmd.Roll > -0.05f) && (cmd.Pitch < -0.5f))
+	{
+		pSS->servoVal = actuatorSettings->ChannelNeutral[triflightStatus->ServoChannel];
+		pSS->pLimitToAdjust = &actuatorSettings->ChannelNeutral[triflightStatus->ServoChannel];
+		pSS->state = SS_SETUP;
+	}
+	else if ((cmd.Pitch < 0.05f) && (cmd.Pitch > -0.05f) && (cmd.Roll > 0.5f))
+	{
+		pSS->servoVal = actuatorSettings->ChannelMax[triflightStatus->ServoChannel];
+		pSS->pLimitToAdjust = &actuatorSettings->ChannelMax[triflightStatus->ServoChannel];
+		pSS->state = SS_SETUP;
+	}
+	else if ((cmd.Roll < 0.05f) && (cmd.Roll > -0.05f) && (cmd.Pitch > 0.5f))
+	{
 		pSS->state = SS_CALIB;
 		pSS->cal.state = SS_C_IDLE;
 	}
@@ -780,6 +800,14 @@ static void tailTuneModeServoSetup(ActuatorSettingsData  *actuatorSettings,
 	switch (pSS->state)
 	{
 		case SS_IDLE:
+			break;
+
+		case SS_SETUP:
+			if ((cmd.Yaw < -0.05f) || (cmd.Yaw > 0.05f)) {
+				pSS->servoVal += 1000.0f * cmd.Yaw * dT;
+				pSS->servoVal = bound_min_max(pSS->servoVal, 950.0f, 2050.0f);
+				*pSS->pLimitToAdjust = pSS->servoVal;
+			}
 			break;
 
 		case SS_CALIB:
