@@ -2,7 +2,7 @@ TEMPLATE = aux
 
 include(../../gcs.pri)
 
-LANGUAGES = de es fr ru zh_CN
+LANGUAGES = pl de es fr ru zh_CN
 
 # var, prepend, append
 defineReplace(prependAll) {
