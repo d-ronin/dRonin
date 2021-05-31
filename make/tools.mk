@@ -118,7 +118,9 @@ endef
 .PHONY: qt_sdk_install
 
 # QT SDK download URL
-QT_URL_PREFIX := http://download.qt.io/$(QT_VERSION_SOURCE)_releases/qt/$(QT_VERSION_SHORT)/$(QT_VERSION_FULL)/qt-opensource-
+# QT_URL_PREFIX := http://download.qt.io/$(QT_VERSION_SOURCE)_releases/qt/$(QT_VERSION_SHORT)/$(QT_VERSION_FULL)/qt-opensource-
+QT_URL_PREFIX := https://download.qt.io/archive/qt/$(QT_VERSION_SHORT)/$(QT_VERSION_FULL)/qt-opensource-
+$(info $$QT_URL_PREFIX is [${QT_URL_PREFIX}])
 ifdef LINUX
   ifdef AMD64
     # Linux 64-bit
