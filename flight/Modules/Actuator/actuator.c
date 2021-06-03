@@ -51,6 +51,7 @@
 #include "manualcontrolcommand.h"
 #include "pios_thread.h"
 #include "pios_queue.h"
+#include "pios_sensors.h"
 #include "misc_math.h"
 
 // Private constants
@@ -75,6 +76,7 @@ DONT_BUILD_IF((MIXERSETTINGS_MIXER1VECTOR_NUMELEM - MIXERSETTINGS_MIXER1VECTOR_A
 
 #define MIXER_SCALE 128
 #define ACTUATOR_EPSILON 0.00001f
+#define THROTTLE_EPSILON 0.000001f
 
 // Private types
 
@@ -97,6 +99,30 @@ static MixerSettingsMixer1TypeOptions types_mixer[MAX_MIX_ACTUATORS];
  */
 
 static float motor_mixer[MAX_MIX_ACTUATORS * MIXERSETTINGS_MIXER1VECTOR_NUMELEM];
+static float motor_mixer_inv[MAX_MIX_ACTUATORS * MIXERSETTINGS_MIXER1VECTOR_NUMELEM];
+static bool inverse_mixer_computed = false;
+
+#define SMITHP_MAX_DELAY 64
+
+struct smith_predictor {
+
+	uint32_t samples;
+	uint32_t idx;
+
+	/* This is gonna be a ring buffer. */
+	float *data;
+
+	float iir_alpha;
+	float iir[MAX_MIX_ACTUATORS];
+
+	float mix;
+};
+
+static struct smith_predictor* smithp_init(float delay, float iir, float mix);
+static void smithp_push_vect(struct smith_predictor *m, float *motor_vect);
+static void smithp_compensate(struct smith_predictor *m, float *motor_vect);
+
+struct smith_predictor *smithp;
 
 /* These are various settings objects used throughout the actuator code */
 static ActuatorSettingsData actuatorSettings;
@@ -408,6 +434,12 @@ static void compute_mixer()
 #if MAX_MIX_ACTUATORS > 9
 	compute_one_token_paste(10);
 #endif
+}
+
+static bool compute_inverse_mixer()
+{
+	return matrix_pseudoinv(motor_mixer, motor_mixer_inv,
+		MAX_MIX_ACTUATORS, MIXERSETTINGS_MIXER1VECTOR_NUMELEM);
 }
 
 static void fill_desired_vector(
@@ -756,6 +788,14 @@ static void actuator_settings_update()
 	}
 
 	hangtime_leakybucket_timeconstant = actuatorSettings.LowPowerStabilizationTimeConstant;
+
+	if (!smithp && actuatorSettings.SmithPredictorDelay > 0.1f) {
+		float dT = 1.0f / (float)PIOS_SENSORS_GetSampleRate(PIOS_SENSOR_GYRO) * 1000.0f;
+		int delay = (int)(actuatorSettings.SmithPredictorDelay / dT + 0.5f);
+		if (delay > 0) {
+			smithp = smithp_init(delay, actuatorSettings.SmithPredictorIIR, actuatorSettings.SmithPredictorMix);
+		}
+	}
 }
 
 /**
@@ -804,6 +844,13 @@ static void actuator_task(void* parameters)
 			SystemSettingsAirframeTypeGet(&airframe_type);
 
 			compute_mixer();
+
+			/* If we can't calculate a proper inverse mixer,
+			 * set failsafe.
+			 */
+			if (compute_inverse_mixer()) {
+				inverse_mixer_computed = true;
+			}
 
 			MixerSettingsThrottleCurve2Get(curve2);
 			MixerSettingsCurve2SourceGet(&curve2_src);
@@ -883,6 +930,8 @@ static void actuator_task(void* parameters)
 				&spin_while_armed, &stabilize_now,
 				&flip_over_mode);
 
+		smithp_compensate(smithp, desired_vect);
+
 		/* Multiply the actuators x desired matrix by the
 		 * desired x 1 column vector. */
 		matrix_mul_check(motor_mixer, desired_vect, motor_vect,
@@ -914,6 +963,8 @@ static void actuator_task(void* parameters)
 		post_process_scale_and_commit(motor_vect, desired_vect,
 				dT, armed, spin_while_armed, stabilize_now,
 				flip_over_mode, &maxpoweradd_bucket);
+
+		smithp_push_vect(smithp, motor_vect);
 
 		/* If we got this far, everything is OK. */
 		AlarmsClear(SYSTEMALARMS_ALARM_ACTUATOR);
@@ -1118,6 +1169,90 @@ static void set_failsafe()
 
 	// Update output object's parts that we changed
 	ActuatorCommandChannelSet(Channel);
+}
+
+static struct smith_predictor* smithp_init(float delay, float iir, float mix)
+{
+	struct smith_predictor *m = PIOS_malloc_no_dma(sizeof(*m));
+	if (!m)
+		return NULL;
+	memset(m, 0, sizeof(*m));
+
+	if (delay > SMITHP_MAX_DELAY) delay = SMITHP_MAX_DELAY;
+
+	m->samples = delay;
+	m->iir_alpha = iir;
+	m->mix = mix;
+
+	m->data = PIOS_malloc_no_dma(delay * MAX_MIX_ACTUATORS * sizeof(*m->data));
+	if (!m->data)
+		return NULL;
+	memset(m->data, 0, sizeof(*m->data) * delay * MAX_MIX_ACTUATORS);
+
+	return m;
+}
+
+/*
+	Call order for it to work should be:
+	- Compensate
+	- Push vect
+*/
+
+static void smithp_push_vect(struct smith_predictor *m, float *motor_vect)
+{
+	if (!m) return;
+
+	uint32_t p = (m->idx % m->samples) * MAX_MIX_ACTUATORS;
+
+	/* Write motor vector to position. */
+	for (int i = 0; i < MAX_MIX_ACTUATORS; i++) {
+		float v = motor_vect[i];
+		m->data[p++] = v != v ? 0 : v;
+	}
+
+	/* Moves pointer to oldest data point (via modulo) for _compensate. */
+	m->idx++;
+}
+
+static void smithp_compensate(struct smith_predictor *m, float *desired_vect)
+{
+	if (!m || !inverse_mixer_computed) return;
+
+	uint32_t p = (m->idx % m->samples) * MAX_MIX_ACTUATORS;
+
+	float inv[MIXERSETTINGS_MIXER1VECTOR_NUMELEM];
+
+	for (int i = 0; i < MAX_MIX_ACTUATORS; i++) {
+		/* Do IIR on delayed data*/
+		m->iir[i] = m->iir[i] * m->iir_alpha + (1 - m->iir_alpha) * m->data[p++];
+	}
+
+	/* Do inverse stuff. */
+	matrix_mul_check(motor_mixer_inv, m->iir, inv,
+			MIXERSETTINGS_MIXER1VECTOR_NUMELEM,
+			MAX_MIX_ACTUATORS,
+			1);
+
+	for (int i = 0; i < MIXERSETTINGS_MIXER1VECTOR_NUMELEM; i++) {
+		float v = m->mix * (desired_vect[i] - inv[i]);
+
+		if (i == MIXERSETTINGS_MIXER1VECTOR_THROTTLECURVE1) {
+			/* This predictive stuff is noisy and can apparently cause some feedback in the low throttle
+			region, that makes throttle eventually oscillate around the zero point under certain conditions.
+			This leads to funny business with the motors, e.g. grinding. */
+			float r = desired_vect[i]+v;
+			float s = sign(desired_vect[i]);
+
+			/* Don't cross zero via prediction. Also bound throttle. */
+			if (sign(r) != s)
+				desired_vect[i] = s*THROTTLE_EPSILON;
+			else
+				desired_vect[i] = bound_sym(r, 1.0f);
+		} else {
+			desired_vect[i] += v;
+		}
+
+	}
 }
 
 /**
