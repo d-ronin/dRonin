@@ -34,7 +34,19 @@
 #include <pios_stm32.h>
 #include "pios_usart.h"
 
+#define PIOS_USART_ALLOW_RECEIVE_DMA	0x1
+#define PIOS_USART_ALLOW_TRANSMIT_DMA	0x2
+
 extern const struct pios_com_driver pios_usart_com_driver;
+
+#if defined(STM32F4XX)
+struct pios_usart_dma_cfg {
+	DMA_Stream_TypeDef *stream;
+	DMA_InitTypeDef init;
+	uint32_t tcif;
+	NVIC_InitTypeDef irq;
+};
+#endif
 
 struct pios_usart_cfg {
 	USART_TypeDef *regs;
@@ -42,6 +54,10 @@ struct pios_usart_cfg {
 	struct stm32_gpio rx;
 	struct stm32_gpio tx;
 	struct stm32_irq irq;
+#if defined(STM32F4XX)
+	struct pios_usart_dma_cfg *dma_send;
+	struct pios_usart_dma_cfg *dma_recv;
+#endif
 };
 
 struct pios_usart_params {
@@ -50,10 +66,33 @@ struct pios_usart_params {
 	bool tx_invert;
 	bool rxtx_swap;
 	bool single_wire;
+	uint8_t flags;
 };
 
 extern int32_t PIOS_USART_Init(uintptr_t * usart_id, const struct pios_usart_cfg * cfg, struct pios_usart_params * params);
 extern const struct pios_usart_cfg * PIOS_USART_GetConfig(uintptr_t usart_id);
+
+#if defined(STM32F4XX)
+
+extern void PIOS_USART_1_dmarx_irq_handler(void);
+extern void PIOS_USART_1_dmatx_irq_handler(void);
+
+extern void PIOS_USART_2_dmarx_irq_handler(void);
+extern void PIOS_USART_2_dmatx_irq_handler(void);
+
+extern void PIOS_USART_3_dmarx_irq_handler(void);
+extern void PIOS_USART_3_dmatx_irq_handler(void);
+
+extern void PIOS_USART_4_dmarx_irq_handler(void);
+extern void PIOS_USART_4_dmatx_irq_handler(void);
+
+extern void PIOS_USART_5_dmarx_irq_handler(void);
+extern void PIOS_USART_5_dmatx_irq_handler(void);
+
+extern void PIOS_USART_6_dmarx_irq_handler(void);
+extern void PIOS_USART_6_dmatx_irq_handler(void);
+
+#endif
 
 #endif /* PIOS_USART_PRIV_H */
 

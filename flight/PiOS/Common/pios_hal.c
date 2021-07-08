@@ -813,6 +813,7 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 
 	case HWSHARED_PORTTYPES_OPENLOG:
 #if defined(PIOS_INCLUDE_OPENLOG)
+		usart_port_params.flags = PIOS_USART_ALLOW_TRANSMIT_DMA;
 		PIOS_HAL_ConfigureCom(usart_port_cfg, &usart_port_params, 0, PIOS_COM_OPENLOG_TX_BUF_LEN, com_driver, &port_driver_id);
 		target = &pios_com_openlog_logging_id;
 #endif /* PIOS_INCLUDE_OPENLOG */
@@ -874,6 +875,7 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 			usart_port_params.init.USART_StopBits            = USART_StopBits_2;
 			usart_port_params.init.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
 			usart_port_params.init.USART_Mode                = USART_Mode_Rx;
+			usart_port_params.flags                          = PIOS_USART_ALLOW_RECEIVE_DMA;
 
 			if (port_type == HWSHARED_PORTTYPES_SBUS)
 				usart_port_params.rx_invert = true;
@@ -919,6 +921,7 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 			usart_port_params.init.USART_StopBits            = USART_StopBits_1;
 			usart_port_params.init.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
 			usart_port_params.init.USART_Mode                = USART_Mode_Rx;
+			usart_port_params.flags                          = PIOS_USART_ALLOW_RECEIVE_DMA;
 
 			PIOS_HAL_ConfigureSRXL(usart_port_cfg, &usart_port_params, com_driver);
 		}
@@ -934,6 +937,7 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 			usart_port_params.init.USART_StopBits            = USART_StopBits_1;
 			usart_port_params.init.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
 			usart_port_params.init.USART_Mode                = USART_Mode_Rx;
+			usart_port_params.flags                          = PIOS_USART_ALLOW_RECEIVE_DMA;
 
 			PIOS_HAL_ConfigureIBus(usart_port_cfg, &usart_port_params, com_driver);
 		}
@@ -949,6 +953,7 @@ void PIOS_HAL_ConfigurePort(HwSharedPortTypesOptions port_type,
 			usart_port_params.init.USART_StopBits            = USART_StopBits_1;
 			usart_port_params.init.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
 			usart_port_params.init.USART_Mode                = USART_Mode_Rx|USART_Mode_Tx;
+			usart_port_params.flags                          = PIOS_USART_ALLOW_RECEIVE_DMA | PIOS_USART_ALLOW_TRANSMIT_DMA;
 
 			PIOS_HAL_ConfigureTbsCrossfire(usart_port_cfg, &usart_port_params, com_driver);
 			PIOS_Modules_Enable(PIOS_MODULE_UAVOCROSSFIRETELEMETRY);
