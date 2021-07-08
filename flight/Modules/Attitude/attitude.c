@@ -655,6 +655,12 @@ static int32_t updateAttitudeComplementary(float dT, bool first_run, bool second
 		float baro;
 		BaroAltitudeAltitudeGet(&baro);
 		cfvert_reset(&cfvert, baro, attitudeSettings.VertPositionTau);
+	} else if (flightStatus.Armed == FLIGHTSTATUS_ARMED_DISARMED) {
+		// CF_NORMAL
+		/* Keep forcing faster convergence while disarmed. */
+		accKp = 50;
+		accKi = 1;
+		mgKp = 1;
 	}
 
 	GyrosGet(&gyrosData);
@@ -766,18 +772,22 @@ static int32_t updateAttitudeComplementary(float dT, bool first_run, bool second
 		mag_err[2] = 0;
 	}
 
-	// Accumulate integral of error.  Scale here so that units are (deg/s) but Ki has units of s
-	GyrosBiasData gyrosBias;
-	GyrosBiasGet(&gyrosBias);
-	gyrosBias.x -= accel_err[0] * accKi * dT;
-	gyrosBias.y -= accel_err[1] * accKi * dT;
-	gyrosBias.z -= mag_err[2] * mgKi * dT;
-	GyrosBiasSet(&gyrosBias);
+	/* Without BiasCorrectGyro enabled, the sensors module runs the show in regards to gyro zeroing/bias,
+	   as soon the craft is arming. Until then the attitude module keeps figuring it out. */
+	if (attitudeSettings.BiasCorrectGyro == ATTITUDESETTINGS_BIASCORRECTGYRO_TRUE || flightStatus.Armed == FLIGHTSTATUS_ARMED_DISARMED) {
+		// Accumulate integral of error.  Scale here so that units are (deg/s) but Ki has units of s
+		GyrosBiasData gyrosBias;
+		GyrosBiasGet(&gyrosBias);
+		gyrosBias.x -= accel_err[0] * accKi * dT;
+		gyrosBias.y -= accel_err[1] * accKi * dT;
+		gyrosBias.z -= mag_err[2] * mgKi * dT;
+		GyrosBiasSet(&gyrosBias);
 
-	// Correct rates based on error, integral component dealt with in updateSensors
-	gyrosData.x += accel_err[0] * accKp;
-	gyrosData.y += accel_err[1] * accKp;
-	gyrosData.z += accel_err[2] * accKp + mag_err[2] * mgKp;
+		// Correct rates based on error, integral component dealt with in updateSensors
+		gyrosData.x += accel_err[0] * accKp;
+		gyrosData.y += accel_err[1] * accKp;
+		gyrosData.z += accel_err[2] * accKp + mag_err[2] * mgKp;
+	}
 
 	// Work out time derivative from INSAlgo writeup
 	// Also accounts for the fact that gyros are in deg/s
