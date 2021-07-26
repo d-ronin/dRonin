@@ -26,5 +26,8 @@
     <field defaultvalue="0" elements="1" name="Yaw" type="float" units="degrees">
       <description/>
     </field>
+    <field defaultvalue="0" elements="1" name="AccelConfidence" type="float" units="">
+      <description/>
+    </field>
   </object>
 </xml>

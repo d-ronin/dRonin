@@ -160,6 +160,10 @@ static struct cfvert cfvert; //!< State information for vertical filter
 
 static float dT_expected = 0.001f;	// assume 1KHz if we don't know.
 
+#define ACCEL_ONE_G (9.8065f)
+static float accel_confidence_decay = 2; /* 1 / sqrt(0.25) */
+float accel_confidence;
+
 // Private functions
 static void AttitudeTask(void *parameters);
 
@@ -354,6 +358,8 @@ static void AttitudeTask(void *parameters)
 				complementary_filter_state.accel_alpha = expf(-dT_expected  / attitudeSettings.AccelTau);
 				complementary_filter_state.accel_filter_enabled = true;
 			}
+
+			accel_confidence_decay = 1.0f / sqrtf(bound_min_max(attitudeSettings.AccCutoff, 0.1f, 1.0f));
 
 			StateEstimationGet(&stateEstimation);
 		}
@@ -766,18 +772,23 @@ static int32_t updateAttitudeComplementary(float dT, bool first_run, bool second
 		mag_err[2] = 0;
 	}
 
+	/* Computes confidence in accelerometers when aircraft is being accelerated over
+	   and above that due to gravity. (c) G.K. Egan */
+
+	accel_confidence = bound_min_max(1.0f - (accel_confidence_decay * sqrtf(fabs(accel_mag / ACCEL_ONE_G - 1.0f))), 0.0f, 1.0f);
+	
 	// Accumulate integral of error.  Scale here so that units are (deg/s) but Ki has units of s
 	GyrosBiasData gyrosBias;
 	GyrosBiasGet(&gyrosBias);
-	gyrosBias.x -= accel_err[0] * accKi * dT;
-	gyrosBias.y -= accel_err[1] * accKi * dT;
+	gyrosBias.x -= accel_err[0] * accKi * dT * accel_confidence;
+	gyrosBias.y -= accel_err[1] * accKi * dT * accel_confidence;
 	gyrosBias.z -= mag_err[2] * mgKi * dT;
 	GyrosBiasSet(&gyrosBias);
 
 	// Correct rates based on error, integral component dealt with in updateSensors
-	gyrosData.x += accel_err[0] * accKp;
-	gyrosData.y += accel_err[1] * accKp;
-	gyrosData.z += accel_err[2] * accKp + mag_err[2] * mgKp;
+	gyrosData.x += accel_err[0] * accKp * accel_confidence;
+	gyrosData.y += accel_err[1] * accKp * accel_confidence;
+	gyrosData.z += accel_err[2] * accKp * accel_confidence + mag_err[2] * mgKp;
 
 	// Work out time derivative from INSAlgo writeup
 	// Also accounts for the fact that gyros are in deg/s
@@ -991,6 +1002,7 @@ static int32_t setAttitudeComplementary()
 	AttitudeActualData attitude;
 	quat_copy(cf_q, &attitude.q1);
 	Quaternion2RPY(&attitude.q1,&attitude.Roll);
+	attitude.AccelConfidence = accel_confidence;
 	AttitudeActualSet(&attitude);
 
 	return 0;
