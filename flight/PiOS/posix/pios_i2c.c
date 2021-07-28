@@ -70,6 +70,7 @@ int32_t PIOS_I2C_Init(pios_i2c_t *i2c_id, const char *path)
 	dev->lock = PIOS_Mutex_Create();
 
 	if (!dev->lock) {
+		free(dev);
 		return -1;
 	}
  
@@ -77,6 +78,7 @@ int32_t PIOS_I2C_Init(pios_i2c_t *i2c_id, const char *path)
 
 	if (dev->fd < 0) {
 		perror("i2c-open");
+		free(dev);
 		return -2;
 	}
 
